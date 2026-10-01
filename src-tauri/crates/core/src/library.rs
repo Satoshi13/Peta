@@ -41,7 +41,13 @@ impl Library {
     }
 
     /// Store a processed image as a new sticker made by the user (not yet on the desktop).
-    pub fn add_created(&mut self, processed: &Processed, original: &[u8], creator_id: Option<&str>) -> Result<Sticker> {
+    pub fn add_created(
+        &mut self,
+        processed: &Processed,
+        original: &[u8],
+        creator_id: Option<&str>,
+        material_id: Option<&str>,
+    ) -> Result<Sticker> {
         let id = loop {
             let id = new_sticker_id();
             if !self.db.sticker_id_exists(&id)? {
@@ -58,7 +64,7 @@ impl Library {
             creator_id: creator_id.map(str::to_owned),
             original_asset_path: original_rel,
             rendered_asset_path: rendered_rel,
-            material_id: None,
+            material_id: material_id.map(str::to_owned),
             source_type: SourceType::Created,
             aspect: processed.aspect(),
         });
@@ -132,8 +138,9 @@ mod tests {
         let id = {
             let mut lib = Library::open(&dir).unwrap();
             let processed = process_image(&bytes).unwrap();
-            let sticker = lib.add_created(&processed, &bytes, Some("me")).unwrap();
+            let sticker = lib.add_created(&processed, &bytes, Some("me"), Some("matte")).unwrap();
             assert_eq!(sticker.original_number, Some(1));
+            assert_eq!(sticker.material_id.as_deref(), Some("matte"));
             assert!(sticker.id.starts_with("PETA-"));
             let placement = lib.stick_new(&sticker, "display-1", 0.4, 0.6).unwrap();
             assert!((placement.relative_scale - 0.18).abs() < 1e-9); // landscape: width = long side
@@ -157,7 +164,7 @@ mod tests {
         let dir = tmp();
         let bytes = png(100, 200);
         let mut lib = Library::open(&dir).unwrap();
-        let s = lib.add_created(&process_image(&bytes).unwrap(), &bytes, None).unwrap();
+        let s = lib.add_created(&process_image(&bytes).unwrap(), &bytes, None, None).unwrap();
         let p = lib.stick_new(&s, "d", 0.5, 0.5).unwrap();
         assert!((p.relative_scale - 0.09).abs() < 1e-9);
         let _ = fs::remove_dir_all(dir);

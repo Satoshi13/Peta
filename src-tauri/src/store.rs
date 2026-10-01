@@ -83,11 +83,12 @@ impl Store {
         })
     }
 
-    /// Decode + downscale OUTSIDE the lock (it's the slow part), then store and stick it down.
+    /// Developer path: decode + downscale OUTSIDE the lock (it's the slow part), then store and stick it down.
+    /// Ignores the Daily Slot — real Create goes through `today::create_today`.
     pub fn import_bytes(&self, bytes: &[u8], display_id: &str, rx: f64, ry: f64) -> Result<Sticker, String> {
         let processed = process_image(bytes).map_err(|e| e.to_string())?;
         let mut lib = self.lock();
-        let sticker = lib.add_created(&processed, bytes, None).map_err(|e| e.to_string())?;
+        let sticker = lib.add_created(&processed, bytes, None, None).map_err(|e| e.to_string())?;
         lib.stick_new(&sticker, display_id, rx, ry).map_err(|e| e.to_string())?;
         Ok(sticker)
     }
@@ -117,7 +118,7 @@ fn migrate_legacy_json(lib: &mut Library, json: &Path) {
         let legacy: Vec<Placement> = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
         for old in legacy {
             let processed = process_image(SAMPLE_CAT).map_err(|e| e.to_string())?;
-            let sticker = lib.add_created(&processed, SAMPLE_CAT, None).map_err(|e| e.to_string())?;
+            let sticker = lib.add_created(&processed, SAMPLE_CAT, None, None).map_err(|e| e.to_string())?;
             lib.db_mut()
                 .place(Placement { sticker_id: sticker.id, z: 0, ..old })
                 .map_err(|e| e.to_string())?;

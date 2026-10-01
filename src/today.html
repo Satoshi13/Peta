@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Today's Peta</title>
+  <link rel="stylesheet" href="today.css" />
+</head>
+<body>
+  <!--
+    Today screen (spec §14). This file is the FUNCTIONAL skeleton: states, copy and data flow are real,
+    the visuals are placeholders. Every `.art-slot[data-art]` marks where illustration / animation goes
+    (see docs/ui-handoff.md). Keep the ids and data-* hooks; restyle freely.
+  -->
+  <main id="today">
+    <header>
+      <h1>Today</h1>
+      <p id="date" class="muted"></p>
+    </header>
+
+    <!-- 1. Today's Material has arrived (unopened) -->
+    <section id="stage-envelope" hidden>
+      <div class="art-slot" data-art="envelope" data-art-note="Today's Material arrival: envelope / sleeve, closed. Click or Open to open."></div>
+      <p class="lead">Today's Material has arrived.</p>
+      <button id="open-material" class="primary" type="button">Open</button>
+    </section>
+
+    <!-- 2. Material revealed (after opening) -->
+    <section id="stage-material" hidden>
+      <div class="art-slot" data-art="material-reveal" data-art-note="Material reveal: the opened material (e.g. holographic foil catching light), rarity feel."></div>
+      <div id="material-card" class="card">
+        <div class="card-head">
+          <h2 id="material-name"></h2>
+          <span id="material-rarity" class="badge"></span>
+        </div>
+        <p id="material-recipe" class="muted"></p>
+        <p id="material-new" class="new" hidden>Added to your Material Book</p>
+      </div>
+    </section>
+
+    <!-- 3. Choose today's Peta (slot is still free) -->
+    <section id="stage-choose" hidden>
+      <h2>How will you make today's Peta?</h2>
+      <p class="muted">You get one new Peta a day. Looking around doesn't use it up — only sticking one down does.</p>
+
+      <div id="material-picker" class="chips" role="radiogroup" aria-label="Material"></div>
+
+      <div class="choices">
+        <button id="choose-create" class="choice" type="button" data-art="choice-create">
+          <span class="choice-icon art-inline" data-art="icon-create"></span>
+          <strong>Create</strong>
+          <small>From an image you pick</small>
+        </button>
+        <button id="choose-collection" class="choice" type="button" data-art="choice-collection">
+          <span class="choice-icon art-inline" data-art="icon-collection"></span>
+          <strong>Collection</strong>
+          <small>Stick one you already have</small>
+        </button>
+        <button class="choice" type="button" disabled data-art="choice-gift">
+          <span class="choice-icon art-inline" data-art="icon-gift"></span>
+          <strong>Gift</strong>
+          <small>Coming later</small>
+        </button>
+        <button class="choice" type="button" disabled data-art="choice-pack">
+          <span class="choice-icon art-inline" data-art="icon-pack"></span>
+          <strong>Pack</strong>
+          <small>Coming later</small>
+        </button>
+      </div>
+      <p id="error" class="error" role="alert" hidden></p>
+    </section>
+
+    <!-- 3b. Pick from the collection -->
+    <section id="stage-collection" hidden>
+      <div class="row">
+        <button id="collection-back" class="link" type="button">← Back</button>
+        <h2>Collection</h2>
+      </div>
+      <p id="collection-empty" class="muted" hidden>Nothing here yet. Peel a sticker off the desktop and it waits here.</p>
+      <div id="collection-grid" class="grid"></div>
+    </section>
+
+    <!-- 4. Done for today -->
+    <section id="stage-done" hidden>
+      <div class="art-slot" data-art="see-you-tomorrow" data-art-note="Closing moment. Shows today's sticker."></div>
+      <img id="done-sticker" alt="" />
+      <p class="lead">See you tomorrow.</p>
+    </section>
+
+    <!-- Material Book (everything unlocked so far) -->
+    <section id="material-book">
+      <h3>Material Book</h3>
+      <ul id="material-list" class="list"></ul>
+    </section>
+
+    <footer class="muted"><small id="debug-slot"></small></footer>
+  </main>
+  <script type="module" src="today.js"></script>
+</body>
+</html>

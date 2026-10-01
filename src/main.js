@@ -412,7 +412,15 @@ async function reconcile() {
   for (const p of list) await addSticker(p);
 }
 
-/** Drop image files onto the desktop (edit mode) to stick them where they land. */
+let flashTimer = 0;
+/** Short message in the edit bar (reuses the meter slot). */
+function flashHint(text) {
+  meterEl.textContent = text;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => { meterEl.textContent = ""; }, 3500);
+}
+
+/** Drop an image file onto the desktop (edit mode): it becomes today's Peta, where it lands. */
 async function wireFileDrop() {
   const webview = window.__TAURI__.webview?.getCurrentWebview?.();
   if (!webview?.onDragDropEvent) return;
@@ -426,7 +434,9 @@ async function wireFileDrop() {
     try {
       await invoke("import_dropped", { paths: p.paths, x: p.position.x / dpr / w, y: p.position.y / dpr / h });
     } catch (err) {
-      console.error("import_dropped failed", err);
+      // one new Peta a day: a second drop is refused, politely (spec §14)
+      if (String(err) === "already_used_today") flashHint("See you tomorrow.");
+      else console.error("import_dropped failed", err);
     }
   });
 }

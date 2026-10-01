@@ -2,8 +2,9 @@
 
 毎日、ひとつだけ。デスクトップに残る、ステッカーのある暮らし。
 
-現在は **Phase 1: Sticker Core**(macOS のみ)。Phase 0 の Desktop Layer の上に、SQLite のステッカーライブラリと
-画像の取り込みが載っています。Daily / Material / Collection / 背景除去はまだありません。
+現在は **Phase 2: Daily**(macOS のみ)。Desktop Layer(Phase 0)と SQLite のステッカーライブラリ(Phase 1)の上に、
+**1日1枚のルール**、Today's Material、素材のアンロックが載っています。背景除去・素材の見た目・Collection 画面はまだありません。
+画像生成が必要な演出は未着手で、引き継ぎ資料は [docs/ui-handoff.md](docs/ui-handoff.md) にあります。
 
 ## 動かし方(Mac)
 
@@ -22,11 +23,29 @@ npm run dev        # = tauri dev
 
 | 項目 | 動作 |
 |---|---|
+| **Today's Peta** | Today 画面を開く。今日の素材が未開封なら `●`、今日の1枚を貼り終えたら `✓` が付く |
 | Edit Stickers | 編集モードのON/OFF。Esc / 画面上部の Done でも終了 |
-| **Add Image…** | 画像ファイル(PNG / JPEG / WebP)を選んで、メイン画面の中央に貼る(複数選択可) |
-| Add Sample Cat | サンプルの猫をもう1枚貼る |
 | Re-sync Displays | ディスプレイ構成を再読込(通常は2秒ごとに自動検知) |
 | Quit Peta | 終了 |
+| **Developer ▸**(デバッグビルドのみ) | 下の表 |
+
+**Developer メニュー**(`npm run dev` のときだけ表示。リリースビルドには出ません)
+
+| 項目 | 動作 |
+|---|---|
+| Add Image… (ignores daily rule) | 画像を選んで貼る。**1日1枚のルールを無視**する(Phase 1 の挙動) |
+| Add Sample Cat (ignores daily rule) | サンプルの猫を貼る(同上) |
+| Next Day (+1 day) | 時計を1日進める。日付変更・新しい素材の抽選・スロットのリセットを確かめる |
+| Reset Today | 今日の記録を消す。封筒・抽選・スロットが最初からやり直しになる(貼ったステッカーは残る) |
+
+### 1日1枚のルール
+
+- 今日の素材は日付ごとに1つ抽選され、**初回だけは必ず Holographic**(仕様 §88 の体験)。以降は Common 60 / Uncommon 30 / Rare 10 の重み。
+- **封筒を開ける**と素材が Material Book に入り、ずっと残ります(使い捨てではありません)。Matte は最初から使えます。
+- 今日の新しい1枚を**確定できるのは1回だけ**。Today 画面から **Create**(画像を選ぶ)か **Collection**(デスクトップに無いものを貼る)。
+  **編集モード中に画像ファイルをデスクトップへドロップするのも Create** です(その日の素材で作られます)。2回目は「See you tomorrow.」と断られます。
+- 素材を眺める・Today 画面を開く・画像ダイアログをキャンセルする、では消費しません。移動・拡大縮小・回転・剥がす・貼り直しは何度でも。
+- 日付はローカル時間の 0:00 で切り替わります(起動したままでも、30秒以内に検知)。
 
 ### 編集モードの操作
 
@@ -40,7 +59,7 @@ npm run dev        # = tauri dev
 | **Option を押しながらドラッグして引き離す** | 掴んだ側がめくれる。十分に引いて離すと**剥がれて消える**。途中で離すと貼り直される |
 | Delete / Backspace | ポインター下のステッカーを剥がす |
 
-| **画像ファイルをデスクトップへドロップ**(編集モード中) | 落とした場所に貼る |
+| **画像ファイルをデスクトップへドロップ**(編集モード中) | 落とした場所に貼る。**今日の Create として扱われる**(1日1枚) |
 
 操作を離した時点で自動保存されます。触ったステッカーは最前面に来ます。
 剥がしたステッカーは**デスクトップから外れるだけでライブラリには残ります**(Collection は Phase 5 で見られるようになります)。再起動しても戻りません。
@@ -83,11 +102,16 @@ npm run dev        # = tauri dev
 src/                 フロントエンド(ビルド不要の素のJS)
   placement.js         座標計算(純粋関数。tests/ で単体テスト)
   main.js / style.css  レイヤー描画と編集モード
+  today.html/js/css    Today 画面(機能するプレースホルダー)
 src-tauri/crates/core/ peta-core: OS・UIに依存しない中核(Linuxでも cargo test できる)
   db.rs                SQLite(stickers / provenance / placements)
   library.rs           DB + 画像ファイルの管理
   image_import.rs      画像の取り込み(余白トリミング・縮小・PNG化)
+  daily.rs             Daily Slot(AVAILABLE→SELECTING→CONFIRMED→USED)
+  materials.rs         素材カタログ(Matte / Kraft / Holographic)と抽選
+src-tauri/crates/core/ の daily.rs / materials.rs: 1日1枚のルールと素材カタログ(時計を外から渡せるのでテスト可能)
 src-tauri/src/
+  today.rs             Today の状態・コマンド・ウィンドウ・日付変更の監視
   layers.rs            ディスプレイごとの透明レイヤー生成・再同期
   store.rs             ライブラリの所有、初回起動、旧JSONの移行、取り込み
   tray.rs              メニューバー

@@ -1,14 +1,14 @@
 mod layers;
 mod platform;
 mod store;
+mod today;
 mod tray;
-
-use std::path::PathBuf;
 
 use layers::Layers;
 use peta_core::Placement;
 use store::Store;
-use tauri::{ipc::Response, AppHandle, Emitter, Manager, State, WebviewWindow};
+use today::Today;
+use tauri::{ipc::Response, AppHandle, Manager, State, WebviewWindow};
 
 #[tauri::command]
 fn layer_info(window: WebviewWindow, layers: State<Layers>) -> Result<layers::LayerInfo, String> {
@@ -43,22 +43,21 @@ fn sticker_asset(store: State<Store>, sticker_id: String) -> Result<Response, St
     Ok(Response::new(bytes))
 }
 
-/// Image files dropped onto a layer. `x` / `y` are the drop point as 0..1 of that display.
+/// An image file dropped onto a layer is a Create: it becomes today's Peta, if today's slot is still free.
+/// `x` / `y` are the drop point as 0..1 of that display. Fails with `already_used_today` otherwise.
 #[tauri::command]
 async fn import_dropped(
     window: WebviewWindow,
     app: AppHandle,
     layers: State<'_, Layers>,
-    store: State<'_, Store>,
     paths: Vec<String>,
     x: f64,
     y: f64,
-) -> Result<usize, String> {
+) -> Result<(), String> {
     let info = layers.info(window.label()).ok_or("unknown layer")?;
-    let paths: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
-    let n = store.import_paths(&paths, &info.display_id, x, y);
-    let _ = app.emit("placements-changed", ());
-    Ok(n)
+    let Some(first) = paths.into_iter().next() else { return Ok(()) }; // one new Peta per day
+    let bytes = std::fs::read(&first).map_err(|e| format!("could not read {first}: {e}"))?;
+    today::create_today(&app, &bytes, &info.display_id, (x, y), None).map(|_| ())
 }
 
 #[tauri::command]
@@ -71,6 +70,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(Store::default())
         .manage(Layers::default())
+        .manage(Today::default())
         .invoke_handler(tauri::generate_handler![
             layer_info,
             layer_placements,
@@ -78,7 +78,12 @@ pub fn run() {
             peel_sticker,
             sticker_asset,
             import_dropped,
-            exit_edit_mode
+            exit_edit_mode,
+            today::daily_status,
+            today::daily_open_material,
+            today::daily_create,
+            today::collection_unused,
+            today::daily_stick_from_collection
         ])
         .setup(|app| {
             // Menu-bar-only app: no Dock icon, no app menu.
@@ -89,6 +94,8 @@ pub fn run() {
             tray::build(app.handle())?;
             layers::sync(app.handle())?;
             layers::spawn_monitor_watcher(app.handle().clone());
+            today::roll_day(app.handle()); // draws today's material; sets the menu indicator
+            today::spawn_day_watcher(app.handle().clone());
             Ok(())
         })
         .build(tauri::generate_context!())

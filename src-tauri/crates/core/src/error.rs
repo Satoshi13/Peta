@@ -6,6 +6,8 @@ pub enum Error {
     Io(std::io::Error),
     Image(String),
     Invalid(String),
+    /// Today's one new Peta has already been confirmed.
+    AlreadyUsedToday,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -17,6 +19,7 @@ impl fmt::Display for Error {
             Error::Io(e) => write!(f, "io error: {e}"),
             Error::Image(e) => write!(f, "image error: {e}"),
             Error::Invalid(e) => write!(f, "{e}"),
+            Error::AlreadyUsedToday => write!(f, "already_used_today"),
         }
     }
 }

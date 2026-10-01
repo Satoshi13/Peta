@@ -1,0 +1,225 @@
+//! The Daily Slot (spec §11-15): one new Peta per day.
+//!
+//!   AVAILABLE -> SELECTING -> CONFIRMED -> USED
+//!
+//! Only CONFIRMED is the point of no return. Looking at the material, picking an image or
+//! previewing never consumes the slot. SELECTING is a UI state (the Today screen is open) and
+//! is not stored; AVAILABLE / CONFIRMED / USED are derived from the stored timestamps.
+//!
+//! Dates are plain local `YYYY-MM-DD` strings; every function takes `today` explicitly so the
+//! clock can be injected (tests, and the developer "next day" switch).
+
+use serde::{Deserialize, Serialize};
+
+use crate::{
+    db::{now, Database},
+    error::{Error, Result},
+    materials,
+    models::SourceType,
+};
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct DailyRecord {
+    pub date: String,
+    pub material_id: String,
+    pub material_opened_at: Option<String>,
+    pub sticker_id: Option<String>,
+    pub source_type: Option<SourceType>,
+    pub confirmed_at: Option<String>,
+    pub used_at: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum SlotState {
+    Available,
+    Selecting,
+    Confirmed,
+    Used,
+}
+
+impl SlotState {
+    /// Can today's new Peta still be chosen?
+    pub fn can_add_new(self) -> bool {
+        matches!(self, SlotState::Available | SlotState::Selecting)
+    }
+}
+
+impl DailyRecord {
+    pub fn slot(&self, selecting: bool) -> SlotState {
+        match (&self.confirmed_at, &self.used_at) {
+            (_, Some(_)) => SlotState::Used,
+            (Some(_), None) => SlotState::Confirmed,
+            (None, None) if selecting => SlotState::Selecting,
+            (None, None) => SlotState::Available,
+        }
+    }
+}
+
+/// Today's local date, `offset_days` ahead (0 in production; the developer "next day" switch uses it).
+pub fn local_today(offset_days: i64) -> String {
+    (chrono::Local::now().date_naive() + chrono::Duration::days(offset_days))
+        .format("%Y-%m-%d")
+        .to_string()
+}
+
+/// Today's record, drawing the day's material on first access (`roll` uniform in 0..1).
+pub fn ensure_today(db: &mut Database, today: &str, roll: f64) -> Result<DailyRecord> {
+    if let Some(r) = db.daily_get(today)? {
+        return Ok(r);
+    }
+    let first_ever = db.daily_count()? == 0;
+    db.daily_insert(today, &materials::draw(roll, first_ever))?;
+    db.daily_get(today)?.ok_or_else(|| Error::Invalid("daily record vanished".into()))
+}
+
+/// Open the envelope: Today's Material is yours. Unlocks it for good (it is never used up, spec §21).
+/// Returns the record and whether the material was newly unlocked. Idempotent.
+pub fn open_material(db: &mut Database, today: &str, roll: f64) -> Result<(DailyRecord, bool)> {
+    let record = ensure_today(db, today, roll)?;
+    if record.material_opened_at.is_some() {
+        return Ok((record, false));
+    }
+    db.daily_set_opened(today, &now())?;
+    let newly = db.unlock_material(&record.material_id)?;
+    Ok((db.daily_get(today)?.expect("just updated"), newly))
+}
+
+/// "Today's Peta, confirmed." The point of no return. Fails with `AlreadyUsedToday` on the second try.
+pub fn confirm(db: &mut Database, today: &str, sticker_id: &str, source: SourceType, roll: f64) -> Result<DailyRecord> {
+    let record = ensure_today(db, today, roll)?;
+    if !record.slot(false).can_add_new() {
+        return Err(Error::AlreadyUsedToday);
+    }
+    db.daily_set_confirmed(today, sticker_id, source, &now())?;
+    Ok(db.daily_get(today)?.expect("just updated"))
+}
+
+/// The confirmed sticker is on the desktop: the slot is spent.
+pub fn mark_used(db: &mut Database, today: &str) -> Result<DailyRecord> {
+    let record = db.daily_get(today)?.ok_or_else(|| Error::Invalid("no daily record for today".into()))?;
+    match record.slot(false) {
+        SlotState::Confirmed => {
+            db.daily_set_used(today, &now())?;
+            Ok(db.daily_get(today)?.expect("just updated"))
+        }
+        SlotState::Used => Ok(record),
+        _ => Err(Error::Invalid("nothing confirmed to mark as used".into())),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::NewSticker;
+
+    fn db_with_sticker(id: &str) -> Database {
+        let mut db = Database::open_in_memory().unwrap();
+        db.create_sticker(NewSticker {
+            id: id.into(),
+            creator_id: None,
+            original_asset_path: "o".into(),
+            rendered_asset_path: "r".into(),
+            material_id: None,
+            source_type: SourceType::Created,
+            aspect: 1.0,
+        })
+        .unwrap();
+        db
+    }
+
+    #[test]
+    fn first_day_draws_holographic_and_is_stable_within_the_day() {
+        let mut db = Database::open_in_memory().unwrap();
+        let a = ensure_today(&mut db, "2026-10-01", 0.0).unwrap();
+        assert_eq!(a.material_id, "holographic");
+        assert_eq!(a.slot(false), SlotState::Available);
+        // asking again (even with another roll) returns the same day's material
+        assert_eq!(ensure_today(&mut db, "2026-10-01", 0.99).unwrap(), a);
+    }
+
+    #[test]
+    fn new_day_new_material_and_new_slot() {
+        let mut db = db_with_sticker("A");
+        ensure_today(&mut db, "2026-10-01", 0.0).unwrap();
+        confirm(&mut db, "2026-10-01", "A", SourceType::Created, 0.0).unwrap();
+        mark_used(&mut db, "2026-10-01").unwrap();
+
+        let day2 = ensure_today(&mut db, "2026-10-02", 0.7).unwrap(); // not the first draw any more
+        assert_eq!(day2.material_id, "kraft");
+        assert_eq!(day2.slot(false), SlotState::Available);
+        assert_eq!(db.daily_get("2026-10-01").unwrap().unwrap().slot(false), SlotState::Used);
+    }
+
+    #[test]
+    fn looking_at_the_material_does_not_consume_the_slot() {
+        let mut db = Database::open_in_memory().unwrap();
+        let (r, newly) = open_material(&mut db, "2026-10-01", 0.5).unwrap();
+        assert!(newly);
+        assert!(r.material_opened_at.is_some());
+        assert_eq!(r.slot(false), SlotState::Available);
+        assert_eq!(r.slot(true), SlotState::Selecting); // the Today screen being open
+        assert!(r.slot(true).can_add_new());
+    }
+
+    #[test]
+    fn opening_unlocks_the_material_once_and_keeps_it() {
+        let mut db = Database::open_in_memory().unwrap();
+        assert_eq!(db.unlocked_material_ids().unwrap(), ["matte"]); // default
+        assert!(open_material(&mut db, "2026-10-01", 0.5).unwrap().1);
+        assert!(!open_material(&mut db, "2026-10-01", 0.5).unwrap().1); // idempotent
+        assert_eq!(db.unlocked_material_ids().unwrap(), ["holographic", "matte"]);
+        // a later day does not lock it again
+        open_material(&mut db, "2026-10-02", 0.7).unwrap();
+        assert_eq!(db.unlocked_material_ids().unwrap(), ["holographic", "kraft", "matte"]);
+    }
+
+    #[test]
+    fn only_one_new_peta_per_day() {
+        let mut db = db_with_sticker("A");
+        let r = confirm(&mut db, "2026-10-01", "A", SourceType::Created, 0.0).unwrap();
+        assert_eq!(r.slot(false), SlotState::Confirmed);
+        assert!(!r.slot(true).can_add_new()); // confirmed beats "selecting"
+        assert!(matches!(
+            confirm(&mut db, "2026-10-01", "A", SourceType::Collection, 0.0),
+            Err(Error::AlreadyUsedToday)
+        ));
+        assert_eq!(mark_used(&mut db, "2026-10-01").unwrap().slot(false), SlotState::Used);
+        assert!(matches!(
+            confirm(&mut db, "2026-10-01", "A", SourceType::Created, 0.0),
+            Err(Error::AlreadyUsedToday)
+        ));
+        // marking used twice is harmless
+        assert_eq!(mark_used(&mut db, "2026-10-01").unwrap().slot(false), SlotState::Used);
+        // the next day it works again
+        assert!(confirm(&mut db, "2026-10-02", "A", SourceType::Collection, 0.7).is_ok());
+    }
+
+    #[test]
+    fn confirm_records_what_was_chosen() {
+        let mut db = db_with_sticker("A");
+        let r = confirm(&mut db, "2026-10-01", "A", SourceType::Collection, 0.0).unwrap();
+        assert_eq!(r.sticker_id.as_deref(), Some("A"));
+        assert_eq!(r.source_type, Some(SourceType::Collection));
+        assert!(r.confirmed_at.is_some() && r.used_at.is_none());
+    }
+
+    #[test]
+    fn mark_used_needs_a_confirmation() {
+        let mut db = Database::open_in_memory().unwrap();
+        assert!(mark_used(&mut db, "2026-10-01").is_err()); // no record at all
+        ensure_today(&mut db, "2026-10-01", 0.0).unwrap();
+        assert!(mark_used(&mut db, "2026-10-01").is_err()); // nothing confirmed
+    }
+
+    #[test]
+    fn local_today_is_a_date_and_offsets_by_days() {
+        let a = local_today(0);
+        assert_eq!(a.len(), 10);
+        let b = local_today(1);
+        let da = chrono::NaiveDate::parse_from_str(&a, "%Y-%m-%d").unwrap();
+        let db_ = chrono::NaiveDate::parse_from_str(&b, "%Y-%m-%d").unwrap();
+        assert_eq!((db_ - da).num_days(), 1);
+    }
+}

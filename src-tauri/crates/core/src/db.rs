@@ -5,11 +5,13 @@ use std::path::Path;
 use rusqlite::{params, Connection, OptionalExtension};
 
 use crate::{
+    daily::DailyRecord,
     error::{Error, Result},
+    materials,
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-const SCHEMA_VERSION: i64 = 1;
+const SCHEMA_VERSION: i64 = 2;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -52,6 +54,22 @@ CREATE TABLE meta (
 );
 ";
 
+const MIGRATION_V2: &str = "
+CREATE TABLE material_unlocks (
+    material_id TEXT PRIMARY KEY,
+    unlocked_at TEXT NOT NULL
+);
+CREATE TABLE daily_records (
+    date               TEXT PRIMARY KEY,   -- local YYYY-MM-DD
+    material_id        TEXT NOT NULL,
+    material_opened_at TEXT,
+    sticker_id         TEXT REFERENCES stickers(id) ON DELETE SET NULL,
+    source_type        TEXT,
+    confirmed_at       TEXT,
+    used_at            TEXT
+);
+";
+
 pub struct Database {
     conn: Connection,
 }
@@ -74,6 +92,7 @@ impl Database {
         let _: String = conn.query_row("PRAGMA journal_mode = WAL", [], |r| r.get(0))?;
         let mut db = Database { conn };
         db.migrate()?;
+        db.unlock_material(materials::DEFAULT_MATERIAL)?; // idempotent
         Ok(db)
     }
 
@@ -88,6 +107,12 @@ impl Database {
             let tx = self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V1)?;
             tx.pragma_update(None, "user_version", 1)?;
+            tx.commit()?;
+        }
+        if version < 2 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V2)?;
+            tx.pragma_update(None, "user_version", 2)?;
             tx.commit()?;
         }
         Ok(())
@@ -250,6 +275,105 @@ impl Database {
         Ok(rows)
     }
 
+    /// Stickers that exist but are not on the desktop (peeled off, never stuck), newest first.
+    pub fn off_desktop(&self) -> Result<Vec<Sticker>> {
+        let ids: Vec<String> = {
+            let mut stmt = self.conn.prepare(
+                "SELECT s.id FROM stickers s LEFT JOIN placements p ON p.sticker_id = s.id
+                 WHERE p.sticker_id IS NULL OR p.is_on_desktop = 0
+                 ORDER BY s.created_at DESC, s.id",
+            )?;
+            let rows = stmt.query_map([], |r| r.get(0))?.collect::<std::result::Result<_, _>>()?;
+            rows
+        };
+        ids.iter().filter_map(|id| self.sticker(id).transpose()).collect()
+    }
+
+    // ---- materials ----
+
+    /// Returns true if it was newly unlocked.
+    pub fn unlock_material(&mut self, material_id: &str) -> Result<bool> {
+        let n = self.conn.execute(
+            "INSERT OR IGNORE INTO material_unlocks (material_id, unlocked_at) VALUES (?1, ?2)",
+            params![material_id, now()],
+        )?;
+        Ok(n > 0)
+    }
+
+    pub fn unlocked_material_ids(&self) -> Result<Vec<String>> {
+        let mut stmt = self.conn.prepare("SELECT material_id FROM material_unlocks ORDER BY material_id")?;
+        let rows = stmt.query_map([], |r| r.get(0))?.collect::<std::result::Result<_, _>>()?;
+        Ok(rows)
+    }
+
+    pub fn material_unlocked_at(&self, material_id: &str) -> Result<Option<String>> {
+        Ok(self
+            .conn
+            .query_row("SELECT unlocked_at FROM material_unlocks WHERE material_id = ?1", [material_id], |r| r.get(0))
+            .optional()?)
+    }
+
+    // ---- daily records (see `daily` for the rules) ----
+
+    pub fn daily_get(&self, date: &str) -> Result<Option<DailyRecord>> {
+        Ok(self
+            .conn
+            .query_row(
+                "SELECT date, material_id, material_opened_at, sticker_id, source_type, confirmed_at, used_at
+                 FROM daily_records WHERE date = ?1",
+                [date],
+                |r| {
+                    Ok(DailyRecord {
+                        date: r.get(0)?,
+                        material_id: r.get(1)?,
+                        material_opened_at: r.get(2)?,
+                        sticker_id: r.get(3)?,
+                        source_type: r.get::<_, Option<String>>(4)?.and_then(|s| SourceType::parse(&s)),
+                        confirmed_at: r.get(5)?,
+                        used_at: r.get(6)?,
+                    })
+                },
+            )
+            .optional()?)
+    }
+
+    pub fn daily_count(&self) -> Result<i64> {
+        Ok(self.conn.query_row("SELECT COUNT(*) FROM daily_records", [], |r| r.get(0))?)
+    }
+
+    pub fn daily_insert(&mut self, date: &str, material_id: &str) -> Result<()> {
+        self.conn.execute(
+            "INSERT OR IGNORE INTO daily_records (date, material_id) VALUES (?1, ?2)",
+            params![date, material_id],
+        )?;
+        Ok(())
+    }
+
+    pub fn daily_set_opened(&mut self, date: &str, ts: &str) -> Result<()> {
+        self.conn
+            .execute("UPDATE daily_records SET material_opened_at = ?2 WHERE date = ?1", params![date, ts])?;
+        Ok(())
+    }
+
+    pub fn daily_set_confirmed(&mut self, date: &str, sticker_id: &str, source: SourceType, ts: &str) -> Result<()> {
+        self.conn.execute(
+            "UPDATE daily_records SET sticker_id = ?2, source_type = ?3, confirmed_at = ?4 WHERE date = ?1",
+            params![date, sticker_id, source.as_str(), ts],
+        )?;
+        Ok(())
+    }
+
+    pub fn daily_set_used(&mut self, date: &str, ts: &str) -> Result<()> {
+        self.conn.execute("UPDATE daily_records SET used_at = ?2 WHERE date = ?1", params![date, ts])?;
+        Ok(())
+    }
+
+    /// Developer tool: forget a day (its sticker, if any, stays).
+    pub fn daily_delete(&mut self, date: &str) -> Result<()> {
+        self.conn.execute("DELETE FROM daily_records WHERE date = ?1", [date])?;
+        Ok(())
+    }
+
     fn read_placement(conn: &Connection, id: &str) -> Result<Option<Placement>> {
         Ok(conn
             .query_row(
@@ -364,6 +488,44 @@ mod tests {
         assert!(db.on_desktop().unwrap().is_empty());
         assert!(db.sticker("A").unwrap().is_some());
         assert_eq!(db.sticker_count().unwrap(), 1);
+    }
+
+    #[test]
+    fn off_desktop_lists_peeled_and_never_stuck_stickers() {
+        let mut db = Database::open_in_memory().unwrap();
+        for id in ["A", "B", "C"] {
+            db.create_sticker(new(id, SourceType::Created)).unwrap();
+        }
+        db.place(placement("A")).unwrap();
+        db.place(placement("B")).unwrap();
+        db.peel("B").unwrap();
+        let mut ids: Vec<_> = db.off_desktop().unwrap().into_iter().map(|s| s.id).collect();
+        ids.sort();
+        assert_eq!(ids, ["B", "C"]); // peeled + never stuck; A is on the desktop
+    }
+
+    #[test]
+    fn upgrades_a_v1_database_without_losing_data() {
+        let dir = std::env::temp_dir().join(format!("peta-core-mig-{}", crate::ids::new_sticker_id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("peta.db");
+        {
+            // a database exactly as Phase 1 left it
+            let conn = Connection::open(&path).unwrap();
+            conn.execute_batch(MIGRATION_V1).unwrap();
+            conn.pragma_update(None, "user_version", 1).unwrap();
+            conn.execute(
+                "INSERT INTO stickers (id, created_at, original_asset_path, rendered_asset_path, source_type, aspect)
+                 VALUES ('OLD', 'x', 'o', 'r', 'created', 1.0)",
+                [],
+            )
+            .unwrap();
+        }
+        let db = Database::open(&path).unwrap();
+        assert!(db.sticker("OLD").unwrap().is_some());
+        assert_eq!(db.unlocked_material_ids().unwrap(), ["matte"]);
+        assert_eq!(db.daily_count().unwrap(), 0);
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]
