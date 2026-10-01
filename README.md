@@ -1,0 +1,82 @@
+# Peta — One sticker a day.
+
+毎日、ひとつだけ。デスクトップに残る、ステッカーのある暮らし。
+
+現在は **Phase 0: Desktop Technical Spike**(macOS のみ)。猫PNG 1枚が、壁紙に貼ってあるように
+デスクトップに存在することを検証するための最小実装です。Daily / Material / Collection はまだありません。
+
+## 動かし方(Mac)
+
+必要なもの: Xcode Command Line Tools、Rust(`rustup`)、Node 20+
+
+```sh
+npm install
+npm run dev        # = tauri dev
+```
+
+- Dockには出ません。メニューバーに Peta のアイコンが出ます。
+- 初回起動で、メインディスプレイの右上寄りに猫が貼られます。
+- 別の画像を試すなら `src/assets/cat.png` を透過PNGで差し替え(`scripts/gen_placeholder_assets.py` は仮素材の生成用)。
+
+### メニュー
+
+| 項目 | 動作 |
+|---|---|
+| Edit Stickers | 編集モードのON/OFF。Esc / 画面上部の Done でも終了 |
+| Reset Test Sticker | 猫を初期位置へ戻す |
+| Re-sync Displays | ディスプレイ構成を再読込(通常は2秒ごとに自動検知) |
+| Quit Peta | 終了 |
+
+### 編集モードの操作
+
+猫をドラッグで移動 / 右下の丸で拡大縮小 / 上の丸で回転。操作を離した時点で自動保存されます。
+
+## 検証チェックリスト(仕様 §87 の Spike 順)
+
+実機で確認して ✅ を付けてください。**自動検証できたのは「Rustコードが macOS 向けに型検査を通ること」と
+座標計算の単体テストだけです。以下はすべて Mac での実機確認が必要です。**
+
+| # | 項目 | 見るポイント | 状態 |
+|---|---|---|---|
+| 01 | macOSでDesktop Layerを表示 | 壁紙の上に猫が出る。窓の枠・影・背景色がない | ☐ |
+| 02 | Windows | 今回はスコープ外(`platform/windows.rs` はスタブ) | — |
+| 03 | PNGを1枚表示 | 白フチの猫がきれいに(透過で)表示される | ☐ |
+| 04 | click-through | 猫の上でも Finder / デスクトップアイコンを普通に操作できる | ☐ |
+| 05 | Edit Mode | メニューで ON → 猫を掴める。OFF → また透過に戻る | ☐ |
+| 06 | Sticker drag | 猫を動かせる | ☐ |
+| 07 | Sticker resize | 右下の丸で拡大縮小 | ☐ |
+| 08 | Sticker rotate | 上の丸で回転 | ☐ |
+| 09 | Placement保存 | 動かすと `~/Library/Application Support/app.peta.desktop/placements.json` が更新される | ☐ |
+| 10 | 再起動後Restore | 終了 → 再起動で同じ位置・大きさ・角度 | ☐ |
+| 11 | 解像度変更 | 解像度を変えても相対位置が保たれる | ☐ |
+| 12 | 外部ディスプレイ | 接続で各画面にレイヤーが出る。外すとメイン画面へ退避し、再接続で元の画面へ戻る | ☐ |
+
+### 特に注意して見てほしい点(未検証のリスク)
+
+1. **重なり順**: 通常時、猫は壁紙の上・デスクトップアイコンの**下**に入るか。編集モードではアイコンの**上**に出るか。
+   (`platform/macos.rs` のウィンドウレベル。期待通りでなければここを調整します)
+2. **Spaces / フルスクリーン**: 別のデスクトップ(Space)に切り替えても猫が残るか。フルスクリーンアプリの上に出ていないか。
+3. **異なるスケールのマルチディスプレイ**(Retina + 外部モニター等): 位置・サイズがずれないか。Tauri 側の座標変換が怪しい領域です。
+4. **編集モードで最初のクリックが効くか**: アプリが非アクティブな状態でも掴めるか。
+5. **メニューバーのアイコン**: ライト / ダークで見えるか。
+
+## 構成
+
+```
+src/                 フロントエンド(ビルド不要の素のJS)
+  placement.js         座標計算(純粋関数。tests/ で単体テスト)
+  main.js / style.css  レイヤー描画と編集モード
+src-tauri/src/
+  layers.rs            ディスプレイごとの透明レイヤー生成・再同期
+  placements.rs        配置の保存(JSON。Phase 1 で SQLite へ)
+  tray.rs              メニューバー
+  platform/macos.rs    ウィンドウレベル / Space挙動(OS依存部)
+  platform/windows.rs  スタブ
+```
+
+## 開発コマンド
+
+```sh
+npm test             # 座標計算の単体テスト
+npm run check:mac    # Linux等から macOS 向けRustの型検査(要 rustup target add aarch64-apple-darwin。ObjC依存のため CC のダミー指定が必要)
+```

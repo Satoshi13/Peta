@@ -1,0 +1,53 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  background: transparent; /* the window itself is transparent; only stickers are drawn */
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  font: 13px -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+}
+
+#layer { position: fixed; inset: 0; }
+#layer.editing { background: rgba(20, 20, 24, 0.12); }
+
+.sticker {
+  position: absolute;
+  transform-origin: center center;
+  touch-action: none;
+  /* soft contact shadow, like a sticker lying on the desktop */
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35));
+}
+.sticker img { width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+.sticker.dragging { filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35)); }
+
+/* Edit-mode chrome */
+.sticker .frame, .sticker .handle { display: none; }
+#layer.editing .sticker { cursor: grab; }
+#layer.editing .sticker.dragging { cursor: grabbing; }
+#layer.editing .sticker .frame {
+  display: block; position: absolute; inset: -4px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.95);
+  outline: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 4px; pointer-events: none;
+}
+#layer.editing .sticker .handle {
+  display: block; position: absolute; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; border: 1.5px solid rgba(0, 0, 0, 0.55); box-sizing: border-box;
+}
+.handle.resize { right: -12px; bottom: -12px; cursor: nwse-resize; }
+.handle.rotate { left: calc(50% - 8px); top: -34px; cursor: crosshair; }
+.handle.rotate::after { content: ""; position: absolute; left: 50%; top: 16px; width: 1px; height: 18px; background: rgba(255, 255, 255, 0.9); }
+
+#edit-hint {
+  position: fixed; top: 44px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px 6px 14px; border-radius: 999px;
+  background: rgba(30, 30, 34, 0.82); color: #fff;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+#edit-hint[hidden] { display: none; }
+#edit-hint button {
+  font: inherit; color: #1c1c1e; background: #fff; border: 0; border-radius: 999px; padding: 3px 12px; cursor: pointer;
+}
+#edit-hint small { opacity: 0.55; margin-right: 4px; }

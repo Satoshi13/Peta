@@ -1,0 +1,53 @@
+//! macOS desktop layer: NSWindow level + collection behavior (spike steps 01, 04, 05).
+//!
+//! Window levels (CoreGraphics `CGWindowLevelForKey`):
+//!   kCGDesktopWindowLevelKey      (2)  wallpaper
+//!   kCGDesktopIconWindowLevelKey  (18) Finder desktop icons
+//! Resting  = wallpaper + 10  -> above the wallpaper, below the icons  (spec §6)
+//! Editing  = icon level + 1  -> above the icons so stickers can be grabbed, still below normal apps
+
+use objc2::{msg_send, runtime::{AnyObject, Bool}};
+use tauri::WebviewWindow;
+
+use super::LayerMode;
+
+#[link(name = "CoreGraphics", kind = "framework")]
+extern "C" {
+    fn CGWindowLevelForKey(key: i32) -> i32;
+}
+
+const DESKTOP_WINDOW_LEVEL_KEY: i32 = 2;
+const DESKTOP_ICON_WINDOW_LEVEL_KEY: i32 = 18;
+
+// NSWindowCollectionBehavior bits
+const CAN_JOIN_ALL_SPACES: usize = 1 << 0; // show on every Space
+const STATIONARY: usize = 1 << 4; // does not move with Space transitions (like the wallpaper)
+const IGNORES_CYCLE: usize = 1 << 6; // not reachable via Cmd+`
+
+/// Must be called on the main thread (the callers use `run_on_main_thread`).
+pub fn apply_layer_mode(window: &WebviewWindow, mode: LayerMode) -> Result<(), String> {
+    let level: isize = unsafe {
+        match mode {
+            LayerMode::Resting => CGWindowLevelForKey(DESKTOP_WINDOW_LEVEL_KEY) as isize + 10,
+            LayerMode::Editing => CGWindowLevelForKey(DESKTOP_ICON_WINDOW_LEVEL_KEY) as isize + 1,
+        }
+    };
+
+    // Click-through is handled by Tauri (NSWindow ignoresMouseEvents).
+    window
+        .set_ignore_cursor_events(mode == LayerMode::Resting)
+        .map_err(|e| e.to_string())?;
+
+    let ns_window = window.ns_window().map_err(|e| e.to_string())? as *mut AnyObject;
+    if ns_window.is_null() {
+        return Err("NSWindow pointer was null".into());
+    }
+    unsafe {
+        let behavior: usize = CAN_JOIN_ALL_SPACES | STATIONARY | IGNORES_CYCLE;
+        let _: () = msg_send![ns_window, setLevel: level];
+        let _: () = msg_send![ns_window, setCollectionBehavior: behavior];
+        let _: () = msg_send![ns_window, setHasShadow: Bool::NO];
+        let _: () = msg_send![ns_window, setOpaque: Bool::NO];
+    }
+    Ok(())
+}

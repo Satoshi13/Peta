@@ -1,0 +1,15 @@
+{
+  "name": "peta",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build --debug",
+    "test": "node --test tests/placement.test.mjs",
+    "check:mac": "cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}
