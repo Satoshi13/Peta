@@ -9,7 +9,9 @@ use std::{collections::HashMap, sync::Mutex, thread, time::Duration};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, Monitor, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 
-use crate::{placements::Store, platform::{self, LayerMode}};
+use peta_core::Placement;
+
+use crate::{store::Store, platform::{self, LayerMode}};
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -41,11 +43,11 @@ impl Layers {
     /// Placements this layer should draw. Stickers whose display is gone fall back to the
     /// primary display *without* rewriting their stored displayId, so they return home when the
     /// monitor is reconnected (spec §10.2).
-    pub fn placements_for(&self, label: &str, store: &Store) -> Vec<crate::placements::Placement> {
+    pub fn placements_for(&self, label: &str, store: &Store) -> Vec<Placement> {
         let st = self.0.lock().unwrap();
         let Some(info) = st.by_label.get(label) else { return Vec::new() };
         store
-            .all()
+            .on_desktop()
             .into_iter()
             .filter(|p| {
                 p.display_id == info.display_id
@@ -107,10 +109,8 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
         (old, st.generation, st.edit_mode)
     };
 
-    // First launch only: place the test cat on the primary display.
-    if let Err(e) = app.state::<Store>().seed_if_fresh(&ids[primary_idx]) {
-        eprintln!("[peta] seeding placements failed: {e}");
-    }
+    // First launch only: put the sample cat on the primary display.
+    app.state::<Store>().seed_if_needed(&ids[primary_idx]);
 
     for label in old_labels {
         if let Some(w) = app.get_webview_window(&label) {

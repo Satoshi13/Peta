@@ -1,0 +1,12 @@
+[package]
+name = "peta-core"
+version = "0.0.1"
+edition = "2021"
+description = "Peta core: sticker library (SQLite), image import. No UI / OS dependencies."
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+getrandom = "0.3"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }

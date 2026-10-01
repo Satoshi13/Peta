@@ -19,16 +19,19 @@ let gest = null; // active trackpad pinch/twist
 let lastPointer = { x: 0, y: 0 };
 let lastAlt = false;
 
-const assetUrl = (stickerId) => `assets/${stickerId}.png`;
+const pending = new Set(); // stickerIds being added (asset still loading)
 
 // ---- assets + alpha mask (so clicks on transparent pixels fall through to nothing) ----
 
 const MASK_MAX = 128;
 const ALPHA_HIT = 24;
 
+/** The rendered PNG comes from the Rust library as raw bytes -> blob URL (same-origin, so the
+ *  alpha mask below can be read without tainting the canvas). */
 function loadAsset(stickerId) {
   if (!assets.has(stickerId)) {
-    assets.set(stickerId, new Promise((resolve, reject) => {
+    const promise = invoke("sticker_asset", { stickerId }).then((bytes) => new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(new Blob([bytes], { type: "image/png" }));
       const img = new Image();
       img.onload = () => {
         const k = Math.min(1, MASK_MAX / Math.max(img.naturalWidth, img.naturalHeight));
@@ -41,11 +44,13 @@ function loadAsset(stickerId) {
         const rgba = ctx.getImageData(0, 0, w, h).data;
         const alpha = new Uint8Array(w * h);
         for (let i = 0; i < alpha.length; i++) alpha[i] = rgba[i * 4 + 3];
-        resolve({ img, mask: { w, h, alpha } });
+        resolve({ img, url, mask: { w, h, alpha } });
       };
       img.onerror = reject;
-      img.src = assetUrl(stickerId);
+      img.src = url;
     }));
+    promise.catch(() => assets.delete(stickerId)); // allow a retry
+    assets.set(stickerId, promise);
   }
   return assets.get(stickerId);
 }
@@ -88,10 +93,22 @@ function scheduleRender(node) {
 }
 
 async function addSticker(placement) {
-  const { img, mask } = await loadAsset(placement.stickerId);
+  const id = placement.stickerId;
+  if (nodes.has(id) || pending.has(id)) return;
+  pending.add(id);
+  let asset;
+  try {
+    asset = await loadAsset(id);
+  } catch (err) {
+    console.error("could not load sticker", id, err);
+    return;
+  } finally {
+    pending.delete(id);
+  }
+  const { img, mask, url } = asset;
   const el = document.createElement("div");
   el.className = "sticker";
-  el.innerHTML = `<div class="body"><img alt="" draggable="false" src="${assetUrl(placement.stickerId)}"></div>`;
+  el.innerHTML = `<div class="body"><img alt="" draggable="false" src="${url}"></div>`;
   layer.appendChild(el);
   const node = {
     el, body: el.firstElementChild, placement: { ...placement }, mask,
@@ -176,9 +193,9 @@ function peelOff(node, pose, from) {
   anim.onfinish = async () => {
     removeNode(node);
     try {
-      await invoke("delete_placement", { stickerId: node.placement.stickerId });
+      await invoke("peel_sticker", { stickerId: node.placement.stickerId });
     } catch (err) {
-      console.error("delete_placement failed", err);
+      console.error("peel_sticker failed", err);
     }
   };
 }
@@ -385,11 +402,42 @@ function setEditMode(on) {
   }
 }
 
+/** Make the DOM match what the library says is on this display's desktop. */
+async function reconcile() {
+  const list = await invoke("layer_placements");
+  const wanted = new Set(list.map((p) => p.stickerId));
+  for (const node of [...stack]) {
+    if (!wanted.has(node.placement.stickerId) && !node.live && !node.peeled) removeNode(node);
+  }
+  for (const p of list) await addSticker(p);
+}
+
+/** Drop image files onto the desktop (edit mode) to stick them where they land. */
+async function wireFileDrop() {
+  const webview = window.__TAURI__.webview?.getCurrentWebview?.();
+  if (!webview?.onDragDropEvent) return;
+  await webview.onDragDropEvent(async (event) => {
+    const p = event.payload;
+    layer.classList.toggle("drop-target", editing && (p.type === "enter" || p.type === "over"));
+    if (p.type !== "drop" || !editing) return;
+    // payload position is in physical pixels of the webview
+    const dpr = window.devicePixelRatio || 1;
+    const { w, h } = layerSize();
+    try {
+      await invoke("import_dropped", { paths: p.paths, x: p.position.x / dpr / w, y: p.position.y / dpr / h });
+    } catch (err) {
+      console.error("import_dropped failed", err);
+    }
+  });
+}
+
 async function boot() {
   const info = await invoke("layer_info");
   setEditMode(info.editMode);
-  for (const p of await invoke("layer_placements")) await addSticker(p);
+  await reconcile();
 
+  await listen("placements-changed", () => reconcile());
+  await wireFileDrop();
   await listen("edit-mode", (e) => setEditMode(Boolean(e.payload)));
   window.addEventListener("resize", () => nodes.forEach(render));
   window.addEventListener("keydown", (e) => {

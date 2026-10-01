@@ -34,6 +34,9 @@ html, body {
 .sticker.peeling { filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.32)); }
 .sticker.peel-ready .body { filter: brightness(1.06); } /* "let go now and it comes off" */
 
+/* An image file is being dragged over the desktop. */
+#layer.drop-target { outline: 3px dashed rgba(255, 255, 255, 0.75); outline-offset: -14px; }
+
 /* Cursor says what a grab here will do. */
 #layer[data-cursor="move"] { cursor: grab; }
 #layer[data-cursor="peel"] { cursor: pointer; }

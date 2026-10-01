@@ -3,12 +3,12 @@
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "macos")]
-pub use macos::apply_layer_mode;
+pub use macos::{activate_app, apply_layer_mode};
 
 #[cfg(not(target_os = "macos"))]
 mod windows;
 #[cfg(not(target_os = "macos"))]
-pub use windows::apply_layer_mode;
+pub use windows::{activate_app, apply_layer_mode};
 
 /// How a desktop layer window should behave.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

@@ -51,3 +51,14 @@ pub fn apply_layer_mode(window: &WebviewWindow, mode: LayerMode) -> Result<(), S
     }
     Ok(())
 }
+
+/// A menu-bar-only (Accessory) app isn't frontmost, so a file dialog would open behind other windows.
+/// Bring the app forward first. Main thread only.
+pub fn activate_app() {
+    unsafe {
+        let ns_app: *mut AnyObject = msg_send![objc2::class!(NSApplication), sharedApplication];
+        if !ns_app.is_null() {
+            let _: () = msg_send![ns_app, activateIgnoringOtherApps: Bool::YES];
+        }
+    }
+}

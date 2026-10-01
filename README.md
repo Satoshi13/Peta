@@ -2,8 +2,8 @@
 
 毎日、ひとつだけ。デスクトップに残る、ステッカーのある暮らし。
 
-現在は **Phase 0: Desktop Technical Spike**(macOS のみ)。猫PNG 1枚が、壁紙に貼ってあるように
-デスクトップに存在することを検証するための最小実装です。Daily / Material / Collection はまだありません。
+現在は **Phase 1: Sticker Core**(macOS のみ)。Phase 0 の Desktop Layer の上に、SQLite のステッカーライブラリと
+画像の取り込みが載っています。Daily / Material / Collection / 背景除去はまだありません。
 
 ## 動かし方(Mac)
 
@@ -15,15 +15,16 @@ npm run dev        # = tauri dev
 ```
 
 - Dockには出ません。メニューバーに Peta のアイコンが出ます。
-- 初回起動で、メインディスプレイの右上寄りに猫が貼られます。
-- 別の画像を試すなら `src/assets/cat.png` を透過PNGで差し替え(`scripts/gen_placeholder_assets.py` は仮素材の生成用)。
+- 初回起動で、メインディスプレイの右上寄りにサンプルの猫が貼られます。
+- 保存先: `~/Library/Application Support/app.peta.desktop/`(`peta.db` と `assets/stickers/<ID>/`)。Phase 0 の `placements.json` は初回に自動で移行されます。
 
 ### メニュー
 
 | 項目 | 動作 |
 |---|---|
 | Edit Stickers | 編集モードのON/OFF。Esc / 画面上部の Done でも終了 |
-| Reset Test Sticker | 猫を初期位置へ戻す |
+| **Add Image…** | 画像ファイル(PNG / JPEG / WebP)を選んで、メイン画面の中央に貼る(複数選択可) |
+| Add Sample Cat | サンプルの猫をもう1枚貼る |
 | Re-sync Displays | ディスプレイ構成を再読込(通常は2秒ごとに自動検知) |
 | Quit Peta | 終了 |
 
@@ -39,7 +40,11 @@ npm run dev        # = tauri dev
 | **Option を押しながらドラッグして引き離す** | 掴んだ側がめくれる。十分に引いて離すと**剥がれて消える**。途中で離すと貼り直される |
 | Delete / Backspace | ポインター下のステッカーを剥がす |
 
-操作を離した時点で自動保存されます。剥がしたステッカーは再起動しても戻りません(初期の猫は初回起動時だけ置かれます。メニューの Reset Test Sticker で戻せます)。
+| **画像ファイルをデスクトップへドロップ**(編集モード中) | 落とした場所に貼る |
+
+操作を離した時点で自動保存されます。触ったステッカーは最前面に来ます。
+剥がしたステッカーは**デスクトップから外れるだけでライブラリには残ります**(Collection は Phase 5 で見られるようになります)。再起動しても戻りません。
+**透過PNGがおすすめです。** 背景除去は Phase 3 なので、JPEG などは四角いまま貼られます。
 編集バーには、直近のドラッグの描画性能(fps / 最悪フレーム時間)が出ます。カクつき調査用です。
 
 ## 検証チェックリスト(仕様 §87 の Spike 順)
@@ -78,9 +83,13 @@ npm run dev        # = tauri dev
 src/                 フロントエンド(ビルド不要の素のJS)
   placement.js         座標計算(純粋関数。tests/ で単体テスト)
   main.js / style.css  レイヤー描画と編集モード
+src-tauri/crates/core/ peta-core: OS・UIに依存しない中核(Linuxでも cargo test できる)
+  db.rs                SQLite(stickers / provenance / placements)
+  library.rs           DB + 画像ファイルの管理
+  image_import.rs      画像の取り込み(余白トリミング・縮小・PNG化)
 src-tauri/src/
   layers.rs            ディスプレイごとの透明レイヤー生成・再同期
-  placements.rs        配置の保存(JSON。Phase 1 で SQLite へ)
+  store.rs             ライブラリの所有、初回起動、旧JSONの移行、取り込み
   tray.rs              メニューバー
   platform/macos.rs    ウィンドウレベル / Space挙動(OS依存部)
   platform/windows.rs  スタブ
@@ -89,6 +98,7 @@ src-tauri/src/
 ## 開発コマンド
 
 ```sh
-npm test             # 座標計算の単体テスト
+npm test             # 座標計算の単体テスト(JS)
+cargo test -p peta-core --manifest-path src-tauri/Cargo.toml   # ライブラリ層の単体テスト(Rust)
 npm run check:mac    # Linux等から macOS 向けRustの型検査(要 rustup target add aarch64-apple-darwin。ObjC依存のため CC のダミー指定が必要)
 ```

@@ -18,3 +18,5 @@ pub fn apply_layer_mode(window: &WebviewWindow, mode: LayerMode) -> Result<(), S
         .set_ignore_cursor_events(mode == LayerMode::Resting)
         .map_err(|e| e.to_string())
 }
+
+pub fn activate_app() {}
