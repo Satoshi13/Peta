@@ -1,5 +1,6 @@
 import {
-  toPixels, fromPixels, resizedWidth, distance, pointerAngle, rotatedAngle,
+  toPixels, fromPixels, toLocalUV, isPivotGrab, pivotResult, pointerAngle, distance, normalizeAngle,
+  peelPose, PEEL_COMMIT, PEEL_DISTANCE,
 } from "./placement.js";
 
 const { invoke } = window.__TAURI__.core;
@@ -7,126 +8,190 @@ const { listen } = window.__TAURI__.event;
 
 const layer = document.getElementById("layer");
 const hint = document.getElementById("edit-hint");
-const imageCache = new Map(); // stickerId -> Promise<HTMLImageElement> (for aspect ratio)
-const nodes = new Map(); // stickerId -> { el, placement, aspect }
+const meterEl = document.getElementById("edit-meter");
+
+const assets = new Map(); // stickerId -> Promise<{ img, mask }>
+const nodes = new Map(); // stickerId -> node
+const stack = []; // nodes, bottom -> top (also the pick order, reversed)
 let editing = false;
+let drag = null; // active pointer drag
+let gest = null; // active trackpad pinch/twist
+let lastPointer = { x: 0, y: 0 };
+let lastAlt = false;
 
 const assetUrl = (stickerId) => `assets/${stickerId}.png`;
 
-function loadImage(stickerId) {
-  if (!imageCache.has(stickerId)) {
-    imageCache.set(stickerId, new Promise((resolve, reject) => {
+// ---- assets + alpha mask (so clicks on transparent pixels fall through to nothing) ----
+
+const MASK_MAX = 128;
+const ALPHA_HIT = 24;
+
+function loadAsset(stickerId) {
+  if (!assets.has(stickerId)) {
+    assets.set(stickerId, new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve(img);
+      img.onload = () => {
+        const k = Math.min(1, MASK_MAX / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = Math.max(1, Math.round(img.naturalWidth * k));
+        const h = Math.max(1, Math.round(img.naturalHeight * k));
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        const ctx = c.getContext("2d", { willReadFrequently: true });
+        ctx.drawImage(img, 0, 0, w, h);
+        const rgba = ctx.getImageData(0, 0, w, h).data;
+        const alpha = new Uint8Array(w * h);
+        for (let i = 0; i < alpha.length; i++) alpha[i] = rgba[i * 4 + 3];
+        resolve({ img, mask: { w, h, alpha } });
+      };
       img.onerror = reject;
       img.src = assetUrl(stickerId);
     }));
   }
-  return imageCache.get(stickerId);
+  return assets.get(stickerId);
 }
 
-function layerSize() {
-  return { w: layer.clientWidth, h: layer.clientHeight };
+function opaqueAt(mask, u, v) {
+  if (u < 0 || u >= 1 || v < 0 || v >= 1) return false;
+  return mask.alpha[Math.floor(v * mask.h) * mask.w + Math.floor(u * mask.w)] > ALPHA_HIT;
 }
 
-/** Apply a placement (stored form) to its DOM node. Move/rotate only touch `transform`
- *  (compositor-only); width/height are written only when the size actually changed. */
+// ---- geometry / rendering ----
+
+const layerSize = () => ({ w: layer.clientWidth, h: layer.clientHeight });
+
+function boxOf(node) {
+  const { w, h } = layerSize();
+  return toPixels(node.placement, w, h, node.aspect);
+}
+
+/**
+ * Position/rotate/scale via `transform` only. The element's CSS size (baseW) is the size it was
+ * last rasterized at; during a gesture the size change is a compositor-side scale() of that
+ * texture, and the size is committed (re-rasterized once) when the gesture ends.
+ */
 function render(node) {
-  const { w: lw, h: lh } = layerSize();
-  const box = toPixels(node.placement, lw, lh, node.aspect);
-  const s = node.el.style;
-  if (node.lastW !== box.w) {
-    s.width = `${box.w}px`;
-    s.height = `${box.h}px`;
-    node.lastW = box.w;
+  const box = boxOf(node);
+  if (node.baseW === undefined || (!node.live && node.baseW !== box.w)) {
+    node.baseW = box.w;
+    node.baseH = box.h;
+    node.el.style.width = `${box.w}px`;
+    node.el.style.height = `${box.h}px`;
   }
-  s.transform = `translate3d(${box.cx - box.w / 2}px, ${box.cy - box.h / 2}px, 0) rotate(${box.rotation}deg)`;
+  const k = box.w / node.baseW;
+  node.el.style.transform =
+    `translate3d(${box.cx - node.baseW / 2}px, ${box.cy - node.baseH / 2}px, 0) rotate(${box.rotation}deg) scale(${k})`;
 }
 
-/** Coalesce pointermove bursts into at most one render per animation frame. */
 function scheduleRender(node) {
   if (node.raf) return;
-  node.raf = requestAnimationFrame(() => {
-    node.raf = 0;
-    render(node);
-  });
+  node.raf = requestAnimationFrame(() => { node.raf = 0; render(node); });
 }
 
 async function addSticker(placement) {
-  const img = await loadImage(placement.stickerId);
+  const { img, mask } = await loadAsset(placement.stickerId);
   const el = document.createElement("div");
   el.className = "sticker";
-  el.innerHTML = `<img alt="" draggable="false" src="${assetUrl(placement.stickerId)}">
-    <div class="frame"></div><div class="handle resize"></div><div class="handle rotate"></div>`;
+  el.innerHTML = `<div class="body"><img alt="" draggable="false" src="${assetUrl(placement.stickerId)}"></div>`;
   layer.appendChild(el);
-  const node = { el, placement: { ...placement }, aspect: img.naturalWidth / img.naturalHeight };
+  const node = {
+    el, body: el.firstElementChild, placement: { ...placement }, mask,
+    aspect: img.naturalWidth / img.naturalHeight, live: false,
+  };
   nodes.set(placement.stickerId, node);
+  stack.push(node);
   render(node);
-  wireEditing(node);
 }
 
-// ---- Edit mode: move / resize / rotate (spec §9, spike steps 06-08) ----
+// ---- picking (top-most sticker with an opaque pixel under the pointer) ----
 
-function wireEditing(node) {
-  const { el } = node;
+function pick(x, y) {
+  for (let i = stack.length - 1; i >= 0; i--) {
+    const node = stack[i];
+    const { u, v } = toLocalUV(x, y, boxOf(node));
+    if (opaqueAt(node.mask, u, v)) return node;
+  }
+  return null;
+}
 
-  const begin = (e, onMove) => {
-    if (!editing) return;
-    e.preventDefault();
-    e.stopPropagation();
-    el.setPointerCapture(e.pointerId);
-    layer.appendChild(el); // bring to front (local only for now)
-    el.classList.add("dragging");
-    const move = (ev) => { onMove(ev); scheduleRender(node); };
-    const end = async (ev) => {
-      el.releasePointerCapture(ev.pointerId);
-      el.removeEventListener("pointermove", move);
-      el.removeEventListener("pointerup", end);
-      el.removeEventListener("pointercancel", end);
-      el.classList.remove("dragging");
-      render(node); // flush the final position synchronously
-      await persist(node);
-    };
-    el.addEventListener("pointermove", move);
-    el.addEventListener("pointerup", end);
-    el.addEventListener("pointercancel", end);
+function bringToFront(node) {
+  stack.splice(stack.indexOf(node), 1);
+  stack.push(node);
+  layer.appendChild(node.el);
+}
+
+// ---- physical feel: lift when picked up, settle ("ペタッ") when let go (spec §29) ----
+
+function lift(node) {
+  node.live = true;
+  node.el.classList.add("lifted");
+}
+
+function settle(node, { save = true } = {}) {
+  node.live = false;
+  node.el.classList.remove("lifted");
+  render(node); // commit the final size (single re-raster)
+  node.body.animate(
+    [{ transform: "scale(1.04)" }, { transform: "scale(0.98)", offset: 0.45 }, { transform: "scale(1)" }],
+    { duration: 240, easing: "ease-out" },
+  );
+  if (save) persist(node);
+}
+
+// ---- peel: Option + drag away. The grabbed side lifts around the far edge (a hinge). Pull far
+// enough and let go and it comes off; let go early and it presses back down. ----
+
+const PERSPECTIVE = 900;
+
+function peelTransform(pose, angle = pose.angle) {
+  return `perspective(${PERSPECTIVE}px) rotate3d(${pose.ax}, ${pose.ay}, 0, ${-angle}deg)`;
+}
+
+function showPeel(node, pose) {
+  node.body.style.transformOrigin = `${pose.ox}px ${pose.oy}px`;
+  node.body.style.transform = peelTransform(pose);
+  node.el.classList.toggle("peel-ready", pose.progress >= PEEL_COMMIT);
+}
+
+function clearPeel(node) {
+  node.body.style.transform = "";
+  node.body.style.transformOrigin = "";
+  node.el.classList.remove("peeling", "peel-ready");
+}
+
+function removeNode(node) {
+  nodes.delete(node.placement.stickerId);
+  const i = stack.indexOf(node);
+  if (i >= 0) stack.splice(i, 1);
+  node.el.remove();
+}
+
+/** The sticker comes away: keeps turning up and off along the pull, fades, then it's gone for good. */
+function peelOff(node, pose, from) {
+  node.peeled = true;
+  const away = `${peelTransform(pose, 115)} translate3d(${pose.dlx * 160}px, ${pose.dly * 160}px, 90px)`;
+  const anim = node.body.animate(
+    [{ transform: from, opacity: 1 }, { transform: away, opacity: 0 }],
+    { duration: 300, easing: "cubic-bezier(.5, 0, .9, .6)", fill: "forwards" },
+  );
+  anim.onfinish = async () => {
+    removeNode(node);
+    try {
+      await invoke("delete_placement", { stickerId: node.placement.stickerId });
+    } catch (err) {
+      console.error("delete_placement failed", err);
+    }
   };
+}
 
-  const center = () => {
-    const { w: lw, h: lh } = layerSize();
-    const b = toPixels(node.placement, lw, lh, node.aspect);
-    return { cx: b.cx, cy: b.cy, w: b.w };
+/** Not pulled far enough: it sticks back down. */
+function pressBack(node, from) {
+  node.body.animate(
+    [{ transform: from }, { transform: "none" }],
+    { duration: 220, easing: "cubic-bezier(.3, 1.5, .5, 1)" },
+  ).onfinish = () => {
+    clearPeel(node);
+    settle(node, { save: false });
   };
-  const apply = (px) => {
-    const { w: lw, h: lh } = layerSize();
-    Object.assign(node.placement, fromPixels(px, lw, lh));
-  };
-
-  // move: grab anywhere on the sticker
-  el.addEventListener("pointerdown", (e) => {
-    if (e.target.classList.contains("handle")) return;
-    const start = center();
-    const ox = e.clientX, oy = e.clientY;
-    begin(e, (ev) => apply({ ...start, cx: start.cx + ev.clientX - ox, cy: start.cy + ev.clientY - oy }));
-  });
-
-  // resize: bottom-right handle, uniform around the center
-  el.querySelector(".resize").addEventListener("pointerdown", (e) => {
-    const start = center();
-    const { w: lw } = layerSize();
-    const d0 = distance(start.cx, start.cy, e.clientX, e.clientY);
-    begin(e, (ev) => apply({ ...start, w: resizedWidth(start.w, d0, distance(start.cx, start.cy, ev.clientX, ev.clientY), lw) }));
-  });
-
-  // rotate: top handle, angular delta around the center
-  el.querySelector(".rotate").addEventListener("pointerdown", (e) => {
-    const start = center();
-    const r0 = node.placement.rotation;
-    const a0 = pointerAngle(start.cx, start.cy, e.clientX, e.clientY);
-    begin(e, (ev) => {
-      node.placement.rotation = rotatedAngle(r0, a0, pointerAngle(start.cx, start.cy, ev.clientX, ev.clientY));
-    });
-  });
 }
 
 async function persist(node) {
@@ -138,13 +203,187 @@ async function persist(node) {
   }
 }
 
+// ---- frame-time meter (shown in the edit bar after each drag) ----
+
+const meter = { id: 0, frames: [] };
+
+function startMeter() {
+  meter.frames = [];
+  let prev = performance.now();
+  const tick = (t) => { meter.frames.push(t - prev); prev = t; meter.id = requestAnimationFrame(tick); };
+  meter.id = requestAnimationFrame(tick);
+}
+
+function stopMeter() {
+  cancelAnimationFrame(meter.id);
+  const f = meter.frames.slice(1);
+  if (f.length < 5) return;
+  const avg = f.reduce((a, b) => a + b, 0) / f.length;
+  const worst = Math.max(...f);
+  meterEl.textContent = `${(1000 / avg).toFixed(0)} fps · worst ${worst.toFixed(0)} ms`;
+  console.log(`[peta] drag: ${f.length} frames, avg ${avg.toFixed(1)} ms, worst ${worst.toFixed(1)} ms`);
+}
+
+// ---- pointer: drag the body to move; pull the rim to scale + rotate at once ----
+
+layer.addEventListener("pointerdown", (e) => {
+  if (!editing || e.button !== 0) return;
+  const node = pick(e.clientX, e.clientY);
+  if (!node) return;
+  e.preventDefault();
+  layer.setPointerCapture(e.pointerId);
+  bringToFront(node);
+
+  const box = boxOf(node);
+  const mode = e.altKey ? "peel" : isPivotGrab(e.clientX, e.clientY, box) ? "pivot" : "move";
+  drag = {
+    node, mode, x: e.clientX, y: e.clientY, ox: e.clientX, oy: e.clientY,
+    start: {
+      cx: box.cx, cy: box.cy, w: box.w, rotation: box.rotation,
+      r0: distance(box.cx, box.cy, e.clientX, e.clientY),
+      a0: pointerAngle(box.cx, box.cy, e.clientX, e.clientY),
+    },
+  };
+  if (mode === "peel") {
+    node.live = true;
+    node.el.classList.add("peeling");
+  } else {
+    lift(node);
+  }
+  layer.classList.add("dragging");
+  layer.dataset.cursor = mode === "pivot" ? "pivot" : "move";
+  startMeter();
+});
+
+layer.addEventListener("pointermove", (e) => {
+  lastPointer = { x: e.clientX, y: e.clientY };
+  lastAlt = e.altKey;
+  if (drag) {
+    drag.x = e.clientX;
+    drag.y = e.clientY;
+    if (!drag.raf) drag.raf = requestAnimationFrame(applyDrag);
+  } else if (editing && !hover.raf) {
+    hover.raf = requestAnimationFrame(updateHoverCursor);
+  }
+});
+
+function applyDrag() {
+  if (!drag) return;
+  drag.raf = 0;
+  const { node, start } = drag;
+  const { w: lw, h: lh } = layerSize();
+  if (drag.mode === "peel") {
+    drag.pose = peelPose(drag.x - drag.ox, drag.y - drag.oy, start.rotation, start.w, start.w / node.aspect);
+    showPeel(node, drag.pose);
+    return;
+  }
+  if (drag.mode === "pivot") {
+    const r = pivotResult(start, drag.x, drag.y, lw);
+    node.placement.rotation = r.rotation;
+    Object.assign(node.placement, fromPixels({ cx: start.cx, cy: start.cy, w: r.w }, lw, lh));
+  } else {
+    Object.assign(node.placement, fromPixels(
+      { cx: start.cx + drag.x - drag.ox, cy: start.cy + drag.y - drag.oy, w: start.w }, lw, lh));
+  }
+  render(node);
+}
+
+function endDrag(e) {
+  if (!drag) return;
+  if (drag.raf) cancelAnimationFrame(drag.raf);
+  drag.raf = 0;
+  const node = drag.node;
+  drag.x = e.clientX ?? drag.x;
+  drag.y = e.clientY ?? drag.y;
+  applyDrag();
+  const { mode, pose } = drag;
+  drag = null;
+  if (layer.hasPointerCapture?.(e.pointerId)) layer.releasePointerCapture(e.pointerId);
+  layer.classList.remove("dragging");
+  stopMeter();
+  if (mode === "peel") {
+    const from = node.body.style.transform || "none";
+    if (pose && pose.progress >= PEEL_COMMIT) peelOff(node, pose, from);
+    else pressBack(node, from);
+  } else {
+    settle(node);
+  }
+  updateHoverCursor();
+}
+layer.addEventListener("pointerup", endDrag);
+layer.addEventListener("pointercancel", endDrag);
+
+// hover feedback: the cursor tells you whether a grab here moves or pinches the rim
+const hover = { raf: 0 };
+function updateHoverCursor() {
+  hover.raf = 0;
+  if (drag || !editing) return;
+  const node = pick(lastPointer.x, lastPointer.y);
+  layer.dataset.cursor = !node ? ""
+    : lastAlt ? "peel"
+    : isPivotGrab(lastPointer.x, lastPointer.y, boxOf(node)) ? "pivot" : "move";
+}
+
+// ---- trackpad: pinch to scale, twist to rotate (WebKit gesture events), both at once ----
+
+layer.addEventListener("gesturestart", (e) => {
+  if (!editing) return;
+  e.preventDefault();
+  const x = e.clientX ?? lastPointer.x, y = e.clientY ?? lastPointer.y;
+  const node = pick(x, y);
+  if (!node) { gest = null; return; }
+  bringToFront(node);
+  gest = { node, w: boxOf(node).w, rotation: node.placement.rotation };
+  lift(node);
+  startMeter();
+});
+
+layer.addEventListener("gesturechange", (e) => {
+  if (!editing || !gest) return;
+  e.preventDefault();
+  const { node } = gest;
+  const { w: lw, h: lh } = layerSize();
+  const box = boxOf(node);
+  node.placement.rotation = normalizeAngle(gest.rotation + e.rotation);
+  Object.assign(node.placement, fromPixels({ cx: box.cx, cy: box.cy, w: gest.w * e.scale }, lw, lh));
+  scheduleRender(node);
+});
+
+layer.addEventListener("gestureend", (e) => {
+  if (!gest) return;
+  e.preventDefault();
+  const { node } = gest;
+  gest = null;
+  if (node.raf) { cancelAnimationFrame(node.raf); node.raf = 0; }
+  stopMeter();
+  settle(node);
+});
+
+// Delete / Backspace: peel the sticker under the pointer off, upward.
+function peelUnderPointer() {
+  if (drag || gest) return;
+  const node = pick(lastPointer.x, lastPointer.y);
+  if (!node || node.peeled) return;
+  const box = boxOf(node);
+  const pose = peelPose(0, -PEEL_DISTANCE * Math.max(box.w, box.h), box.rotation, box.w, box.h);
+  node.live = true;
+  node.el.classList.add("peeling");
+  node.body.style.transformOrigin = `${pose.ox}px ${pose.oy}px`;
+  peelOff(node, pose, "none");
+}
+
+// ---- edit mode + boot ----
+
 function setEditMode(on) {
   editing = on;
   layer.classList.toggle("editing", on);
   hint.hidden = !on;
+  if (!on) {
+    layer.dataset.cursor = "";
+    drag = null;
+    gest = null;
+  }
 }
-
-// ---- boot ----
 
 async function boot() {
   const info = await invoke("layer_info");
@@ -153,7 +392,13 @@ async function boot() {
 
   await listen("edit-mode", (e) => setEditMode(Boolean(e.payload)));
   window.addEventListener("resize", () => nodes.forEach(render));
-  window.addEventListener("keydown", (e) => { if (e.key === "Escape" && editing) invoke("exit_edit_mode"); });
+  window.addEventListener("keydown", (e) => {
+    if (!editing) return;
+    if (e.key === "Escape") invoke("exit_edit_mode");
+    if (e.key === "Delete" || e.key === "Backspace") peelUnderPointer();
+    if (e.key === "Alt") { lastAlt = true; updateHoverCursor(); }
+  });
+  window.addEventListener("keyup", (e) => { if (e.key === "Alt") { lastAlt = false; updateHoverCursor(); } });
   document.getElementById("edit-done").addEventListener("click", () => invoke("exit_edit_mode"));
 }
 

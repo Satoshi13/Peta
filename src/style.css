@@ -8,46 +8,50 @@ html, body {
   font: 13px -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 }
 
-#layer { position: fixed; inset: 0; }
-#layer.editing { background: rgba(20, 20, 24, 0.12); }
+/* No tint / frame / handles in edit mode: the stickers themselves respond (cursor, lift, settle). */
+#layer { position: fixed; inset: 0; touch-action: none; }
 
 .sticker {
   position: absolute;
   left: 0; top: 0; /* position comes from transform: translate3d(...) only */
   transform-origin: center center;
-  touch-action: none;
+  will-change: transform; /* own compositor layer: moving it never repaints the image */
+  pointer-events: none;   /* picking is done in JS against the sticker's alpha mask */
+}
+.sticker .body {
+  width: 100%; height: 100%;
+  transition: transform 120ms ease-out;
   /* soft contact shadow, like a sticker lying on the desktop */
   filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35));
 }
-.sticker img { width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
-/* While being dragged: promote to its own layer and drop the (expensive) filter. */
-.sticker.dragging { will-change: transform; filter: none; }
+.sticker img { width: 100%; height: 100%; display: block; -webkit-user-drag: none; }
+/* Picked up: slightly larger. The (expensive) shadow filter is dropped while it's in the hand. */
+.sticker.lifted .body { transform: scale(1.04); filter: none; }
 
-/* Edit-mode chrome */
-.sticker .frame, .sticker .handle { display: none; }
-#layer.editing .sticker { cursor: grab; }
-#layer.editing .sticker.dragging { cursor: grabbing; }
-#layer.editing .sticker .frame {
-  display: block; position: absolute; inset: -4px;
-  border: 1.5px dashed rgba(255, 255, 255, 0.95);
-  outline: 1px solid rgba(0, 0, 0, 0.35);
-  border-radius: 4px; pointer-events: none;
+/* Peeling: the sticker is half off the surface; no transition, no shadow filter. */
+.sticker.peeling .body { transition: none; filter: none; }
+/* the lifted sticker hovers over the surface: its (projected) shape casts a soft shadow */
+.sticker.peeling { filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.32)); }
+.sticker.peel-ready .body { filter: brightness(1.06); } /* "let go now and it comes off" */
+
+/* Cursor says what a grab here will do. */
+#layer[data-cursor="move"] { cursor: grab; }
+#layer[data-cursor="peel"] { cursor: pointer; }
+#layer.dragging[data-cursor="move"] { cursor: grabbing; }
+#layer[data-cursor="pivot"] {
+  cursor: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12a8 8 0 1 1-2.5-5.8M20 3v6h-6' stroke='white' stroke-width='4'/%3E%3Cpath d='M20 12a8 8 0 1 1-2.5-5.8M20 3v6h-6' stroke='black' stroke-width='2'/%3E%3C/svg%3E") 12 12, alias;
 }
-#layer.editing .sticker .handle {
-  display: block; position: absolute; width: 16px; height: 16px; border-radius: 50%;
-  background: #fff; border: 1.5px solid rgba(0, 0, 0, 0.55); box-sizing: border-box;
-}
-.handle.resize { right: -12px; bottom: -12px; cursor: nwse-resize; }
-.handle.rotate { left: calc(50% - 8px); top: -34px; cursor: crosshair; }
-.handle.rotate::after { content: ""; position: absolute; left: 50%; top: 16px; width: 1px; height: 18px; background: rgba(255, 255, 255, 0.9); }
 
 #edit-hint {
   position: fixed; top: 44px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 12px;
   padding: 6px 8px 6px 14px; border-radius: 999px;
   background: rgba(30, 30, 34, 0.9); color: #fff; /* no backdrop-filter: it forces a full-window blur pass */
+  white-space: nowrap;
 }
 #edit-hint[hidden] { display: none; }
+#edit-hint .tips { opacity: 0.7; }
+#edit-hint #edit-meter { font-variant-numeric: tabular-nums; opacity: 0.55; min-width: 9.5em; }
 #edit-hint button {
   font: inherit; color: #1c1c1e; background: #fff; border: 0; border-radius: 999px; padding: 3px 12px; cursor: pointer;
 }

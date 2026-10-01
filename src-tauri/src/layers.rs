@@ -107,8 +107,8 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
         (old, st.generation, st.edit_mode)
     };
 
-    // First launch: place the test cat on the primary display.
-    if let Err(e) = app.state::<Store>().seed_if_empty(&ids[primary_idx]) {
+    // First launch only: place the test cat on the primary display.
+    if let Err(e) = app.state::<Store>().seed_if_fresh(&ids[primary_idx]) {
         eprintln!("[peta] seeding placements failed: {e}");
     }
 

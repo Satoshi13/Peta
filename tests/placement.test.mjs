@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   toPixels, fromPixels, resizedWidth, pointerAngle, rotatedAngle, normalizeAngle, MIN_SCALE, MAX_SCALE,
+  toLocalUV, grabRadius, isPivotGrab, pivotResult, peelPose, PEEL_MAX_ANGLE,
 } from "../src/placement.js";
 
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} !~ ${b}`);
@@ -49,4 +50,44 @@ test("rotatedAngle adds the angular delta and wraps", () => {
   near(rotatedAngle(170, 0, 30), -160);
   near(normalizeAngle(540), 180);
   near(normalizeAngle(-190), 170);
+});
+
+test("toLocalUV: center is (0.5,0.5) and respects rotation", () => {
+  const box = { cx: 500, cy: 400, w: 200, h: 100, rotation: 0 };
+  const c = toLocalUV(500, 400, box); near(c.u, 0.5); near(c.v, 0.5);
+  const tl = toLocalUV(400, 350, box); near(tl.u, 0); near(tl.v, 0);
+  // rotated 90deg clockwise: the sticker's local +x axis points down the screen
+  const r = toLocalUV(500, 500, { ...box, rotation: 90 }); near(r.u, 1); near(r.v, 0.5);
+});
+
+test("pivot grab = rim of the sticker, body = move", () => {
+  const box = { cx: 0, cy: 0, w: 200, h: 100, rotation: 0 };
+  assert.equal(isPivotGrab(10, 0, box), false);
+  assert.equal(isPivotGrab(90, 0, box), true);
+  near(grabRadius(100, 0, box), 1);
+});
+
+test("pivotResult: drag the rim outward and around => bigger and rotated at once", () => {
+  const start = { cx: 0, cy: 0, w: 100, rotation: 10, r0: 50, a0: 0 };
+  const out = pivotResult(start, 0, 100, 2000); // twice as far, 90deg clockwise
+  near(out.w, 200); near(out.rotation, 100);
+});
+
+test("peelPose: pulling right hinges on the left edge, axis is vertical", () => {
+  const p = peelPose(60, 0, 0, 200, 100);
+  near(p.ox, 0); near(p.oy, 50); near(p.ax, 0); near(p.ay, 1);
+  assert.ok(p.angle > 0 && p.progress > 0);
+});
+
+test("peelPose: pulling down hinges on the top edge", () => {
+  const p = peelPose(0, 40, 0, 200, 100);
+  near(p.ox, 100); near(p.oy, 0); near(p.ax, -1); near(p.ay, 0);
+});
+
+test("peelPose follows the sticker's rotation and caps the angle", () => {
+  // sticker rotated 90deg cw: a screen-space pull downward is local +x => hinge on local left
+  const p = peelPose(0, 40, 90, 200, 100);
+  near(p.dlx, 1); near(p.dly, 0, 1e-9); near(p.ox, 0);
+  assert.equal(peelPose(1e6, 0, 0, 200, 100).angle, PEEL_MAX_ANGLE);
+  assert.equal(peelPose(0, 0, 0, 200, 100).progress, 0);
 });

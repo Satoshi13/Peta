@@ -1,7 +1,11 @@
 //! Placement persistence (spike steps 09-10). JSON file in the app data dir.
 //! Phase 1 replaces this with SQLite; the `Placement` shape follows spec §59.
 
-use std::{fs, io, path::PathBuf, sync::Mutex};
+use std::{
+    fs, io,
+    path::PathBuf,
+    sync::{atomic::{AtomicBool, Ordering}, Mutex},
+};
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
@@ -30,6 +34,8 @@ fn yes() -> bool {
 
 #[derive(Default)]
 pub struct Store {
+    /// True only when no placements file existed at startup (first launch).
+    fresh: AtomicBool,
     path: Mutex<Option<PathBuf>>,
     items: Mutex<Vec<Placement>>,
 }
@@ -44,7 +50,10 @@ impl Store {
                 eprintln!("[peta] placements.json unreadable ({e}); starting empty");
                 Vec::new()
             }),
-            Err(e) if e.kind() == io::ErrorKind::NotFound => Vec::new(),
+            Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                self.fresh.store(true, Ordering::SeqCst);
+                Vec::new()
+            }
             Err(e) => return Err(e.into()),
         };
         *self.items.lock().unwrap() = items;
@@ -71,12 +80,19 @@ impl Store {
         self.flush()
     }
 
-    /// First launch: put the single test cat on the primary display.
-    pub fn seed_if_empty(&self, primary_display_id: &str) -> io::Result<()> {
-        if !self.items.lock().unwrap().is_empty() {
+    /// First launch only: put the single test cat on the primary display.
+    /// (Not "whenever empty" — a sticker the user peeled off must stay gone.)
+    pub fn seed_if_fresh(&self, primary_display_id: &str) -> io::Result<()> {
+        if !self.fresh.swap(false, Ordering::SeqCst) {
             return Ok(());
         }
         self.reset(primary_display_id)
+    }
+
+    /// Peel off: remove a sticker's placement.
+    pub fn remove(&self, sticker_id: &str) -> io::Result<()> {
+        self.items.lock().unwrap().retain(|p| p.sticker_id != sticker_id);
+        self.flush()
     }
 
     pub fn reset(&self, primary_display_id: &str) -> io::Result<()> {

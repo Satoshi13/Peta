@@ -25,6 +25,12 @@ fn save_placement(window: WebviewWindow, layers: State<Layers>, store: State<Sto
     store.upsert(placement).map_err(|e| e.to_string())
 }
 
+/// Peel off: the sticker leaves the desktop.
+#[tauri::command]
+fn delete_placement(store: State<Store>, sticker_id: String) -> Result<(), String> {
+    store.remove(&sticker_id).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn exit_edit_mode(app: tauri::AppHandle) {
     layers::set_edit_mode(&app, false);
@@ -34,7 +40,7 @@ pub fn run() {
     let app = tauri::Builder::default()
         .manage(Store::default())
         .manage(Layers::default())
-        .invoke_handler(tauri::generate_handler![layer_info, layer_placements, save_placement, exit_edit_mode])
+        .invoke_handler(tauri::generate_handler![layer_info, layer_placements, save_placement, delete_placement, exit_edit_mode])
         .setup(|app| {
             // Menu-bar-only app: no Dock icon, no app menu.
             #[cfg(target_os = "macos")]
