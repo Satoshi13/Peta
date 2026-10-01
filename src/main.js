@@ -29,16 +29,27 @@ function layerSize() {
   return { w: layer.clientWidth, h: layer.clientHeight };
 }
 
-/** Apply a placement (stored form) to its DOM node. */
+/** Apply a placement (stored form) to its DOM node. Move/rotate only touch `transform`
+ *  (compositor-only); width/height are written only when the size actually changed. */
 function render(node) {
   const { w: lw, h: lh } = layerSize();
   const box = toPixels(node.placement, lw, lh, node.aspect);
   const s = node.el.style;
-  s.width = `${box.w}px`;
-  s.height = `${box.h}px`;
-  s.left = `${box.cx - box.w / 2}px`;
-  s.top = `${box.cy - box.h / 2}px`;
-  s.transform = `rotate(${box.rotation}deg)`;
+  if (node.lastW !== box.w) {
+    s.width = `${box.w}px`;
+    s.height = `${box.h}px`;
+    node.lastW = box.w;
+  }
+  s.transform = `translate3d(${box.cx - box.w / 2}px, ${box.cy - box.h / 2}px, 0) rotate(${box.rotation}deg)`;
+}
+
+/** Coalesce pointermove bursts into at most one render per animation frame. */
+function scheduleRender(node) {
+  if (node.raf) return;
+  node.raf = requestAnimationFrame(() => {
+    node.raf = 0;
+    render(node);
+  });
 }
 
 async function addSticker(placement) {
@@ -66,13 +77,14 @@ function wireEditing(node) {
     el.setPointerCapture(e.pointerId);
     layer.appendChild(el); // bring to front (local only for now)
     el.classList.add("dragging");
-    const move = (ev) => { onMove(ev); render(node); };
+    const move = (ev) => { onMove(ev); scheduleRender(node); };
     const end = async (ev) => {
       el.releasePointerCapture(ev.pointerId);
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", end);
       el.removeEventListener("pointercancel", end);
       el.classList.remove("dragging");
+      render(node); // flush the final position synchronously
       await persist(node);
     };
     el.addEventListener("pointermove", move);
