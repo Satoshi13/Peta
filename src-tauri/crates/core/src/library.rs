@@ -91,6 +91,36 @@ impl Library {
         creator_id: Option<&str>,
         material_id: &str,
     ) -> Result<Sticker> {
+        let by = self.db.display_name()?;
+        self.add_rendered(rendered, original, original_ext, creator_id, Some(by), material_id, SourceType::Created)
+    }
+
+    /// Store a sticker that came out of a pack: its maker is the pack's author, and the back says which pack.
+    pub fn add_from_pack(
+        &mut self,
+        rendered: &crate::creator::Rendered,
+        original: &[u8],
+        original_ext: &str,
+        pack_title: &str,
+        pack_by: &str,
+        material_id: &str,
+    ) -> Result<Sticker> {
+        let sticker = self.add_rendered(rendered, original, original_ext, None, Some(pack_by.to_owned()), material_id, SourceType::Pack)?;
+        self.db.add_provenance(&sticker.id, crate::models::ProvenanceKind::PackOpened, Some(pack_title), &now())?;
+        self.db.sticker(&sticker.id)?.ok_or_else(|| Error::Invalid("sticker vanished".into()))
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn add_rendered(
+        &mut self,
+        rendered: &crate::creator::Rendered,
+        original: &[u8],
+        original_ext: &str,
+        creator_id: Option<&str>,
+        creator_name: Option<String>,
+        material_id: &str,
+        source_type: SourceType,
+    ) -> Result<Sticker> {
         let id = loop {
             let id = new_sticker_id();
             if !self.db.sticker_id_exists(&id)? {
@@ -106,12 +136,12 @@ impl Library {
         let created = self.db.create_sticker(NewSticker {
             id: id.clone(),
             creator_id: creator_id.map(str::to_owned),
-            creator_name: Some(self.db.display_name()?),
+            creator_name,
             original_asset_path: original_rel,
             rendered_asset_path: rendered_rel,
             mask_asset_path: Some(mask_rel),
             material_id: Some(material_id.to_owned()),
-            source_type: SourceType::Created,
+            source_type,
             aspect: rendered.aspect(),
         });
         if created.is_err() {

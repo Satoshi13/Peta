@@ -3,10 +3,10 @@ const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
 const $ = (id) => document.getElementById(id);
-const stages = ["envelope", "material", "choose", "collection", "done"].reduce((o, k) => ((o[k] = $(`stage-${k}`)), o), {});
+const stages = ["envelope", "material", "choose", "collection", "pack", "done"].reduce((o, k) => ((o[k] = $(`stage-${k}`)), o), {});
 
 let status = null;
-let view = "main"; // "main" | "collection"
+let view = "main"; // "main" | "collection" | "pack"
 let chosenMaterial = null; // only set once the user has picked a chip; otherwise today's material is the default
 let busy = false;
 const thumbs = new Map(); // stickerId -> blob url
@@ -50,6 +50,7 @@ async function render() {
   show(stages.material, s.materialOpened);
   show(stages.choose, !done && view === "main" && s.materialOpened);
   show(stages.collection, !done && view === "collection");
+  show(stages.pack, !done && view === "pack");
   show(stages.done, done);
 
   if (s.material) {
@@ -94,6 +95,7 @@ async function render() {
 
 async function refresh() {
   status = await invoke("daily_status");
+  refreshPackChoice();
   if (status.slot === "confirmed" || status.slot === "used") view = "main";
   await render();
 }
@@ -135,11 +137,47 @@ async function showCollection() {
   await render();
 }
 
+const packLeft = (p) => `${p.remaining} of ${p.total} left`;
+
+/** Pack choice: enabled while some pack still has something to open. */
+async function refreshPackChoice() {
+  try {
+    const { packs, canOpen } = await invoke("pack_status");
+    const left = packs.reduce((n, p) => n + p.remaining, 0);
+    $("choose-pack").disabled = !canOpen || left === 0;
+    $("pack-note").textContent = left === 0 ? "All opened" : `Open one at random · ${left} left`;
+  } catch { /* leave it disabled */ }
+}
+
+async function showPack() {
+  view = "pack";
+  const { packs } = await invoke("pack_status");
+  $("pack-list").replaceChildren(...packs.map((p) => {
+    const card = document.createElement("div");
+    card.className = "pack-card";
+    card.dataset.packId = p.id;
+    card.innerHTML = `<img class="pack-art" data-art="pack-pouch" src="art/today/choice-pack-pouch.png" alt=""><div><strong></strong><small class="muted"></small><button type="button" class="primary pack-open">Open one</button></div>`;
+    card.querySelector("strong").textContent = `${p.title} by ${p.by}`;
+    card.querySelector("small").textContent = packLeft(p);
+    const open = card.querySelector(".pack-open");
+    open.disabled = p.remaining === 0;
+    open.addEventListener("click", () => act(async () => {
+      await invoke("pack_open", { packId: p.id });
+      view = "main";
+      return invoke("daily_status");
+    }));
+    return card;
+  }));
+  await render();
+}
+
 $("open-material").addEventListener("click", () => act(() => invoke("daily_open_material")));
 $("choose-create").addEventListener("click", () => act(() => invoke("daily_create", {
   materialId: chosenMaterial ?? (status.unlocked.some((m) => m.id === status.material?.id && m.count > 0) ? status.material.id : null),
 })));
 $("choose-collection").addEventListener("click", () => showCollection());
+$("choose-pack").addEventListener("click", () => showPack());
+$("pack-back").addEventListener("click", () => { view = "main"; render(); });
 $("collection-back").addEventListener("click", () => { view = "main"; render(); });
 
 await listen("daily-changed", () => refresh());

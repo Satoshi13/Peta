@@ -57,6 +57,9 @@ impl Store {
         if dir.join(LEGACY_JSON).exists() && lib.db().sticker_count()? == 0 {
             migrate_legacy_json(&mut lib, &dir.join(LEGACY_JSON));
         }
+        if let Err(e) = peta_core::pack::ensure_welcome_pack(lib.db_mut()) {
+            eprintln!("[peta] installing the Welcome Pack failed: {e}");
+        }
         *self.lib.lock().unwrap() = Some(lib);
         self.needs_seed.store(first_run, Ordering::SeqCst);
         Ok(())

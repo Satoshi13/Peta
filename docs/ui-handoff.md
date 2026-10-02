@@ -158,6 +158,8 @@ Tauri の `invoke(コマンド名, 引数)` と `listen(イベント名)`。`wit
 |---|---|---|
 | `daily_open_material` | – | 封筒を開ける。素材が Material Book に入る |
 | `daily_create` | `{ materialId? }` | 画像を選んで(OS のダイアログ)今日の1枚にする。キャンセルは何も消費しない |
+| `pack_status` | — | `{ packs: [{ id, title, by, total, remaining }], canOpen }`。canOpen = 今日の枠がまだ空いている |
+| `pack_open` | `{ packId }` | 1枚だけランダムに開封して今日の Peta にする(確定。貼るのは Print → Grab → Paste)。枠が使用済みなら `already_used_today`、空なら `pack_empty` |
 | `collection_unused` | – | デスクトップに無いステッカー一覧(`[{ id, originalNumber, createdAt, materialId, aspect }]`) |
 | `daily_stick_from_collection` | `{ stickerId }` | コレクションから今日の1枚を貼る |
 | `sticker_asset` | `{ stickerId }` | 貼り付け用 PNG の生バイト(`ArrayBuffer`)。`Blob` → `URL.createObjectURL` で表示 |

@@ -2,6 +2,7 @@ mod arrival;
 mod collection;
 mod creator;
 mod layers;
+mod packs;
 mod platform;
 mod print;
 mod store;
@@ -122,6 +123,8 @@ pub fn run() {
             creator::creator_finish,
             creator::creator_cancel,
             arrival::arrival_open,
+            packs::pack_status,
+            packs::pack_open,
             print::print_pending,
             print::print_paste,
             print::print_later,

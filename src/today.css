@@ -69,3 +69,9 @@ button.link { border: 0; background: none; color: var(--muted); padding: 4px 0; 
 .list { list-style: none; margin: 0; padding: 0; }
 .list li { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); }
 footer { margin-top: 28px; }
+
+/* Pack (local packs): a pack card with its pouch and an Open button */
+.packs { display: grid; gap: 12px; margin-top: 12px; }
+.pack-card { display: flex; align-items: center; gap: 16px; padding: 14px; border: 1px solid var(--line, #e0d9cb); border-radius: 14px; background: var(--card, #fffdf9); }
+.pack-card .pack-art { width: 84px; height: auto; flex: none; }
+.pack-card > div { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }

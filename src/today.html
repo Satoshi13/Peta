@@ -77,10 +77,10 @@
           <strong>Gift</strong>
           <small>Coming later</small>
         </button>
-        <button class="choice" type="button" disabled data-art="choice-pack">
+        <button id="choose-pack" class="choice" type="button" disabled data-art="choice-pack">
           <span class="choice-icon art-inline" data-art="icon-pack"></span>
           <strong>Pack</strong>
-          <small>Coming later</small>
+          <small id="pack-note">Open one at random</small>
         </button>
       </div>
     </section>
@@ -93,6 +93,16 @@
       </div>
       <p id="collection-empty" class="muted" hidden>Nothing here yet. Peel a sticker off the desktop and it waits here.</p>
       <div id="collection-grid" class="grid"></div>
+    </section>
+
+    <!-- 3c. Open a pack: one sticker, at random (Phase 6, local packs) -->
+    <section id="stage-pack" hidden>
+      <div class="row">
+        <button id="pack-back" class="link" type="button">← Back</button>
+        <h2>Pack</h2>
+      </div>
+      <p class="muted">Opening a pack gives you one sticker, picked at random. It becomes today's Peta.</p>
+      <div id="pack-list" class="packs"></div>
     </section>
 
     <!-- 4. Done for today -->

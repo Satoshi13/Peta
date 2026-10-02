@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-const SCHEMA_VERSION: i64 = 4;
+const SCHEMA_VERSION: i64 = 5;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -84,6 +84,35 @@ CREATE TABLE material_stock (
 INSERT OR IGNORE INTO material_stock (material_id, count)
     SELECT material_id, 1 FROM material_unlocks WHERE material_id <> 'matte';
 ";
+
+/// Packs (spec §38-41): a set of stickers you open one at a time. Local only for now.
+const MIGRATION_V5: &str = "
+CREATE TABLE packs (
+    id         TEXT PRIMARY KEY,
+    title      TEXT NOT NULL,
+    by_name    TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE pack_items (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    pack_id    TEXT NOT NULL REFERENCES packs(id),
+    item_key   TEXT NOT NULL,
+    opened_at  TEXT,
+    sticker_id TEXT
+);
+CREATE INDEX idx_pack_items_pack ON pack_items(pack_id, opened_at);
+";
+
+/// A pack as listed to the UI.
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PackSummary {
+    pub id: String,
+    pub title: String,
+    pub by: String,
+    pub total: i64,
+    pub remaining: i64,
+}
 
 pub struct Database {
     conn: Connection,
@@ -163,6 +192,12 @@ impl Database {
             let tx = self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V4)?;
             tx.pragma_update(None, "user_version", 4)?;
+            tx.commit()?;
+        }
+        if version < 5 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V5)?;
+            tx.pragma_update(None, "user_version", 5)?;
             tx.commit()?;
         }
         Ok(())
@@ -446,6 +481,59 @@ impl Database {
             .conn
             .query_row("SELECT unlocked_at FROM material_unlocks WHERE material_id = ?1", [material_id], |r| r.get(0))
             .optional()?)
+    }
+
+    // ---- packs ----
+
+    /// Register a pack and its items. Does nothing (returns false) if the pack is already there.
+    pub fn pack_install(&mut self, id: &str, title: &str, by: &str, item_keys: &[&str]) -> Result<bool> {
+        let exists: bool = self.conn.query_row("SELECT COUNT(*) FROM packs WHERE id = ?1", [id], |r| r.get::<_, i64>(0))? > 0;
+        if exists {
+            return Ok(false);
+        }
+        let tx = self.conn.transaction()?;
+        tx.execute("INSERT INTO packs (id, title, by_name, created_at) VALUES (?1, ?2, ?3, ?4)", params![id, title, by, now()])?;
+        for key in item_keys {
+            tx.execute("INSERT INTO pack_items (pack_id, item_key) VALUES (?1, ?2)", params![id, key])?;
+        }
+        tx.commit()?;
+        Ok(true)
+    }
+
+    pub fn packs(&self) -> Result<Vec<PackSummary>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0)
+             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id
+             GROUP BY p.id ORDER BY p.created_at, p.id",
+        )?;
+        let rows = stmt.query_map([], |r| {
+            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)? })
+        })?;
+        Ok(rows.collect::<std::result::Result<Vec<_>, _>>()?)
+    }
+
+    /// The not-yet-opened item chosen by `roll` (0..1): returns (item id, item key). `None` when the pack is used up.
+    pub fn pack_pick(&self, pack_id: &str, roll: f64) -> Result<Option<(i64, String)>> {
+        let mut stmt = self.conn.prepare("SELECT id, item_key FROM pack_items WHERE pack_id = ?1 AND opened_at IS NULL ORDER BY id")?;
+        let items: Vec<(i64, String)> = stmt
+            .query_map([pack_id], |r| Ok((r.get(0)?, r.get(1)?)))?
+            .collect::<std::result::Result<_, _>>()?;
+        if items.is_empty() {
+            return Ok(None);
+        }
+        let i = ((roll.clamp(0.0, 0.999_999) * items.len() as f64) as usize).min(items.len() - 1);
+        Ok(Some(items[i].clone()))
+    }
+
+    pub fn pack_mark_opened(&mut self, item_id: i64, sticker_id: &str) -> Result<()> {
+        let n = self.conn.execute(
+            "UPDATE pack_items SET opened_at = ?1, sticker_id = ?2 WHERE id = ?3 AND opened_at IS NULL",
+            params![now(), sticker_id, item_id],
+        )?;
+        if n == 0 {
+            return Err(Error::Invalid("that pack item was already opened".into()));
+        }
+        Ok(())
     }
 
     // ---- material stock (materials are used up; plain paper is the exception) ----
