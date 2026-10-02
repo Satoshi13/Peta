@@ -25,6 +25,9 @@ pub struct LayerInfo {
 struct State {
     generation: u32,
     edit_mode: bool,
+    /// A new Peta is waiting at the print slot on the primary display: that layer must take mouse events
+    /// (so it can be grabbed) even outside Edit Mode.
+    print: bool,
     /// window label -> info
     by_label: HashMap<String, LayerInfo>,
     present_display_ids: Vec<String>,
@@ -98,7 +101,7 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
         .unwrap_or(0);
 
     let layers = app.state::<Layers>();
-    let (old_labels, generation, edit_mode) = {
+    let (old_labels, generation, edit_mode, print) = {
         let mut st = layers.0.lock().unwrap();
         let old: Vec<String> = st.by_label.keys().cloned().collect();
         st.generation += 1;
@@ -106,7 +109,7 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
         st.present_display_ids = ids.clone();
         st.primary_display_id = ids[primary_idx].clone();
         st.signature = signature(&monitors);
-        (old, st.generation, st.edit_mode)
+        (old, st.generation, st.edit_mode, st.print)
     };
 
     // First launch only: put the sample cat on the primary display.
@@ -143,7 +146,7 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
             .inner_size(size.width, size.height)
             .build()?;
 
-        apply_mode(&window, edit_mode);
+        apply_mode(&window, edit_mode || (print && i == primary_idx));
     }
     Ok(())
 }
@@ -168,7 +171,7 @@ pub fn set_edit_mode(app: &AppHandle, on: bool) {
         };
         for label in labels {
             if let Some(w) = handle.get_webview_window(&label) {
-                apply_mode(&w, on);
+                apply_mode(&w, on || print_on(&handle, &label));
                 if on {
                     let _ = w.set_focus();
                 }
@@ -176,6 +179,37 @@ pub fn set_edit_mode(app: &AppHandle, on: bool) {
         }
         let _ = handle.emit("edit-mode", on);
         crate::tray::sync_edit_checkbox(&handle, on);
+    });
+}
+
+/// Is a new Peta waiting at the print slot of this layer (the primary display's)?
+fn print_on(app: &AppHandle, label: &str) -> bool {
+    let st = app.state::<Layers>();
+    let st = st.0.lock().unwrap();
+    st.print && st.by_label.get(label).is_some_and(|i| i.is_primary)
+}
+
+/// A new Peta is waiting to be grabbed (or has been placed / put aside): the primary layer takes mouse events
+/// for as long as it is. Safe to call from any thread.
+pub fn set_print(app: &AppHandle, on: bool) {
+    let handle = app.clone();
+    let _ = app.run_on_main_thread(move || {
+        let labels: Vec<String> = {
+            let layers = handle.state::<Layers>();
+            let mut st = layers.0.lock().unwrap();
+            st.print = on;
+            st.by_label.keys().cloned().collect()
+        };
+        for label in labels {
+            if let Some(w) = handle.get_webview_window(&label) {
+                let edit = handle.state::<Layers>().0.lock().unwrap().edit_mode;
+                apply_mode(&w, edit || print_on(&handle, &label));
+                if on && print_on(&handle, &label) {
+                    let _ = w.set_focus();
+                }
+            }
+        }
+        let _ = handle.emit("print-changed", on);
     });
 }
 

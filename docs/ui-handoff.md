@@ -120,9 +120,10 @@ Phase 3 で**機能として実装済み**。見た目だけプレースホル�
 
 - **デスクトップに封筒が届く**(§35-36, §3.4)。今は「メニューバーの ● 表示」で代用している。
   → デスクトップレイヤー上に小さな封筒を出す案。クリックで Today を開く、など。
-- **画面端から印刷される Print アニメーション**(§27)。実在するプリンターは描かない。抽象的な「印刷口」。
-- **Grab → Drag → Paste の「ペタッ」**(§28-29)。※ 掴んで貼る基本操作は実装済み。印刷から貼るまでの導線は未。
-- **ステッカーの裏面**(ORIGINAL / Received の来歴表示)(§30)と**裏返す動き**
+- **Print → Grab → Paste は動く(CSS と WebAudio の仮表現)**: `src/print.js` / `style.css` 末尾。差し替え位置は
+  `data-art="print-slot"`(印刷口)/ `print-slot-glow` / `backing-sheet`(台紙。Collection と共通)。
+  「ペタッ」は `print.js` の `pata()`(合成音)。音ファイルにするならここを差し替える。
+  素材は Codex の Stage 2(`print/print-slot.png` 等)。出てくる動き(`.print-sheet` のアニメーション)は実装側。
 - **Holographic の本格的な GPU 反射**(カーソル・角度・仮想光源で変わる)(§57)。今は CSS の帯による簡易表現。
 - 封筒の開封・Pack 開封・Peel(剥がす)の音(§56)
 - 剥がす動作の本物の「めくれ」(今は平面が辺を軸に持ち上がる近似。曲面の描画が要る)
@@ -174,7 +175,7 @@ AVAILABLE -> SELECTING -> CONFIRMED -> USED
 
 - **SELECTING** = Today 画面が開いている間(保存されない UI 状態)。
 - **CONFIRMED** が取り返しのつかない点。確認・選択・プレビューでは消費しない。
-- Phase 4 で Print → Grab → Paste が入ると、CONFIRMED と USED の間に時間が生まれる(今は一瞬で両方通る)。
+- Print → Grab → Paste(Phase 4)が入ったので、CONFIRMED と USED の間に時間がある(印刷口で待っている間)。`print_pending` が待っているステッカー、`print_paste` が貼って USED にする。
 
 ## ステッカー本体の見た目(デスクトップレイヤー、`src/style.css`)
 

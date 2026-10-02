@@ -1,4 +1,5 @@
 import { renderBackCard, renderBackFallback } from "./back-card.js";
+import { initPrint } from "./print.js";
 import {
   toPixels, fromPixels, toLocalUV, isPivotGrab, pivotResult, pointerAngle, distance, normalizeAngle,
   peelPose, PEEL_COMMIT, PEEL_DISTANCE,
@@ -541,6 +542,7 @@ async function boot() {
   });
   await listen("placements-changed", () => reconcile());
   await wireFileDrop();
+  initPrint({ layer, invoke, listen, info, addSticker, nodes, render, lift, settle, removeNode, layerSize, fromPixels, loadAsset });
   await listen("edit-mode", (e) => setEditMode(Boolean(e.payload)));
   window.addEventListener("resize", () => nodes.forEach(render));
   window.addEventListener("keydown", (e) => {

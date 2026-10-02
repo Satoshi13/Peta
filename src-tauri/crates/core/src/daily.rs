@@ -47,6 +47,15 @@ impl SlotState {
 }
 
 impl DailyRecord {
+    /// A sticker that was made (CONFIRMED) but is not on the desktop yet: it is waiting at the print slot to
+    /// be grabbed and pasted (spec §27-29). Survives quitting the app, so it is there again next launch.
+    pub fn waiting_sticker(&self) -> Option<&str> {
+        match (&self.confirmed_at, &self.used_at) {
+            (Some(_), None) => self.sticker_id.as_deref(),
+            _ => None,
+        }
+    }
+
     pub fn slot(&self, selecting: bool) -> SlotState {
         match (&self.confirmed_at, &self.used_at) {
             (_, Some(_)) => SlotState::Used,
@@ -166,6 +175,24 @@ mod tests {
         assert_eq!(r.slot(false), SlotState::Available);
         assert_eq!(r.slot(true), SlotState::Selecting); // the Today screen being open
         assert!(r.slot(true).can_add_new());
+    }
+
+    #[test]
+    fn a_confirmed_sticker_waits_to_be_pasted_until_used() {
+        let mut db = Database::open_in_memory().unwrap();
+        let sticker = db
+            .create_sticker(crate::NewSticker {
+                id: "PETA-WAIT-0001".into(), creator_id: None, creator_name: None,
+                original_asset_path: "o".into(), rendered_asset_path: "r".into(), mask_asset_path: None,
+                material_id: Some("matte".into()), source_type: SourceType::Created, aspect: 1.0,
+            })
+            .unwrap();
+        let rec = ensure_today(&mut db, "2026-10-02", 0.5).unwrap();
+        assert_eq!(rec.waiting_sticker(), None);
+        let rec = confirm(&mut db, "2026-10-02", &sticker.id, SourceType::Created, 0.5).unwrap();
+        assert_eq!(rec.waiting_sticker(), Some("PETA-WAIT-0001"));
+        let rec = mark_used(&mut db, "2026-10-02").unwrap();
+        assert_eq!(rec.waiting_sticker(), None);
     }
 
     #[test]

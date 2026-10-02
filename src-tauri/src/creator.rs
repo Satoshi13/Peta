@@ -18,7 +18,7 @@ use peta_core::{
 use serde::Serialize;
 use tauri::{ipc::Response, AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
 
-use crate::{platform, store::Store, today};
+use crate::{platform, print, store::Store, today};
 
 pub const CREATOR_LABEL: &str = "creator";
 
@@ -298,16 +298,20 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32) -> Result<(), Strin
             return Err(peta_core::Error::MaterialUnavailable.to_string()); // used up elsewhere while the Cutting Mat was open
         }
         let sticker = lib.add_made(&rendered, &original, ext, None, &material).map_err(|e| e.to_string())?;
-        lib.stick_new(&sticker, &target.display_id, target.x, target.y).map_err(|e| e.to_string())?;
-        if target.counts_for_today {
+        if !target.counts_for_today {
+            // developer tools: no daily rule, no print — straight onto the desktop
+            lib.stick_new(&sticker, &target.display_id, target.x, target.y).map_err(|e| e.to_string())?;
+        } else {
             // the material is used up by making a sticker with it (plain paper never is)
             lib.db_mut().consume_material(&material).map_err(|e| e.to_string())?;
-            // Confirmed = point of no return; Used = it is on the desktop (Phase 4 puts Print/Grab/Paste between).
+            // Confirmed = point of no return. It is Used once it is pasted (print.rs): the Peta is printed first.
             daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Created, random_unit()).map_err(|e| e.to_string())?;
-            daily::mark_used(lib.db_mut(), &date).map_err(|e| e.to_string())?;
         }
     }
     today::announce(app);
+    if target.counts_for_today {
+        print::begin(app);
+    }
     Ok(())
 }
 

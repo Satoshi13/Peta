@@ -73,3 +73,26 @@ html, body {
   font: inherit; color: #1c1c1e; background: #fff; border: 0; border-radius: 999px; padding: 3px 12px; cursor: pointer;
 }
 #edit-hint small { opacity: 0.55; margin-right: 4px; }
+
+/* ---- Print: the Peta comes out of an abstract slot at the top of the screen, on its backing sheet ---- */
+#print-hint {
+  position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px;
+  padding: 6px 8px 6px 14px; border-radius: 999px;
+  background: rgba(30, 30, 34, 0.9); color: #fff; white-space: nowrap;
+}
+#print-hint[hidden] { display: none; }
+#print-hint .tips { opacity: 0.7; }
+#print-hint button { font: inherit; color: #1c1c1e; background: #fff; border: 0; border-radius: 999px; padding: 3px 12px; cursor: pointer; }
+#print-hint small { opacity: 0.55; margin-right: 4px; }
+
+/* the stage clips the sheet at the slot, so it really comes out of it */
+.print-stage { position: fixed; left: 0; right: 0; top: 44px; bottom: 0; overflow: hidden; pointer-events: none; display: flex; justify-content: center; align-items: flex-start; padding-top: 14px; }
+.print-sheet { pointer-events: auto; cursor: grab; position: relative; }
+.print-sheet img { display: block; -webkit-user-drag: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)); }
+.print-slot {
+  position: fixed; top: 38px; left: 50%; width: min(520px, 54vw); height: 8px; border-radius: 4px; pointer-events: none;
+  transform: translateX(-50%);
+  background: linear-gradient(#2c2b2a, #1b1a19); box-shadow: 0 2px 0 rgba(255, 255, 255, 0.25);
+}
+.print-slot-glow { position: absolute; left: 6%; right: 6%; top: 6px; height: 14px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 244, 220, 0.85), transparent); }

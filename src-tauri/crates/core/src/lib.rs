@@ -21,6 +21,6 @@ pub use daily::{DailyRecord, SlotState};
 pub use db::Database;
 pub use error::{Error, Result};
 pub use image_import::{process_image, Processed};
-pub use library::Library;
+pub use library::{default_scale, Library};
 pub use materials::{Material, Rarity};
 pub use models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker};

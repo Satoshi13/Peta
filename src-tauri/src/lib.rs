@@ -2,6 +2,7 @@ mod collection;
 mod creator;
 mod layers;
 mod platform;
+mod print;
 mod store;
 mod today;
 mod tray;
@@ -119,6 +120,9 @@ pub fn run() {
             creator::creator_clear_edits,
             creator::creator_finish,
             creator::creator_cancel,
+            print::print_pending,
+            print::print_paste,
+            print::print_later,
             collection::book_index,
             collection::book_page,
             collection::sticker_back,

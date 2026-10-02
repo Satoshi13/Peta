@@ -60,7 +60,10 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
         .show_menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id().as_ref() {
             "today" => {
-                if let Err(e) = today::open_window(app) {
+                // a Peta is waiting at the print slot (put aside earlier): bring it back instead
+                if matches!(crate::print::pending(app), Ok(Some(_))) {
+                    crate::print::begin(app);
+                } else if let Err(e) = today::open_window(app) {
                     eprintln!("[peta] could not open Today: {e}");
                 }
             }

@@ -240,6 +240,7 @@ pub fn roll_day(app: &AppHandle) {
         eprintln!("[peta] rolling the day failed: {e}");
     }
     announce(app);
+    crate::print::sync(app); // a Peta made but never pasted is waiting at the print slot again (or no longer)
 }
 
 /// The slot resets at local midnight even if Peta stays open (spec §13). Cheap poll; no OS hooks needed.

@@ -21,6 +21,12 @@ use crate::{
 /// Longer side of a freshly stuck sticker, as a fraction of the display width.
 const DEFAULT_LONG_SIDE: f64 = 0.18;
 
+/// Width (as a fraction of the screen width) a freshly stuck sticker gets: its long side is `DEFAULT_LONG_SIDE`.
+/// The Print animation uses the same size, so the sticker does not change size when it is let go.
+pub fn default_scale(aspect: f64) -> f64 {
+    if aspect >= 1.0 { DEFAULT_LONG_SIDE } else { DEFAULT_LONG_SIDE * aspect }
+}
+
 pub struct Library {
     db: Database,
     assets_dir: PathBuf,
@@ -117,7 +123,7 @@ impl Library {
     /// Stick a sticker on the desktop at a relative position with a natural-looking default size
     /// and a slight random tilt.
     pub fn stick_new(&mut self, sticker: &Sticker, display_id: &str, relative_x: f64, relative_y: f64) -> Result<Placement> {
-        let scale = if sticker.aspect >= 1.0 { DEFAULT_LONG_SIDE } else { DEFAULT_LONG_SIDE * sticker.aspect };
+        let scale = default_scale(sticker.aspect);
         self.db.place(Placement {
             sticker_id: sticker.id.clone(),
             display_id: display_id.to_owned(),
