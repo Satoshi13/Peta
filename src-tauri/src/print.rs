@@ -51,7 +51,7 @@ pub fn print_pending(app: AppHandle) -> Result<Option<PendingPrint>, String> {
     pending(&app)
 }
 
-/// Let go: stick it where the pointer is (centre as fractions of the primary display) and spend the slot.
+/// Let go: stick it where the pointer is (centre as fractions of the primary display), spend the slot and enter Edit Mode.
 #[tauri::command]
 pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, sticker_id: String, x: f64, y: f64) -> Result<(), String> {
     let date = app.state::<today::Today>().date();
@@ -70,6 +70,9 @@ pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, s
         daily::mark_used(lib.db_mut(), &date).map_err(|e| e.to_string())?;
     }
     layers::set_print(&app, false);
+    // Straight into Edit Mode: the new sticker can be resized, turned and moved right away instead of being stuck
+    // before you have had a chance to adjust it. Esc / Done leaves it.
+    layers::set_edit_mode(&app, true);
     today::announce(&app);
     Ok(())
 }

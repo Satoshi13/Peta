@@ -72,3 +72,11 @@ button.primary { background: var(--accent); color: var(--accent-fg); border-colo
 .art-slot { display: grid; place-items: center; width: 280px; height: 150px; padding: 12px; text-align: center; border: 1.5px dashed var(--line); border-radius: 14px; color: var(--muted); font-size: 12px; }
 .art-slot::before { content: "art · " attr(data-art); display: block; font-weight: 600; margin-bottom: 4px; }
 .art-slot::after { content: attr(data-art-note); display: block; }
+
+#zoom { position: absolute; inset: 0; transform-origin: 0 0; will-change: transform; }
+#zoom img, #paint-trail { position: absolute; inset: 0; width: 100%; height: 100%; }
+#cutout-frame[data-pan="ready"] { cursor: grab; }
+#cutout-frame[data-pan="moving"] { cursor: grabbing; }
+.zoomctl { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; }
+.zoomctl button { padding: 0 6px; }
+.zoomctl output { min-width: 3.2em; font-variant-numeric: tabular-nums; }

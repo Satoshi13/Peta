@@ -122,6 +122,8 @@ pub fn run() {
             creator::creator_stroke,
             creator::creator_clear_edits,
             creator::creator_finish,
+            creator::creator_undo,
+            creator::creator_redo,
             creator::creator_cancel,
             arrival::arrival_open,
             gifts::gift_send,

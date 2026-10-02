@@ -52,7 +52,7 @@ Phase 3 で**機能として実装済み**。見た目だけプレースホル�
 | `creator_original` | 元画像(JPEG の生バイト) |
 | `creator_render({ materialId, strength, smooth, preview })` | 生バイト。先頭4バイト(BE)= JSON長、JSON `{ stickerLen, cutoutLen, width, height, coverage }`、完成PNG、切り抜きPNG |
 | `creator_stroke({ points, radius, restore })` | ブラシ。`points` は画像の幅・高さに対する 0..1、`radius` は幅に対する比 |
-| `creator_clear_edits` / `creator_cancel` / `creator_finish({ materialId, strength, smooth })` | リセット / 取りやめ(何も消費しない)/ 確定 |
+| `creator_undo` / `creator_redo`(`{ canUndo, canRedo }` を返す。`creator_stroke({ points, radius, restore, newStroke })` と `creator_clear_edits` も同じものを返す)/ `creator_clear_edits` / `creator_cancel` / `creator_finish({ materialId, strength, smooth })` | リセット / 取りやめ(何も消費しない)/ 確定 |
 | イベント `creator-changed` | 状態が変わった(`creator_info` を取り直す) |
 
 ## ステッカーの裏面(`src/back-card.js` / `back-card.css`)

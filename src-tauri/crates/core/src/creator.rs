@@ -84,10 +84,25 @@ pub struct Rendered {
 /// Previews are drawn at 1/PREVIEW_DOWNSCALE size.
 pub const PREVIEW_DOWNSCALE: usize = 2;
 
+/// One piece of a brush stroke, as it arrived (a stroke is streamed in pieces while it is painted).
+#[derive(Clone)]
+struct Piece {
+    points: Vec<(f32, f32)>,
+    radius: f32,
+    value: u8,
+}
+
+/// How many strokes can be undone. Older ones are baked in and stay.
+const UNDO_LIMIT: usize = 100;
+
 pub struct Session {
     pub analysis: Analysis,
     preview: Analysis,
     pub edits: Edits,
+    /// Strokes dropped off the end of the undo history, already painted.
+    base: Edits,
+    history: Vec<Vec<Piece>>,
+    redo: Vec<Vec<Piece>>,
     pub original: Vec<u8>,
     pub original_ext: &'static str,
 }
@@ -188,7 +203,10 @@ impl Session {
         let (analysis, original_ext) = Analysis::new(bytes, segmenter)?;
         let edits = Edits::new(analysis.w, analysis.h);
         let preview = analysis.downscaled(PREVIEW_DOWNSCALE);
-        Ok(Session { analysis, preview, edits, original: bytes.to_vec(), original_ext })
+        Ok(Session {
+            analysis, preview, base: edits.clone(), edits, history: Vec::new(), redo: Vec::new(),
+            original: bytes.to_vec(), original_ext,
+        })
     }
 
     pub fn size(&self) -> (usize, usize) {
@@ -204,12 +222,63 @@ impl Session {
     }
 
     /// Brush stroke in working-image pixels. `restore` brings subject back, otherwise it erases.
-    pub fn stroke(&mut self, points: &[(f32, f32)], radius: f32, restore: bool) {
-        self.edits.stroke(points, radius.max(1.0), if restore { EDIT_RESTORE } else { EDIT_ERASE });
+    /// A stroke arrives in pieces while it is painted: `new_stroke` starts a new one (one undo step), otherwise the
+    /// piece continues the previous stroke.
+    pub fn stroke(&mut self, points: &[(f32, f32)], radius: f32, restore: bool, new_stroke: bool) {
+        let piece = Piece { points: points.to_vec(), radius: radius.max(1.0), value: if restore { EDIT_RESTORE } else { EDIT_ERASE } };
+        self.edits.stroke(&piece.points, piece.radius, piece.value);
+        if new_stroke || self.history.is_empty() {
+            self.history.push(vec![piece]);
+            self.redo.clear(); // painting something new ends the redo chain
+            if self.history.len() > UNDO_LIMIT {
+                for p in self.history.remove(0) {
+                    self.base.stroke(&p.points, p.radius, p.value);
+                }
+            }
+        } else if let Some(last) = self.history.last_mut() {
+            last.push(piece);
+        }
     }
 
+    /// Take back the last stroke. Returns false if there is nothing to take back.
+    pub fn undo(&mut self) -> bool {
+        let Some(group) = self.history.pop() else { return false };
+        self.redo.push(group);
+        self.rebuild();
+        true
+    }
+
+    /// Put back the stroke that was taken back.
+    pub fn redo(&mut self) -> bool {
+        let Some(group) = self.redo.pop() else { return false };
+        self.history.push(group);
+        self.rebuild();
+        true
+    }
+
+    pub fn can_undo(&self) -> bool {
+        !self.history.is_empty()
+    }
+
+    pub fn can_redo(&self) -> bool {
+        !self.redo.is_empty()
+    }
+
+    fn rebuild(&mut self) {
+        self.edits = self.base.clone();
+        for group in &self.history {
+            for p in group {
+                self.edits.stroke(&p.points, p.radius, p.value);
+            }
+        }
+    }
+
+    /// "Reset": everything painted is gone (and cannot be undone).
     pub fn clear_edits(&mut self) {
         self.edits = Edits::new(self.analysis.w, self.analysis.h);
+        self.base = self.edits.clone();
+        self.history.clear();
+        self.redo.clear();
     }
 
     /// Full-resolution render: what gets stuck on the desktop.
@@ -414,12 +483,88 @@ mod tests {
         // erase the whole left half of the subject with a fat brush
         let (w, h) = session.size();
         let pts: Vec<(f32, f32)> = (0..h).step_by(8).map(|y| (w as f32 * 0.3, y as f32)).collect();
-        session.stroke(&pts, w as f32 * 0.25, false);
+        session.stroke(&pts, w as f32 * 0.25, false, true);
         let erased = session.render(&params("matte")).unwrap();
         assert!(erased.coverage < base.coverage - 0.05, "{} vs {}", erased.coverage, base.coverage);
         session.clear_edits();
         let again = session.render(&params("matte")).unwrap();
         assert_eq!(again.sticker_png, base.sticker_png, "clearing edits restores the original result");
+    }
+
+    /// A session over a plain transparent image: no model needed.
+    fn flat_session() -> Session {
+        let mut img = RgbaImage::new(120, 90);
+        for y in 20..70u32 {
+            for x in 30..90u32 {
+                img.put_pixel(x, y, image::Rgba([200, 90, 60, 255]));
+            }
+        }
+        Session::new(&encode_png(&img), None).unwrap()
+    }
+
+    fn encode_png(img: &RgbaImage) -> Vec<u8> {
+        let mut out = Vec::new();
+        img.write_to(&mut std::io::Cursor::new(&mut out), image::ImageFormat::Png).unwrap();
+        out
+    }
+
+    #[test]
+    fn undo_takes_back_one_whole_stroke_even_when_it_arrived_in_pieces() {
+        let mut s = flat_session();
+        let params = params("matte");
+        let base = s.render(&params).unwrap().sticker_png;
+        // stroke 1 arrives in three pieces, stroke 2 in one
+        s.stroke(&[(40.0, 30.0), (50.0, 30.0)], 6.0, false, true);
+        s.stroke(&[(50.0, 30.0), (60.0, 30.0)], 6.0, false, false);
+        s.stroke(&[(60.0, 30.0), (70.0, 30.0)], 6.0, false, false);
+        let after_one = s.render(&params).unwrap().sticker_png;
+        s.stroke(&[(40.0, 55.0), (80.0, 55.0)], 6.0, false, true);
+        let after_two = s.render(&params).unwrap().sticker_png;
+        assert_ne!(base, after_one);
+        assert_ne!(after_one, after_two);
+
+        assert!(s.can_undo() && !s.can_redo());
+        assert!(s.undo());
+        assert_eq!(s.render(&params).unwrap().sticker_png, after_one, "the second stroke is gone, the first stays whole");
+        assert!(s.can_redo());
+        assert!(s.undo());
+        assert_eq!(s.render(&params).unwrap().sticker_png, base, "all three pieces of the first stroke are gone together");
+        assert!(!s.undo() && !s.can_undo(), "nothing left to take back");
+        assert!(s.redo() && s.redo());
+        assert_eq!(s.render(&params).unwrap().sticker_png, after_two, "redo puts both strokes back");
+        assert!(!s.redo());
+    }
+
+    #[test]
+    fn painting_after_an_undo_ends_the_redo_chain_and_reset_clears_everything() {
+        let mut s = flat_session();
+        s.stroke(&[(40.0, 30.0), (60.0, 30.0)], 5.0, false, true);
+        s.undo();
+        assert!(s.can_redo());
+        s.stroke(&[(40.0, 60.0), (60.0, 60.0)], 5.0, true, true);
+        assert!(!s.can_redo(), "a new stroke ends the redo chain");
+        s.stroke(&[(40.0, 40.0), (60.0, 40.0)], 5.0, false, true);
+        s.clear_edits();
+        assert!(!s.can_undo() && !s.can_redo());
+        assert!(s.edits.is_empty());
+    }
+
+    #[test]
+    fn old_strokes_fall_off_the_undo_history_but_stay_painted() {
+        let mut s = flat_session();
+        for i in 0..(UNDO_LIMIT + 5) {
+            s.stroke(&[(35.0 + (i % 50) as f32, 40.0)], 2.0, false, true);
+        }
+        let before: Vec<u8> = s.edits.data.clone();
+        let mut undone = 0;
+        while s.undo() {
+            undone += 1;
+        }
+        assert_eq!(undone, UNDO_LIMIT, "only the latest strokes can be undone");
+        let baked = s.edits.data.iter().filter(|v| **v != 0).count();
+        assert!(baked > 0, "the older strokes are still painted");
+        while s.redo() {}
+        assert_eq!(s.edits.data, before, "redoing everything gives the same result");
     }
 
     #[test]
@@ -438,7 +583,7 @@ mod tests {
         let bytes = std::fs::read(CAT).unwrap();
         let mut session = Session::new(&bytes, None).unwrap();
         let (w, h) = session.size();
-        session.stroke(&[(w as f32 / 2.0, h as f32 / 2.0)], (w.max(h)) as f32, false); // erase everything
+        session.stroke(&[(w as f32 / 2.0, h as f32 / 2.0)], (w.max(h)) as f32, false, true); // erase everything
         assert!(matches!(session.render(&params("matte")), Err(Error::Invalid(_))));
     }
 }

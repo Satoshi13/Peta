@@ -245,21 +245,56 @@ pub async fn creator_render(app: AppHandle, material_id: String, strength: f32, 
 }
 
 /// A brush stroke; points and radius are fractions of the image width / height (radius: of the width).
+///
+/// `new_stroke` starts a new undo step; the pieces that follow it (a stroke is streamed while it is painted) belong to it.
 #[tauri::command]
-pub fn creator_stroke(creator: State<Creator>, points: Vec<(f32, f32)>, radius: f32, restore: bool) -> Result<(), String> {
+pub fn creator_stroke(creator: State<Creator>, points: Vec<(f32, f32)>, radius: f32, restore: bool, new_stroke: bool) -> Result<History, String> {
     let mut active = creator.active.lock().unwrap();
     let a = active.as_mut().ok_or("no image is open")?;
     let (w, h) = a.session.size();
     let px: Vec<(f32, f32)> = points.iter().map(|(x, y)| (x * w as f32, y * h as f32)).collect();
-    a.session.stroke(&px, radius * w as f32, restore);
-    Ok(())
+    a.session.stroke(&px, radius * w as f32, restore, new_stroke);
+    Ok(History::of(&a.session))
 }
 
 #[tauri::command]
-pub fn creator_clear_edits(creator: State<Creator>) -> Result<(), String> {
+pub fn creator_clear_edits(creator: State<Creator>) -> Result<History, String> {
     let mut active = creator.active.lock().unwrap();
-    active.as_mut().ok_or("no image is open")?.session.clear_edits();
-    Ok(())
+    let a = active.as_mut().ok_or("no image is open")?;
+    a.session.clear_edits();
+    Ok(History::of(&a.session))
+}
+
+/// Ctrl/Cmd+Z: take back the last stroke.
+#[tauri::command]
+pub fn creator_undo(creator: State<Creator>) -> Result<History, String> {
+    let mut active = creator.active.lock().unwrap();
+    let a = active.as_mut().ok_or("no image is open")?;
+    a.session.undo();
+    Ok(History::of(&a.session))
+}
+
+/// Shift+Ctrl/Cmd+Z (or Ctrl+Y): put it back.
+#[tauri::command]
+pub fn creator_redo(creator: State<Creator>) -> Result<History, String> {
+    let mut active = creator.active.lock().unwrap();
+    let a = active.as_mut().ok_or("no image is open")?;
+    a.session.redo();
+    Ok(History::of(&a.session))
+}
+
+/// What the Undo / Redo buttons need to know.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct History {
+    can_undo: bool,
+    can_redo: bool,
+}
+
+impl History {
+    fn of(session: &Session) -> Self {
+        History { can_undo: session.can_undo(), can_redo: session.can_redo() }
+    }
 }
 
 /// "Make this Peta": render at full size, keep it in the library, stick it down, spend today's slot.

@@ -6,7 +6,7 @@ const $ = (id) => document.getElementById(id);
 const els = {
   original: $("img-original"), dim: $("img-dim"), cutout: $("img-cutout"), sticker: $("img-sticker"),
   frame: $("cutout-frame"), ring: $("brush-ring"), wrap: $("sticker-wrap"), stickerFrame: $("sticker-frame"),
-  materials: $("materials"), strength: $("strength"), smooth: $("smooth"), brush: $("brush-size"), trail: $("paint-trail"),
+  materials: $("materials"), strength: $("strength"), smooth: $("smooth"), brush: $("brush-size"), trail: $("paint-trail"), zoom: $("zoom"), undo: $("undo"), redo: $("redo"),
   make: $("make"), cancel: $("cancel"), note: $("note"), error: $("error"), hint: $("hint"),
   loading: $("loading"), failed: $("failed"), failedReason: $("failed-reason"), caption: $("sticker-caption"),
 };
@@ -100,6 +100,8 @@ async function refresh() {
   swapUrl("original", els.original, blob);
   els.dim.src = urls.original;
   material = info.defaultMaterial;
+  resetView();
+  setHistory({ canUndo: false, canRedo: false });
   els.strength.value = String(info.defaultStrength);
   els.smooth.value = String(info.defaultSmooth);
   els.hint.textContent = info.hadAlpha ? "This image already has a transparent background." : "";
@@ -110,55 +112,112 @@ async function refresh() {
   await render(true);
 }
 
+// ---- zoom: scroll to zoom around the pointer, hold Space (or the middle button) and drag to move ----
+
+const view = { s: 1, x: 0, y: 0 };
+const ZOOM_MAX = 10;
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const frameBox = () => ({ w: els.frame.clientWidth, h: els.frame.clientHeight });
+
+function applyView() {
+  const { w, h } = frameBox();
+  view.x = clamp(view.x, w * (1 - view.s), 0); // the image always covers the pane
+  view.y = clamp(view.y, h * (1 - view.s), 0);
+  els.zoom.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.s})`;
+  $("zoom-pct").textContent = `${Math.round(view.s * 100)}%`;
+}
+
+function zoomAt(cx, cy, factor) {
+  const s = clamp(view.s * factor, 1, ZOOM_MAX);
+  const k = s / view.s;
+  view.x = cx - (cx - view.x) * k;
+  view.y = cy - (cy - view.y) * k;
+  view.s = s;
+  applyView();
+}
+
+const resetView = () => { view.s = 1; view.x = 0; view.y = 0; applyView(); };
+const frameCenter = () => { const { w, h } = frameBox(); return [w / 2, h / 2]; };
+
+els.frame.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const r = els.frame.getBoundingClientRect();
+  const lx = e.clientX - r.left - els.frame.clientLeft, ly = e.clientY - r.top - els.frame.clientTop;
+  const unit = e.deltaMode === 1 ? 16 : 1; // lines -> pixels
+  if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.5) { // sideways scroll moves the picture
+    view.x -= e.deltaX * unit;
+    applyView();
+    return;
+  }
+  zoomAt(lx, ly, Math.exp(-e.deltaY * unit * (e.ctrlKey ? 0.012 : 0.0028))); // a pinch (ctrl + wheel) is stronger
+}, { passive: false });
+$("zoom-in").addEventListener("click", () => zoomAt(...frameCenter(), 1.5));
+$("zoom-out").addEventListener("click", () => zoomAt(...frameCenter(), 1 / 1.5));
+$("zoom-fit").addEventListener("click", resetView);
+window.addEventListener("resize", applyView);
+
 // ---- brush (paints on the cutout pane) ----
 
-/** Where the image sits inside the pane (object-fit: contain). */
+/** Where the image sits inside the pane before zooming (object-fit: contain). */
 function imageRect() {
-  const r = els.frame.getBoundingClientRect();
-  const k = Math.min(r.width / aspect, r.height) ;
-  const w = k * aspect, h = k;
-  return { left: r.left + (r.width - w) / 2, top: r.top + (r.height - h) / 2, w, h, frame: r };
+  const { w, h } = frameBox();
+  const k = Math.min(w / aspect, h);
+  const iw = k * aspect;
+  return { left: (w - iw) / 2, top: (h - k) / 2, w: iw, h: k };
 }
 
 let stroke = null; // { restore, radius, points, sent, ... } while the pointer is down
+let panning = null; // { x, y, vx, vy } while the picture is being moved
+let spaceDown = false;
+
+/** Pointer -> position in the picture (0..1), through the zoom. */
 const toImage = (e) => {
+  const fr = els.frame.getBoundingClientRect();
+  const lx = e.clientX - fr.left - els.frame.clientLeft, ly = e.clientY - fr.top - els.frame.clientTop;
+  const qx = (lx - view.x) / view.s, qy = (ly - view.y) / view.s;
   const r = imageRect();
-  return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.w)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.h))];
+  return [clamp((qx - r.left) / r.w, 0, 1), clamp((qy - r.top) / r.h, 0, 1)];
 };
 
 function moveRing(e) {
-  const r = imageRect();
-  const d = Number(els.brush.value) * r.w * 2;
-  els.ring.hidden = false;
+  const fr = els.frame.getBoundingClientRect();
+  const d = Number(els.brush.value) * imageRect().w * 2 * view.s;
+  els.ring.hidden = spaceDown || Boolean(panning);
   els.ring.dataset.tool = tool;
   els.ring.style.width = els.ring.style.height = `${d}px`;
-  els.ring.style.left = `${e.clientX - r.frame.left}px`;
-  els.ring.style.top = `${e.clientY - r.frame.top}px`;
+  els.ring.style.left = `${e.clientX - fr.left - els.frame.clientLeft}px`;
+  els.ring.style.top = `${e.clientY - fr.top - els.frame.clientTop}px`;
 }
 
 // The stroke is felt at once in two ways: a coloured trail is drawn under the pointer (no round trip), and the
 // stroke is streamed to Rust in small pieces while you paint, each followed by a quick preview render, so the
-// cutout and the sticker change as you go instead of after you let go.
+// cutout and the sticker change as you go instead of after you let go. Undo / redo go through the same queue, so
+// they always come after the strokes that were painted before them.
 const TRAIL = { erase: "rgba(255, 90, 90, 0.42)", restore: "rgba(70, 200, 120, 0.42)" };
 const SEND_EVERY_MS = 45;
 let trailCtx = null;
-let queue = []; // stroke pieces waiting for Rust, in order
+let queue = []; // work waiting for Rust, in order: { kind: "stroke" | "undo" | "redo", ... }
 let pumping = false;
 
+function setHistory(h) {
+  els.undo.disabled = !h.canUndo;
+  els.redo.disabled = !h.canRedo;
+}
+
 function startTrail() {
-  const r = els.frame.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  els.trail.width = Math.round(r.width * dpr);
-  els.trail.height = Math.round(r.height * dpr);
+  const { w, h } = frameBox();
+  const sf = (window.devicePixelRatio || 1) * Math.min(view.s, 4); // sharper when zoomed in
+  els.trail.width = Math.round(w * sf);
+  els.trail.height = Math.round(h * sf);
   trailCtx = els.trail.getContext("2d");
-  trailCtx.scale(dpr, dpr);
+  trailCtx.scale(sf, sf);
   trailCtx.lineCap = trailCtx.lineJoin = "round";
 }
 
 function drawTrail(from, to) {
   if (!trailCtx || !stroke) return;
   const r = imageRect();
-  const px = ([x, y]) => [r.left - r.frame.left + x * r.w, r.top - r.frame.top + y * r.h];
+  const px = ([x, y]) => [r.left + x * r.w, r.top + y * r.h];
   const [ax, ay] = px(from), [bx, by] = px(to);
   trailCtx.strokeStyle = TRAIL[stroke.restore ? "restore" : "erase"];
   trailCtx.lineWidth = stroke.radius * r.w * 2;
@@ -178,7 +237,7 @@ function sendPiece() {
   const { points, sent } = stroke;
   if (points.length <= sent && sent > 0) return; // nothing new
   const from = Math.max(0, sent - 1);
-  queue.push({ points: points.slice(from), radius: stroke.radius, restore: stroke.restore });
+  queue.push({ kind: "stroke", points: points.slice(from), radius: stroke.radius, restore: stroke.restore, newStroke: sent === 0 });
   stroke.sent = points.length;
   pump();
 }
@@ -188,8 +247,9 @@ async function pump() {
   pumping = true;
   try {
     while (queue.length) {
-      const piece = queue.shift();
-      await invoke("creator_stroke", piece);
+      const job = queue.shift();
+      if (job.kind === "stroke") setHistory(await invoke("creator_stroke", { points: job.points, radius: job.radius, restore: job.restore, newStroke: job.newStroke }));
+      else setHistory(await invoke(job.kind === "undo" ? "creator_undo" : "creator_redo"));
       if (!queue.length) await render(true); // skip renders that would be out of date at once
     }
   } catch (err) {
@@ -201,11 +261,42 @@ async function pump() {
   }
 }
 
+function undo() { if (!stroke && !els.undo.disabled) { queue.push({ kind: "undo" }); pump(); } }
+function redo() { if (!stroke && !els.redo.disabled) { queue.push({ kind: "redo" }); pump(); } }
+els.undo.addEventListener("click", undo);
+els.redo.addEventListener("click", redo);
+
+window.addEventListener("keydown", (e) => {
+  const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName) && document.activeElement.type !== "range";
+  const mod = e.metaKey || e.ctrlKey;
+  if (mod && !e.altKey && e.key.toLowerCase() === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+  if (mod && !e.altKey && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
+  if (mod && e.key === "0") { e.preventDefault(); resetView(); return; }
+  if (mod && (e.key === "=" || e.key === "+")) { e.preventDefault(); zoomAt(...frameCenter(), 1.5); return; }
+  if (mod && e.key === "-") { e.preventDefault(); zoomAt(...frameCenter(), 1 / 1.5); return; }
+  if (e.code === "Space" && !typing && !e.repeat) {
+    e.preventDefault();
+    spaceDown = true;
+    els.frame.dataset.pan = "ready";
+    els.ring.hidden = true;
+  }
+});
+window.addEventListener("keyup", (e) => {
+  if (e.code === "Space") { spaceDown = false; if (!panning) delete els.frame.dataset.pan; }
+});
+
 els.frame.addEventListener("pointerenter", moveRing);
 els.frame.addEventListener("pointerleave", () => { if (!stroke) els.ring.hidden = true; });
 els.frame.addEventListener("pointerdown", (e) => {
   if (info?.phase !== "ready") return;
   els.frame.setPointerCapture(e.pointerId);
+  if (spaceDown || e.button === 1) { // move the picture instead of painting
+    e.preventDefault();
+    panning = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y };
+    els.frame.dataset.pan = "moving";
+    els.ring.hidden = true;
+    return;
+  }
   const p = toImage(e);
   stroke = { points: [p], sent: 0, restore: tool === "restore", radius: Number(els.brush.value), timer: 0 };
   startTrail();
@@ -214,6 +305,12 @@ els.frame.addEventListener("pointerdown", (e) => {
   stroke.timer = setInterval(sendPiece, SEND_EVERY_MS);
 });
 els.frame.addEventListener("pointermove", (e) => {
+  if (panning) {
+    view.x = panning.vx + e.clientX - panning.x;
+    view.y = panning.vy + e.clientY - panning.y;
+    applyView();
+    return;
+  }
   moveRing(e);
   if (!stroke) return;
   const p = toImage(e);
@@ -221,6 +318,12 @@ els.frame.addEventListener("pointermove", (e) => {
   stroke.points.push(p);
 });
 const endStroke = (e) => {
+  if (panning) {
+    panning = null;
+    if (spaceDown) els.frame.dataset.pan = "ready"; else delete els.frame.dataset.pan;
+    try { els.frame.releasePointerCapture(e.pointerId); } catch { /* already released */ }
+    return;
+  }
   if (!stroke) return;
   clearInterval(stroke.timer);
   try { els.frame.releasePointerCapture(e.pointerId); } catch { /* already released */ }
@@ -240,7 +343,7 @@ const setTool = (t) => {
 };
 $("tool-erase").addEventListener("click", () => setTool("erase"));
 $("tool-restore").addEventListener("click", () => setTool("restore"));
-$("clear-edits").addEventListener("click", async () => { await invoke("creator_clear_edits"); render(true); });
+$("clear-edits").addEventListener("click", async () => { setHistory(await invoke("creator_clear_edits")); render(true); });
 els.strength.addEventListener("input", () => scheduleRender());
 els.smooth.addEventListener("input", () => scheduleRender());
 
