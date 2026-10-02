@@ -79,3 +79,16 @@
 .month-tab:nth-of-type(6n + 5)::before { --tab-c: #bfe3f7; background-image: url("book/tab-blank-5.png"); }
 .month-tab:nth-of-type(6n)::before { --tab-c: #f7f0be; background-image: url("book/tab-blank-6.png"); }
 .month-tab[aria-current="true"] { background: none; margin-right: -4px; padding-left: 20px; font-weight: 600; }
+
+/* Turning to another month: the page-curl shadow sweeps across once. */
+.page { position: relative; }
+.page::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: url("book/page-curl-shadow.png") center / 100% 100% no-repeat;
+}
+.page.turning::after { animation: page-turn 420ms ease-out; }
+@keyframes page-turn {
+  from { opacity: 1; transform: translateX(-30%); }
+  to { opacity: 0; transform: translateX(30%); }
+}
+@media (prefers-reduced-motion: reduce) { .page.turning::after { animation: none; } }

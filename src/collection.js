@@ -58,7 +58,16 @@ function renderIndex() {
 
 // ---- page ----
 
+/** A soft shadow sweeps across the page when you turn to another month (art: book/page-curl-shadow.png). */
+function turnPage() {
+  const page = $("page");
+  page.classList.remove("turning");
+  void page.offsetWidth; // restart the animation
+  page.classList.add("turning");
+}
+
 async function openMonth(year, month) {
+  if (current && (current.year !== year || current.month !== month)) turnPage();
   current = { year, month };
   renderIndex();
   entries = await invoke("book_page", { year, month });
