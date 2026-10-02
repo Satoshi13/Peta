@@ -108,6 +108,7 @@ pub fn announce(app: &AppHandle) {
     let _ = app.emit("daily-changed", ());
     let _ = app.emit("placements-changed", ());
     tray::refresh_today(app);
+    crate::arrival::sync(app);
 }
 
 // ---- opening the Today screen ----

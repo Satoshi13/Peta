@@ -1,3 +1,4 @@
+mod arrival;
 mod collection;
 mod creator;
 mod layers;
@@ -120,6 +121,7 @@ pub fn run() {
             creator::creator_clear_edits,
             creator::creator_finish,
             creator::creator_cancel,
+            arrival::arrival_open,
             print::print_pending,
             print::print_paste,
             print::print_later,
