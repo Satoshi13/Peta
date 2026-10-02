@@ -69,3 +69,12 @@ Gift はアカウント・サーバー・送受信が必要で、実装が一気
 2. **Phase 6: Pack**(ローカルのみ。サーバー不要なので早めに入れられる)
 3. **Phase 7: Account + Gift**
 4. Phase 8: Marketplace
+
+## アート(Codex 制作)の受け入れ
+
+| 項目 | 内容 | 日付 |
+|---|---|---|
+| Stage 0 / Stage 1(P0) | 承認。Stage 0 の指摘4点(アルファ・影・絵柄・容量)は Stage 1 で解消を**数値で確認**(不透明部は alpha 255、影は縁から3px以内、最大 567KB) | 2026-10-02 |
+| 生成の原本 | Git に入れない(`assets-src/art/` を除外)。ただし Stage 0 の原本(約38MB)は履歴に残っている | 2026-10-02 |
+| 素材の種別の判定 | art.js は画面の名前ではなく **素材ID(`data-material-id`)**で決める。アートの無い素材(将来の Gold Foil 等)は当面 matte のカードで代用 | 2026-10-02 |
+| アプリ・トレイのアイコン | `brand/app-icon-1024.png` → `src-tauri/icons/`(icns/ico 含む)、`tray-template@2x.png` → `tray.png`(macOS のテンプレート画像) | 2026-10-02 |

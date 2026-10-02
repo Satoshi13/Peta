@@ -9,7 +9,11 @@ const open = document.getElementById("open-material");
 let started = null;
 let finishTimer = null;
 
-function materialKind(name) {
+// Which card / swatch to draw. The app puts the material's id in `data-material-id`; the display name
+// is only a fallback. Materials without art of their own yet fall back to matte.
+const KNOWN = new Set(["matte", "kraft", "holographic"]);
+function materialKind(id, name = "") {
+  if (KNOWN.has(id)) return id;
   const n = name.toLowerCase();
   return n.includes("holograph") ? "holographic" : n.includes("kraft") ? "kraft" : "matte";
 }
@@ -22,13 +26,13 @@ function synchronize() {
   if (reveal) {
     const name = document.getElementById("material-name")?.textContent || "";
     const rarity = document.getElementById("material-rarity")?.dataset.rarity || "";
-    reveal.dataset.artMaterial = materialKind(name);
+    reveal.dataset.artMaterial = materialKind(document.getElementById("material-card")?.dataset.materialId, name);
     reveal.dataset.artRarity = rarity;
     setText(reveal.querySelector(".art-material-name"), name);
     setText(reveal.querySelector(".art-material-rarity"), rarity);
   }
   document.querySelectorAll(".chip").forEach((chip) => {
-    chip.dataset.artMaterial = materialKind(chip.textContent);
+    chip.dataset.artMaterial = materialKind(chip.dataset.materialId, chip.textContent);
   });
   if (started === null || finishTimer !== null) return;
   const error = document.getElementById("error");

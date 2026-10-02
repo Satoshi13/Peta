@@ -53,6 +53,7 @@ async function render() {
   show(stages.done, done);
 
   if (s.material) {
+    $("material-card").dataset.materialId = s.material.id; // for the art layer (src/art/art.js)
     $("material-name").textContent = s.material.name;
     $("material-rarity").textContent = s.material.rarity;
     $("material-rarity").dataset.rarity = s.material.rarity;
@@ -69,6 +70,7 @@ async function render() {
     b.className = "chip";
     b.setAttribute("role", "radio");
     b.setAttribute("aria-checked", String(m.id === selected));
+    b.dataset.materialId = m.id; // for the art layer
     b.textContent = m.name;
     b.addEventListener("click", () => { chosenMaterial = m.id; render(); });
     return b;
