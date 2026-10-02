@@ -18,6 +18,13 @@ pub fn new_sticker_id() -> String {
     )
 }
 
+/// A gift's id, `GIFT-` + 12 characters: the same gift file can only be received once.
+pub fn new_gift_id() -> String {
+    let bytes = random_bytes::<12>();
+    let chars: String = bytes.iter().map(|b| ALPHABET[(*b & 31) as usize] as char).collect();
+    format!("GIFT-{chars}")
+}
+
 /// Uniform in 0..1.
 pub fn random_unit() -> f64 {
     let b = random_bytes::<4>();

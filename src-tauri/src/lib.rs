@@ -1,6 +1,7 @@
 mod arrival;
 mod collection;
 mod creator;
+mod gifts;
 mod layers;
 mod packs;
 mod platform;
@@ -123,6 +124,10 @@ pub fn run() {
             creator::creator_finish,
             creator::creator_cancel,
             arrival::arrival_open,
+            gifts::gift_send,
+            gifts::gift_receive_file,
+            gifts::gift_inbox,
+            gifts::gift_open,
             packs::pack_status,
             packs::pack_open,
             print::print_pending,

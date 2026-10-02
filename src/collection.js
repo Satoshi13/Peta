@@ -217,6 +217,31 @@ $("act-stick").addEventListener("click", async () => {
   }
   await reload();
 });
+// ---- gift: seal a copy into a .peta file ----
+const giftForm = $("gift-form");
+$("act-gift").addEventListener("click", () => {
+  giftForm.hidden = !giftForm.hidden;
+  if (!giftForm.hidden) $("gift-to").focus();
+});
+$("gift-cancel").addEventListener("click", () => { giftForm.hidden = true; });
+giftForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!selected) return;
+  const to = $("gift-to").value.trim();
+  if (!to) { $("msg").textContent = "Who is it for?"; $("gift-to").focus(); return; }
+  try {
+    const sent = await invoke("gift_send", { stickerId: selected.stickerId, to, note: $("gift-note").value.trim() || null });
+    if (sent) {
+      $("msg").textContent = `Sealed as edition #${String(sent.edition).padStart(4, "0")}. Send the file to ${to} any way you like.`;
+      giftForm.hidden = true;
+      $("gift-note").value = "";
+      await reload();
+    }
+  } catch (err) {
+    $("msg").textContent = String(err);
+  }
+});
+
 $("act-peel").addEventListener("click", async () => {
   if (!selected) return;
   await invoke("peel_sticker", { stickerId: selected.stickerId });

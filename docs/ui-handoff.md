@@ -158,6 +158,10 @@ Tauri の `invoke(コマンド名, 引数)` と `listen(イベント名)`。`wit
 |---|---|---|
 | `daily_open_material` | – | 封筒を開ける。素材が Material Book に入る |
 | `daily_create` | `{ materialId? }` | 画像を選んで(OS のダイアログ)今日の1枚にする。キャンセルは何も消費しない |
+| `gift_send` | `{ stickerId, to, note? }` | コピーを封をして `.peta` ファイルに保存(OS の保存ダイアログ)。キャンセルは `null`(エディションは消費しない)。成功は `{ savedTo, edition }` |
+| `gift_receive_file` | — | `.peta` を選んで受信箱へ(中身は封をしたまま)。`{ giftId, from, note, openedAt, ... }`。同じギフトは `gift_already_received` |
+| `gift_inbox` | — | 受け取ったギフトの一覧(未開封が先) |
+| `gift_open` | `{ giftId }` | 開封して今日の Peta にする(Pack と同じ。`already_used_today` あり) |
 | `pack_status` | — | `{ packs: [{ id, title, by, total, remaining }], canOpen }`。canOpen = 今日の枠がまだ空いている |
 | `pack_open` | `{ packId }` | 1枚だけランダムに開封して今日の Peta にする(確定。貼るのは Print → Grab → Paste)。枠が使用済みなら `already_used_today`、空なら `pack_empty` |
 | `collection_unused` | – | デスクトップに無いステッカー一覧(`[{ id, originalNumber, createdAt, materialId, aspect }]`) |

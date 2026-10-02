@@ -2605,6 +2605,7 @@ dependencies = [
  "image",
  "rusqlite",
  "serde",
+ "serde_json",
  "tract-linalg",
  "tract-onnx",
 ]

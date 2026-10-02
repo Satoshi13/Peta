@@ -12,6 +12,8 @@ pub enum Error {
     AlreadyUsedToday,
     /// The material is used up (none left in stock).
     MaterialUnavailable,
+    /// This gift was already received on this device.
+    GiftAlreadyReceived,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -26,6 +28,7 @@ impl fmt::Display for Error {
             Error::Invalid(e) => write!(f, "{e}"),
             Error::AlreadyUsedToday => write!(f, "already_used_today"),
             Error::MaterialUnavailable => write!(f, "material_unavailable"),
+            Error::GiftAlreadyReceived => write!(f, "gift_already_received"),
         }
     }
 }

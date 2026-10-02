@@ -175,7 +175,11 @@ impl Library {
         Ok(fs::read(self.assets_dir.join(rel))?)
     }
 
-    fn write_asset(&self, rel: &str, bytes: &[u8]) -> Result<()> {
+    pub(crate) fn read_asset(&self, rel: &str) -> Result<Vec<u8>> {
+        Ok(fs::read(self.assets_dir.join(rel))?)
+    }
+
+    pub(crate) fn write_asset(&self, rel: &str, bytes: &[u8]) -> Result<()> {
         let path = self.assets_dir.join(rel);
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;

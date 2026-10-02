@@ -72,10 +72,10 @@
           <strong>Collection</strong>
           <small>Stick one you already have</small>
         </button>
-        <button class="choice" type="button" disabled data-art="choice-gift">
+        <button id="choose-gift" class="choice" type="button" data-art="choice-gift">
           <span class="choice-icon art-inline" data-art="icon-gift"></span>
           <strong>Gift</strong>
-          <small>Coming later</small>
+          <small id="gift-note-small">Open one that arrived</small>
         </button>
         <button id="choose-pack" class="choice" type="button" disabled data-art="choice-pack">
           <span class="choice-icon art-inline" data-art="icon-pack"></span>
@@ -93,6 +93,18 @@
       </div>
       <p id="collection-empty" class="muted" hidden>Nothing here yet. Peel a sticker off the desktop and it waits here.</p>
       <div id="collection-grid" class="grid"></div>
+    </section>
+
+    <!-- 3d. Gifts that arrived: sealed until you open one (spec §35-36) -->
+    <section id="stage-gift" hidden>
+      <div class="row">
+        <button id="gift-back" class="link" type="button">← Back</button>
+        <h2>Gift</h2>
+      </div>
+      <p class="muted">A friend can send you a Peta as a small file. It stays sealed until you open it, and it becomes today's Peta.</p>
+      <div id="gift-list" class="packs"></div>
+      <p id="gift-empty" class="muted" hidden>Nothing has arrived yet.</p>
+      <button id="gift-file" type="button">Open a gift file…</button>
     </section>
 
     <!-- 3c. Open a pack: one sticker, at random (Phase 6, local packs) -->

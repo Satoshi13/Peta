@@ -20,6 +20,7 @@ pub struct TodayItem(pub MenuItem<Wry>);
 pub fn build(app: &AppHandle) -> tauri::Result<()> {
     let today_item = MenuItem::with_id(app, "today", "Today's Peta", true, None::<&str>)?;
     let collection = MenuItem::with_id(app, "collection", "Collection", true, None::<&str>)?;
+    let open_gift = MenuItem::with_id(app, "open_gift", "Open Gift…", true, None::<&str>)?;
     let edit = CheckMenuItem::with_id(app, "edit", "Edit Stickers", true, false, None::<&str>)?;
     let resync = MenuItem::with_id(app, "resync", "Re-sync Displays", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit Peta", true, Some("CmdOrCtrl+Q"))?;
@@ -42,7 +43,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
         None
     };
 
-    let mut items: Vec<&dyn tauri::menu::IsMenuItem<Wry>> = vec![&today_item, &collection, &edit, &sep1];
+    let mut items: Vec<&dyn tauri::menu::IsMenuItem<Wry>> = vec![&today_item, &collection, &open_gift, &edit, &sep1];
     if let Some(dev) = dev.as_ref() {
         items.push(dev);
     }
@@ -67,6 +68,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
                     eprintln!("[peta] could not open Today: {e}");
                 }
             }
+            "open_gift" => crate::gifts::menu_open_gift(app),
             "collection" => {
                 if let Err(e) = collection::open_window(app) {
                     eprintln!("[peta] could not open the Sticker Book: {e}");

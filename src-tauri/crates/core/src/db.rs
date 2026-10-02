@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-const SCHEMA_VERSION: i64 = 5;
+const SCHEMA_VERSION: i64 = 6;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -114,6 +114,45 @@ pub struct PackSummary {
     pub remaining: i64,
 }
 
+/// Gifts (spec §34-36): copies of a sticker sent to someone, and gifts received. A gift is a file; where it travels
+/// (AirDrop, a message, later an account server) is not the database's business.
+const MIGRATION_V6: &str = "
+CREATE TABLE gift_editions (
+    sticker_id TEXT PRIMARY KEY,
+    last       INTEGER NOT NULL
+);
+CREATE TABLE gifts_sent (
+    gift_id    TEXT PRIMARY KEY,
+    sticker_id TEXT NOT NULL,
+    edition    INTEGER NOT NULL,
+    to_label   TEXT NOT NULL,
+    sent_at    TEXT NOT NULL
+);
+CREATE TABLE gifts_received (
+    gift_id     TEXT PRIMARY KEY,
+    from_name   TEXT NOT NULL,
+    note        TEXT,
+    sent_at     TEXT NOT NULL,
+    received_at TEXT NOT NULL,
+    package     TEXT NOT NULL,
+    opened_at   TEXT,
+    sticker_id  TEXT
+);
+";
+
+/// A gift waiting in the Inbox (or already opened).
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IncomingGift {
+    pub gift_id: String,
+    pub from: String,
+    pub note: Option<String>,
+    pub sent_at: String,
+    pub received_at: String,
+    pub opened_at: Option<String>,
+    pub sticker_id: Option<String>,
+}
+
 pub struct Database {
     conn: Connection,
 }
@@ -198,6 +237,12 @@ impl Database {
             let tx = self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V5)?;
             tx.pragma_update(None, "user_version", 5)?;
+            tx.commit()?;
+        }
+        if version < 6 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V6)?;
+            tx.pragma_update(None, "user_version", 6)?;
             tx.commit()?;
         }
         Ok(())
@@ -481,6 +526,85 @@ impl Database {
             .conn
             .query_row("SELECT unlocked_at FROM material_unlocks WHERE material_id = ?1", [material_id], |r| r.get(0))
             .optional()?)
+    }
+
+    // ---- gifts ----
+
+    /// Make the next edition number for gifts of this sticker (#1 is the first copy given away).
+    pub fn gift_next_edition(&mut self, sticker_id: &str) -> Result<i64> {
+        self.conn.execute(
+            "INSERT INTO gift_editions (sticker_id, last) VALUES (?1, 1)
+             ON CONFLICT(sticker_id) DO UPDATE SET last = last + 1",
+            [sticker_id],
+        )?;
+        Ok(self.conn.query_row("SELECT last FROM gift_editions WHERE sticker_id = ?1", [sticker_id], |r| r.get(0))?)
+    }
+
+    pub fn gift_record_sent(&mut self, gift_id: &str, sticker_id: &str, edition: i64, to: &str) -> Result<()> {
+        self.conn.execute(
+            "INSERT INTO gifts_sent (gift_id, sticker_id, edition, to_label, sent_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![gift_id, sticker_id, edition, to, now()],
+        )?;
+        Ok(())
+    }
+
+    pub fn gifts_sent_count(&self, sticker_id: &str) -> Result<i64> {
+        Ok(self.conn.query_row("SELECT COUNT(*) FROM gifts_sent WHERE sticker_id = ?1", [sticker_id], |r| r.get(0))?)
+    }
+
+    pub fn gift_is_received(&self, gift_id: &str) -> Result<bool> {
+        Ok(self.conn.query_row("SELECT COUNT(*) FROM gifts_received WHERE gift_id = ?1", [gift_id], |r| r.get::<_, i64>(0))? > 0)
+    }
+
+    pub fn gift_record_received(&mut self, gift_id: &str, from: &str, note: Option<&str>, sent_at: &str, package_rel: &str) -> Result<()> {
+        self.conn.execute(
+            "INSERT INTO gifts_received (gift_id, from_name, note, sent_at, received_at, package) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![gift_id, from, note, sent_at, now(), package_rel],
+        )?;
+        Ok(())
+    }
+
+    pub fn gift_package_path(&self, gift_id: &str) -> Result<Option<String>> {
+        Ok(self.conn.query_row("SELECT package FROM gifts_received WHERE gift_id = ?1", [gift_id], |r| r.get(0)).optional()?)
+    }
+
+    pub fn gift_mark_opened(&mut self, gift_id: &str, sticker_id: &str) -> Result<()> {
+        let n = self.conn.execute(
+            "UPDATE gifts_received SET opened_at = ?1, sticker_id = ?2 WHERE gift_id = ?3 AND opened_at IS NULL",
+            params![now(), sticker_id, gift_id],
+        )?;
+        if n == 0 {
+            return Err(Error::Invalid("that gift was already opened".into()));
+        }
+        Ok(())
+    }
+
+    /// Received gifts, unopened first, newest first.
+    pub fn gifts_received(&self) -> Result<Vec<IncomingGift>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT gift_id, from_name, note, sent_at, received_at, opened_at, sticker_id FROM gifts_received
+             ORDER BY (opened_at IS NOT NULL), received_at DESC, gift_id",
+        )?;
+        let rows = stmt.query_map([], |r| {
+            Ok(IncomingGift {
+                gift_id: r.get(0)?, from: r.get(1)?, note: r.get(2)?, sent_at: r.get(3)?,
+                received_at: r.get(4)?, opened_at: r.get(5)?, sticker_id: r.get(6)?,
+            })
+        })?;
+        Ok(rows.collect::<std::result::Result<Vec<_>, _>>()?)
+    }
+
+    /// A gifted copy knows its lineage and when the original was made.
+    pub fn set_lineage(&mut self, sticker_id: &str, parent: &str, edition: i64, created_at: &str) -> Result<()> {
+        self.conn.execute(
+            "UPDATE stickers SET parent_sticker_id = ?1, edition_number = ?2, created_at = ?3 WHERE id = ?4",
+            params![parent, edition, created_at, sticker_id],
+        )?;
+        self.conn.execute(
+            "UPDATE provenance SET timestamp = ?1 WHERE sticker_id = ?2 AND seq = 0",
+            params![created_at, sticker_id],
+        )?;
+        Ok(())
     }
 
     // ---- packs ----

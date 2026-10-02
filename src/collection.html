@@ -53,14 +53,24 @@
       <div class="actions">
         <button id="act-stick" type="button" class="primary">Stick as today's Peta</button>
         <button id="act-peel" type="button">Peel off the desktop</button>
-        <button type="button" disabled title="Coming later">Gift</button>
+        <button id="act-gift" type="button">Gift</button>
       </div>
+      <!-- Gift: a copy goes into a sealed envelope (a .peta file) you send any way you like; yours stays here -->
+      <form id="gift-form" class="gift-form" hidden>
+        <label>To <input id="gift-to" type="text" maxlength="40" autocomplete="off" placeholder="Who is it for?" /></label>
+        <label>A few words <input id="gift-note" type="text" maxlength="140" autocomplete="off" placeholder="(optional)" /></label>
+        <div class="row">
+          <button id="gift-send" type="submit" class="primary">Seal &amp; save…</button>
+          <button id="gift-cancel" type="button" class="link">Cancel</button>
+        </div>
+        <small class="muted">You give a copy; yours stays in your book. The file holds only the finished sticker — never your photo.</small>
+      </form>
       <p id="msg" class="muted" role="status"></p>
     </aside>
   </main>
 
   <main id="view-materials" hidden>
-    <p class="muted">Open Today's Material to add to your book. A material is a way of making stickers — it is never used up.</p>
+    <p class="muted">Open Today's Material to add to your book. A material is a way of making stickers. Each one is used up when you make a sticker with it — except plain paper, which never runs out.</p>
     <div id="material-grid" class="materials"></div>
   </main>
 

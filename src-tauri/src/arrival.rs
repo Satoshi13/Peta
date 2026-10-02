@@ -2,12 +2,36 @@
 //! sits in a corner of the main display. Clicking it opens Today's Peta. It is its own tiny window (not part of
 //! the click-through layer), so only the envelope itself takes mouse events and the rest of the desktop stays usable.
 
+use std::sync::Mutex;
+
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
 use crate::{
+    gifts,
     platform::{self, LayerMode},
     today,
 };
+
+/// What the envelope in the corner announces.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum ArrivalKind {
+    /// Today's material has arrived (kraft envelope).
+    Material,
+    /// A gift is waiting, still sealed (cream envelope).
+    Gift,
+}
+
+impl ArrivalKind {
+    fn page(self) -> &'static str {
+        match self {
+            ArrivalKind::Material => "arrival.html",
+            ArrivalKind::Gift => "arrival.html?kind=gift",
+        }
+    }
+}
+
+#[derive(Default)]
+struct Shown(Mutex<Option<ArrivalKind>>);
 
 pub const ARRIVAL_LABEL: &str = "arrival";
 const WIDTH: f64 = 150.0;
@@ -15,34 +39,50 @@ const HEIGHT: f64 = 110.0;
 const MARGIN_RIGHT: f64 = 26.0;
 const MARGIN_TOP: f64 = 44.0; // below the menu bar
 
-/// Show the envelope while today's material is unopened, remove it once it is opened. Safe from any thread.
+/// Show the envelope while there is something to announce (a sealed gift first, then today's material), remove it
+/// when there is not. Safe from any thread.
 pub fn sync(app: &AppHandle) {
-    let wanted = matches!(today::status(app), Ok(s) if !s.material_opened);
+    let wanted = if gifts::unopened_count(app) > 0 {
+        Some(ArrivalKind::Gift)
+    } else if matches!(today::status(app), Ok(s) if !s.material_opened) {
+        Some(ArrivalKind::Material)
+    } else {
+        None
+    };
     let handle = app.clone();
     let _ = app.run_on_main_thread(move || {
+        if handle.try_state::<Shown>().is_none() {
+            handle.manage(Shown::default());
+        }
+        let shown = handle.state::<Shown>();
+        let mut current = shown.0.lock().unwrap();
         let exists = handle.get_webview_window(ARRIVAL_LABEL);
         match (wanted, exists) {
-            (true, None) => {
-                if let Err(e) = show(&handle) {
-                    eprintln!("[peta] could not show the arrival envelope: {e}");
-                }
+            (Some(kind), None) => match show(&handle, kind) {
+                Ok(()) => *current = Some(kind),
+                Err(e) => eprintln!("[peta] could not show the arrival envelope: {e}"),
+            },
+            (Some(kind), Some(window)) if *current != Some(kind) => {
+                // the kind of envelope changed: same window, other picture
+                let _ = window.eval(&format!("location.replace('{}')", kind.page()));
+                *current = Some(kind);
             }
-            (false, Some(window)) => {
+            (None, Some(window)) => {
                 let _ = window.destroy();
+                *current = None;
             }
             _ => {}
         }
     });
 }
 
-fn show(app: &AppHandle) -> tauri::Result<()> {
-    let Some(monitor) = app.primary_monitor()?.or_else(|| app.available_monitors().ok().and_then(|m| m.into_iter().next())) else {
+fn show(app: &AppHandle, kind: ArrivalKind) -> tauri::Result<()> {    let Some(monitor) = app.primary_monitor()?.or_else(|| app.available_monitors().ok().and_then(|m| m.into_iter().next())) else {
         return Ok(());
     };
     let scale = monitor.scale_factor();
     let pos = monitor.position().to_logical::<f64>(scale);
     let size = monitor.size().to_logical::<f64>(scale);
-    let window = WebviewWindowBuilder::new(app, ARRIVAL_LABEL, WebviewUrl::App("arrival.html".into()))
+    let window = WebviewWindowBuilder::new(app, ARRIVAL_LABEL, WebviewUrl::App(kind.page().into()))
         .title("Peta")
         .decorations(false)
         .transparent(true)

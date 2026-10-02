@@ -3,10 +3,10 @@ const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
 const $ = (id) => document.getElementById(id);
-const stages = ["envelope", "material", "choose", "collection", "pack", "done"].reduce((o, k) => ((o[k] = $(`stage-${k}`)), o), {});
+const stages = ["envelope", "material", "choose", "collection", "pack", "gift", "done"].reduce((o, k) => ((o[k] = $(`stage-${k}`)), o), {});
 
 let status = null;
-let view = "main"; // "main" | "collection" | "pack"
+let view = "main"; // "main" | "collection" | "pack" | "gift"
 let chosenMaterial = null; // only set once the user has picked a chip; otherwise today's material is the default
 let busy = false;
 const thumbs = new Map(); // stickerId -> blob url
@@ -51,6 +51,7 @@ async function render() {
   show(stages.choose, !done && view === "main" && s.materialOpened);
   show(stages.collection, !done && view === "collection");
   show(stages.pack, !done && view === "pack");
+  show(stages.gift, !done && view === "gift");
   show(stages.done, done);
 
   if (s.material) {
@@ -96,6 +97,7 @@ async function render() {
 async function refresh() {
   status = await invoke("daily_status");
   refreshPackChoice();
+  refreshGiftChoice();
   if (status.slot === "confirmed" || status.slot === "used") view = "main";
   await render();
 }
@@ -171,12 +173,54 @@ async function showPack() {
   await render();
 }
 
+/** Gift choice: a note of how many are waiting. */
+async function refreshGiftChoice() {
+  try {
+    const waiting = (await invoke("gift_inbox")).filter((g) => !g.openedAt).length;
+    $("gift-note-small").textContent = waiting ? `${waiting} waiting` : "Open one that arrived";
+  } catch { /* keep the default */ }
+}
+
+async function showGift() {
+  view = "gift";
+  const gifts = await invoke("gift_inbox");
+  const waiting = gifts.filter((g) => !g.openedAt);
+  show($("gift-empty"), waiting.length === 0);
+  $("gift-list").replaceChildren(...waiting.map((g) => {
+    const card = document.createElement("div");
+    card.className = "pack-card gift-card";
+    card.dataset.giftId = g.giftId;
+    card.innerHTML = `<img class="pack-art" data-art="gift-envelope" src="art/arrival/arrival-gift.png" alt=""><div><strong>A Peta arrived.</strong><small class="muted"></small><button type="button" class="primary gift-open">Open</button></div>`;
+    card.querySelector("small").textContent = g.note ? `from ${g.from} — “${g.note}”` : `from ${g.from}`;
+    card.querySelector(".gift-open").addEventListener("click", () => act(async () => {
+      await invoke("gift_open", { giftId: g.giftId });
+      view = "main";
+      return invoke("daily_status");
+    }));
+    return card;
+  }));
+  await render();
+}
+
+async function receiveGiftFile() {
+  setError("");
+  try {
+    await invoke("gift_receive_file");
+  } catch (err) {
+    setError(String(err) === "gift_already_received" ? "That gift is already in your Inbox." : String(err));
+  }
+  await showGift();
+}
+
 $("open-material").addEventListener("click", () => act(() => invoke("daily_open_material")));
 $("choose-create").addEventListener("click", () => act(() => invoke("daily_create", {
   materialId: chosenMaterial ?? (status.unlocked.some((m) => m.id === status.material?.id && m.count > 0) ? status.material.id : null),
 })));
 $("choose-collection").addEventListener("click", () => showCollection());
 $("choose-pack").addEventListener("click", () => showPack());
+$("choose-gift").addEventListener("click", () => showGift());
+$("gift-back").addEventListener("click", () => { view = "main"; render(); });
+$("gift-file").addEventListener("click", () => receiveGiftFile());
 $("pack-back").addEventListener("click", () => { view = "main"; render(); });
 $("collection-back").addEventListener("click", () => { view = "main"; render(); });
 
