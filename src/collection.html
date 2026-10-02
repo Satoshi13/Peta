@@ -41,7 +41,8 @@
     <aside id="detail" class="detail" hidden>
       <button id="detail-close" class="link" type="button" aria-label="Close">✕</button>
       <div class="stage" id="stage">
-        <img id="detail-img" alt="" />
+        <!-- 台紙: both faces are the same backing sheet; the sticker is stuck on the front of it -->
+        <div class="backing" id="detail-front" data-art="backing-sheet"><img id="detail-img" alt="" /></div>
         <div id="detail-back"></div>
       </div>
       <button id="turn" type="button" class="turn">Turn over</button>

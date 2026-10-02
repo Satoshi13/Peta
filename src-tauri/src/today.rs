@@ -14,7 +14,7 @@ use std::{
 use peta_core::{
     daily::{self, DailyRecord},
     ids::random_unit,
-    materials, Database, Material, SlotState, SourceType,
+    Database, Material, SlotState, SourceType,
 };
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
@@ -69,9 +69,7 @@ pub struct StickerSummary {
 }
 
 fn material_view(db: &Database, id: &str) -> Option<Material> {
-    let mut m = materials::get(id)?;
-    m.unlocked_at = db.material_unlocked_at(id).ok().flatten();
-    Some(m)
+    db.material_with_stock(id).ok().flatten()
 }
 
 fn build_status(app: &AppHandle, record: &DailyRecord, db: &Database) -> DailyStatus {

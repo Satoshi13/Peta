@@ -159,20 +159,24 @@ pub struct CreatorInfo {
 #[tauri::command]
 pub fn creator_info(app: AppHandle, creator: State<Creator>, store: State<Store>) -> CreatorInfo {
     let phase = creator.phase.lock().unwrap().clone();
+    // today::status takes the library lock itself, so ask it before taking ours (holding both deadlocked
+    // and left the Cutting Mat spinning forever).
+    let todays = today::status(&app).ok().and_then(|s| s.material.map(|m| m.id));
     let active = creator.active.lock().unwrap();
     let lib = store.lock();
+    // only what can be used right now: plain paper, and anything still in stock
     let unlocked: Vec<Material> = lib
         .db()
         .unlocked_material_ids()
         .unwrap_or_default()
         .iter()
-        .filter_map(|id| materials::get(id))
+        .filter_map(|id| lib.db().material_with_stock(id).ok().flatten())
+        .filter(Material::available)
         .collect();
     let (counts, hint) = active
         .as_ref()
         .map(|a| (a.target.counts_for_today, a.target.material_hint.clone()))
         .unwrap_or((true, None));
-    let todays = today::status(&app).ok().and_then(|s| s.material.map(|m| m.id));
     let default_material = [hint, if counts { todays } else { None }]
         .into_iter()
         .flatten()
@@ -290,9 +294,14 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32) -> Result<(), Strin
                 return Err(today::ALREADY_USED.into()); // spent elsewhere while the Cutting Mat was open
             }
         }
+        if target.counts_for_today && !lib.db().has_material(&material).map_err(|e| e.to_string())? {
+            return Err(peta_core::Error::MaterialUnavailable.to_string()); // used up elsewhere while the Cutting Mat was open
+        }
         let sticker = lib.add_made(&rendered, &original, ext, None, &material).map_err(|e| e.to_string())?;
         lib.stick_new(&sticker, &target.display_id, target.x, target.y).map_err(|e| e.to_string())?;
         if target.counts_for_today {
+            // the material is used up by making a sticker with it (plain paper never is)
+            lib.db_mut().consume_material(&material).map_err(|e| e.to_string())?;
             // Confirmed = point of no return; Used = it is on the desktop (Phase 4 puts Print/Grab/Paste between).
             daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Created, random_unit()).map_err(|e| e.to_string())?;
             daily::mark_used(lib.db_mut(), &date).map_err(|e| e.to_string())?;

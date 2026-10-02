@@ -65,7 +65,9 @@ pub fn material_book(store: State<Store>) -> Result<Vec<MaterialBookEntry>, Stri
     materials::catalog()
         .into_iter()
         .map(|mut m| {
-            m.unlocked_at = lib.db().material_unlocked_at(&m.id).map_err(|e| e.to_string())?;
+            if let Some(full) = lib.db().material_with_stock(&m.id).map_err(|e| e.to_string())? {
+                m = full;
+            }
             Ok(MaterialBookEntry { unlocked: m.unlocked_at.is_some(), material: m })
         })
         .collect()

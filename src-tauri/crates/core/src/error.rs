@@ -10,6 +10,8 @@ pub enum Error {
     Invalid(String),
     /// Today's one new Peta has already been confirmed.
     AlreadyUsedToday,
+    /// The material is used up (none left in stock).
+    MaterialUnavailable,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -23,6 +25,7 @@ impl fmt::Display for Error {
             Error::Model(e) => write!(f, "segmentation model error: {e}"),
             Error::Invalid(e) => write!(f, "{e}"),
             Error::AlreadyUsedToday => write!(f, "already_used_today"),
+            Error::MaterialUnavailable => write!(f, "material_unavailable"),
         }
     }
 }

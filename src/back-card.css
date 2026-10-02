@@ -57,3 +57,20 @@
   transform: rotate(-4deg);
 }
 .back-card .code { font: 8px "SF Mono", ui-monospace, monospace; font-size: max(7px, 2.6cqw); opacity: 0.5; letter-spacing: 0.04em; }
+
+/* 台紙: the front of the backing sheet the sticker is stuck on. Same card as the back, so turning it over
+   shows the other side of one object. Art can replace it via `data-art="backing-sheet"`. */
+.backing {
+  --back-paper: #f4ecdd;
+  --back-paper-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .26 0 0 0 .10 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 14px;
+  background-color: var(--back-paper);
+  background-image: var(--back-paper-image);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+.backing[hidden] { display: none; }

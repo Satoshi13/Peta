@@ -74,8 +74,10 @@ pub fn ensure_today(db: &mut Database, today: &str, roll: f64) -> Result<DailyRe
     db.daily_get(today)?.ok_or_else(|| Error::Invalid("daily record vanished".into()))
 }
 
-/// Open the envelope: Today's Material is yours. Unlocks it for good (it is never used up, spec §21).
-/// Returns the record and whether the material was newly unlocked. Idempotent.
+/// Open the envelope: Today's Material is yours. It is written into the Material Book for good, and one of it
+/// goes into your stock (materials are used up when a sticker is made with them).
+/// Returns the record and whether the material was newly found (first time in the book). Idempotent per day:
+/// opening again the same day adds nothing.
 pub fn open_material(db: &mut Database, today: &str, roll: f64) -> Result<(DailyRecord, bool)> {
     let record = ensure_today(db, today, roll)?;
     if record.material_opened_at.is_some() {
@@ -83,6 +85,7 @@ pub fn open_material(db: &mut Database, today: &str, roll: f64) -> Result<(Daily
     }
     db.daily_set_opened(today, &now())?;
     let newly = db.unlock_material(&record.material_id)?;
+    db.add_material(&record.material_id, 1)?;
     Ok((db.daily_get(today)?.expect("just updated"), newly))
 }
 
@@ -163,6 +166,39 @@ mod tests {
         assert_eq!(r.slot(false), SlotState::Available);
         assert_eq!(r.slot(true), SlotState::Selecting); // the Today screen being open
         assert!(r.slot(true).can_add_new());
+    }
+
+    #[test]
+    fn opening_adds_one_to_stock_once_a_day_and_matte_is_unlimited() {
+        let mut db = Database::open_in_memory().unwrap();
+        assert!(db.has_material("matte").unwrap(), "plain paper always available");
+        assert!(!db.has_material("holographic").unwrap());
+        open_material(&mut db, "2026-10-01", 0.5).unwrap(); // first draw: holographic
+        open_material(&mut db, "2026-10-01", 0.5).unwrap(); // same day again: nothing more
+        assert_eq!(db.material_count("holographic").unwrap(), 1);
+        assert!(db.has_material("holographic").unwrap());
+        // a different day with the same kind of draw stacks up
+        let mut again = open_material(&mut db, "2026-10-02", 0.95).unwrap().0; // 0.95 -> holographic
+        assert_eq!(again.material_id, "holographic");
+        assert_eq!(db.material_count("holographic").unwrap(), 2);
+        again.used_at = None;
+    }
+
+    #[test]
+    fn using_a_material_consumes_it_but_the_book_keeps_it() {
+        let mut db = Database::open_in_memory().unwrap();
+        open_material(&mut db, "2026-10-01", 0.5).unwrap(); // holographic x1
+        db.consume_material("holographic").unwrap();
+        assert_eq!(db.material_count("holographic").unwrap(), 0);
+        assert!(matches!(db.consume_material("holographic"), Err(Error::MaterialUnavailable)));
+        assert!(!db.has_material("holographic").unwrap());
+        // still in the Material Book
+        assert!(db.unlocked_material_ids().unwrap().contains(&"holographic".to_string()));
+        // plain paper: never runs out
+        for _ in 0..5 {
+            db.consume_material("matte").unwrap();
+        }
+        assert!(db.has_material("matte").unwrap());
     }
 
     #[test]

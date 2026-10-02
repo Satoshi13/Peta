@@ -74,12 +74,31 @@ pub struct Material {
     pub recipe: MaterialRecipe,
     pub creator_id: Option<String>,
     pub unlocked_at: Option<String>,
+    /// How many you hold (filled in from stock; 0 in the bare catalog). Materials are used up.
+    #[serde(default)]
+    pub count: i64,
+    /// Plain paper never runs out.
+    #[serde(default)]
+    pub unlimited: bool,
+}
+
+impl Material {
+    /// Can a sticker be made with it right now?
+    pub fn available(&self) -> bool {
+        self.unlimited || self.count >= 1
+    }
 }
 
 /// Always unlocked from the first launch, so there is something to make a sticker with on day one.
 pub const DEFAULT_MATERIAL: &str = "matte";
 /// The very first Today's Material is always this one (the Alpha story, spec §88).
 pub const FIRST_DRAW_MATERIAL: &str = "holographic";
+
+/// Plain paper is the one material that never runs out, so there is always something to make a sticker with.
+/// Every other material is used up when a sticker is made with it.
+pub fn is_unlimited(id: &str) -> bool {
+    id == DEFAULT_MATERIAL
+}
 
 fn border(width: f64, style: &str) -> Option<Border> {
     Some(Border { enabled: true, width, style: style.into() })
@@ -94,6 +113,8 @@ pub fn catalog() -> Vec<Material> {
         recipe,
         creator_id: None,
         unlocked_at: None,
+        count: 0,
+        unlimited: is_unlimited(id),
     };
     vec![
         base(

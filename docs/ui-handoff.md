@@ -61,6 +61,7 @@ Phase 3 で**機能として実装済み**。見た目だけプレースホル�
 
 | フック | 場所 | 欲しいもの |
 |---|---|---|
+| `data-art="backing-sheet"`(Collection 詳細の表面。`.backing`) | `#detail-front` | **台紙の表面**。裏面(`.back-card`)と**同じ4:5のカード**で、ステッカーが貼ってある。紙は `--back-paper` / `--back-paper-image` を共有するので、裏と同じ紙に見える。画像にするなら裏面と同寸・同じ角丸で |
 | `data-art="back-paper"` + CSS 変数 `--back-paper` / `--back-paper-image` | `.back-card`(`data-kind="original"` / `"received"` で色を分けている) | 紙のテクスチャ(`back/paper-cream.jpg`、受け取り用に `paper-kraft.jpg`)。`--back-paper-image: url(...)` を差し替えるだけでよい |
 | `data-art="stamp-frame"` | `.stamp`(ORIGINAL の二重枠。original のみ) | ゴム印風の枠(文字なし。"ORIGINAL" はコードが重ねる) |
 | `data-art="peta-mark"` | `.peta-mark`(右下の "Peta") | 筆記ロゴの画像(今は文字) |
@@ -140,11 +141,11 @@ Tauri の `invoke(コマンド名, 引数)` と `listen(イベント名)`。`wit
   "slot": "available",              // "available" | "selecting" | "confirmed" | "used"
   "canCreate": true,                // 今日の新しい1枚をまだ選べるか
   "stickerId": null,                // 確定後: 今日の1枚
-  "unlocked": [ /* Material[] */ ]  // 獲得済み素材(Material Book)
+  "unlocked": [ /* Material[] */ ]  // 見つけた素材(Material Book)。count/unlimited つき。作れるのは unlimited か count>=1
 }
 ```
 
-`Material` は `{ id, name, rarity, recipe, unlockedAt }`。`recipe` は仕様 §61 の MaterialRecipe(camelCase)。
+`Material` は `{ id, name, rarity, recipe, unlockedAt, count, unlimited }`。`count` は在庫(使うと減る)、`unlimited` は Matte のみ true。`recipe` は仕様 §61 の MaterialRecipe(camelCase)。
 
 ### コマンド
 

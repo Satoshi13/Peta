@@ -60,18 +60,20 @@ async function render() {
     $("material-recipe").textContent = recipeSummary(s.material);
   }
 
-  // Material picker: anything unlocked; today's material is the default until the user picks another.
-  if (chosenMaterial && !s.unlocked.some((m) => m.id === chosenMaterial)) chosenMaterial = null;
-  const selected = chosenMaterial ?? s.material?.id ?? s.unlocked[0]?.id ?? null;
+  // Material picker: what is in stock (materials are used up; plain paper never is). Today's material is the
+  // default until the user picks another.
+  const usable = s.unlocked.filter((m) => m.unlimited || m.count > 0);
+  if (chosenMaterial && !usable.some((m) => m.id === chosenMaterial)) chosenMaterial = null;
+  const selected = chosenMaterial ?? (usable.some((m) => m.id === s.material?.id) ? s.material.id : usable[0]?.id) ?? null;
   const picker = $("material-picker");
-  picker.replaceChildren(...s.unlocked.map((m) => {
+  picker.replaceChildren(...usable.map((m) => {
     const b = document.createElement("button");
     b.type = "button";
     b.className = "chip";
     b.setAttribute("role", "radio");
     b.setAttribute("aria-checked", String(m.id === selected));
     b.dataset.materialId = m.id; // for the art layer
-    b.textContent = m.name;
+    b.textContent = m.unlimited ? m.name : `${m.name} ×${m.count}`;
     b.addEventListener("click", () => { chosenMaterial = m.id; render(); });
     return b;
   }));
@@ -79,7 +81,7 @@ async function render() {
   $("material-list").replaceChildren(...s.unlocked.map((m) => {
     const li = document.createElement("li");
     li.innerHTML = `<span></span><span class="badge"></span>`;
-    li.firstChild.textContent = m.name;
+    li.firstChild.textContent = m.unlimited ? m.name : `${m.name} ×${m.count}`;
     li.lastChild.textContent = m.rarity;
     li.lastChild.dataset.rarity = m.rarity;
     return li;
@@ -135,7 +137,7 @@ async function showCollection() {
 
 $("open-material").addEventListener("click", () => act(() => invoke("daily_open_material")));
 $("choose-create").addEventListener("click", () => act(() => invoke("daily_create", {
-  materialId: chosenMaterial ?? status.material?.id ?? null,
+  materialId: chosenMaterial ?? (status.unlocked.some((m) => m.id === status.material?.id && m.count > 0) ? status.material.id : null),
 })));
 $("choose-collection").addEventListener("click", () => showCollection());
 $("collection-back").addEventListener("click", () => { view = "main"; render(); });

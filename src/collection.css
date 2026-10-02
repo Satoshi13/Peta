@@ -47,8 +47,9 @@ header { display: flex; align-items: center; gap: 20px; }
 .detail { width: 300px; flex: none; margin-left: 14px; padding: 14px 16px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow-y: auto; position: relative; }
 #detail-close { position: absolute; top: 8px; right: 10px; }
 .stage { position: relative; display: grid; place-items: center; min-height: 190px; padding: 10px; }
-#detail-img { max-width: 100%; max-height: 190px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35)); }
-#detail-back { width: 230px; }
+#detail-front, #detail-back { width: 230px; }
+/* the sticker sits on its backing sheet, like it came off it */
+#detail-img { max-width: 76%; max-height: 76%; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)); }
 .turn { display: block; margin: 4px auto 8px; padding: 3px 14px; border: 1px solid var(--line); border-radius: 999px; background: none; font-size: 12px; }
 dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; }
 dt { color: var(--muted); }

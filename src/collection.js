@@ -98,7 +98,7 @@ async function select(entry) {
   $("msg").textContent = "";
   document.querySelectorAll(".tile").forEach((t) => t.setAttribute("aria-pressed", String(t.dataset.stickerId === entry.stickerId)));
   $("detail-img").src = await thumb(entry.stickerId);
-  $("detail-img").hidden = false;
+  $("detail-front").hidden = false;
   $("detail-back").hidden = true;
   $("turn").textContent = "Turn over";
 
@@ -141,7 +141,7 @@ let turning = false;
 async function turnOver() {
   if (!selected || turning) return;
   turning = true;
-  const [front, back] = [$("detail-img"), $("detail-back")];
+  const [front, back] = [$("detail-front"), $("detail-back")];
   const spin = (el, a, b, ms, easing) => el.animate(
     [{ transform: `perspective(700px) rotateY(${a}deg)` }, { transform: `perspective(700px) rotateY(${b}deg)` }], { duration: ms, easing }).finished;
   const [from, to] = faceUp ? [front, back] : [back, front];
@@ -176,7 +176,9 @@ async function renderMaterials() {
     rarity.textContent = unlocked ? m.rarity : "locked";
     const when = document.createElement("small");
     when.className = "muted";
-    when.textContent = unlocked ? `Added ${(m.unlockedAt ?? "").slice(0, 10)}` : "Open Today's Material to find it";
+    when.textContent = unlocked
+      ? `${m.unlimited ? "Always available" : `${m.count} in stock`} · found ${(m.unlockedAt ?? "").slice(0, 10)}`
+      : "Open Today's Material to find it";
     card.append(swatch, name, rarity, when);
     return card;
   }));

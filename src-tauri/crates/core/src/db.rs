@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-const SCHEMA_VERSION: i64 = 3;
+const SCHEMA_VERSION: i64 = 4;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -72,6 +72,17 @@ CREATE TABLE daily_records (
 
 const MIGRATION_V3: &str = "
 ALTER TABLE stickers ADD COLUMN creator_name TEXT;
+";
+
+/// Materials are used up: each is a stock you hold. What you have *found* (the Material Book) stays in
+/// `material_unlocks`. Whatever was already found when stock was introduced starts with one.
+const MIGRATION_V4: &str = "
+CREATE TABLE material_stock (
+    material_id TEXT PRIMARY KEY,
+    count       INTEGER NOT NULL CHECK (count >= 0)
+);
+INSERT OR IGNORE INTO material_stock (material_id, count)
+    SELECT material_id, 1 FROM material_unlocks WHERE material_id <> 'matte';
 ";
 
 pub struct Database {
@@ -146,6 +157,12 @@ impl Database {
             let tx = self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V3)?;
             tx.pragma_update(None, "user_version", 3)?;
+            tx.commit()?;
+        }
+        if version < 4 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V4)?;
+            tx.pragma_update(None, "user_version", 4)?;
             tx.commit()?;
         }
         Ok(())
@@ -431,6 +448,54 @@ impl Database {
             .optional()?)
     }
 
+    // ---- material stock (materials are used up; plain paper is the exception) ----
+
+    /// How many of a material you hold. (Plain paper is unlimited regardless of this number.)
+    pub fn material_count(&self, material_id: &str) -> Result<i64> {
+        Ok(self
+            .conn
+            .query_row("SELECT count FROM material_stock WHERE material_id = ?1", [material_id], |r| r.get(0))
+            .optional()?
+            .unwrap_or(0))
+    }
+
+    pub fn add_material(&mut self, material_id: &str, n: i64) -> Result<()> {
+        self.conn.execute(
+            "INSERT INTO material_stock (material_id, count) VALUES (?1, ?2)
+             ON CONFLICT(material_id) DO UPDATE SET count = count + excluded.count",
+            params![material_id, n],
+        )?;
+        Ok(())
+    }
+
+    /// A catalog material with this player's find date and stock filled in.
+    pub fn material_with_stock(&self, id: &str) -> Result<Option<materials::Material>> {
+        let Some(mut m) = materials::get(id) else { return Ok(None) };
+        m.unlocked_at = self.material_unlocked_at(id)?;
+        m.count = self.material_count(id)?;
+        Ok(Some(m))
+    }
+
+    /// Can a sticker be made with this material right now?
+    pub fn has_material(&self, material_id: &str) -> Result<bool> {
+        Ok(materials::is_unlimited(material_id) || self.material_count(material_id)? >= 1)
+    }
+
+    /// Use one up. Fails with `MaterialUnavailable` if none is left. Plain paper is never used up.
+    pub fn consume_material(&mut self, material_id: &str) -> Result<()> {
+        if materials::is_unlimited(material_id) {
+            return Ok(());
+        }
+        let n = self.conn.execute(
+            "UPDATE material_stock SET count = count - 1 WHERE material_id = ?1 AND count >= 1",
+            [material_id],
+        )?;
+        if n == 0 {
+            return Err(Error::MaterialUnavailable);
+        }
+        Ok(())
+    }
+
     // ---- daily records (see `daily` for the rules) ----
 
     pub fn daily_get(&self, date: &str) -> Result<Option<DailyRecord>> {
@@ -669,6 +734,29 @@ mod tests {
         assert_eq!(db.sticker("OLD").unwrap().unwrap().creator_name, None);
         let new = db.create_sticker(new("NEW", SourceType::Created)).unwrap();
         assert_eq!(new.creator_name.as_deref(), Some("Satoshi"));
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn upgrades_a_v3_database_found_materials_start_with_one_each() {
+        let dir = std::env::temp_dir().join(format!("peta-core-mig3-{}", crate::ids::new_sticker_id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("peta.db");
+        {
+            let conn = Connection::open(&path).unwrap();
+            conn.execute_batch(MIGRATION_V1).unwrap();
+            conn.execute_batch(MIGRATION_V2).unwrap();
+            conn.execute_batch(MIGRATION_V3).unwrap();
+            conn.pragma_update(None, "user_version", 3).unwrap();
+            for id in ["matte", "holographic", "kraft"] {
+                conn.execute("INSERT INTO material_unlocks (material_id, unlocked_at) VALUES (?1, 'x')", [id]).unwrap();
+            }
+        }
+        let db = Database::open(&path).unwrap();
+        assert_eq!(db.material_count("holographic").unwrap(), 1);
+        assert_eq!(db.material_count("kraft").unwrap(), 1);
+        assert_eq!(db.material_count("matte").unwrap(), 0, "plain paper needs no stock");
+        assert!(db.has_material("matte").unwrap());
         let _ = std::fs::remove_dir_all(dir);
     }
 

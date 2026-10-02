@@ -75,7 +75,7 @@ function renderMaterials() {
     b.className = "chip";
     b.setAttribute("role", "radio");
     b.setAttribute("aria-checked", String(m.id === material));
-    b.textContent = m.name;
+    b.textContent = m.unlimited ? m.name : `${m.name} ×${m.count}`;
     b.addEventListener("click", () => { material = m.id; renderMaterials(); els.caption.textContent = m.name; scheduleRender(0); });
     return b;
   }));
