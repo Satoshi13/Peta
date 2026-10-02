@@ -36,3 +36,46 @@
   text-align: center;
   background: url("empty/collection-empty.png") center top / 320px auto no-repeat;
 }
+
+/* ---- Sticker Book: page, spiral and month tabs ---- */
+.page {
+  background-image: url("book/page-right.jpg");
+  background-size: cover;
+  background-position: left top;
+  background-blend-mode: multiply; /* in dark mode the page colour darkens the cream paper */
+}
+.spiral {
+  width: 44px;
+  border-right: 0;
+  opacity: 1;
+  background: url("book/spiral-rings.png") center top / 48px auto repeat-y; /* the art tiles vertically every 50 px */
+}
+
+/* Tabs: pastel paper tabs that stick out of the book's edge. The art (a tab with its round end on the right) is
+   mirrored and sized by height; the rest of the tab is filled with the same paper colour. */
+.month-tab {
+  --tab-c: #f1ebdc;
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: #2b2a28;
+  padding: 7px 14px 7px 16px;
+}
+.month-tab small { color: #6b665c; }
+.month-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: scaleX(-1);
+  background: url("book/tab-blank-1.png") right center / auto 100% no-repeat, var(--tab-c);
+  border-radius: 0 12px 12px 0; /* (mirrored: the round end is on the left) */
+}
+.month-tab:nth-of-type(6n + 2)::before { --tab-c: #c9a878; background-image: url("book/tab-blank-2.png"); }
+.month-tab:nth-of-type(6n + 3)::before { --tab-c: #f6c6e3; background-image: url("book/tab-blank-3.png"); }
+.month-tab:nth-of-type(6n + 4)::before { --tab-c: #c8f2dc; background-image: url("book/tab-blank-4.png"); }
+.month-tab:nth-of-type(6n + 5)::before { --tab-c: #bfe3f7; background-image: url("book/tab-blank-5.png"); }
+.month-tab:nth-of-type(6n)::before { --tab-c: #f7f0be; background-image: url("book/tab-blank-6.png"); }
+.month-tab[aria-current="true"] { background: none; margin-right: -4px; padding-left: 20px; font-weight: 600; }

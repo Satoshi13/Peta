@@ -116,7 +116,7 @@ Phase 3 で**機能として実装済み**。見た目だけプレースホル�
 
 ## 組み込み済みの P1 素材(`src/art/p1.css`)
 
-`index.html`(デスクトップ層)と `collection.html` が読む。印刷口(`print/print-slot.png` と glow)、Print の台紙(`print/backing-sheet.png`、2:3)、裏面と台紙の紙(`back/paper-cream.jpg` / `paper-kraft.jpg`)、空のステッカー帳(`empty/collection-empty.png`)。未組み込み: ステッカー帳の本体(ページ・リング・タブ・表紙)、封筒の到着、ギフト、ペタッのタグ、ヒーロー(初回起動画面が未実装)。
+`index.html`(デスクトップ層)と `collection.html` が読む。印刷口(`print/print-slot.png` と glow)、Print の台紙(`print/backing-sheet.png`、2:3)、裏面と台紙の紙(`back/paper-cream.jpg` / `paper-kraft.jpg`)、空のステッカー帳(`empty/collection-empty.png`)。ステッカー帳の本体(ページ `book/page-right.jpg`、スパイラル `spiral-rings.png`、月のタブ `tab-blank-1..6.png` を6色で循環)も組み込み済み。未組み込み: ステッカー帳の表紙・ページめくりの影、封筒の到着、ギフト、ペタッのタグ、ヒーロー(初回起動画面が未実装)。
 
 ## まだ存在しない演出(Phase 4 以降)
 
