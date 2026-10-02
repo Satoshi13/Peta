@@ -71,13 +71,18 @@ def sticker_with_border(im,fraction=.035):
 
 def finish(manifest,records):
     manifest['assets']=list(records.values())
-    manifest['sampleStyle']='STYLE-sample / painterly gouache illustration; supersedes STYLE-lite'
+    manifest.setdefault('sampleStyle','STYLE-sample / painterly gouache illustration; supersedes STYLE-lite')
     manifest['sampleBudgetBytes']=900000
     (OUT/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     old=(OUT/'preview.html').read_text()
     prefix=old.split('<main>')[0]
     prefix=prefix.replace('Peta / Stage 1 + 2 art','Peta / Painterly samples + Stage 1 + 2 art')
+    if manifest.get('sampleStyleVersion')==2:
+        prefix=prefix.replace('Painterly samples','Sample v2')
+        prefix=prefix.replace('見本12枚はペイント調のイラストです。','見本12枚は題材ごとに画材を変え、形と陰影を省いたイラストです。')
     note='<p>見本12枚はペイント調のイラストです。見本PNGには白フチ・接地影・背景を含めず、各900KB以下で書き出しています。</p>'
+    if manifest.get('sampleStyleVersion')==2:
+        note=note.replace('見本12枚はペイント調のイラストです。','見本12枚は題材ごとに画材を変え、形と陰影を省いたイラストです。')
     if note not in prefix: prefix=prefix.replace('</header>',note+'</header>')
     cards=[]
     for entry in records.values():
@@ -92,6 +97,7 @@ def stage1(make_cover):
         im,cfg=painted_input(name)
         save(records,'samples/'+name+'.png',im,cfg['prompt'].replace('\n\nundefined\n\n','\n\n'),False,900000,
              selectedQuadrant=cfg['selectedQuadrant'],transparentMarginPx=8,
+             **({key:cfg[key] for key in ('medium','selectionReason','mandatory') if key in cfg}),
              usedBy=['Welcome Pack / art preview']+
              (['onboarding/hero.png'] if name in ('cat-skateboard','fried-egg','blue-flower','good-day','polaroid-mountain') else [])+
              (['book/cover-kraft.png','today/choice-collection.png'] if name=='blue-flower' else []))
@@ -120,10 +126,10 @@ def make_hero(raster):
     bottom=' '.join(f'L{x} {815+2*np.sin(x*.17):.2f}' for x in range(1262,118,-12))
     hero=raster(1400,900,f'<path d="M119 100{top}L1271 797{bottom}Z" fill="#F5F0E6"/>')
     placements=[('polaroid-mountain',(235,255),(170,352),8),
-                ('cat-skateboard',(270,290),(132,108),-6),
+                ('cat-skateboard',(270,290),(132,128),-6),
                 ('fried-egg',(220,175),(1000,130),4),
                 ('blue-flower',(220,260),(990,300),8),
-                ('good-day',(250,210),(945,480),-7)]
+                ('good-day',(250,210),(945,520),-7)]
     masks=[]
     for name,size,pos,angle in placements:
         im=Image.open(OUT/f'samples/{name}.png').convert('RGBA'); im.thumbnail(size,Image.Resampling.LANCZOS)

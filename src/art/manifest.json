@@ -126,46 +126,52 @@
     {
       "id": "SM-01",
       "file": "samples/cat-skateboard.png",
-      "bytes": 826942,
-      "width": 900,
-      "height": 1024,
+      "bytes": 886567,
+      "width": 1024,
+      "height": 867,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview",
         "onboarding/hero.png"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A cheerful tabby-and-cream cat riding a skateboard, one eye in a small wink, soft fluffy fur painted with visible strokes, dark teal-grey board with warm wooden wheels, slightly goofy, full body, three-quarter view.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "STYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: opaque gouache with visible flat brush marks, soft chalky edges.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nA cheerful tabby-and-cream cat riding a skateboard, one eye in a small wink. Fur is suggested with a few clumps and clear tabby stripes, NOT individual hairs. Simple rounded body, bold clean silhouette, dark teal board with warm wooden wheels. Goofy, charming.\n\nReduce the cat to a squat rounded cream body, rounded head, 3 or 4 broad tabby patches, one simple curled tail with a continuous smooth silhouette, one winking dark stroke and one dot eye. Omit whiskers completely. Fur is NOT represented by hair or finely scratched texture. Only 2 or 3 large flat brush-tone patches per part, no thousands of brush lines. The board is one blue-teal shape with 2 visible wooden wheels, no elaborate trucks or shiny hardware. Slightly wonky, no black outer contour, no glossy eyes, no tiny light points. Make it an illustration intended to read at 60px, not a portrait.\n\nMatch the TOP laptop reference's low amount of detail, calm palette and flatness, without copying its white cut-out rims. Only minimal medium-appropriate surface marks, no universal oil-paint texture. Render FOUR deliberately different but equally SIMPLE candidates in a strict 2x2 grid, one isolated complete subject per equal quadrant. Clear transparent gutters and generous transparent margins, no labels, divider lines, white rims, backing or shadow.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
       "status": "ready",
-      "restyle": "painterly-illustration",
+      "restyle": "simpler-medium-specific-v2",
       "selectedQuadrant": 0,
       "transparentMarginPx": 8,
-      "rgbPalette": 256
+      "rgbPalette": null,
+      "medium": "opaque gouache with visible flat brush marks, soft chalky edges",
+      "selectionReason": "左上を採用。毛・ひげを省き、少数の大きな縞と丸い体のガッシュ面で猫を表現。立つ候補や身を低くした候補より形の重なりが少なく静か。",
+      "mandatory": true
     },
     {
       "id": "SM-01",
       "file": "samples/fried-egg.png",
-      "bytes": 854720,
+      "bytes": 676194,
       "width": 1024,
-      "height": 905,
+      "height": 834,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview",
         "onboarding/hero.png"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nThe previous egg was too saturated. Make the yolk subdued butter-gold #D5B65F, softly painted with a warm cream highlight. Keep yellow/orange pigments mixed with cream: NO vivid orange, NO pure yellow or tiny saturated orange pixels; every colour should retain at least 18% grey/cream content (HSV saturation at most 0.82), including the lightly golden fried edge. The white should be warm porcelain with a subtle blue-grey painted shadow. Quiet gouache brush texture like the other stickers, not plastic. No added border or backing or ground shadow. Produce FOUR candidates in a strict 2x2 grid, one complete isolated egg in each cell, generous clear transparent gaps, no labels. Reference only the upper laptop stickers, not lower sketches.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "Create EXACTLY FOUR distinct candidate versions of the same subject in a clear 2 by 2 grid. Do not add labels, lettering, numbers or separators. Each candidate must be fully isolated on transparent background with roomy transparent gutters, must not touch any neighbouring candidate, and should occupy its own quadrant. All four use the SAME simplified art direction with modest drawing variations.\n\nSTYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: gouache, soft flat shapes.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nA sunny-side-up fried egg: a round matte yolk with one simple highlight, softly crinkled white with a faint golden-brown edge. Few tones.\n\nVery simple little gouache egg, not a realistic render. Use roughly 6 large clear shapes total. Yolk is MUTED BUTTER-GOLD with HSV saturation below 0.85, never vivid orange. ONE small cream highlight block near upper left only. The white has just one pale warm-grey shadow zone and a fine tan rim. No dense flecks, pores, lace details, bumpy patches or long oil brush strokes.\n\nUse the supplied reference image only for the simple calm stationery-shop sticker illustration density and muted palette. We are reinterpreting its illustration, not copying the photograph or its white sticker borders. Do NOT draw any white backing or diecut rim. Produce an original drawing with less internal information than the reference, NOT a uniformly oil-painted rendering. No text whatsoever.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
       "status": "ready",
-      "restyle": "painterly-illustration",
+      "restyle": "simpler-medium-specific-v2",
       "selectedQuadrant": 0,
       "transparentMarginPx": 8,
-      "rgbPalette": 256
+      "rgbPalette": null,
+      "medium": "gouache, soft flat shapes",
+      "selectionReason": "新版を採用。旧版の全面にあった油彩の細かな筆跡をなくし、白身と黄身を大きな2〜3段の面と一つの小さなハイライトに整理。4候補のうち左上は焼き色の点や起伏が少なく、外形の揺らぎが自然。",
+      "mandatory": false
     },
     {
       "id": "SM-01",
       "file": "samples/blue-flower.png",
-      "bytes": 852243,
-      "width": 1016,
+      "bytes": 788488,
+      "width": 852,
       "height": 1024,
       "alpha": true,
       "priority": "P1",
@@ -175,12 +181,15 @@
         "book/cover-kraft.png",
         "today/choice-collection.png"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A blue bellflower / cornflower painted with soft petal shading, a pale centre with a few yellow stamens, a small bud, a slender stem and two sage-green leaves.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers.\nFor the computer: wide squat rounded case like an original generic late-1990s appliance, not a tall 1984 Macintosh. A small painted cloud on the screen. No numbers or markings on controls.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "Create EXACTLY FOUR distinct candidate versions of the same subject in a clear 2 by 2 grid. Do not add labels, lettering, numbers or separators. Each candidate must be fully isolated on transparent background with roomy transparent gutters, must not touch any neighbouring candidate, and should occupy its own quadrant. All four use the SAME simplified art direction with modest drawing variations.\n\nSTYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: watercolour wash with a little coloured-pencil edge.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nA blue bellflower with a pale centre, a few yellow stamens, a small bud, a slender stem and two sage-green leaves. Petals in 2–3 tones.\n\nUse watercolour in TWO quiet translucent colour washes plus a SLENDER soft coloured-pencil outline. Exactly one blossom, one small bud, a slender connected stem and two leaves. Five simply shaped blue petals with quiet plain faces, no dense petal strokes or botanical vein networks. Total <=15 clearly differentiated shapes. Watercolour wash granulation is subtle and not an oil paint cross-hatched texture.\n\nUse the supplied reference image only for the simple calm stationery-shop sticker illustration density and muted palette. We are reinterpreting its illustration, not copying the photograph or its white sticker borders. Do NOT draw any white backing or diecut rim. Produce an original drawing with less internal information than the reference, NOT a uniformly oil-painted rendering. No text whatsoever.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
       "status": "ready",
-      "restyle": "painterly-illustration",
-      "selectedQuadrant": 0,
+      "restyle": "simpler-medium-specific-v2",
+      "selectedQuadrant": 1,
       "transparentMarginPx": 8,
-      "rgbPalette": 256
+      "rgbPalette": null,
+      "medium": "watercolour wash with a little coloured-pencil edge",
+      "selectionReason": "新版を採用。旧版の密な花弁の筆跡・葉の描き込みを、水彩の二つの洗いと細い色鉛筆の縁に変更。右上は五枚の花弁、一つの蕾、二枚の葉が明快で、少し傾いた非対称の形が自然。",
+      "mandatory": false
     },
     {
       "id": "PK-02",
@@ -202,7 +211,7 @@
     {
       "id": "BK-01",
       "file": "book/cover-kraft.png",
-      "bytes": 157142,
+      "bytes": 153803,
       "width": 1600,
       "height": 1100,
       "alpha": true,
@@ -213,7 +222,7 @@
       ],
       "prompt": "Same approved kraft cover geometry; replaced flower with painterly samples/blue-flower.png.",
       "status": "ready",
-      "restyle": "painterly-illustration",
+      "restyle": "simpler-medium-specific-v2",
       "sampleSources": [
         "blue-flower"
       ],
@@ -466,7 +475,7 @@
     {
       "id": "TD-05",
       "file": "today/choice-collection.png",
-      "bytes": 20468,
+      "bytes": 20785,
       "width": 384,
       "height": 384,
       "alpha": true,
@@ -476,7 +485,7 @@
       ],
       "prompt": "Retina thumbnail of the updated BK-01 cover with the painterly blue flower.",
       "status": "ready",
-      "restyle": "painterly-illustration",
+      "restyle": "simpler-medium-specific-v2",
       "sampleSources": [
         "blue-flower"
       ],
@@ -873,28 +882,31 @@
     {
       "id": "SM-01",
       "file": "samples/good-day.png",
-      "bytes": 818691,
+      "bytes": 728481,
       "width": 1024,
-      "height": 842,
+      "height": 858,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview",
         "onboarding/hero.png"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nCORRECT the referenced GOOD DAY lettering: remove ALL off-white paper, backing, outside border, extrusion and filled white spaces between letters. The outer edge of each glyph must be BRICK RED meeting transparency. The tiny cream accent belongs INSIDE the red ink of a letter, like a thin inset brush highlight. The spaces between the letters and between GOOD / DAY must be genuinely transparent, including counters in G/O/D/A. Do not draw a joined white sticker-shaped silhouette. Paint muted brick-red retro comic capitals \"GOOD DAY\" in two slightly slanted close lines, warm low-contrast brush shading and light worn ink speckle in RGB, no loose particles. Exactly G O O D / D A Y. Four variations in a strict 2x2 grid, generous separate transparent margins, no other objects or writing. No ground shadow. Keep lettering compact so an app-added border can join the entire word group.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "STYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: matte screen-print / offset ink, slightly worn.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nRetro comic-style lettering \"GOOD DAY\" in two slanted lines, flat muted brick-red letters with a thin off-white inner edge, tiny ink speckle wear. MATTE ink: no enamel shine, at most one small highlight. Exactly: G O O D  D A Y.\n\nImportant correction: do NOT put a cream shiny streak on each letter. This should look like TWO-INK SCREEN PRINT lettering, not balloons or enamel. Use confident hand-cut BLOCK comic letters with slightly wonky corners and widths (not inflated rounded bubble glyphs). Matte muted brick red about #B9594D in only ONE flat value. A VERY THIN off-white printed inset keyline inside the counters or lower-right inner contour can be used, no broad shine band or isolated white stroke across the top-left face. This cream keyline is printed graphic ornament, zero reflections/highlights. Tiny quiet ink wear, not speckled noise everywhere. Outer edges directly meet transparency, no white label/plaque/outline/backing or extrusion. Compact TWO close slanted rows GOOD and DAY, with accurate glyphs exactly G O O D / D A Y, easy to read. Prefer slightly uneven narrow D corners and blunt Y ends rather than perfectly rounded polished type. FOUR simple alternatives in strict2x2 grid on full transparency with generous gaps, no additional words or labels.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
       "status": "ready",
       "stage": 2,
-      "selectedQuadrant": 0,
+      "selectedQuadrant": 2,
       "transparentMarginPx": 8,
-      "restyle": "painterly-illustration",
-      "rgbPalette": null
+      "restyle": "simpler-medium-specific-v2",
+      "rgbPalette": null,
+      "medium": "matte screen-print / offset ink, slightly worn",
+      "selectionReason": "再生成の左下を採用。丸い風船状の文字と太い光の帯を落とし、角と幅が少しずれたブロック体、単色の赤インク、細いクリームの印刷内フチに変更。陰影・盛り上がり・エナメル反射を描かない。",
+      "mandatory": true
     },
     {
       "id": "SM-01",
       "file": "samples/polaroid-mountain.png",
-      "bytes": 879256,
-      "width": 973,
+      "bytes": 794134,
+      "width": 1005,
       "height": 1024,
       "alpha": true,
       "priority": "P1",
@@ -902,146 +914,170 @@
         "Welcome Pack / art preview",
         "onboarding/hero.png"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: An instant-photo print with a cream-white frame, wider at the bottom, very slightly tilted. The picture is a softly PAINTED landscape: a snow-capped mountain, evergreen forest, dusty blue sky. Not photographic.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers.\nFor the computer: wide squat rounded case like an original generic late-1990s appliance, not a tall 1984 Macintosh. A small painted cloud on the screen. No numbers or markings on controls.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
-      "status": "ready",
-      "stage": 2,
-      "selectedQuadrant": 0,
-      "transparentMarginPx": 8,
-      "restyle": "painterly-illustration",
-      "rgbPalette": 192
-    },
-    {
-      "id": "SM-01",
-      "file": "samples/retro-computer.png",
-      "bytes": 821573,
-      "width": 1024,
-      "height": 824,
-      "alpha": true,
-      "priority": "P1",
-      "usedBy": [
-        "Welcome Pack / art preview"
-      ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A beige all-in-one retro computer with a chunky rounded CRT case, a small soft cloud icon on the screen, a separate keyboard below, gentle plastic shading. No logo. Do not imitate the original Macintosh silhouette: make the case wider and rounder.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers.\nFor the computer: wide squat rounded case like an original generic late-1990s appliance, not a tall 1984 Macintosh. A small painted cloud on the screen. No numbers or markings on controls.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "Create EXACTLY FOUR distinct candidate versions of the same subject in a clear 2 by 2 grid. Do not add labels, lettering, numbers or separators. Each candidate must be fully isolated on transparent background with roomy transparent gutters, must not touch any neighbouring candidate, and should occupy its own quadrant. All four use the SAME simplified art direction with modest drawing variations.\n\nSTYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: gouache landscape inside a flat cream frame.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nAn instant-photo print with a cream-white frame, wider at the bottom, slightly tilted. Inside, a simplified painted landscape: a snow-capped mountain, a band of evergreens, dusty blue sky. Not photographic.\n\nCompress the entire landscape to <=15 large clear shapes: one dusty-blue sky field, one broad snow-capped mountain with two matte gouache tone steps, a sage-green evergreen band with only FIVE large tree silhouettes. No dense forest, no individually rendered needles, no lake, no detailed rocky snow, no extra buildings. Flat cream photo frame with its intentionally wider bottom, no glossy edges or illusionistic frame depth. One modest tilt. Slight hand wobble; no picturesque photographic realism.\n\nUse the supplied reference image only for the simple calm stationery-shop sticker illustration density and muted palette. We are reinterpreting its illustration, not copying the photograph or its white sticker borders. Do NOT draw any white backing or diecut rim. Produce an original drawing with less internal information than the reference, NOT a uniformly oil-painted rendering. No text whatsoever.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
       "status": "ready",
       "stage": 2,
       "selectedQuadrant": 1,
       "transparentMarginPx": 8,
-      "restyle": "painterly-illustration",
-      "rgbPalette": 256
+      "restyle": "simpler-medium-specific-v2",
+      "rgbPalette": null,
+      "medium": "gouache landscape inside a flat cream frame",
+      "selectionReason": "新版を採用。旧版の密な森、細かな岩・雪・水面を大きな空・山・針葉樹の帯に整理。右上は山の主峰が一つで、他候補より雪と山影の細分化が少なく、マットなガッシュの面として見える。",
+      "mandatory": false
+    },
+    {
+      "id": "SM-01",
+      "file": "samples/retro-computer.png",
+      "bytes": 745617,
+      "width": 1024,
+      "height": 850,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "Welcome Pack / art preview"
+      ],
+      "prompt": "STYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: matte plastic in flat tone steps, thin pencil linework.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nA beige all-in-one retro computer with a chunky rounded CRT case, a small soft cloud on the screen, a separate keyboard below. No logo. Wide and round, not the original Macintosh silhouette.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.\n\nGenerate a 2 x 2 comparison grid of FOUR distinct candidates for this ONE subject only. Each candidate isolated on transparency, separated by generous transparent gutters, no text captions. Reference image is for illustration density and restrained colours ONLY; DO NOT copy any white sticker borders. Human drawn wide, LOW, rounded CRT case, wider than high, not Macintosh. Simplify everything to no more than 15 clearly differentiated large shapes per candidate. Keyboard keys represented by TWO grouped strips with only 2–3 faint dividers each, NO individual key array, no tiny lettering. Screen shows one small stylized cloud. Two or three flat matte tone steps, thin muted pencil linework, slightly irregular silhouette. NO dense oilpaint strokes, smooth gradients, glossy shine, reflective screen, scattered marks, rimlight or rim highlight. One simple small highlight at most. Calm slightly muted cream, tan and dusty blue. Choose visual economy over attractive rendering.",
+      "status": "ready",
+      "stage": 2,
+      "selectedQuadrant": 0,
+      "transparentMarginPx": 8,
+      "restyle": "simpler-medium-specific-v2",
+      "rgbPalette": null,
+      "medium": "matte plastic in flat tone steps, thin pencil linework",
+      "selectionReason": "新しい左上を採用。多数の独立したキーと油絵の細かな筋を、2本のキー帯・3段のマットな面・細い鉛筆線へ整理した。右上／右下より通気孔と面の区切りが少なく、左右反転した左下より静かな構図。画面の小さな1個のハイライト以外に反射はない。横長の丸いケースで初代Macintoshに寄らない。",
+      "mandatory": false
     },
     {
       "id": "SM-01",
       "file": "samples/coffee-cup.png",
-      "bytes": 817618,
+      "bytes": 890846,
       "width": 1024,
-      "height": 774,
+      "height": 867,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A cappuccino in a cream-white cup on a saucer, seen from a slightly raised three-quarter angle, a heart in the latte art, soft blue-grey shading on the porcelain. No steam, no text.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers. The abstract purple line must NOT resemble cursive letters: use a free diagonal wave with one loose loop, not handwriting.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "Create EXACTLY FOUR distinct candidate versions of the same subject in a clear 2 by 2 grid. Do not add labels, lettering, numbers or separators. Each candidate must be fully isolated on transparent background with roomy transparent gutters, must not touch any neighbouring candidate, and should occupy its own quadrant. All four use the SAME simplified art direction with modest drawing variations.\n\nSTYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: loose watercolour wash on cream paper.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nA cappuccino in a cream-white cup on a saucer, three-quarter view, a heart in the latte art. Loose blue-grey wash shading, no steam, no text.\n\nLoose WATERCOLOUR with a pale clay-blue shadow wash, not oil paint. Three-quarter cup and saucer, a simple cream heart in flat warm brown cappuccino. No oil-brush marks, no porcelain sheen or thick glaze, no rim highlight and no hot spot. Two restrained shadow areas suggest volume; 12 or fewer large distinguishable forms. Retain slight natural line wobble and wash edges but clean opaque silhouette. Cream paper describes the art material, NEVER an external backing sheet.\n\nUse the supplied reference image only for the simple calm stationery-shop sticker illustration density and muted palette. We are reinterpreting its illustration, not copying the photograph or its white sticker borders. Do NOT draw any white backing or diecut rim. Produce an original drawing with less internal information than the reference, NOT a uniformly oil-painted rendering. No text whatsoever.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
       "status": "ready",
       "stage": 2,
       "selectedQuadrant": 0,
       "transparentMarginPx": 8,
-      "restyle": "painterly-illustration",
-      "rgbPalette": 256
+      "restyle": "simpler-medium-specific-v2",
+      "rgbPalette": null,
+      "medium": "loose watercolour wash on cream paper",
+      "selectionReason": "新版を採用。旧版の器とラテに重なった油彩の筆跡と反射を、青灰色の静かな水彩の面に整理。左上は他候補よりラテの輪模様が少なく、単純な一つのハートと大きな陰影だけで読める。",
+      "mandatory": false
     },
     {
       "id": "SM-01",
       "file": "samples/peta-bubble.png",
-      "bytes": 680937,
+      "bytes": 478382,
       "width": 1024,
-      "height": 540,
+      "height": 544,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: Plump bubble lettering \"Peta\" in dusty blue with a soft inner highlight and a butter-yellow offset outline. Exactly the spelling: P e t a.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers. The abstract purple line must NOT resemble cursive letters: use a free diagonal wave with one loose loop, not handwriting.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "STYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: matte screen-print vinyl, flat colour with one soft highlight band.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nPlump bubble lettering \"Peta\" in dusty blue with a butter-yellow offset outline. Flat colour with a single simple highlight band, no gloss. Exactly: P e t a.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.\n\nExactly FOUR independent alternative candidates in a spaced 2 by 2 grid on full alpha transparency. No labels, no white borders, no surface behind the artwork. Use only the upper-laptop sticker reference as colour and quiet print simplicity guidance.\n\nIMPORTANT CORRECTION: This is opaque flat matte ink PRINT, never reflective puffy gel lettering. Use only dusty blue and butter yellow, plus a TINY lighter blue ink BAND on the TOP LEFT OF THE CAPITAL P ONLY. That is the ONE permitted highlight for the ENTIRE illustration. Absolutely NO lighter patches, highlight stripes, shading, gradients, contour lights or glossy indications on the letters e, t or a: these three lowercase letters must be plain uniform dusty blue ink faces. One tiny pale blue band on P, nowhere else. The base blue and yellow are entirely flat tone, with tiny gentle ink grain and slight human wobble. No oil painting texture, no depth, no bevel, no 3D. Exact readable capital P followed by lowercase e t a; Peta. All letters should touch or overlap to create one compact silhouette. The butter-yellow offset outline is part of this two-colour graphic, not a diecut sticker backing. Slightly imperfect simple confident curves, uneven lettering proportions. No separate decorative shapes. Fewer than 10 shapes total. The quietest least detailed drawing is best. All four candidates must obey exactly one pale band on P ONLY.",
       "status": "ready",
       "stage": 2,
-      "selectedQuadrant": 0,
+      "selectedQuadrant": 2,
       "transparentMarginPx": 8,
-      "restyle": "painterly-illustration",
-      "rgbPalette": null
+      "restyle": "simpler-medium-specific-v2",
+      "rgbPalette": null,
+      "medium": "matte screen-print vinyl, flat colour with one soft highlight band",
+      "selectionReason": "必須5枚のため作り直し。再生成4候補の左下（2）は、印刷面の青・黄を平たい色面にまとめ、Pにだけ小さな帯を1本残した最も静かな描画。旧版の油絵筆跡・全文字のエナメル反射をなくし、e/t/aは無反射の単色にした。少し揺れる太さと非対称な文字形で、読みやすいPetaを保持。4候補は同程度に単純だが、右側の候補より過度な傾きが少なく、パックに合わせやすいため選択。",
+      "mandatory": true
     },
     {
       "id": "SM-01",
       "file": "samples/purple-scribble.png",
-      "bytes": 409446,
+      "bytes": 303275,
       "width": 1024,
-      "height": 600,
+      "height": 789,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: an ABSTRACT one-stroke lilac-purple marker scribble with soft pearly paint sheen and visible gouache / marker grain. It must not form any alphabet letter: no N, M, W, e, l or handwriting. An irregular asymmetric loose sideways figure-eight-like loop crossing once, its left tail descending diagonally to the lower-left and its right tail curving gently up to the upper-right. Deliberately uneven open-ended abstract flourish. A painted broad marker stroke with low-contrast internal highlights, NOT a glossy extruded 3D tube. No additional dots or sparks, no white border, no shadow, no background. Four candidates in a strict 2x2 grid, one abstract complete scribble per cell, transparent margins, no letters or labels. Keep brush detail quiet to match the rest of the painted Peta set.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "STYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: one pass of a thick felt marker, dry-brush streaks at the ends.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nOne flat bold marker line in soft lilac-purple that sweeps and makes a single loop. Completely FLAT: no folds, no ribbon, no 3D, no shading beyond slight marker streaks. Abstract; must not read as letters.\n\nCritical correction: previous loop candidates looked like cursive lowercase e or l. Do NOT use rounded handwriting loops. Use a very broad FLAT felt-marker doodle with ONE irregular angular loop: a squashed off-centre five-sided kite shape, with uneven broad sweeping tails pointing toward upper-left and lower-right. The crossing is well away from the centre; a crooked lopsided open sweeping gesture enclosing one small loop only. Do not form any letter, numeral, punctuation or symbol. Angle changes from a human wrist, not a mathematically regular curve. Lavender ink remains one opaque matte colour with just faint parallel marker streaks; no shading, ribbon, tube, glints or lighter rims. Stroke ends have tiny internal dry marks but solid continuous smooth outside silhouette. Make FOUR significantly different asymmetric abstract-marker candidates in strict2x2 grid, one per cell, transparent background and clear gutters, no text or labels, NO white backing/rims/shadow. Keep visual simplicity closer to a stationery doodle than calligraphy.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
       "status": "ready",
       "stage": 2,
       "selectedQuadrant": 0,
       "transparentMarginPx": 8,
-      "restyle": "painterly-illustration",
-      "rgbPalette": null
+      "restyle": "simpler-medium-specific-v2",
+      "rgbPalette": null,
+      "medium": "one pass of a thick felt marker, dry-brush streaks at the ends",
+      "selectionReason": "再生成の左上を採用。初回のe/l状の丸い筆記体ループを落とし、偏った角のある輪と長短の異なる掃き線へ変更。折れ・面の陰影・縁の光を持たない1回のマーカー線で、右上の整った菱形より非対称。",
+      "mandatory": true
     },
     {
       "id": "SM-01",
       "file": "samples/film-camera.png",
-      "bytes": 838702,
+      "bytes": 881953,
       "width": 1024,
-      "height": 573,
+      "height": 691,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A retro 35 mm rangefinder camera: cream body with tan leatherette, a lens with a soft glass reflection, small dials. No brand name, no readable text.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. This subject has NO letters, numbers, logos or brands anywhere. All labels and controls remain blank or plain unmarked shapes. No tiny illegible markings.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "STYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: matte flat illustration, thin pencil linework.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nA chunky, toy-like compact film camera with a rounded cream body and tan leatherette panel, a big round lens with a simple single highlight. Deliberately NOT a Leica M rangefinder: no rangefinder windows in a row, no red dot, no brand name, no readable text.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.\n\nExactly FOUR independent alternative candidates in a spaced 2 by 2 grid on full alpha transparency. No grid lines or labels. Copy only the muted stationery palette and simplicity of the upper laptop reference.\n\nIMPORTANT EXACT REFLECTION LIMIT: Across the ENTIRE illustration, exactly ONE small dusty-blue flat highlight INSIDE the BIG lens. The small viewfinder must be a plain solid dull charcoal rectangle with NO highlight, no blue patch and no reflection. The lens surround must be one plain uniform warm-cream ring with NO bright crescent, bevel or shining rim. NO other reflections anywhere. Plain matte surfaces.\n\nShape design: a very chunky toy compact camera, almost square with slightly irregular rounded corners. Draw about TEN total shapes: cream rounded body, one muted-tan leatherette panel, one small dark viewfinder upper left, one simple shutter button, one big cream lens ring, one graphite inner circle, one charcoal centre, ONE tiny dull blue lens highlight. A couple of broad lower-right tan shadow planes allowed, all flat stepped ink. No gradients or dimensional gloss. Thin soft muted-brown pencil contours and extremely subtle paper grain only, not oil brush strokes. Slightly asymmetrical front view, no perfect machined geometry. No exact real product model, no rangefinder window row, no Leica M silhouette, no chrome strip, no red dot, no brands or text, no straps, loops, screws, levers or tiny grooves. Same simplicity as a human drawn 1990s stationery stamp. Four gently different hand-drawn proportions; all only ONE highlight total, in lens only.",
       "status": "ready",
       "stage": 2,
-      "selectedQuadrant": 0,
+      "selectedQuadrant": 2,
       "transparentMarginPx": 8,
-      "restyle": "painterly-illustration",
-      "rgbPalette": 256
+      "restyle": "simpler-medium-specific-v2",
+      "rgbPalette": 256,
+      "medium": "matte flat illustration, thin pencil linework",
+      "selectionReason": "必須5枚のため作り直し。再生成4候補の左下（2）は、丸みのある玩具コンパクトのケース、茶色いパネル、大きいレンズ、小窓、シャッターに整理した少ない形で成立。レンズの小さな青い反射1つだけを残し、小窓は無反射の単色。右側候補の追加シャッター台座もなく、手描きの非対称な輪郭と2〜3段の影が最も単純だったため選択。旧版の窓列、ストラップ金具、操作レバー、複雑な反射をなくし、Leica M型から明確に離した。",
+      "mandatory": true
     },
     {
       "id": "SM-01",
       "file": "samples/potted-plant.png",
-      "bytes": 839160,
+      "bytes": 752282,
       "width": 1024,
-      "height": 953,
+      "height": 978,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A monstera in a terracotta pot, leaves painted with soft veins and light-to-dark shading, a hint of glaze highlight on the pot.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. This subject has NO letters, numbers, logos or brands anywhere. All labels and controls remain blank or plain unmarked shapes. No tiny illegible markings.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "STYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: gouache, flat leaf shapes with a few simple vein lines.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nA monstera in a terracotta pot, leaves in two greens with simple vein lines, one soft highlight on the pot.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.\n\nGenerate a 2 x 2 comparison grid of FOUR distinct candidates for this ONE subject only. Each candidate isolated on transparency, separated by generous transparent gutters, no text captions. Reference image is for illustration density and restrained colours ONLY; DO NOT copy any white sticker borders. Human drawn SIMPLE monstera with exactly 3 or 4 large flat leaf shapes, each leaf mostly ONE muted green shape with one secondary flat green patch. Use just a main vein and 2 short representative branches per leaf, no dense vein network, no individual tiny texture strokes. Terracotta pot in TWO matte opaque gouache tones and at most ONE small subdued highlight. No more than 15 clearly differentiated large shapes total. Leaves uneven and loosely arranged, no perfect symmetry. Clean rounded leaf silhouette and tidy stem joints. Matte slightly chalky colour with very subtle gouache texture, NOT canvas oilpaint. Visual economy over realism or pretty rendering.",
       "status": "ready",
       "stage": 2,
-      "selectedQuadrant": 0,
+      "selectedQuadrant": 2,
       "transparentMarginPx": 8,
-      "restyle": "painterly-illustration",
-      "rgbPalette": 256
+      "restyle": "simpler-medium-specific-v2",
+      "rgbPalette": null,
+      "medium": "gouache, flat leaf shapes with a few simple vein lines",
+      "selectionReason": "新しい左下を採用。旧版の細かな油絵の筋、複雑な葉脈、鉢の多数の反射を、3枚の平らな葉・代表的な葉脈・3段の大きな鉢の面に整理した。左上／右下は鉢のハイライトが右に寄るので落とし、左上からの小さな反射1か所だけの左下を選んだ。右上より葉脈が少なく、異なる葉の傾きが手描きの揺れとして残る。",
+      "mandatory": false
     },
     {
       "id": "SM-01",
       "file": "samples/cassette-tape.png",
-      "bytes": 840828,
+      "bytes": 762579,
       "width": 1024,
-      "height": 623,
+      "height": 707,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A compact cassette tape: tan shell, a blank cream label with a pale blue stripe, two reels, small screws, slightly worn edges. The label has no text.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. This subject has NO letters, numbers, logos or brands anywhere. All labels and controls remain blank or plain unmarked shapes. No tiny illegible markings.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
+      "prompt": "STYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: matte printed illustration, flat colours.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nA compact cassette tape: tan shell, a blank cream label with a pale blue stripe, two simple reels, four small screws. The label has no text.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.\n\nFOUR variants of ONE subject, arranged in a 2 x 2 transparent comparison grid, generous empty gutters, NO captions. Draw the shell as ONE completely FLAT MATTE TAN SILHOUETTE with a deliberately slightly uneven edge. Think simple hand cut screenprinted coloured-paper panels rather than 3D plastic. There is NO perimeter highlight line, NO light rim, NO bevel, NO embossing, NO shaded thickness; tan colour meets transparency directly on every outer edge. Cream blank label, one pale blue stripe. Two round reels each indicated by a simple graphite hole with a few blocky internal notches, ONLY FOUR small circular graphite screw dots at corners, exactly four total. One simple blank dark trapezoid at bottom, no extra holes. Centre tape window indicated by ONE dark oblong with a quiet cream centre patch; no detailed mechanism. At most 15 distinct large shape components. Muted matte ink, two or three flat tones, faint natural paper/ink grain inside panels, NO highlights at all. Slight hand irregularity and asymmetry, clean silhouette. No text or real brand. Match reference illustration simplicity, not white die cut border. Transparent background only.",
       "status": "ready",
       "stage": 2,
-      "selectedQuadrant": 0,
+      "selectedQuadrant": 2,
       "transparentMarginPx": 8,
-      "restyle": "painterly-illustration",
-      "rgbPalette": 256
+      "restyle": "simpler-medium-specific-v2",
+      "rgbPalette": null,
+      "medium": "matte printed illustration, flat colours",
+      "selectionReason": "再生成した4候補の左下を採用。初回4候補はシェルの縁の明線と余分な底部の穴があったため全て落とした。選択版は1枚の平らなタン色シェル、無地のクリームラベルと青帯、2個の簡略化したリール、4個のネジ点だけを残し、反射・立体的な縁・細かな内部機構を省いた。直立して均等な左上／右下より、やや傾いた左下の形と角の小さな揺れが人の印刷イラストらしい。旧版より情報量が少なく、素材固有のマットな印刷感がある。",
+      "mandatory": false
     },
     {
       "id": "PR-01",
@@ -1897,7 +1933,7 @@
     {
       "id": "OB-01",
       "file": "onboarding/hero.png",
-      "bytes": 494189,
+      "bytes": 449330,
       "width": 1400,
       "height": 900,
       "alpha": true,
@@ -1921,7 +1957,7 @@
         "blue-flower",
         "good-day"
       ],
-      "restyle": "painterly-illustration",
+      "restyle": "simpler-medium-specific-v2",
       "placements": [
         {
           "sample": "polaroid-mountain",
@@ -1943,7 +1979,7 @@
           ],
           "position": [
             132,
-            108
+            128
           ],
           "rotationDeg": -6
         },
@@ -1979,17 +2015,17 @@
           ],
           "position": [
             945,
-            480
+            520
           ],
           "rotationDeg": -7
         }
       ],
       "overlapFractions": [
-        0.08913065176165286,
-        0.08061312919766014,
-        0.007722592368261659,
-        0.057133480517930664,
-        0.042476601871850254
+        0.01780548949026162,
+        0.016220647654740294,
+        0.012379360911230092,
+        0.05597061542690088,
+        0.04304157398702103
       ],
       "rgbPalette": null
     }
@@ -1999,6 +2035,7 @@
     "2": "P1 assets only; no app integration",
     "3": "not started"
   },
-  "sampleStyle": "STYLE-sample / painterly gouache illustration; supersedes STYLE-lite",
-  "sampleBudgetBytes": 900000
+  "sampleStyle": "STYLE-sample v2 / simple matte forms and subject-specific gouache, watercolour, screen-print, pencil and felt marker",
+  "sampleBudgetBytes": 900000,
+  "sampleStyleVersion": 2
 }

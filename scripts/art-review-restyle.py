@@ -23,7 +23,7 @@ for scheme in ('light','dark','wallpaper'):
     for border in (False,True):
         canvas=background(scheme,(1280,1080)); draw=ImageDraw.Draw(canvas)
         ink='#FBF9F4' if scheme=='dark' else '#2B2A28'
-        draw.text((24,15),'STYLE-sample / '+('3.5% die-cut + neutral shadow' if border else 'source art / no border or shadow'),fill=ink,font=font)
+        draw.text((24,15),'STYLE-sample v2 / '+('3.5% die-cut + neutral shadow' if border else 'source art / no border or shadow'),fill=ink,font=font)
         for k,name in enumerate(restyle.NAMES):
             im=Image.open(restyle.OUT/f'samples/{name}.png').convert('RGBA')
             if border: im,_=restyle.sticker_with_border(im)

@@ -1,0 +1,289 @@
+{
+  "style": "STYLE-sample v2",
+  "scale": 0.5,
+  "order": [
+    "cat-skateboard",
+    "fried-egg",
+    "good-day",
+    "blue-flower",
+    "polaroid-mountain",
+    "retro-computer",
+    "coffee-cup",
+    "peta-bubble",
+    "purple-scribble",
+    "film-camera",
+    "potted-plant",
+    "cassette-tape"
+  ],
+  "singleRowDimensions": [
+    6576,
+    658
+  ],
+  "cellWidth": 544,
+  "samples": [
+    {
+      "name": "cat-skateboard",
+      "mandatory": true,
+      "retained": false,
+      "oldSha256": "18af67bc62d815df9b4d5cdf5f606843c9d976414ca3950ea5abbf3cd5167496",
+      "currentSha256": "4d710d87c5454ab42c923a297507209c73bf14756ce35cc15eb5556cf6941298",
+      "oldDimensions": [
+        900,
+        1024
+      ],
+      "currentDimensions": [
+        1024,
+        867
+      ],
+      "halfDimensions": [
+        512,
+        434
+      ],
+      "medium": "opaque gouache with visible flat brush marks, soft chalky edges",
+      "selectedQuadrant": 0,
+      "selectionReason": "左上を採用。毛・ひげを省き、少数の大きな縞と丸い体のガッシュ面で猫を表現。立つ候補や身を低くした候補より形の重なりが少なく静か。"
+    },
+    {
+      "name": "fried-egg",
+      "mandatory": false,
+      "retained": false,
+      "oldSha256": "0f408c42fe98613b400564b314732cd37c811a37cb225077728e8b7d4c65b964",
+      "currentSha256": "f9aa1012f8da1072f9b35609fef0afd4e84c486aa15d1e5c68bf933326dc73dd",
+      "oldDimensions": [
+        1024,
+        905
+      ],
+      "currentDimensions": [
+        1024,
+        834
+      ],
+      "halfDimensions": [
+        512,
+        417
+      ],
+      "medium": "gouache, soft flat shapes",
+      "selectedQuadrant": 0,
+      "selectionReason": "新版を採用。旧版の全面にあった油彩の細かな筆跡をなくし、白身と黄身を大きな2〜3段の面と一つの小さなハイライトに整理。4候補のうち左上は焼き色の点や起伏が少なく、外形の揺らぎが自然。"
+    },
+    {
+      "name": "good-day",
+      "mandatory": true,
+      "retained": false,
+      "oldSha256": "dd225c9dc13c93e89b9b64320c581b40601a8d2a85ca509c46b0dad3f66c9113",
+      "currentSha256": "896cb8b898d128f190a394dcfd17e04c877082943f159a114d869b2b9a3b4881",
+      "oldDimensions": [
+        1024,
+        842
+      ],
+      "currentDimensions": [
+        1024,
+        858
+      ],
+      "halfDimensions": [
+        512,
+        429
+      ],
+      "medium": "matte screen-print / offset ink, slightly worn",
+      "selectedQuadrant": 2,
+      "selectionReason": "再生成の左下を採用。丸い風船状の文字と太い光の帯を落とし、角と幅が少しずれたブロック体、単色の赤インク、細いクリームの印刷内フチに変更。陰影・盛り上がり・エナメル反射を描かない。"
+    },
+    {
+      "name": "blue-flower",
+      "mandatory": false,
+      "retained": false,
+      "oldSha256": "3fed1828adcf249838a9ded3dedb86e70bd8c52c8748d342d2254b3ed0e32e9f",
+      "currentSha256": "4e7d6c6f509ae0a3c14d6b89c4fc5e16d88f2fa8def20aff897253f5ec77c68d",
+      "oldDimensions": [
+        1016,
+        1024
+      ],
+      "currentDimensions": [
+        852,
+        1024
+      ],
+      "halfDimensions": [
+        426,
+        512
+      ],
+      "medium": "watercolour wash with a little coloured-pencil edge",
+      "selectedQuadrant": 1,
+      "selectionReason": "新版を採用。旧版の密な花弁の筆跡・葉の描き込みを、水彩の二つの洗いと細い色鉛筆の縁に変更。右上は五枚の花弁、一つの蕾、二枚の葉が明快で、少し傾いた非対称の形が自然。"
+    },
+    {
+      "name": "polaroid-mountain",
+      "mandatory": false,
+      "retained": false,
+      "oldSha256": "a9ebb299b73d0da7e579b62d4c8f003d2b79ff81ff70df2e2a710d202e393d7a",
+      "currentSha256": "4ee11e225b2730d8eb9d221ba9977f7a360e5d1ced09ba67d4e8209c828d6069",
+      "oldDimensions": [
+        973,
+        1024
+      ],
+      "currentDimensions": [
+        1005,
+        1024
+      ],
+      "halfDimensions": [
+        502,
+        512
+      ],
+      "medium": "gouache landscape inside a flat cream frame",
+      "selectedQuadrant": 1,
+      "selectionReason": "新版を採用。旧版の密な森、細かな岩・雪・水面を大きな空・山・針葉樹の帯に整理。右上は山の主峰が一つで、他候補より雪と山影の細分化が少なく、マットなガッシュの面として見える。"
+    },
+    {
+      "name": "retro-computer",
+      "mandatory": false,
+      "retained": false,
+      "oldSha256": "0eccf1ffd6650734debca3f679a167ad91c17d9cac467db49755ebbdb11809b8",
+      "currentSha256": "bb7eaf41a72b33ccf6ae498dc1e96cf62e8c492f1d8936e025c84e2029f11a38",
+      "oldDimensions": [
+        1024,
+        824
+      ],
+      "currentDimensions": [
+        1024,
+        850
+      ],
+      "halfDimensions": [
+        512,
+        425
+      ],
+      "medium": "matte plastic in flat tone steps, thin pencil linework",
+      "selectedQuadrant": 0,
+      "selectionReason": "新しい左上を採用。多数の独立したキーと油絵の細かな筋を、2本のキー帯・3段のマットな面・細い鉛筆線へ整理した。右上／右下より通気孔と面の区切りが少なく、左右反転した左下より静かな構図。画面の小さな1個のハイライト以外に反射はない。横長の丸いケースで初代Macintoshに寄らない。"
+    },
+    {
+      "name": "coffee-cup",
+      "mandatory": false,
+      "retained": false,
+      "oldSha256": "7a9d69878b4cbe28b3f51daab23f6235723f8c70de8947acf00ee5c529a4bacd",
+      "currentSha256": "9f4bad3cb5a6c6c20110b2a489a29b9ee402c0412103d1a59e768c29a3674e6c",
+      "oldDimensions": [
+        1024,
+        774
+      ],
+      "currentDimensions": [
+        1024,
+        867
+      ],
+      "halfDimensions": [
+        512,
+        434
+      ],
+      "medium": "loose watercolour wash on cream paper",
+      "selectedQuadrant": 0,
+      "selectionReason": "新版を採用。旧版の器とラテに重なった油彩の筆跡と反射を、青灰色の静かな水彩の面に整理。左上は他候補よりラテの輪模様が少なく、単純な一つのハートと大きな陰影だけで読める。"
+    },
+    {
+      "name": "peta-bubble",
+      "mandatory": true,
+      "retained": false,
+      "oldSha256": "403c7b0867394779baba3cbfb3b39ff56d544ed5d3daabb48687bc987dca134a",
+      "currentSha256": "fd0f1a7e351a16d582b3dd51b10b0253eb2cfa82f0f10c144f97c2fbe9b5a0f3",
+      "oldDimensions": [
+        1024,
+        540
+      ],
+      "currentDimensions": [
+        1024,
+        544
+      ],
+      "halfDimensions": [
+        512,
+        272
+      ],
+      "medium": "matte screen-print vinyl, flat colour with one soft highlight band",
+      "selectedQuadrant": 2,
+      "selectionReason": "必須5枚のため作り直し。再生成4候補の左下（2）は、印刷面の青・黄を平たい色面にまとめ、Pにだけ小さな帯を1本残した最も静かな描画。旧版の油絵筆跡・全文字のエナメル反射をなくし、e/t/aは無反射の単色にした。少し揺れる太さと非対称な文字形で、読みやすいPetaを保持。4候補は同程度に単純だが、右側の候補より過度な傾きが少なく、パックに合わせやすいため選択。"
+    },
+    {
+      "name": "purple-scribble",
+      "mandatory": true,
+      "retained": false,
+      "oldSha256": "8ed2c35b766702a67e2df61786e153dd360b02211876f5439a777172fd48a8ce",
+      "currentSha256": "5d9768620bddfb6744bef5474ad5dc52421a5ac730f813001c02991f5d6c64d6",
+      "oldDimensions": [
+        1024,
+        600
+      ],
+      "currentDimensions": [
+        1024,
+        789
+      ],
+      "halfDimensions": [
+        512,
+        394
+      ],
+      "medium": "one pass of a thick felt marker, dry-brush streaks at the ends",
+      "selectedQuadrant": 0,
+      "selectionReason": "再生成の左上を採用。初回のe/l状の丸い筆記体ループを落とし、偏った角のある輪と長短の異なる掃き線へ変更。折れ・面の陰影・縁の光を持たない1回のマーカー線で、右上の整った菱形より非対称。"
+    },
+    {
+      "name": "film-camera",
+      "mandatory": true,
+      "retained": false,
+      "oldSha256": "5595c6e169b6a1f51154341d5e07f75de05e28c913ff2889709ebe566a4dc921",
+      "currentSha256": "5b1bf99b921d2d1d35872a999cda53d6f4cc37a3029ee00b32490c3dad1b9a67",
+      "oldDimensions": [
+        1024,
+        573
+      ],
+      "currentDimensions": [
+        1024,
+        691
+      ],
+      "halfDimensions": [
+        512,
+        346
+      ],
+      "medium": "matte flat illustration, thin pencil linework",
+      "selectedQuadrant": 2,
+      "selectionReason": "必須5枚のため作り直し。再生成4候補の左下（2）は、丸みのある玩具コンパクトのケース、茶色いパネル、大きいレンズ、小窓、シャッターに整理した少ない形で成立。レンズの小さな青い反射1つだけを残し、小窓は無反射の単色。右側候補の追加シャッター台座もなく、手描きの非対称な輪郭と2〜3段の影が最も単純だったため選択。旧版の窓列、ストラップ金具、操作レバー、複雑な反射をなくし、Leica M型から明確に離した。"
+    },
+    {
+      "name": "potted-plant",
+      "mandatory": false,
+      "retained": false,
+      "oldSha256": "49b8c29f65792f4316a45dfbc7ff1be14a1d4bb83068ccf010e6bf21a73c67b5",
+      "currentSha256": "ec09c510ba27651e5aef2b2c83cdefdc7cfc909760eb48575c21e98518929032",
+      "oldDimensions": [
+        1024,
+        953
+      ],
+      "currentDimensions": [
+        1024,
+        978
+      ],
+      "halfDimensions": [
+        512,
+        489
+      ],
+      "medium": "gouache, flat leaf shapes with a few simple vein lines",
+      "selectedQuadrant": 2,
+      "selectionReason": "新しい左下を採用。旧版の細かな油絵の筋、複雑な葉脈、鉢の多数の反射を、3枚の平らな葉・代表的な葉脈・3段の大きな鉢の面に整理した。左上／右下は鉢のハイライトが右に寄るので落とし、左上からの小さな反射1か所だけの左下を選んだ。右上より葉脈が少なく、異なる葉の傾きが手描きの揺れとして残る。"
+    },
+    {
+      "name": "cassette-tape",
+      "mandatory": false,
+      "retained": false,
+      "oldSha256": "fad4a90b3deac189b8412a35c534514d0e4adc36452fd3a98d34a5dfc5a99dd6",
+      "currentSha256": "fc82a93af26ba9001ecbef9dca0fc3d0ce8ffd7f53c21dd3cc5bd31414d36b1b",
+      "oldDimensions": [
+        1024,
+        623
+      ],
+      "currentDimensions": [
+        1024,
+        707
+      ],
+      "halfDimensions": [
+        512,
+        354
+      ],
+      "medium": "matte printed illustration, flat colours",
+      "selectedQuadrant": 2,
+      "selectionReason": "再生成した4候補の左下を採用。初回4候補はシェルの縁の明線と余分な底部の穴があったため全て落とした。選択版は1枚の平らなタン色シェル、無地のクリームラベルと青帯、2個の簡略化したリール、4個のネジ点だけを残し、反射・立体的な縁・細かな内部機構を省いた。直立して均等な左上／右下より、やや傾いた左下の形と角の小さな揺れが人の印刷イラストらしい。旧版より情報量が少なく、素材固有のマットな印刷感がある。"
+    }
+  ]
+}
