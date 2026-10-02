@@ -1,0 +1,81 @@
+/* Peta art layer. Existing ids/data-art hooks and business logic stay intact. */
+html body .art-slot { border: 0; padding: 0; background-color: transparent; }
+html body .art-slot::before, html body .art-slot::after, html body main#mat::before { content: none; display: none; }
+.peta-wordmark { width: 106px; height: 46px; object-fit: contain; margin-left: -12px; }
+html body #debug-slot { display: none; }
+html body .art-scene { position: relative; display: block; width: min(360px, 100%); height: auto; aspect-ratio: 3 / 2; min-height: 0; margin: 8px auto; perspective: 900px; isolation: isolate; }
+.art-layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.art-layer > img { width: 100%; height: 100%; }
+[data-art="envelope"] { cursor: pointer; }
+.art-envelope-flap { transform-origin: 50% 12.5%; backface-visibility: hidden; }
+.art-envelope-label { position: absolute; left: 50%; top: 53%; width: 33%; height: 22%; display: grid; place-content: center; color: #2b2a28; font: 15px/1.25 "Noteworthy", "Bradley Hand", "Klee", cursive; transform: rotate(-7deg); }
+.art-opening #stage-envelope[hidden] { display: block !important; }
+.art-opening #stage-material, .art-opening #stage-choose { display: none !important; }
+.art-opening #open-material { pointer-events: none; }
+.art-opening [data-art="envelope"] { animation: peta-envelope-lift 800ms ease-out both; pointer-events: none; }
+.art-opening .art-envelope-flap { animation: peta-flap-open 450ms ease-out both; }
+.art-opening .art-envelope-card { animation: peta-card-slide 450ms 200ms ease-out both; }
+@keyframes peta-envelope-lift { 0%,100% { transform: scale(1); } 15%,81% { transform: scale(1.03); } }
+@keyframes peta-flap-open { to { transform: rotateX(-170deg); } }
+@keyframes peta-card-slide { to { transform: translateY(-40%); } }
+.art-material-object { position: absolute; left: 11.1%; top: 10%; width: 77.8%; height: 79.2%; transform: rotate(-2deg); }
+.art-material-image { display: none; position: absolute; inset: 0; width: 100%; height: 100%; }
+[data-art-material="matte"] .art-material-image[data-material="matte"],
+[data-art-material="kraft"] .art-material-image[data-material="kraft"],
+[data-art-material="holographic"] .art-material-image[data-material="holographic"] { display: block; }
+.art-material-label { position: absolute; top: 58%; left: 12%; width: 76%; height: 21%; display: flex; flex-direction: column; justify-content: center; gap: 2px; color: #2b2a28; text-align: center; }
+.art-material-name { font: 14px/1.1 "Noteworthy", "Bradley Hand", "Klee", cursive; }
+.art-material-rarity { font-size: 10px; text-transform: capitalize; }
+.art-foil-front { display: none; }
+.is-revealing .art-foil-front { display: block; animation: peta-foil-fall 350ms ease-out both; }
+.is-revealing .art-material-object { animation: peta-material-rise 350ms ease-out both; }
+.art-sparkles { display: none; position: absolute; left: 9%; top: 6%; width: 128px; height: 128px; background: url("today/sparkles-sheet.png") 0 0 / 512px 128px no-repeat; pointer-events: none; }
+.is-revealing:is([data-art-rarity="rare"], [data-art-rarity="special"], [data-art-rarity="archive"]) .art-sparkles { display: block; animation: peta-sparkle-frames 600ms steps(4) 1; }
+@keyframes peta-foil-fall { to { opacity: 0; transform: translateY(24px); } }
+@keyframes peta-material-rise { from { transform: translateY(24px) rotate(-4deg); } to { transform: translateY(0) rotate(-2deg); } }
+@keyframes peta-sparkle-frames { to { background-position-x: -512px; } }
+html body #material-card { border: 0; padding: 2px 10px; background: transparent; }
+html body #material-card .card-head { justify-content: center; gap: 12px; }
+html body #material-recipe, html body #material-new { text-align: center; }
+html body .choices { gap: 18px; }
+html body .choice { align-items: center; text-align: center; border-color: transparent; background: transparent; padding: 10px; }
+html body .choice-icon { display: block; width: 112px; height: 112px; border: 0; border-radius: 0; background: center / contain no-repeat; transition: transform 120ms ease-out; }
+[data-art="icon-create"] { background-image: url("today/choice-create.png") !important; }
+[data-art="icon-collection"] { background-image: url("today/choice-collection.png") !important; }
+[data-art="icon-gift"] { background-image: url("today/choice-gift.png") !important; }
+[data-art="icon-pack"] { background-image: url("today/choice-pack-pouch.png") !important; }
+html[data-pack="box"] [data-art="icon-pack"] { background-image: url("today/choice-pack-box.png") !important; }
+html body .choice:not(:disabled):hover .choice-icon { transform: translateY(-3px) rotate(-1.5deg); }
+html body .choice:not(:disabled):active .choice-icon { transform: scale(.98); }
+html body .choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html body .chip { display: inline-flex; align-items: center; gap: 6px; }
+.chip::before { content: ""; width: 24px; height: 24px; flex: none; background: center / contain no-repeat; }
+.chip[data-art-material="matte"]::before { background-image: url("materials/swatch-matte.png"); }
+.chip[data-art-material="kraft"]::before { background-image: url("materials/swatch-kraft.png"); }
+.chip[data-art-material="holographic"]::before { background-image: url("materials/swatch-holographic.png"); }
+html body [data-art="see-you-tomorrow"] { width: min(320px, 100%); height: 180px; min-height: 0; margin: 0 auto; background: url("today/see-you-tomorrow.png") center / contain no-repeat; animation: peta-note-arrive 300ms ease-out; }
+@keyframes peta-note-arrive { from { opacity: 0; transform: translateY(12px); } }
+html body #stage-done .lead { font-family: "Noteworthy", "Bradley Hand", "Klee", cursive; animation: peta-note-copy 700ms ease-out; }
+@keyframes peta-note-copy { 0%,57% { opacity: 0; } }
+html body #done-sticker, html body #sticker-wrap img { filter: drop-shadow(1px 1px 1px rgb(43 43 43 / 10%)); }
+html body main#mat { position: relative; border: 0; padding: 22px; background: url("creator/cutting-mat.jpg") center / cover; }
+html body main#mat::after { content: ""; position: absolute; pointer-events: none; left: 12px; top: -14px; width: 150px; height: 44px; background: url("creator/tape-2.png") center / contain no-repeat; transform: rotate(-6deg); }
+html body .panes { position: relative; }
+html body .pane { position: relative; }
+html body #pane-sticker::after { content: ""; position: absolute; top: -17px; right: 6px; width: 128px; height: 38px; background: url("creator/tape-1.png") center / contain no-repeat; transform: rotate(5deg); pointer-events: none; }
+html body .controls { border-radius: 12px; padding: 14px; background: var(--card); gap: 14px; }
+html body .arrow { color: #fbf9f4; }
+html body .pane figcaption { color: #fbf9f4; }
+html body .pane figcaption .muted { color: #efe8da; }
+html body [data-art="cutting-progress"] { width: 280px; height: 150px; background: url("creator/cut-line-sheet.png") 0 0 / 3360px 150px no-repeat; animation: peta-cut-frames 1.2s steps(12) infinite; }
+@keyframes peta-cut-frames { to { background-position-x: -3360px; } }
+@media (prefers-color-scheme: dark) {
+  .peta-wordmark { content: url("brand/logo-wordmark-white.svg"); }
+  html body main#mat { background-image: url("creator/cutting-mat-dark.jpg"); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body .art-slot, html body .art-layer, html body .art-material-object, html body .art-sparkles, html body #stage-done .lead { animation: none !important; transition: none !important; }
+  html body .choice-icon { transition: none; }
+  html body [data-art="cutting-progress"] { background-image: url("creator/cut-line-11.png"); background-size: 280px 150px; background-position: 0 0; }
+  html body .art-foil-front { display: none; }
+}

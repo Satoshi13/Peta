@@ -1,3 +1,5 @@
+@import url("art/art.css");
+
 :root {
   --bg: #f6f3ee; --fg: #1d1d1f; --muted: #76726b; --card: #fffdf9; --line: #e2ddd3;
   --accent: #1d1d1f; --accent-fg: #fff; --error: #b3261e; --mat: #dfe7dc;

@@ -3,3 +3,9 @@ target/
 src-tauri/gen/
 *.log
 .DS_Store
+
+# Generated full-resolution art and candidate sheets stay local.
+assets-src/art/
+generated_images/
+__pycache__/
+*.pyc

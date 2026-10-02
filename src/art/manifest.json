@@ -1,0 +1,874 @@
+{
+  "stage": 1,
+  "status": "complete-pending-review",
+  "sourcePolicy": "assets-src/art/ ignored and untracked; only optimized runtime copies in src/art/.",
+  "alphaPolicy": "Opaque surfaces 255; AA at contour; tape and cut-line silhouette intentionally translucent.",
+  "shadowPolicy": {
+    "colour": "#2B2B2B",
+    "maxAlpha": 30,
+    "maxOpacity": 0.11764705882352941,
+    "extentPx": 6,
+    "offsetPx": [
+      2,
+      2
+    ]
+  },
+  "assets": [
+    {
+      "id": "BR-01",
+      "file": "brand/logo-wordmark-ink.svg",
+      "width": 1600,
+      "height": 700,
+      "bytes": 14942,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "brand",
+        "art/preview.html"
+      ],
+      "prompt": "Vector paths traced from the approved Peta brush lettering; no fonts or embedded bitmap.",
+      "status": "ready"
+    },
+    {
+      "id": "BR-01",
+      "file": "brand/logo-wordmark-ink.png",
+      "bytes": 44244,
+      "rgbPalette": null,
+      "width": 1600,
+      "height": 700,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "brand",
+        "art/preview.html"
+      ],
+      "prompt": "Rasterized from the matching path-only Peta wordmark SVG.",
+      "status": "ready"
+    },
+    {
+      "id": "BR-01",
+      "file": "brand/logo-wordmark-white.svg",
+      "width": 1600,
+      "height": 700,
+      "bytes": 14942,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "brand",
+        "art/preview.html"
+      ],
+      "prompt": "Vector paths traced from the approved Peta brush lettering; no fonts or embedded bitmap.",
+      "status": "ready"
+    },
+    {
+      "id": "BR-01",
+      "file": "brand/logo-wordmark-white.png",
+      "bytes": 44423,
+      "rgbPalette": null,
+      "width": 1600,
+      "height": 700,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "brand",
+        "art/preview.html"
+      ],
+      "prompt": "Rasterized from the matching path-only Peta wordmark SVG.",
+      "status": "ready"
+    },
+    {
+      "id": "BR-03",
+      "file": "brand/tray-template.svg",
+      "width": 44,
+      "height": 44,
+      "bytes": 210,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "brand",
+        "art/preview.html"
+      ],
+      "prompt": "Hand drawn monochrome peeled-corner sticker silhouette; black template image.",
+      "status": "ready"
+    },
+    {
+      "id": "BR-03",
+      "file": "brand/tray-template@2x.png",
+      "bytes": 666,
+      "rgbPalette": null,
+      "width": 44,
+      "height": 44,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "brand",
+        "art/preview.html"
+      ],
+      "prompt": "44px rasterization of the monochrome SVG template icon.",
+      "status": "ready"
+    },
+    {
+      "id": "BR-02",
+      "file": "brand/app-icon-1024.png",
+      "bytes": 580589,
+      "rgbPalette": 64,
+      "width": 1024,
+      "height": 1024,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "brand",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA macOS app icon, square cream paper tile with a rounded squircle silhouette, centred, thin dimensional paper edge. On it one minimal friendly cat-face white paper sticker with a THIN pastel holographic rim and a small peeled lower-right corner showing silver backing. Palette warm cream, white, graphite, pastel rainbow. One extremely simple cat face, small eyes, no kawaii overload, NO text, no logos. Transparent outside the rounded tile. Main surfaces completely opaque.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready"
+    },
+    {
+      "id": "SM-01",
+      "file": "samples/cat-skateboard.png",
+      "bytes": 64241,
+      "rgbPalette": null,
+      "width": 993,
+      "height": 1024,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "status": "ready",
+      "priorityNote": "Stage 0 correction, not Stage 2 production.",
+      "baseColours": [
+        "#F8E6C7",
+        "#E1A361",
+        "#AF754B",
+        "#4D6570"
+      ]
+    },
+    {
+      "id": "SM-01",
+      "file": "samples/fried-egg.png",
+      "bytes": 38559,
+      "rgbPalette": null,
+      "width": 1024,
+      "height": 785,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "status": "ready",
+      "priorityNote": "Stage 0 correction, not Stage 2 production.",
+      "baseColours": [
+        "#FBF4E3",
+        "#F8DDA4",
+        "#F8C42F",
+        "#EAB322"
+      ]
+    },
+    {
+      "id": "SM-01",
+      "file": "samples/blue-flower.png",
+      "bytes": 58851,
+      "rgbPalette": null,
+      "width": 1024,
+      "height": 1010,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nREMAKE this blue flower artwork as a completely FLAT print illustration matching the supplied cat and fried egg, keep one blue bellflower blossom on a stem with two leaves. Exactly FOUR flat base colours: blue #7291D0, deep blue #496CAF, sage green #789361, pale lemon #F7E7AC. No watercolour, paper grain, mottling, gradients, shading, rim, backing paper, outlines, shadow or glow. The flower itself is the artwork, transparent holes between leaves. Compact single silhouette.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "priorityNote": "Stage 0 correction.",
+      "baseColours": [
+        "#7291D0",
+        "#496CAF",
+        "#789361",
+        "#F7E7AC"
+      ]
+    },
+    {
+      "id": "PK-02",
+      "file": "pack/pack-pouch-closed.png",
+      "bytes": 509741,
+      "rgbPalette": 128,
+      "width": 768,
+      "height": 1024,
+      "alpha": true,
+      "priority": "P2",
+      "usedBy": [
+        "today/choice-pack-pouch.png",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nREMAKE the supplied silver pouch as a quiet SEMI-FLAT stationery illustration. A sealed tall foil pouch, straight front view, small zigzag crimped top and bottom. Use silver #D8DCE2 to #9AA1AB, exactly two or three broad subtle drawn folds rather than dozens of realistic creases; lower contrast and no noisy grain. Gentle pastel sheen only along a small part of the seal. One blank cream rectangular PAPER label sits smoothly on the centre panel, subtle edges, no torn thick label, no sticker-stuck-on-plastic effect. No letters, writing, symbols, shadows or glows. Main surfaces completely opaque.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "priorityNote": "Stage 0 correction; no Pack-opening implementation."
+    },
+    {
+      "id": "BK-01",
+      "file": "book/cover-kraft.png",
+      "bytes": 102106,
+      "rgbPalette": null,
+      "width": 1600,
+      "height": 1100,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "today/choice-collection.png",
+        "art/preview.html"
+      ],
+      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "status": "ready",
+      "priorityNote": "Stage 0 correction."
+    },
+    {
+      "id": "TD-01",
+      "file": "today/envelope-back.png",
+      "bytes": 8453,
+      "rgbPalette": null,
+      "width": 720,
+      "height": 480,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "status": "ready",
+      "layerGroup": "envelope",
+      "labelRect": [
+        360,
+        250,
+        235,
+        118
+      ]
+    },
+    {
+      "id": "TD-01",
+      "file": "today/envelope-card.png",
+      "bytes": 3126,
+      "rgbPalette": null,
+      "width": 720,
+      "height": 480,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "status": "ready",
+      "layerGroup": "envelope"
+    },
+    {
+      "id": "TD-01",
+      "file": "today/envelope-pocket.png",
+      "bytes": 260770,
+      "rgbPalette": null,
+      "width": 720,
+      "height": 480,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "status": "ready",
+      "layerGroup": "envelope",
+      "labelRect": [
+        360,
+        250,
+        235,
+        118
+      ]
+    },
+    {
+      "id": "TD-01",
+      "file": "today/envelope-flap.png",
+      "bytes": 107024,
+      "rgbPalette": null,
+      "width": 720,
+      "height": 480,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "status": "ready",
+      "layerGroup": "envelope",
+      "pivot": [
+        360,
+        60
+      ]
+    },
+    {
+      "id": "TD-01",
+      "file": "today/envelope-closed.png",
+      "width": 720,
+      "height": 480,
+      "bytes": 353173,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Exact pixel composite: back → card → pocket → flap.",
+      "status": "ready",
+      "layerGroup": "envelope",
+      "labelRect": [
+        360,
+        250,
+        235,
+        118
+      ]
+    },
+    {
+      "id": "TD-03",
+      "file": "today/material-card-holographic.png",
+      "bytes": 152591,
+      "rgbPalette": null,
+      "width": 560,
+      "height": 380,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "status": "ready",
+      "labelRect": [
+        48,
+        205,
+        465,
+        100
+      ],
+      "material": "holographic"
+    },
+    {
+      "id": "TD-03",
+      "file": "today/material-card-matte.png",
+      "bytes": 44545,
+      "rgbPalette": null,
+      "width": 560,
+      "height": 380,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Constructed paper card, shared blank-label geometry; matte palette from Stage 0 STYLE LOCK.",
+      "status": "ready",
+      "labelRect": [
+        57,
+        217,
+        446,
+        99
+      ],
+      "material": "matte"
+    },
+    {
+      "id": "TD-03",
+      "file": "today/material-card-kraft.png",
+      "bytes": 44480,
+      "rgbPalette": null,
+      "width": 560,
+      "height": 380,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Constructed paper card, shared blank-label geometry; kraft palette from Stage 0 STYLE LOCK.",
+      "status": "ready",
+      "labelRect": [
+        57,
+        217,
+        446,
+        99
+      ],
+      "material": "kraft"
+    },
+    {
+      "id": "TD-02",
+      "file": "today/foil-back.png",
+      "bytes": 151328,
+      "rgbPalette": null,
+      "width": 720,
+      "height": 480,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA small wide silver foil packet torn OPEN across its top edge, straight front view, horizontal proportions width:height roughly 3:2, irregular short torn edge. Interior empty and visible. Very subtle broad illustrated fold highlights, NO realistic creasing, low contrast silver, tiny pastel shimmer only at torn edge. No labels, letters or other objects. Thin flat front and back sheets, suitable for separating into aligned layers, no shadow.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "layerGroup": "foil"
+    },
+    {
+      "id": "TD-02",
+      "file": "today/foil-front.png",
+      "bytes": 158976,
+      "rgbPalette": null,
+      "width": 720,
+      "height": 480,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA small wide silver foil packet torn OPEN across its top edge, straight front view, horizontal proportions width:height roughly 3:2, irregular short torn edge. Interior empty and visible. Very subtle broad illustrated fold highlights, NO realistic creasing, low contrast silver, tiny pastel shimmer only at torn edge. No labels, letters or other objects. Thin flat front and back sheets, suitable for separating into aligned layers, no shadow.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "layerGroup": "foil"
+    },
+    {
+      "id": "TD-05",
+      "file": "today/choice-create.png",
+      "bytes": 107057,
+      "rgbPalette": null,
+      "width": 384,
+      "height": 384,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA single tilted soft-white instant-film style paper card with a thick bottom margin and a very large hand-drawn graphite plus sign \"+\" centred in the picture area. No picture, no other text. Thin paper grain, almost flat, gentle paper edge. Transparent outside, completely opaque white paper.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready"
+    },
+    {
+      "id": "TD-05",
+      "file": "today/choice-gift.png",
+      "bytes": 109503,
+      "rgbPalette": null,
+      "width": 384,
+      "height": 384,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA small horizontal closed kraft envelope with a simple V flap, very fine paper grain, exactly one small red wax seal #D8453A at the flap point bearing an embossed \"P\". Straight front view. No labels, other writing or doodles, no shadow, no glow, low contrast fold lines, completely opaque paper.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready"
+    },
+    {
+      "id": "TD-05",
+      "file": "today/choice-pack-box.png",
+      "bytes": 74581,
+      "rgbPalette": null,
+      "width": 384,
+      "height": 384,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nReplace the supplied rejected packaging concepts with a plain opaque PAPER BOX sleeve. FOUR candidates in equal quadrants in a 2x2 grid, generous transparent margins. One tall thin sealed rectangular off-white matte paper box each, seen straight on, no hanger hole. Simple narrow perforated tear strip at top, one large completely BLANK cream rectangular label PANEL at centre. The front is solid unbroken paper, no open windows, no cutouts, no visible contents, no stickers, no hearts, no stars, no bows, no silver foil. Only tiny low-contrast paper fold edges, calm semi-flat stationery illustration. Fully opaque paper and transparent outside silhouette. No shadows or glows, no lettering.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\n",
+      "status": "ready"
+    },
+    {
+      "id": "TD-05",
+      "file": "today/choice-collection.png",
+      "bytes": 19924,
+      "rgbPalette": null,
+      "width": 384,
+      "height": 384,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Retina thumbnail of corrected BK-01 cover; same paper and blue flower.",
+      "status": "ready"
+    },
+    {
+      "id": "TD-05",
+      "file": "today/choice-pack-pouch.png",
+      "bytes": 122692,
+      "rgbPalette": null,
+      "width": 384,
+      "height": 384,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Retina thumbnail of corrected PK-02 silver pouch; same gentle folds and blank label.",
+      "status": "ready"
+    },
+    {
+      "id": "TD-06",
+      "file": "today/see-you-tomorrow.png",
+      "bytes": 175893,
+      "rgbPalette": null,
+      "width": 640,
+      "height": 360,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA small horizontal cream paper note with a gently irregular torn edge, one short translucent cream washi strip across the top centre, one tiny graphite crescent moon and exactly two tiny graphite stars in the upper-right corner. The remaining large paper area is completely BLANK for text drawn later. Calm semi-flat paper illustration, no letters, NO shadow or glow, paper is fully opaque.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready"
+    },
+    {
+      "id": "MT-01",
+      "file": "materials/swatch-matte.png",
+      "bytes": 2499,
+      "rgbPalette": null,
+      "width": 192,
+      "height": 192,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html",
+        "creator.html"
+      ],
+      "prompt": "Material-only matte swatch derived from the approved Peta palette and holographic film.",
+      "status": "ready"
+    },
+    {
+      "id": "MT-01",
+      "file": "materials/swatch-kraft.png",
+      "bytes": 2470,
+      "rgbPalette": null,
+      "width": 192,
+      "height": 192,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html",
+        "creator.html"
+      ],
+      "prompt": "Material-only kraft swatch derived from the approved Peta palette and holographic film.",
+      "status": "ready"
+    },
+    {
+      "id": "MT-01",
+      "file": "materials/swatch-holographic.png",
+      "bytes": 32413,
+      "rgbPalette": null,
+      "width": 192,
+      "height": 192,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html",
+        "creator.html"
+      ],
+      "prompt": "Material-only holographic swatch derived from the approved Peta palette and holographic film.",
+      "status": "ready"
+    },
+    {
+      "id": "TD-04",
+      "file": "today/sparkles-sheet.png",
+      "bytes": 8680,
+      "rgbPalette": null,
+      "width": 1024,
+      "height": 256,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.html"
+      ],
+      "prompt": "Four 256px frames of tiny hand-drawn pastel four-point stars; 600ms transient reveal only.",
+      "status": "ready"
+    },
+    {
+      "id": "CR-01",
+      "file": "creator/cutting-mat.jpg",
+      "width": 2400,
+      "height": 1200,
+      "bytes": 194830,
+      "alpha": false,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA top-down flat EMPTY soft muted teal-green cutting mat, horizontal aspect 2:1, fine light grid lines and very subtle rubber texture. Flat, quiet, even lighting, no object, no tools, no text, no numbers. All grid lines straight and spaced evenly, heavier lines every fifth grid line. No strong vignette or perspective. Each of the four candidate rectangles is an opaque mat texture with no transparent holes; background between candidates transparent.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt. Accurate drawn grid replaces model grid; no numbers.",
+      "status": "ready"
+    },
+    {
+      "id": "CR-01",
+      "file": "creator/cutting-mat-dark.jpg",
+      "width": 2400,
+      "height": 1200,
+      "bytes": 150673,
+      "alpha": false,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA top-down flat EMPTY soft muted teal-green cutting mat, horizontal aspect 2:1, fine light grid lines and very subtle rubber texture. Flat, quiet, even lighting, no object, no tools, no text, no numbers. All grid lines straight and spaced evenly, heavier lines every fifth grid line. No strong vignette or perspective. Each of the four candidate rectangles is an opaque mat texture with no transparent holes; background between candidates transparent.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt. Accurate drawn grid replaces model grid; no numbers.",
+      "status": "ready"
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-00.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6271,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 0
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-01.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6248,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 1
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-02.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6250,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 2
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-03.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6264,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 3
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-04.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6228,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 4
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-05.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6109,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 5
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-06.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6050,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 6
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-07.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6056,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 7
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-08.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6085,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 8
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-09.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6155,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 9
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-10.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6111,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 10
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-11.png",
+      "width": 560,
+      "height": 300,
+      "bytes": 6168,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Deterministic progressive dashed cat cut-line; cream silhouette intentionally alpha 30%.",
+      "status": "ready",
+      "intentionalTranslucency": true,
+      "frame": 11
+    },
+    {
+      "id": "CR-02",
+      "file": "creator/cut-line-sheet.png",
+      "width": 6720,
+      "height": 300,
+      "bytes": 23041,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Exact horizontal concatenation of the 12 aligned cut-line frames.",
+      "status": "ready",
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "CR-03",
+      "file": "creator/tape-1.png",
+      "width": 480,
+      "height": 140,
+      "bytes": 2831,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Drawn zigzag washi strip; rainbow / cream / graphite stripes / graphite dots. Paper intentionally translucent; no shadows.",
+      "status": "ready",
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "CR-03",
+      "file": "creator/tape-2.png",
+      "width": 480,
+      "height": 140,
+      "bytes": 2501,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Drawn zigzag washi strip; rainbow / cream / graphite stripes / graphite dots. Paper intentionally translucent; no shadows.",
+      "status": "ready",
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "CR-03",
+      "file": "creator/tape-3.png",
+      "width": 480,
+      "height": 140,
+      "bytes": 3407,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Drawn zigzag washi strip; rainbow / cream / graphite stripes / graphite dots. Paper intentionally translucent; no shadows.",
+      "status": "ready",
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "CR-03",
+      "file": "creator/tape-4.png",
+      "width": 480,
+      "height": 140,
+      "bytes": 2895,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "creator.html"
+      ],
+      "prompt": "Drawn zigzag washi strip; rainbow / cream / graphite stripes / graphite dots. Paper intentionally translucent; no shadows.",
+      "status": "ready",
+      "intentionalTranslucency": true
+    }
+  ]
+}

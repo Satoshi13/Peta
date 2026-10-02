@@ -14,20 +14,36 @@
   -->
   <main id="today">
     <header>
+      <img class="peta-wordmark" src="art/brand/logo-wordmark-ink.svg" alt="Peta" />
       <h1>Today</h1>
       <p id="date" class="muted"></p>
     </header>
 
     <!-- 1. Today's Material has arrived (unopened) -->
     <section id="stage-envelope" hidden>
-      <div class="art-slot" data-art="envelope" data-art-note="Today's Material arrival: envelope / sleeve, closed. Click or Open to open."></div>
+      <div class="art-slot art-scene" data-art="envelope" data-art-note="Today's Material arrival: envelope / sleeve, closed. Click or Open to open." aria-hidden="true">
+        <img class="art-layer art-envelope-back" src="art/today/envelope-back.png" alt="" />
+        <img class="art-layer art-envelope-card" src="art/today/envelope-card.png" alt="" />
+        <span class="art-layer art-envelope-pocket"><img src="art/today/envelope-pocket.png" alt="" /><span class="art-envelope-label">Today's<br />Material</span></span>
+        <img class="art-layer art-envelope-flap" src="art/today/envelope-flap.png" alt="" />
+      </div>
       <p class="lead">Today's Material has arrived.</p>
       <button id="open-material" class="primary" type="button">Open</button>
     </section>
 
     <!-- 2. Material revealed (after opening) -->
     <section id="stage-material" hidden>
-      <div class="art-slot" data-art="material-reveal" data-art-note="Material reveal: the opened material (e.g. holographic foil catching light), rarity feel."></div>
+      <div class="art-slot art-scene" data-art="material-reveal" data-art-note="Material reveal: the opened material (e.g. holographic foil catching light), rarity feel." aria-hidden="true">
+        <img class="art-layer art-foil-back" src="art/today/foil-back.png" alt="" />
+        <span class="art-material-object">
+          <img class="art-material-image" data-material="matte" src="art/today/material-card-matte.png" alt="" />
+          <img class="art-material-image" data-material="kraft" src="art/today/material-card-kraft.png" alt="" />
+          <img class="art-material-image" data-material="holographic" src="art/today/material-card-holographic.png" alt="" />
+          <span class="art-material-label"><span class="art-material-name"></span><span class="art-material-rarity"></span></span>
+        </span>
+        <img class="art-layer art-foil-front" src="art/today/foil-front.png" alt="" />
+        <span class="art-sparkles"></span>
+      </div>
       <div id="material-card" class="card">
         <div class="card-head">
           <h2 id="material-name"></h2>
@@ -67,7 +83,6 @@
           <small>Coming later</small>
         </button>
       </div>
-      <p id="error" class="error" role="alert" hidden></p>
     </section>
 
     <!-- 3b. Pick from the collection -->
@@ -82,10 +97,12 @@
 
     <!-- 4. Done for today -->
     <section id="stage-done" hidden>
-      <div class="art-slot" data-art="see-you-tomorrow" data-art-note="Closing moment. Shows today's sticker."></div>
+      <div class="art-slot" data-art="see-you-tomorrow" data-art-note="Closing moment. Shows today's sticker." aria-hidden="true"></div>
       <img id="done-sticker" alt="" />
       <p class="lead">See you tomorrow.</p>
     </section>
+
+    <p id="error" class="error" role="alert" hidden></p>
 
     <!-- Material Book (everything unlocked so far) -->
     <section id="material-book">
@@ -96,5 +113,6 @@
     <footer class="muted"><small id="debug-slot"></small></footer>
   </main>
   <script type="module" src="today.js"></script>
+  <script type="module" src="art/art.js"></script>
 </body>
 </html>
