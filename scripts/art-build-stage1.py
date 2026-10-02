@@ -33,14 +33,27 @@ def generated(job,size,choice=0,tight=False,shadow=True):
  return cell,config['prompt']
 def source(rel):
  return Image.open(SOURCE/rel).convert('RGBA')
-def flat_colours(image,colours):
- data=np.array(image.convert('RGBA'))
- palette=np.array([tuple(bytes.fromhex(c.lstrip('#'))) for c in colours],dtype=float)
- pixels=data[:,:,:3].astype(float)
- distances=np.sum((pixels[:,:,None,:]-palette[None,None,:,:])**2,axis=3)
- colour_index=ndimage.median_filter(np.argmin(distances,axis=2),size=5)
- data[:,:,:3]=palette[colour_index].astype('uint8')
- return Image.fromarray(data)
+def make_cover(flower):
+ # Reconstruct the approved simple notebook geometry with quiet kraft surfaces.
+ # A flat grid avoids seams from replacing the original watercolour flower patch.
+ cover_body='<defs><linearGradient id="kraft" x2="0" y2="1"><stop stop-color="#D1B183"/><stop offset="1" stop-color="#C9A878"/></linearGradient><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#B8996E" stroke-width="1" opacity=".32"/></pattern></defs><rect x="150" y="146" width="1350" height="824" rx="28" fill="#B08A5B"/><rect x="145" y="130" width="1350" height="824" rx="28" fill="url(#kraft)"/><rect x="160" y="146" width="1320" height="793" rx="18" fill="url(#grid)"/><path d="M175 942h1294" stroke="#DDBF94" stroke-width="4"/>'
+ for y in range(172,927,48):
+  cover_body+=f'<circle cx="173" cy="{y+6}" r="8" fill="#796C59"/><path d="M175 {y}C85 {y-22} 85 {y+34} 175 {y+16}" fill="none" stroke="#858A90" stroke-width="10" stroke-linecap="round"/><path d="M174 {y-2}C97 {y-19} 96 {y+28} 171 {y+13}" fill="none" stroke="#D8DCE2" stroke-width="3" stroke-linecap="round"/>'
+ cover=raster(svg(1600,1100,cover_body))
+ sticker=flower.copy(); sticker.thumbnail((245,270),Image.Resampling.LANCZOS)
+ padded=Image.new('RGBA',(sticker.width+32,sticker.height+32)); padded.paste(sticker,(16,16)); sticker=padded
+ fm=ndimage.binary_fill_holes(np.asarray(sticker)[:,:,3]>=128)
+ rim=ndimage.binary_dilation(fm,iterations=10)
+ rim_image=Image.new('RGBA',sticker.size,'#FBF9F4'); rim_image.putalpha(Image.fromarray((rim*255).astype('uint8')))
+ badge=Image.alpha_composite(rim_image,sticker)
+ cover.alpha_composite(badge,(1170,680))
+ return cover
+if '--restyle' in sys.argv:
+ restyle_spec=importlib.util.spec_from_file_location('art_restyle',ROOT/'scripts/art-restyle.py')
+ restyle=importlib.util.module_from_spec(restyle_spec); restyle_spec.loader.exec_module(restyle)
+ restyle.stage1(make_cover)
+ print('Restyled 12 samples, cover and choice-collection',flush=True)
+ raise SystemExit(0)
 # Brush lettering: preserve the approved hand rather than substituting a font.
 logo,_=art.clean_alpha(source('brand/logo-wordmark-ink.png'))
 a=np.asarray(logo)[:,:,3]; solid=a>=128
@@ -65,26 +78,15 @@ icon_alpha=np.asarray(icon)[:,:,3]; icon_y,icon_x=np.where(icon_alpha>=128)
 tile=icon.crop((icon_x.min(),icon_y.min(),icon_x.max()+1,icon_y.max()+1)).resize((824,824),Image.Resampling.LANCZOS)
 icon=Image.new('RGBA',(1024,1024)); icon.paste(tile,(100,100))
 save('brand/app-icon-1024.png','BR-02',icon,prompt=p)
-# Stage 0 sample corrections, retained without die-cut rims or shadows.
-for name in ('cat-skateboard','fried-egg'):
- colours=['#F8E6C7','#E1A361','#AF754B','#4D6570'] if name=='cat-skateboard' else ['#FBF4E3','#F8DDA4','#F8C42F','#EAB322']
- save(f'samples/{name}.png','SM-01',flat_colours(source(f'samples/{name}.png'),colours),False,priorityNote='Stage 0 correction, not Stage 2 production.',baseColours=colours)
-flower,p=generated('blue-flower',(1024,1024),0,True)
-flower=save('samples/blue-flower.png','SM-01',flat_colours(flower,['#7291D0','#496CAF','#789361','#F7E7AC']),False,prompt=p,priorityNote='Stage 0 correction.',baseColours=['#7291D0','#496CAF','#789361','#F7E7AC'])
+# Samples now use painterly runtime inputs; never reduce them to four colours.
+for name in ('cat-skateboard','fried-egg','blue-flower'):
+ im=Image.open(OUT/f'samples/{name}.png').convert('RGBA')
+ info=dict(width=im.width,height=im.height,bytes=(OUT/f'samples/{name}.png').stat().st_size)
+ record(f'samples/{name}.png','SM-01',info,'Painterly input from docs/art-restyle-spec.md; no palette reduction.')
+flower=Image.open(OUT/'samples/blue-flower.png').convert('RGBA')
 pouch,p=generated('pack-pouch',(768,1024),1)
 pouch=save('pack/pack-pouch-closed.png','PK-02',pouch,prompt=p,priorityNote='Stage 0 correction; no Pack-opening implementation.')
-# Reconstruct the approved simple notebook geometry with quiet kraft surfaces.
-# A flat grid avoids seams from replacing the original watercolour flower patch.
-cover_body='<defs><linearGradient id="kraft" x2="0" y2="1"><stop stop-color="#D1B183"/><stop offset="1" stop-color="#C9A878"/></linearGradient><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#B8996E" stroke-width="1" opacity=".32"/></pattern></defs><rect x="150" y="146" width="1350" height="824" rx="28" fill="#B08A5B"/><rect x="145" y="130" width="1350" height="824" rx="28" fill="url(#kraft)"/><rect x="160" y="146" width="1320" height="793" rx="18" fill="url(#grid)"/><path d="M175 942h1294" stroke="#DDBF94" stroke-width="4"/>'
-for y in range(172,927,48):
- cover_body+=f'<circle cx="173" cy="{y+6}" r="8" fill="#796C59"/><path d="M175 {y}C85 {y-22} 85 {y+34} 175 {y+16}" fill="none" stroke="#858A90" stroke-width="10" stroke-linecap="round"/><path d="M174 {y-2}C97 {y-19} 96 {y+28} 171 {y+13}" fill="none" stroke="#D8DCE2" stroke-width="3" stroke-linecap="round"/>'
-cover=raster(svg(1600,1100,cover_body))
-sticker=flower.copy(); sticker.thumbnail((245,270),Image.Resampling.LANCZOS)
-fm=np.asarray(sticker)[:,:,3]>=128
-rim=ndimage.binary_dilation(fm,iterations=10)
-rim_image=Image.new('RGBA',sticker.size,'#FBF9F4'); rim_image.putalpha(Image.fromarray((rim*255).astype('uint8')))
-badge=Image.alpha_composite(rim_image,sticker)
-cover.alpha_composite(badge,(1170,680))
+cover=make_cover(flower)
 cover=save('book/cover-kraft.png','BK-01',cover,priorityNote='Stage 0 correction.')
 # Envelope: one shared 720x480 master, split on the exact same V boundary.
 env,_=art.clean_alpha(source('today/envelope-closed.png'))

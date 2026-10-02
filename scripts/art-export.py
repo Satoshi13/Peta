@@ -79,7 +79,7 @@ def png_budget(image, target, limit=600000):
     original = np.array(image)
     neutral_shadow = (original[:, :, 3] > 0) & (original[:, :, 3] <= 30) & np.all(original[:, :, :3] == 43, axis=2)
     # Quantize RGB only. Alpha stays 8-bit; deliver truecolour RGBA (PNG colour type 6).
-    for colours in (None, 128, 96, 64, 48, 32, 24, 16):
+    for colours in (None, 256, 192, 128, 96, 64, 48, 32, 24, 16):
         out = image.copy()
         if colours:
             rgb = image.convert('RGB').filter(ImageFilter.GaussianBlur(.35))

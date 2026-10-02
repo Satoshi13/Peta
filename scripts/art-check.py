@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Check art contract, pixel coverage, shadow envelope and runtime budgets."""
-import json,struct,subprocess
+import json,struct,subprocess,importlib.util
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -8,12 +8,16 @@ from scipy import ndimage
 ROOT=Path(__file__).resolve().parents[1]; ART=ROOT/'src/art'
 manifest=json.loads((ART/'manifest.json').read_text())
 errors=[]; checked=0
+spec=importlib.util.spec_from_file_location('art_restyle',ROOT/'scripts/art-restyle.py')
+restyle=importlib.util.module_from_spec(spec); spec.loader.exec_module(restyle)
+sample_stats=[]
 def require(ok,message):
  if not ok: errors.append(message)
 for item in manifest['assets']:
  path=ART/item['file']; require(path.is_file(),'Missing '+item['file'])
  if not path.is_file(): continue
- require(path.stat().st_size<=600000,'Over 600 KB: '+item['file'])
+ limit=900000 if path.parent.name=='samples' else 600000
+ require(path.stat().st_size<=limit,'Over art byte budget: '+item['file'])
  require(path.stat().st_size==item['bytes'],'Manifest byte mismatch: '+item['file'])
  if path.suffix=='.svg':
   text=path.read_text(); require('<image' not in text and '<text' not in text,'SVG must use paths, no bitmap/font: '+item['file'])
@@ -33,7 +37,19 @@ for item in manifest['assets']:
  require(np.all(distance[a>0]<=6.1),'Contact shadow exceeds 6px: '+item['file'])
  require(np.all(np.ptp(data[:,:,:3][shadow].astype(int),axis=1)<=1),'Tinted contact shadow: '+item['file'])
  if path.parent.name=='samples':
-  require(len(np.unique(data[a==255,:3],axis=0))<=4,'Sample exceeds four flat colours: '+item['file'])
+  rgb=data[a>=128,:3].astype(float)/255
+  saturation=(rgb.max(axis=1)-rgb.min(axis=1))/np.maximum(rgb.max(axis=1),1/255)
+  p99=float(np.percentile(saturation,99))
+  require(p99<=.90,'Sample saturation p99 exceeds 0.90: '+item['file'])
+  require(np.all(distance[a>0]<=1.5),'Sample contains a baked contact shadow: '+item['file'])
+  bordered,rim=restyle.sticker_with_border(im.convert('RGBA'))
+  cut=rim>=.5
+  _,n=ndimage.label(cut)
+  require(n==1,'Border composite has disconnected pieces: '+item['file'])
+  require(not np.any(ndimage.binary_fill_holes(cut)&~cut),'Border composite has holes: '+item['file'])
+  ba=np.asarray(bordered)[:,:,3]
+  require(np.all(ba[:4]==0) and np.all(ba[-4:]==0) and np.all(ba[:,:4]==0) and np.all(ba[:,-4:]==0),'Border composite clipped: '+item['file'])
+  sample_stats.append((item['file'],p99,n))
   require(max(im.size)==1024,'Sample long edge: '+item['file'])
   require(np.all(a[:8]==0) and np.all(a[-8:]==0) and np.all(a[:,:8]==0) and np.all(a[:,-8:]==0),'Sample transparent 8px margin: '+item['file'])
  checked+=1
@@ -100,6 +116,11 @@ if manifest.get('stage', 1) >= 2:
  for name in ('cream','kraft'):
   paper=np.array(Image.open(ART/f'back/paper-{name}.jpg')).astype(float)
   require(np.abs(paper[0]-paper[-1]).mean()<2 and np.abs(paper[:,0]-paper[:,-1]).mean()<2,'Paper tile seam exceeds subtle texture: '+name)
+  if manifest.get('sampleStyle'):
+   luminance=paper@np.array([.2126,.7152,.0722])
+   require(3<=luminance.std()<=6,'Paper texture standard deviation outside 3–6: '+name)
+   base=np.array([245,240,230] if name=='cream' else [201,168,120])
+   require(np.max(np.abs(paper.mean(axis=(0,1))-base))<2,'Paper mean palette drift: '+name)
  for name,cap in [('print/print-slot-glow.png',26),('book/page-curl-shadow.png',28)]:
   mask=np.array(Image.open(ART/name).convert('RGBA'))
   require(mask[:,:,3].max()<=cap,'Intentional mask opacity: '+name)
@@ -109,6 +130,14 @@ if manifest.get('stage', 1) >= 2:
  hero=np.array(Image.open(ART/'onboarding/hero.png').convert('RGBA'))
  require(np.all(hero[220:640,480:910,3]==255),'Hero label area not opaque')
  require(np.ptp(hero[220:640,480:910,:3],axis=(0,1)).max()<=1,'Hero centre not blank for runtime text')
+ if manifest.get('sampleStyle'):
+  h=next(a for a in manifest['assets'] if a['file']=='onboarding/hero.png')
+  x,y,w,ht=h['labelRect']; centre=hero[y:y+ht,x:x+w]
+  require(np.all(centre[:,:,3]==255) and np.ptp(centre[:,:,:3],axis=(0,1)).max()<=1,'Hero full labelRect is not blank')
+  require(len(h['sampleSources'])==5 and len(set(h['sampleSources']))==5,'Hero needs five distinct samples')
+  require(all(abs(p['rotationDeg'])<=10 for p in h['placements']),'Hero rotations exceed ten degrees')
+  require(max(h['overlapFractions'])<=.15 and max(h['overlapFractions'])>0,'Hero overlap must exist and stay below 15%')
 if errors:
  print('\n'.join(errors)); raise SystemExit(1)
-print(f'PASS: {len(manifest["assets"])} assets; {sum(e["bytes"] for e in manifest["assets"]):,} bytes; interior alpha 255; neutral shadows <=30/255 and <=6px; layer equality; hooks; 4-colour samples; source exclusion.')
+print(f'PASS: {len(manifest["assets"])} assets; {sum(e["bytes"] for e in manifest["assets"]):,} bytes; interior alpha 255; neutral shadows <=30/255 and <=6px; layer equality; hooks; sample saturation and hole-free die-cut composites; source exclusion.')
+for file,p99,pieces in sample_stats: print(f'  {file}: saturation p99={p99:.3f}, die-cut pieces={pieces}, holes=0')

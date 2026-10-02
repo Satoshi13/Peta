@@ -46,6 +46,10 @@ with sync_playwright() as pw:
         page.locator('figure').evaluate_all('items=>items.forEach(e=>e.style.display="")')
         page.get_by_label('壁紙風',exact=True).check()
         assert 'linear-gradient' in page.locator('.canvas:visible').first.evaluate('e=>getComputedStyle(e).backgroundImage')
+        if scheme=='light':
+            page.locator('figure').evaluate_all('items=>items.forEach(e=>e.style.display=e.dataset.file.startsWith("samples/")?"":"none")')
+            page.locator('main').screenshot(path=str(SHOTS/'samples-wallpaper.jpg'),type='jpeg',quality=88)
+            page.locator('figure').evaluate_all('items=>items.forEach(e=>e.style.display="")')
         page.get_by_label('P0',exact=True).check()
         assert page.locator('figure:visible').count()==sum(x['priority']=='P0' for x in manifest['assets'])
         page.get_by_label('すべて',exact=True).check()

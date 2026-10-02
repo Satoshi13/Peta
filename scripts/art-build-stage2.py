@@ -10,6 +10,7 @@ import json
 import html
 import io
 import math
+import sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 from scipy import ndimage
@@ -21,9 +22,11 @@ WORK = ROOT / 'assets-src/art/stage2'
 spec = importlib.util.spec_from_file_location('art_export', ROOT / 'scripts/art-export.py')
 art = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(art)
+restyle_spec=importlib.util.spec_from_file_location('art_restyle',ROOT/'scripts/art-restyle.py')
+restyle=importlib.util.module_from_spec(restyle_spec); restyle_spec.loader.exec_module(restyle)
 manifest = json.loads((OUT / 'manifest.json').read_text())
 records = {r['file']: r for r in manifest['assets']}
-generation = json.loads((WORK / 'generation.json').read_text())
+generation = {} if '--restyle' in sys.argv else json.loads((WORK / 'generation.json').read_text())
 
 def record(rel, asset_id, info, prompt, alpha=True, **extra):
     records[rel] = dict(id=asset_id, file=rel, **info, alpha=alpha, priority='P1',
@@ -72,31 +75,12 @@ def generated(job, size=None, tight=False):
     cell=Image.fromarray(data)
     return art.fit(cell, size or (1024,1024), tight=tight), cfg['prompt'], k
 
-def flat(image, colours):
-    data = np.array(image)
-    palette = np.array([tuple(bytes.fromhex(c.lstrip('#'))) for c in colours], dtype=float)
-    distance = ((data[:, :, None, :3].astype(float) - palette[None, None])**2).sum(axis=3)
-    indices = ndimage.median_filter(distance.argmin(axis=2), size=3)
-    data[:, :, :3] = palette[indices].astype('uint8')
-    return Image.fromarray(data)
+if '--restyle' in sys.argv:
+    restyle.stage2(raster)
+    print('Restyled hero and two paper textures',flush=True)
+    raise SystemExit(0)
 
-# Remaining Welcome Pack illustrations. The approved cat / egg / flower stay unchanged.
-sample_colours = {
-    'good-day': ['#D8453A','#FBF9F4','#2B2A28'],
-    'polaroid-mountain': ['#FBF9F4','#BFE3F7','#789361','#4D6570'],
-    'retro-computer': ['#F5F0E6','#C9A878','#789361','#4D6570'],
-    'coffee-cup': ['#FBF9F4','#C9A878','#B08A5B','#4D6570'],
-    'peta-bubble': ['#7291D0','#F7E7AC'],
-    'purple-scribble': ['#A28AC3'],
-    'film-camera': ['#F5F0E6','#C9A878','#4D6570','#2B2A28'],
-    'potted-plant': ['#C9A878','#B08A5B','#789361','#4D6570'],
-    'cassette-tape': ['#F5F0E6','#C9A878','#7291D0','#4D6570'],
-}
-for name, colours in sample_colours.items():
-    im, prompt, k = generated(name, tight=True)
-    save('samples/'+name+'.png', 'SM-01', flat(im, colours), prompt, shadow=False,
-         selectedQuadrant=k, baseColours=colours, transparentMarginPx=8)
-
+# All 12 painterly samples are Stage 1 builder inputs; keep them intact.
 # Abstract print mouth: quiet geometry, no printer body.
 slot = raster(2400,48,
     '<rect x="120" y="17" width="2160" height="15" rx="7.5" fill="#2B2A28"/>'
@@ -175,9 +159,9 @@ def paper(size,base,seed):
     texture[-1]=texture[0]; texture[:,-1]=texture[:,0]
     return Image.fromarray(texture)
 for name,base in [('cream',(245,240,230)),('kraft',(201,168,120))]:
-    im=paper((1024,1024),base,20 if name=='cream' else 21)
+    im=restyle.paper_texture(base,730 if name=='cream' else 731)
     jpg('back/paper-'+name+'.jpg','BC-01',im,
-        'Periodic uncoated '+name+' paper fibres; wrap-mode noise, matched opposing boundary pixels before JPEG encoding. Even lighting.',tileable=True)
+        'Periodic uncoated '+name+' paper with fine fibres, grain and subtle cloud mottling. Even lighting; mean palette preserved.',tileable=True)
 
 stamp = raster(480,200,
     '<g fill="none" stroke="#2B2A28" stroke-linecap="round" stroke-linejoin="round">'
@@ -239,21 +223,9 @@ save('empty/collection-empty.png','EM-01',raster(640,400,sheet+dashes),'Empty cr
 peel='<path d="M410 113H471V174Q438 143 410 113Z" fill="#FBF9F4"/><path d="M410 113Q438 142 471 174" fill="none" stroke="#D8D1C5" stroke-width="2"/>'
 save('empty/nothing-to-peel.png','EM-02',raster(640,400,sheet+peel),'One empty backing sheet with only a tiny peeled corner trace; no sticker or text.')
 
-# Onboarding reuses the actual delivered illustrations, not re-generated lookalikes.
-hero=raster(1400,900,'<path d="M130 89L1260 80L1271 810L119 818Z" fill="#F5F0E6"/>')
-placements=[('cat-skateboard',(280,290),(138,101),-6),('fried-egg',(215,170),(981,119),6),
-            ('blue-flower',(225,285),(171,498),-5),('good-day',(255,240),(959,514),5)]
-for name,size,position,angle in placements:
-    im=Image.open(OUT/f'samples/{name}.png').convert('RGBA'); im.thumbnail(size,Image.Resampling.LANCZOS)
-    padded=Image.new('RGBA',(im.width+24,im.height+24))
-    padded.paste(im,(12,12))
-    im=padded
-    # White die-cut rim belongs to onboarding placement, not the sample source artwork.
-    alpha=im.getchannel('A'); rim=alpha.filter(ImageFilter.MaxFilter(15))
-    backed=Image.new('RGBA',im.size,'#FBF9F4'); backed.putalpha(rim)
-    backed=Image.alpha_composite(backed,im).rotate(angle,Image.Resampling.BICUBIC,expand=True)
-    hero.alpha_composite(backed,position)
-save('onboarding/hero.png','OB-01',hero,'Four delivered sample stickers placed on a cream paper sheet; central area blank for runtime Peta, tagline and Begin.',labelRect=[470,200,455,470],sampleSources=[p[0] for p in placements])
+# Reuse the painterly five-sticker composition for full Stage 2 rebuilds too.
+hero,placements,overlap=restyle.make_hero(raster)
+save('onboarding/hero.png','OB-01',hero,'Five painterly samples on a deckled cream sheet, gently tilted and overlapping around a blank central area.',labelRect=[470,200,455,470],sampleSources=[p[0] for p in placements],overlapFractions=overlap,placements=[dict(sample=p[0],maxSize=list(p[1]),position=list(p[2]),rotationDeg=p[3]) for p in placements])
 
 manifest['stage']=2
 manifest['status']='complete-pending-review'

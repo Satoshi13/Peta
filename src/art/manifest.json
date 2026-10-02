@@ -126,68 +126,61 @@
     {
       "id": "SM-01",
       "file": "samples/cat-skateboard.png",
-      "bytes": 64241,
-      "rgbPalette": null,
-      "width": 993,
+      "bytes": 826942,
+      "width": 900,
       "height": 1024,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "art/preview.html"
+        "Welcome Pack / art preview",
+        "onboarding/hero.png"
       ],
-      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A cheerful tabby-and-cream cat riding a skateboard, one eye in a small wink, soft fluffy fur painted with visible strokes, dark teal-grey board with warm wooden wheels, slightly goofy, full body, three-quarter view.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
-      "priorityNote": "Stage 0 correction, not Stage 2 production.",
-      "baseColours": [
-        "#F8E6C7",
-        "#E1A361",
-        "#AF754B",
-        "#4D6570"
-      ]
+      "restyle": "painterly-illustration",
+      "selectedQuadrant": 0,
+      "transparentMarginPx": 8,
+      "rgbPalette": 256
     },
     {
       "id": "SM-01",
       "file": "samples/fried-egg.png",
-      "bytes": 38559,
-      "rgbPalette": null,
+      "bytes": 854720,
       "width": 1024,
-      "height": 785,
+      "height": 905,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "art/preview.html"
+        "Welcome Pack / art preview",
+        "onboarding/hero.png"
       ],
-      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nThe previous egg was too saturated. Make the yolk subdued butter-gold #D5B65F, softly painted with a warm cream highlight. Keep yellow/orange pigments mixed with cream: NO vivid orange, NO pure yellow or tiny saturated orange pixels; every colour should retain at least 18% grey/cream content (HSV saturation at most 0.82), including the lightly golden fried edge. The white should be warm porcelain with a subtle blue-grey painted shadow. Quiet gouache brush texture like the other stickers, not plastic. No added border or backing or ground shadow. Produce FOUR candidates in a strict 2x2 grid, one complete isolated egg in each cell, generous clear transparent gaps, no labels. Reference only the upper laptop stickers, not lower sketches.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
-      "priorityNote": "Stage 0 correction, not Stage 2 production.",
-      "baseColours": [
-        "#FBF4E3",
-        "#F8DDA4",
-        "#F8C42F",
-        "#EAB322"
-      ]
+      "restyle": "painterly-illustration",
+      "selectedQuadrant": 0,
+      "transparentMarginPx": 8,
+      "rgbPalette": 256
     },
     {
       "id": "SM-01",
       "file": "samples/blue-flower.png",
-      "bytes": 58851,
-      "rgbPalette": null,
-      "width": 1024,
-      "height": 1010,
+      "bytes": 852243,
+      "width": 1016,
+      "height": 1024,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "art/preview.html"
+        "Welcome Pack / art preview",
+        "onboarding/hero.png",
+        "book/cover-kraft.png",
+        "today/choice-collection.png"
       ],
-      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nREMAKE this blue flower artwork as a completely FLAT print illustration matching the supplied cat and fried egg, keep one blue bellflower blossom on a stem with two leaves. Exactly FOUR flat base colours: blue #7291D0, deep blue #496CAF, sage green #789361, pale lemon #F7E7AC. No watercolour, paper grain, mottling, gradients, shading, rim, backing paper, outlines, shadow or glow. The flower itself is the artwork, transparent holes between leaves. Compact single silhouette.\n\nSTAGE 1 corrections: no ambient shadow, no glow, no colour bleeding outside the object. All paper/foil/ink surfaces fully opaque; transparent background only outside each object. Produce FOUR candidates in a strict 2x2 grid, one complete object per equal quadrant with generous 12% transparent margins, no touching or overlaps, no captions, divider lines or extra objects. Vary only subtle outline and restrained hand-made detail. Keep quiet Peta stationery style; avoid over-detailed paper fibres. This prompt's subject and flatness override any detail in the reference image.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A blue bellflower / cornflower painted with soft petal shading, a pale centre with a few yellow stamens, a small bud, a slender stem and two sage-green leaves.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers.\nFor the computer: wide squat rounded case like an original generic late-1990s appliance, not a tall 1984 Macintosh. A small painted cloud on the screen. No numbers or markings on controls.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
-      "priorityNote": "Stage 0 correction.",
-      "baseColours": [
-        "#7291D0",
-        "#496CAF",
-        "#789361",
-        "#F7E7AC"
-      ]
+      "restyle": "painterly-illustration",
+      "selectedQuadrant": 0,
+      "transparentMarginPx": 8,
+      "rgbPalette": 256
     },
     {
       "id": "PK-02",
@@ -209,8 +202,7 @@
     {
       "id": "BK-01",
       "file": "book/cover-kraft.png",
-      "bytes": 102106,
-      "rgbPalette": null,
+      "bytes": 157142,
       "width": 1600,
       "height": 1100,
       "alpha": true,
@@ -219,9 +211,13 @@
         "today/choice-collection.png",
         "art/preview.html"
       ],
-      "prompt": "Derived from approved Stage 0 artwork; corrected coverage alpha and neutral short contact shadow.",
+      "prompt": "Same approved kraft cover geometry; replaced flower with painterly samples/blue-flower.png.",
       "status": "ready",
-      "priorityNote": "Stage 0 correction."
+      "restyle": "painterly-illustration",
+      "sampleSources": [
+        "blue-flower"
+      ],
+      "rgbPalette": null
     },
     {
       "id": "TD-01",
@@ -470,8 +466,7 @@
     {
       "id": "TD-05",
       "file": "today/choice-collection.png",
-      "bytes": 19924,
-      "rgbPalette": null,
+      "bytes": 20468,
       "width": 384,
       "height": 384,
       "alpha": true,
@@ -479,8 +474,13 @@
       "usedBy": [
         "today.html"
       ],
-      "prompt": "Retina thumbnail of corrected BK-01 cover; same paper and blue flower.",
-      "status": "ready"
+      "prompt": "Retina thumbnail of the updated BK-01 cover with the painterly blue flower.",
+      "status": "ready",
+      "restyle": "painterly-illustration",
+      "sampleSources": [
+        "blue-flower"
+      ],
+      "rgbPalette": null
     },
     {
       "id": "TD-05",
@@ -873,212 +873,175 @@
     {
       "id": "SM-01",
       "file": "samples/good-day.png",
-      "bytes": 54783,
-      "rgbPalette": null,
+      "bytes": 818691,
       "width": 1024,
-      "height": 750,
+      "height": 842,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "Phase 4–5 delivery / art/preview.html"
+        "Welcome Pack / art preview",
+        "onboarding/hero.png"
       ],
-      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nSTYLE-lite: flat vector-like sticker artwork, at most four solid base colors, hand-drawn wobble, NO watercolor, texture, gradient, white die-cut rim, backing paper or shadow; artwork only.\nSubject: Retro comic lettering exactly \"GOOD DAY\", only those seven capital letters, GOOD on the upper line and DAY underneath, slightly leaning right. Solid coral-red chunky slightly wobbly letters, cream interior highlight and graphite offset ink accents, no paper backing, no outline border around the combined sticker. At most 3 solid colors: #D8453A, #FBF9F4, #2B2A28.\n\nCreate FOUR distinct candidates in a strict 2x2 grid, one complete object centered in each quadrant on transparent background, generous separate margins, no touching or overlap, no captions or dividers. Keep shapes clean and readable at small UI size. Opaque ink and objects except glassine. No ambient shadow, shadows will be added at export.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nCORRECT the referenced GOOD DAY lettering: remove ALL off-white paper, backing, outside border, extrusion and filled white spaces between letters. The outer edge of each glyph must be BRICK RED meeting transparency. The tiny cream accent belongs INSIDE the red ink of a letter, like a thin inset brush highlight. The spaces between the letters and between GOOD / DAY must be genuinely transparent, including counters in G/O/D/A. Do not draw a joined white sticker-shaped silhouette. Paint muted brick-red retro comic capitals \"GOOD DAY\" in two slightly slanted close lines, warm low-contrast brush shading and light worn ink speckle in RGB, no loose particles. Exactly G O O D / D A Y. Four variations in a strict 2x2 grid, generous separate transparent margins, no other objects or writing. No ground shadow. Keep lettering compact so an app-added border can join the entire word group.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
       "selectedQuadrant": 0,
-      "baseColours": [
-        "#D8453A",
-        "#FBF9F4",
-        "#2B2A28"
-      ],
-      "transparentMarginPx": 8
+      "transparentMarginPx": 8,
+      "restyle": "painterly-illustration",
+      "rgbPalette": null
     },
     {
       "id": "SM-01",
       "file": "samples/polaroid-mountain.png",
-      "bytes": 24899,
-      "rgbPalette": null,
-      "width": 906,
+      "bytes": 879256,
+      "width": 973,
       "height": 1024,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "Phase 4–5 delivery / art/preview.html"
+        "Welcome Pack / art preview",
+        "onboarding/hero.png"
       ],
-      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nSTYLE-lite: flat vector-like sticker artwork, at most four solid base colors, hand-drawn wobble, NO watercolor, texture, gradient, white die-cut rim, backing paper or shadow; artwork only.\nSubject: An instant photo silhouette with an off-white frame and a flat illustrated mountain landscape inside: pale blue sky, sage foothills, deep slate mountain with a small cream snowcap. An illustration NOT a photographic image. Exactly four solid colors #FBF9F4 #BFE3F7 #789361 #4D6570. Blank wide lower frame, no text.\n\nCreate FOUR distinct candidates in a strict 2x2 grid, one complete object centered in each quadrant on transparent background, generous separate margins, no touching or overlap, no captions or dividers. Keep shapes clean and readable at small UI size. Opaque ink and objects except glassine. No ambient shadow, shadows will be added at export.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: An instant-photo print with a cream-white frame, wider at the bottom, very slightly tilted. The picture is a softly PAINTED landscape: a snow-capped mountain, evergreen forest, dusty blue sky. Not photographic.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers.\nFor the computer: wide squat rounded case like an original generic late-1990s appliance, not a tall 1984 Macintosh. A small painted cloud on the screen. No numbers or markings on controls.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
-      "selectedQuadrant": 1,
-      "baseColours": [
-        "#FBF9F4",
-        "#BFE3F7",
-        "#789361",
-        "#4D6570"
-      ],
-      "transparentMarginPx": 8
+      "selectedQuadrant": 0,
+      "transparentMarginPx": 8,
+      "restyle": "painterly-illustration",
+      "rgbPalette": 192
     },
     {
       "id": "SM-01",
       "file": "samples/retro-computer.png",
-      "bytes": 37932,
-      "rgbPalette": null,
+      "bytes": 821573,
       "width": 1024,
-      "height": 1017,
+      "height": 824,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "Phase 4–5 delivery / art/preview.html"
+        "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nSTYLE-lite: flat vector-like sticker artwork, at most four solid base colors, hand-drawn wobble, NO watercolor, texture, gradient, white die-cut rim, backing paper or shadow; artwork only.\nSubject: A 1990s beige all-in-one computer, front view slightly turned, chunky CRT screen with a tiny simple smile, a short keyboard in front. Exactly 4 solid colors #F5F0E6 #C9A878 #789361 #4D6570. No logos, brand, label, numbers or text.\n\nCreate FOUR distinct candidates in a strict 2x2 grid, one complete object centered in each quadrant on transparent background, generous separate margins, no touching or overlap, no captions or dividers. Keep shapes clean and readable at small UI size. Opaque ink and objects except glassine. No ambient shadow, shadows will be added at export.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A beige all-in-one retro computer with a chunky rounded CRT case, a small soft cloud icon on the screen, a separate keyboard below, gentle plastic shading. No logo. Do not imitate the original Macintosh silhouette: make the case wider and rounder.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers.\nFor the computer: wide squat rounded case like an original generic late-1990s appliance, not a tall 1984 Macintosh. A small painted cloud on the screen. No numbers or markings on controls.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
-      "selectedQuadrant": 0,
-      "baseColours": [
-        "#F5F0E6",
-        "#C9A878",
-        "#789361",
-        "#4D6570"
-      ],
-      "transparentMarginPx": 8
+      "selectedQuadrant": 1,
+      "transparentMarginPx": 8,
+      "restyle": "painterly-illustration",
+      "rgbPalette": 256
     },
     {
       "id": "SM-01",
       "file": "samples/coffee-cup.png",
-      "bytes": 38508,
-      "rgbPalette": null,
+      "bytes": 817618,
       "width": 1024,
-      "height": 720,
+      "height": 774,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "Phase 4–5 delivery / art/preview.html"
+        "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nSTYLE-lite: flat vector-like sticker artwork, at most four solid base colors, hand-drawn wobble, NO watercolor, texture, gradient, white die-cut rim, backing paper or shadow; artwork only.\nSubject: A cappuccino in a short off-white ceramic cup with a handle and a matching oval saucer, three-quarter view. Tan coffee with a simple cream heart-shaped latte art. No steam. Exactly 4 solid colors #FBF9F4 #C9A878 #B08A5B #4D6570.\n\nCreate FOUR distinct candidates in a strict 2x2 grid, one complete object centered in each quadrant on transparent background, generous separate margins, no touching or overlap, no captions or dividers. Keep shapes clean and readable at small UI size. Opaque ink and objects. No ambient shadow.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A cappuccino in a cream-white cup on a saucer, seen from a slightly raised three-quarter angle, a heart in the latte art, soft blue-grey shading on the porcelain. No steam, no text.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers. The abstract purple line must NOT resemble cursive letters: use a free diagonal wave with one loose loop, not handwriting.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
       "selectedQuadrant": 0,
-      "baseColours": [
-        "#FBF9F4",
-        "#C9A878",
-        "#B08A5B",
-        "#4D6570"
-      ],
-      "transparentMarginPx": 8
+      "transparentMarginPx": 8,
+      "restyle": "painterly-illustration",
+      "rgbPalette": 256
     },
     {
       "id": "SM-01",
       "file": "samples/peta-bubble.png",
-      "bytes": 28871,
-      "rgbPalette": null,
+      "bytes": 680937,
       "width": 1024,
-      "height": 538,
+      "height": 540,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "Phase 4–5 delivery / art/preview.html"
+        "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nSTYLE-lite: flat vector-like sticker artwork, at most four solid base colors, hand-drawn wobble, NO watercolor, texture, gradient, white die-cut rim, backing paper or shadow; artwork only.\nSubject: Exactly \"Peta\" spelled capital P lowercase e-t-a, as friendly plump blue bubble letters with a pale yellow offset extrusion as part of the lettering artwork. One readable word, blue filled letters, pale yellow dimensional accent, no surrounding border or paper. Only 2 solid colors #7291D0 #F7E7AC.\n\nCreate FOUR distinct candidates in a strict 2x2 grid, one complete object centered in each quadrant on transparent background, generous separate margins, no touching or overlap, no captions or dividers. Keep shapes clean and readable at small UI size. Opaque ink and objects. No ambient shadow.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: Plump bubble lettering \"Peta\" in dusty blue with a soft inner highlight and a butter-yellow offset outline. Exactly the spelling: P e t a.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers. The abstract purple line must NOT resemble cursive letters: use a free diagonal wave with one loose loop, not handwriting.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
       "selectedQuadrant": 0,
-      "baseColours": [
-        "#7291D0",
-        "#F7E7AC"
-      ],
-      "transparentMarginPx": 8
+      "transparentMarginPx": 8,
+      "restyle": "painterly-illustration",
+      "rgbPalette": null
     },
     {
       "id": "SM-01",
       "file": "samples/purple-scribble.png",
-      "bytes": 29298,
-      "rgbPalette": null,
+      "bytes": 409446,
       "width": 1024,
-      "height": 459,
+      "height": 600,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "Phase 4–5 delivery / art/preview.html"
+        "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nSTYLE-lite: flat vector-like sticker artwork, at most four solid base colors, hand-drawn wobble, NO watercolor, texture, gradient, white die-cut rim, backing paper or shadow; artwork only.\nSubject: A single continuous purple thick marker scribble stroke, curling in an expressive loose S-wave with two loops like a quick stationery doodle, rounded ends, irregular hand-drawn flow. Only one solid color #A28AC3, no white border, no dots, no paper, no text.\n\nCreate FOUR distinct candidates in a strict 2x2 grid, one complete object centered in each quadrant on transparent background, generous separate margins, no touching or overlap, no captions or dividers. Keep shapes clean and readable at small UI size. Opaque ink and objects. No ambient shadow.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: an ABSTRACT one-stroke lilac-purple marker scribble with soft pearly paint sheen and visible gouache / marker grain. It must not form any alphabet letter: no N, M, W, e, l or handwriting. An irregular asymmetric loose sideways figure-eight-like loop crossing once, its left tail descending diagonally to the lower-left and its right tail curving gently up to the upper-right. Deliberately uneven open-ended abstract flourish. A painted broad marker stroke with low-contrast internal highlights, NOT a glossy extruded 3D tube. No additional dots or sparks, no white border, no shadow, no background. Four candidates in a strict 2x2 grid, one abstract complete scribble per cell, transparent margins, no letters or labels. Keep brush detail quiet to match the rest of the painted Peta set.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
       "selectedQuadrant": 0,
-      "baseColours": [
-        "#A28AC3"
-      ],
-      "transparentMarginPx": 8
+      "transparentMarginPx": 8,
+      "restyle": "painterly-illustration",
+      "rgbPalette": null
     },
     {
       "id": "SM-01",
       "file": "samples/film-camera.png",
-      "bytes": 34902,
-      "rgbPalette": null,
+      "bytes": 838702,
       "width": 1024,
-      "height": 625,
+      "height": 573,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "Phase 4–5 delivery / art/preview.html"
+        "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nSTYLE-lite: flat vector-like sticker artwork, at most four solid base colors, hand-drawn wobble, NO watercolor, texture, gradient, white die-cut rim, backing paper or shadow; artwork only.\nSubject: A retro film camera, front view with a large round lens at center, compact cream and graphite body, a little top film advance knob and blank viewfinder. Exactly 4 solid colors #F5F0E6 #C9A878 #4D6570 #2B2A28. No logos, brand names, lettering, numbers, or labels.\n\nCreate FOUR distinct candidates in a strict 2x2 grid, one complete object centered in each quadrant on transparent background, generous separate margins, no touching or overlap, no captions or dividers. Keep shapes clean and readable at small UI size. Opaque ink and objects. No ambient shadow.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A retro 35 mm rangefinder camera: cream body with tan leatherette, a lens with a soft glass reflection, small dials. No brand name, no readable text.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. This subject has NO letters, numbers, logos or brands anywhere. All labels and controls remain blank or plain unmarked shapes. No tiny illegible markings.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
       "selectedQuadrant": 0,
-      "baseColours": [
-        "#F5F0E6",
-        "#C9A878",
-        "#4D6570",
-        "#2B2A28"
-      ],
-      "transparentMarginPx": 8
+      "transparentMarginPx": 8,
+      "restyle": "painterly-illustration",
+      "rgbPalette": 256
     },
     {
       "id": "SM-01",
       "file": "samples/potted-plant.png",
-      "bytes": 92140,
-      "rgbPalette": null,
+      "bytes": 839160,
       "width": 1024,
-      "height": 930,
+      "height": 953,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "Phase 4–5 delivery / art/preview.html"
+        "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nSTYLE-lite: flat vector-like sticker artwork, at most four solid base colors, hand-drawn wobble, NO watercolor, texture, gradient, white die-cut rim, backing paper or shadow; artwork only.\nSubject: A small terracotta pot containing 4 lush monstera leaves with cut-outs and thin stems, friendly irregular leaf shapes. Exactly 4 solid colors #C9A878 #B08A5B #789361 #4D6570. No face or text.\n\nCreate FOUR distinct candidates in a strict 2x2 grid, one complete object centered in each quadrant on transparent background, generous separate margins, no touching or overlap, no captions or dividers. Keep shapes clean and readable at small UI size. Opaque ink and objects. No ambient shadow.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A monstera in a terracotta pot, leaves painted with soft veins and light-to-dark shading, a hint of glaze highlight on the pot.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. This subject has NO letters, numbers, logos or brands anywhere. All labels and controls remain blank or plain unmarked shapes. No tiny illegible markings.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
-      "selectedQuadrant": 1,
-      "baseColours": [
-        "#C9A878",
-        "#B08A5B",
-        "#789361",
-        "#4D6570"
-      ],
-      "transparentMarginPx": 8
+      "selectedQuadrant": 0,
+      "transparentMarginPx": 8,
+      "restyle": "painterly-illustration",
+      "rgbPalette": 256
     },
     {
       "id": "SM-01",
       "file": "samples/cassette-tape.png",
-      "bytes": 20516,
-      "rgbPalette": null,
+      "bytes": 840828,
       "width": 1024,
-      "height": 638,
+      "height": 623,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
-        "Phase 4–5 delivery / art/preview.html"
+        "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nSTYLE-lite: flat vector-like sticker artwork, at most four solid base colors, hand-drawn wobble, NO watercolor, texture, gradient, white die-cut rim, backing paper or shadow; artwork only.\nSubject: A retro cassette tape viewed straight on, two visible round reels, a wide blank cream label and simple diagonal bottom edge detail. Exactly 4 solid colors #F5F0E6 #C9A878 #7291D0 #4D6570. No logos, brand, names, numbers, letters or written labels.\n\nCreate FOUR distinct candidates in a strict 2x2 grid, one complete object centered in each quadrant on transparent background, generous separate margins, no touching or overlap, no captions or dividers. Keep shapes clean and readable at small UI size. Opaque ink and objects. No ambient shadow.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A compact cassette tape: tan shell, a blank cream label with a pale blue stripe, two reels, small screws, slightly worn edges. The label has no text.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. This subject has NO letters, numbers, logos or brands anywhere. All labels and controls remain blank or plain unmarked shapes. No tiny illegible markings.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
       "selectedQuadrant": 0,
-      "baseColours": [
-        "#F5F0E6",
-        "#C9A878",
-        "#7291D0",
-        "#4D6570"
-      ],
-      "transparentMarginPx": 8
+      "transparentMarginPx": 8,
+      "restyle": "painterly-illustration",
+      "rgbPalette": 256
     },
     {
       "id": "PR-01",
@@ -1409,32 +1372,46 @@
       "file": "back/paper-cream.jpg",
       "width": 1024,
       "height": 1024,
-      "bytes": 19509,
+      "bytes": 134907,
       "alpha": false,
       "priority": "P1",
       "usedBy": [
         "Phase 4–5 delivery / art/preview.html"
       ],
-      "prompt": "Periodic uncoated cream paper fibres; wrap-mode noise, matched opposing boundary pixels before JPEG encoding. Even lighting.",
+      "prompt": "Seamless cream paper; periodic fine fibres, grain and soft cloud mottling, mean palette preserved.",
       "status": "ready",
       "stage": 2,
-      "tileable": true
+      "tileable": true,
+      "restyle": "painterly-illustration",
+      "textureLumaStd": 4.494060763560462,
+      "meanRGB": [
+        243.49398708343506,
+        239.50445365905762,
+        228.50329113006592
+      ]
     },
     {
       "id": "BC-01",
       "file": "back/paper-kraft.jpg",
       "width": 1024,
       "height": 1024,
-      "bytes": 19538,
+      "bytes": 134751,
       "alpha": false,
       "priority": "P1",
       "usedBy": [
         "Phase 4–5 delivery / art/preview.html"
       ],
-      "prompt": "Periodic uncoated kraft paper fibres; wrap-mode noise, matched opposing boundary pixels before JPEG encoding. Even lighting.",
+      "prompt": "Seamless kraft paper; periodic fine fibres, grain and soft cloud mottling, mean palette preserved.",
       "status": "ready",
       "stage": 2,
-      "tileable": true
+      "tileable": true,
+      "restyle": "painterly-illustration",
+      "textureLumaStd": 4.509853032976589,
+      "meanRGB": [
+        199.5088062286377,
+        167.5088062286377,
+        118.5088062286377
+      ]
     },
     {
       "id": "BC-02",
@@ -1920,8 +1897,7 @@
     {
       "id": "OB-01",
       "file": "onboarding/hero.png",
-      "bytes": 248701,
-      "rgbPalette": null,
+      "bytes": 494189,
       "width": 1400,
       "height": 900,
       "alpha": true,
@@ -1929,7 +1905,7 @@
       "usedBy": [
         "Phase 4–5 delivery / art/preview.html"
       ],
-      "prompt": "Four delivered sample stickers placed on a cream paper sheet; central area blank for runtime Peta, tagline and Begin.",
+      "prompt": "Five painterly sample stickers in two loose overlapping clusters, tilted within 10 degrees; quiet deckled cream sheet and reserved central label area.",
       "status": "ready",
       "stage": 2,
       "labelRect": [
@@ -1939,16 +1915,90 @@
         470
       ],
       "sampleSources": [
+        "polaroid-mountain",
         "cat-skateboard",
         "fried-egg",
         "blue-flower",
         "good-day"
-      ]
+      ],
+      "restyle": "painterly-illustration",
+      "placements": [
+        {
+          "sample": "polaroid-mountain",
+          "maxSize": [
+            235,
+            255
+          ],
+          "position": [
+            170,
+            352
+          ],
+          "rotationDeg": 8
+        },
+        {
+          "sample": "cat-skateboard",
+          "maxSize": [
+            270,
+            290
+          ],
+          "position": [
+            132,
+            108
+          ],
+          "rotationDeg": -6
+        },
+        {
+          "sample": "fried-egg",
+          "maxSize": [
+            220,
+            175
+          ],
+          "position": [
+            1000,
+            130
+          ],
+          "rotationDeg": 4
+        },
+        {
+          "sample": "blue-flower",
+          "maxSize": [
+            220,
+            260
+          ],
+          "position": [
+            990,
+            300
+          ],
+          "rotationDeg": 8
+        },
+        {
+          "sample": "good-day",
+          "maxSize": [
+            250,
+            210
+          ],
+          "position": [
+            945,
+            480
+          ],
+          "rotationDeg": -7
+        }
+      ],
+      "overlapFractions": [
+        0.08913065176165286,
+        0.08061312919766014,
+        0.007722592368261659,
+        0.057133480517930664,
+        0.042476601871850254
+      ],
+      "rgbPalette": null
     }
   ],
   "deliveryStages": {
     "1": "P0 integrated; existing logic preserved",
     "2": "P1 assets only; no app integration",
     "3": "not started"
-  }
+  },
+  "sampleStyle": "STYLE-sample / painterly gouache illustration; supersedes STYLE-lite",
+  "sampleBudgetBytes": 900000
 }
