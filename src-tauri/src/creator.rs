@@ -8,7 +8,7 @@ use std::{
 };
 
 use peta_core::{
-    creator::{self, Params, Session, DEFAULT_STRENGTH},
+    creator::{self, Params, Session, DEFAULT_SMOOTH, DEFAULT_STRENGTH},
     daily,
     ids::random_unit,
     materials,
@@ -154,6 +154,7 @@ pub struct CreatorInfo {
     materials: Vec<Material>,
     default_material: String,
     default_strength: f32,
+    default_smooth: f32,
 }
 
 #[tauri::command]
@@ -195,6 +196,7 @@ pub fn creator_info(app: AppHandle, creator: State<Creator>, store: State<Store>
         materials: unlocked,
         default_material,
         default_strength: DEFAULT_STRENGTH,
+        default_smooth: DEFAULT_SMOOTH,
     }
 }
 
@@ -206,9 +208,9 @@ pub fn creator_original(creator: State<Creator>) -> Result<Response, String> {
     a.session.original_jpeg().map(Response::new).map_err(|e| e.to_string())
 }
 
-fn params_for(material_id: &str, strength: f32) -> Params {
+fn params_for(material_id: &str, strength: f32, smooth: f32) -> Params {
     let material = materials::get(material_id).or_else(|| materials::get(materials::DEFAULT_MATERIAL)).expect("default material exists");
-    Params { strength, recipe: material.recipe }
+    Params { strength, smooth, recipe: material.recipe }
 }
 
 /// Wire format: 4-byte big-endian JSON length, JSON `{ stickerLen, cutoutLen, width, height, coverage }`,
@@ -229,12 +231,12 @@ fn pack(r: &creator::Rendered) -> Vec<u8> {
 
 /// Re-render with the current settings. `preview` = half size, fast (live feedback).
 #[tauri::command]
-pub async fn creator_render(app: AppHandle, material_id: String, strength: f32, preview: bool) -> Result<Response, String> {
+pub async fn creator_render(app: AppHandle, material_id: String, strength: f32, smooth: f32, preview: bool) -> Result<Response, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let creator = app.state::<Creator>();
         let active = creator.active.lock().unwrap();
         let a = active.as_ref().ok_or("no image is open")?;
-        let params = params_for(&material_id, strength);
+        let params = params_for(&material_id, strength, smooth);
         let rendered = if preview { a.session.render_preview(&params) } else { a.session.render(&params) };
         rendered.map(|r| Response::new(pack(&r))).map_err(|e| e.to_string())
     })
@@ -262,9 +264,9 @@ pub fn creator_clear_edits(creator: State<Creator>) -> Result<(), String> {
 
 /// "Make this Peta": render at full size, keep it in the library, stick it down, spend today's slot.
 #[tauri::command]
-pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32) -> Result<(), String> {
+pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32) -> Result<(), String> {
     let app2 = app.clone();
-    tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength))
+    tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth))
         .await
         .map_err(|e| e.to_string())??;
     if let Some(w) = app.get_webview_window(CREATOR_LABEL) {
@@ -274,12 +276,12 @@ pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32) 
     Ok(())
 }
 
-fn finish(app: &AppHandle, material_id: &str, strength: f32) -> Result<(), String> {
+fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32) -> Result<(), String> {
     let creator = app.state::<Creator>();
     let (rendered, original, ext, target) = {
         let active = creator.active.lock().unwrap();
         let a = active.as_ref().ok_or("no image is open")?;
-        let rendered = a.session.render(&params_for(material_id, strength)).map_err(|e| e.to_string())?;
+        let rendered = a.session.render(&params_for(material_id, strength, smooth)).map_err(|e| e.to_string())?;
         (rendered, a.session.original.clone(), a.session.original_ext, a.target.clone())
     };
     let material = materials::get(material_id).map(|m| m.id).unwrap_or_else(|| materials::DEFAULT_MATERIAL.to_owned());

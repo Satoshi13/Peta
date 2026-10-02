@@ -29,6 +29,7 @@
         <div class="frame checker" id="cutout-frame">
           <img id="img-dim" alt="" />
           <img id="img-cutout" alt="" />
+          <canvas id="paint-trail"></canvas>
           <div id="brush-ring" hidden></div>
         </div>
         <figcaption>Cutout <span class="muted">· paint to fix</span></figcaption>
@@ -52,6 +53,10 @@
       <div class="group">
         <label for="strength">Cutout adjust</label>
         <div class="slider"><small>Tight</small><input id="strength" type="range" min="0" max="1" step="0.01" value="0.5" /><small>Loose</small></div>
+      </div>
+      <div class="group">
+        <label for="smooth">Outline</label>
+        <div class="slider"><small>Natural</small><input id="smooth" type="range" min="0" max="1" step="0.01" value="0.7" /><small>Smooth</small></div>
       </div>
       <div class="group">
         <label>Fix</label>

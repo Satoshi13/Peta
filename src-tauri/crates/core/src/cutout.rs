@@ -274,8 +274,12 @@ impl Edits {
 ///
 /// * `strength` 0..1 is the "cutout adjust" slider: higher keeps more (looser), lower is tighter.
 /// * Specks are dropped, small holes filled, the outline smoothed; user edits are applied last and win.
-pub fn refine_mask(matte: &[f32], w: usize, h: usize, strength: f32, edits: Option<&Edits>) -> Vec<f32> {
+///
+/// `smooth` 0..1 is the "Outline" slider: 0 keeps the model's natural, slightly bumpy edge; 1 rounds it off hard
+/// (thin parts such as whiskers and ear tips are lost first). Brush edits are never smoothed.
+pub fn refine_mask(matte: &[f32], w: usize, h: usize, strength: f32, smooth: f32, edits: Option<&Edits>) -> Vec<f32> {
     let strength = strength.clamp(0.0, 1.0);
+    let smooth = smooth.clamp(0.0, 1.0);
     let threshold = 0.62 - 0.30 * strength;
     let soft = 0.10;
     let mut alpha: Vec<f32> =
@@ -321,10 +325,14 @@ pub fn refine_mask(matte: &[f32], w: usize, h: usize, strength: f32, edits: Opti
         }
     }
 
-    // smooth the outline: blur, then re-contrast around 0.5 so edges stay crisp but lose their jaggies
-    let sigma = (w.max(h) as f32 / 700.0).max(0.8);
+    // smooth the outline: blur, then re-contrast around 0.5 so edges stay crisp but lose their bumps.
+    // A wider blur needs a steeper re-contrast, or the edge would come out fuzzy.
+    let long = w.max(h) as f32;
+    let (calm, round) = ((long / 700.0).max(0.8), long / 55.0);
+    let sigma = calm + (round - calm) * smooth.powf(1.5);
+    let contrast = (2.2_f32).max(1.6 * sigma * smooth);
     let soft_edge = blur(&alpha, w, h, sigma);
-    let mut out: Vec<f32> = soft_edge.iter().map(|b| ((b - 0.5) * 2.2 + 0.5).clamp(0.0, 1.0)).collect();
+    let mut out: Vec<f32> = soft_edge.iter().map(|b| ((b - 0.5) * contrast + 0.5).clamp(0.0, 1.0)).collect();
     for i in 0..w * h {
         match edit_at(i) {
             EDIT_ERASE => out[i] = 0.0,
@@ -348,10 +356,16 @@ pub struct Silhouette {
 /// Round, smooth, hole-free outline `border` px out from the subject. Narrow gaps (between ears, legs)
 /// are bridged like scissors would, by growing the shape and shrinking it back.
 pub fn silhouette(subject: &[f32], w: usize, h: usize, border: f32) -> Silhouette {
+    silhouette_smooth(subject, w, h, border, 0.0)
+}
+
+/// `smooth` 0..1 widens the gaps that are bridged and rounds the outline further.
+pub fn silhouette_smooth(subject: &[f32], w: usize, h: usize, border: f32, smooth: f32) -> Silhouette {
+    let smooth = smooth.clamp(0.0, 1.0);
     let subject_set: Vec<bool> = subject.iter().map(|a| *a > 0.5).collect();
     let subject_dist = distance_to(&subject_set, w, h);
 
-    let bridge = border * 0.9;
+    let bridge = border * (0.9 + 0.8 * smooth);
     let grown: Vec<bool> = subject_dist.iter().map(|d| *d <= border + bridge).collect();
     let outside_dist = distance_to(&grown.iter().map(|g| !g).collect::<Vec<_>>(), w, h);
     let mut shape: Vec<bool> = outside_dist.iter().map(|d| *d > bridge).collect();
@@ -365,9 +379,10 @@ pub fn silhouette(subject: &[f32], w: usize, h: usize, border: f32) -> Silhouett
 
     // smooth, antialiased outline
     let as_f: Vec<f32> = shape.iter().map(|s| if *s { 1.0 } else { 0.0 }).collect();
-    let sigma = (border * 0.12).clamp(1.2, 4.0);
+    let sigma = (border * 0.12 * (1.0 + 2.0 * smooth)).clamp(1.2, 4.0 + 8.0 * smooth);
+    let contrast = (1.8_f32).max(1.7 * sigma * smooth);
     let soft = blur(&as_f, w, h, sigma);
-    let alpha: Vec<f32> = soft.iter().map(|b| ((b - 0.5) * 1.8 + 0.5).clamp(0.0, 1.0)).collect();
+    let alpha: Vec<f32> = soft.iter().map(|b| ((b - 0.5) * contrast + 0.5).clamp(0.0, 1.0)).collect();
     let inside_set: Vec<bool> = alpha.iter().map(|a| *a > 0.5).collect();
     let inside_dist = distance_to(&inside_set.iter().map(|i| !i).collect::<Vec<_>>(), w, h);
     Silhouette { alpha, inside_dist, subject_dist }
@@ -410,6 +425,71 @@ mod tests {
                 .fold(f32::MAX, f32::min);
             assert!((d[i] - brute).abs() < 1e-3, "pixel {i}: {} vs {}", d[i], brute);
         }
+    }
+
+    /// Boundary pixels = a proxy for how bumpy an outline is.
+    fn boundary_len(mask: &[f32], w: usize, h: usize) -> usize {
+        let on = |x: usize, y: usize| mask[y * w + x] > 0.5;
+        let mut n = 0;
+        for y in 1..h - 1 {
+            for x in 1..w - 1 {
+                if on(x, y) && !(on(x - 1, y) && on(x + 1, y) && on(x, y - 1) && on(x, y + 1)) {
+                    n += 1;
+                }
+            }
+        }
+        n
+    }
+
+    #[test]
+    fn a_higher_outline_setting_gives_a_smoother_edge_without_eating_the_shape() {
+        // a disk with a deterministic ragged edge (the model's matte is bumpy like this)
+        let (w, h) = (240, 240);
+        let matte: Vec<f32> = (0..w * h)
+            .map(|i| {
+                let (x, y) = ((i % w) as f32 - 120.0, (i / w) as f32 - 120.0);
+                let ang = y.atan2(x);
+                let r = 80.0 + 5.0 * (ang * 23.0).sin() + 3.0 * (ang * 41.0 + 1.0).sin();
+                if (x * x + y * y).sqrt() <= r { 1.0 } else { 0.0 }
+            })
+            .collect();
+        let area = |m: &[f32]| m.iter().filter(|a| **a > 0.5).count() as f32;
+        let natural = refine_mask(&matte, w, h, 0.5, 0.0, None);
+        let rounded = refine_mask(&matte, w, h, 0.5, 1.0, None);
+        let (bn, br) = (boundary_len(&natural, w, h), boundary_len(&rounded, w, h));
+        assert!(br < bn, "smoother outline is shorter: {br} vs {bn}");
+        let drift = (area(&rounded) - area(&natural)).abs() / area(&natural);
+        assert!(drift < 0.06, "the shape keeps its size: {drift}");
+        // and it is monotone: halfway sits between the two
+        let mid = boundary_len(&refine_mask(&matte, w, h, 0.5, 0.5, None), w, h);
+        assert!(br <= mid && mid <= bn, "{br} <= {mid} <= {bn}");
+    }
+
+    #[test]
+    fn brush_edits_are_not_smoothed_away() {
+        let (w, h) = (120, 120);
+        let matte = vec![0.0f32; w * h];
+        let mut e = Edits::new(w, h);
+        e.stroke(&[(20.0, 60.0), (100.0, 60.0)], 4.0, EDIT_RESTORE);
+        let m = refine_mask(&matte, w, h, 0.5, 1.0, Some(&e));
+        assert!(m[60 * w + 60] > 0.99 && m[60 * w + 30] > 0.99, "restored paint stays fully on");
+    }
+
+    #[test]
+    fn a_smoother_die_cut_bridges_wider_gaps() {
+        let (w, h) = (200, 120);
+        // two blobs with a notch between them
+        let subject: Vec<f32> = (0..w * h)
+            .map(|i| {
+                let (x, y) = ((i % w) as f32, (i / w) as f32);
+                let a = (x - 70.0).powi(2) + (y - 60.0).powi(2) <= 35.0f32.powi(2);
+                let b = (x - 130.0).powi(2) + (y - 60.0).powi(2) <= 35.0f32.powi(2);
+                if a || b { 1.0 } else { 0.0 }
+            })
+            .collect();
+        let area = |s: &Silhouette| s.alpha.iter().filter(|a| **a > 0.5).count();
+        let (natural, smooth) = (silhouette_smooth(&subject, w, h, 8.0, 0.0), silhouette_smooth(&subject, w, h, 8.0, 1.0));
+        assert!(area(&smooth) >= area(&natural), "smooth fills the notch at least as much");
     }
 
     #[test]
@@ -462,7 +542,7 @@ mod tests {
             }
         }
         matte[3 * w + 3] = 1.0; // dust
-        let m = refine_mask(&matte, w, h, 0.5, None);
+        let m = refine_mask(&matte, w, h, 0.5, 0.0, None);
         assert!(m[40 * w + 40] > 0.9, "hole filled");
         assert!(m[3 * w + 3] < 0.1, "dust removed");
         assert!(m[40 * w + 30] > 0.9);
@@ -478,7 +558,7 @@ mod tests {
                 (1.0 - d / 20.0).clamp(0.0, 1.0)
             })
             .collect();
-        let area = |s: f32| refine_mask(&matte, w, h, s, None).iter().filter(|a| **a > 0.5).count();
+        let area = |s: f32| refine_mask(&matte, w, h, s, 0.0, None).iter().filter(|a| **a > 0.5).count();
         assert!(area(0.0) < area(0.5) && area(0.5) < area(1.0), "{} {} {}", area(0.0), area(0.5), area(1.0));
     }
 
@@ -489,7 +569,7 @@ mod tests {
         let mut e = Edits::new(w, h);
         e.stroke(&[(10.0, 20.0), (16.0, 20.0)], 3.0, EDIT_ERASE); // eat into the left of the disk
         e.paint(35.0, 5.0, 3.0, EDIT_RESTORE); // add something far away
-        let m = refine_mask(&matte, w, h, 0.5, Some(&e));
+        let m = refine_mask(&matte, w, h, 0.5, 0.0, Some(&e));
         assert!(m[20 * w + 14] < 0.05, "erased");
         assert!(m[5 * w + 35] > 0.95, "restored");
         assert!(m[20 * w + 24] > 0.9, "rest untouched");

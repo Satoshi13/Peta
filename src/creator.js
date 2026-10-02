@@ -6,7 +6,7 @@ const $ = (id) => document.getElementById(id);
 const els = {
   original: $("img-original"), dim: $("img-dim"), cutout: $("img-cutout"), sticker: $("img-sticker"),
   frame: $("cutout-frame"), ring: $("brush-ring"), wrap: $("sticker-wrap"), stickerFrame: $("sticker-frame"),
-  materials: $("materials"), strength: $("strength"), brush: $("brush-size"),
+  materials: $("materials"), strength: $("strength"), smooth: $("smooth"), brush: $("brush-size"), trail: $("paint-trail"),
   make: $("make"), cancel: $("cancel"), note: $("note"), error: $("error"), hint: $("hint"),
   loading: $("loading"), failed: $("failed"), failedReason: $("failed-reason"), caption: $("sticker-caption"),
 };
@@ -55,7 +55,7 @@ function scheduleRender(delay = 90) {
 async function render(preview) {
   const mine = ++seq;
   try {
-    const buf = await invoke("creator_render", { materialId: material, strength: Number(els.strength.value), preview });
+    const buf = await invoke("creator_render", { materialId: material, strength: Number(els.strength.value), smooth: Number(els.smooth.value), preview });
     if (mine !== seq) return;
     const { header, sticker, cutout } = unpack(buf);
     swapUrl("cutout", els.cutout, new Blob([cutout], { type: "image/png" }));
@@ -101,6 +101,7 @@ async function refresh() {
   els.dim.src = urls.original;
   material = info.defaultMaterial;
   els.strength.value = String(info.defaultStrength);
+  els.smooth.value = String(info.defaultSmooth);
   els.hint.textContent = info.hadAlpha ? "This image already has a transparent background." : "";
   els.note.textContent = info.countsForToday
     ? "Nothing is used up until you make it. Cancel any time."
@@ -119,7 +120,7 @@ function imageRect() {
   return { left: r.left + (r.width - w) / 2, top: r.top + (r.height - h) / 2, w, h, frame: r };
 }
 
-let stroke = null;
+let stroke = null; // { restore, radius, points, sent, ... } while the pointer is down
 const toImage = (e) => {
   const r = imageRect();
   return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.w)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.h))];
@@ -135,29 +136,97 @@ function moveRing(e) {
   els.ring.style.top = `${e.clientY - r.frame.top}px`;
 }
 
+// The stroke is felt at once in two ways: a coloured trail is drawn under the pointer (no round trip), and the
+// stroke is streamed to Rust in small pieces while you paint, each followed by a quick preview render, so the
+// cutout and the sticker change as you go instead of after you let go.
+const TRAIL = { erase: "rgba(255, 90, 90, 0.42)", restore: "rgba(70, 200, 120, 0.42)" };
+const SEND_EVERY_MS = 45;
+let trailCtx = null;
+let queue = []; // stroke pieces waiting for Rust, in order
+let pumping = false;
+
+function startTrail() {
+  const r = els.frame.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  els.trail.width = Math.round(r.width * dpr);
+  els.trail.height = Math.round(r.height * dpr);
+  trailCtx = els.trail.getContext("2d");
+  trailCtx.scale(dpr, dpr);
+  trailCtx.lineCap = trailCtx.lineJoin = "round";
+}
+
+function drawTrail(from, to) {
+  if (!trailCtx || !stroke) return;
+  const r = imageRect();
+  const px = ([x, y]) => [r.left - r.frame.left + x * r.w, r.top - r.frame.top + y * r.h];
+  const [ax, ay] = px(from), [bx, by] = px(to);
+  trailCtx.strokeStyle = TRAIL[stroke.restore ? "restore" : "erase"];
+  trailCtx.lineWidth = stroke.radius * r.w * 2;
+  trailCtx.beginPath();
+  trailCtx.moveTo(ax, ay);
+  trailCtx.lineTo(bx, by);
+  trailCtx.stroke();
+}
+
+function clearTrail() {
+  trailCtx?.clearRect(0, 0, els.trail.width, els.trail.height);
+}
+
+/** Queue what has been painted since the last piece (it starts at the previous piece's last point, so there is no gap). */
+function sendPiece() {
+  if (!stroke) return;
+  const { points, sent } = stroke;
+  if (points.length <= sent && sent > 0) return; // nothing new
+  const from = Math.max(0, sent - 1);
+  queue.push({ points: points.slice(from), radius: stroke.radius, restore: stroke.restore });
+  stroke.sent = points.length;
+  pump();
+}
+
+async function pump() {
+  if (pumping) return;
+  pumping = true;
+  try {
+    while (queue.length) {
+      const piece = queue.shift();
+      await invoke("creator_stroke", piece);
+      if (!queue.length) await render(true); // skip renders that would be out of date at once
+    }
+  } catch (err) {
+    queue = [];
+    setError(friendly(err));
+  } finally {
+    pumping = false;
+    if (!stroke && !queue.length) clearTrail(); // the real cutout now shows the stroke
+  }
+}
+
 els.frame.addEventListener("pointerenter", moveRing);
 els.frame.addEventListener("pointerleave", () => { if (!stroke) els.ring.hidden = true; });
 els.frame.addEventListener("pointerdown", (e) => {
   if (info?.phase !== "ready") return;
   els.frame.setPointerCapture(e.pointerId);
-  stroke = { points: [toImage(e)] };
+  const p = toImage(e);
+  stroke = { points: [p], sent: 0, restore: tool === "restore", radius: Number(els.brush.value), timer: 0 };
+  startTrail();
+  drawTrail(p, p);
   moveRing(e);
+  stroke.timer = setInterval(sendPiece, SEND_EVERY_MS);
 });
 els.frame.addEventListener("pointermove", (e) => {
   moveRing(e);
-  if (stroke) stroke.points.push(toImage(e));
-});
-const endStroke = async (e) => {
   if (!stroke) return;
-  const { points } = stroke;
-  stroke = null;
+  const p = toImage(e);
+  drawTrail(stroke.points[stroke.points.length - 1], p);
+  stroke.points.push(p);
+});
+const endStroke = (e) => {
+  if (!stroke) return;
+  clearInterval(stroke.timer);
   try { els.frame.releasePointerCapture(e.pointerId); } catch { /* already released */ }
-  try {
-    await invoke("creator_stroke", { points, radius: Number(els.brush.value), restore: tool === "restore" });
-    await render(true);
-  } catch (err) {
-    setError(friendly(err));
-  }
+  sendPiece(); // whatever is left goes out now
+  stroke = null;
+  if (!pumping && !queue.length) clearTrail();
 };
 els.frame.addEventListener("pointerup", endStroke);
 els.frame.addEventListener("pointercancel", endStroke);
@@ -173,6 +242,7 @@ $("tool-erase").addEventListener("click", () => setTool("erase"));
 $("tool-restore").addEventListener("click", () => setTool("restore"));
 $("clear-edits").addEventListener("click", async () => { await invoke("creator_clear_edits"); render(true); });
 els.strength.addEventListener("input", () => scheduleRender());
+els.smooth.addEventListener("input", () => scheduleRender());
 
 // holographic sheen follows the pointer over the material preview
 els.stickerFrame.addEventListener("pointermove", (e) => {
@@ -191,7 +261,7 @@ els.make.addEventListener("click", async () => {
   els.make.textContent = "Making…";
   setError("");
   try {
-    await invoke("creator_finish", { materialId: material, strength: Number(els.strength.value) });
+    await invoke("creator_finish", { materialId: material, strength: Number(els.strength.value), smooth: Number(els.smooth.value) });
   } catch (e) {
     setError(friendly(e));
     busy = false;

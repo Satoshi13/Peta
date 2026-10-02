@@ -29,6 +29,8 @@ pub const WORK_EDGE: u32 = 940;
 
 /// Default value of the "cutout adjust" slider.
 pub const DEFAULT_STRENGTH: f32 = 0.5;
+/// Smoother than the model's raw edge by default: bumpy die-cut outlines look cheap.
+pub const DEFAULT_SMOOTH: f32 = 0.7;
 
 /// Pick a segmentation model. `PETA_MODEL=<name>` (u2netp | silueta | isnet-general-use) selects another
 /// one if its `.onnx` file sits in one of `dirs`; otherwise the bundled u2netp is used. Pure-Rust inference
@@ -61,6 +63,8 @@ pub struct Analysis {
 pub struct Params {
     /// "Cutout adjust" 0..1 (tighter .. looser).
     pub strength: f32,
+    /// "Outline" 0..1 (natural .. smooth).
+    pub smooth: f32,
     pub recipe: MaterialRecipe,
 }
 
@@ -168,13 +172,13 @@ impl Analysis {
     }
 
     /// The current subject mask for these settings.
-    pub fn mask(&self, strength: f32, edits: Option<&Edits>) -> Vec<f32> {
+    pub fn mask(&self, strength: f32, smooth: f32, edits: Option<&Edits>) -> Vec<f32> {
         let edits = edits.filter(|e| !e.is_empty());
         if self.had_alpha {
             // the user's own transparency is already exact; only smooth tiny jaggies, honour brush edits
-            return cutout::refine_mask(&self.matte, self.w, self.h, 0.5 + 0.0 * strength, edits);
+            return cutout::refine_mask(&self.matte, self.w, self.h, 0.5 + 0.0 * strength, smooth, edits);
         }
-        cutout::refine_mask(&self.matte, self.w, self.h, strength, edits)
+        cutout::refine_mask(&self.matte, self.w, self.h, strength, smooth, edits)
     }
 }
 
@@ -222,7 +226,7 @@ impl Session {
 /// Mask -> border -> material -> finished sticker.
 pub fn render(analysis: &Analysis, edits: Option<&Edits>, params: &Params) -> Result<Rendered> {
     let (w, h) = (analysis.w, analysis.h);
-    let mask = analysis.mask(params.strength, edits);
+    let mask = analysis.mask(params.strength, params.smooth, edits);
 
     // subject bounding box -> border width (a fraction of the subject's longer side)
     let (mut x0, mut y0, mut x1, mut y1) = (w, h, 0usize, 0usize);
@@ -260,7 +264,7 @@ pub fn render(analysis: &Analysis, edits: Option<&Edits>, params: &Params) -> Re
         padded_mask[(y + pad) * pw + pad..(y + pad) * pw + pad + w].copy_from_slice(&mask[y * w..(y + 1) * w]);
     }
 
-    let sil = cutout::silhouette(&padded_mask, pw, ph, border_px);
+    let sil = cutout::silhouette_smooth(&padded_mask, pw, ph, border_px, params.smooth);
     let painted = sticker::render_sticker(&padded_rgb, &padded_mask, &sil, &params.recipe);
 
     // crop to the die-cut outline
@@ -320,7 +324,7 @@ mod tests {
     const MODEL: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../models/u2netp.onnx");
 
     fn params(material: &str) -> Params {
-        Params { strength: DEFAULT_STRENGTH, recipe: materials::get(material).unwrap().recipe }
+        Params { strength: DEFAULT_STRENGTH, smooth: DEFAULT_SMOOTH, recipe: materials::get(material).unwrap().recipe }
     }
 
     fn segmenter() -> Segmenter {
@@ -382,7 +386,7 @@ mod tests {
         let session = Session::new(&jpeg, Some(&segmenter())).unwrap();
         assert!(!session.analysis.had_alpha);
         assert_eq!((session.analysis.w as u32, session.analysis.h as u32), (w, h));
-        let mask = session.analysis.mask(DEFAULT_STRENGTH, None);
+        let mask = session.analysis.mask(DEFAULT_STRENGTH, DEFAULT_SMOOTH, None);
         let (mut inter, mut union) = (0usize, 0usize);
         for i in 0..truth.len() {
             let (a, b) = (mask[i] > 0.5, truth[i]);

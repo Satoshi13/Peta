@@ -1,4 +1,4 @@
-//! `cargo run --release -p peta-core --example make_sticker -- <photo> <material> <out.png> [strength]`
+//! `cargo run --release -p peta-core --example make_sticker -- <photo> <material> <out.png> [strength] [smooth]`
 //! Runs the whole Creator pipeline on a photo and writes the finished sticker.
 use peta_core::{creator::{self, Params, Session}, materials};
 
@@ -12,6 +12,7 @@ fn main() {
     let analyze = t.elapsed();
     let params = Params {
         strength: a.get(4).and_then(|s| s.parse().ok()).unwrap_or(creator::DEFAULT_STRENGTH),
+        smooth: a.get(5).and_then(|s| s.parse().ok()).unwrap_or(creator::DEFAULT_SMOOTH),
         recipe: materials::get(&a[2]).unwrap().recipe,
     };
     let t = std::time::Instant::now();
