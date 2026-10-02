@@ -68,7 +68,47 @@ tracked=subprocess.check_output(['git','ls-files','assets-src/art'],cwd=ROOT).de
 require(not tracked,'Generated source art remains tracked')
 required=['brand/app-icon-1024.png','brand/logo-wordmark-white.png','brand/logo-wordmark-white.svg','brand/logo-wordmark-ink.svg','today/choice-pack-box.png','today/choice-pack-pouch.png','materials/swatch-matte.png','materials/swatch-kraft.png','materials/swatch-holographic.png','creator/cutting-mat.jpg','creator/tape-1.png','creator/tape-2.png','creator/tape-3.png','creator/tape-4.png']
 for name in required: require(name in paths,'Missing required P0 asset: '+name)
+if manifest.get('stage', 1) >= 2:
+ required_p1 = {
+  'print/print-slot.png':(2400,48),'print/print-slot-glow.png':(2400,160),
+  'print/backing-sheet.png':(1000,1500),'fx/peta-tag-ja.png':(480,240),'fx/peta-tag-en.png':(480,240),
+  'arrival/arrival-material.png':(480,340),'arrival/arrival-gift.png':(480,340),
+  'gift/wax-seal.png':(240,240),'gift/wax-seal-left.png':(240,240),'gift/wax-seal-right.png':(240,240),
+  'gift/mystery-sticker.png':(600,600),'gift/note-blank.png':(640,400),
+  'back/paper-cream.jpg':(1024,1024),'back/paper-kraft.jpg':(1024,1024),
+  'back/stamp-original-frame.png':(480,200),'back/peta-mark-small.png':(320,120),
+  'back/edition-ribbon.png':(320,160),'back/torn-edge-mask.png':(1024,128),
+  'book/cover-kraft.png':(1600,1100),'book/page-left.jpg':(1400,1000),'book/page-right.jpg':(1400,1000),
+  'book/spiral-rings.png':(96,1000),'book/page-curl-shadow.png':(1400,1000),
+  'empty/collection-empty.png':(640,400),'empty/nothing-to-peel.png':(640,400),'onboarding/hero.png':(1400,900),
+ }
+ required_p1.update({f'book/tab-blank-{i}.png':(240,120) for i in range(1,7)})
+ required_p1.update({f'samples/{n}.png':None for n in ('cat-skateboard','fried-egg','good-day','blue-flower','polaroid-mountain','retro-computer','coffee-cup','peta-bubble','purple-scribble','film-camera','potted-plant','cassette-tape')})
+ for name,size in required_p1.items():
+  require(name in paths,'Missing required P1 asset: '+name)
+  if name in paths and size:
+   require(Image.open(ART/name).size==size,'P1 contract dimensions: '+name)
+ for item in manifest['assets']:
+  require(all(key in item for key in ('id','file','width','height','alpha','priority','usedBy','prompt','status')),'Missing production metadata: '+item['file'])
+ left=Image.open(ART/'gift/wax-seal-left.png').convert('RGBA')
+ right=Image.open(ART/'gift/wax-seal-right.png').convert('RGBA')
+ whole=Image.open(ART/'gift/wax-seal.png').convert('RGBA')
+ require(np.array_equal(np.array(Image.alpha_composite(left,right)),np.array(whole)),'Wax halves do not reproduce intact seal')
+ require(not np.any((np.array(left)[:,:,3]>0)&(np.array(right)[:,:,3]>0)),'Wax split overlaps')
+ rings=np.array(Image.open(ART/'book/spiral-rings.png').convert('RGBA'))
+ require(np.array_equal(rings[:-50],rings[50:]),'Spiral does not tile at 50px pitch')
+ for name in ('cream','kraft'):
+  paper=np.array(Image.open(ART/f'back/paper-{name}.jpg')).astype(float)
+  require(np.abs(paper[0]-paper[-1]).mean()<2 and np.abs(paper[:,0]-paper[:,-1]).mean()<2,'Paper tile seam exceeds subtle texture: '+name)
+ for name,cap in [('print/print-slot-glow.png',26),('book/page-curl-shadow.png',28)]:
+  mask=np.array(Image.open(ART/name).convert('RGBA'))
+  require(mask[:,:,3].max()<=cap,'Intentional mask opacity: '+name)
+  if 'shadow' in name:
+   require(np.all(mask[mask[:,:,3]>0,:3]==43),'Page shadow is tinted')
+   require(np.count_nonzero(np.any(mask[:,:,3]>0,axis=0))<=6,'Page shadow wider than six pixels')
+ hero=np.array(Image.open(ART/'onboarding/hero.png').convert('RGBA'))
+ require(np.all(hero[220:640,480:910,3]==255),'Hero label area not opaque')
+ require(np.ptp(hero[220:640,480:910,:3],axis=(0,1)).max()<=1,'Hero centre not blank for runtime text')
 if errors:
  print('\n'.join(errors)); raise SystemExit(1)
 print(f'PASS: {len(manifest["assets"])} assets; {sum(e["bytes"] for e in manifest["assets"]):,} bytes; interior alpha 255; neutral shadows <=30/255 and <=6px; layer equality; hooks; 4-colour samples; source exclusion.')
-
