@@ -143,7 +143,8 @@
       "rgbPalette": null,
       "medium": "opaque gouache with visible flat brush marks, soft chalky edges",
       "selectionReason": "左上を採用。毛・ひげを省き、少数の大きな縞と丸い体のガッシュ面で猫を表現。立つ候補や身を低くした候補より形の重なりが少なく静か。",
-      "mandatory": true
+      "mandatory": true,
+      "mixDecision": "v2"
     },
     {
       "id": "SM-01",
@@ -165,13 +166,14 @@
       "rgbPalette": null,
       "medium": "gouache, soft flat shapes",
       "selectionReason": "新版を採用。旧版の全面にあった油彩の細かな筆跡をなくし、白身と黄身を大きな2〜3段の面と一つの小さなハイライトに整理。4候補のうち左上は焼き色の点や起伏が少なく、外形の揺らぎが自然。",
-      "mandatory": false
+      "mandatory": false,
+      "mixDecision": "v2"
     },
     {
       "id": "SM-01",
       "file": "samples/blue-flower.png",
-      "bytes": 788488,
-      "width": 852,
+      "bytes": 852243,
+      "width": 1016,
       "height": 1024,
       "alpha": true,
       "priority": "P1",
@@ -181,15 +183,14 @@
         "book/cover-kraft.png",
         "today/choice-collection.png"
       ],
-      "prompt": "Create EXACTLY FOUR distinct candidate versions of the same subject in a clear 2 by 2 grid. Do not add labels, lettering, numbers or separators. Each candidate must be fully isolated on transparent background with roomy transparent gutters, must not touch any neighbouring candidate, and should occupy its own quadrant. All four use the SAME simplified art direction with modest drawing variations.\n\nSTYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: watercolour wash with a little coloured-pencil edge.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nA blue bellflower with a pale centre, a few yellow stamens, a small bud, a slender stem and two sage-green leaves. Petals in 2–3 tones.\n\nUse watercolour in TWO quiet translucent colour washes plus a SLENDER soft coloured-pencil outline. Exactly one blossom, one small bud, a slender connected stem and two leaves. Five simply shaped blue petals with quiet plain faces, no dense petal strokes or botanical vein networks. Total <=15 clearly differentiated shapes. Watercolour wash granulation is subtle and not an oil paint cross-hatched texture.\n\nUse the supplied reference image only for the simple calm stationery-shop sticker illustration density and muted palette. We are reinterpreting its illustration, not copying the photograph or its white sticker borders. Do NOT draw any white backing or diecut rim. Produce an original drawing with less internal information than the reference, NOT a uniformly oil-painted rendering. No text whatsoever.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: A blue bellflower / cornflower painted with soft petal shading, a pale centre with a few yellow stamens, a small bud, a slender stem and two sage-green leaves.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers.\nFor the computer: wide squat rounded case like an original generic late-1990s appliance, not a tall 1984 Macintosh. A small painted cloud on the screen. No numbers or markings on controls.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
-      "restyle": "simpler-medium-specific-v2",
-      "selectedQuadrant": 1,
+      "restyle": "painterly-illustration",
+      "selectedQuadrant": 0,
       "transparentMarginPx": 8,
-      "rgbPalette": null,
-      "medium": "watercolour wash with a little coloured-pencil edge",
-      "selectionReason": "新版を採用。旧版の密な花弁の筆跡・葉の描き込みを、水彩の二つの洗いと細い色鉛筆の縁に変更。右上は五枚の花弁、一つの蕾、二枚の葉が明快で、少し傾いた非対称の形が自然。",
-      "mandatory": false
+      "rgbPalette": 256,
+      "selectionReason": "v1 を採用(オーナー判断)。v2 は線が細く花が貧相になったため。",
+      "mixDecision": "v1-kept"
     },
     {
       "id": "PK-02",
@@ -211,7 +212,7 @@
     {
       "id": "BK-01",
       "file": "book/cover-kraft.png",
-      "bytes": 153803,
+      "bytes": 157141,
       "width": 1600,
       "height": 1100,
       "alpha": true,
@@ -220,9 +221,9 @@
         "today/choice-collection.png",
         "art/preview.html"
       ],
-      "prompt": "Same approved kraft cover geometry; replaced flower with painterly samples/blue-flower.png.",
+      "prompt": "Same approved kraft cover geometry with the chosen samples/blue-flower.png.",
       "status": "ready",
-      "restyle": "simpler-medium-specific-v2",
+      "restyle": "mixed-v1-v2",
       "sampleSources": [
         "blue-flower"
       ],
@@ -475,7 +476,7 @@
     {
       "id": "TD-05",
       "file": "today/choice-collection.png",
-      "bytes": 20785,
+      "bytes": 20467,
       "width": 384,
       "height": 384,
       "alpha": true,
@@ -483,9 +484,9 @@
       "usedBy": [
         "today.html"
       ],
-      "prompt": "Retina thumbnail of the updated BK-01 cover with the painterly blue flower.",
+      "prompt": "Retina thumbnail of the updated BK-01 cover.",
       "status": "ready",
-      "restyle": "simpler-medium-specific-v2",
+      "restyle": "mixed-v1-v2",
       "sampleSources": [
         "blue-flower"
       ],
@@ -882,31 +883,30 @@
     {
       "id": "SM-01",
       "file": "samples/good-day.png",
-      "bytes": 728481,
+      "bytes": 818691,
       "width": 1024,
-      "height": 858,
+      "height": 842,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview",
         "onboarding/hero.png"
       ],
-      "prompt": "STYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: matte screen-print / offset ink, slightly worn.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nRetro comic-style lettering \"GOOD DAY\" in two slanted lines, flat muted brick-red letters with a thin off-white inner edge, tiny ink speckle wear. MATTE ink: no enamel shine, at most one small highlight. Exactly: G O O D  D A Y.\n\nImportant correction: do NOT put a cream shiny streak on each letter. This should look like TWO-INK SCREEN PRINT lettering, not balloons or enamel. Use confident hand-cut BLOCK comic letters with slightly wonky corners and widths (not inflated rounded bubble glyphs). Matte muted brick red about #B9594D in only ONE flat value. A VERY THIN off-white printed inset keyline inside the counters or lower-right inner contour can be used, no broad shine band or isolated white stroke across the top-left face. This cream keyline is printed graphic ornament, zero reflections/highlights. Tiny quiet ink wear, not speckled noise everywhere. Outer edges directly meet transparency, no white label/plaque/outline/backing or extrusion. Compact TWO close slanted rows GOOD and DAY, with accurate glyphs exactly G O O D / D A Y, easy to read. Prefer slightly uneven narrow D corners and blunt Y ends rather than perfectly rounded polished type. FOUR simple alternatives in strict2x2 grid on full transparency with generous gaps, no additional words or labels.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nCORRECT the referenced GOOD DAY lettering: remove ALL off-white paper, backing, outside border, extrusion and filled white spaces between letters. The outer edge of each glyph must be BRICK RED meeting transparency. The tiny cream accent belongs INSIDE the red ink of a letter, like a thin inset brush highlight. The spaces between the letters and between GOOD / DAY must be genuinely transparent, including counters in G/O/D/A. Do not draw a joined white sticker-shaped silhouette. Paint muted brick-red retro comic capitals \"GOOD DAY\" in two slightly slanted close lines, warm low-contrast brush shading and light worn ink speckle in RGB, no loose particles. Exactly G O O D / D A Y. Four variations in a strict 2x2 grid, generous separate transparent margins, no other objects or writing. No ground shadow. Keep lettering compact so an app-added border can join the entire word group.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
-      "selectedQuadrant": 2,
+      "selectedQuadrant": 0,
       "transparentMarginPx": 8,
-      "restyle": "simpler-medium-specific-v2",
+      "restyle": "painterly-illustration",
       "rgbPalette": null,
-      "medium": "matte screen-print / offset ink, slightly worn",
-      "selectionReason": "再生成の左下を採用。丸い風船状の文字と太い光の帯を落とし、角と幅が少しずれたブロック体、単色の赤インク、細いクリームの印刷内フチに変更。陰影・盛り上がり・エナメル反射を描かない。",
-      "mandatory": true
+      "selectionReason": "v1 を採用(オーナー判断)。v2 は色がくすみ字が詰まって重くなったため。",
+      "mixDecision": "v1-kept"
     },
     {
       "id": "SM-01",
       "file": "samples/polaroid-mountain.png",
-      "bytes": 794134,
-      "width": 1005,
+      "bytes": 879256,
+      "width": 973,
       "height": 1024,
       "alpha": true,
       "priority": "P1",
@@ -914,16 +914,15 @@
         "Welcome Pack / art preview",
         "onboarding/hero.png"
       ],
-      "prompt": "Create EXACTLY FOUR distinct candidate versions of the same subject in a clear 2 by 2 grid. Do not add labels, lettering, numbers or separators. Each candidate must be fully isolated on transparent background with roomy transparent gutters, must not touch any neighbouring candidate, and should occupy its own quadrant. All four use the SAME simplified art direction with modest drawing variations.\n\nSTYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: gouache landscape inside a flat cream frame.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nAn instant-photo print with a cream-white frame, wider at the bottom, slightly tilted. Inside, a simplified painted landscape: a snow-capped mountain, a band of evergreens, dusty blue sky. Not photographic.\n\nCompress the entire landscape to <=15 large clear shapes: one dusty-blue sky field, one broad snow-capped mountain with two matte gouache tone steps, a sage-green evergreen band with only FIVE large tree silhouettes. No dense forest, no individually rendered needles, no lake, no detailed rocky snow, no extra buildings. Flat cream photo frame with its intentionally wider bottom, no glossy edges or illusionistic frame depth. One modest tilt. Slight hand wobble; no picturesque photographic realism.\n\nUse the supplied reference image only for the simple calm stationery-shop sticker illustration density and muted palette. We are reinterpreting its illustration, not copying the photograph or its white sticker borders. Do NOT draw any white backing or diecut rim. Produce an original drawing with less internal information than the reference, NOT a uniformly oil-painted rendering. No text whatsoever.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: An instant-photo print with a cream-white frame, wider at the bottom, very slightly tilted. The picture is a softly PAINTED landscape: a snow-capped mountain, evergreen forest, dusty blue sky. Not photographic.\n\nUse ONLY the painted illustration style of the stickers on the laptop in the TOP HALF of the attached reference. Ignore the lower half and all packaging/sketches. The white cut-out rims shown in the reference are added later by the app: do NOT draw them. Draw the subject itself only with soft gouache modelling, visible restrained brushwork, subtle grain, not flat shapes. Same artist, same fine-grain level and subdued contrast across the series. No loose paint flecks or detached crumbs. No background or ground shadow. Only subject lettering when explicitly requested; all other subjects have no text, logos or numbers.\nFor the computer: wide squat rounded case like an original generic late-1990s appliance, not a tall 1984 Macintosh. A small painted cloud on the screen. No numbers or markings on controls.\n\nProduce FOUR slightly different candidates in a strict 2x2 grid with equal cells. Exactly one complete isolated illustration per quadrant, 12% clear transparent margins within each cell, no touching, no labels or divider lines. Keep backgrounds fully transparent.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
-      "selectedQuadrant": 1,
+      "selectedQuadrant": 0,
       "transparentMarginPx": 8,
-      "restyle": "simpler-medium-specific-v2",
-      "rgbPalette": null,
-      "medium": "gouache landscape inside a flat cream frame",
-      "selectionReason": "新版を採用。旧版の密な森、細かな岩・雪・水面を大きな空・山・針葉樹の帯に整理。右上は山の主峰が一つで、他候補より雪と山影の細分化が少なく、マットなガッシュの面として見える。",
-      "mandatory": false
+      "restyle": "painterly-illustration",
+      "rgbPalette": 192,
+      "selectionReason": "v1 を採用(オーナー判断)。v2 は風景が粗くなったため。",
+      "mixDecision": "v1-kept"
     },
     {
       "id": "SM-01",
@@ -945,7 +944,8 @@
       "rgbPalette": null,
       "medium": "matte plastic in flat tone steps, thin pencil linework",
       "selectionReason": "新しい左上を採用。多数の独立したキーと油絵の細かな筋を、2本のキー帯・3段のマットな面・細い鉛筆線へ整理した。右上／右下より通気孔と面の区切りが少なく、左右反転した左下より静かな構図。画面の小さな1個のハイライト以外に反射はない。横長の丸いケースで初代Macintoshに寄らない。",
-      "mandatory": false
+      "mandatory": false,
+      "mixDecision": "v2"
     },
     {
       "id": "SM-01",
@@ -967,7 +967,8 @@
       "rgbPalette": null,
       "medium": "loose watercolour wash on cream paper",
       "selectionReason": "新版を採用。旧版の器とラテに重なった油彩の筆跡と反射を、青灰色の静かな水彩の面に整理。左上は他候補よりラテの輪模様が少なく、単純な一つのハートと大きな陰影だけで読める。",
-      "mandatory": false
+      "mandatory": false,
+      "mixDecision": "v2"
     },
     {
       "id": "SM-01",
@@ -989,29 +990,29 @@
       "rgbPalette": null,
       "medium": "matte screen-print vinyl, flat colour with one soft highlight band",
       "selectionReason": "必須5枚のため作り直し。再生成4候補の左下（2）は、印刷面の青・黄を平たい色面にまとめ、Pにだけ小さな帯を1本残した最も静かな描画。旧版の油絵筆跡・全文字のエナメル反射をなくし、e/t/aは無反射の単色にした。少し揺れる太さと非対称な文字形で、読みやすいPetaを保持。4候補は同程度に単純だが、右側の候補より過度な傾きが少なく、パックに合わせやすいため選択。",
-      "mandatory": true
+      "mandatory": true,
+      "mixDecision": "v2"
     },
     {
       "id": "SM-01",
       "file": "samples/purple-scribble.png",
-      "bytes": 303275,
+      "bytes": 409446,
       "width": 1024,
-      "height": 789,
+      "height": 600,
       "alpha": true,
       "priority": "P1",
       "usedBy": [
         "Welcome Pack / art preview"
       ],
-      "prompt": "STYLE-sample v2 — Peta welcome sticker illustration.\nA single sticker-ready illustration as a human illustrator would draw it for a stationery brand: SIMPLE and CONFIDENT, with large clear shapes and only the details that matter. Medium: one pass of a thick felt marker, dry-brush streaks at the ends.\nShading in only 2–3 clear tone steps, not smooth airbrushed gradients. A little hand-made wobble in lines and edges; slightly asymmetric; nothing perfectly symmetrical or perfectly round. Matte finish.\nWarm natural colours, slightly desaturated: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left, soft and low-contrast. Late-90s / early-2000s Japanese stationery-shop nostalgia: cute but grown-up, calm, restrained.\nReflections: at most ONE small simple highlight shape. No rim lighting, no sparkles, no glossy enamel look.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px. The silhouette is clean and smooth (no fuzzy hair fringe, no frayed edges).\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\n\nOne flat bold marker line in soft lilac-purple that sweeps and makes a single loop. Completely FLAT: no folds, no ribbon, no 3D, no shading beyond slight marker streaks. Abstract; must not read as letters.\n\nCritical correction: previous loop candidates looked like cursive lowercase e or l. Do NOT use rounded handwriting loops. Use a very broad FLAT felt-marker doodle with ONE irregular angular loop: a squashed off-centre five-sided kite shape, with uneven broad sweeping tails pointing toward upper-left and lower-right. The crossing is well away from the centre; a crooked lopsided open sweeping gesture enclosing one small loop only. Do not form any letter, numeral, punctuation or symbol. Angle changes from a human wrist, not a mathematically regular curve. Lavender ink remains one opaque matte colour with just faint parallel marker streaks; no shading, ribbon, tube, glints or lighter rims. Stroke ends have tiny internal dry marks but solid continuous smooth outside silhouette. Make FOUR significantly different asymmetric abstract-marker candidates in strict2x2 grid, one per cell, transparent background and clear gutters, no text or labels, NO white backing/rims/shadow. Keep visual simplicity closer to a stationery doodle than calligraphy.\n\nAvoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograph, 3D render, cinematic lighting, rim light, glossy, enamel, plastic gloss, airbrushed gradient, smooth blended shading, individual hair strands, sparkles, bokeh, symmetrical perfection, flat vector with hard black outlines, neon colours, white die-cut border, background, drop shadow, real brands, logos, extra text, gibberish text, watermark.",
+      "prompt": "STYLE-sample — Peta welcome sticker illustration.\nA single sticker-ready illustration painted in a soft, semi-realistic gouache / digital-paint style: gentle volume shading, soft highlights, subtle visible brush strokes, fine paper grain, tiny ink wear where it suits (worn ink speckle on lettering). Warm natural colours, slightly desaturated and harmonised: cream, kraft brown, dusty blue, sage green, brick red, butter yellow, graphite. Light from the upper left; shading falls to the lower right, soft and low-contrast.\nThink of the charming illustrated stickers people put on laptops: cute but grown-up, a little nostalgic (late-90s / early-2000s stationery-shop warmth), slightly imperfect and hand-made. Calm, restrained, premium indie-Mac-app taste. Not kawaii overload.\nThe subject is isolated on a fully transparent background, tightly cropped with an 8 px transparent margin, long edge 1024 px.\nNO white die-cut border, NO ground shadow, NO background, NO sticker backing sheet.\nLines: no heavy black outline. Define edges with colour and soft value change; use a thin darker-tone line only where the subject needs it.\n\nSubject: an ABSTRACT one-stroke lilac-purple marker scribble with soft pearly paint sheen and visible gouache / marker grain. It must not form any alphabet letter: no N, M, W, e, l or handwriting. An irregular asymmetric loose sideways figure-eight-like loop crossing once, its left tail descending diagonally to the lower-left and its right tail curving gently up to the upper-right. Deliberately uneven open-ended abstract flourish. A painted broad marker stroke with low-contrast internal highlights, NOT a glossy extruded 3D tube. No additional dots or sparks, no white border, no shadow, no background. Four candidates in a strict 2x2 grid, one abstract complete scribble per cell, transparent margins, no letters or labels. Keep brush detail quiet to match the rest of the painted Peta set.\n\nAvoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plastic gloss, photograph, photorealistic, neon or fluorescent colours, harsh black outlines, heavy drop shadow, white die-cut border, background, hands, desk, people, real brands, logos, extra text, gibberish text, watermark, signature, grunge, dirt.",
       "status": "ready",
       "stage": 2,
       "selectedQuadrant": 0,
       "transparentMarginPx": 8,
-      "restyle": "simpler-medium-specific-v2",
+      "restyle": "painterly-illustration",
       "rgbPalette": null,
-      "medium": "one pass of a thick felt marker, dry-brush streaks at the ends",
-      "selectionReason": "再生成の左上を採用。初回のe/l状の丸い筆記体ループを落とし、偏った角のある輪と長短の異なる掃き線へ変更。折れ・面の陰影・縁の光を持たない1回のマーカー線で、右上の整った菱形より非対称。",
-      "mandatory": true
+      "selectionReason": "v1 を一時採用(オーナー判断)。v2 は角ばって字に見えるため。仕様(平らなマーカーの一筆線)に合う作り直しが必要。",
+      "mixDecision": "v1-kept"
     },
     {
       "id": "SM-01",
@@ -1033,7 +1034,8 @@
       "rgbPalette": 256,
       "medium": "matte flat illustration, thin pencil linework",
       "selectionReason": "必須5枚のため作り直し。再生成4候補の左下（2）は、丸みのある玩具コンパクトのケース、茶色いパネル、大きいレンズ、小窓、シャッターに整理した少ない形で成立。レンズの小さな青い反射1つだけを残し、小窓は無反射の単色。右側候補の追加シャッター台座もなく、手描きの非対称な輪郭と2〜3段の影が最も単純だったため選択。旧版の窓列、ストラップ金具、操作レバー、複雑な反射をなくし、Leica M型から明確に離した。",
-      "mandatory": true
+      "mandatory": true,
+      "mixDecision": "v2"
     },
     {
       "id": "SM-01",
@@ -1055,7 +1057,8 @@
       "rgbPalette": null,
       "medium": "gouache, flat leaf shapes with a few simple vein lines",
       "selectionReason": "新しい左下を採用。旧版の細かな油絵の筋、複雑な葉脈、鉢の多数の反射を、3枚の平らな葉・代表的な葉脈・3段の大きな鉢の面に整理した。左上／右下は鉢のハイライトが右に寄るので落とし、左上からの小さな反射1か所だけの左下を選んだ。右上より葉脈が少なく、異なる葉の傾きが手描きの揺れとして残る。",
-      "mandatory": false
+      "mandatory": false,
+      "mixDecision": "v2"
     },
     {
       "id": "SM-01",
@@ -1077,7 +1080,8 @@
       "rgbPalette": null,
       "medium": "matte printed illustration, flat colours",
       "selectionReason": "再生成した4候補の左下を採用。初回4候補はシェルの縁の明線と余分な底部の穴があったため全て落とした。選択版は1枚の平らなタン色シェル、無地のクリームラベルと青帯、2個の簡略化したリール、4個のネジ点だけを残し、反射・立体的な縁・細かな内部機構を省いた。直立して均等な左上／右下より、やや傾いた左下の形と角の小さな揺れが人の印刷イラストらしい。旧版より情報量が少なく、素材固有のマットな印刷感がある。",
-      "mandatory": false
+      "mandatory": false,
+      "mixDecision": "v2"
     },
     {
       "id": "PR-01",
@@ -1933,7 +1937,7 @@
     {
       "id": "OB-01",
       "file": "onboarding/hero.png",
-      "bytes": 449330,
+      "bytes": 480946,
       "width": 1400,
       "height": 900,
       "alpha": true,
@@ -1941,7 +1945,7 @@
       "usedBy": [
         "Phase 4–5 delivery / art/preview.html"
       ],
-      "prompt": "Five painterly sample stickers in two loose overlapping clusters, tilted within 10 degrees; quiet deckled cream sheet and reserved central label area.",
+      "prompt": "Five samples on a deckled cream sheet, gently tilted and overlapping around a blank central area.",
       "status": "ready",
       "stage": 2,
       "labelRect": [
@@ -1957,7 +1961,7 @@
         "blue-flower",
         "good-day"
       ],
-      "restyle": "simpler-medium-specific-v2",
+      "restyle": "mixed-v1-v2",
       "placements": [
         {
           "sample": "polaroid-mountain",
@@ -2021,11 +2025,11 @@
         }
       ],
       "overlapFractions": [
-        0.01780548949026162,
-        0.016220647654740294,
-        0.012379360911230092,
-        0.05597061542690088,
-        0.04304157398702103
+        0.01650863359616728,
+        0.016142569928363687,
+        0.011594993690959315,
+        0.01014380332955427,
+        0.0
       ],
       "rgbPalette": null
     }
@@ -2035,7 +2039,7 @@
     "2": "P1 assets only; no app integration",
     "3": "not started"
   },
-  "sampleStyle": "STYLE-sample v2 / simple matte forms and subject-specific gouache, watercolour, screen-print, pencil and felt marker",
+  "sampleStyle": "Mixed set (owner decision 2026-10-02): v2 simple forms for most subjects; v1 painterly for blue-flower, polaroid-mountain, good-day, purple-scribble. See mixDecision on each sample.",
   "sampleBudgetBytes": 900000,
   "sampleStyleVersion": 2
 }
