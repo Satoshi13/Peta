@@ -1,0 +1,38 @@
+/* P1 art wired into the desktop layer (Print) and the Sticker Book (backing sheet, back paper, empty state).
+   Presentation only: every rule hangs off a class / data-art hook that already exists. Paths are relative to this file. */
+
+/* paper: the backing sheet's front and the back of a sticker are the same paper */
+.back-card, .backing {
+  --back-paper-image: url("back/paper-cream.jpg");
+  background-size: 512px 512px; /* the texture is 1024 px: crisp on Retina */
+}
+.back-card[data-kind="received"] { --back-paper-image: url("back/paper-kraft.jpg"); }
+
+/* Print: the slot at the top of the screen, and the strip of backing paper that comes out of it */
+.print-slot {
+  height: calc(min(520px, 54vw) * 48 / 2400); /* the art is 2400 x 48 */
+  background: url("print/print-slot.png") center / 100% 100% no-repeat;
+  box-shadow: none;
+  border-radius: 0;
+}
+.print-slot-glow {
+  left: 0; right: 0; top: calc(60% - 16px); height: calc(min(520px, 54vw) * 160 / 2400 * 1.6);
+  background: url("print/print-slot-glow.png") center top / 100% 100% no-repeat;
+  border-radius: 0;
+  mix-blend-mode: plus-lighter;
+}
+.print-sheet {
+  aspect-ratio: 2 / 3; /* the art is 1000 x 1500 */
+  background: url("print/backing-sheet.png") center / 100% 100% no-repeat;
+  border-radius: 0;
+  box-shadow: none; /* the art has its own edge; a soft shadow that follows its alpha instead: */
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.16));
+}
+
+/* An empty Sticker Book */
+#empty:not([hidden]) {
+  min-height: 220px;
+  padding-top: 250px;
+  text-align: center;
+  background: url("empty/collection-empty.png") center top / 320px auto no-repeat;
+}

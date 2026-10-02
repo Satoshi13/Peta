@@ -62,7 +62,7 @@ export function initPrint(ctx) {
     const { w: lw } = layerSize();
     const stickerW = pending.relativeScale * lw;
     const stickerH = stickerW / pending.aspect;
-    const sheetW = Math.round(Math.max(220, stickerW * 1.3, stickerH / 0.76 / 1.25));
+    const sheetW = Math.round(Math.max(220, stickerW * 1.3, stickerH / 0.76 / 1.5)); // the sheet is 2:3
 
     const stage = el("print-stage");
     const slot = el("print-slot", "print-slot");
