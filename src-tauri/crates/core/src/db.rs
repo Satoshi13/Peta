@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-const SCHEMA_VERSION: i64 = 2;
+const SCHEMA_VERSION: i64 = 3;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -70,8 +70,35 @@ CREATE TABLE daily_records (
 );
 ";
 
+const MIGRATION_V3: &str = "
+ALTER TABLE stickers ADD COLUMN creator_name TEXT;
+";
+
 pub struct Database {
     conn: Connection,
+}
+
+/// A raw Sticker Book row (see `Database::book_rows`).
+#[derive(Clone, Debug)]
+pub struct BookRow {
+    pub daily_date: Option<String>,
+    pub sticker_id: String,
+    pub original_number: Option<i64>,
+    pub material_id: Option<String>,
+    pub source_type: SourceType,
+    pub aspect: f64,
+    pub created_at: String,
+    pub on_desktop: bool,
+}
+
+/// OS user name with a capital first letter ("satoshi" -> "Satoshi"); "Me" if unknown.
+pub fn default_display_name() -> String {
+    let raw = std::env::var("USER").or_else(|_| std::env::var("USERNAME")).unwrap_or_default();
+    let mut chars = raw.trim().chars();
+    match chars.next() {
+        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+        None => "Me".to_owned(),
+    }
 }
 
 pub fn now() -> String {
@@ -115,6 +142,12 @@ impl Database {
             tx.pragma_update(None, "user_version", 2)?;
             tx.commit()?;
         }
+        if version < 3 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V3)?;
+            tx.pragma_update(None, "user_version", 3)?;
+            tx.commit()?;
+        }
         Ok(())
     }
 
@@ -155,8 +188,8 @@ impl Database {
 
         tx.execute(
             "INSERT INTO stickers (id, creator_id, created_at, original_asset_path, rendered_asset_path,
-                                   mask_asset_path, material_id, original_number, source_type, aspect)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?10, ?6, ?7, ?8, ?9)",
+                                   mask_asset_path, material_id, original_number, source_type, aspect, creator_name)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?10, ?6, ?7, ?8, ?9, ?11)",
             params![
                 new.id,
                 new.creator_id,
@@ -168,6 +201,7 @@ impl Database {
                 new.source_type.as_str(),
                 new.aspect,
                 new.mask_asset_path,
+                new.creator_name,
             ],
         )?;
         tx.execute(
@@ -183,7 +217,7 @@ impl Database {
             .conn
             .query_row(
                 "SELECT id, creator_id, created_at, original_asset_path, rendered_asset_path, mask_asset_path,
-                        material_id, original_number, edition_number, source_type, parent_sticker_id, aspect
+                        material_id, original_number, edition_number, source_type, parent_sticker_id, aspect, creator_name
                  FROM stickers WHERE id = ?1",
                 [id],
                 |r| {
@@ -200,6 +234,7 @@ impl Database {
                         source_type: SourceType::parse(&r.get::<_, String>(9)?).unwrap_or(SourceType::Created),
                         parent_sticker_id: r.get(10)?,
                         aspect: r.get(11)?,
+                        creator_name: r.get(12)?,
                         provenance: Vec::new(),
                     })
                 },
@@ -220,6 +255,80 @@ impl Database {
             })?
             .collect::<std::result::Result<_, _>>()?;
         Ok(Some(sticker))
+    }
+
+    // ---- profile ----
+
+    /// The name printed on the back of new stickers ("Created by …"). Until there are accounts it is
+    /// whatever the user typed, else the OS user name.
+    pub fn display_name(&self) -> Result<String> {
+        let stored: Option<String> = self
+            .conn
+            .query_row("SELECT value FROM meta WHERE key = 'display_name'", [], |r| r.get(0))
+            .optional()?;
+        Ok(stored.filter(|n| !n.trim().is_empty()).unwrap_or_else(default_display_name))
+    }
+
+    pub fn set_display_name(&mut self, name: &str) -> Result<()> {
+        let name = name.trim();
+        if name.is_empty() {
+            self.conn.execute("DELETE FROM meta WHERE key = 'display_name'", [])?;
+        } else {
+            self.conn.execute(
+                "INSERT INTO meta(key, value) VALUES('display_name', ?1)
+                 ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                [name],
+            )?;
+        }
+        Ok(())
+    }
+
+    /// Append an entry to a sticker's provenance (gifts and packs will use this).
+    pub fn add_provenance(&mut self, sticker_id: &str, kind: ProvenanceKind, user: Option<&str>, timestamp: &str) -> Result<()> {
+        let seq: i64 = self.conn.query_row(
+            "SELECT COALESCE(MAX(seq), -1) + 1 FROM provenance WHERE sticker_id = ?1",
+            [sticker_id],
+            |r| r.get(0),
+        )?;
+        self.conn.execute(
+            "INSERT INTO provenance (sticker_id, seq, type, user_id, timestamp) VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![sticker_id, seq, kind.as_str(), user, timestamp],
+        )?;
+        Ok(())
+    }
+
+    /// Every (day, sticker) pair for the Sticker Book: the days a sticker was chosen as today's Peta, plus a
+    /// single undated entry (`daily_date = None`) for stickers that never were (developer adds, samples,
+    /// stickers carried over from Phase 0).
+    pub fn book_rows(&self) -> Result<Vec<BookRow>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT d.date, s.id, s.original_number, s.material_id, COALESCE(d.source_type, s.source_type), s.aspect, s.created_at,
+                    COALESCE(p.is_on_desktop, 0)
+             FROM daily_records d
+             JOIN stickers s ON s.id = d.sticker_id
+             LEFT JOIN placements p ON p.sticker_id = s.id
+             UNION ALL
+             SELECT NULL, s.id, s.original_number, s.material_id, s.source_type, s.aspect, s.created_at,
+                    COALESCE(p.is_on_desktop, 0)
+             FROM stickers s
+             LEFT JOIN placements p ON p.sticker_id = s.id
+             WHERE s.id NOT IN (SELECT sticker_id FROM daily_records WHERE sticker_id IS NOT NULL)",
+        )?;
+        let rows = stmt
+            .query_map([], |r| {
+                Ok(BookRow {
+                    daily_date: r.get(0)?,
+                    sticker_id: r.get(1)?,
+                    original_number: r.get(2)?,
+                    material_id: r.get(3)?,
+                    source_type: SourceType::parse(&r.get::<_, String>(4)?).unwrap_or(SourceType::Created),
+                    aspect: r.get(5)?,
+                    created_at: r.get(6)?,
+                    on_desktop: r.get::<_, i64>(7)? != 0,
+                })
+            })?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        Ok(rows)
     }
 
     pub fn material_of(&self, id: &str) -> Result<Option<String>> {
@@ -417,6 +526,7 @@ mod tests {
         NewSticker {
             id: id.into(),
             creator_id: Some("me".into()),
+            creator_name: Some("Satoshi".into()),
             original_asset_path: format!("stickers/{id}/original.png"),
             rendered_asset_path: format!("stickers/{id}/rendered.png"),
             mask_asset_path: None,
@@ -535,6 +645,30 @@ mod tests {
         assert!(db.sticker("OLD").unwrap().is_some());
         assert_eq!(db.unlocked_material_ids().unwrap(), ["matte"]);
         assert_eq!(db.daily_count().unwrap(), 0);
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn upgrades_a_v2_database_and_old_stickers_have_no_creator_name() {
+        let dir = std::env::temp_dir().join(format!("peta-core-mig2-{}", crate::ids::new_sticker_id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("peta.db");
+        {
+            let conn = Connection::open(&path).unwrap();
+            conn.execute_batch(MIGRATION_V1).unwrap();
+            conn.execute_batch(MIGRATION_V2).unwrap();
+            conn.pragma_update(None, "user_version", 2).unwrap();
+            conn.execute(
+                "INSERT INTO stickers (id, created_at, original_asset_path, rendered_asset_path, source_type, aspect)
+                 VALUES ('OLD', '2026-10-01T00:00:00+00:00', 'o', 'r', 'created', 1.0)",
+                [],
+            )
+            .unwrap();
+        }
+        let mut db = Database::open(&path).unwrap();
+        assert_eq!(db.sticker("OLD").unwrap().unwrap().creator_name, None);
+        let new = db.create_sticker(new("NEW", SourceType::Created)).unwrap();
+        assert_eq!(new.creator_name.as_deref(), Some("Satoshi"));
         let _ = std::fs::remove_dir_all(dir);
     }
 

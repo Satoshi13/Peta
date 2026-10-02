@@ -62,6 +62,7 @@ impl Library {
         let created = self.db.create_sticker(NewSticker {
             id: id.clone(),
             creator_id: creator_id.map(str::to_owned),
+            creator_name: Some(self.db.display_name()?),
             original_asset_path: original_rel,
             rendered_asset_path: rendered_rel,
             mask_asset_path: None,
@@ -99,6 +100,7 @@ impl Library {
         let created = self.db.create_sticker(NewSticker {
             id: id.clone(),
             creator_id: creator_id.map(str::to_owned),
+            creator_name: Some(self.db.display_name()?),
             original_asset_path: original_rel,
             rendered_asset_path: rendered_rel,
             mask_asset_path: Some(mask_rel),

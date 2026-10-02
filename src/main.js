@@ -1,3 +1,4 @@
+import { renderBackCard, renderBackFallback } from "./back-card.js";
 import {
   toPixels, fromPixels, toLocalUV, isPivotGrab, pivotResult, pointerAngle, distance, normalizeAngle,
   peelPose, PEEL_COMMIT, PEEL_DISTANCE,
@@ -134,13 +135,83 @@ async function addSticker(placement) {
 
 // ---- picking (top-most sticker with an opaque pixel under the pointer) ----
 
-function pick(x, y) {
-  for (let i = stack.length - 1; i >= 0; i--) {
-    const node = stack[i];
-    const { u, v } = toLocalUV(x, y, boxOf(node));
-    if (opaqueAt(node.mask, u, v)) return node;
+function hits(node, x, y) {
+  const box = boxOf(node);
+  if (node.flipped) {
+    // turned over: it is the back card (a rectangle) you are touching
+    const cw = cardWidth(node);
+    const { u, v } = toLocalUV(x, y, { ...box, w: cw, h: cw * CARD_RATIO });
+    return u >= 0 && u <= 1 && v >= 0 && v <= 1;
   }
+  const { u, v } = toLocalUV(x, y, box);
+  return opaqueAt(node.mask, u, v);
+}
+
+function pick(x, y) {
+  for (let i = stack.length - 1; i >= 0; i--) if (hits(stack[i], x, y)) return stack[i];
   return null;
+}
+
+// ---- turn over: the back of the sticker (spec §9 "Turn Over", §30) ----
+// Double-click (or F) flips it like a real one: the sticker turns edge-on, the back card swings in.
+// The card is drawn from what Rust says is printed on the back; nothing here is stored.
+
+const CARD_RATIO = 1.25; // height / width of the back card
+const cardWidth = (node) => Math.min(440, Math.max(240, node.baseW ?? 240));
+const backs = new Map(); // stickerId -> Promise<StickerBack | null>
+const fetchBack = (id) => {
+  if (!backs.has(id)) backs.set(id, invoke("sticker_back", { stickerId: id }).catch(() => null));
+  return backs.get(id);
+};
+const turn = (from, to) => [
+  { transform: `perspective(900px) rotateY(${from}deg)` },
+  { transform: `perspective(900px) rotateY(${to}deg)` },
+];
+const HALF_FLIP_MS = 170;
+
+async function flip(node, to = !node.flipped) {
+  if (node.flipping || Boolean(node.flipped) === to) return;
+  node.flipping = true;
+  try {
+    if (to) {
+      const back = await fetchBack(node.placement.stickerId);
+      const card = node.cardEl ?? (node.cardEl = document.createElement("div"));
+      card.className = "card";
+      card.style.width = `${cardWidth(node)}px`;
+      card.replaceChildren(back ? renderBackCard(back) : renderBackFallback());
+      if (!card.isConnected) node.el.append(card);
+      await node.body.animate(turn(0, 90), { duration: HALF_FLIP_MS, easing: "ease-in" }).finished;
+      node.el.classList.add("flipped");
+      node.flipped = true;
+      await card.animate(
+        [{ transform: "translate(-50%, -50%) perspective(900px) rotateY(-90deg)" },
+         { transform: "translate(-50%, -50%) perspective(900px) rotateY(0deg)" }],
+        { duration: HALF_FLIP_MS + 50, easing: "ease-out" },
+      ).finished;
+    } else {
+      await node.cardEl.animate(
+        [{ transform: "translate(-50%, -50%) perspective(900px) rotateY(0deg)" },
+         { transform: "translate(-50%, -50%) perspective(900px) rotateY(90deg)" }],
+        { duration: HALF_FLIP_MS, easing: "ease-in" },
+      ).finished;
+      node.el.classList.remove("flipped");
+      node.flipped = false;
+      await node.body.animate(turn(-90, 0), { duration: HALF_FLIP_MS + 50, easing: "ease-out" }).finished;
+    }
+  } catch {
+    /* an animation was cancelled (edit mode ended mid-flip): the state below is already consistent */
+  } finally {
+    node.flipping = false;
+  }
+}
+
+/** Instantly back to face-up (leaving edit mode, peeling). */
+function unflipNow(node) {
+  node.el.classList.remove("flipped");
+  node.flipped = false;
+  node.flipping = false;
+  node.body.getAnimations().forEach((a) => a.cancel());
+  node.cardEl?.getAnimations().forEach((a) => a.cancel());
 }
 
 function bringToFront(node) {
@@ -265,7 +336,8 @@ layer.addEventListener("pointerdown", (e) => {
   bringToFront(node);
 
   const box = boxOf(node);
-  const mode = e.altKey ? "peel" : isPivotGrab(e.clientX, e.clientY, box) ? "pivot" : "move";
+  // a sticker that is turned over can only be moved (and turned back)
+  const mode = node.flipped ? "move" : e.altKey ? "peel" : isPivotGrab(e.clientX, e.clientY, box) ? "pivot" : "move";
   drag = {
     node, mode, x: e.clientX, y: e.clientY, ox: e.clientX, oy: e.clientY,
     start: {
@@ -350,6 +422,7 @@ function updateHoverCursor() {
   if (drag || !editing) return;
   const node = pick(lastPointer.x, lastPointer.y);
   layer.dataset.cursor = !node ? ""
+    : node.flipped ? "move"
     : lastAlt ? "peel"
     : isPivotGrab(lastPointer.x, lastPointer.y, boxOf(node)) ? "pivot" : "move";
 }
@@ -394,6 +467,7 @@ function peelUnderPointer() {
   if (drag || gest) return;
   const node = pick(lastPointer.x, lastPointer.y);
   if (!node || node.peeled) return;
+  if (node.flipped) unflipNow(node);
   const box = boxOf(node);
   const pose = peelPose(0, -PEEL_DISTANCE * Math.max(box.w, box.h), box.rotation, box.w, box.h);
   node.live = true;
@@ -412,6 +486,7 @@ function setEditMode(on) {
     layer.dataset.cursor = "";
     drag = null;
     gest = null;
+    stack.forEach((n) => { if (n.flipped || n.flipping) unflipNow(n); }); // stuck face-up again
   }
 }
 
@@ -459,6 +534,11 @@ async function boot() {
   setEditMode(info.editMode);
   await reconcile();
 
+  layer.addEventListener("dblclick", (e) => {
+    if (!editing) return;
+    const node = pick(e.clientX, e.clientY);
+    if (node) flip(node);
+  });
   await listen("placements-changed", () => reconcile());
   await wireFileDrop();
   await listen("edit-mode", (e) => setEditMode(Boolean(e.payload)));
@@ -467,6 +547,10 @@ async function boot() {
     if (!editing) return;
     if (e.key === "Escape") invoke("exit_edit_mode");
     if (e.key === "Delete" || e.key === "Backspace") peelUnderPointer();
+    if ((e.key === "f" || e.key === "F") && !e.metaKey && !e.ctrlKey && !drag) {
+      const node = pick(lastPointer.x, lastPointer.y);
+      if (node) flip(node);
+    }
     if (e.key === "Alt") { lastAlt = true; updateHoverCursor(); }
   });
   window.addEventListener("keyup", (e) => { if (e.key === "Alt") { lastAlt = false; updateHoverCursor(); } });

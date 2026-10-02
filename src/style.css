@@ -28,6 +28,11 @@ html, body {
 /* Picked up: slightly larger. The (expensive) shadow filter is dropped while it's in the hand. */
 .sticker.lifted .body { transform: scale(1.04); filter: none; }
 
+/* Turned over: the back card (see back-card.css) takes the sticker's place. */
+.sticker .card { display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.sticker.flipped .card { display: block; }
+.sticker.flipped .body { display: none; }
+
 /* Holographic foil: a soft reflection band, clipped to the sticker's own shape. */
 .sticker[data-material="holographic"] .body { position: relative; }
 .sticker[data-material="holographic"] .body::after {

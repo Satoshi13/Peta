@@ -2,7 +2,7 @@
 
 毎日、ひとつだけ。デスクトップに残る、ステッカーのある暮らし。
 
-現在は **Phase 3: Sticker Creator**(macOS のみ)。Desktop Layer(Phase 0)、SQLite のステッカーライブラリ(Phase 1)、
+現在は **Phase 3: Sticker Creator + 裏面 + Collection のデータ側**(macOS のみ)。Desktop Layer(Phase 0)、SQLite のステッカーライブラリ(Phase 1)、
 **1日1枚のルールと Today's Material**(Phase 2)の上に、**写真から自動でステッカーを作る Cutting Mat**
 (背景除去 → フチ → Matte / Kraft / Holographic の質感)が載っています。Print/Paste の演出と Collection 画面はまだありません。
 画像生成が必要な演出は未着手で、引き継ぎ資料は [docs/ui-handoff.md](docs/ui-handoff.md) にあります。
@@ -25,6 +25,7 @@ npm run dev        # = tauri dev
 | 項目 | 動作 |
 |---|---|
 | **Today's Peta** | Today 画面を開く。今日の素材が未開封なら `●`、今日の1枚を貼り終えたら `✓` が付く |
+| **Collection** | ステッカー帳(月ごとのページ・詳細・素材帳)を開く |
 | Edit Stickers | 編集モードのON/OFF。Esc / 画面上部の Done でも終了 |
 | Re-sync Displays | ディスプレイ構成を再読込(通常は2秒ごとに自動検知) |
 | Quit Peta | 終了 |
@@ -67,6 +68,23 @@ Today の **Create**、またはデスクトップへの画像ドロップで開
   大きいモデル(silueta など)は `PETA_MODEL=silueta` で切り替えられます。細い部分に強いですが数倍遅いです → [src-tauri/models/README.md](src-tauri/models/README.md)。
 - **Holographic の光沢**はデスクトップ上でも出ます。ステッカーの位置と角度で反射の帯が変わり、動かすとスッと滑ります(静止中はアニメーションなし)。
 
+### ステッカーの裏面(裏返す)
+
+編集モード中に、ステッカーを**ダブルクリック**(または、ポインターを重ねて **F** キー)すると、ステッカーが真横を向いて**裏面のカード**に入れ替わります。もう一度ダブルクリックで表に戻ります。
+
+- 自分で作ったもの: `ORIGINAL` のスタンプ / Created by(名前と日付)/ Material / `No. 0001` / Peta。
+- 受け取ったもの(Gift・Pack、Phase 6〜7 以降): Created by / Received from(誰から・いつ)/ `Edition #0042`。データ側(来歴の記録と表示)は実装済みです。
+- 裏返している間は**移動と裏返しだけ**できます(拡大縮小・回転・剥がすは表のときだけ)。編集モードを終えると、全部表に戻ります。
+- 名前は Collection ウィンドウの「Your name on stickers」で変えられます(以降に作るステッカーから。既定は OS のユーザー名)。
+
+### Collection(ステッカー帳)
+
+メニューの **Collection** から開きます。
+
+- **Book**: 左の目次(年 → 月)と、その月のページ。ステッカーは**今日の1枚として貼った日**のページに載ります(後日コレクションから貼り直した月のページにも載ります。一度も今日の1枚になっていないもの=サンプル等は作った月)。
+- ステッカーをクリックすると詳細: 大きな表示、**Turn over**(裏面)、素材・作成日・作成者、**履歴**、そして「**Stick as today's Peta**」(今日の枠が空いていて、デスクトップに無いとき)/「**Peel off the desktop**」(デスクトップにあるとき)。Gift は後日。
+- **Materials**: 素材帳。獲得済みは名前とレア度、未獲得は `?`。
+
 ### 編集モードの操作
 
 枠や取っ手はありません。ステッカー自体が反応します(透明な部分は掴めません)。
@@ -78,6 +96,7 @@ Today の **Create**、またはデスクトップへの画像ドロップで開
 | トラックパッドのピンチ / ひねり | 拡大縮小 / 回転(同時可。WebKit のジェスチャーイベント) |
 | **Option を押しながらドラッグして引き離す** | 掴んだ側がめくれる。十分に引いて離すと**剥がれて消える**。途中で離すと貼り直される |
 | Delete / Backspace | ポインター下のステッカーを剥がす |
+| **ダブルクリック / F** | **裏返す**(もう一度で表へ) |
 
 | **画像ファイルをデスクトップへドロップ**(編集モード中) | 落とした場所に貼る。**今日の Create として扱われる**(1日1枚) |
 
@@ -124,6 +143,8 @@ src/                 フロントエンド(ビルド不要の素のJS)
   main.js / style.css  レイヤー描画と編集モード
   today.html/js/css    Today 画面(機能するプレースホルダー)
   creator.html/js/css  Cutting Mat(機能するプレースホルダー)
+  collection.html/js/css  Sticker Book(機能するプレースホルダー)
+  back-card.js/css     ステッカーの裏面カード(デスクトップと Collection で共有)
 src-tauri/crates/core/ peta-core: OS・UIに依存しない中核(Linuxでも cargo test できる)
   db.rs                SQLite(stickers / provenance / placements)
   library.rs           DB + 画像ファイルの管理
@@ -132,11 +153,14 @@ src-tauri/crates/core/ peta-core: OS・UIに依存しない中核(Linuxでも ca
   cutout.rs            マスクの道具(エッジ吸着・ゴミ取り・穴埋め・距離場・ダイカット輪郭)
   sticker.rs           素材の描画(Matte / Kraft / Holographic)
   creator.rs           Cutting Mat のパイプラインとセッション(ブラシ補正・半解像度プレビュー)
+  back.rs              ステッカーの裏面の中身(ORIGINAL / Received・来歴・日付の整形)
+  book.rs              ステッカー帳(どの月のページに載るか・目次)
   daily.rs             Daily Slot(AVAILABLE→SELECTING→CONFIRMED→USED)
   materials.rs         素材カタログ(Matte / Kraft / Holographic)と抽選
 src-tauri/crates/core/ の daily.rs / materials.rs: 1日1枚のルールと素材カタログ(時計を外から渡せるのでテスト可能)
 src-tauri/src/
   today.rs             Today の状態・コマンド・ウィンドウ・日付変更の監視
+  collection.rs        Collection ウィンドウと、裏面・ステッカー帳・素材帳・名前のコマンド
   creator.rs           Cutting Mat のウィンドウとコマンド(確定すると保存・貼り付け・今日の枠を消費)
   layers.rs            ディスプレイごとの透明レイヤー生成・再同期
   store.rs             ライブラリの所有、初回起動、旧JSONの移行、取り込み

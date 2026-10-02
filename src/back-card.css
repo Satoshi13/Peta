@@ -1,0 +1,59 @@
+/* The back of a sticker. Procedural paper for now; art hooks are the CSS variables below and `data-art`
+   (see docs/ui-handoff.md). Sizes are in cqw = % of the card's width, so it scales with the card. */
+.back-card {
+  --back-ink: #2b2a28;
+  --back-paper: #f4ecdd;
+  --back-paper-image:
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .26 0 0 0 .10 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  container-type: inline-size;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 14px;
+  color: var(--back-ink);
+  background-color: var(--back-paper);
+  background-image: var(--back-paper-image);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 8px 18px rgba(0, 0, 0, 0.2);
+  font-family: "Bradley Hand", "Noteworthy", "Klee", "Segoe Print", cursive;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.back-card[data-kind="received"] { --back-paper: #cdac7e; }
+
+.back-card .face {
+  box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 26px 24px 18px;
+  padding: 9cqw 9cqw 7cqw;
+  gap: 3.5cqw;
+}
+.back-card .stamp {
+  align-self: flex-start;
+  padding: 0.6em 1em;
+  border: 3px double var(--back-ink);
+  transform: rotate(-2deg);
+  font: 600 15px/1 "Courier New", Courier, monospace;
+  font-size: 6.2cqw;
+  letter-spacing: 0.28em;
+  opacity: 0.88;
+}
+.back-card .rows { display: flex; flex-direction: column; gap: 2.4cqw; }
+.back-card .row { display: flex; flex-direction: column; line-height: 1.15; }
+.back-card .label { font: 500 10px/1.2 -apple-system, "Helvetica Neue", sans-serif; font-size: max(9px, 3.6cqw); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; }
+.back-card .value { font-size: 15px; font-size: 6.6cqw; }
+.back-card .value + .value { font-size: 5.6cqw; opacity: 0.8; }
+.back-card .number { font: 14px "Courier New", Courier, monospace; font-size: 5.4cqw; letter-spacing: 0.06em; }
+.back-card .peta-mark {
+  margin-top: auto;
+  align-self: flex-end;
+  font-family: "Snell Roundhand", "Brush Script MT", "Bradley Hand", cursive;
+  font-size: 30px;
+  font-size: 12cqw;
+  line-height: 1;
+  transform: rotate(-4deg);
+}
+.back-card .code { font: 8px "SF Mono", ui-monospace, monospace; font-size: max(7px, 2.6cqw); opacity: 0.5; letter-spacing: 0.04em; }

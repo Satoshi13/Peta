@@ -55,6 +55,58 @@ Phase 3 で**機能として実装済み**。見た目だけプレースホル�
 | `creator_clear_edits` / `creator_cancel` / `creator_finish({ materialId, strength })` | リセット / 取りやめ(何も消費しない)/ 確定 |
 | イベント `creator-changed` | 状態が変わった(`creator_info` を取り直す) |
 
+## ステッカーの裏面(`src/back-card.js` / `back-card.css`)
+
+**機能として実装済み**。デスクトップ(ダブルクリックで裏返す)と Collection の詳細で共通のカードです。紙は CSS で作った**仮の質感**。
+
+| フック | 場所 | 欲しいもの |
+|---|---|---|
+| `data-art="back-paper"` + CSS 変数 `--back-paper` / `--back-paper-image` | `.back-card`(`data-kind="original"` / `"received"` で色を分けている) | 紙のテクスチャ(`back/paper-cream.jpg`、受け取り用に `paper-kraft.jpg`)。`--back-paper-image: url(...)` を差し替えるだけでよい |
+| `data-art="stamp-frame"` | `.stamp`(ORIGINAL の二重枠。original のみ) | ゴム印風の枠(文字なし。"ORIGINAL" はコードが重ねる) |
+| `data-art="peta-mark"` | `.peta-mark`(右下の "Peta") | 筆記ロゴの画像(今は文字) |
+
+- カードの**比率は 4:5**。文字は `cqw`(カード幅の%)なので、カードのサイズが変わっても崩れません。
+- **文字(ORIGINAL / Created by / 日付 / Material / No. / Edition)は Rust が文字列で返し、JS が重ねる**。画像には焼き込まない。
+- 裏返しの動き(ステッカーが真横を向く→カードが現れる、各 170〜220 ms)は `main.js` の `flip()`。差し替える場合も、裏面中に**移動と裏返しだけ**できる、という動作は維持してください。
+
+### `sticker_back(stickerId)` → `StickerBack`
+
+```jsonc
+{
+  "stickerId": "PETA-A6F4-8Q21", "idCode": "PETA-A6F4-8Q21",
+  "kind": "original",            // "original" | "received"
+  "originalNumber": "0001",      // original のみ。"No. 0001"
+  "editionNumber": null,         // "0042" → "Edition #0042"
+  "createdBy": "Satoshi", "createdOn": "Oct 3, 2026",
+  "material": { "id": "holographic", "name": "Holographic", "rarity": "rare" },
+  "receivedFrom": null, "receivedOn": null,   // received のみ
+  "history": [ { "type": "created", "by": "Satoshi", "on": "Oct 3, 2026" } ]
+}
+```
+
+## Collection(`src/collection.html`)
+
+**機能として実装済み**。見た目だけプレースホルダーです(`data-art` のフック)。
+
+| `data-art` | どこ | 欲しいもの |
+|---|---|---|
+| `book-page` | `#page`(その月のページ。今は CSS のドットグリッド) | `book/page-left.jpg` / `page-right.jpg` |
+| `book-spiral` | `.spiral`(綴じ側の帯) | `book/spiral-rings.png`(縦にタイル) |
+| `book-tabs` / `book-tab` | `#index` / `.month-tab`(月のタブ) | 紙のタブ(`book/tab-blank-*.png`)。月名はコードが重ねる |
+| `swatch-<id>` | 素材帳の `.swatch` | `materials/swatch-*.png` |
+| (表紙) | まだ画面なし。表紙 → ページへの導入は Phase 5 の演出 | `book/cover-kraft.png` |
+
+### コマンド
+
+| コマンド | 説明 |
+|---|---|
+| `book_index` | `[{ year, month, count }]`(新しい月が先) |
+| `book_page({ year, month })` | `[{ date, stickerId, originalNumber, materialId, sourceType, aspect, onDesktop }]`(古い順) |
+| `material_book` | `[{ material, unlocked }]`(カタログ全部。未獲得は `unlocked: false`) |
+| `profile_get` / `profile_set({ displayName })` | 裏面に印字する名前 |
+| `peel_sticker({ stickerId })` | デスクトップから剥がす(ライブラリには残る)。`placements-changed` が飛ぶ |
+| `daily_stick_from_collection({ stickerId })` | 今日の1枚として貼る(既存) |
+
 ## デスクトップ上のステッカー(素材の見た目)
 
 - `.sticker[data-material="holographic"]` に、ステッカーの形で切り抜かれた反射の帯(`::after`、`mask-image`)が重なる。

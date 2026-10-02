@@ -75,6 +75,8 @@ pub struct Sticker {
     /// e.g. `PETA-A6F4-8Q21`
     pub id: String,
     pub creator_id: Option<String>,
+    /// The name printed on the back ("Created by …"), frozen at creation. `None` on stickers made before it existed.
+    pub creator_name: Option<String>,
     pub created_at: String,
     /// Paths are relative to the assets directory.
     pub original_asset_path: String,
@@ -96,6 +98,7 @@ pub struct Sticker {
 pub struct NewSticker {
     pub id: String,
     pub creator_id: Option<String>,
+    pub creator_name: Option<String>,
     pub original_asset_path: String,
     pub rendered_asset_path: String,
     pub mask_asset_path: Option<String>,

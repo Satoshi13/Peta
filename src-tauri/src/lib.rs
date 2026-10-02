@@ -1,3 +1,4 @@
+mod collection;
 mod creator;
 mod layers;
 mod platform;
@@ -10,7 +11,7 @@ use layers::Layers;
 use peta_core::Placement;
 use store::Store;
 use today::Today;
-use tauri::{ipc::Response, AppHandle, Manager, State, WebviewWindow};
+use tauri::{ipc::Response, AppHandle, Emitter, Manager, State, WebviewWindow};
 
 #[tauri::command]
 fn layer_info(window: WebviewWindow, layers: State<Layers>) -> Result<layers::LayerInfo, String> {
@@ -51,8 +52,10 @@ fn save_placement(window: WebviewWindow, layers: State<Layers>, store: State<Sto
 
 /// Peel off: the sticker leaves the desktop (it stays in the collection).
 #[tauri::command]
-fn peel_sticker(store: State<Store>, sticker_id: String) -> Result<(), String> {
-    store.lock().db_mut().peel(&sticker_id).map_err(|e| e.to_string())
+fn peel_sticker(app: AppHandle, store: State<Store>, sticker_id: String) -> Result<(), String> {
+    store.lock().db_mut().peel(&sticker_id).map_err(|e| e.to_string())?;
+    let _ = app.emit("placements-changed", ()); // the Sticker Book shows what is on the desktop
+    Ok(())
 }
 
 /// The rendered PNG of a sticker, as raw bytes (no base64).
@@ -115,7 +118,13 @@ pub fn run() {
             creator::creator_stroke,
             creator::creator_clear_edits,
             creator::creator_finish,
-            creator::creator_cancel
+            creator::creator_cancel,
+            collection::book_index,
+            collection::book_page,
+            collection::sticker_back,
+            collection::material_book,
+            collection::profile_get,
+            collection::profile_set
         ])
         .on_window_event(|window, event| {
             // closing the Cutting Mat with the window button is a cancel: nothing was spent

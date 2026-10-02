@@ -1,5 +1,7 @@
 //! Peta core — everything that is true regardless of OS or UI.
 
+pub mod back;
+pub mod book;
 pub mod creator;
 pub mod cutout;
 pub mod daily;
@@ -13,6 +15,8 @@ pub mod models;
 pub mod segment;
 pub mod sticker;
 
+pub use back::StickerBack;
+pub use book::{BookEntry, MonthIndex};
 pub use daily::{DailyRecord, SlotState};
 pub use db::Database;
 pub use error::{Error, Result};

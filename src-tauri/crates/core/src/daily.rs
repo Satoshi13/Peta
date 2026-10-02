@@ -119,6 +119,7 @@ mod tests {
         db.create_sticker(NewSticker {
             id: id.into(),
             creator_id: None,
+            creator_name: None,
             original_asset_path: "o".into(),
             rendered_asset_path: "r".into(),
             mask_asset_path: None,

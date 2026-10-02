@@ -10,7 +10,7 @@ use tauri::{
 };
 use tauri_plugin_dialog::DialogExt;
 
-use crate::{layers, platform, store::Store, today};
+use crate::{collection, layers, platform, store::Store, today};
 
 /// Kept in app state so Esc / the Done button can un-check the menu item.
 pub struct EditItem(pub CheckMenuItem<Wry>);
@@ -19,6 +19,7 @@ pub struct TodayItem(pub MenuItem<Wry>);
 
 pub fn build(app: &AppHandle) -> tauri::Result<()> {
     let today_item = MenuItem::with_id(app, "today", "Today's Peta", true, None::<&str>)?;
+    let collection = MenuItem::with_id(app, "collection", "Collection", true, None::<&str>)?;
     let edit = CheckMenuItem::with_id(app, "edit", "Edit Stickers", true, false, None::<&str>)?;
     let resync = MenuItem::with_id(app, "resync", "Re-sync Displays", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit Peta", true, Some("CmdOrCtrl+Q"))?;
@@ -41,7 +42,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
         None
     };
 
-    let mut items: Vec<&dyn tauri::menu::IsMenuItem<Wry>> = vec![&today_item, &edit, &sep1];
+    let mut items: Vec<&dyn tauri::menu::IsMenuItem<Wry>> = vec![&today_item, &collection, &edit, &sep1];
     if let Some(dev) = dev.as_ref() {
         items.push(dev);
     }
@@ -61,6 +62,11 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
             "today" => {
                 if let Err(e) = today::open_window(app) {
                     eprintln!("[peta] could not open Today: {e}");
+                }
+            }
+            "collection" => {
+                if let Err(e) = collection::open_window(app) {
+                    eprintln!("[peta] could not open the Sticker Book: {e}");
                 }
             }
             // A CheckMenuItem toggles itself on click; read the new state.

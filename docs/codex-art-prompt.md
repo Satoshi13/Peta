@@ -425,6 +425,8 @@ Subject: <row from the table>.
 | `icon-*`(`.art-inline`) | `today.html` | TD-05 に置き換えたので**削除してよい** |
 | `cutting-mat` | `creator.html` `main#mat` | CR-01(`background`)+ CR-03(テープを角に1〜3枚) |
 | `cutting-progress` | `creator.html` `#loading .art-slot` | CR-02(12コマ) |
+| `back-paper` / `stamp-frame` / `peta-mark`(+ CSS 変数 `--back-paper-image`) | `back-card.js` / `back-card.css`(デスクトップの裏返しと Collection で共通) | 裏面一式(§8.5)。**CSS 変数を差し替えるだけ**で紙が変わる |
+| `book-page` / `book-spiral` / `book-tabs` / `book-tab` / `swatch-<id>` | `collection.html` / `collection.css` | ステッカー帳一式(§8.6)と素材の見本チップ(MT-01) |
 
 ## 9.2 組み込みの方法(ルール)
 - 素材は `src/art/art.css` に**まとめて**書く(`today.css` / `creator.css` から `@import`)。`.art-slot[data-art="…"]` に背景画像を当て、プレースホルダーの `::before` / `::after` と点線の枠を**消す**(`border: 0`)
