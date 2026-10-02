@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cutting Mat</title>
+  <link rel="stylesheet" href="creator.css" />
+</head>
+<body>
+  <!--
+    Cutting Mat (spec §25): Original -> Cutout -> Material preview. Functional skeleton; the mat itself and the
+    "cutting" moment are art placeholders (`.art-slot[data-art]`, see docs/ui-handoff.md).
+  -->
+  <header>
+    <h1>Cutting Mat</h1>
+    <p id="hint" class="muted"></p>
+  </header>
+
+  <main id="mat" class="art-bg" data-art="cutting-mat" data-art-note="The cutting mat the panes sit on (grid, soft green rubber mat, etc.).">
+    <section class="panes">
+      <figure class="pane" id="pane-original">
+        <div class="frame"><img id="img-original" alt="" /></div>
+        <figcaption>Original</figcaption>
+      </figure>
+
+      <span class="arrow" aria-hidden="true">→</span>
+
+      <figure class="pane" id="pane-cutout">
+        <div class="frame checker" id="cutout-frame">
+          <img id="img-dim" alt="" />
+          <img id="img-cutout" alt="" />
+          <div id="brush-ring" hidden></div>
+        </div>
+        <figcaption>Cutout <span class="muted">· paint to fix</span></figcaption>
+      </figure>
+
+      <span class="arrow" aria-hidden="true">→</span>
+
+      <figure class="pane" id="pane-sticker">
+        <div class="frame desk" id="sticker-frame">
+          <div id="sticker-wrap"><img id="img-sticker" alt="" /><div id="sheen"></div></div>
+        </div>
+        <figcaption id="sticker-caption">Material</figcaption>
+      </figure>
+    </section>
+
+    <section class="controls">
+      <div class="group">
+        <label>Material</label>
+        <div id="materials" class="chips" role="radiogroup" aria-label="Material"></div>
+      </div>
+      <div class="group">
+        <label for="strength">Cutout adjust</label>
+        <div class="slider"><small>Tight</small><input id="strength" type="range" min="0" max="1" step="0.01" value="0.5" /><small>Loose</small></div>
+      </div>
+      <div class="group">
+        <label>Fix</label>
+        <div class="tools">
+          <button id="tool-erase" type="button" class="tool" aria-pressed="true">Erase</button>
+          <button id="tool-restore" type="button" class="tool" aria-pressed="false">Restore</button>
+          <input id="brush-size" type="range" min="0.01" max="0.12" step="0.005" value="0.04" aria-label="Brush size" />
+          <button id="clear-edits" type="button" class="link">Reset</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p id="note" class="muted"></p>
+    <p id="error" class="error" role="alert" hidden></p>
+    <div class="buttons">
+      <button id="cancel" type="button">Cancel</button>
+      <button id="make" type="button" class="primary" disabled>Make this Peta</button>
+    </div>
+  </footer>
+
+  <div id="loading" class="overlay">
+    <div class="art-slot" data-art="cutting-progress" data-art-note="Waiting moment while the subject is found (a few seconds). Keep it calm."></div>
+    <p class="lead">Cutting out…</p>
+  </div>
+  <div id="failed" class="overlay" hidden>
+    <p class="lead">Couldn't open this image.</p>
+    <p id="failed-reason" class="muted"></p>
+    <button id="failed-close" type="button" class="primary">Close</button>
+  </div>
+  <script type="module" src="creator.js"></script>
+</body>
+</html>

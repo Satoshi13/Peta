@@ -5,6 +5,8 @@ pub enum Error {
     Db(rusqlite::Error),
     Io(std::io::Error),
     Image(String),
+    /// Segmentation model could not be loaded or run.
+    Model(String),
     Invalid(String),
     /// Today's one new Peta has already been confirmed.
     AlreadyUsedToday,
@@ -18,6 +20,7 @@ impl fmt::Display for Error {
             Error::Db(e) => write!(f, "database error: {e}"),
             Error::Io(e) => write!(f, "io error: {e}"),
             Error::Image(e) => write!(f, "image error: {e}"),
+            Error::Model(e) => write!(f, "segmentation model error: {e}"),
             Error::Invalid(e) => write!(f, "{e}"),
             Error::AlreadyUsedToday => write!(f, "already_used_today"),
         }

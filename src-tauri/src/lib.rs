@@ -1,9 +1,11 @@
+mod creator;
 mod layers;
 mod platform;
 mod store;
 mod today;
 mod tray;
 
+use creator::Creator;
 use layers::Layers;
 use peta_core::Placement;
 use store::Store;
@@ -15,10 +17,27 @@ fn layer_info(window: WebviewWindow, layers: State<Layers>) -> Result<layers::La
     layers.info(window.label()).ok_or_else(|| format!("unknown layer {}", window.label()))
 }
 
+/// A placement plus what the layer needs to dress the sticker (its material).
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PlacedSticker {
+    #[serde(flatten)]
+    placement: Placement,
+    material_id: Option<String>,
+}
+
 /// Stickers this layer should draw, bottom -> top.
 #[tauri::command]
-fn layer_placements(window: WebviewWindow, layers: State<Layers>, store: State<Store>) -> Vec<Placement> {
-    layers.placements_for(window.label(), &store)
+fn layer_placements(window: WebviewWindow, layers: State<Layers>, store: State<Store>) -> Vec<PlacedSticker> {
+    let placements = layers.placements_for(window.label(), &store);
+    let lib = store.lock();
+    placements
+        .into_iter()
+        .map(|p| {
+            let material_id = lib.db().material_of(&p.sticker_id).ok().flatten();
+            PlacedSticker { placement: p, material_id }
+        })
+        .collect()
 }
 
 /// Called when a drag / resize / rotate ends. The sticker now belongs to the display it was edited on,
@@ -43,8 +62,9 @@ fn sticker_asset(store: State<Store>, sticker_id: String) -> Result<Response, St
     Ok(Response::new(bytes))
 }
 
-/// An image file dropped onto a layer is a Create: it becomes today's Peta, if today's slot is still free.
-/// `x` / `y` are the drop point as 0..1 of that display. Fails with `already_used_today` otherwise.
+/// An image file dropped onto a layer is a Create: it opens on the Cutting Mat, and becomes today's Peta
+/// if you finish it. `x` / `y` are the drop point as 0..1 of that display.
+/// Fails with `already_used_today` if today's Peta is already made.
 #[tauri::command]
 async fn import_dropped(
     window: WebviewWindow,
@@ -57,7 +77,11 @@ async fn import_dropped(
     let info = layers.info(window.label()).ok_or("unknown layer")?;
     let Some(first) = paths.into_iter().next() else { return Ok(()) }; // one new Peta per day
     let bytes = std::fs::read(&first).map_err(|e| format!("could not read {first}: {e}"))?;
-    today::create_today(&app, &bytes, &info.display_id, (x, y), None).map(|_| ())
+    creator::begin(
+        &app,
+        bytes,
+        creator::Target { display_id: info.display_id, x, y, counts_for_today: true, material_hint: None },
+    )
 }
 
 #[tauri::command]
@@ -71,6 +95,7 @@ pub fn run() {
         .manage(Store::default())
         .manage(Layers::default())
         .manage(Today::default())
+        .manage(Creator::default())
         .invoke_handler(tauri::generate_handler![
             layer_info,
             layer_placements,
@@ -83,8 +108,21 @@ pub fn run() {
             today::daily_open_material,
             today::daily_create,
             today::collection_unused,
-            today::daily_stick_from_collection
+            today::daily_stick_from_collection,
+            creator::creator_info,
+            creator::creator_original,
+            creator::creator_render,
+            creator::creator_stroke,
+            creator::creator_clear_edits,
+            creator::creator_finish,
+            creator::creator_cancel
         ])
+        .on_window_event(|window, event| {
+            // closing the Cutting Mat with the window button is a cancel: nothing was spent
+            if window.label() == creator::CREATOR_LABEL && matches!(event, tauri::WindowEvent::Destroyed) {
+                creator::clear(window.app_handle());
+            }
+        })
         .setup(|app| {
             // Menu-bar-only app: no Dock icon, no app menu.
             #[cfg(target_os = "macos")]

@@ -14,20 +14,20 @@ use std::{
 use peta_core::{
     daily::{self, DailyRecord},
     ids::random_unit,
-    materials, process_image, Database, Material, SlotState, SourceType, Sticker,
+    materials, Database, Material, SlotState, SourceType,
 };
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 use tauri_plugin_dialog::DialogExt;
 
-use crate::{layers::Layers, platform, store::Store, tray};
+use crate::{creator, layers::Layers, platform, store::Store, tray};
 
 pub const TODAY_LABEL: &str = "today";
 /// Error string the UI recognises: today's new Peta has already been confirmed.
 pub const ALREADY_USED: &str = "already_used_today";
 
 /// Where a Peta made through the Today screen lands until the Print -> Grab -> Paste flow exists (Phase 4).
-const DEFAULT_SPOT: (f64, f64) = (0.5, 0.45);
+pub const DEFAULT_SPOT: (f64, f64) = (0.5, 0.45);
 
 #[derive(Default)]
 pub struct Today {
@@ -131,57 +131,6 @@ pub fn open_window(app: &AppHandle) -> tauri::Result<()> {
 
 // ---- the actions ----
 
-/// Which material a new Peta is made with: the one asked for (if unlocked), else today's (if opened), else Matte.
-fn pick_material(db: &Database, record: &DailyRecord, requested: Option<&str>) -> String {
-    let unlocked = db.unlocked_material_ids().unwrap_or_default();
-    if let Some(id) = requested.filter(|id| unlocked.iter().any(|u| u == id)) {
-        return id.to_owned();
-    }
-    if record.material_opened_at.is_some() {
-        return record.material_id.clone();
-    }
-    materials::DEFAULT_MATERIAL.to_owned()
-}
-
-/// Make today's Peta from image bytes (Create) and stick it on the desktop. Confirms and spends the slot.
-pub fn create_today(
-    app: &AppHandle,
-    bytes: &[u8],
-    display_id: &str,
-    (rx, ry): (f64, f64),
-    material_id: Option<&str>,
-) -> Result<Sticker, String> {
-    let date = app.state::<Today>().date();
-    let store = app.state::<Store>();
-
-    // Cheap check first so a refused attempt doesn't pay for image decoding.
-    {
-        let mut lib = store.lock();
-        let record = daily::ensure_today(lib.db_mut(), &date, random_unit()).map_err(|e| e.to_string())?;
-        if !record.slot(false).can_add_new() {
-            return Err(ALREADY_USED.into());
-        }
-    }
-    let processed = process_image(bytes).map_err(|e| e.to_string())?; // slow: outside the lock
-
-    let sticker = {
-        let mut lib = store.lock();
-        let record = daily::ensure_today(lib.db_mut(), &date, random_unit()).map_err(|e| e.to_string())?;
-        if !record.slot(false).can_add_new() {
-            return Err(ALREADY_USED.into()); // lost a race
-        }
-        let material = pick_material(lib.db(), &record, material_id);
-        let sticker = lib.add_created(&processed, bytes, None, Some(&material)).map_err(|e| e.to_string())?;
-        lib.stick_new(&sticker, display_id, rx, ry).map_err(|e| e.to_string())?;
-        // Confirmed = point of no return; Used = it is on the desktop. (Phase 4 puts Print/Grab/Paste between them.)
-        daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Created, random_unit()).map_err(|e| e.to_string())?;
-        daily::mark_used(lib.db_mut(), &date).map_err(|e| e.to_string())?;
-        sticker
-    };
-    announce(app);
-    Ok(sticker)
-}
-
 /// Use a sticker from the collection (peeled off, or never stuck) as today's Peta.
 pub fn stick_from_collection(app: &AppHandle, sticker_id: &str, display_id: &str) -> Result<(), String> {
     let date = app.state::<Today>().date();
@@ -223,7 +172,8 @@ pub fn daily_open_material(app: AppHandle, store: State<Store>, today: State<Tod
     status(&app)
 }
 
-/// Create: pick an image (native dialog), make today's Peta from it. Cancelling the dialog changes nothing.
+/// Create: pick an image (native dialog), then cut it out on the Cutting Mat. Cancelling the dialog changes
+/// nothing; nothing is spent until "Make this Peta" there.
 #[tauri::command]
 pub async fn daily_create(
     window: WebviewWindow,
@@ -244,7 +194,17 @@ pub async fn daily_create(
         return status(&app); // cancelled: nothing is consumed
     };
     let bytes = std::fs::read(&path).map_err(|e| format!("could not read {}: {e}", path.display()))?;
-    create_today(&app, &bytes, &layers.primary_display_id(), DEFAULT_SPOT, material_id.as_deref())?;
+    creator::begin(
+        &app,
+        bytes,
+        creator::Target {
+            display_id: layers.primary_display_id(),
+            x: DEFAULT_SPOT.0,
+            y: DEFAULT_SPOT.1,
+            counts_for_today: true,
+            material_hint: material_id,
+        },
+    )?;
     status(&app)
 }
 
@@ -312,8 +272,16 @@ pub fn dev_reset_today(app: &AppHandle) {
     roll_day(app);
 }
 
-pub fn dev_import_paths(app: &AppHandle, paths: &[PathBuf]) {
+/// Developer: cut out an image on the Cutting Mat without touching today's slot.
+pub fn dev_open_image(app: &AppHandle, path: &PathBuf) {
     let primary = app.state::<Layers>().primary_display_id();
-    app.state::<Store>().import_paths(paths, &primary, 0.5, 0.45);
-    let _ = app.emit("placements-changed", ());
+    match std::fs::read(path) {
+        Ok(bytes) => {
+            let target = creator::Target { display_id: primary, x: DEFAULT_SPOT.0, y: DEFAULT_SPOT.1, counts_for_today: false, material_hint: None };
+            if let Err(e) = creator::begin(app, bytes, target) {
+                eprintln!("[peta] could not open the Cutting Mat: {e}");
+            }
+        }
+        Err(e) => eprintln!("[peta] could not read {}: {e}", path.display()),
+    }
 }

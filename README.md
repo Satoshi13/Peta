@@ -2,8 +2,9 @@
 
 毎日、ひとつだけ。デスクトップに残る、ステッカーのある暮らし。
 
-現在は **Phase 2: Daily**(macOS のみ)。Desktop Layer(Phase 0)と SQLite のステッカーライブラリ(Phase 1)の上に、
-**1日1枚のルール**、Today's Material、素材のアンロックが載っています。背景除去・素材の見た目・Collection 画面はまだありません。
+現在は **Phase 3: Sticker Creator**(macOS のみ)。Desktop Layer(Phase 0)、SQLite のステッカーライブラリ(Phase 1)、
+**1日1枚のルールと Today's Material**(Phase 2)の上に、**写真から自動でステッカーを作る Cutting Mat**
+(背景除去 → フチ → Matte / Kraft / Holographic の質感)が載っています。Print/Paste の演出と Collection 画面はまだありません。
 画像生成が必要な演出は未着手で、引き継ぎ資料は [docs/ui-handoff.md](docs/ui-handoff.md) にあります。
 
 ## 動かし方(Mac)
@@ -33,8 +34,8 @@ npm run dev        # = tauri dev
 
 | 項目 | 動作 |
 |---|---|
-| Add Image… (ignores daily rule) | 画像を選んで貼る。**1日1枚のルールを無視**する(Phase 1 の挙動) |
-| Add Sample Cat (ignores daily rule) | サンプルの猫を貼る(同上) |
+| Cut Out Image… (ignores daily rule) | 画像を選んで Cutting Mat で作る。**1日1枚のルールを無視**する(今日の枠は使わない) |
+| Add Sample Cat (ignores daily rule) | サンプルの猫をそのまま貼る(切り抜きなし) |
 | Next Day (+1 day) | 時計を1日進める。日付変更・新しい素材の抽選・スロットのリセットを確かめる |
 | Reset Today | 今日の記録を消す。封筒・抽選・スロットが最初からやり直しになる(貼ったステッカーは残る) |
 
@@ -42,10 +43,29 @@ npm run dev        # = tauri dev
 
 - 今日の素材は日付ごとに1つ抽選され、**初回だけは必ず Holographic**(仕様 §88 の体験)。以降は Common 60 / Uncommon 30 / Rare 10 の重み。
 - **封筒を開ける**と素材が Material Book に入り、ずっと残ります(使い捨てではありません)。Matte は最初から使えます。
-- 今日の新しい1枚を**確定できるのは1回だけ**。Today 画面から **Create**(画像を選ぶ)か **Collection**(デスクトップに無いものを貼る)。
-  **編集モード中に画像ファイルをデスクトップへドロップするのも Create** です(その日の素材で作られます)。2回目は「See you tomorrow.」と断られます。
+- 今日の新しい1枚を**確定できるのは1回だけ**。Today 画面から **Create**(画像を選ぶ → Cutting Mat で仕上げる)か **Collection**(デスクトップに無いものを貼る)。
+  **編集モード中に画像ファイルをデスクトップへドロップするのも Create** です(Cutting Mat が開き、落とした場所に貼られます)。2回目は「See you tomorrow.」と断られます。
+- **Cutting Mat で「Make this Peta」を押すまでは何も消費しません**。Cancel / ウィンドウを閉じる、で元のままです。
 - 素材を眺める・Today 画面を開く・画像ダイアログをキャンセルする、では消費しません。移動・拡大縮小・回転・剥がす・貼り直しは何度でも。
 - 日付はローカル時間の 0:00 で切り替わります(起動したままでも、30秒以内に検知)。
+
+### Cutting Mat(写真 → ステッカー)
+
+Today の **Create**、またはデスクトップへの画像ドロップで開きます。**Original → Cutout → 完成**の3ペインです。
+
+| 操作 | 内容 |
+|---|---|
+| (自動) | 背景除去 → 小さなゴミを消す → 穴を埋める → 輪郭を滑らかに → 丸いフチ(はさみで切ったように、狭い隙間は橋渡しされる) |
+| **Material** | 獲得済みの素材から選ぶ。Matte(白い紙)/ Kraft(茶色い紙・くすんだ印刷)/ Holographic(白いリング+レインボーの膜・ラメ) |
+| **Cutout adjust** | Tight ↔ Loose。切り抜きの厳しさ(動かすと即座に更新) |
+| **Fix** | 中央のペインに **Erase / Restore** のブラシで描いて直す(Photoshop 的な編集機能はこれだけ)。Reset で全部戻す |
+| Make this Peta | フル解像度で仕上げて、デスクトップに貼り、今日の枠を使う |
+
+- 元から**透明な背景の PNG**は、モデルを使わずにそのまま使います(フチと素材だけ付きます)。
+- スマホ写真の**向き(EXIF)**は自動で直します。
+- 背景除去は**同梱の u2netp(4.5MB)**を純Rust(tract)で実行します。**初回の解析に 1〜3 秒**かかります(Mac の方が速いはずです)。
+  大きいモデル(silueta など)は `PETA_MODEL=silueta` で切り替えられます。細い部分に強いですが数倍遅いです → [src-tauri/models/README.md](src-tauri/models/README.md)。
+- **Holographic の光沢**はデスクトップ上でも出ます。ステッカーの位置と角度で反射の帯が変わり、動かすとスッと滑ります(静止中はアニメーションなし)。
 
 ### 編集モードの操作
 
@@ -103,15 +123,21 @@ src/                 フロントエンド(ビルド不要の素のJS)
   placement.js         座標計算(純粋関数。tests/ で単体テスト)
   main.js / style.css  レイヤー描画と編集モード
   today.html/js/css    Today 画面(機能するプレースホルダー)
+  creator.html/js/css  Cutting Mat(機能するプレースホルダー)
 src-tauri/crates/core/ peta-core: OS・UIに依存しない中核(Linuxでも cargo test できる)
   db.rs                SQLite(stickers / provenance / placements)
   library.rs           DB + 画像ファイルの管理
-  image_import.rs      画像の取り込み(余白トリミング・縮小・PNG化)
+  image_import.rs      画像の取り込み(EXIF向き・余白トリミング・縮小・PNG化)
+  segment.rs           背景除去(ONNX モデルを tract で実行)
+  cutout.rs            マスクの道具(エッジ吸着・ゴミ取り・穴埋め・距離場・ダイカット輪郭)
+  sticker.rs           素材の描画(Matte / Kraft / Holographic)
+  creator.rs           Cutting Mat のパイプラインとセッション(ブラシ補正・半解像度プレビュー)
   daily.rs             Daily Slot(AVAILABLE→SELECTING→CONFIRMED→USED)
   materials.rs         素材カタログ(Matte / Kraft / Holographic)と抽選
 src-tauri/crates/core/ の daily.rs / materials.rs: 1日1枚のルールと素材カタログ(時計を外から渡せるのでテスト可能)
 src-tauri/src/
   today.rs             Today の状態・コマンド・ウィンドウ・日付変更の監視
+  creator.rs           Cutting Mat のウィンドウとコマンド(確定すると保存・貼り付け・今日の枠を消費)
   layers.rs            ディスプレイごとの透明レイヤー生成・再同期
   store.rs             ライブラリの所有、初回起動、旧JSONの移行、取り込み
   tray.rs              メニューバー

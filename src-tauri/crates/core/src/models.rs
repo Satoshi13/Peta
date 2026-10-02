@@ -98,6 +98,7 @@ pub struct NewSticker {
     pub creator_id: Option<String>,
     pub original_asset_path: String,
     pub rendered_asset_path: String,
+    pub mask_asset_path: Option<String>,
     pub material_id: Option<String>,
     pub source_type: SourceType,
     pub aspect: f64,

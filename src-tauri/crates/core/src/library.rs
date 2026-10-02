@@ -64,12 +64,50 @@ impl Library {
             creator_id: creator_id.map(str::to_owned),
             original_asset_path: original_rel,
             rendered_asset_path: rendered_rel,
+            mask_asset_path: None,
             material_id: material_id.map(str::to_owned),
             source_type: SourceType::Created,
             aspect: processed.aspect(),
         });
         if created.is_err() {
             let _ = fs::remove_dir_all(self.assets_dir.join("stickers").join(&id)); // don't leave orphans
+        }
+        created
+    }
+
+    /// Store a sticker made in the Creator (cut out, bordered, material applied).
+    pub fn add_made(
+        &mut self,
+        rendered: &crate::creator::Rendered,
+        original: &[u8],
+        original_ext: &str,
+        creator_id: Option<&str>,
+        material_id: &str,
+    ) -> Result<Sticker> {
+        let id = loop {
+            let id = new_sticker_id();
+            if !self.db.sticker_id_exists(&id)? {
+                break id;
+            }
+        };
+        let original_rel = format!("stickers/{id}/original.{original_ext}");
+        let rendered_rel = format!("stickers/{id}/rendered.png");
+        let mask_rel = format!("stickers/{id}/mask.png");
+        self.write_asset(&original_rel, original)?;
+        self.write_asset(&rendered_rel, &rendered.sticker_png)?;
+        self.write_asset(&mask_rel, &rendered.mask_png)?;
+        let created = self.db.create_sticker(NewSticker {
+            id: id.clone(),
+            creator_id: creator_id.map(str::to_owned),
+            original_asset_path: original_rel,
+            rendered_asset_path: rendered_rel,
+            mask_asset_path: Some(mask_rel),
+            material_id: Some(material_id.to_owned()),
+            source_type: SourceType::Created,
+            aspect: rendered.aspect(),
+        });
+        if created.is_err() {
+            let _ = fs::remove_dir_all(self.assets_dir.join("stickers").join(&id));
         }
         created
     }

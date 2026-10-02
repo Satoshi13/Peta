@@ -121,6 +121,7 @@ mod tests {
             creator_id: None,
             original_asset_path: "o".into(),
             rendered_asset_path: "r".into(),
+            mask_asset_path: None,
             material_id: None,
             source_type: SourceType::Created,
             aspect: 1.0,

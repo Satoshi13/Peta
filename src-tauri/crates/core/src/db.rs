@@ -155,8 +155,8 @@ impl Database {
 
         tx.execute(
             "INSERT INTO stickers (id, creator_id, created_at, original_asset_path, rendered_asset_path,
-                                   material_id, original_number, source_type, aspect)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                                   mask_asset_path, material_id, original_number, source_type, aspect)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?10, ?6, ?7, ?8, ?9)",
             params![
                 new.id,
                 new.creator_id,
@@ -167,6 +167,7 @@ impl Database {
                 original_number,
                 new.source_type.as_str(),
                 new.aspect,
+                new.mask_asset_path,
             ],
         )?;
         tx.execute(
@@ -219,6 +220,14 @@ impl Database {
             })?
             .collect::<std::result::Result<_, _>>()?;
         Ok(Some(sticker))
+    }
+
+    pub fn material_of(&self, id: &str) -> Result<Option<String>> {
+        Ok(self
+            .conn
+            .query_row("SELECT material_id FROM stickers WHERE id = ?1", [id], |r| r.get::<_, Option<String>>(0))
+            .optional()?
+            .flatten())
     }
 
     pub fn rendered_asset_path(&self, id: &str) -> Result<Option<String>> {
@@ -410,6 +419,7 @@ mod tests {
             creator_id: Some("me".into()),
             original_asset_path: format!("stickers/{id}/original.png"),
             rendered_asset_path: format!("stickers/{id}/rendered.png"),
+            mask_asset_path: None,
             material_id: None,
             source_type: source,
             aspect: 0.8,

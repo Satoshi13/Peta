@@ -2,6 +2,6 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "layer",
   "description": "Desktop sticker layers (one transparent window per display) and the Today window",
-  "windows": ["layer-*", "today"],
+  "windows": ["layer-*", "today", "creator"],
   "permissions": ["core:default"]
 }

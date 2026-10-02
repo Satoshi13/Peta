@@ -85,6 +85,17 @@ function render(node) {
   const k = box.w / node.baseW;
   node.el.style.transform =
     `translate3d(${box.cx - node.baseW / 2}px, ${box.cy - node.baseH / 2}px, 0) rotate(${box.rotation}deg) scale(${k})`;
+  if (node.el.dataset.material === "holographic") setSheen(node, box);
+}
+
+/** Holographic: the reflection band depends on where the sticker sits and how it is turned, like a fixed
+ *  light on a real foil. Static at rest (no animation = no idle cost); it slides as you move or turn it. */
+function setSheen(node, box) {
+  const { w, h } = layerSize();
+  const s = node.el.style;
+  s.setProperty("--sx", `${(box.cx / w) * 100}%`);
+  s.setProperty("--sy", `${(box.cy / h) * 100}%`);
+  s.setProperty("--sa", `${115 - box.rotation}deg`);
 }
 
 function scheduleRender(node) {
@@ -108,6 +119,8 @@ async function addSticker(placement) {
   const { img, mask, url } = asset;
   const el = document.createElement("div");
   el.className = "sticker";
+  if (placement.materialId) el.dataset.material = placement.materialId;
+  el.style.setProperty("--mask", `url(${url})`);
   el.innerHTML = `<div class="body"><img alt="" draggable="false" src="${url}"></div>`;
   layer.appendChild(el);
   const node = {

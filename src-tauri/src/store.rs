@@ -3,7 +3,7 @@
 
 use std::{
     fs,
-    path::{Path, PathBuf},
+    path::Path,
     sync::{
         atomic::{AtomicBool, Ordering},
         Mutex, MutexGuard,
@@ -91,23 +91,6 @@ impl Store {
         let sticker = lib.add_created(&processed, bytes, None, None).map_err(|e| e.to_string())?;
         lib.stick_new(&sticker, display_id, rx, ry).map_err(|e| e.to_string())?;
         Ok(sticker)
-    }
-
-    /// Import files; each next one is nudged so a multi-drop fans out instead of stacking exactly.
-    /// Returns how many were stuck down; failures are logged and skipped.
-    pub fn import_paths(&self, paths: &[PathBuf], display_id: &str, rx: f64, ry: f64) -> usize {
-        let mut ok = 0;
-        for (i, path) in paths.iter().enumerate() {
-            let nudge = i as f64 * 0.03;
-            let result = fs::read(path)
-                .map_err(|e| e.to_string())
-                .and_then(|bytes| self.import_bytes(&bytes, display_id, rx + nudge, ry + nudge));
-            match result {
-                Ok(_) => ok += 1,
-                Err(e) => eprintln!("[peta] could not import {}: {e}", path.display()),
-            }
-        }
-        ok
     }
 }
 

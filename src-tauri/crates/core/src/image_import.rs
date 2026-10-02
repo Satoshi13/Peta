@@ -3,7 +3,7 @@
 
 use std::io::Cursor;
 
-use image::{imageops::FilterType, ImageFormat, RgbaImage};
+use image::{imageops::FilterType, DynamicImage, ImageDecoder, ImageFormat, ImageReader, RgbaImage};
 
 use crate::error::{Error, Result};
 
@@ -27,15 +27,25 @@ impl Processed {
     }
 }
 
-pub fn process_image(bytes: &[u8]) -> Result<Processed> {
+/// Decode PNG / JPEG / WebP, applying the EXIF orientation (phone photos are often stored sideways).
+/// Returns the pixels and the extension to store the untouched original under.
+pub fn decode_oriented(bytes: &[u8]) -> Result<(RgbaImage, &'static str)> {
     let format = image::guess_format(bytes).map_err(|_| Error::Image("not a supported image file".into()))?;
-    let original_ext = match format {
+    let ext = match format {
         ImageFormat::Png => "png",
         ImageFormat::Jpeg => "jpg",
         ImageFormat::WebP => "webp",
         _ => return Err(Error::Image("only PNG, JPEG and WebP are supported".into())),
     };
-    let mut img = image::load_from_memory_with_format(bytes, format)?.to_rgba8();
+    let mut decoder = ImageReader::with_format(Cursor::new(bytes), format).into_decoder()?;
+    let orientation = decoder.orientation()?;
+    let mut img = DynamicImage::from_decoder(decoder)?;
+    img.apply_orientation(orientation);
+    Ok((img.to_rgba8(), ext))
+}
+
+pub fn process_image(bytes: &[u8]) -> Result<Processed> {
+    let (mut img, original_ext) = decode_oriented(bytes)?;
 
     let (x0, y0, x1, y1) = opaque_bounds(&img).ok_or_else(|| Error::Image("the image is fully transparent".into()))?;
     if (x0, y0, x1, y1) != (0, 0, img.width(), img.height()) {
@@ -110,6 +120,33 @@ mod tests {
         let img = RgbaImage::from_pixel(64, 32, Rgba([1, 2, 3, 255]));
         let p = process_image(&png_of(&img)).unwrap();
         assert_eq!((p.width, p.height), (64, 32));
+    }
+
+    /// A JPEG whose EXIF says "rotate 90° clockwise to display" (orientation 6), as phones write them.
+    fn jpeg_with_exif_orientation(w: u32, h: u32, orientation: u16) -> Vec<u8> {
+        let img = image::RgbImage::from_pixel(w, h, image::Rgb([200, 30, 30]));
+        let mut jpeg = Vec::new();
+        img.write_to(&mut Cursor::new(&mut jpeg), ImageFormat::Jpeg).unwrap();
+        let mut tiff = vec![b'M', b'M', 0, 42, 0, 0, 0, 8, 0, 1]; // big-endian, IFD at 8, one entry
+        tiff.extend_from_slice(&[0x01, 0x12, 0, 3, 0, 0, 0, 1]); // tag Orientation, SHORT, count 1
+        tiff.extend_from_slice(&orientation.to_be_bytes());
+        tiff.extend_from_slice(&[0, 0, 0, 0, 0, 0]); // pad value field + next IFD = 0
+        let mut app1 = b"Exif\0\0".to_vec();
+        app1.extend_from_slice(&tiff);
+        let len = (app1.len() + 2) as u16;
+        let mut out = vec![0xFF, 0xD8, 0xFF, 0xE1];
+        out.extend_from_slice(&len.to_be_bytes());
+        out.extend_from_slice(&app1);
+        out.extend_from_slice(&jpeg[2..]); // everything after SOI
+        out
+    }
+
+    #[test]
+    fn exif_orientation_is_applied() {
+        let upright = process_image(&jpeg_with_exif_orientation(60, 40, 1)).unwrap();
+        assert_eq!((upright.width, upright.height), (60, 40));
+        let sideways = process_image(&jpeg_with_exif_orientation(60, 40, 6)).unwrap();
+        assert_eq!((sideways.width, sideways.height), (40, 60), "rotated to display orientation");
     }
 
     #[test]

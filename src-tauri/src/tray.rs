@@ -1,6 +1,5 @@
 //! Menu bar / system tray entry point (spec §52-53). Only what exists so far is listed.
 
-use std::path::PathBuf;
 use std::thread;
 
 use tauri::{
@@ -28,7 +27,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
 
     // Developer tools exist only in debug builds. They bypass or bend the daily rule on purpose.
     let dev: Option<Submenu<Wry>> = if cfg!(debug_assertions) {
-        let add_image = MenuItem::with_id(app, "dev_add_image", "Add Image… (ignores daily rule)", true, None::<&str>)?;
+        let add_image = MenuItem::with_id(app, "dev_add_image", "Cut Out Image… (ignores daily rule)", true, None::<&str>)?;
         let add_sample = MenuItem::with_id(app, "dev_add_sample", "Add Sample Cat (ignores daily rule)", true, None::<&str>)?;
         let next_day = MenuItem::with_id(app, "dev_next_day", "Next Day (+1 day)", true, None::<&str>)?;
         let reset_today = MenuItem::with_id(app, "dev_reset_today", "Reset Today", true, None::<&str>)?;
@@ -78,10 +77,10 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
                     .dialog()
                     .file()
                     .add_filter("Images", &["png", "jpg", "jpeg", "webp"])
-                    .pick_files(move |picked| {
-                        let Some(files) = picked else { return };
-                        let paths: Vec<PathBuf> = files.into_iter().filter_map(|f| f.into_path().ok()).collect();
-                        today::dev_import_paths(&app, &paths);
+                    .pick_file(move |picked| {
+                        if let Some(path) = picked.and_then(|f| f.into_path().ok()) {
+                            today::dev_open_image(&app, &path);
+                        }
                     });
             }
             "dev_add_sample" => {

@@ -28,18 +28,47 @@ Phase 2 時点。**機能・状態遷移・文言・データの流れは実装�
 
 素材のバッジ(`.badge[data-rarity]`)は CSS だけの仮表現です。`common / uncommon / rare / special / archive`。
 
+## Cutting Mat(`src/creator.html`)
+
+Phase 3 で**機能として実装済み**。見た目だけプレースホルダーです。
+
+| `data-art` | どこ | 欲しいもの |
+|---|---|---|
+| `cutting-mat`(`#mat`) | 3ペインが載る作業台 | カッティングマット(グリッド、柔らかい緑のラバーマット等)。**実写の道具は描かない**(NG 2)。平面的なデジタルUIとして |
+| `cutting-progress`(`#loading`) | 背景除去の待ち時間(1〜3秒) | 静かな待機の演出。「切っている」感じ |
+
+- 3ペイン(Original / Cutout / Material preview)・素材チップ・スライダー・ブラシの**構造と ID は維持**してください(`creator.js` が参照)。
+- ステッカーの**中身の絵**(切り抜き・フチ・素材の質感)は **Rust が生成**します(`peta-core` の `sticker.rs`)。アートで置き換えるものではありません。
+  素材ごとの追加の見た目(紙の繊維、ホログラムの質感の調整)は、素材 recipe(`materials.rs`)のパラメータで変えられます。
+- 「Make this Peta」の後の演出(**印刷 → 掴む → 貼る**)は Phase 4。今は押した瞬間にデスクトップへ貼られます。
+
+### Cutting Mat のコマンド(UI が使うもの)
+
+| コマンド | 説明 |
+|---|---|
+| `creator_info` | `{ phase: "loading"\|"ready"\|"failed", error?, width, height, hadAlpha, countsForToday, materials, defaultMaterial, defaultStrength }` |
+| `creator_original` | 元画像(JPEG の生バイト) |
+| `creator_render({ materialId, strength, preview })` | 生バイト。先頭4バイト(BE)= JSON長、JSON `{ stickerLen, cutoutLen, width, height, coverage }`、完成PNG、切り抜きPNG |
+| `creator_stroke({ points, radius, restore })` | ブラシ。`points` は画像の幅・高さに対する 0..1、`radius` は幅に対する比 |
+| `creator_clear_edits` / `creator_cancel` / `creator_finish({ materialId, strength })` | リセット / 取りやめ(何も消費しない)/ 確定 |
+| イベント `creator-changed` | 状態が変わった(`creator_info` を取り直す) |
+
+## デスクトップ上のステッカー(素材の見た目)
+
+- `.sticker[data-material="holographic"]` に、ステッカーの形で切り抜かれた反射の帯(`::after`、`mask-image`)が重なる。
+  帯の位置は CSS 変数 `--sx / --sy / --sa`(位置と角度から計算)。**静止中はアニメーションなし**(負荷を抑えるため)。
+  アートで反射をリッチにする場合も、**常時アニメーションは避ける**(§57)。
+
 ## まだ存在しない演出(Phase 4 以降)
 
 画像生成・アニメーションが必要で、**意図的に未着手**です。
 
 - **デスクトップに封筒が届く**(§35-36, §3.4)。今は「メニューバーの ● 表示」で代用している。
   → デスクトップレイヤー上に小さな封筒を出す案。クリックで Today を開く、など。
-- **Cutting Mat**(切り抜きの作業台: Original → Cutout → Material Preview)(§25)
 - **画面端から印刷される Print アニメーション**(§27)。実在するプリンターは描かない。抽象的な「印刷口」。
 - **Grab → Drag → Paste の「ペタッ」**(§28-29)。※ 掴んで貼る基本操作は実装済み。印刷から貼るまでの導線は未。
 - **ステッカーの裏面**(ORIGINAL / Received の来歴表示)(§30)と**裏返す動き**
-- **Material の見た目そのもの**(Holographic の GPU 反射、Kraft の紙繊維、Matte の質感)(§57)。
-  今は素材 ID を記録するだけで、ステッカーの見た目はまだ変わらない。**Phase 3 の中心。**
+- **Holographic の本格的な GPU 反射**(カーソル・角度・仮想光源で変わる)(§57)。今は CSS の帯による簡易表現。
 - 封筒の開封・Pack 開封・Peel(剥がす)の音(§56)
 - 剥がす動作の本物の「めくれ」(今は平面が辺を軸に持ち上がる近似。曲面の描画が要る)
 

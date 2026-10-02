@@ -28,6 +28,15 @@ html, body {
 /* Picked up: slightly larger. The (expensive) shadow filter is dropped while it's in the hand. */
 .sticker.lifted .body { transform: scale(1.04); filter: none; }
 
+/* Holographic foil: a soft reflection band, clipped to the sticker's own shape. */
+.sticker[data-material="holographic"] .body { position: relative; }
+.sticker[data-material="holographic"] .body::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light;
+  -webkit-mask-image: var(--mask); mask-image: var(--mask); -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  background: linear-gradient(var(--sa, 115deg), transparent 20%, rgba(255, 255, 255, 0) 36%, rgba(255, 255, 255, 0.85) 48%, rgba(180, 225, 255, 0.55) 53%, transparent 68%);
+  background-size: 260% 260%; background-position: var(--sx, 30%) var(--sy, 30%);
+}
+
 /* Peeling: the sticker is half off the surface; no transition, no shadow filter. */
 .sticker.peeling .body { transition: none; filter: none; }
 /* the lifted sticker hovers over the surface: its (projected) shape casts a soft shadow */
