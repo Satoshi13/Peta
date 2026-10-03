@@ -1,5 +1,5 @@
-//! Today: the Daily Slot as the app sees it (spec §11-15).
-//! Rules live in `peta_core::daily`; this module owns the clock, the Today window and the events.
+//! Today: one material envelope per local day, with unlimited sticker creation.
+//! Rules live in `peta_core::daily`; this module owns the clock, the one-window Today route and the events.
 
 use std::{
     path::PathBuf,
@@ -23,9 +23,6 @@ use tauri_plugin_dialog::DialogExt;
 use crate::{creator, layers::Layers, store::Store, tray};
 
 pub const TODAY_LABEL: &str = crate::app_window::APP_LABEL;
-/// Error string the UI recognises: today's new Peta has already been confirmed.
-pub const ALREADY_USED: &str = "already_used_today";
-
 /// Where a Peta made through the Today screen lands until the Print -> Grab -> Paste flow exists (Phase 4).
 pub const DEFAULT_SPOT: (f64, f64) = (0.5, 0.45);
 
@@ -88,7 +85,7 @@ fn build_status(app: &AppHandle, record: &DailyRecord, db: &Database) -> DailySt
         material_opened: opened,
         material: if opened { material_view(db, &record.material_id) } else { None },
         slot,
-        can_create: slot.can_add_new(),
+        can_create: true,
         sticker_id: record.sticker_id.clone(),
         unlocked,
     }
@@ -120,23 +117,17 @@ pub fn open_window(app: &AppHandle) -> tauri::Result<()> {
 // ---- the actions ----
 
 /// Use a sticker from the collection (peeled off, or never stuck) as today's Peta.
-pub fn stick_from_collection(app: &AppHandle, sticker_id: &str, display_id: &str) -> Result<(), String> {
+pub fn stick_from_collection(app: &AppHandle, sticker_id: &str, _display_id: &str) -> Result<(), String> {
     let date = app.state::<Today>().date();
     let store = app.state::<Store>();
     {
         let mut lib = store.lock();
-        let record = daily::ensure_today(lib.db_mut(), &date, random_unit()).map_err(|e| e.to_string())?;
-        if !record.slot(false).can_add_new() {
-            return Err(ALREADY_USED.into());
-        }
-        let sticker = lib
+        let _sticker = lib
             .db()
             .sticker(sticker_id)
             .map_err(|e| e.to_string())?
             .ok_or_else(|| format!("unknown sticker {sticker_id}"))?;
-        lib.stick_new(&sticker, display_id, DEFAULT_SPOT.0, DEFAULT_SPOT.1).map_err(|e| e.to_string())?;
         daily::confirm(lib.db_mut(), &date, sticker_id, SourceType::Collection, random_unit()).map_err(|e| e.to_string())?;
-        daily::mark_used(lib.db_mut(), &date).map_err(|e| e.to_string())?;
     }
     announce(app);
     Ok(())
@@ -169,9 +160,6 @@ pub async fn daily_create(
     layers: State<'_, Layers>,
     material_id: Option<String>,
 ) -> Result<DailyStatus, String> {
-    if !status(&app)?.can_create {
-        return Err(ALREADY_USED.into());
-    }
     let picked = app
         .dialog()
         .file()

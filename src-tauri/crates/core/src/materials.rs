@@ -18,9 +18,9 @@ impl Rarity {
     /// Rarity is about how hard it is to get — never about power (spec §20).
     pub fn draw_weight(self) -> f64 {
         match self {
-            Rarity::Common => 60.0,
-            Rarity::Uncommon => 30.0,
-            Rarity::Rare => 10.0,
+            Rarity::Common => 50.0,
+            Rarity::Uncommon => 32.0,
+            Rarity::Rare => 18.0,
             Rarity::Special | Rarity::Archive => 0.0,
         }
     }
@@ -216,12 +216,12 @@ mod tests {
 
     #[test]
     fn draw_follows_rarity_weights() {
-        // weights: matte 60, kraft 30, holographic 10 (of 100)
+        // Prototype weights: matte 50, kraft 32, holographic 18.
         assert_eq!(draw(0.0, false), "matte");
-        assert_eq!(draw(0.59, false), "matte");
-        assert_eq!(draw(0.61, false), "kraft");
-        assert_eq!(draw(0.89, false), "kraft");
-        assert_eq!(draw(0.91, false), "holographic");
+        assert_eq!(draw(0.49, false), "matte");
+        assert_eq!(draw(0.51, false), "kraft");
+        assert_eq!(draw(0.81, false), "kraft");
+        assert_eq!(draw(0.83, false), "holographic");
         assert_eq!(draw(1.0, false), "holographic"); // clamped
     }
 
@@ -231,8 +231,8 @@ mod tests {
         for i in 0..1000 {
             *counts.entry(draw(i as f64 / 1000.0, false)).or_insert(0) += 1;
         }
-        assert_eq!(counts["matte"], 600);
-        assert_eq!(counts["kraft"], 300);
-        assert_eq!(counts["holographic"], 100);
+        assert_eq!(counts["matte"], 500);
+        assert_eq!(counts["kraft"], 320);
+        assert_eq!(counts["holographic"], 180);
     }
 }

@@ -61,3 +61,14 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 - Today was recaptured through tear/pull/Keep in both shells, preserving the expanded scene until the card's 640ms flight into the tray finishes.
 - Full eight-page audit at both sizes/both shells: 0 actionable issues; raw paper-art false positives remain documented. Placement tests: 13 passed. Physical audio output and macOS native behavior cannot be verified on this Linux capture host.
 - Remaining visible differences are the real fixture's stock/history/sticker identities, platform sans/font glyph metrics, and Rust's real cutout/material renderer versus the reference canvas renderer. Missing sticky-note/notebook/tag art retains the original CSS with `TODO(art)`.
+
+
+## Slice 8
+
+- Rust now permits unlimited Create/Book reprints, bounded only by selected material stock; Matte never runs out. Daily material remains one envelope. Welcome has its own local-date ledger; Market packs and Gifts have no daily sticker quota and consume no materials.
+- Schema v7 adds a durable FIFO print queue, complete per-day Book entries, and the separate Welcome ledger. It migrates pending v6 confirmations (including previous days), Book history and opened Welcome dates without resetting ownership, material stock, sticker numbering or gift provenance. Prototype material draw weights are 50/32/18.
+- `slice-08-{studio,desk}-11-packs-shelf-{before,used}.jpg` compares the unchanged golden with the real native shelf before/after Welcome's allowance is claimed. Counts and disabled states show actual Rust data, so the used state intentionally differs from the unused golden.
+- `slice-08-rules.json`: one daily material; two Matte creations without cost; Kraft/Holographic creations consume one each; exhausted Kraft is refused; two Market openings; Welcome once after those other operations; two full Gift wax/pull/reveal/Later ceremonies; nine retained print jobs/Book entries; two native mouse FIFO pastes; seven pending prints and Welcome's used allowance survive a native process restart. A received sticker reprinted from Book keeps its received presentation.
+- Final workspace Rust tests: **83 passed** (including migration, FIFO/restart/day-roll, independent quotas and existing cutout/gift/material/placement behavior). Placement JS tests: **13 passed**. Native debug build passed without warnings. Final all-page/two-size/two-shell audit: **0 actionable issues**, with only the unchanged paper-button artwork false positives.
+
+To reproduce the rule regression, seed a **fresh** disposable directory with `port-fixture.py`, build/run the native debug binary using that directory as `XDG_DATA_HOME`, then run `python3 scripts/port-verify-rules.py`. Restart the native process using the same directory and run `python3 scripts/port-verify-rules.py restart`. This test does not reset real user data or mock Rust IPC.

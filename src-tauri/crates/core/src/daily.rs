@@ -1,13 +1,6 @@
-//! The Daily Slot (spec §11-15): one new Peta per day.
-//!
-//!   AVAILABLE -> SELECTING -> CONFIRMED -> USED
-//!
-//! Only CONFIRMED is the point of no return. Looking at the material, picking an image or
-//! previewing never consumes the slot. SELECTING is a UI state (the Today screen is open) and
-//! is not stored; AVAILABLE / CONFIRMED / USED are derived from the stored timestamps.
-//!
-//! Dates are plain local `YYYY-MM-DD` strings; every function takes `today` explicitly so the
-//! clock can be injected (tests, and the developer "next day" switch).
+//! One material envelope per local day. Sticker creation is unlimited subject to material stock.
+//! Legacy DailyRecord/SlotState fields remain for storage/API compatibility; pending prints and
+//! Welcome's separate daily allowance live in the database's v7 tables.
 
 use serde::{Deserialize, Serialize};
 
@@ -42,7 +35,7 @@ pub enum SlotState {
 impl SlotState {
     /// Can today's new Peta still be chosen?
     pub fn can_add_new(self) -> bool {
-        matches!(self, SlotState::Available | SlotState::Selecting)
+        true // Creation is limited by material stock, never by another sticker made today.
     }
 }
 
@@ -98,12 +91,9 @@ pub fn open_material(db: &mut Database, today: &str, roll: f64) -> Result<(Daily
     Ok((db.daily_get(today)?.expect("just updated"), newly))
 }
 
-/// "Today's Peta, confirmed." The point of no return. Fails with `AlreadyUsedToday` on the second try.
+/// Keep this sticker in the durable print queue and Book history. No daily sticker quota.
 pub fn confirm(db: &mut Database, today: &str, sticker_id: &str, source: SourceType, roll: f64) -> Result<DailyRecord> {
-    let record = ensure_today(db, today, roll)?;
-    if !record.slot(false).can_add_new() {
-        return Err(Error::AlreadyUsedToday);
-    }
+    ensure_today(db, today, roll)?;
     db.daily_set_confirmed(today, sticker_id, source, &now())?;
     Ok(db.daily_get(today)?.expect("just updated"))
 }
@@ -113,6 +103,7 @@ pub fn mark_used(db: &mut Database, today: &str) -> Result<DailyRecord> {
     let record = db.daily_get(today)?.ok_or_else(|| Error::Invalid("no daily record for today".into()))?;
     match record.slot(false) {
         SlotState::Confirmed => {
+            if let Some(id)=record.sticker_id.as_deref() { db.finish_print(id)?; }
             db.daily_set_used(today, &now())?;
             Ok(db.daily_get(today)?.expect("just updated"))
         }
@@ -241,24 +232,16 @@ mod tests {
     }
 
     #[test]
-    fn only_one_new_peta_per_day() {
-        let mut db = db_with_sticker("A");
-        let r = confirm(&mut db, "2026-10-01", "A", SourceType::Created, 0.0).unwrap();
-        assert_eq!(r.slot(false), SlotState::Confirmed);
-        assert!(!r.slot(true).can_add_new()); // confirmed beats "selecting"
-        assert!(matches!(
-            confirm(&mut db, "2026-10-01", "A", SourceType::Collection, 0.0),
-            Err(Error::AlreadyUsedToday)
-        ));
-        assert_eq!(mark_used(&mut db, "2026-10-01").unwrap().slot(false), SlotState::Used);
-        assert!(matches!(
-            confirm(&mut db, "2026-10-01", "A", SourceType::Created, 0.0),
-            Err(Error::AlreadyUsedToday)
-        ));
-        // marking used twice is harmless
-        assert_eq!(mark_used(&mut db, "2026-10-01").unwrap().slot(false), SlotState::Used);
-        // the next day it works again
-        assert!(confirm(&mut db, "2026-10-02", "A", SourceType::Collection, 0.7).is_ok());
+    fn many_new_petas_per_day_and_reprints_are_allowed() {
+        let mut db=db_with_sticker("A");
+        for _ in 0..3 {
+            let r=confirm(&mut db,"2026-10-01","A",SourceType::Created,0.0).unwrap();
+            assert!(r.slot(false).can_add_new());
+            assert_eq!(db.next_print().unwrap().as_deref(),Some("A"));
+            mark_used(&mut db,"2026-10-01").unwrap();
+            assert!(db.next_print().unwrap().is_none());
+        }
+        confirm(&mut db,"2026-10-01","A",SourceType::Collection,0.0).unwrap();
     }
 
     #[test]

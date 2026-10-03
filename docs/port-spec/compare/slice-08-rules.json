@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-03",
+  "oneMaterialPerDay": true,
+  "unlimitedMatte": true,
+  "made": [
+    "PETA-XKQS-KYZB",
+    "PETA-H0YZ-EWG7",
+    "PETA-YPXP-0D6Y",
+    "PETA-MEWR-8TVQ"
+  ],
+  "finiteStockEnforced": true,
+  "marketTwice": [
+    {
+      "packTitle": "Coffee Club",
+      "remaining": 5,
+      "stickerId": "PETA-XKNJ-TVEV"
+    },
+    {
+      "packTitle": "Coffee Club",
+      "remaining": 4,
+      "stickerId": "PETA-K10B-ZAHD"
+    }
+  ],
+  "welcomeIndependentOnce": true,
+  "giftsTwice": [
+    "GIFT-PORT-NAO",
+    "GIFT-PORT-YUKI"
+  ],
+  "noPackOrGiftMaterialCost": true,
+  "nativeFifoPasteTwo": true,
+  "allBookHistoryRetained": true,
+  "remainingHead": "PETA-YPXP-0D6Y",
+  "remainingCount": 7,
+  "nativeRestartRetainsQueueAndWelcome": true,
+  "nativeBookAndReceivedReprint": true
+}

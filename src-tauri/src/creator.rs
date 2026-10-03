@@ -92,9 +92,6 @@ impl Creator {
 /// background and the window is told when it is done. Fails with `already_used_today` if today's Peta
 /// is already made (and this one would count).
 pub fn begin(app: &AppHandle, bytes: Vec<u8>, target: Target) -> Result<(), String> {
-    if target.counts_for_today && !today::status(app)?.can_create {
-        return Err(today::ALREADY_USED.into());
-    }
     let creator = app.state::<Creator>();
     *creator.active.lock().unwrap() = None;
     creator.set_phase(app, Phase::Loading);
@@ -287,7 +284,7 @@ impl History {
     }
 }
 
-/// "Make this Peta": render at full size, keep it in the library, stick it down, spend today's slot.
+/// "Make this Peta": render at full size, keep it in the library, consume one material (except Matte), and enqueue it for printing.
 #[tauri::command]
 pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: Option<f32>) -> Result<(), String> {
     let app2 = app.clone();
@@ -315,12 +312,6 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
     let store = app.state::<Store>();
     {
         let mut lib = store.lock();
-        if target.counts_for_today {
-            let record = daily::ensure_today(lib.db_mut(), &date, random_unit()).map_err(|e| e.to_string())?;
-            if !record.slot(false).can_add_new() {
-                return Err(today::ALREADY_USED.into()); // spent elsewhere while the Cutting Mat was open
-            }
-        }
         if target.counts_for_today && !lib.db().has_material(&material).map_err(|e| e.to_string())? {
             return Err(peta_core::Error::MaterialUnavailable.to_string()); // used up elsewhere while the Cutting Mat was open
         }
@@ -331,7 +322,7 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
         } else {
             // the material is used up by making a sticker with it (plain paper never is)
             lib.db_mut().consume_material(&material).map_err(|e| e.to_string())?;
-            // Confirmed = point of no return. It is Used once it is pasted (print.rs): the Peta is printed first.
+            // Keep every creation in the durable queue and Book; no daily sticker quota.
             daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Created, random_unit()).map_err(|e| e.to_string())?;
         }
     }

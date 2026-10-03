@@ -78,20 +78,13 @@ pub fn unopened_count(app: &AppHandle) -> usize {
     app.state::<Store>().lock().db().gifts_received().map(|g| g.iter().filter(|g| g.opened_at.is_none()).count()).unwrap_or(0)
 }
 
-/// Break the seal: the gift becomes today's Peta (like opening a pack), printed at the slot to be stuck down.
+/// Break the seal: keep this gift in the Book and print queue. No daily limit or material cost.
 #[tauri::command]
 pub async fn gift_open(app: AppHandle, gift_id: String) -> Result<String, String> {
-    if !today::status(&app)?.can_create {
-        return Err(today::ALREADY_USED.into());
-    }
     let date = app.state::<today::Today>().date();
     let sticker_id = {
         let store = app.state::<Store>();
         let mut lib = store.lock();
-        let record = daily::ensure_today(lib.db_mut(), &date, random_unit()).map_err(|e| e.to_string())?;
-        if !record.slot(false).can_add_new() {
-            return Err(today::ALREADY_USED.into());
-        }
         let sticker = gift::open_gift(&mut lib, &gift_id).map_err(|e| e.to_string())?;
         daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Gift, random_unit()).map_err(|e| e.to_string())?;
         sticker.id
