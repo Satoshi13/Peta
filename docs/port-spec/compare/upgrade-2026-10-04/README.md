@@ -11,3 +11,9 @@
 `npm run check:mac` は Apple SDK のない Linux では C/Objective-C 依存のコンパイルに失敗した。README記載の方法で、Cオブジェクトの生成のみを省略する一時CCとインストール済み `aarch64-apple-darwin` Rust標準ライブラリを使った同コマンドでは型検査成功。これは Rust の型検査であり、macOS アプリのリンク・実行成功を意味しない。以降の各項目も同じ条件で確認する。
 
 参考として指定された `ui-proposals/upgrade-preview.html` は対象ブランチに存在しないため、依頼文の仕様と既存UIトークンで実装した。
+
+## 2. 触覚
+
+`haptics.json`: Rustの実コマンドを呼ぶヘルパーを計数し、Bookの剥がし1回、Gift封蝋の連続クリックでも1回、ネイティブマウスによるPrint貼り付け1回、Hapticsオフの層への反映、Soundsオフ／Reduce motionとの独立を確認。ヘルパーの非対応エラーの吸収もテスト済み。実際の触感・編集モードの貼り直し・Force TouchはmacOSチェックリストH1〜H4に残す。
+
+`npm test`: 18件成功。Linux debugビルド、前述のC依存省略条件での `npm run check:mac` 型検査成功。共通ルールの対象ファイル・DB・O1〜O5に変更なし。

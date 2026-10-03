@@ -9,7 +9,7 @@
 
 const MIN_DRAG = 3; // px: let go closer than this to where you grabbed it and it goes back on the sheet
 
-export function pata() { Snd.peta(); }
+export function pata() { Snd.peta(); Haptic.tap("paste"); }
 
 export function initPrint(ctx) {
   const { layer, invoke, listen, info, addSticker, nodes, render, lift, settle, removeNode, layerSize, fromPixels, loadAsset } = ctx;
@@ -154,9 +154,9 @@ export function initPrint(ctx) {
     const id = node.placement.stickerId;
     const { relativeX: x, relativeY: y } = node.placement;
     settle(node, { save: false }); // prototype settle animation
-    pata();
     try {
       await invoke("print_paste", { stickerId: id, x, y, relativeScale:node.placement.relativeScale });
+      pata();
       const {w:tagW,h:tagH}=layerSize(); petaTag(x*tagW,y*tagH);
       const list = await invoke("layer_placements"); // Rust picks the final tilt; take it
       const saved = list.find((p) => p.stickerId === id);

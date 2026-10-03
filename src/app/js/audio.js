@@ -40,3 +40,12 @@ const Snd = {
   feed(steps = 14, span = 2) { for (let i = 0; i < steps; i++) this.noise(i * (span / steps), 0.05, { f: 1500 + (i % 2) * 400, q: 1.2, gain: 0.03 }); },
   crack() { this.noise(0, 0.07, { f: 3000, q: 1.5, gain: 0.1 }); this.tone(0, 420, 0.08, { type: "triangle", gain: 0.05, f2: 180 }); },
 };
+
+// Tactile feedback is independent of sounds and reduced motion; unsupported hardware is silent.
+const Haptic = {
+  on: true,
+  tap(kind) {
+    if (!this.on || !["paste", "peel", "seal"].includes(kind)) return;
+    window.__TAURI__?.core.invoke("haptic_tap", { kind }).catch(() => {});
+  },
+};

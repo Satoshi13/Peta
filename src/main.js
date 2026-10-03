@@ -269,7 +269,7 @@ function lift(node) {
   node.el.classList.add("lifted");
 }
 
-function settle(node, { save = true } = {}) {
+function settle(node, { save = true, haptic = false } = {}) {
   node.live = false;
   node.el.classList.remove("lifted");
   render(node); // commit the final size (single re-raster)
@@ -277,7 +277,7 @@ function settle(node, { save = true } = {}) {
     [{ transform: "scale(1.14)" }, { transform: "scale(.96)", offset: .45 }, { transform: "scale(1.02)", offset: .75 }, { transform: "scale(1)" }],
     { duration: 340, easing: "ease-out" },
   );
-  if (save) persist(node);
+  if (save) persist(node, haptic);
 }
 
 // ---- peel: Option + drag away. The grabbed side lifts around the far edge (a hinge). Pull far
@@ -321,6 +321,7 @@ function peelOff(node, pose, from) {
     removeNode(node);
     try {
       await invoke("peel_sticker", { stickerId: node.placement.stickerId });
+      Haptic.tap("peel");
     } catch (err) {
       console.error("peel_sticker failed", err);
     }
@@ -338,10 +339,11 @@ function pressBack(node, from) {
   };
 }
 
-async function persist(node) {
+async function persist(node, haptic = false) {
   node.placement.placedAt = node.placement.placedAt || new Date().toISOString();
   try {
     await invoke("save_placement", { placement: node.placement });
+    if (haptic) Haptic.tap("paste");
   } catch (err) {
     console.error("save_placement failed", err);
   }
@@ -442,6 +444,7 @@ function endDrag(e) {
   drag.y = e.clientY ?? drag.y;
   applyDrag();
   const { mode, pose } = drag;
+  const dragStart = { x: drag.ox, y: drag.oy };
   drag = null;
   if (layer.hasPointerCapture?.(e.pointerId)) layer.releasePointerCapture(e.pointerId);
   layer.classList.remove("dragging");
@@ -451,7 +454,7 @@ function endDrag(e) {
     if (pose && pose.progress >= PEEL_COMMIT) peelOff(node, pose, from);
     else pressBack(node, from);
   } else {
-    settle(node);
+    settle(node, { haptic: Math.hypot(e.clientX - dragStart.x, e.clientY - dragStart.y) > .5 });
   }
   updateHoverCursor();
 }
@@ -498,11 +501,12 @@ layer.addEventListener("gesturechange", (e) => {
 layer.addEventListener("gestureend", (e) => {
   if (!gest) return;
   e.preventDefault();
-  const { node } = gest;
+  const { node, w, rotation } = gest;
+  const changed = Math.abs(boxOf(node).w - w) > .5 || Math.abs(node.placement.rotation - rotation) > .1;
   gest = null;
   if (node.raf) { cancelAnimationFrame(node.raf); node.raf = 0; }
   stopMeter();
-  settle(node);
+  settle(node, { haptic: changed });
 });
 
 // Delete / Backspace: peel the sticker under the pointer off, upward.

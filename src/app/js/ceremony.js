@@ -183,7 +183,7 @@ const Cer = (() => {
     anim(sc, [{ opacity: 0, transform: "translateY(50px) rotate(-6deg) scale(.88)" }, { opacity: 1, transform: "none" }], { duration: 700, easing: EASE.spring });
     let opened = false, entry = null;
     const crack = async () => {
-      if (opened) return; opened = true; cer.hint(""); Snd.crack();
+      if (opened) return; opened = true; cer.hint(""); Snd.crack(); Haptic.tap("seal");
       wax.classList.add("cracked");
       anim($(".w-l", wax), [{ transform: "none", opacity: 1 }, { transform: "translate(-34px, 70px) rotate(-28deg)", opacity: 0 }], { duration: 760, easing: "cubic-bezier(.3,0,.7,.6)" });
       anim($(".w-r", wax), [{ transform: "none", opacity: 1 }, { transform: "translate(40px, 84px) rotate(32deg)", opacity: 0 }], { duration: 820, easing: "cubic-bezier(.3,0,.7,.6)" });

@@ -76,7 +76,7 @@ async function BackingFront(entry) {
 }
 
 async function peelFromDesk(id) {
-  await Bridge.invoke("peel_sticker", {stickerId:id}); await Bridge.reload();
+  await Bridge.invoke("peel_sticker", {stickerId:id}); Haptic.tap("peel"); await Bridge.reload();
 }
 
 Pages.book = {

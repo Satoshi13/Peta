@@ -15,6 +15,7 @@
     "core:window:allow-start-resize-dragging",
     "core:window:allow-set-size",
     "core:window:allow-set-position",
-    "allow-existing-app-commands"
+    "allow-existing-app-commands",
+    "allow-haptic-tap"
   ]
 }

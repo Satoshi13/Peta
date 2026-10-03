@@ -1,6 +1,6 @@
 // UI preferences are shared by the main shell and the existing transparent desktop layers.
 const layerPrefs = JSON.parse(localStorage.getItem('peta.preferences') || '{}');
-function applyLayerPreferences(p) { document.documentElement.dataset.motion=p.motion||'full'; Snd.on=p.sound??true; window.dispatchEvent(new Event("layer-preferences")); if(reduced()) document.getAnimations().forEach(a=>{if(a.effect?.getTiming().iterations===Infinity)a.cancel();}); }
+function applyLayerPreferences(p) { document.documentElement.dataset.motion=p.motion||'full'; Snd.on=p.sound??true; Haptic.on=p.haptics??true; window.dispatchEvent(new Event("layer-preferences")); if(reduced()) document.getAnimations().forEach(a=>{if(a.effect?.getTiming().iterations===Infinity)a.cancel();}); }
 applyLayerPreferences(layerPrefs);
 window.__TAURI__.event.listen('preferences-changed',e=>applyLayerPreferences(e.payload));
 const nativeAnimate=Element.prototype.animate;

@@ -1,6 +1,6 @@
 /* Rust is the source of truth. S contains only the last command snapshot and UI selections. */
 const prefs = JSON.parse(localStorage.getItem('peta.preferences') || '{}');
-const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
+const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
   name: '', today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], packs: [],
   pending: null, stuckToday: [], packAvailable: false, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
 const Bridge = (() => {
@@ -9,10 +9,10 @@ const Bridge = (() => {
   const windowApi = api.window.getCurrentWindow();
   const assets = new Map();
   const savePreferences = () => {
-    const p = { shell:S.shell, sound:S.sound, motion:S.motion, closeOutside:S.closeOutside };
+    const p = { shell:S.shell, sound:S.sound, haptics:S.haptics, motion:S.motion, closeOutside:S.closeOutside };
     localStorage.setItem('peta.preferences', JSON.stringify(p));
     document.documentElement.dataset.motion = S.motion;
-    Snd.on = S.sound;
+    Snd.on = S.sound; Haptic.on = S.haptics;
     if(S.motion==='reduce') document.getAnimations().forEach(a=>{if(a.effect?.getTiming().iterations===Infinity)a.cancel();});
     api.event.emit('preferences-changed', p);
   };

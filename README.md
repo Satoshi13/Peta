@@ -7,6 +7,10 @@
 (背景除去 → フチ → Matte / Kraft / Holographic の質感)が載っています。Print/Paste の演出と Collection 画面はまだありません。
 画像生成が必要な演出は未着手で、引き継ぎ資料は [docs/ui-handoff.md](docs/ui-handoff.md) にあります。
 
+## ネイティブUIの設定
+
+Settings の Sounds / Haptics / Reduce motion は `peta.preferences` に保存され、開いているデスクトップ層にも通知されます。Haptics は既定オン。Printの貼り付け成功・編集モードで動かして貼り直した成功時に LevelChange(2)、剥がし成功・Giftの封蝋を割った瞬間に Generic(0) を各1回。ドラッグ途中・ホバー・単なるボタン操作では鳴らしません。Sounds と Reduce motion とは独立し、対応トラックパッドのない環境では何も起きません。
+
 ## 動かし方(Mac)
 
 必要なもの: Xcode Command Line Tools、Rust(`rustup`)、Node 20+

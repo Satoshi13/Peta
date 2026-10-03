@@ -96,3 +96,10 @@ Linuxでの実操作結果は [review-05](compare/review-05/README.md) に記録
 各ケースの記録: `ID / OK・NG・未確認 / 手順の差分 / 期待結果 / 実際の結果 / 証拠ファイル`。画像・短い動画を `docs/port-spec/compare/macos/` に置き、機種・OS・解像度・commitを添える。手元の個人データを写さず、テスト素材で再現する。
 
 Book / Market の見た目は `compare/art-03/*.jpg` と元の `golden/*.jpg` の両方に並べる。macOS固有の差、Linuxとの書体差、新規紙素材による差を分けて記録する。オーナーの決定待ちは [open-questions.md](open-questions.md)、素材の不足・未採用は [art-adoption.md](art-adoption.md) に追記する。
+
+## 7. 触覚（2026-10-04）
+
+- [ ] H1: Force TouchトラックパッドでPrint貼り付け／編集貼り直し／Option剥がし／Book Peel／Gift封蝋が各1回。貼り付けLevelChange(2)、剥がし・封蝋Generic(0)の自然さを確認。
+- [ ] H2: SettingsのHapticsオフが主窓・層に反映され、3操作で鳴らない。再起動後も維持。
+- [ ] H3: ドラッグ途中・ホバー・クリックだけ・印刷台紙に戻す・剥がしを戻す場合は鳴らない。
+- [ ] H4: Soundsオフ／Reduce motionでもHapticsオンなら鳴る。トラックパッドのない環境ではエラーなし。

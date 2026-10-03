@@ -9,6 +9,7 @@
     "core:default",
     "allow-set-reflection-active",
     "allow-reflection-status",
-    "allow-existing-app-commands"
+    "allow-existing-app-commands",
+    "allow-haptic-tap"
   ]
 }

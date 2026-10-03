@@ -98,6 +98,12 @@ fn exit_edit_mode(app: AppHandle) {
     layers::set_edit_mode(&app, false);
 }
 
+#[tauri::command]
+fn haptic_tap(app: AppHandle, kind: String) -> Result<(), String> {
+    if !["paste", "peel", "seal"].contains(&kind.as_str()) { return Err("unknown haptic".into()); }
+    app.run_on_main_thread(move || platform::haptic(&kind)).map_err(|e| e.to_string())
+}
+
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -108,6 +114,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             port_capture::port_capture_report,
             port_capture::port_capture_tray,
+            haptic_tap,
             layer_info,
             layers::set_reflection_active,
             layers::reflection_status,

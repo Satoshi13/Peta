@@ -81,3 +81,15 @@ pub fn layer_frame(window: &WebviewWindow) -> Option<Frame> {
     if ns_window.is_null() { return None; }
     Some(unsafe { msg_send![ns_window, frame] })
 }
+
+/// Main thread only. The default performer ignores feedback on unsupported devices.
+pub fn haptic(kind: &str) {
+    let Some(manager) = objc2::runtime::AnyClass::get(c"NSHapticFeedbackManager") else { return };
+    unsafe {
+        let performer: *mut AnyObject = msg_send![manager, defaultPerformer];
+        if !performer.is_null() {
+            let pattern: isize = if kind == "paste" { 2 } else { 0 };
+            let _: () = msg_send![performer, performFeedbackPattern: pattern, performanceTime: 0isize];
+        }
+    }
+}

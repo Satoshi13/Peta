@@ -36,3 +36,28 @@ if sys.argv[1]=='reflection':
     empty=state();assert empty['status']['activeLayers']==0 and not empty['status']['timerRunning']
     time.sleep(.3);assert state()['status']['cursorReads']==empty['status']['cursorReads']
     (out/'reflection.json').write_text(json.dumps(dict(before=before,after=after,outside=outside,controls=controls,reduced=reduced,noHolo=empty,globalMacCursor='not executable on Linux'),indent=2));print('Native reflection: band only, fallback, frame convergence, Reduce motion and zero-Holo stop passed')
+elif sys.argv[1]=='haptics':
+    ev('window.testHaptics=[];const original=Haptic.tap.bind(Haptic);Haptic.tap=kind=>{if(Haptic.on)window.testHaptics.push(kind);original(kind);};return true;')
+    ev('window.testHaptics=[];const original=Haptic.tap.bind(Haptic);Haptic.tap=kind=>{if(Haptic.on)window.testHaptics.push(kind);original(kind);};return true;',layer)
+    ev('S.haptics=true;S.motion="reduce";S.sound=false;Bridge.savePreferences();await Shell.open("settings");return true;');time.sleep(.3)
+    assert ev('return Haptic.on && !Snd.on && document.documentElement.dataset.motion==="reduce";')
+    assert ev('return Haptic.on && !Snd.on && document.documentElement.dataset.motion==="reduce";',layer)
+    ev('await peelFromDesk("PETA-PORT-0011");return true;')
+    assert ev('return window.testHaptics;')==['peel']
+    ev('await Cer.openGift(S.gifts.find(g=>!g.opened));document.querySelector(".wax").click();document.querySelector(".wax").click();return true;');time.sleep(.3)
+    assert ev('return window.testHaptics;')==['peel','seal']
+    wait('document.querySelector(".gsleeve.out")');time.sleep(3)
+    ev('document.querySelector(".cer").remove();Bridge.leaveCeremony();Bridge.busy=false;await Bridge.invoke("print_later");await Bridge.invoke("daily_stick_from_collection",{stickerId:"PETA-PORT-0010"});await Bridge.window.hide();await Bridge.invoke("print_resume");return true;')
+    wait('document.querySelector(".print-sheet.ready")',layer)
+    x,y=ev('const r=document.querySelector(".print-sheet .stk").getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2];',layer)
+    subprocess.run(['xdotool','mousemove',str(round(x)),str(round(y)),'mousedown','1'],check=True);time.sleep(.2)
+    for i in range(1,11):subprocess.run(['xdotool','mousemove',str(round(x+(1100-x)*i/10)),str(round(y+(660-y)*i/10))],check=True);time.sleep(.025)
+    subprocess.run(['xdotool','mouseup','1'],check=True);time.sleep(1)
+    assert ev('return window.testHaptics;',layer)==['paste']
+    ev('S.haptics=false;Bridge.savePreferences();return true;');time.sleep(.3)
+    assert not ev('return Haptic.on;',layer)
+    ev('await peelFromDesk("PETA-PORT-0010");Haptic.tap("seal");return true;')
+    assert ev('return window.testHaptics;')==['peel','seal']
+    (out/'haptics.json').write_text(json.dumps(dict(successfulBookPeelOnce=True,duplicateWaxClickOnce=True,nativeMousePrintPasteOnce=True,offPropagates=True,soundsAndMotionIndependent=True,physicalTrackpad='macOS checklist'),indent=2))
+    ev('S.haptics=true;S.motion="full";Bridge.savePreferences();await Shell.open("settings");return true;')
+    print('Native haptics: paste/peel/seal once, opt-out, and independent settings passed')
