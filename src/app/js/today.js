@@ -1,4 +1,27 @@
 Pages.today = {
+  timer: null,
+  enter() { this.resume(); },
+  leave() { this.suspend(); },
+  suspend() { clearInterval(this.timer); this.timer = null; },
+  resume() {
+    this.suspend();
+    const ticket = $(".envelope-ticket", Shell.current);
+    if (!ticket || S.page !== "today" || !S.windowOpen || document.hidden || document.querySelector(".cer") || S.dayState !== "opened") return;
+    S.envelopeDeadline ??= PetaMath.nextLocalMidnight(Date.now());
+    let labelledMinute = null;
+    const tick = () => {
+      const clock = PetaMath.envelopeClock(Date.now(), S.envelopeDeadline);
+      if (!clock.seconds) {
+        this.suspend(); S.envelopeDeadline = null;
+        Bridge.changed(); // daily_status uses the same native rollover as the 30-second watcher.
+        return false;
+      }
+      $(".envelope-clock", ticket).textContent = clock.text;
+      if (labelledMinute !== clock.minute) { ticket.setAttribute("aria-label", clock.label); labelledMinute = clock.minute; }
+      return true;
+    };
+    if (tick()) this.timer = setInterval(tick, 1000);
+  },
   build() {
     const st = S.dayState, root = h("div.page-in.today", { data: { state: st } });
     root.append(PageHead("Today", fmtDate(S.today, { weekday: "long", month: "long", day: "numeric" }), DateStamp()));
@@ -17,7 +40,7 @@ Pages.today = {
       h("div.t-bottom",
         h("div.t-mat", h("div.tm-card", MatCard(m, 138)),
           h("div.tm-text", h("p.eyebrow", "Today's Material"), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)), h("p.muted", m.recipe), h("p.addnote.hand", "Added to your Material Book"), h("p.stock", stock))),
-        h("div.t-stuck", h("p.eyebrow", "Stuck today"), StuckStrip())));
+        h("div.t-stuck", h("p.eyebrow", "Stuck today"), StuckStrip())), EnvelopeTicket());
   },
 
   /* the opening: envelope -> foil -> card, then the card settles into the tray */
@@ -51,7 +74,7 @@ Pages.today = {
       await anim(fl, [{ transform: "translate(0,0) rotate(-2deg) scale(1)" }, { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) rotate(-2deg) scale(${k})` }], { duration: 640, easing: EASE.inOut });
       fl.remove(); target.style.visibility = ""; Snd.tap(); await Bridge.leaveCeremony();
     } else { res.close(); block.style.opacity = 1; }
-    block.style.opacity = 1; block.getAnimations().forEach((a) => a.cancel()); Bridge.busy = false;
+    block.style.opacity = 1; block.getAnimations().forEach((a) => a.cancel()); Bridge.busy = false; this.resume();
   },
 };
 

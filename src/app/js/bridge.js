@@ -1,7 +1,7 @@
 /* Rust is the source of truth. S contains only the last command snapshot and UI selections. */
 const prefs = JSON.parse(localStorage.getItem('peta.preferences') || '{}');
 const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
-  name: '', today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], packs: [],
+  envelopeDeadline: null, name: '', today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], packs: [],
   pending: null, stuckToday: [], packAvailable: false, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
 const Bridge = (() => {
   const api = window.__TAURI__;
@@ -48,9 +48,11 @@ const Bridge = (() => {
   async function changed() { try { await reload(); Shell.renderNav(); if (!Bridge.busy && !document.querySelector('.cer') && S.page !== 'create') Shell.refresh(); } catch(e) { Shell.toast(String(e)); } }
   function enterCeremony() {
     document.body.dataset.scene='ceremony';
+    if(S.page==='today') Pages.today.suspend();
   }
   function leaveCeremony() {
     delete document.body.dataset.scene;
+    if(S.page==='today') Pages.today.resume();
   }
   async function printAction(cmd, args) {
     // Print changes focus through the native desktop layer, rather than an outside click.

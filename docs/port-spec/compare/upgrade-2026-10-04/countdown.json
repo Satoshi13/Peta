@@ -1,0 +1,26 @@
+{
+  "first": {
+    "label": "Next envelope in 15 hours 24 minutes",
+    "live": null,
+    "text": "15:24:02",
+    "timers": 1
+  },
+  "unopenedHidden": true,
+  "secondsAdvance": true,
+  "noAriaLive": true,
+  "pageLeaveClearsInterval": true,
+  "windowHideClearsInterval": true,
+  "resumeOneInterval": true,
+  "boundaryCallsNativeReloadImmediately": true,
+  "actualMidnightAndDevNextDay": "macOS checklist",
+  "minimizeStops": {
+    "count": 0,
+    "minimized": true,
+    "timer": null
+  },
+  "nativeRestoreResumesOne": {
+    "count": 1,
+    "minimized": false,
+    "timer": 9
+  }
+}

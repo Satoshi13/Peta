@@ -61,3 +61,7 @@ function RevealScene(m) {
     h("i.glow"), img("foilBack", "layer foil-back"), h("div.card-hold", card), img("foilFront", "layer foil-front"), h("i.sparkle"));
 }
 
+
+function EnvelopeTicket() {
+  return h("p.envelope-ticket", { role: "timer", "aria-label": "Next envelope" }, h("span", "Next envelope in "), h("span.envelope-clock", "00:00:00"));
+}

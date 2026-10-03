@@ -154,3 +154,7 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   background: rgba(255, 253, 249, .94); color: var(--ink); font: 600 11px/1.4 var(--sys);
   cursor: pointer; box-shadow: 0 1px 2px rgba(60, 45, 20, .12);
 }
+
+/* The opened daily envelope leaves a small, quiet paper ticket. */
+.envelope-ticket { align-self:center; display:flex; gap:5px; justify-content:center; width:fit-content; max-width:100%; margin:18px auto 0; padding:9px 17px; border:1px dashed #b4ab9b; border-radius:3px; color:var(--muted); background:var(--paper); box-shadow:0 2px 4px #493c2420; font-size:12px; }
+.envelope-clock { color:var(--ink); font-family:var(--type); font-variant-numeric:tabular-nums; white-space:nowrap; }

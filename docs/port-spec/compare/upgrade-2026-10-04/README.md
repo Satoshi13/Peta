@@ -17,3 +17,9 @@
 `haptics.json`: Rustの実コマンドを呼ぶヘルパーを計数し、Bookの剥がし1回、Gift封蝋の連続クリックでも1回、ネイティブマウスによるPrint貼り付け1回、Hapticsオフの層への反映、Soundsオフ／Reduce motionとの独立を確認。ヘルパーの非対応エラーの吸収もテスト済み。実際の触感・編集モードの貼り直し・Force TouchはmacOSチェックリストH1〜H4に残す。
 
 `npm test`: 18件成功。Linux debugビルド、前述のC依存省略条件での `npm run check:mac` 型検査成功。共通ルールの対象ファイル・DB・O1〜O5に変更なし。
+
+## 3. Todayのカウントダウン
+
+`countdown.json`: 未開封は非表示、開封後に秒が進む、aria-liveなし、別ページ／hide／最小化でintervalが0、復帰で1個だけ、境界で既存Rust reloadを即時呼ぶことを実Tauriで確認した。境界検査は札の期限を短縮して同じ処理を通したもので、実際のローカル0時・開発日送りはT2/T3の実機確認を残す。
+
+`npm test`: 20件成功（ローカル0時・端数秒・日付境界・DST23/25時間）。変更JSの構文、Linux debugビルド、C依存省略条件のmacOS Rust型検査成功。共通ルール・DB/schema・日付の定義は維持。

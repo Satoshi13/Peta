@@ -111,6 +111,7 @@ const Shell = (() => {
   /** Rebuild the current page in place (after state changes), no transition. */
   function refresh() {
     if (!current || navigating) return;
+    Pages[S.page]?.leave?.(current);
     const next = build(S.page); const st = current.querySelector(".page-in")?.scrollTop || 0;
     viewport().replaceChildren(next); current = next; Pages[S.page].enter?.(next, { refresh: true });
     const pi = next.querySelector(".page-in"); if (pi) pi.scrollTop = st; renderNav();
@@ -121,11 +122,11 @@ const Shell = (() => {
     win().hidden = false; S.windowOpen = true; renderNav();
     await go(id || S.page, { ...o, instant: true, force: true });
   }
-  async function close() { Pages[S.page]?.suspend?.(); await Bridge.window.hide(); S.windowOpen = false; }
+  async function close() { S.windowOpen = false; Pages[S.page]?.suspend?.(); await Bridge.window.hide(); }
   function initChrome() {
     new ResizeObserver(sizeBookBinding).observe(viewport());
     $("#wc-close").addEventListener("click", close);
-    $("#wc-min").addEventListener("click", () => Bridge.window.minimize());
+    $("#wc-min").addEventListener("click", () => { S.windowOpen = false; Pages[S.page]?.suspend?.(); Bridge.window.minimize(); });
     $("#wc-zoom").addEventListener("click", () => Bridge.window.toggleMaximize());
     $("#titlebar").addEventListener("mousedown", e => { if (e.button === 0 && !e.target.closest("button")) { e.preventDefault(); Bridge.window.startDragging(); } });
     $("#resize-h").addEventListener("mousedown", e => { if (e.button === 0) { e.preventDefault(); Bridge.window.startResizeDragging("SouthEast"); } });

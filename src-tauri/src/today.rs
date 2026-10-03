@@ -136,6 +136,9 @@ pub fn stick_from_collection(app: &AppHandle, sticker_id: &str, _display_id: &st
 
 #[tauri::command]
 pub fn daily_status(app: AppHandle) -> Result<DailyStatus, String> {
+    let today = app.state::<Today>();
+    let changed = *today.last_seen.lock().unwrap() != today.date();
+    if changed { roll_day(&app); }
     status(&app)
 }
 
