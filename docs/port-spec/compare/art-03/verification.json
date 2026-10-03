@@ -1,0 +1,154 @@
+[
+  {
+    "bindingBackground": "url(\"tauri://localhost/art/book/spiral-binding.png\")",
+    "bindingHeight": 0,
+    "detailBackground": null,
+    "height": 700,
+    "oldCoilCount": 0,
+    "page": "book",
+    "paperArt": [
+      "page-gutter",
+      "page-edge-right",
+      "page-edge-bottom",
+      "page-corner-curl"
+    ],
+    "shell": "studio",
+    "width": 1060
+  },
+  {
+    "bindingBackground": "url(\"tauri://localhost/art/book/spiral-binding.png\")",
+    "bindingHeight": 0,
+    "detailBackground": "url(\"tauri://localhost/art/notes/note-sticky-yellow.png\")",
+    "height": 700,
+    "oldCoilCount": 0,
+    "page": "book",
+    "paperArt": [
+      "page-gutter",
+      "page-edge-right",
+      "page-edge-bottom",
+      "page-corner-curl"
+    ],
+    "shell": "studio",
+    "width": 1060,
+    "detailScrollBottomReached": {
+      "maximum": 125,
+      "scrollTop": 125
+    }
+  },
+  {
+    "bindingBackground": null,
+    "detailBackground": null,
+    "height": 700,
+    "oldCoilCount": 0,
+    "page": "market",
+    "paperArt": [],
+    "shell": "studio",
+    "width": 1060
+  },
+  {
+    "bindingBackground": "url(\"tauri://localhost/art/book/spiral-binding.png\")",
+    "bindingHeight": 600,
+    "detailBackground": null,
+    "height": 700,
+    "oldCoilCount": 0,
+    "page": "book",
+    "paperArt": [
+      "page-gutter",
+      "page-edge-right",
+      "page-edge-bottom",
+      "page-corner-curl"
+    ],
+    "shell": "desk",
+    "width": 1060
+  },
+  {
+    "bindingBackground": "url(\"tauri://localhost/art/book/spiral-binding.png\")",
+    "bindingHeight": 600,
+    "detailBackground": "url(\"tauri://localhost/art/notes/note-sticky-yellow.png\")",
+    "height": 700,
+    "oldCoilCount": 0,
+    "page": "book",
+    "paperArt": [
+      "page-gutter",
+      "page-edge-right",
+      "page-edge-bottom",
+      "page-corner-curl"
+    ],
+    "shell": "desk",
+    "width": 1060,
+    "detailScrollBottomReached": {
+      "maximum": 191,
+      "scrollTop": 191
+    }
+  },
+  {
+    "bindingBackground": null,
+    "detailBackground": null,
+    "height": 700,
+    "oldCoilCount": 0,
+    "page": "market",
+    "paperArt": [],
+    "shell": "desk",
+    "width": 1060
+  },
+  {
+    "bindingBackground": "url(\"tauri://localhost/art/book/spiral-binding.png\")",
+    "bindingHeight": 0,
+    "detailBackground": "url(\"tauri://localhost/art/notes/note-sticky-yellow.png\")",
+    "height": 520,
+    "oldCoilCount": 0,
+    "page": "book",
+    "paperArt": [
+      "page-gutter",
+      "page-edge-right",
+      "page-edge-bottom",
+      "page-corner-curl"
+    ],
+    "shell": "studio",
+    "width": 720,
+    "detailScrollBottomReached": {
+      "maximum": 737,
+      "scrollTop": 737
+    }
+  },
+  {
+    "bindingBackground": null,
+    "detailBackground": null,
+    "height": 520,
+    "oldCoilCount": 0,
+    "page": "market",
+    "paperArt": [],
+    "shell": "studio",
+    "width": 720
+  },
+  {
+    "bindingBackground": "url(\"tauri://localhost/art/book/spiral-binding.png\")",
+    "bindingHeight": 375,
+    "detailBackground": "url(\"tauri://localhost/art/notes/note-sticky-yellow.png\")",
+    "height": 520,
+    "oldCoilCount": 0,
+    "page": "book",
+    "paperArt": [
+      "page-gutter",
+      "page-edge-right",
+      "page-edge-bottom",
+      "page-corner-curl"
+    ],
+    "shell": "desk",
+    "width": 720,
+    "detailScrollBottomReached": {
+      "maximum": 783,
+      "scrollTop": 783
+    }
+  },
+  {
+    "bindingBackground": null,
+    "detailBackground": null,
+    "height": 520,
+    "oldCoilCount": 0,
+    "page": "market",
+    "paperArt": [],
+    "shell": "desk",
+    "width": 720
+  }
+]

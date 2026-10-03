@@ -164,3 +164,32 @@
 項目2完了時: 採用済み104点 / 未使用128点。実 Tauri レイヤーの4種は `compare/art-02/native-tags.png`、読込・寸法・枠線・演出時間は `compare/art-02/verification.json`。乱数の境界と直前重複の再抽選は `tests/peta-tags.test.mjs` で確認。
 
 実際の印刷→ポインタで貼り付けでも確認済み: 2枚の FIFO 印刷と再印刷の貼り付けで合計3タグ、紙へ戻す操作では0タグ、直前との重複0。`compare/art-02/native-paste-tags.json` と `native-print-motion.json` に記録。
+
+## 項目3 適用済み（基準時点の表との差分）
+
+| 素材名 | 実際の使用場所 | 変更 |
+| --- | --- | --- |
+| `notes/note-sticky-yellow.png` | Book / Market の共通 `.detail` | CSS の単色カードを付箋紙へ置換。306px幅・16px余白・sticky位置・スクロールは維持。 |
+| `notes/note-index-card-blank.png` | Market Featured のカード | `indexCard` を notes の納品紙へ差し替え。review-02 の配置と文字サイズを維持。 |
+| `notes/paper-clip.png` | Market / Create の紙クリップ | `paperClip` の参照を notes へ統一。旧 ui 版と RGBA が同一。 |
+| `book/cover-edge.png` | Desk Book の表紙外周 | cover-board.jpg のテクスチャを残し、8pxの端を納品パーツへ置換。 |
+| `book/page-dots.png` | Desk Book のドット罫 | native512px / 23ドットの素材を506pxで配置し、元の22pxピッチを保つ。 |
+| `book/page-gutter.png` | Desk Book のとじ目 | 画像幅160pxの左端の影を配置。CSS の内側の影と重ねない。 |
+| `book/page-edge-right.png` | Desk Book の右端 | 納品された積層紙の端を8px幅で配置。 |
+| `book/page-edge-bottom.png` | Desk Book の下端 | 納品された積層紙の端を8px高で配置。 |
+| `book/page-corner-curl.png` | Desk Book の紙面右下 | 紙面の角に28pxで配置。review-01 で消した「窓」のリサイズ装飾は復活させない。 |
+| `book/spiral-binding.png` | Desk Book の固定とじ目 | 穴とリングを一体で使用。48px幅、375px高の20セル、18.75pxピッチで反復。 |
+| `book/spiral-cap-top.png` | 同 上端 | 元128×64pxを48×24pxで、帯の先頭と同じ位相に配置。 |
+| `book/spiral-cap-bottom.png` | 同 下端 | 帯をセル境界で切り、最終リングと同じ位相に配置。窓サイズ変更でも再計算。 |
+
+代わりに `ui/index-card-blank.png`、`ui/paper-clip.png`、`book/spiral-coil.png` は使用を終了。前者2点は notes へ参照を移し、coil は穴付き binding に置換した。`spiral-holes.png` と穴付き旧 page-left.jpg を重ねない。Studio に Desk のノート枠・とじ目は出さない。
+
+項目3完了時: 採用済み **113点 / 未使用119点**（基準時点からタグ3点、紙12点を採用し、旧紙3点を使用終了）。他色の付箋 / pad、罫線付きカード、黒とじ目、見開き・閉じたノートは承認済みの表示箇所がないため未使用のまま。
+
+### 比較と検証
+
+`compare/art-03/` に元 golden を左・実 Tauri を右にした比較6枚、実画面 PNG、720×520の確認4枚、寸法・位相・スクロールの `verification.json`、全32状態の `overflow.json` を保存。再撮影は `scripts/port-art-review.py`。撮影は独立した `/tmp/peta-art-data` の実 SQLite fixture を使用し、通常のデータには触れない。
+
+新規納品紙による差分は意図した置換: 詳細が黄色の付箋、表紙外周・銀とじ目・右下の紙の角、Featured の紙の縁。golden 原本・prototype・納品画像は変更していない。Linux / WebKitGTK のシステムフォント、実データの中立名 `Sticker`、素材の解放日、Today の未開封通知等は golden と異なる。**画素単位の一致・macOS の描画一致は未確認**。参考画像に合わせるための偽のタイトルや通知状態は実装していない。
+
+検証: Rust84件、JavaScript14件が通過。8ページ×2シェル×2サイズで実際のはみ出し0、既知の紙ボタンの4px判定だけ4件。ノートの全サイズでリング帯をセル境界に合わせ、旧 coil DOM を除去。詳細カードは最下端までスクロール可能。必要な紙パーツはすべて納品済みで、追加生成は不要。

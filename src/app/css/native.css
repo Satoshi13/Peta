@@ -6,7 +6,7 @@ input { user-select: text; -webkit-user-select: text; }
 .win { width: 100%; height: 100%; --win-w: 100vw; --win-h: 100vh; }
 .drag-strip { height: 28px; }
 
-/* TODO(art): retain the prototype CSS for sticky notes and notebook corners/binding until approved replacement art arrives. */
+/* Delivered notes/book art replaces the paper stand-ins below; original files stay untouched. */
 /* Prototype viewport units refer to the display around the 1060×700 shell. Preserve that
    reference for page objects; using the smaller native webview would shorten the Cutting Mat. */
 .panes { height: clamp(190px, calc(var(--desktop-height) * .31), 290px); }
@@ -86,29 +86,44 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 
 /* A cover, a fixed binding and a separate scrolling sheet. Each coil attaches to one hole. */
 .book-binding { display: none; }
+.book-paper-parts { display: none; }
 [data-shell="desk"] .page[data-page="book"] { inset: 14px 10px 18px 32px; }
 [data-shell="desk"] .page[data-page="book"]::before { inset: -8px -8px -8px -20px; border-radius: 14px; }
 [data-shell="desk"] .page[data-page="book"]::after { display: none; }
 [data-shell="desk"] .page[data-page="book"] .page-in {
   padding-left: 44px; border-radius: 4px 10px 10px 4px;
-  box-shadow: inset 12px 0 18px -16px rgba(70, 45, 10, .35), 1px 1px 0 #e5ddcd, 2px 2px 0 #f1eadb;
+  background: var(--a-pageDots) 7px 9px / 506px 506px repeat,
+    linear-gradient(rgba(250, 246, 236, .62), rgba(250, 246, 236, .62)), var(--a-pagePaper) 0 0 / 520px, #faf6ec;
+  box-shadow: none;
 }
 [data-shell="desk"] .book-binding {
-  display: flex; flex-direction: column; gap: 6px;
+  display: block;
   position: absolute; left: -18px; top: 12px; bottom: 12px; width: 48px;
   overflow: hidden; z-index: 12; pointer-events: none;
 }
-.book-binding .coil { flex: none; position: relative; height: 24px; }
-.book-binding .coil::before {
-  content: ""; position: absolute; left: 38px; top: 4px; width: 5px; height: 16px;
-  border-radius: 50%; background: #85725a;
-  box-shadow: inset 1px 0 2px rgba(30, 20, 10, .5), 1px 0 0 rgba(255, 253, 249, .8);
+.binding-band {
+  position: relative; display: block; width: 48px;
+  background: var(--a-spiralBinding) left top / 48px 375px repeat-y;
 }
-.book-binding .coil::after {
-  content: ""; position: absolute; left: 0; top: 3px; width: 48px; height: 19px;
-  background: var(--a-spiralCoil) left top / 48px auto no-repeat;
-  filter: drop-shadow(1px 1px 1px rgba(40, 25, 5, .25));
+.binding-band::before, .binding-band::after {
+  content: ""; position: absolute; left: 0; width: 48px; height: 24px; pointer-events: none;
+  background: center / 48px 24px no-repeat;
 }
+.binding-band::before { top: 0; background-image: var(--a-spiralCapTop); }
+.binding-band::after { bottom: 0; background-image: var(--a-spiralCapBottom); }
+[data-shell="desk"] .page[data-page="book"]::before {
+  border: 8px solid transparent; border-image: var(--a-coverEdge) 88 / 8px stretch; background-clip: padding-box;
+}
+[data-shell="desk"] .book-paper-parts { display: block; position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.book-paper-parts i { position: absolute; display: block; pointer-events: none; background: center / 100% 100% no-repeat; }
+.book-paper-parts .page-gutter { left: 28px; top: 0; bottom: 0; width: 10px; background-image: var(--a-pageGutter); background-position: left top; background-size: 160px 100%; }
+.book-paper-parts .page-edge-right { right: -5px; top: 0; bottom: 0; width: 8px; background-image: var(--a-pageEdgeRight); }
+.book-paper-parts .page-edge-bottom { left: 0; right: 0; bottom: -5px; height: 8px; background-image: var(--a-pageEdgeBottom); }
+.book-paper-parts .page-corner { right: 0; bottom: 0; width: 28px; height: 28px; background-image: var(--a-pageCorner); }
+
+/* The shared sticky details keep their prototype width, padding and scrolling behaviour.
+   CSS sizing trims only the supplied transparent gutters; the PNG itself is unchanged. */
+.detail { border-radius: 0; background: var(--a-noteStickyYellow) center / 121% 129% no-repeat; box-shadow: none; filter: drop-shadow(0 4px 8px rgba(60, 45, 20, .2)); }
 
 /* Only the cutout canvas moves; the transparency checker and brush cursor stay in the frame. */
 .frame.checker canvas { transform-origin: 50% 50%; }

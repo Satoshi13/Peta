@@ -36,8 +36,23 @@ const Shell = (() => {
     const wrap = h("section.page", { data: { page: id, art: "page-" + id } });
     const el = Pages[id].build();
     wrap.append(el);
-    if (id === "book") wrap.append(h("div.book-binding", { "aria-hidden": "true" }, Array.from({length:96},()=>h("i.coil"))));
+    if (id === "book") {
+      wrap.append(
+        h("div.book-paper-parts", { "aria-hidden": "true" },
+          h("i.page-gutter", { data: { art: "page-gutter" } }),
+          h("i.page-edge-right", { data: { art: "page-edge-right" } }),
+          h("i.page-edge-bottom", { data: { art: "page-edge-bottom" } }),
+          h("i.page-corner", { data: { art: "page-corner-curl" } })),
+        h("div.book-binding", { "aria-hidden": "true", data: { art: "spiral-binding" } }, h("i.binding-band")));
+      queueMicrotask(sizeBookBinding);
+    }
     return wrap;
+  }
+  function sizeBookBinding() {
+    // Delivered 128×1000 tile: twenty cells, ring centres at 25 + 50*k.
+    // End only at a cell boundary so the 64px end caps keep the same phase.
+    const pitch = 48 / 128 * 50;
+    $$(".book-binding").forEach(e => { e.firstElementChild.style.height = Math.floor(e.clientHeight / pitch) * pitch + "px"; });
   }
   function cloneStatic(node) {
     const c = node.cloneNode(true);
@@ -106,6 +121,7 @@ const Shell = (() => {
   }
   async function close() { Pages[S.page]?.suspend?.(); await Bridge.window.hide(); S.windowOpen = false; }
   function initChrome() {
+    new ResizeObserver(sizeBookBinding).observe(viewport());
     $("#wc-close").addEventListener("click", close);
     $("#wc-min").addEventListener("click", () => Bridge.window.minimize());
     $("#wc-zoom").addEventListener("click", () => Bridge.window.toggleMaximize());
