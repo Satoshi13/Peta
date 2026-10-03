@@ -135,6 +135,7 @@ pub fn run() {
             gifts::gift_receive_file,
             gifts::gift_inbox,
             gifts::gift_open,
+            packs::pack_install_demo,
             packs::pack_status,
             packs::pack_open,
             print::print_resume,

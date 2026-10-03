@@ -1,0 +1,42 @@
+[
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "studio",
+    "page": "market",
+    "issues": [],
+    "knownFalsePositives": []
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "desk",
+    "page": "market",
+    "issues": [],
+    "knownFalsePositives": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "studio",
+    "page": "market",
+    "issues": [],
+    "knownFalsePositives": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "desk",
+    "page": "market",
+    "issues": [],
+    "knownFalsePositives": []
+  }
+]

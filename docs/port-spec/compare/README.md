@@ -42,3 +42,9 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 - The same main native window now expands temporarily for the original display-wide ceremony and restores its prior size/position. This corrects the geometry limitation recorded for slice 2; no extra content window or simulated desktop was added.
 - Pack/Gift commands keep the pending sticker without activating the desktop layer during the ceremony. `Stick it` closes the main window before resuming print, preventing the print layer from intercepting the pull gesture.
 - The isolated fixture includes actual Tokyo/Coffee pack rows. Stock, remaining counts, randomly drawn art and back identifiers remain real backend values and can differ from the reference state.
+
+## Slice 6
+
+- Static Market Packs/Materials/Creators and pack details copy the original data/DOM. Six comparisons (16–18, both shells), audit: 0 issues at both sizes.
+- Free local demo packs can be added to the actual shelf. Paid packs, material purchases and creator accounts retain `TODO(owner)` and do not pretend to transact.
+- Static catalog previews use the original cached canvas renderer, preserving its outline and scaling values. Real uploads/cutting/saved stickers continue to use Rust. Capture waits for all preview images; ownership labels reflect the fixture's real shelf.

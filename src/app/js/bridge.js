@@ -32,6 +32,7 @@ const Bridge = (() => {
     S.desk = S.lib.filter(e=>e.onDesktop).map(e=>({id:e.id}));
     S.stuckToday = S.lib.filter(e=>e.onDesktop && fmtDate(e.date)===fmtDate(S.today)).map(e=>e.id);
     S.gifts = inbox.map(g=>({id:g.giftId, from:g.from, note:g.note || '', opened:!!g.openedAt, material:g.materialId || 'matte', edition:g.edition}));
+    S.owned = Object.fromEntries(packs.packs.map(p=>[p.id,true]));
     S.packs = packs.packs.map(p=>({id:p.id, title:p.title, by:p.by, total:p.total, left:Array(p.remaining).fill(null), daily:p.id==='welcome', kind:({coffee:'kraft',plants:'kraft',cats:'matte'})[p.id] || 'holo', hue:({tokyo:200,pixel:120,night:245})[p.id] || 0})).sort((a,b)=>(({'welcome':0,'tokyo':1,'coffee':2})[a.id]??3)-(({'welcome':0,'tokyo':1,'coffee':2})[b.id]??3));
   }
   async function asset(id) {

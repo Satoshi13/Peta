@@ -43,4 +43,4 @@ elif slice_id==5:
     gesture('.pouch',True); wait_for('document.querySelector(".pk-sleeve.out")'); shot('13-pack-torn'); gesture('.pk-sleeve'); wait_for('document.querySelector(".rv-btns")'); time.sleep(2); shot('14-pack-reveal')
     click('.rv-btns .btn.paper'); wait_for('!document.querySelector(".cer")')
 elif slice_id==6:
-    go('market'); shot('16-market-packs'); click('.mk-seg button:nth-child(2)'); shot('17-market-materials'); click('.mk-seg button:nth-child(3)'); shot('18-market-creators')
+    c.evaluate('MK.tab="packs"; MK.sel=null; return true;'); go('market'); wait_for('document.querySelectorAll(".fan-s .stk").length===4',60); shot('16-market-packs'); click('.mk-seg button:nth-child(2)'); shot('17-market-materials'); click('.mk-seg button:nth-child(3)'); wait_for('document.querySelectorAll(".cr-av .stk").length===5',60); shot('18-market-creators')
