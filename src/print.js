@@ -4,7 +4,8 @@
 // (`print_paste`), so quitting in the middle just brings the Peta back at the slot next launch.
 //
 // Art: the slot (`data-art="print-slot"` / `print-slot-glow`), the backing sheet (`data-art="backing-sheet"`)
-// and the sound (`pata()`) are the original paper artwork / synthesized WebAudio. TODO(art): additional Peta! tag variants.
+// and the sound (`pata()`) are the original paper artwork / synthesized WebAudio. Peta! uses the four
+// delivered en / round / holo / stamp images, picked in layer-port.js after a successful print_paste.
 
 const MIN_DRAG = 3; // px: let go closer than this to where you grabbed it and it goes back on the sheet
 

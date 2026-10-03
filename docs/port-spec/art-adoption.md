@@ -150,3 +150,17 @@
 - 紙: `notes/` の付箋・インデックスカード・クリップと `book/` の端・とじ目・角を適用する。色 / 紙種の全バリエーションを無条件に表示することはしない。
 - 今回のタグ・紙パーツに新規生成が必要な素材はない。足りないものは **新規生成ではなく決定**: 付箋の他色や pad、別柄の罫線・タブ・空状態をどの画面へ出すか。golden にない画面 / 部品は勝手に増やさず、上表に残す。
 - `page-gutter.png` は160px幅のうち絵が左端約6pxだけ。幅全体を引き伸ばすと影が消えるので CSS で本来の絵を配置する。`page-left.jpg` と穴付きとじ目を併用しない。画像ファイルの変更・追加生成はしない。
+
+## 項目2 適用済み（基準時点の表との差分）
+
+| 素材名 | 実際の使用場所 | 変更 |
+| --- | --- | --- |
+| `fx/peta-tag-round.png` | `src/layer-port.js` TAGS の第2枠 | CSS pill を画像へ置換。円形を歪めず96×96px。 |
+| `fx/peta-tag-holo.png` | 同 第3枠 | CSS foil を画像へ置換。124×50px、contain。 |
+| `fx/peta-tag-stamp.png` | 同 第4枠 | CSS stamp を画像へ置換。112×52px、contain。旧枠線を除去。 |
+
+`peta-tag-en.png` は第1枠のまま。4枠の最初は各1/4、その後は直前以外の各1/3。抽選を繰り返す方式もプロトタイプと同じ。貼り付け成功後だけ表示し、元の位置・キーフレーム・1300ms・Reduce motion を維持する。読み込みの遅れを避けるため4枚を先に decode する。
+
+項目2完了時: 採用済み104点 / 未使用128点。実 Tauri レイヤーの4種は `compare/art-02/native-tags.png`、読込・寸法・枠線・演出時間は `compare/art-02/verification.json`。乱数の境界と直前重複の再抽選は `tests/peta-tags.test.mjs` で確認。
+
+実際の印刷→ポインタで貼り付けでも確認済み: 2枚の FIFO 印刷と再印刷の貼り付けで合計3タグ、紙へ戻す操作では0タグ、直前との重複0。`compare/art-02/native-paste-tags.json` と `native-print-motion.json` に記録。

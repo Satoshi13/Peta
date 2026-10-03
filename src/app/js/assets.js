@@ -16,7 +16,7 @@ const P = {
   arrGift: "arrival/arrival-gift.png", arrMaterial: "arrival/arrival-material.png",
   slot: "print/print-slot.png", slotGlow: "print/print-slot-glow.png", sheet: "print/backing-sheet.png",
   logo: "brand/logo-wordmark-ink.svg", logoWhite: "brand/logo-wordmark-white.svg", tray: "brand/tray-template.svg",
-  tagJa: "fx/peta-tag-ja.png", tagEn: "fx/peta-tag-en.png", emptyBook: "empty/collection-empty.png",
+  tagJa: "fx/peta-tag-ja.png", tagEn: "fx/peta-tag-en.png", tagRound: "fx/peta-tag-round.png", tagHolo: "fx/peta-tag-holo.png", tagStamp: "fx/peta-tag-stamp.png", emptyBook: "empty/collection-empty.png",
   pouch: "pack/pack-pouch-closed.png", packHolo: "pack/pack-holographic.png", packKraft: "pack/pack-kraft.png", packMatte: "pack/pack-matte.png",
   pagePaper: "book/page-paper.jpg", coverBoard: "book/cover-board.jpg",
   backMatte: "back/back-matte.jpg", backKraft: "back/back-kraft.jpg", backHolo: "back/back-holographic.jpg", backGold: "back/back-gold.jpg", backRiso: "back/back-riso.jpg", backVintage: "back/back-vintage.jpg",

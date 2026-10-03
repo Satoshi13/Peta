@@ -7,8 +7,11 @@ const nativeAnimate=Element.prototype.animate;
 Element.prototype.animate=function(frames,options) { if(reduced()) options={...(typeof options==='number'?{duration:options}:options),duration:1,delay:0,iterations:1}; return nativeAnimate.call(this,frames,options); };
 const assetStyle=document.createElement('style'); assetStyle.textContent=':root{'+Object.keys(A).map(k=>`--a-${k}:url("${new URL(A[k],location.href).href}");`).join('')+'}'; document.head.append(assetStyle);
 let lastPetaTag=-1;
-const LAYER_TAGS=[()=>img('tagEn','peta-tag'),()=>h('div.peta-tag.v-pill',h('i.wm')),()=>h('div.peta-tag.v-holo',h('i.wm')),()=>h('div.peta-tag.v-stamp',h('i.wm'))];
-function petaTag(x,y) { let i; do i=Math.floor(Math.random()*LAYER_TAGS.length); while(i===lastPetaTag); lastPetaTag=i; const tag=LAYER_TAGS[i](); tag.dataset.art='peta-tag-'+i; tag.style.left=x+'px'; tag.style.top=y+'px'; document.getElementById('layer').append(tag); anim(tag,[{opacity:0,transform:'translate(-10%, -150%) rotate(-8deg) scale(.6)'},{opacity:1,transform:'translate(8%, -170%) rotate(-5deg) scale(1)',offset:.25},{opacity:1,transform:'translate(8%, -170%) rotate(-5deg) scale(1)',offset:.8},{opacity:0,transform:'translate(8%, -190%) rotate(-5deg) scale(1)'}],{duration:1300,easing:'ease-out'}).then(()=>tag.remove()); }
+// Keep the prototype's four slots (en / pill / holo / stamp), replacing only their art.
+const LAYER_TAGS=[()=>img('tagEn','peta-tag'),()=>img('tagRound','peta-tag v-round'),()=>img('tagHolo','peta-tag v-holo'),()=>img('tagStamp','peta-tag v-stamp')];
+// Decode before the first paste: the brief success animation must not wait for its image.
+for (const make of LAYER_TAGS) { const tag=make(); tag.decode().catch(console.error); }
+function petaTag(x,y) { let i; do i=Math.floor(Math.random()*LAYER_TAGS.length); while(i===lastPetaTag && LAYER_TAGS.length>1); lastPetaTag=i; const tag=LAYER_TAGS[i](); tag.alt=''; tag.setAttribute('aria-hidden','true'); tag.dataset.art=tag.src.split('/').pop().replace('.png',''); tag.style.left=x+'px'; tag.style.top=y+'px'; document.getElementById('layer').append(tag); anim(tag,[{opacity:0,transform:'translate(-10%, -150%) rotate(-8deg) scale(.6)'},{opacity:1,transform:'translate(8%, -170%) rotate(-5deg) scale(1)',offset:.25},{opacity:1,transform:'translate(8%, -170%) rotate(-5deg) scale(1)',offset:.8},{opacity:0,transform:'translate(8%, -190%) rotate(-5deg) scale(1)'}],{duration:1300,easing:'ease-out'}).then(()=>tag.remove()); }
 
 async function syncArrival() {
     const primary=(await window.__TAURI__.core.invoke('layer_info')).isPrimary;
