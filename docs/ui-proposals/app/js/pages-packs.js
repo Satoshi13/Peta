@@ -1,21 +1,20 @@
 /* Packs: a shelf of pouches. Tearing one open is the ceremony in pack.js. */
 Pages.packs = {
   build() {
-    const root = h("div.page-in.packspage"), locked = isDone();
-    root.append(PageHead("Packs", "Open one at random", locked ? h("span.seal", { data: { rarity: "common" } }, "stuck for today") : null));
+    const root = h("div.page-in.packspage"), locked = !packsLeftToday();
+    root.append(PageHead("Packs", "Open one at random", h("span.quota", { "aria-live": "polite" }, h("b", `${S.packsOpened} of ${PACK_DAILY}`), " opened today", h("small", "resets at midnight"))));
     const total = S.packs.reduce((a, p) => a + p.left.length, 0);
     const items = [
       ...S.packs.map((p) => ({ ...p, empty: !p.left.length })),
-      { id: "pixel", title: "Pixel Dream", by: "Ryo", total: 24, left: [], hue: 160, empty: true },
     ];
-    root.append(h("p.muted.lede", locked ? "Today's Peta is already stuck — packs open again tomorrow." : "Opening a pack gives you one sticker, picked at random. It becomes today's Peta."));
+    root.append(h("p.muted.lede", locked ? "You've opened today's pack. A new one can be opened after midnight — this is separate from your daily material." : "Opening a pack gives you one sticker, picked at random. You can open one pack a day."));
     root.append(h("div.shelf", items.map((p, i) => this.pack(p, i, locked)), h("i.ledge")));
     root.append(h("p.shelf-note.muted", total ? `${total} sticker${total === 1 ? "" : "s"} still sealed.` : "Every pack is open."));
     return root;
   },
   pack(p, i, locked) {
     const off = p.empty || locked, n = Math.min(3, p.left.length || 1);
-    const stack = h("div.pk-stack", Array.from({ length: n }, (_, k) => h("i.pk-img", { style: { "--k": k, "--hue": p.hue + "deg" } }, k === n - 1 ? h("i.sheen") : null)));
+    const stack = h("div.pk-stack", Array.from({ length: n }, (_, k) => h("i.pk-img" + (p.hue ? ".tinted" : ""), { style: { "--k": k, "--hue": p.hue + "deg" } }, k === n - 1 ? h("i.sheen") : null)));
     const card = h("button.pack", { disabled: off, "aria-label": `${p.title}, ${p.left.length} left`, data: { empty: p.empty }, style: { "--i": i }, on: { click: () => { Snd.tap(); Cer.openPack(p); } } },
       stack,
       h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.empty ? "all opened" : p.left.length + " of " + p.total + " left"}`)),

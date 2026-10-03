@@ -80,3 +80,13 @@
 .print-hint { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 8px 10px 8px 18px; border-radius: 999px; background: rgba(30, 28, 26, .9); color: #fff; font-size: 13px; white-space: nowrap; pointer-events: auto; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); max-width: 94vw; }
 .print-hint .btn.paper { padding: 5px 14px; }
 @media (prefers-reduced-motion: reduce) { .pk-tab, .rv-rays, .wax::after, .env-float { animation: none !important; } }
+
+/* "Peta!" tags. More variants can be added in desktop.js (Desktop.TAGS). */
+.peta-tag { position: absolute; z-index: 60; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .28)); }
+img.peta-tag { width: 120px; }
+.peta-tag.v-pill, .peta-tag.v-holo, .peta-tag.v-stamp { display: grid; place-items: center; width: 124px; height: 50px; }
+.peta-tag .wm { display: block; width: 76%; height: 74%; background: #2b2a28; -webkit-mask: var(--a-logo) center / contain no-repeat; mask: var(--a-logo) center / contain no-repeat; }
+.peta-tag.v-pill { border-radius: 999px; background: #fffdf9; box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 3px rgba(40, 30, 10, .12); }
+.peta-tag.v-holo { border-radius: 999px; background: var(--holo); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .85); } .peta-tag.v-holo .wm { background: #3b3552; }
+.peta-tag.v-stamp { width: 112px; height: 52px; border: 3px double #b94a3e; border-radius: 6px; background: rgba(255, 253, 249, .92); } .peta-tag.v-stamp .wm { background: #b94a3e; width: 70%; }
+.pk-layer.tinted { filter: sepia(.55) saturate(1.9) hue-rotate(calc(var(--hue, 0deg) - 40deg)) brightness(1.03); }

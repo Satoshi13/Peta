@@ -54,11 +54,11 @@
 
   <div id="win-layer"><div id="win" class="win" hidden>
     <div class="win-frame">
-      <div class="titlebar" id="titlebar">
-        <div class="lights"><button class="l-red" aria-label="Close"></button><i class="l-yel"></i><i class="l-grn"></i></div>
-        <div class="tb-title"><i class="tb-logo"></i></div>
-        <div class="tb-right"></div>
-      </div>
+      <div class="drag-strip" id="titlebar" title="Drag to move"></div>
+      <div class="lights-zone"></div>
+      <div class="lights"><button class="l-red" aria-label="Close (Esc)"></button><i class="l-yel"></i><i class="l-grn"></i></div>
+      <button class="ribbon" id="ribbon" aria-label="Put Peta away" title="Put away (Esc)"><i></i></button>
+      <button class="close-tag" id="close-tag" aria-label="Put Peta away" title="Put away (Esc)"><span>Done</span></button>
       <nav class="nav" id="nav" aria-label="Peta sections"></nav>
       <div class="book" id="bookbox">
         <div class="spiral" aria-hidden="true"></div>
@@ -101,6 +101,7 @@
 <script src="js/pages-book.js"></script>
 <script src="js/pages-packs.js"></script>
 <script src="js/pages-misc.js"></script>
+<script src="js/pages-market.js"></script>
 <script src="js/pack.js"></script>
 <script src="js/guide.js"></script>
 <script src="js/main.js"></script>

@@ -21,7 +21,7 @@ function h(sel, props, ...kids) {
   for (const k in props || {}) {
     const v = props[k];
     if (v == null || v === false) continue;
-    if (k === "style" && typeof v === "object") Object.assign(e.style, v);
+    if (k === "style" && typeof v === "object") { for (const n in v) n.startsWith("--") ? e.style.setProperty(n, v[n]) : (e.style[n] = v[n]); }
     else if (k === "vars") for (const n in v) e.style.setProperty(n, v[n]);
     else if (k === "on") for (const n in v) e.addEventListener(n, v[n]);
     else if (k === "html") e.innerHTML = v;

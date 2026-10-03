@@ -5,8 +5,7 @@ const Shell = (() => {
   let current = null, navigating = false, pos = { x: 0, y: 0 };
 
   function applyAssetVars() {
-    const GEAR = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3e6ea"/><stop offset="1" stop-color="#9aa1ab"/></linearGradient></defs><path fill="url(#g)" stroke="#6f757e" stroke-width="1.2" d="M20 4h8l1.4 5.2 4.2 1.8 4.7-2.8 5.6 5.6-2.8 4.7 1.8 4.2L48 20v8l-5.1 1.4-1.8 4.2 2.8 4.7-5.6 5.6-4.7-2.8-4.2 1.8L28 44h-8l-1.4-5.1-4.2-1.8-4.7 2.8L4.1 34.3l2.8-4.7-1.8-4.2L0 24v-4l5.1-1.4 1.8-4.2-2.8-4.7 5.6-5.6 4.7 2.8 4.2-1.8z" transform="translate(0 2) scale(.96)"/><circle cx="24" cy="24" r="7.5" fill="#f4efe4" stroke="#6f757e" stroke-width="1.2"/></svg>');
-    const css = ":root{--a-gear:url(\"" + GEAR + "\");" + Object.keys(A).map((k) => `--a-${k}:url("${new URL(A[k], location.href).href}");`).join("") + "}";
+    const css = ":root{" + Object.keys(A).map((k) => `--a-${k}:url("${new URL(A[k], location.href).href}");`).join("") + "}";
     const st = h("style", { id: "asset-vars" }); st.textContent = css; document.head.append(st);
   }
 
@@ -17,7 +16,7 @@ const Shell = (() => {
 
   function badges() {
     const gifts = S.gifts.filter((g) => !g.opened).length;
-    return { gifts, today: S.dayState === "done" ? 0 : 1 };
+    return { gifts, today: S.dayState === "arrived" ? 1 : 0 };
   }
   function renderNav() {
     const nav = $("#nav"), b = badges();
@@ -29,7 +28,7 @@ const Shell = (() => {
         h("span.ni-label", n.label),
         count ? h("i.ni-badge", count) : null);
     }));
-    $("#tray-dot").classList.toggle("on", b.gifts > 0 || S.dayState !== "done" || !!S.pending);
+    $("#tray-dot").classList.toggle("on", b.gifts > 0 || S.dayState === "arrived" || !!S.pending);
   }
   function markNav() { $$(".nav-item").forEach((b) => b.toggleAttribute("aria-current", b.dataset.page === S.page)); $$(".nav-item[aria-current]").forEach((b) => b.setAttribute("aria-current", "page")); }
 
@@ -139,6 +138,8 @@ const Shell = (() => {
     Snd.swoosh();
     await anim(w, [{ transform: `translate(calc(var(--dx,0px) + ${dx}px), calc(var(--dy,0px) + ${dy}px)) scale(.08)`, opacity: 0 }, { transform: "translate(var(--dx,0px), var(--dy,0px)) scale(1)", opacity: 1 }], { duration: 560, easing: EASE.spring });
     w.getAnimations().forEach((x) => x.cancel());
+    w.classList.add("show-lights"); setTimeout(() => w.classList.remove("show-lights"), 2600);
+    if (!S.hinted) { S.hinted = true; setTimeout(() => toast("Esc, a click on the desktop, or the " + ({ notebook: "ribbon", desk: "tag", studio: "corner dots" }[document.body.dataset.shell]) + " puts Peta away.", 3600), 900); }
   }
   async function close() {
     const w = win(); if (w.hidden) return;
@@ -150,14 +151,19 @@ const Shell = (() => {
   }
 
   function initChrome() {
-    $(".tb-logo").style.setProperty("--logo", "var(--a-logo)");
-    $(".l-red").addEventListener("click", close);
+    $(".l-red").addEventListener("click", close); $("#ribbon").addEventListener("click", close); $("#close-tag").addEventListener("click", close);
     drag($("#titlebar"), {
-      down: (e) => !e.target.closest("button"),
       move: (dx, dy) => { win().style.setProperty("--dx", pos.x + dx + "px"); win().style.setProperty("--dy", pos.y + dy + "px"); },
       up: (e, moved) => { if (!moved) return; const w = win(); pos = { x: parseFloat(w.style.getPropertyValue("--dx")), y: parseFloat(w.style.getPropertyValue("--dy")) }; },
     });
     $("#titlebar").addEventListener("dblclick", () => { pos = { x: 0, y: 0 }; placeWin(); });
+    // putting it away: Esc, or a click on the desktop (can be turned off in Settings)
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !e.defaultPrevented && !win().hidden && !$(".cer") && !e.target.closest("input")) close(); });
+    document.addEventListener("pointerdown", (e) => {
+      if (!S.closeOutside || win().hidden || e.button !== 0) return;
+      if (e.target.closest("#win, #tray-menu, #tray, #toolbar, #guide, .cer, #arrival, .print-hint, .print-sheet, .desk-stk, #toast, #menubar")) return;
+      close();
+    });
   }
   function setShell(name, quiet) {
     S.shell = name; document.body.dataset.shell = name;
@@ -173,13 +179,13 @@ const Menu = (() => {
   function items() {
     const b = badges2();
     const pend = S.pending;
-    const status = S.dayState === "done" ? "Today's Peta is stuck ✓" : S.dayState === "arrived" ? "Today's Material has arrived" : "Today's Peta isn't stuck yet";
+    const status = S.dayState === "arrived" ? "Today's Material has arrived" : S.stuckToday.length ? `${S.stuckToday.length} stuck today` : "Nothing stuck yet today";
     const it = (icon, label, page, badge) => h("button", { on: { click: () => { Menu.close(); Shell.open(page); } } }, icon ? h("img", { src: A[icon] }) : null, label, badge ? h("span.tm-badge", badge) : null);
     return [
       h("div.tm-head", h("i"), h("div", h("b", "Peta"), h("small", status))),
       pend ? h("button", { on: { click: () => { Menu.close(); Desktop.showPrint(); } } }, h("img", { src: A.sheet }), "Sticker waiting at the print slot…") : null,
       it("chCreate", "Create…", "create"), it("envBack", "Today", "today"), it("chGift", "Gifts", "gifts", b.gifts || ""),
-      it("chPack", "Open a Pack", "packs"), it("chCollection", "Sticker Book", "book"), it("cardHolo", "Material Book", "materials"),
+      it("chPack", "Open a Pack", "packs"), it("chCollection", "Sticker Book", "book"), it("shop", "Market", "market"), it("cardHolo", "Material Book", "materials"),
       h("hr"), h("button", { on: { click: () => { Menu.close(); Shell.open(); } } }, S.windowOpen ? "Bring Peta to the front" : "Open Peta"),
     ];
   }
@@ -193,7 +199,7 @@ const Menu = (() => {
   function init() {
     $("#tray").addEventListener("click", (e) => { e.stopPropagation(); toggle(); });
     document.addEventListener("pointerdown", (e) => { if (openState && !e.target.closest("#tray-menu,#tray")) close(); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && openState) { e.preventDefault(); close(); } });
   }
   return { init, close, open, toggle };
 })();

@@ -49,7 +49,7 @@ const Cer = (() => {
     // who/what is it
     const info = h("div.rv-info", h("p.eyebrow", source), h("h2", titleOf(entry)),
       h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: mat.rarity } }, mat.name + " · " + mat.rarity), h("span.no", entry.kind === "received" ? `Edition #${pad4(entry.edition)}` : "")),
-      h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, isDone() ? "Keep in my Book" : "Stick as today's Peta"), h("button.btn.paper", { on: { click: onLater } }, "Later")));
+      h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, "Stick it"), h("button.btn.paper", { on: { click: onLater } }, "Later")));
     stage.append(info);
     anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
     const seal = $(".seal", info); await sleep(260); Snd.seal();
@@ -66,7 +66,8 @@ const Cer = (() => {
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
     const PW = Math.min(310, innerHeight * .4), PH = PW * 4 / 3, CUT = 21;
     const jag = jagged();
-    const mk = (cls, clip) => h("div.pk-layer." + cls, { style: { clipPath: clip, webkitClipPath: clip } }, h("i.sheen"));
+    const tint = pack.hue ? ".tinted" : "";
+    const mk = (cls, clip) => h("div.pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--hue": (pack.hue || 0) + "deg" } }, h("i.sheen"));
     const body = mk("pk-body", polyBody(jag)), topStrip = mk("pk-top", polyTop(jag)), inside = h("div.pk-inside");
     const sleeve = h("div.pk-sleeve", img("mystery"));
     const tab = h("i.pk-tab", h("b", "tear")), line = h("i.pk-line");
@@ -111,7 +112,7 @@ const Cer = (() => {
       if (done) return; done = true; pouch.classList.remove("pulling"); pouch.classList.add("torn"); wrapper.style.transform = "";
       idx = Math.floor(Math.random() * pack.left.length); const src = pack.left.splice(idx, 1)[0];
       entry = { id: "L" + pad4(S.nextNo).slice(1), src, material: rollMaterial(), kind: "received", from: pack.by, edition: Math.floor(rand(8, 240)), no: null, date: S.today };
-      S.nextNo++; Snd.tear(); cer.hint("");
+      S.nextNo++; S.packsOpened++; Snd.tear(); cer.hint(""); Shell.renderNav();
       anim(topStrip, [{ transform: topStrip.style.transform, opacity: 1 }, { transform: `translate(${PW * .6}px, ${-PH * .55}px) rotate(-85deg)`, opacity: 0 }], { duration: 760, easing: "cubic-bezier(.3,.1,.6,1)", composite: "replace" });
       // the mouth stays open
       inside.style.clipPath = `polygon(${xL}px ${cutY - 3}px, ${xR}px ${cutY - 3}px, ${xR}px ${cutY - PH * .035}px, ${xL}px ${cutY - PH * .035}px)`;
@@ -138,8 +139,8 @@ const Cer = (() => {
           onKeep: () => keep(), onLater: () => later() });
       }
     }
-    const keep = async () => { await cer.close(); Shell.toast("It's yours."); if (isDone()) { S.lib.unshift(entry); Shell.refresh(); } else await Desktop.print(entry); };
-    const later = async () => { S.pending = { entry, stickToday: !isDone() }; await cer.close(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); Shell.close(); };
+    const keep = async () => { await cer.close(); Shell.toast("It's yours."); await Desktop.print(entry); };
+    const later = async () => { S.pending = { entry }; await cer.close(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); Shell.close(); };
     cer.root._esc = () => { if (!done) cer.close(); else if (entry && $(".rv-info")) later(); };
     pouch.focus({ preventScroll: true });
   }
@@ -194,8 +195,8 @@ const Cer = (() => {
         await unwrapAndReveal({ cer, stage, sleeve, entry, source: `Gift from ${gift.from}`, onKeep: keep, onLater: later });
       }
     };
-    const keep = async () => { await cer.close(); Shell.toast("A gift from " + gift.from + "."); if (isDone()) { S.lib.unshift(entry); Shell.refresh(); } else await Desktop.print(entry); };
-    const later = async () => { S.pending = { entry, stickToday: !isDone() }; await cer.close(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); Shell.close(); };
+    const keep = async () => { await cer.close(); Shell.toast("A gift from " + gift.from + "."); await Desktop.print(entry); };
+    const later = async () => { S.pending = { entry }; await cer.close(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); Shell.close(); };
     wax.addEventListener("click", crack); wax.addEventListener("pointerdown", () => Snd.tap()); wax.tabIndex = 0; wax.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && crack());
     wax.style.cursor = "pointer"; cer.root._esc = () => { if (!opened) cer.close(); };
   }

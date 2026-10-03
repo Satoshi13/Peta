@@ -25,7 +25,25 @@ const Stk = (() => {
     const b = Math.round(border * (max / 520)), pad = b + 8;
     const out = cv(w + pad * 2, h + pad * 2), x = out.getContext("2d");
     let maskCanvas;
-    if (material === "holographic") {
+    if (material === "gold") {
+      const film = grow(src, w, h, b, pad, "#fff"), fx = film.getContext("2d");
+      const g = fx.createLinearGradient(0, 0, film.width, film.height);
+      ["#f8e9ae", "#d9b24f", "#fff3c4", "#c59a3c", "#f3de90", "#d9b24f"].forEach((c, i, a) => g.addColorStop(i / (a.length - 1), c));
+      fx.globalCompositeOperation = "source-in"; fx.fillStyle = g; fx.fillRect(0, 0, film.width, film.height);
+      fx.globalCompositeOperation = "source-atop";
+      for (let i = 0; i < film.width * film.height / 300; i++) { fx.fillStyle = `rgba(255,248,214,${rand(0.3, 0.9)})`; fx.fillRect(Math.random() * film.width, Math.random() * film.height, 1.3, 1.3); }
+      x.drawImage(film, 0, 0); x.drawImage(grow(src, w, h, Math.max(2, b * 0.5), pad, "#fffaf0"), 0, 0); maskCanvas = film;
+    } else if (material === "riso") {
+      x.drawImage(grow(src, w, h, b, pad, "#f2a3b6"), 5, 5);
+      x.drawImage(grow(src, w, h, b + 1, pad, "rgba(60,45,20,.12)"), 0, 0);
+      const body = grow(src, w, h, b, pad, "#fbf9f4"); x.drawImage(body, 0, 0); maskCanvas = body;
+    } else if (material === "vintage") {
+      x.drawImage(grow(src, w, h, b + 1, pad, "rgba(110,84,44,.5)"), 0, 0);
+      const body = grow(src, w, h, b, pad, "#efe2c6"), bx = body.getContext("2d");
+      bx.globalCompositeOperation = "source-atop";
+      for (let i = 0; i < body.width * body.height / 150; i++) { bx.fillStyle = `rgba(120,90,50,${rand(0.08, 0.3)})`; bx.fillRect(Math.random() * body.width, Math.random() * body.height, rand(.8, 2), rand(.8, 2)); }
+      x.drawImage(body, 0, 0); maskCanvas = body;
+    } else if (material === "holographic") {
       const film = grow(src, w, h, b, pad, "#fff"), fx = film.getContext("2d");
       const g = fx.createLinearGradient(0, 0, film.width, film.height);
       ["#f6c6e3", "#c9c3f5", "#bfe3f7", "#c8f2dc", "#f7f0be", "#f9d4c0"].forEach((c, i, a) => g.addColorStop(i / (a.length - 1), c));
@@ -47,7 +65,7 @@ const Stk = (() => {
       const body = grow(src, w, h, b, pad, "#fbf9f4"); x.drawImage(body, 0, 0); maskCanvas = body;
     }
     x.drawImage(src, pad, pad, w, h);
-    return { canvas: out, url: out.toDataURL("image/png"), mask: material === "holographic" ? maskCanvas.toDataURL("image/png") : null, w: out.width, h: out.height, aspect: out.width / out.height, material };
+    return { canvas: out, url: out.toDataURL("image/png"), mask: (material === "holographic" || material === "gold") ? maskCanvas.toDataURL("image/png") : null, w: out.width, h: out.height, aspect: out.width / out.height, material };
   }
   async function make(srcUrl, opt = {}) {
     const key = `${srcUrl}|${opt.border ?? 14}|${opt.material ?? "matte"}|${opt.max ?? 520}`;
@@ -56,7 +74,7 @@ const Stk = (() => {
   }
   /** A DOM sticker. `w` is the CSS width in px (height follows). holographic gets the reflective sheen layer. */
   function el(res, w = 160) {
-    const holo = res.material === "holographic";
+    const holo = res.material === "holographic" || res.material === "gold";
     const e = h("div.stk", { data: { material: res.material }, style: { width: w + "px", aspectRatio: res.w + " / " + res.h } },
       h("img", { src: res.url, alt: "", draggable: false }));
     if (holo && res.mask) e.append(h("i.sheen", { style: { webkitMaskImage: `url(${res.mask})`, maskImage: `url(${res.mask})` } }));

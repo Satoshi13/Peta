@@ -3,7 +3,7 @@ function PageHead(title, sub, ...extra) {
   return h("header.ph", h("div.ph-text", h("p.eyebrow", sub || ""), h("h1", title)), h("div.ph-extra", ...extra));
 }
 const DateStamp = () => h("span.datestamp", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" }));
-const usableMats = () => ["matte", "kraft", "holographic"].filter((id) => MAT[id].unlimited || S.stock[id] > 0);
+const usableMats = () => ["matte", "kraft", "holographic", "gold", "riso", "vintage"].filter((id) => !MAT[id].locked && (MAT[id].unlimited || S.stock[id] > 0));
 
 /** A tray of material cards. Picking lifts one and tapes it down; it is what the next Create is made of. */
 function MaterialTray({ w = 148, onPick, interactive = true, selected = S.chosen } = {}) {
@@ -25,15 +25,27 @@ const CHOICES = [
   { id: "create", key: "chCreate", label: "Create", sub: "From an image you pick" },
   { id: "book", key: "chCollection", label: "Collection", sub: "Stick one you already have" },
   { id: "gifts", key: "chGift", label: "Gift", sub: () => { const n = S.gifts.filter((g) => !g.opened).length; return n ? `${n} waiting` : "Open one that arrived"; } },
-  { id: "packs", key: "chPack", label: "Pack", sub: () => { const n = S.packs.reduce((a, p) => a + p.left.length, 0); return n ? `Open one at random · ${n} left` : "All opened"; } },
+  { id: "packs", key: "chPack", label: "Pack", sub: () => (!S.packs.some((p) => p.left.length) ? "All opened" : packsLeftToday() ? "One a day · resets at midnight" : "Opened today · back tomorrow") },
 ];
-function Choices({ locked, compact }) {
-  return h("div.choices" + (compact ? ".compact" : ""), { data: { locked } }, CHOICES.map((c, i) => {
-    const sub = typeof c.sub === "function" ? c.sub() : c.sub, off = locked || (c.id === "packs" && !S.packs.some((p) => p.left.length));
+function Choices({ compact } = {}) {
+  return h("div.choices" + (compact ? ".compact" : ""), CHOICES.map((c, i) => {
+    const sub = typeof c.sub === "function" ? c.sub() : c.sub, off = c.id === "packs" && (!S.packs.some((p) => p.left.length) || !packsLeftToday());
     return h("button.choice", { disabled: off, style: { "--i": i }, data: { id: c.id },
       on: { click: (e) => { Snd.tap(); if (c.id === "book") S.pickMode = true; Shell.go(c.id, { origin: e.currentTarget, via: "object" }); } } },
       h("span.choice-obj", { style: { backgroundImage: `var(--a-${c.key})` } }), h("b", c.label), compact ? null : h("small", sub));
   }));
+}
+
+/** A material card that is just something to look at (not a control). */
+function MatCard(m, w = 132) {
+  const c = h("div.mcard", { data: { m: m.id }, vars: { "--w": w + "px" } }, h("i.art"), h("span.lab", h("b", m.name), h("small", m.rarity)));
+  Stk.tilt(c, { max: 9, scale: 1.03 }); return c;
+}
+function StuckStrip() {
+  const strip = h("div.stuck-strip");
+  if (!S.stuckToday.length) return strip.append(h("p.hand.empty-note", "Nothing stuck yet — your desktop is waiting.")), strip;
+  S.stuckToday.forEach((id, i) => { const e = S.lib.find((l) => l.id === id); if (!e) return; const t = h("div.stuck-t", { style: { "--i": i } }); resOf(e, { max: 360 }).then((res) => t.append(Stk.el(res, res.aspect >= 1 ? 74 : 74 * res.aspect))); strip.append(t); });
+  return strip;
 }
 
 function EnvelopeScene() {
@@ -58,30 +70,17 @@ Pages.today = {
       const open = () => Pages.today.openEnvelope(root);
       scene.addEventListener("click", open); scene.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && open());
       root.append(h("section.t-arrived", scene, h("p.lead.hand", "Today's Material has arrived."), h("button.btn.open", { on: { click: open } }, "Open")));
-    } else if (st === "opened") {
-      root.append(Pages.today.chooseBlock());
-    } else {
-      root.append(Pages.today.doneBlock());
-    }
+    } else root.append(Pages.today.openedBlock());
     return root;
   },
-  chooseBlock() {
-    const m = MAT[S.todayMat];
+  openedBlock() {
+    const m = MAT[S.todayMat], stock = usableMats().map((id) => `${MAT[id].name} ${MAT[id].unlimited ? "∞" : "×" + S.stock[id]}`).join("  ·  ");
     return h("section.t-choose",
-      h("div.t-top", h("h2", "How will you make today's Peta?"), h("p.muted", "You get one new Peta a day. Looking around doesn't use it up — only sticking one down does."), Choices({ locked: false })),
+      h("div.t-top", h("h2", "What will you stick today?"), h("p.muted", "A new material arrives every day. Make as many Petas as your materials last — plain Matte never runs out."), Choices()),
       h("div.t-bottom",
-        h("div.t-mat", h("p.eyebrow", "Today's Material"), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)), h("p.muted", m.recipe), h("p.addnote.hand", "Added to your Material Book")),
-        h("div.t-tray", h("p.eyebrow", "Make it from"), MaterialTray({ w: 140 }))));
-  },
-  doneBlock() {
-    const entry = S.lib.find((l) => l.id === S.doneId) || S.lib[0];
-    const holder = h("div.done-card", h("i.tape.t3"), h("div.done-stk"));
-    resOf(entry, { max: 420 }).then((res) => { const s = Stk.el(res, res.aspect >= 1 ? 190 : 190 * res.aspect); holder.querySelector(".done-stk").append(s); Stk.tilt(holder, { max: 6 }); });
-    return h("section.t-done",
-      h("div.d-left", holder),
-      h("div.d-right",
-        h("div.note", h("i.note-art"), h("p.hand", "See you tomorrow.")),
-        h("h2", "Tomorrow's Peta is waiting"), h("p.muted", "Today's Peta is already stuck. These open again tomorrow."), Choices({ locked: true, compact: true })));
+        h("div.t-mat", h("div.tm-card", MatCard(m, 138)),
+          h("div.tm-text", h("p.eyebrow", "Today's Material"), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)), h("p.muted", m.recipe), h("p.addnote.hand", "Added to your Material Book"), h("p.stock", stock))),
+        h("div.t-stuck", h("p.eyebrow", "Stuck today"), StuckStrip())));
   },
 
   /* the opening: envelope -> foil -> card, then the card settles into the tray */
@@ -118,8 +117,8 @@ Pages.today = {
       info.querySelector(".cont").disabled = true; Snd.tap();
       anim(info, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 });
       const from = cardEl.getBoundingClientRect();
-      const block = Pages.today.chooseBlock(); block.style.opacity = 0; stageEl.replaceWith(block);
-      const target = $('.mtray .mcard[data-m="' + m.id + '"]', block);
+      const block = Pages.today.openedBlock(); block.style.opacity = 0; stageEl.replaceWith(block);
+      const target = $(".tm-card .mcard", block);
       const choices = $$(".choice", block);
       await sleep(30);
       if (target) {

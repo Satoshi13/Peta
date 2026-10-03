@@ -3,7 +3,7 @@ const MAT_POOL = [["matte", .5], ["kraft", .32], ["holographic", .18]];
 function rollMat() { let r = Math.random(), a = 0; for (const [id, w] of MAT_POOL) { a += w; if (r < a) return id; } return "matte"; }
 
 async function nextDay() {
-  S.today = new Date(S.today.getTime() + 864e5); S.dayState = "arrived"; S.todayMat = rollMat(); S.chosen = S.todayMat; S.doneId = null; S.pickMode = false;
+  S.today = new Date(S.today.getTime() + 864e5); S.dayState = "arrived"; S.todayMat = rollMat(); S.chosen = S.todayMat; S.stuckToday = []; S.packsOpened = 0; S.pickMode = false;
   $("#clock").textContent = fmtDate(S.today, { weekday: "short" }) + " 10:24";
   Shell.toast("A new day — today's material has arrived.");
   if (S.windowOpen) { Pages.today && S.page === "today" ? Shell.refresh() : null; Shell.renderNav(); } else Desktop.arrive();

@@ -3,8 +3,9 @@ const MAT = {
   matte: { id: "matte", name: "Matte", rarity: "common", card: "cardMatte", sw: "swMatte", unlimited: true, recipe: "soft paper · white border", found: "Sep 1" },
   kraft: { id: "kraft", name: "Kraft", rarity: "uncommon", card: "cardKraft", sw: "swKraft", recipe: "kraft paper · fibre texture", found: "Sep 28" },
   holographic: { id: "holographic", name: "Holographic", rarity: "rare", card: "cardHolo", sw: "swHolo", recipe: "foil · rainbow reflection · glitter edge", found: "Oct 2" },
-  gold: { id: "gold", name: "Gold Foil", rarity: "special", locked: true }, riso: { id: "riso", name: "Riso", rarity: "uncommon", locked: true },
-  vintage: { id: "vintage", name: "Vintage", rarity: "archive", locked: true },
+  gold: { id: "gold", name: "Gold Foil", rarity: "special", locked: true, recipe: "gold leaf · warm shimmer", price: "¥200" },
+  riso: { id: "riso", name: "Riso", rarity: "uncommon", locked: true, recipe: "two-colour print · offset ink", price: "Free" },
+  vintage: { id: "vintage", name: "Vintage", rarity: "archive", locked: true, recipe: "aged paper · speckle", price: "¥150" },
 };
 const SAMPLE_TITLES = {
   sCat: "Cat on a skateboard", sCoffee: "Latte", sBlueFlower: "Blue flower", sEgg: "Fried egg", sCamera: "Film camera", sPlant: "Monstera", sPolaroid: "Mountain polaroid",
@@ -16,6 +17,7 @@ const NAV = [
   { id: "book", label: "Book", tab: "tab2", icon: "chCollection" },
   { id: "packs", label: "Packs", tab: "tab5", icon: "chPack" },
   { id: "gifts", label: "Gifts", tab: "tab4", icon: "chGift" },
+  { id: "market", label: "Market", tab: "tab3", icon: "shop" },
   { id: "materials", label: "Materials", tab: "tab6", icon: "cardHolo" },
   { id: "settings", label: "Settings", tab: "tab6", icon: "gear" },
 ];
@@ -44,11 +46,19 @@ function freshState(prev) {
       { id: "G1", from: "Nao", note: "for your desk", src: "sCassette", material: "kraft", edition: 42, opened: false },
       { id: "G2", from: "Yuki", note: "", src: "sGoodDay", material: "matte", edition: 7, opened: false },
     ],
-    pending: null, doneId: null, windowOpen: false, page: "today", pickMode: false, bookMonth: null,
+    pending: null, stuckToday: [], packsOpened: 0, followed: {}, owned: {}, hinted: false, closeOutside: prev?.closeOutside ?? true, windowOpen: false, page: "today", pickMode: false, bookMonth: null,
   };
 }
 let S = freshState();
 const titleOf = (e) => e.title || SAMPLE_TITLES[e.src] || "Sticker";
 const dayLabel = () => fmtDate(S.today, { weekday: "short", month: "short", day: "numeric" });
-const isDone = () => S.dayState === "done";
+/* Rules (changed): one new material a day; stickers are limited only by the materials you hold (Matte never runs out).
+   Packs and Gifts have their own counters: a pack opens once a day, gifts open whenever they arrive. */
+const PACK_DAILY = 1;
+const packsLeftToday = () => Math.max(0, PACK_DAILY - S.packsOpened);
 function rollMaterial() { const r = Math.random(); return r < .5 ? "matte" : r < .82 ? "kraft" : "holographic"; }
+
+/* two small inline icons that have no file in src/art yet */
+const svgURI = (svg) => "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+A.gear = svgURI('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3e6ea"/><stop offset="1" stop-color="#9aa1ab"/></linearGradient></defs><path fill="url(#g)" stroke="#6f757e" stroke-width="1.2" d="M20 4h8l1.4 5.2 4.2 1.8 4.7-2.8 5.6 5.6-2.8 4.7 1.8 4.2L48 20v8l-5.1 1.4-1.8 4.2 2.8 4.7-5.6 5.6-4.7-2.8-4.2 1.8L28 44h-8l-1.4-5.1-4.2-1.8-4.7 2.8L4.1 34.3l2.8-4.7-1.8-4.2L0 24v-4l5.1-1.4 1.8-4.2-2.8-4.7 5.6-5.6 4.7 2.8 4.2-1.8z" transform="translate(0 2) scale(.96)"/><circle cx="24" cy="24" r="7.5" fill="#f4efe4" stroke="#6f757e" stroke-width="1.2"/></svg>');
+A.shop = svgURI('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2c795"/><stop offset="1" stop-color="#c4a06a"/></linearGradient></defs><path d="M17 17v-4.5a7 7 0 0 1 14 0V17" fill="none" stroke="#8a6b3a" stroke-width="2.2" stroke-linecap="round"/><path d="M9 17h30l2.2 26H6.8z" fill="url(#b)" stroke="#9a7a46" stroke-width="1.2" stroke-linejoin="round"/><path d="M9 17h30l.5 6H8.6z" fill="#fff" fill-opacity=".22"/><path d="M13 43l3-9 5 4 4-6 4 5 5-4 3 10" fill="none" stroke="#9a7a46" stroke-opacity=".35" stroke-width="1"/><circle cx="31" cy="23" r="3.4" fill="#d8453a" stroke="#fff" stroke-opacity=".8"/></svg>');

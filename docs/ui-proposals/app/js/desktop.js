@@ -44,14 +44,14 @@ const Desktop = (() => {
 
   /* ---------- print -> grab -> paste ---------- */
   let printing = false;
-  async function print(entry, { stickToday = true } = {}) {
-    S.pending = { entry, stickToday };
+  async function print(entry) {
+    S.pending = { entry };
     await Shell.close();
     await showPrint();
   }
   async function showPrint() {
     if (printing || !S.pending) return; printing = true;
-    const { entry, stickToday } = S.pending;
+    const { entry } = S.pending;
     const res = await resOf(entry, { max: 520 });
     const root = $("#print-layer"); root.replaceChildren();
     const slot = h("div.print-slot", h("i.slot-glow"), h("i.slot-bar"));
@@ -60,7 +60,7 @@ const Desktop = (() => {
     const maxD = sheetW * .74, stk = Stk.el(res, res.aspect >= 1 ? maxD : maxD * res.aspect);
     const sheet = h("div.print-sheet", { style: { width: sheetW + "px" } }, h("div.sheet-stk", stk));
     stage.append(sheet);
-    const hint = h("div.print-hint", h("span", h("b", stickToday ? "Printed." : "Printed."), " Grab the sticker and stick it anywhere on your desktop."),
+    const hint = h("div.print-hint", h("span", h("b", "Printed."), " Grab the sticker and stick it anywhere on your desktop."),
       h("button.btn.paper.small", { on: { click: later } }, "Later"));
     root.append(stage, slot, hint);
     hint.hidden = true;
@@ -70,10 +70,10 @@ const Desktop = (() => {
     await anim(sheet, [{ transform: "translateY(0)" }, { transform: "translateY(5px)" }, { transform: "translateY(0)" }], { duration: 260, easing: EASE.out });
     hint.hidden = false; anim(hint, [{ opacity: 0, transform: "translate(-50%, 10px)" }, { opacity: 1, transform: "translate(-50%, 0)" }], { duration: 400 });
     sheet.classList.add("ready");
-    wireGrab(sheet, stk, res, entry, stickToday);
+    wireGrab(sheet, stk, res, entry);
     printing = false;
   }
-  function wireGrab(sheet, stk, res, entry, stickToday) {
+  function wireGrab(sheet, stk, res, entry) {
     const holder = stk.parentElement; let float = null, off = { x: 0, y: 0 };
     drag(stk, {
       down: (e) => {
@@ -92,11 +92,11 @@ const Desktop = (() => {
           await anim(float, [{ left: float.style.left, top: float.style.top }, { left: r.left + (r.width - float.offsetWidth) / 2 + "px", top: r.top + (r.height - float.offsetHeight) / 2 + "px", transform: "scale(1)" }], { duration: 260, easing: EASE.out });
           float.remove(); stk.style.opacity = 1; return;
         }
-        paste(float, ev, entry, res, sheet, stickToday);
+        paste(float, ev, entry, res, sheet);
       },
     });
   }
-  async function paste(float, ev, entry, res, sheet, stickToday) {
+  async function paste(float, ev, entry, res, sheet) {
     const lr = layer().getBoundingClientRect(), x = clamp((ev.clientX - lr.left) / lr.width, .06, .94), y = clamp((ev.clientY - lr.top) / lr.height, .08, .94);
     const rot = Math.round(rand(-7, 7));
     float.remove();
@@ -104,16 +104,16 @@ const Desktop = (() => {
     if (!S.lib.find((l) => l.id === entry.id)) S.lib.unshift(entry);
     const d = S.desk.find((q) => q.id === entry.id) || (S.desk.push({ id: entry.id, x, y, rot }), S.desk[S.desk.length - 1]);
     Object.assign(d, { x, y, rot });
-    S.pending = null; if (stickToday) { S.dayState = "done"; S.doneId = entry.id; }
+    S.pending = null; if (!S.stuckToday.includes(entry.id)) S.stuckToday.push(entry.id);
     $$(".desk-stk").filter((n) => n.dataset.id === entry.id).forEach((n) => n.remove());
     const node = await mount(d); node.style.zIndex = 20 + (++Desktop.z);
     Snd.peta();
     anim(node.querySelector(".stk"), [{ transform: "scale(1.14)" }, { transform: "scale(.96)", offset: .45 }, { transform: "scale(1.02)", offset: .75 }, { transform: "scale(1)" }], { duration: 340, easing: "ease-out" });
-    const tag = h("img.peta-tag", { src: A.tagJa, style: { left: node.style.left, top: node.style.top } }); layer().append(tag);
+    const tag = pickTag(); tag.style.left = node.style.left; tag.style.top = node.style.top; layer().append(tag);
     anim(tag, [{ opacity: 0, transform: "translate(-10%, -150%) rotate(-8deg) scale(.6)" }, { opacity: 1, transform: "translate(8%, -170%) rotate(-5deg) scale(1)", offset: .25 }, { opacity: 1, transform: "translate(8%, -170%) rotate(-5deg) scale(1)", offset: .8 }, { opacity: 0, transform: "translate(8%, -190%) rotate(-5deg) scale(1)" }], { duration: 1300, easing: "ease-out" }).then(() => tag.remove());
     hideHint(); await sleep(450);
     await retract(sheet);
-    Shell.renderNav(); Shell.toast(stickToday ? "Stuck. See you tomorrow." : "Stuck.");
+    Shell.renderNav(); Shell.toast(S.stuckToday.length > 1 ? `Stuck. ${S.stuckToday.length} today.` : "Stuck.");
   }
   function hideHint() { const hnt = $(".print-hint"); if (hnt) anim(hnt, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 }); }
   async function retract(sheet) {
@@ -126,5 +126,14 @@ const Desktop = (() => {
     await retract(sheet); Shell.toast("Waiting at the print slot — open the Peta menu to get it back.");
     Shell.renderNav();
   }
-  return { z: 0, mount, renderAll, arrive, hideArrival, print, showPrint, later };
+  /* "Peta!" tags that pop up when you stick something. Add a variant by pushing another function. */
+  const TAGS = [
+    () => h("img.peta-tag", { src: A.tagEn, alt: "" }),
+    () => h("div.peta-tag.v-pill", h("i.wm")),
+    () => h("div.peta-tag.v-holo", h("i.wm")),
+    () => h("div.peta-tag.v-stamp", h("i.wm")),
+  ];
+  let lastTag = -1;
+  const pickTag = () => { let i; do i = Math.floor(Math.random() * TAGS.length); while (i === lastTag && TAGS.length > 1); lastTag = i; return TAGS[i](); };
+  return { z: 0, TAGS, mount, renderAll, arrive, hideArrival, print, showPrint, later };
 })();

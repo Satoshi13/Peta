@@ -40,7 +40,7 @@ Pages.book = {
       const items = S.lib.filter((e) => monthKey(e.date) === S.bookMonth).sort((a, b) => a.date - b.date);
       const sel = S.lib.find((e) => e.id === BK.sel);
       root.replaceChildren(
-        PageHead("Book", "Sticker Book", S.pickMode ? h("div.pick-banner", h("span", "Choose one to stick as today's Peta"), h("button.link", { on: { click: () => { S.pickMode = false; paint(); } } }, "Cancel")) : null),
+        PageHead("Book", "Sticker Book", S.pickMode ? h("div.pick-banner", h("span", "Choose one to stick on the desktop"), h("button.link", { on: { click: () => { S.pickMode = false; paint(); } } }, "Cancel")) : null),
         h("nav.months", months.map((k) => h("button.month", { "aria-current": k === S.bookMonth ? "true" : null, on: { click: () => { if (k === S.bookMonth) return; S.bookMonth = k; BK.sel = null; Snd.flip(); this.turn(root, paint); } } },
           monthShort(k), h("small", S.lib.filter((e) => monthKey(e.date) === k).length)))),
         h("div.bk" + (sel ? ".has-detail" : ""),
@@ -67,9 +67,8 @@ Pages.book = {
       h("button.x", { "aria-label": "Close", on: { click: () => { BK.sel = null; BK.gift = false; paint(); } } }, "✕"),
       h("div.flip-stage", flip), h("div.turn-row", turn),
       form || h("div.actions",
-        h("button.btn", { disabled: isDone(), on: { click: () => this.stick(e) } }, isDone() ? "Stuck for today" : "Stick as today's Peta"),
-        h("div.actions-2", onDesk ? h("button.btn.paper.small", { on: { click: () => { peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Book."); paint(); } } }, "Peel off desktop") : null,
-          h("button.btn.paper.small", { on: { click: () => { BK.gift = true; paint(); } } }, "Gift…"))),
+        onDesk ? h("button.btn.paper", { on: { click: () => { peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Book."); paint(); } } }, "Peel off the desktop") : h("button.btn", { on: { click: () => this.stick(e) } }, "Stick on the desktop"),
+        h("button.btn.paper.small", { on: { click: () => { BK.gift = true; paint(); } } }, "Gift…")),
       h("dl", h("dt", "Name"), h("dd", titleOf(e)), h("dt", "Material"), h("dd", h("span.seal", { data: { rarity: mat.rarity } }, mat.name)), h("dt", "Made"), h("dd", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })),
         h("dt", e.kind === "received" ? "Edition" : "No."), h("dd", e.kind === "received" ? "#" + pad4(e.edition) : pad4(e.no))),
       h("ul.history", h("li", h("span", e.kind === "received" ? `Received from ${e.from}` : `Created by ${S.name}`), h("span", fmtDate(e.date))), onDesk ? h("li", h("span", "Stuck on the desktop"), h("span", "now")) : null));

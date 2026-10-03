@@ -1,10 +1,10 @@
 /* Gifts (inbox), Materials (the Material Book), Settings. */
 Pages.gifts = {
   build() {
-    const root = h("div.page-in.giftspage"), locked = isDone();
+    const root = h("div.page-in.giftspage"), locked = false;
     const waiting = S.gifts.filter((g) => !g.opened), got = S.gifts.filter((g) => g.opened);
-    root.append(PageHead("Gifts", "Sealed until you open them", locked ? h("span.seal", { data: { rarity: "common" } }, "stuck for today") : null));
-    root.append(h("p.muted.lede", locked ? "Today's Peta is already stuck — gifts wait for tomorrow." : "A friend can send you a Peta as a small file. It stays sealed until you open it, and it becomes today's Peta."));
+    root.append(PageHead("Gifts", "Sealed until you open them", h("span.quota", h("b", "No daily limit"), h("small", "open each one whenever you like"))));
+    root.append(h("p.muted.lede", "A friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material."));
     root.append(waiting.length
       ? h("div.inbox", waiting.map((g, i) => h("button.gift", { disabled: locked, style: { "--i": i, "--r": [-3, 2.5, -1.5][i % 3] + "deg" }, on: { click: () => { Snd.tap(); Cer.openGift(g); } } },
           img("arrGift", "g-env"), h("span.g-from.hand", h("small", "from"), g.from), locked ? null : h("span.open-cta", "Open"))))
@@ -47,6 +47,7 @@ Pages.settings = {
     root.append(h("div.setcard",
       h("div.setrow", h("div", h("b", "Your name on stickers"), h("small", "Printed on the back of stickers you make from now on")), name),
       sw("Sounds", "Paper, tear, and the little peta", () => Snd.on, (v) => { Snd.on = v; S.sound = v; $("#tb-sound").setAttribute("aria-pressed", String(v)); }),
+      sw("Put away on outside click", "A click on the desktop closes the window, like a menu", () => S.closeOutside, (v) => { S.closeOutside = v; }),
       sw("Reduce motion", "Skips page turns and ceremonies' flourishes", () => document.documentElement.dataset.motion === "reduce", (v) => { document.documentElement.dataset.motion = v ? "reduce" : "full"; S.motion = v ? "reduce" : "full"; })));
     root.append(h("p.muted.fine", "In the real app this window also hosts Cutting Mat, the Sticker Book, Packs and Gifts — what used to be four separate windows. Stickers stay on your desktop; this window comes and goes from the menu bar."));
     return root;

@@ -1,17 +1,18 @@
 /* Create: the Cutting Mat. Same ideas as the app (original -> cutout -> sticker, brush, outline, material),
    done in canvas. Samples are already cut out, so we paint them onto a fake "photo" and cut it again. */
-const CR = { stage: "empty", src: null, photo: null, mask: null, border: 14, smooth: 4, tool: "erase", brush: 26, undo: [], res: null, cutCanvas: null, note: "" };
+const CR = { stage: "empty", src: null, photo: null, mask: null, border: 14, smooth: 4, tool: "erase", brush: 26, undo: [], redo: [], res: null, cutCanvas: null, note: "" };
 const SAMPLE_KEYS = ["sCat", "sBlueFlower", "sCoffee", "sCamera", "sEgg", "sGoodDay", "sPlant", "sPolaroid", "sCassette", "sComputer", "sScribble", "sBubble"];
 const PHOTO_W = 720;
 
-function crReset() { Object.assign(CR, { stage: "empty", src: null, photo: null, mask: null, undo: [], res: null, cutCanvas: null, note: "" }); }
+const usesText = () => "Uses one " + MAT[S.chosen].name + (MAT[S.chosen].unlimited ? " (never runs out)" : ` — ${S.stock[S.chosen]} left`);
+function crReset() { Object.assign(CR, { stage: "empty", src: null, photo: null, mask: null, undo: [], redo: [], res: null, cutCanvas: null, note: "" }); }
 
 async function crLoadSample(key) {
   CR.stage = "cutting"; CR.src = key; CR.note = "";
   Shell.refresh();
   const { photo, alpha } = await Stk.fakePhoto(A[key], PHOTO_W);
   const m = Stk.cv(photo.width, photo.height); m.getContext("2d").drawImage(alpha, 0, 0);
-  Object.assign(CR, { photo, mask: m, undo: [] });
+  Object.assign(CR, { photo, mask: m, undo: [], redo: [] });
   await sleep(reduced() ? 50 : 1500); CR.stage = "ready"; Snd.chime(2, 740); Shell.refresh();
 }
 async function crLoadFile(file) {
@@ -21,7 +22,7 @@ async function crLoadFile(file) {
   const k = Math.min(1, PHOTO_W / Math.max(im.naturalWidth, im.naturalHeight)), w = Math.round(im.naturalWidth * k), hh = Math.round(im.naturalHeight * k);
   const photo = Stk.cv(w, hh); photo.getContext("2d").drawImage(im, 0, 0, w, hh);
   const m = Stk.cv(w, hh), x = m.getContext("2d"); x.fillStyle = "#fff"; x.beginPath(); x.ellipse(w / 2, hh / 2, w * .38, hh * .43, 0, 0, 7); x.fill();
-  Object.assign(CR, { photo, mask: m, undo: [], note: "This preview can't find the subject on its own — paint with Restore and Erase." });
+  Object.assign(CR, { photo, mask: m, undo: [], redo: [], note: "This preview can't find the subject on its own — paint with Restore and Erase." });
   await sleep(reduced() ? 50 : 1300); CR.stage = "ready"; Shell.refresh();
 }
 
@@ -53,9 +54,10 @@ const canvasPoint = (cv, e) => {
 
 Pages.create = {
   build() {
+    if (!usableMats().includes(S.chosen)) S.chosen = usableMats()[0];
     const root = h("div.page-in.create");
     const ready = CR.stage === "ready";
-    root.append(PageHead("Create", ready ? "Cutting Mat" : "Make today's Peta", isDone() ? h("span.seal", { data: { rarity: "common" } }, "stuck for today") : null));
+    root.append(PageHead("Create", ready ? "Cutting Mat" : "Make a Peta", ready ? h("span.muted.small.uses", usesText()) : null));
     if (CR.stage === "empty") root.append(this.empty());
     else if (CR.stage === "cutting") root.append(h("div.cr-cutting", h("div.cut-anim"), h("p.hand", "Cutting…"), h("p.muted", "Taking the background away")));
     else root.append(this.mat());
@@ -73,7 +75,6 @@ Pages.create = {
         h("button.sample", { style: { "--i": i }, title: SAMPLE_TITLES[k], on: { click: () => { Snd.tap(); crLoadSample(k); } } }, h("img", { src: A[k], alt: SAMPLE_TITLES[k] }))))));
   },
   mat() {
-    const done = isDone();
     const origCv = h("canvas"), cutCv = h("canvas.cut"), ring = h("i.ring");
     const stkHost = h("div.stk-host"), pane = (cls, title, ...kids) => h("figure.pane." + cls, h("div.frame", ...kids), h("figcaption", title));
     const sizeCv = () => { origCv.width = CR.photo.width; origCv.height = CR.photo.height; cutCv.width = CR.photo.width; cutCv.height = CR.photo.height; };
@@ -109,19 +110,27 @@ Pages.create = {
     cutFrame.addEventListener("pointerleave", () => { ring.style.opacity = 0; });
     cutFrame.addEventListener("pointerdown", (e) => {
       cutFrame.setPointerCapture(e.pointerId); painting = true; last = null;
-      const snap = Stk.cv(CR.mask.width, CR.mask.height); snap.getContext("2d").drawImage(CR.mask, 0, 0); CR.undo.push(snap); if (CR.undo.length > 25) CR.undo.shift(); syncUndo();
+      CR.undo.push(snapMask()); if (CR.undo.length > 30) CR.undo.shift(); CR.redo = []; syncUndo();
       stroke(canvasPoint(cutCv, e));
     });
     const endPaint = () => { painting = false; last = null; }; cutFrame.addEventListener("pointerup", endPaint); cutFrame.addEventListener("pointercancel", endPaint);
 
-    const undoBtn = h("button.btn.paper.small", { on: { click: () => { const s = CR.undo.pop(); if (!s) return; const x = CR.mask.getContext("2d"); x.globalCompositeOperation = "copy"; x.drawImage(s, 0, 0); x.globalCompositeOperation = "source-over"; syncUndo(); redraw(); Snd.tap(); } } }, "Undo");
-    const syncUndo = () => { undoBtn.disabled = !CR.undo.length; };
+    const snapMask = () => { const c = Stk.cv(CR.mask.width, CR.mask.height); c.getContext("2d").drawImage(CR.mask, 0, 0); return c; };
+    const restore = (c) => { const x = CR.mask.getContext("2d"); x.globalCompositeOperation = "copy"; x.drawImage(c, 0, 0); x.globalCompositeOperation = "source-over"; };
+    const undo = () => { const c = CR.undo.pop(); if (!c) return; CR.redo.push(snapMask()); restore(c); syncUndo(); redraw(); Snd.tap(); };
+    const redo = () => { const c = CR.redo.pop(); if (!c) return; CR.undo.push(snapMask()); restore(c); syncUndo(); redraw(); Snd.tap(); };
+    const undoBtn = h("button.btn.paper.small", { title: "Undo (⌘Z)", on: { click: undo } }, "Undo");
+    const redoBtn = h("button.btn.paper.small", { title: "Redo (⇧⌘Z)", on: { click: redo } }, "Redo");
+    const syncUndo = () => { undoBtn.disabled = !CR.undo.length; redoBtn.disabled = !CR.redo.length; };
+    CR.keys && document.removeEventListener("keydown", CR.keys);
+    CR.keys = (e) => { if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z" || !$(".cr-mat") || e.target.closest("input")) return; e.preventDefault(); e.shiftKey ? redo() : undo(); };
+    document.addEventListener("keydown", CR.keys);
     const slider = (label, key, min, max, unit, onChange) => { const out = h("output", CR[key] + unit); const inp = h("input", { type: "range", min, max, value: CR[key], on: { input: (e) => { CR[key] = +e.target.value; out.textContent = CR[key] + unit; onChange(); } } }); return h("label.slider", h("span", label), inp, out); };
     const seg = h("div.seg", ["erase", "restore"].map((t) => h("button", { "aria-pressed": String(CR.tool === t), on: { click: (e) => { CR.tool = t; $$(".seg button", mat).forEach((b) => b.setAttribute("aria-pressed", String(b === e.currentTarget))); Snd.tap(); } } }, t === "erase" ? "Erase" : "Restore")));
     const make = h("button.btn", { on: { click: () => this.make() } }, "Make this Peta");
-    const syncMake = () => { make.disabled = done || !CR.res; make.textContent = done ? "Stuck for today" : "Make this Peta"; };
+    const syncMake = () => { make.disabled = !CR.res; };
 
-    const tray = MaterialTray({ w: 86, onPick: () => redraw() });
+    const tray = MaterialTray({ w: 86, onPick: () => { redraw(); const u = $(".uses"); if (u) u.textContent = usesText(); } });
     const mat = h("div.cr-mat",
       h("i.tape.t1", { style: { left: "26px", top: "-12px", transform: "rotate(-6deg)" } }), h("i.tape.t4", { style: { right: "40px", top: "-12px", transform: "rotate(5deg)" } }),
       h("div.panes",
@@ -131,13 +140,13 @@ Pages.create = {
       h("div.cr-controls",
         h("div.grp.g-mat", h("label.lbl", "Material"), tray),
         h("div.grp.g-look", h("label.lbl", "Look"), slider("Outline", "border", 4, 30, "", redraw), slider("Smooth", "smooth", 0, 12, "", redraw)),
-        h("div.grp.g-tools", h("label.lbl", "Brush"), h("div.tools", seg, undoBtn), slider("Size", "brush", 8, 60, "", () => {})),
+        h("div.grp.g-tools", h("label.lbl", "Brush"), h("div.tools", seg, undoBtn, redoBtn), slider("Size", "brush", 8, 60, "", () => {})),
         h("div.grp.g-go", CR.note ? h("p.muted.small", CR.note) : null, h("div.go-btns", h("button.btn.paper", { on: { click: () => { crReset(); Shell.refresh(); } } }, "Cancel"), make))));
     syncUndo(); syncMake(); redraw();
     return h("div.cr-wrap", mat);
   },
   async make() {
-    if (!CR.res || isDone()) return;
+    if (!CR.res) return;
     const id = "L" + pad4(S.nextNo).slice(2), mat = S.chosen;
     if (!MAT[mat].unlimited) S.stock[mat]--;
     const url = CR.crop.toDataURL("image/png");

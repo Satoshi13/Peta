@@ -129,3 +129,9 @@ img { -webkit-user-drag: none; user-select: none; }
 
 #toolbar #tb-guide.attn { opacity: 1; background: #f1eee8; color: #1d1d1d; animation: attn 1.6s ease-in-out infinite; }
 @keyframes attn { 0%, 100% { box-shadow: 0 0 0 0 rgba(241, 238, 232, .55); } 50% { box-shadow: 0 0 0 7px rgba(241, 238, 232, 0); } }
+
+/* materials that come from the Market (no card art of their own yet: tinted versions of the existing cards) */
+.mcard[data-m="gold"] .art { background-image: var(--a-cardKraft); filter: sepia(.4) saturate(2.1) hue-rotate(-6deg) brightness(1.2) drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.mcard[data-m="riso"] .art { background-image: var(--a-cardMatte); filter: sepia(1) saturate(3.4) hue-rotate(312deg) brightness(1.04) drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.mcard[data-m="vintage"] .art { background-image: var(--a-cardKraft); filter: sepia(.85) brightness(.9) contrast(.92) drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.stk[data-material="gold"] .sheen { background: linear-gradient(115deg, transparent 20%, rgba(255, 244, 200, 0) 36%, rgba(255, 244, 200, .95) 48%, rgba(255, 214, 120, .6) 53%, transparent 68%); background-size: 260% 260%; background-position: var(--sx, 30%) var(--sy, 30%); }
