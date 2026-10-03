@@ -22,7 +22,7 @@ use tauri_plugin_dialog::DialogExt;
 
 use crate::{creator, layers::Layers, store::Store, tray};
 
-pub const TODAY_LABEL: &str = "today";
+pub const TODAY_LABEL: &str = crate::app_window::APP_LABEL;
 /// Error string the UI recognises: today's new Peta has already been confirmed.
 pub const ALREADY_USED: &str = "already_used_today";
 

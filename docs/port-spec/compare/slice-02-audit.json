@@ -1,0 +1,74 @@
+[
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "studio",
+    "page": "today",
+    "issues": []
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "studio",
+    "page": "settings",
+    "issues": []
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "desk",
+    "page": "today",
+    "issues": []
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "desk",
+    "page": "settings",
+    "issues": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "studio",
+    "page": "today",
+    "issues": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "studio",
+    "page": "settings",
+    "issues": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "desk",
+    "page": "today",
+    "issues": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "desk",
+    "page": "settings",
+    "issues": []
+  }
+]

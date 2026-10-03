@@ -42,7 +42,7 @@ const Bridge = (() => {
     const back = await invoke('sticker_back', {stickerId:id});
     return { id, material:back.material?.id || 'matte', kind:back.kind, from:back.receivedFrom, no:Number(back.originalNumber), edition:Number(back.editionNumber), date:new Date(), back, title:'Sticker' };
   }
-  async function changed() { try { await reload(); Shell.renderNav(); if (!document.querySelector('.cer') && S.page !== 'create') Shell.refresh(); } catch(e) { Shell.toast(String(e)); } }
+  async function changed() { try { await reload(); Shell.renderNav(); if (!Bridge.busy && !document.querySelector('.cer') && S.page !== 'create') Shell.refresh(); } catch(e) { Shell.toast(String(e)); } }
   return { invoke, window:windowApi, reload, asset, entry, savePreferences, changed, listen:api.event.listen };
 })();
 async function resOf(entry) {

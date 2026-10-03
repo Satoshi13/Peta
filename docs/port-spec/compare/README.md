@@ -17,3 +17,9 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 - `slice-01-{studio,desk}-20-settings.jpg`: golden / native comparisons.
 - `slice-01-audit.json`: **0 issues** in Settings for both shells, at 1060×700 and 720×520, using the original prototype scanner inside the actual webview.
 - Existing tests: 80 Rust core tests and 13 placement tests passed. Native debug build passed.
+
+## Slice 2
+
+- Today’s complete envelope → horizontal tear → pull → Keep it → material tray flow ran with native mouse gestures in both shells. Material ownership/counts come from `daily_open_material` / `material_book`; the UI does not award stock itself.
+- Ten comparison states (01–05, both shells); Today/Settings audit: 0 issues at both sizes.
+- Ceremonies retain the original viewport-relative CSS/JS. The prototype covers the whole simulated desktop; the native ceremony covers the app webview, so its available area and object positions differ in the supplied 1440×900 golden crop. Accent-font glyphs also differ because the native app loads the bundled Klee One rather than the golden’s apparent cursive fallback. These differences are visible, not claimed as pixel equality.
