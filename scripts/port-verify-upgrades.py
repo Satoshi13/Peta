@@ -11,6 +11,18 @@ def wait(s,label=None):
 wait('document.querySelectorAll(".nav-item").length===8')
 layer=ev('return (await window.__TAURI__.webviewWindow.getAllWebviewWindows()).find(w=>w.label.startsWith("layer-")).label;')
 def state():return ev('return {status:await window.__TAURI__.core.invoke("reflection_status"),frames:window.testReflectionFrames||0,nodes:Array.from(document.querySelectorAll("#layer>.sticker")).map(e=>({material:e.dataset.material,transform:e.style.transform,sx:e.style.getPropertyValue("--sx"),sy:e.style.getPropertyValue("--sy"),sa:e.style.getPropertyValue("--sa")}))};',layer)
+def shot(name,golden=None):
+    from PIL import Image,ImageDraw
+    rect=ev('const p=await Bridge.window.outerPosition(),s=await Bridge.window.innerSize();return {x:p.x,y:p.y,width:s.width,height:s.height};')
+    ids=subprocess.check_output(['xdotool','search','--name','^Peta$'],text=True).split()
+    wid=next(i for i in ids if 'WIDTH='+str(rect['width']) in subprocess.check_output(['xdotool','getwindowgeometry','--shell',i],text=True))
+    subprocess.run(['xdotool','windowactivate','--sync',wid],check=True);time.sleep(.7)
+    subprocess.run(['import','-window','root','/tmp/peta-upgrade-root.png'],check=True)
+    actual=Image.open('/tmp/peta-upgrade-root.png').crop((rect['x'],rect['y'],rect['x']+rect['width'],rect['y']+rect['height']))
+    actual.save(out/(name+'.png'))
+    if golden:
+        ref=Image.open(c.ROOT/'docs/port-spec/golden'/(golden+'.jpg')).crop((190,79,1250,779))
+        pair=Image.new('RGB',(2120,732),'#f5f0e6');pair.paste(ref,(0,32));pair.paste(actual,(1060,32));d=ImageDraw.Draw(pair);d.text((12,8),'Golden (unchanged)',fill='#2b2a28');d.text((1072,8),'Actual Tauri: all-period List / view switch',fill='#2b2a28');pair.save(out/(name+'-golden.jpg'),quality=90)
 if sys.argv[1]=='reflection':
     wait('document.querySelectorAll("#layer>.sticker").length===3',layer)
     ev('applyLayerPreferences({motion:"full",sound:false});const original=requestAnimationFrame;window.testReflectionFrames=0;window.requestAnimationFrame=fn=>{window.testReflectionFrames++;return original(fn);};return true;',layer);time.sleep(.5)
@@ -78,3 +90,87 @@ elif sys.argv[1]=='countdown':
     assert ev('return window.testRollovers>=1 && window.testIntervals.size===1;')
     ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700));return true;')
     (out/'countdown.json').write_text(json.dumps(dict(first=first,unopenedHidden=True,secondsAdvance=True,noAriaLive=True,pageLeaveClearsInterval=True,windowHideClearsInterval=True,resumeOneInterval=True,boundaryCallsNativeReloadImmediately=True,actualMidnightAndDevNextDay='macOS checklist'),indent=2));print('Native countdown: display, ticking, leave/hide cleanup, resume and immediate boundary reload passed')
+elif sys.argv[1]=='book':
+    ev('S.closeOutside=false;S.bookView="list";S.motion="full";Bridge.savePreferences();BK.sel=null;await Bridge.invoke("print_later");await Shell.open("book");return true;')
+    wait('document.querySelector(".tile-stk .stk img")?.naturalWidth')
+    assert ev('return !document.querySelector("nav.months,.month-title") && document.querySelectorAll(".tile").length===S.lib.length;')
+    ev('document.querySelector(".tile[data-sticker=\\"PETA-PORT-0010\\"]").click();return true;')
+    wait('document.querySelector(".book-flip .stk img")?.naturalWidth')
+    selection=ev('return BK.sel;')
+    ev('document.querySelectorAll(".book-view button")[1].click();return true;')
+    assert ev('return BK.sel;')==selection
+    assert ev('return JSON.parse(localStorage.getItem("peta.preferences")).bookView;')=="calendar"
+    wait('document.querySelector(".calendar-grid") && document.querySelector(".detail")')
+    ev('document.querySelectorAll(".book-view button")[0].click();return true;')
+    assert ev('return BK.sel;')==selection
+    ev('BK.sel=null;Shell.refresh();return true;')
+    records=[]
+    src=(c.ROOT/'docs/ui-proposals/app/tools/audit.mjs').read_text();scan=src[src.index('const scan ='):src.index('\n{\n  const b =')]
+    for shell in ['studio','desk']:
+        for width,height in [(1060,700),(720,520)]:
+            for mode in ['list','calendar']:
+                ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize('+str(width)+','+str(height)+'));Shell.setShell('+json.dumps(shell)+');S.bookView='+json.dumps(mode)+';S.bookMonth=monthKey(S.today);BK.sel=null;await Shell.open("book");await document.fonts.ready;return true;');time.sleep(1)
+                result=ev(scan+'return {shell:S.shell,mode:S.bookView,size:[innerWidth,innerHeight],issues:scan(),grid:document.querySelector(".calendar-grid,.bk-grid").getBoundingClientRect().toJSON(),root:document.querySelector(".bookpage").getBoundingClientRect().toJSON(),scrollWidth:document.querySelector(".bookpage").scrollWidth,clientWidth:document.querySelector(".bookpage").clientWidth,aspectErrors:Array.from(document.querySelectorAll(".calendar-sticker .stk")).filter(e=>Math.abs(e.clientWidth/e.clientHeight-e.querySelector("img").naturalWidth/e.querySelector("img").naturalHeight)>.05).length};')
+                assert result['scrollWidth']==result['clientWidth'] and result['aspectErrors']==0,result
+                assert not result['issues'],result
+                records.append(result);shot(shell+'-book-'+mode+'-'+str(width),shell+'-09-book' if mode=='list' and width==1060 else None)
+    ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700));Shell.setShell("studio");S.bookMonth=monthKey(S.today);S.bookView="calendar";await Shell.open("book");document.querySelector(".calendar-day[data-date=\\"2026-10-04\\"]").click();return true;')
+    wait('document.querySelectorAll(".book-day-choices button").length>=2')
+    latest=ev('return BK.sel;')
+    ev('document.querySelectorAll(".book-day-choices button")[1].click();return true;')
+    assert ev('return BK.sel;')!=latest
+    wait('document.querySelector(".book-flip .stk img")?.naturalWidth')
+    ev('document.querySelector(".book-flip").click();return true;')
+    assert ev('return document.querySelector(".flip-inner").classList.contains("turned");')
+    ev('document.querySelector(".detail .x").click();S.bookMonth=monthKey(new Date("2026-07-01T12:00:00"));Shell.refresh();return true;')
+    assert ev('return document.querySelector(".calendar-heading p").textContent;')=='0 days stuck · 0 Petas'
+    shot('studio-calendar-empty-month')
+    ev('document.querySelector("[aria-label=\\"Next month\\"]").click();return true;');time.sleep(.7)
+    assert ev('return S.bookMonth;')==2026*12+7
+    ev('S.bookMonth=monthKey(S.today);Shell.refresh();return true;')
+    assert ev('return document.querySelector("[aria-label=\\"Next month\\"]").disabled;')
+    # Extra history exists only in this disposable SQLite fixture; no schema or product rules change.
+    import sqlite3
+    dbpath=Path(os.environ['XDG_DATA_HOME'])/'app.peta.desktop/peta.db'
+    with sqlite3.connect(dbpath) as d:
+        d.executemany('INSERT OR IGNORE INTO sticker_events VALUES (?,?,?)',[(f'2026-09-{day:02}','PETA-PORT-0010','collection') for day in range(1,31)])
+    ev('await Bridge.reload();S.bookMonth=monthKey(new Date("2026-09-01T12:00:00"));Shell.refresh();return true;')
+    assert ev('return document.querySelector(".calendar-complete").textContent;')=='30/30 COMPLETE'
+    shot('studio-calendar-complete')
+    ev('Shell.refresh();return true;')
+    assert not ev('return document.querySelector(".calendar-complete").classList.contains("press");')
+    with sqlite3.connect(dbpath) as d:
+        import datetime
+        start=datetime.date(2024,1,1)
+        d.executemany('INSERT OR IGNORE INTO sticker_events VALUES (?,?,?)',[((start+datetime.timedelta(days=i)).isoformat(),'PETA-PORT-0010','collection') for i in range(400)])
+    ev('await Bridge.reload();S.bookView="list";BK.sel=null;Shell.refresh();return true;');time.sleep(.5)
+    lazy=ev('return {tiles:document.querySelectorAll(".tile").length,loaded:document.querySelectorAll(".tile-stk .stk").length};')
+    assert lazy['tiles']>=400 and lazy['loaded']<lazy['tiles']/4,lazy
+    ev('document.querySelector(".bookpage").scrollTop=document.querySelector(".bookpage").scrollHeight;return true;');time.sleep(.5)
+    assert ev('return Boolean(Array.from(document.querySelectorAll(".tile-stk")).at(-1).querySelector(".stk"));')
+    ev('await Shell.go("today",{instant:true});return true;');assert ev('return Pages.book.observer===null;')
+    ev('await Shell.open("book");S.bookView="list";Shell.refresh();document.querySelector(".tile[data-sticker=\\"PETA-PORT-0012\\"]").click();return true;')
+    wait('document.querySelector(".detail [data-action=peel]")')
+    ev('document.querySelector(".detail [data-action=peel]").click();return true;')
+    wait('document.querySelector(".detail [data-action=stick]")')
+    ev('document.querySelectorAll(".book-view button")[1].click();document.querySelector(".detail [data-action=gift]").click();return true;')
+    assert ev('return Boolean(document.querySelector(".gift-form"));')
+    ev('document.querySelector(".gift-form button[type=button]").click();document.querySelector(".detail [data-action=stick]").click();return true;');time.sleep(.5)
+    with sqlite3.connect(dbpath) as d: assert d.execute("SELECT 1 FROM print_queue WHERE sticker_id='PETA-PORT-0012'").fetchone()
+    ev('await Bridge.invoke("print_later");return true;')
+    (out/'book.json').write_text(json.dumps(dict(layouts=records,selectionPreserved=True,dayThumbnailsSwitch=True,clickToFlip=True,emptyMonthNavigation=True,noFutureMonth=True,completeOnce=True,lazy=lazy,observerDisconnectedOnLeave=True,preferencesSaved=True,listPeelCalendarGiftStick=True),indent=2));print('Native Book: two modes/shells/sizes, selection, thumbnails, flip, empty months, COMPLETE and lazy 400+ tiles passed')
+elif sys.argv[1]=='book-empty':
+    ev('S.closeOutside=false;S.bookView="calendar";S.motion="full";BK.sel=null;await Shell.open("book");return true;');time.sleep(1.6)
+    wait('document.querySelector(".calendar-add").getAnimations().every(a=>a.playState!=="running")')
+    ev('document.querySelector(".today-empty").click();return true;');wait('S.page==="today" && Shell.current.dataset.page==="today" && document.querySelector(".t-arrived")')
+    ev('S.motion="reduce";Bridge.savePreferences();await Shell.open("book");return true;')
+    assert ev('return getComputedStyle(document.querySelector(".calendar-add")).animationName;')=='none'
+    records=[]
+    for shell in ['studio','desk']:
+        for mode in ['list','calendar']:
+            ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(720,520));Shell.setShell('+json.dumps(shell)+');S.bookView='+json.dumps(mode)+';BK.sel="PETA-PORT-0012";BK.day="2026-10-02";await Shell.open("book");return true;');time.sleep(.3)
+            wait('document.querySelector(".bookpage").scrollWidth===document.querySelector(".bookpage").clientWidth && document.querySelector(".f-front .stk img")?.naturalWidth')
+            result=ev('const r=document.querySelector(".bookpage"),g=document.querySelector(".bk-main");return {shell:S.shell,mode:S.bookView,detail:!!document.querySelector(".detail"),grid:g.getBoundingClientRect().toJSON(),root:r.getBoundingClientRect().toJSON(),scrollWidth:r.scrollWidth,clientWidth:r.clientWidth};')
+            assert result['detail'] and result['scrollWidth']==result['clientWidth'],result
+            records.append(result)
+    (out/'book-empty.json').write_text(json.dumps(dict(todayPlusUsesExistingToday=True,finitePulseSettles=True,reducedMotionNoPulse=True,minimumDetails=records),indent=2));print('Native empty Today/finite pulse/reduced motion and four minimum detail states passed')

@@ -1,0 +1,273 @@
+{
+  "layouts": [
+    {
+      "aspectErrors": 0,
+      "clientWidth": 856,
+      "grid": {
+        "bottom": 712,
+        "height": 566,
+        "left": 240,
+        "right": 1024,
+        "top": 146,
+        "width": 784,
+        "x": 240,
+        "y": 146
+      },
+      "issues": [],
+      "mode": "list",
+      "root": {
+        "bottom": 700,
+        "height": 700,
+        "left": 204,
+        "right": 1060,
+        "top": 0,
+        "width": 856,
+        "x": 204,
+        "y": 0
+      },
+      "scrollWidth": 856,
+      "shell": "studio",
+      "size": [
+        1060,
+        700
+      ]
+    },
+    {
+      "aspectErrors": 0,
+      "clientWidth": 856,
+      "grid": {
+        "bottom": 695,
+        "height": 482,
+        "left": 253,
+        "right": 1011,
+        "top": 213,
+        "width": 758,
+        "x": 253,
+        "y": 213
+      },
+      "issues": [],
+      "mode": "calendar",
+      "root": {
+        "bottom": 700,
+        "height": 700,
+        "left": 204,
+        "right": 1060,
+        "top": 0,
+        "width": 856,
+        "x": 204,
+        "y": 0
+      },
+      "scrollWidth": 856,
+      "shell": "studio",
+      "size": [
+        1060,
+        700
+      ]
+    },
+    {
+      "aspectErrors": 0,
+      "clientWidth": 720,
+      "grid": {
+        "bottom": 708,
+        "height": 566,
+        "left": 36,
+        "right": 684,
+        "top": 142,
+        "width": 648,
+        "x": 36,
+        "y": 142
+      },
+      "issues": [],
+      "mode": "list",
+      "root": {
+        "bottom": 460,
+        "height": 460,
+        "left": 0,
+        "right": 720,
+        "top": 0,
+        "width": 720,
+        "x": 0,
+        "y": 0
+      },
+      "scrollWidth": 720,
+      "shell": "studio",
+      "size": [
+        720,
+        520
+      ]
+    },
+    {
+      "aspectErrors": 0,
+      "clientWidth": 720,
+      "grid": {
+        "bottom": 577,
+        "height": 376,
+        "left": 43,
+        "right": 677,
+        "top": 201,
+        "width": 634,
+        "x": 43,
+        "y": 201
+      },
+      "issues": [],
+      "mode": "calendar",
+      "root": {
+        "bottom": 460,
+        "height": 460,
+        "left": 0,
+        "right": 720,
+        "top": 0,
+        "width": 720,
+        "x": 0,
+        "y": 0
+      },
+      "scrollWidth": 720,
+      "shell": "studio",
+      "size": [
+        720,
+        520
+      ]
+    },
+    {
+      "aspectErrors": 0,
+      "clientWidth": 890,
+      "grid": {
+        "bottom": 548,
+        "height": 370,
+        "left": 188,
+        "right": 998,
+        "top": 178,
+        "width": 810,
+        "x": 188,
+        "y": 178
+      },
+      "issues": [],
+      "mode": "list",
+      "root": {
+        "bottom": 666,
+        "height": 636,
+        "left": 144,
+        "right": 1034,
+        "top": 30,
+        "width": 890,
+        "x": 144,
+        "y": 30
+      },
+      "scrollWidth": 890,
+      "shell": "desk",
+      "size": [
+        1060,
+        700
+      ]
+    },
+    {
+      "aspectErrors": 0,
+      "clientWidth": 890,
+      "grid": {
+        "bottom": 727,
+        "height": 482,
+        "left": 201,
+        "right": 985,
+        "top": 245,
+        "width": 784,
+        "x": 201,
+        "y": 245
+      },
+      "issues": [],
+      "mode": "calendar",
+      "root": {
+        "bottom": 666,
+        "height": 636,
+        "left": 144,
+        "right": 1034,
+        "top": 30,
+        "width": 890,
+        "x": 144,
+        "y": 30
+      },
+      "scrollWidth": 890,
+      "shell": "desk",
+      "size": [
+        1060,
+        700
+      ]
+    },
+    {
+      "aspectErrors": 0,
+      "clientWidth": 662,
+      "grid": {
+        "bottom": 932,
+        "height": 762,
+        "left": 84,
+        "right": 666,
+        "top": 170,
+        "width": 582,
+        "x": 84,
+        "y": 170
+      },
+      "issues": [],
+      "mode": "list",
+      "root": {
+        "bottom": 442,
+        "height": 414,
+        "left": 40,
+        "right": 702,
+        "top": 28,
+        "width": 662,
+        "x": 40,
+        "y": 28
+      },
+      "scrollWidth": 662,
+      "shell": "desk",
+      "size": [
+        720,
+        520
+      ]
+    },
+    {
+      "aspectErrors": 0,
+      "clientWidth": 662,
+      "grid": {
+        "bottom": 605,
+        "height": 376,
+        "left": 91,
+        "right": 659,
+        "top": 229,
+        "width": 568,
+        "x": 91,
+        "y": 229
+      },
+      "issues": [],
+      "mode": "calendar",
+      "root": {
+        "bottom": 442,
+        "height": 414,
+        "left": 40,
+        "right": 702,
+        "top": 28,
+        "width": 662,
+        "x": 40,
+        "y": 28
+      },
+      "scrollWidth": 662,
+      "shell": "desk",
+      "size": [
+        720,
+        520
+      ]
+    }
+  ],
+  "selectionPreserved": true,
+  "dayThumbnailsSwitch": true,
+  "clickToFlip": true,
+  "emptyMonthNavigation": true,
+  "noFutureMonth": true,
+  "completeOnce": true,
+  "lazy": {
+    "loaded": 16,
+    "tiles": 440
+  },
+  "observerDisconnectedOnLeave": true,
+  "preferencesSaved": true,
+  "listPeelCalendarGiftStick": true
+}

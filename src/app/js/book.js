@@ -1,5 +1,5 @@
-/* Sticker Book: a page per month, a detail card you can turn over, peel / gift / stick-as-today. */
-const BK = { sel: null, gift: false, anim: false, deleteId: null };
+/* Sticker Book: a list or local-date calendar, a detail card you can turn over, peel / gift / stick-as-today. */
+const BK = { sel: null, gift: false, anim: false, deleteId: null, day: null, completed: new Set() };
 
 const monthKey = (d) => d.getFullYear() * 12 + d.getMonth();
 const monthName = (k) => fmtDate(new Date(Math.floor(k / 12), k % 12, 1), { month: "long", year: "numeric" });
@@ -80,31 +80,83 @@ async function peelFromDesk(id) {
 }
 
 Pages.book = {
+  observer: null,
+  leave() { this.observer?.disconnect(); this.observer = null; },
   build() {
     const root = h("div.page-in.bookpage");
-    const months = [...new Set(S.lib.map((e) => monthKey(e.date)))].sort((a, b) => b - a);
-    if (!months.length) months.push(monthKey(S.today));
-    if (S.bookMonth == null || !months.includes(S.bookMonth)) S.bookMonth = months[0];
+    const select = (e) => { BK.sel = BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date) ? null : e.id; BK.day = PetaMath.bookDateKey(e.date); BK.gift = false; BK.deleteId = null; Snd.tap(); paint(); };
     const paint = () => {
-      const items = S.lib.filter((e) => monthKey(e.date) === S.bookMonth).sort((a, b) => a.date - b.date);
-      const sel = S.lib.find((e) => e.id === BK.sel && monthKey(e.date) === S.bookMonth);
-      root.replaceChildren(
-        PageHead("Book", "Sticker Book", S.pickMode ? h("div.pick-banner", h("span", "Choose one to stick on the desktop"), h("button.link", { on: { click: () => { S.pickMode = false; paint(); } } }, "Cancel")) : null),
-        h("nav.months", months.map((k) => h("button.month", { "aria-current": k === S.bookMonth ? "true" : null, on: { click: () => { if (k === S.bookMonth) return; S.bookMonth = k; BK.sel = null; Snd.flip(); this.turn(root, paint); } } },
-          monthShort(k), h("small", S.lib.filter((e) => monthKey(e.date) === k).length)))),
-        h("div.bk" + (sel ? ".has-detail" : ""),
-          h("div.bk-main", h("h2.month-title", monthName(S.bookMonth)), h("p.muted", `${items.length} sticker${items.length === 1 ? "" : "s"}`), h("div.bk-grid", items.map((e, i) => this.tile(e, i, paint)))),
-          sel ? this.detail(sel, paint) : null));
+      this.leave();
+      this.observer = new IntersectionObserver(records => {
+        for(const record of records) if(record.isIntersecting) { this.observer?.unobserve(record.target); record.target._load?.(); }
+      }, { root, rootMargin: "80px" });
+      const items = PetaMath.newestBookEntries(S.lib);
+      const sel = items.find(e => e.id === BK.sel && PetaMath.bookDateKey(e.date) === BK.day) || items.find(e => e.id === BK.sel);
+      const view = h("div.seg.book-view", { role: "group", "aria-label": "Book view" }, ["list", "calendar"].map(v => h("button", { "aria-pressed": String(S.bookView === v), on: { click: () => {
+        if(S.bookView === v) return; S.bookView = v;
+        if(v === "calendar" && sel) S.bookMonth = monthKey(sel.date);
+        Bridge.savePreferences(); paint();
+      } } }, v === "list" ? "List" : "Calendar")));
+      const main = h("div.bk-main");
+      if(S.bookView === "calendar") main.append(this.calendar(items, select, root, paint));
+      else main.append(h("p.muted.book-count", `${items.length} sticker${items.length === 1 ? "" : "s"}`), items.length ? h("div.bk-grid", items.map((e,i) => this.tile(e,i,select))) : h("p.hand.empty-note", "Your Book is waiting for its first sticker."));
+      root.replaceChildren(PageHead("Book", "Sticker Book", view),
+        ...(S.pickMode ? [h("div.pick-banner", h("span", "Choose one to stick on the desktop"), h("button.link", { on: { click: () => { S.pickMode = false; paint(); } } }, "Cancel"))] : []),
+        h("div.bk" + (sel ? ".has-detail" : ""), main, sel ? this.detail(sel, paint) : null));
     };
     paint(); return root;
   },
-  async turn(root, paint) { const g = $(".bk", root); if (g) await anim(g, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(-26px) rotate(-.8deg)" }], { duration: 160, easing: "ease-in" }); paint(); const n = $(".bk", root); anim(n, [{ opacity: 0, transform: "translateX(26px) rotate(.8deg)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: EASE.out }); },
-  tile(e, i, paint) {
-    const holder = h("div.tile-stk"), onDesk = S.desk.some((d) => d.id === e.id);
-    resOf(e, { max: 360 }).then((res) => holder.append(Stk.el(res, res.aspect >= 1 ? 128 : 128 * res.aspect)));
-    const b = h("button.tile", { "aria-pressed": String(BK.sel === e.id), style: { "--i": i }, on: { click: () => { BK.sel = BK.sel === e.id ? null : e.id; BK.gift = false; BK.deleteId = null; Snd.tap(); paint(); } } },
+  async turn(root, paint) {
+    if(BK.anim) return; BK.anim = true;
+    try {
+      if(reduced()) { paint(); return; }
+      const g = $(".bk", root); if(g) await anim(g, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(-26px) rotate(-.8deg)" }], { duration: 160, easing: "ease-in" });
+      paint(); const n = $(".bk", root); if(n) await anim(n, [{ opacity: 0, transform: "translateX(26px) rotate(.8deg)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: EASE.out });
+    } finally { BK.anim = false; }
+  },
+  lazySticker(holder, entry, size) {
+    holder._load = () => {
+      holder._load = null;
+      resOf(entry).then(res => { if(!holder.isConnected) return; const sticker = Stk.el(res, res.aspect >= 1 ? size : size * res.aspect); sticker.style.setProperty("--aspect", res.aspect); holder.append(sticker); }).catch(err => Shell.toast(String(err)));
+    };
+    this.observer.observe(holder);
+  },
+  tile(e, i, select) {
+    const holder = h("div.tile-stk"), onDesk = S.desk.some(d => d.id === e.id);
+    this.lazySticker(holder, e, 128);
+    return h("button.tile", { data: { sticker: e.id }, "aria-pressed": String(BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date)), style: { "--i": Math.min(i, 8) }, on: { click: () => select(e) } },
       holder, h("small", fmtDate(e.date), " · ", titleOf(e)), onDesk ? h("i.on-desk", "on desktop") : null, e.kind === "received" ? h("i.recv", "gift") : null);
-    Stk.tilt(holder, { max: 8, scale: 1.04 }); return b;
+  },
+  calendar(items, select, root, paint) {
+    const current = monthKey(S.today), earliest = Math.min(current, ...items.map(e => monthKey(e.date)));
+    S.bookMonth = clamp(S.bookMonth ?? current, earliest, current);
+    let weekStart = 0;
+    try { const locale = new Intl.Locale(navigator.language); weekStart = (locale.getWeekInfo?.() || locale.weekInfo)?.firstDay % 7 || 0; } catch {}
+    const month = PetaMath.calendarMonth(items, S.bookMonth, S.today, weekStart);
+    const move = delta => {
+      if(BK.anim) return; S.bookMonth = clamp(S.bookMonth + delta, earliest, current); Snd.flip(); this.turn(root, paint);
+    };
+    const heading = h("div.calendar-heading", h("button.calendar-nav", { disabled: S.bookMonth <= earliest, "aria-label": "Previous month", on: { click: () => move(-1) } }, "‹"),
+      h("div", h("div.calendar-month-title", h("h2.month-title", monthName(S.bookMonth))), h("p.muted", `${month.daysStuck} days stuck · ${month.petas} Petas`)),
+      h("button.calendar-nav", { disabled: S.bookMonth >= current, "aria-label": "Next month", on: { click: () => move(1) } }, "›"));
+    if(month.complete) {
+      const stamp = h("span.calendar-complete", `${month.days}/${month.days} COMPLETE`);
+      if(!BK.completed.has(S.bookMonth)) { BK.completed.add(S.bookMonth); if(!reduced()) stamp.classList.add("press"); }
+      $(".calendar-month-title", heading).append(stamp);
+    }
+    const weekdays = h("div.calendar-weekdays", Array.from({length:7}, (_,i) => h("span", fmtDate(new Date(2026,0,4+(weekStart+i)%7,12), {weekday:"short"}))));
+    const grid = h("div.calendar-grid", Array.from({length:month.offset}, () => h("span.calendar-blank", {"aria-hidden":"true"})), month.cells.map(cell => {
+      const dateLabel = fmtDate(cell.date, {month:"short",day:"numeric"}), latest = cell.entries[0];
+      const contents = [h("span.calendar-date", String(cell.day))];
+      if(latest && cell.state !== "future") {
+        const holder = h("div.calendar-sticker", {style:{"--rot":cell.tilt+"deg"}}); this.lazySticker(holder, latest, 84);
+        contents.push(holder, cell.entries.length > 1 ? h("span.calendar-multiple", "×"+cell.entries.length) : null);
+        return h("button.calendar-day.stuck", { data:{date:PetaMath.bookDateKey(cell.date)}, title:dateLabel+" · "+titleOf(latest), "aria-label":dateLabel+" · "+titleOf(latest)+(cell.entries.length>1?` · ${cell.entries.length} stickers`:""), "aria-pressed":String(BK.day===PetaMath.bookDateKey(cell.date) && BK.sel!=null), on:{click:()=>select(latest)} }, contents);
+      }
+      if(cell.state === "today") return h("button.calendar-day.today-empty", {"aria-label":"Make a Peta today", on:{click:()=>Shell.go("today")}}, contents, h("span.calendar-add", "+"));
+      return h("div.calendar-day."+cell.state, contents, cell.state === "past" ? h("small.calendar-rest", "rest") : null);
+    }));
+    return h("div.calendar-ledger", heading, weekdays, grid);
   },
   detail(e, paint) {
     const mat = MAT[e.material], onDesk = S.desk.some((d) => d.id === e.id), flip = h("div.flip-inner"), front = h("div.flip-face.f-front"), back = h("div.flip-face.f-back", BackCard(e));
@@ -125,6 +177,7 @@ Pages.book = {
     return h("aside.detail", { role: "dialog", "aria-label": "Sticker details" },
       h("button.x", { "aria-label": "Close", on: { click: () => { BK.sel = null; BK.gift = false; BK.deleteId = null; paint(); } } }, "✕"),
       turn,
+      S.bookView === "calendar" ? this.dayChoices(e, paint) : null,
       form || (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions",
         onDesk ? h("button.btn.book-action.primary", { data: { action: "peel" }, on: { click: async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Book."); paint(); } } }, "Peel off desktop") : h("button.btn.book-action.primary", { data: { action: "stick" }, on: { click: () => this.stick(e) } }, "Stick on desktop"),
         h("div.book-action-row", h("button.btn.book-action.secondary", { data: { action: "gift" }, on: { click: () => { BK.deleteId = null; BK.gift = true; paint(); } } }, "Gift…"),
@@ -133,6 +186,15 @@ Pages.book = {
       h("dl", h("dt", "Name"), h("dd", titleOf(e)), h("dt", "Material"), h("dd", h("span.seal", { data: { rarity: mat.rarity } }, mat.name)), h("dt", "Made"), h("dd", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })),
         h("dt", e.kind === "received" ? "Edition" : "No."), number),
       history);
+  },
+  dayChoices(e, paint) {
+    const peers = PetaMath.newestBookEntries(S.lib.filter(p => PetaMath.bookDateKey(p.date) === PetaMath.bookDateKey(e.date)));
+    if(peers.length < 2) return null;
+    return h("div.book-day-choices", {role:"group", "aria-label":"Stickers on this day"}, peers.map(p => {
+      const button = h("button", {"aria-label":titleOf(p), "aria-pressed":String(p.id===e.id), on:{click:()=>{BK.sel=p.id;BK.gift=false;BK.deleteId=null;paint();}}});
+      resOf(p).then(res => {if(button.isConnected) button.append(Stk.el(res, res.aspect >= 1 ? 38 : 38 * res.aspect));}).catch(err => Shell.toast(String(err)));
+      return button;
+    }));
   },
   deleteForm(e, paint) {
     return h("div.book-delete", { role: "group", "aria-label": "Confirm sticker deletion" },

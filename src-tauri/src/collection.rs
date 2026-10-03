@@ -25,14 +25,16 @@ pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookI
     let lib = store.lock();
     let entries = book::entries_local(lib.db()).map_err(|e| e.to_string())?;
     book::page(&entries, year, month).into_iter().map(|entry| {
-        let can_manage = lib.db().sticker(&entry.sticker_id).map_err(|e| e.to_string())?.is_some_and(|s| s.source_type == peta_core::SourceType::Created);
-        Ok(BookItem { entry, can_manage })
+        let sticker = lib.db().sticker(&entry.sticker_id).map_err(|e| e.to_string())?;
+        let can_manage = sticker.as_ref().is_some_and(|s| s.source_type == peta_core::SourceType::Created);
+        let created_at = sticker.map(|s| s.created_at);
+        Ok(BookItem { entry, can_manage, created_at })
     }).collect()
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool }
+pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool, created_at: Option<String> }
 
 #[tauri::command]
 pub fn sticker_delete_original(app: AppHandle, store: State<Store>, sticker_id: String) -> Result<(), String> {

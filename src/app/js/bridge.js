@@ -1,6 +1,6 @@
 /* Rust is the source of truth. S contains only the last command snapshot and UI selections. */
 const prefs = JSON.parse(localStorage.getItem('peta.preferences') || '{}');
-const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
+const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, bookView: prefs.bookView === 'calendar' ? 'calendar' : 'list', motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
   envelopeDeadline: null, name: '', today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], packs: [],
   pending: null, stuckToday: [], packAvailable: false, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
 const Bridge = (() => {
@@ -9,7 +9,7 @@ const Bridge = (() => {
   const windowApi = api.window.getCurrentWindow();
   const assets = new Map();
   const savePreferences = () => {
-    const p = { shell:S.shell, sound:S.sound, haptics:S.haptics, motion:S.motion, closeOutside:S.closeOutside };
+    const p = { shell:S.shell, sound:S.sound, haptics:S.haptics, bookView:S.bookView, motion:S.motion, closeOutside:S.closeOutside };
     localStorage.setItem('peta.preferences', JSON.stringify(p));
     document.documentElement.dataset.motion = S.motion;
     Snd.on = S.sound; Haptic.on = S.haptics;
@@ -29,7 +29,7 @@ const Bridge = (() => {
     }
     if (!(typeof CR !== 'undefined' && CR.editing) && !usableMats().includes(S.chosen)) S.chosen = usableMats()[0] || 'matte';
     const pages = await Promise.all(months.map(m => invoke('book_page', {year:m.year, month:m.month})));
-    S.lib = pages.flat().map(e => ({ id:e.stickerId, date:new Date(e.date+'T12:00:00'), no:e.originalNumber, material:e.materialId || 'matte', kind:(['gift','pack'].includes(e.sourceType) || (e.sourceType==='collection' && e.originalNumber==null)) ? 'received' : 'original', aspect:e.aspect, onDesktop:e.onDesktop, canManage:e.canManage, title:'Sticker' }));
+    S.lib = pages.flat().map(e => ({ id:e.stickerId, date:new Date(e.date+'T12:00:00'), createdAt:e.createdAt, no:e.originalNumber, material:e.materialId || 'matte', kind:(['gift','pack'].includes(e.sourceType) || (e.sourceType==='collection' && e.originalNumber==null)) ? 'received' : 'original', aspect:e.aspect, onDesktop:e.onDesktop, canManage:e.canManage, title:'Sticker' }));
     S.desk = S.lib.filter(e=>e.onDesktop).map(e=>({id:e.id}));
     S.stuckToday = S.lib.filter(e=>e.onDesktop && fmtDate(e.date)===fmtDate(S.today)).map(e=>e.id);
     S.gifts = inbox.map(g=>({id:g.giftId, from:g.from, note:g.note || '', opened:!!g.openedAt, material:g.materialId || 'matte', edition:g.edition}));
@@ -40,7 +40,7 @@ const Bridge = (() => {
     if (!assets.has(id)) assets.set(id, invoke('sticker_asset', {stickerId:id}).then(bytes => URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type:'image/png'}))));
     return assets.get(id);
   }
-  function invalidateAsset(id) { const old = assets.get(id); assets.delete(id); old?.then(URL.revokeObjectURL).catch(()=>{}); }
+  function invalidateAsset(id) { const old = assets.get(id); assets.delete(id); for(const key of stickerResources.keys()) if(key.startsWith(id+":")) stickerResources.delete(key); old?.then(URL.revokeObjectURL).catch(()=>{}); }
   async function entry(id) {
     const back = await invoke('sticker_back', {stickerId:id});
     return { id, material:back.material?.id || 'matte', kind:back.kind, from:back.receivedFrom, no:back.originalNumber == null ? null : Number(back.originalNumber), edition:back.editionNumber == null ? null : Number(back.editionNumber), date:new Date(), back, title:'Sticker' };
@@ -62,9 +62,14 @@ const Bridge = (() => {
   }
   return { invoke, printAction, enterCeremony, leaveCeremony, window:windowApi, reload, asset, invalidateAsset, entry, savePreferences, changed, listen:api.event.listen };
 })();
+const stickerResources = new Map();
 async function resOf(entry) {
-  const url = await Bridge.asset(entry.id), i = await Stk.load(url);
-  return { url, w:i.naturalWidth, h:i.naturalHeight, aspect:i.naturalWidth/i.naturalHeight, material:entry.material, mask:['holographic','gold'].includes(entry.material) ? url : null };
+  const key = entry.id + ":" + entry.material;
+  if (!stickerResources.has(key)) stickerResources.set(key, (async () => {
+    const url = await Bridge.asset(entry.id), i = await Stk.load(url);
+    return { url, w:i.naturalWidth, h:i.naturalHeight, aspect:i.naturalWidth/i.naturalHeight, material:entry.material, mask:['holographic','gold'].includes(entry.material) ? url : null };
+  })().catch(err => { stickerResources.delete(key); throw err; }));
+  return stickerResources.get(key);
 }
 // Desktop rendering and placement belong to the existing layer windows.
 const Desktop = { hideArrival() {}, async print(entry) { await Bridge.printAction("print_resume"); }, async later() { await Bridge.invoke('print_later'); }, };
