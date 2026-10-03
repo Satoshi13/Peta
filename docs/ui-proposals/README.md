@@ -47,7 +47,7 @@
 
 | | 本文 | 見出し | 手書きのラベル |
 |---|---|---|---|
-| **Mix(既定)** | Courier Prime | Cormorant Garamond(イタリック) | Homemade Apple |
+| Mix | Courier Prime | Cormorant Garamond(イタリック) | Homemade Apple |
 | Aa Std | システム | システム太字 | Klee One |
 | Hand | Zen Maru Gothic | Yomogi | Yomogi |
 | Type | Courier Prime | Special Elite | Special Elite |
@@ -59,7 +59,7 @@
 
 ## 書体
 
-既定は **Mix**(本文はタイプライター、見出しは万年筆のイタリック、ラベルは万年筆の手書き)。ほかに Aa Std / Hand / Type / Pen。
+既定は **Aa Std**(システムのサンセリフが土台。eyebrow・クォータ・パック情報だけタイプライター、ステッカー裏は手書き)。ほかに Mix / Hand / Type / Pen。既定のシェルは **C Studio**(サイドバー＋紙の実物パーツの“ギャップ”が一番良いという判断)。
 
 ## ステッカーの裏面
 
