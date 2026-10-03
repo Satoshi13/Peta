@@ -137,6 +137,7 @@ pub fn run() {
             gifts::gift_open,
             packs::pack_status,
             packs::pack_open,
+            print::print_resume,
             print::print_pending,
             print::print_paste,
             print::print_later,

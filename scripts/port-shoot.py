@@ -1,5 +1,5 @@
 """Native counterpart of shoot.mjs, selectable by port slice. Real gestures and Rust IPC."""
-import importlib, json, time, subprocess, sys
+import importlib, json, time, subprocess, sys, sqlite3, os
 from pathlib import Path
 c=importlib.import_module('port-capture')
 slice_id=int(sys.argv[1]); shell=sys.argv[2] if len(sys.argv)>2 else 'studio'
@@ -14,7 +14,7 @@ def shot(name): c.capture(slice_id,shell+'-'+name)
 def gesture(sel,tear=False):
     r=c.evaluate('const r=document.querySelector('+json.dumps(sel)+').getBoundingClientRect(); return [r.left,r.top,r.width,r.height];')
     ids=subprocess.check_output(['xdotool','search','--name','^Peta$'],text=True).split()
-    geom=next(subprocess.check_output(['xdotool','getwindowgeometry','--shell',i],text=True) for i in ids if 'WIDTH=1060' in subprocess.check_output(['xdotool','getwindowgeometry','--shell',i],text=True))
+    geom=next(subprocess.check_output(['xdotool','getwindowgeometry','--shell',i],text=True) for i in ids if any('WIDTH='+str(w) in subprocess.check_output(['xdotool','getwindowgeometry','--shell',i],text=True) for w in [1060,1440]))
     g=dict(line.split('=') for line in geom.splitlines() if '=' in line); x=int(g['X'])+r[0]+r[2]*(.14 if tear else .5); y=int(g['Y'])+r[1]+(r[3]*.2 if tear else 30)
     subprocess.run(['xdotool','mousemove',str(round(x)),str(round(y)),'mousedown','1'],check=True)
     for i in range(1,19 if tear else 15):
@@ -32,6 +32,13 @@ elif slice_id==3:
 elif slice_id==4:
     c.evaluate('await Bridge.invoke("creator_cancel"); crReset(); if(S.stock.holographic>0) S.chosen="holographic"; return true;'); go('create'); shot('06-create-empty'); click('.sample:nth-child(3)'); wait_for('CR.stage==="ready" && CR.res',60); shot('07-create-cutting-mat')
 elif slice_id==5:
+    data=Path(os.environ['XDG_DATA_HOME'])/'app.peta.desktop'/'peta.db'
+    if not data.resolve().is_relative_to(Path('/tmp')): raise RuntimeError('Disposable capture data required')
+    db=sqlite3.connect(data)
+    db.execute('UPDATE daily_records SET sticker_id=NULL,source_type=NULL,confirmed_at=NULL,used_at=NULL')
+    db.execute("UPDATE pack_items SET opened_at=NULL,sticker_id=NULL WHERE pack_id='welcome'")
+    db.commit();db.close()
+    c.evaluate('Bridge.busy=false; document.querySelector(".cer")?.remove(); await Bridge.leaveCeremony(); await Bridge.invoke("print_later"); return true;')
     go('packs'); shot('11-packs-shelf'); click('.pack:not(:disabled)'); wait_for('document.querySelector(".pouch")'); shot('12-pack-ceremony')
     gesture('.pouch',True); wait_for('document.querySelector(".pk-sleeve.out")'); shot('13-pack-torn'); gesture('.pk-sleeve'); wait_for('document.querySelector(".rv-btns")'); time.sleep(2); shot('14-pack-reveal')
     click('.rv-btns .btn.paper'); wait_for('!document.querySelector(".cer")')

@@ -11,3 +11,8 @@ input { user-select: text; -webkit-user-select: text; }
    reference for page objects; using the smaller native webview would shorten the Cutting Mat. */
 .panes { height: clamp(190px, calc(var(--desktop-height) * .31), 290px); }
 .choice-obj { width: clamp(84px, calc(var(--desktop-width) * .11), 124px); }
+
+/* The prototype's ceremonies fill the surrounding display. Use the same main native window
+   temporarily, retaining its paper shell at the prototype's centered position, then restore it. */
+body[data-scene="expanded"] #win-layer { inset: auto; left: var(--scene-win-x); top: var(--scene-win-y); width: var(--scene-win-width); height: var(--scene-win-height); }
+body[data-scene="expanded"] .win { --win-w: var(--scene-win-width); --win-h: var(--scene-win-height); }

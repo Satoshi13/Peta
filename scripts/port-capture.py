@@ -28,13 +28,14 @@ def capture(slice_id, golden, delay=1.5):
     time.sleep(delay)
     ids = subprocess.check_output(['xdotool','search','--name','^Peta$'],text=True).split()
     # Peta-app has the 1060x700 webview; layers are display-sized.
-    window = next(i for i in ids if 'WIDTH=1060' in subprocess.check_output(['xdotool','getwindowgeometry','--shell',i],text=True))
+    window = next(i for i in ids if any('WIDTH='+str(w) in subprocess.check_output(['xdotool','getwindowgeometry','--shell',i],text=True) for w in [1060,1440]))
     out = ROOT/'docs/port-spec/compare'
     out.mkdir(exist_ok=True)
     name = f'slice-{slice_id:02}-{golden}'
     subprocess.run(['import','-window',window,str(out/(name+'-actual.png'))],check=True)
     reference=Image.open(ROOT/'docs/port-spec/golden'/f'{golden}.jpg').crop((190,79,1250,779))
     actual=Image.open(out/(name+'-actual.png')).convert('RGB')
+    if actual.size==(1440,900): actual=actual.crop((190,79,1250,779))
     pair=Image.new('RGB',(2120,732),'#f5f0e6'); pair.paste(reference,(0,32)); pair.paste(actual,(1060,32))
     d=ImageDraw.Draw(pair); d.text((12,8),'Golden (original 1060 x 700 window crop)',fill='#2b2a28'); d.text((1072,8),'Actual Tauri / WebKitGTK (1060 x 700)',fill='#2b2a28')
     pair.save(out/(name+'.jpg'),quality=90)

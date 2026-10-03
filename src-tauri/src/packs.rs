@@ -6,7 +6,7 @@ use peta_core::{daily, ids::random_unit, pack, PackSummary, SourceType};
 use serde::Serialize;
 use tauri::{AppHandle, Manager};
 
-use crate::{print, store::Store, today};
+use crate::{store::Store, today};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -75,6 +75,6 @@ pub async fn pack_open(app: AppHandle, pack_id: String) -> Result<Opened, String
         (sticker.id, remaining)
     };
     today::announce(&app);
-    print::begin(&app); // it is printed at the slot and waits to be grabbed
+    // The ceremony hands it to the print layer after the main window closes.
     Ok(Opened { sticker_id: remaining.0, pack_title: title, remaining: remaining.1 })
 }

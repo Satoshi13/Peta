@@ -8,7 +8,7 @@ use serde::Serialize;
 use tauri::{AppHandle, Manager, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt;
 
-use crate::{print, store::Store, today};
+use crate::{store::Store, today};
 
 const EXT: &str = "peta";
 
@@ -97,7 +97,7 @@ pub async fn gift_open(app: AppHandle, gift_id: String) -> Result<String, String
         sticker.id
     };
     today::announce(&app);
-    print::begin(&app);
+    // The ceremony hands it to the print layer after the main window closes.
     Ok(sticker_id)
 }
 

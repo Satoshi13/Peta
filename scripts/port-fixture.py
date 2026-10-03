@@ -31,5 +31,9 @@ for id,name,key,note,mat,no in [('GIFT-PORT-NAO','Nao','cassette-tape','for your
     header=dict(giftId=id,**{'from':name},note=note,sentAt='2026-10-03T10:00:00Z',edition=no,origin=dict(stickerId='PETA-PORT-0000',creatorName=name,createdAt='2026-10-03T10:00:00Z',materialId=mat,aspect=im.width/im.height),pngLen=len(png),maskLen=0)
     meta=json.dumps(header).encode(); rel=f'gifts/{id}.peta'; out=dir/'assets'/rel; out.parent.mkdir(parents=True,exist_ok=True); out.write_bytes(b'PETAGIFT\x01'+struct.pack('>I',len(meta))+meta+png)
     db.execute('INSERT OR REPLACE INTO gifts_received (gift_id,from_name,note,sent_at,received_at,package) VALUES (?,?,?,?,?,?)',(id,name,note,header['sentAt'],header['sentAt'],rel))
+for id,title,author,keys in [('tokyo','Tokyo Pack','Peta',['film-camera','coffee-cup','polaroid-mountain','cassette-tape','retro-computer','peta-bubble','good-day','fried-egg']),('coffee','Coffee Club','Nao',['coffee-cup','fried-egg','good-day','film-camera','potted-plant','cat-skateboard'])]:
+    db.execute('INSERT OR IGNORE INTO packs VALUES (?,?,?,?)',(id,title,author,'2026-10-03T12:00:00Z'))
+    if not db.execute('SELECT 1 FROM pack_items WHERE pack_id=?',(id,)).fetchone():
+        db.executemany('INSERT INTO pack_items(pack_id,item_key) VALUES (?,?)',[(id,k) for k in keys])
 db.commit(); db.close()
 print(dir)

@@ -82,3 +82,7 @@ pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, s
 pub fn print_later(app: AppHandle) {
     layers::set_print(&app, false);
 }
+
+/// Resume after a ceremony, or from the tray. The pending print remains in Rust storage.
+#[tauri::command]
+pub fn print_resume(app: AppHandle) { begin(&app); }

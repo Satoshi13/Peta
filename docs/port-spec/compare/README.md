@@ -35,3 +35,10 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 - Native Create retains the prototype DOM, sliders (outline 4–64/default 20), material tray and brush gestures. Rust performs all real cutting/rendering/history; sample backgrounds alone use the original `fakePhoto` display helper.
 - Four comparisons (06–07, both shells); audit at both sizes: 0 issues apart from the documented paper-art false positives. The original 31vh pane height uses display height, matching the prototype's surrounding desktop viewport.
 - `slice-04-controls.json`: a native mouse Erase stroke changed Rust PNG bytes; Cmd-Z restored identical bytes and Shift-Cmd-Z restored the edited bytes. Restore and the outline control were also exercised. The Rust material renderer naturally differs from the prototype's reference canvas renderer.
+
+## Slice 5
+
+- Packs shelf and the full tear → sleeve pull → reveal → Later flow ran with native mouse gestures in both shells; eight comparisons (11–14), audit: 0 issues at both sizes.
+- The same main native window now expands temporarily for the original display-wide ceremony and restores its prior size/position. This corrects the geometry limitation recorded for slice 2; no extra content window or simulated desktop was added.
+- Pack/Gift commands keep the pending sticker without activating the desktop layer during the ceremony. `Stick it` closes the main window before resuming print, preventing the print layer from intercepting the pull gesture.
+- The isolated fixture includes actual Tokyo/Coffee pack rows. Stock, remaining counts, randomly drawn art and back identifiers remain real backend values and can differ from the reference state.

@@ -5,10 +5,11 @@ const Cer = (() => {
   const RAR_FX = { common: { n: 0, chime: 1 }, uncommon: { n: 16, chime: 3 }, rare: { n: 46, chime: 6 }, special: { n: 60, chime: 7 }, archive: { n: 30, chime: 4 } };
 
   function overlay(kind) {
+    Bridge.enterCeremony();
     const root = h("div.cer", { data: { kind }, tabindex: -1 }), stage = h("div.cer-stage"), top = h("p.cer-hint");
     root.append(h("i.cer-bg"), top, stage); $("#overlay").append(root);
     anim(root, [{ opacity: 0 }, { opacity: 1 }], { duration: 420 });
-    const close = async () => { await anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 }); root.remove(); document.removeEventListener("keydown", onKey); };
+    const close = async () => { await anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 }); root.remove(); await Bridge.leaveCeremony(); document.removeEventListener("keydown", onKey); };
     const onKey = (e) => { if (e.key === "Escape") root._esc && root._esc(); };
     document.addEventListener("keydown", onKey);
     return { root, stage, close, hint: (t) => { if (top.textContent === t) return; top.textContent = t; anim(top, [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 400 }); } };
@@ -63,7 +64,7 @@ const Cer = (() => {
   /* One tearable wrapper, used by Packs (the sticker comes out) and by Today's material (the card comes out).
      `content` sits inside, behind the front of the wrapper; `onTear(rig)` runs once, the moment the top is torn off. */
   function buildRig(cer, stage, { kind, hue, content, onTear }) {
-    const K = PACK_KINDS[kind] || PACK_KINDS.holo, PW = Math.min(310, innerHeight * .4), PH = PW * 4 / 3, CUT = K.cut;
+    const K = PACK_KINDS[kind] || PACK_KINDS.holo, PW = Math.min(310, screen.height * .4), PH = PW * 4 / 3, CUT = K.cut;
     const jag = jagged(26, CUT), tint = K.foil && hue ? ".tinted" : "";
     const mk = (cls, clip) => h("div.pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--hue": (hue || 0) + "deg" } }, K.foil ? h("i.sheen") : null);
     const body = mk("pk-body", polyBody(jag)), topStrip = mk("pk-top", polyTop(jag)), inside = h("div.pk-inside");
@@ -166,7 +167,7 @@ const Cer = (() => {
   /* ------------------------------------------------------------------ GIFT (open) */
   async function openGift(gift) {
     const cer = overlay("gift"), stage = cer.stage; cer.hint("Break the seal.");
-    const EW = Math.min(420, innerWidth * .6), EH = EW * 340 / 480;
+    const EW = Math.min(420, screen.width * .6), EH = EW * 340 / 480;
     const flapPoly = "polygon(10% 14%, 90% 14%, 50% 57%)", bodyPoly = "polygon(0 0, 10% 14%, 50% 57%, 90% 14%, 100% 0, 100% 100%, 0 100%)";
     const hole = `radial-gradient(circle at 50% 54.5%, transparent 0, transparent ${EW * .066}px, #000 ${EW * .074}px)`;
     const mk = (cls, clip, extra = {}) => h("img.ev-layer." + cls, { src: A.arrGift, alt: "", style: { clipPath: clip, webkitMaskImage: hole, maskImage: hole, ...extra } });
@@ -228,7 +229,7 @@ const Cer = (() => {
     catch(e) { Shell.toast(String(e)); return; } finally { Bridge.dialogOpen=false; }
     if (!saved) return;
     const cer = overlay("seal"), stage = cer.stage; cer.hint("");
-    const EW = Math.min(400, innerWidth * .58), EH = EW * 2 / 3;
+    const EW = Math.min(400, screen.width * .58), EH = EW * 2 / 3;
     const res = await resOf(entry, { max: 420 });
     const stk = Stk.el(res, res.aspect >= 1 ? EW * .42 : EW * .42 * res.aspect);
     const back = img("envBack", "ev-layer"), pocket = h("span.ev-layer.pk", img("envPocket"), h("span.env-label", "To", h("br"), to)), flap = img("envFlap", "ev-layer flap");
@@ -248,7 +249,30 @@ const Cer = (() => {
     await anim(env, [{ transform: "none", opacity: 1 }, { transform: "translateY(-260px) rotate(-5deg) scale(.9)", opacity: 0 }], { duration: 900, easing: "cubic-bezier(.5,0,.9,.4)" });
     await cer.close(); Shell.toast(`Saved “${to}.peta” — your own sticker stays in the Book.`);
   }
-  return { openMaterial, openGift, sealGift };
+  async function openPack(pack) {
+    if (!packOpenable(pack)) return;
+    const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
+    const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null;
+    const rig = buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, onTear: async (rig) => {
+      try { Bridge.busy = true; const opened=await Bridge.invoke("pack_open", {packId:pack.id}); entry=await Bridge.entry(opened.stickerId); pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
+      catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
+      await anim(sleeve, [{ transform: sleeve.style.transform }, { transform: `translateY(${-rig.PH * .3}px) rotate(-1.5deg)` }], { duration: 760, easing: EASE.out });
+      fix(sleeve, `translateY(${-rig.PH * .3}px) rotate(-1.5deg)`); sleeve.classList.add("out"); cer.hint("Pull it out.");
+      rig.pullable(sleeve, { onPull: async () => {
+        rig.linger();
+        const r = sleeve.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+        stage.append(sleeve); sleeve.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;`;
+        await unwrapAndReveal({ cer, stage, sleeve, entry, source: `${pack.title} · ${pack.left.length} left`, onKeep: keep, onLater: later });
+      } });
+    } });
+    sleeve.style.cssText = `width:${rig.PW * .72}px;left:${rig.PW * .14}px;top:${rig.cutY - rig.PW * .72 * .12}px`;
+    const keep = async () => { Bridge.busy=false; await cer.close(); Shell.toast("It's yours."); await Desktop.print(entry); };
+    const later = async () => { Bridge.busy=false; await Bridge.invoke("print_later"); await cer.close(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); Shell.close(); };
+    cer.root._esc = () => { if (!rig.done) cer.close(); else if (entry && $(".rv-info")) later(); };
+    rig.focus();
+  }
+
+  return { openMaterial, openGift, sealGift, openPack };
 })();
 
 const GiftSeal = (e,to,note) => Cer.sealGift(e,to,note);
