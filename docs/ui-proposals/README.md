@@ -106,4 +106,4 @@ Packs / Materials / Creators の3タブ。Pack は詳細で中身をのぞける
 
 ## ウィンドウスタイル(2026-10-03)
 
-Notebook を廃止し、**Desk / Studio** を Settings で切り替える(ツールバーにも同じスイッチ)。窓の上端は Codex の帯(Desk=マステ、Studio=紙の帯)で、つかんで動かす。閉じるは手作りの ✕(Pencil / Stitch / Tape / Wax、Settings で選択)。Desk の Create はマットを窓いっぱいに使い、Book は手帳素材(表紙・スパイラル・ドット罫)をマットの上に置く。
+Notebook を廃止し、**Desk / Studio** を Settings で切り替える(ツールバーにも同じスイッチ)。窓の上端に帯は置かない(試したが不採用)。上端の細い領域をつかんで動かし、閉じるのは右上の角に貼った手作りの ✕(Pencil / Stitch / Tape / Wax、Settings で選択)。Desk の Create はマットを窓いっぱいに使い、Book は手帳素材(表紙・スパイラル・ドット罫)をマットの上に置く。

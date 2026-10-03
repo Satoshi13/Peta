@@ -77,7 +77,7 @@ body { }
 .grabber:hover, .win:hover .grabber { opacity: 1; } .grabber:active { cursor: grabbing; }
 .grabber .grip { display: block; width: 26px; height: 10px; margin-right: 6px; background: radial-gradient(circle, rgba(60, 45, 20, .55) 1.1px, transparent 1.5px) 0 0 / 6px 5px; }
 .grabber .g-close { width: 20px; height: 20px; border: 0; border-radius: 50%; background: none; color: #6b665c; font: 600 11px/20px var(--sys); padding: 0; cursor: pointer; transition: background .15s, color .15s; }
-.grabber .g-close:hover { background: #e0564a; color: #fff; }
+[data-shell="notebook"] .grabber .g-close:hover { background-color: #e0564a; color: #fff; }
 .resize-h { position: absolute; right: 2px; bottom: 2px; width: 30px; height: 30px; z-index: 44; cursor: nwse-resize; touch-action: none; opacity: .5; transition: opacity .15s;
   background: linear-gradient(135deg, transparent 52%, rgba(60, 45, 20, .5) 52% 56%, transparent 56% 66%, rgba(60, 45, 20, .5) 66% 70%, transparent 70% 80%, rgba(60, 45, 20, .5) 80% 84%, transparent 84%); }
 .resize-h:hover { opacity: 1; }
@@ -158,43 +158,36 @@ input[type="range"]::-webkit-slider-runnable-track { height: 5px; border-radius:
    control parts, per-material back papers, material cards, market tags. Desk / Studio are the two window styles.
    ===================================================================================================== */
 
-/* ---------- window top: a strip of tape (Desk) / a paper band (Studio) you grab, and a hand-made ✕ ---------- */
-:is([data-shell="desk"], [data-shell="studio"]) .grabber { top: -9px; left: -6px; right: -6px; transform: none; width: auto; height: 44px; padding: 0; gap: 0; border-radius: 0; background: none; box-shadow: none; opacity: 1; backdrop-filter: none; -webkit-backdrop-filter: none;
-  border-style: solid; border-width: 0 67px; border-image: var(--top) 0 120 fill / 0 67px / 0 stretch; filter: drop-shadow(0 2px 2px rgba(30, 20, 5, .3)); transition: filter .18s; }
-[data-shell="desk"] .grabber { --top: var(--a-topDesk); --top-h: var(--a-topDeskHover); } [data-shell="studio"] .grabber { --top: var(--a-topStudio); --top-h: var(--a-topStudioHover); }
-:is([data-shell="desk"], [data-shell="studio"]) .grabber:hover { border-image-source: var(--top-h); filter: drop-shadow(0 3px 3px rgba(30, 20, 5, .34)); }
+/* ---------- window chrome: no band, just a hand-made ✕ stuck on the top-right corner (the top edge itself is the drag strip) ---------- */
+:is([data-shell="desk"], [data-shell="studio"]) .grabber { top: -11px; right: -11px; left: auto; transform: none; width: 36px; height: 36px; padding: 0; gap: 0; border-radius: 0; background: none; box-shadow: none; opacity: 1; backdrop-filter: none; -webkit-backdrop-filter: none; cursor: default; }
 :is([data-shell="desk"], [data-shell="studio"]) .grabber .grip { display: none; }
-.grabber .g-close { position: absolute; right: 24px; top: 6px; width: 30px; height: 30px; border-radius: 0; background-color: transparent; background-repeat: no-repeat; background-position: center; background-size: contain; font-size: 0; color: transparent; }
-:is([data-shell="desk"], [data-shell="studio"]) .grabber .g-close:hover { background-color: transparent; }
-body[data-close="pencil"] .g-close { background-image: var(--a-closePencil); } body[data-close="pencil"] .g-close:hover { background-image: var(--a-closePencilHover); } body[data-close="pencil"] .g-close:active { background-image: var(--a-closePencilDown); }
-body[data-close="stitch"] .g-close { background-image: var(--a-closeStitch); } body[data-close="stitch"] .g-close:hover { background-image: var(--a-closeStitchHover); } body[data-close="stitch"] .g-close:active { background-image: var(--a-closeStitchDown); }
-body[data-close="tape"] .g-close { background-image: var(--a-closeTape); } body[data-close="tape"] .g-close:hover { background-image: var(--a-closeTapeHover); } body[data-close="tape"] .g-close:active { background-image: var(--a-closeTapeDown); }
-body[data-close="wax"] .g-close { background-image: var(--a-closeWax); } body[data-close="wax"] .g-close:hover { background-image: var(--a-closeWaxHover); } body[data-close="wax"] .g-close:active { background-image: var(--a-closeWaxDown); }
-[data-shell="notebook"] .grabber .g-close { position: static; width: 20px; height: 20px; font-size: 0; }
+.drag-strip { height: 28px; }
+.grabber .g-close { position: static; display: block; width: 100%; height: 100%; border-radius: 0; background-color: transparent; background-repeat: no-repeat; background-position: center; background-size: contain; font-size: 0; color: transparent;
+  filter: drop-shadow(0 2px 2px rgba(30, 20, 5, .35)); transition: transform .22s var(--ease-spring), filter .18s; }
+:is([data-shell="desk"], [data-shell="studio"]) .grabber .g-close:hover { background-color: transparent; transform: scale(1.14) rotate(-8deg); filter: drop-shadow(0 4px 4px rgba(30, 20, 5, .38)) brightness(1.04); }
+.grabber .g-close:active { transform: scale(.92) rotate(0); filter: drop-shadow(0 1px 1px rgba(30, 20, 5, .3)); }
+body[data-close="pencil"] .g-close { background-image: var(--a-closePencil); } body[data-close="stitch"] .g-close { background-image: var(--a-closeStitch); }
+body[data-close="tape"] .g-close { background-image: var(--a-closeTape); } body[data-close="wax"] .g-close { background-image: var(--a-closeWax); }
+[data-shell="notebook"] .grabber .g-close { width: 20px; height: 20px; }
 [data-shell="desk"] .page::before { display: none; }
-:is([data-shell="desk"], [data-shell="studio"]) .page-in { padding-top: 44px; }
 .resize-h, [data-shell="desk"] .resize-h { width: 34px; height: 34px; right: 1px; bottom: 1px; opacity: .85; background: var(--a-resizeCorner) center / contain no-repeat; } .resize-h:hover { opacity: 1; }
 
 /* ---------- Desk · Create: no sheet of paper under the mat — the window IS the cutting mat ---------- */
-body[data-shell="desk"][data-page="create"] .viewport { inset: 0; }
-body[data-shell="desk"][data-page="create"] .page, body[data-shell="desk"][data-page="create"] .leaf-face { background: none; box-shadow: none; }
-body[data-shell="desk"][data-page="create"] .cr-mat { background: none; box-shadow: none; padding: 6px 4px 0; }
-body[data-shell="desk"][data-page="create"] .ph h1 { color: #fbf9f4; text-shadow: 0 1px 3px rgba(20, 40, 25, .55); }
-body[data-shell="desk"][data-page="create"] .ph .eyebrow, body[data-shell="desk"][data-page="create"] .ph .muted, body[data-shell="desk"][data-page="create"] .cr-samples .eyebrow { color: rgba(251, 249, 244, .82); text-shadow: 0 1px 2px rgba(20, 40, 25, .5); }
-body[data-shell="desk"][data-page="create"] .ph .uses, body[data-shell="desk"][data-page="create"] .ph small, body[data-shell="desk"][data-page="create"] .ph p { color: rgba(251, 249, 244, .9); }
+[data-shell="desk"] .page[data-page="create"] { background: none; box-shadow: none; }
+[data-shell="desk"] .page[data-page="create"] .cr-mat { background: none; box-shadow: none; padding: 6px 4px 0; }
+[data-shell="desk"] .page[data-page="create"] .ph h1 { color: #fbf9f4; text-shadow: 0 1px 3px rgba(20, 40, 25, .55); }
+[data-shell="desk"] .page[data-page="create"] .ph .eyebrow, [data-shell="desk"] .page[data-page="create"] .ph .muted, [data-shell="desk"] .page[data-page="create"] .cr-samples .eyebrow { color: rgba(251, 249, 244, .82); text-shadow: 0 1px 2px rgba(20, 40, 25, .5); }
+[data-shell="desk"] .page[data-page="create"] .ph .uses, [data-shell="desk"] .page[data-page="create"] .ph small, [data-shell="desk"] .page[data-page="create"] .ph p { color: rgba(251, 249, 244, .9); }
 
-/* ---------- Desk · Book: the notebook (cover board, spiral, dotted page) lying on the mat ---------- */
-body[data-shell="desk"][data-page="book"] .book { left: 142px; right: 22px; top: 30px; bottom: 26px; border-radius: 6px 14px 14px 6px; isolation: isolate;
+/* ---------- Desk · Book: the notebook (cover board, spiral, dotted page) is part of the page itself, so it arrives and leaves with it ---------- */
+[data-shell="desk"] .page[data-page="book"] { inset: 14px 6px 14px 40px; isolation: isolate; background: none; box-shadow: none; }
+[data-shell="desk"] .page[data-page="book"] .page-in { border-radius: 0 12px 12px 0;
+  background: radial-gradient(circle, rgba(150, 128, 90, .22) 1px, transparent 1.3px) 7px 9px / 22px 22px, linear-gradient(rgba(250, 246, 236, .62), rgba(250, 246, 236, .62)), var(--a-paperCream) 0 0 / 520px, #faf6ec;
   box-shadow: inset 14px 0 20px -12px rgba(70, 45, 10, .35), 3px 3px 0 -1px #f1ead9, 3px 3px 0 0 rgba(90, 65, 25, .22), 6px 6px 0 -2px #e8dfca, 6px 6px 0 -1px rgba(90, 65, 25, .18); }
-body[data-shell="desk"][data-page="book"] .book::before { content: ""; position: absolute; inset: -14px -14px -14px -26px; z-index: -1; border-radius: 16px 20px 20px 16px; background: #c4a171 var(--a-coverBoard) 0 0 / 420px;
-  box-shadow: 0 0 0 1px rgba(80, 55, 20, .4), inset 0 0 0 1px rgba(255, 255, 255, .2), 0 14px 26px rgba(14, 20, 12, .4); }
-body[data-shell="desk"][data-page="book"] .spiral { display: block; position: absolute; left: -33px; top: -2px; bottom: -2px; width: 54px; z-index: 12; pointer-events: none; }
-body[data-shell="desk"][data-page="book"] .spiral::before, body[data-shell="desk"][data-page="book"] .spiral::after { content: ""; position: absolute; inset: 0; background-position: center top; background-size: 54px auto; background-repeat: repeat-y; }
-body[data-shell="desk"][data-page="book"] .spiral::before { background-image: var(--a-spiralHoles); } body[data-shell="desk"][data-page="book"] .spiral::after { background-image: var(--a-spiralCoil); filter: drop-shadow(2px 1px 1.5px rgba(40, 25, 5, .35)); }
-body[data-shell="desk"][data-page="book"] .viewport { left: 32px; }
-body[data-shell="desk"][data-page="book"] .page, body[data-shell="desk"][data-page="book"] .leaf-face { background: radial-gradient(circle, rgba(150, 128, 90, .22) 1px, transparent 1.3px) 7px 9px / 22px 22px, linear-gradient(rgba(250, 246, 236, .62), rgba(250, 246, 236, .62)), var(--a-paperCream) 0 0 / 520px, #faf6ec; border-radius: 0 12px 12px 0; }
-body[data-shell="desk"][data-page="book"] .page-in { padding-top: 40px; }
-.book::before { transition: opacity .3s; }
+[data-shell="desk"] .page[data-page="book"]::before { display: block; content: ""; position: absolute; inset: -14px -14px -14px -36px; z-index: -1; left: -36px; top: -14px; width: auto; aspect-ratio: auto; transform: none; border-radius: 16px 20px 20px 16px; background: #c4a171 var(--a-coverBoard) 0 0 / 420px;
+  box-shadow: 0 0 0 1px rgba(80, 55, 20, .4), inset 0 0 0 1px rgba(255, 255, 255, .2), 0 14px 26px rgba(14, 20, 12, .4); pointer-events: none; }
+[data-shell="desk"] .page[data-page="book"]::after { content: ""; position: absolute; left: -33px; top: -2px; bottom: -2px; width: 54px; z-index: 12; pointer-events: none; filter: drop-shadow(2px 1px 1.5px rgba(40, 25, 5, .35));
+  background: var(--a-spiralCoil) center top / 54px auto repeat-y, var(--a-spiralHoles) center top / 54px auto repeat-y; }
 
 /* ---------- control parts ---------- */
 input[type="range"] { height: 26px; }
@@ -226,12 +219,8 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border: 0; bo
 .price { padding: 9px 16px 8px 30px; min-width: 72px; text-align: center; border-radius: 0; background: var(--a-priceTag) center / 100% 100% no-repeat; color: #2b2a28; font-weight: 700; filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
 .price.free { background-image: var(--a-priceFree); }
 .price.own { padding: 10px 18px; background: var(--a-stampOwned) center / 100% 100% no-repeat; color: #243f7a; letter-spacing: .04em; filter: none; }
-.mk-hero { border-style: solid; border-width: 36px; border-image: var(--a-pinboard) 160 fill / 36px / 0 stretch; border-radius: 0; background: none; box-shadow: none; padding: 4px 8px; filter: drop-shadow(0 8px 12px rgba(60, 40, 10, .3)); }
-.mk-hero-text::before { left: 50%; right: auto; top: -18px; width: 38px; height: 38px; margin-left: -19px; background: var(--a-pinRed) center / contain no-repeat; transform: none; filter: drop-shadow(1px 2px 1.5px rgba(0, 0, 0, .35)); }
 [data-shell="desk"] .close-tag { display: none; }
 .cr-controls { border-style: solid; border-width: 24px 26px; border-image: var(--a-panelPaper) 70 fill / 24px 26px / 0 stretch; border-radius: 0; background: none; box-shadow: none; padding: 0; filter: drop-shadow(0 8px 12px rgba(20, 40, 25, .28)); }
 .cr-controls::before { top: -44px; right: 34px; }
-.mk-hero-text { padding-bottom: 36px; }
 .switch[aria-checked="true"] { background: var(--a-switchOn) center / 100% 100% no-repeat; }
-[data-shell="studio"] .nav { padding-top: 84px; } [data-shell="studio"] .nav::before { top: 44px; }
 .mcard .lab { top: 60%; } .mcard .lab small { line-height: 1; }

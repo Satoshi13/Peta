@@ -138,7 +138,7 @@ const Shell = (() => {
     Snd.swoosh();
     await anim(w, [{ transform: `translate(calc(var(--dx,0px) + ${dx}px), calc(var(--dy,0px) + ${dy}px)) scale(.08)`, opacity: 0 }, { transform: "translate(var(--dx,0px), var(--dy,0px)) scale(1)", opacity: 1 }], { duration: 560, easing: EASE.spring });
     w.getAnimations().forEach((x) => x.cancel());
-    if (!S.hinted) { S.hinted = true; setTimeout(() => toast("Drag the handle at the top to move it. Esc, the ✕, or a click on the desktop puts Peta away.", 4200), 900); }
+    if (!S.hinted) { S.hinted = true; setTimeout(() => toast("Drag the top edge to move it. Esc, the ✕, or a click on the desktop puts Peta away.", 4200), 900); }
   }
   async function close() {
     const w = win(); if (w.hidden) return;
