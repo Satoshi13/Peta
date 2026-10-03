@@ -1,0 +1,6 @@
+{
+  "nativeTraySettingsRoute": true,
+  "nativeTrayOpenRoute": true,
+  "nativeTrayEditChecked": true,
+  "doneUnchecksTray": true
+}

@@ -221,10 +221,14 @@ fn pack(r: &creator::Rendered) -> Vec<u8> {
 pub async fn creator_render(app: AppHandle, material_id: String, strength: f32, smooth: f32, preview: bool, outline: Option<f32>) -> Result<Response, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let creator = app.state::<Creator>();
-        let active = creator.active.lock().unwrap();
-        let a = active.as_ref().ok_or("no image is open")?;
+        // Copy only the render inputs; release the session lock before the expensive work.
+        // Painting / undo can continue while a stale preview finishes in the background.
+        let (analysis, edits) = {
+            let active = creator.active.lock().unwrap();
+            active.as_ref().ok_or("no image is open")?.session.render_inputs(preview)
+        };
         let params = params_for(&material_id, strength, smooth, outline);
-        let rendered = if preview { a.session.render_preview(&params) } else { a.session.render(&params) };
+        let rendered = peta_core::creator::render(&analysis, Some(&edits), &params);
         rendered.map(|r| Response::new(pack(&r))).map_err(|e| e.to_string())
     })
     .await
@@ -235,13 +239,16 @@ pub async fn creator_render(app: AppHandle, material_id: String, strength: f32, 
 ///
 /// `new_stroke` starts a new undo step; the pieces that follow it (a stroke is streamed while it is painted) belong to it.
 #[tauri::command]
-pub fn creator_stroke(creator: State<Creator>, points: Vec<(f32, f32)>, radius: f32, restore: bool, new_stroke: bool) -> Result<History, String> {
-    let mut active = creator.active.lock().unwrap();
-    let a = active.as_mut().ok_or("no image is open")?;
-    let (w, h) = a.session.size();
-    let px: Vec<(f32, f32)> = points.iter().map(|(x, y)| (x * w as f32, y * h as f32)).collect();
-    a.session.stroke(&px, radius * w as f32, restore, new_stroke);
-    Ok(History::of(&a.session))
+pub async fn creator_stroke(app: AppHandle, points: Vec<(f32, f32)>, radius: f32, restore: bool, new_stroke: bool) -> Result<History, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let creator = app.state::<Creator>();
+        let mut active = creator.active.lock().unwrap();
+        let a = active.as_mut().ok_or("no image is open")?;
+        let (w, h) = a.session.size();
+        let px: Vec<(f32, f32)> = points.iter().map(|(x, y)| (x * w as f32, y * h as f32)).collect();
+        a.session.stroke(&px, radius * w as f32, restore, new_stroke);
+        Ok(History::of(&a.session))
+    }).await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]

@@ -2,7 +2,6 @@
 //! Rules live in `peta_core::daily`; this module owns the clock, the one-window Today route and the events.
 
 use std::{
-    path::PathBuf,
     sync::{
         atomic::{AtomicI64, Ordering},
         Mutex,
@@ -231,34 +230,4 @@ pub fn spawn_day_watcher(app: AppHandle) {
             roll_day(&app);
         }
     });
-}
-
-// ---- developer switches (debug builds only show these in the menu) ----
-
-pub fn dev_next_day(app: &AppHandle) {
-    app.state::<Today>().day_offset.fetch_add(1, Ordering::SeqCst);
-    roll_day(app);
-}
-
-/// Forget today's record (its sticker stays) so the slot, the draw and the envelope start over.
-pub fn dev_reset_today(app: &AppHandle) {
-    let date = app.state::<Today>().date();
-    if let Err(e) = app.state::<Store>().lock().db_mut().daily_delete(&date) {
-        eprintln!("[peta] reset today failed: {e}");
-    }
-    roll_day(app);
-}
-
-/// Developer: cut out an image on the Cutting Mat without touching today's slot.
-pub fn dev_open_image(app: &AppHandle, path: &PathBuf) {
-    let primary = app.state::<Layers>().primary_display_id();
-    match std::fs::read(path) {
-        Ok(bytes) => {
-            let target = creator::Target { display_id: primary, x: DEFAULT_SPOT.0, y: DEFAULT_SPOT.1, counts_for_today: false, material_hint: None };
-            if let Err(e) = creator::begin(app, bytes, target) {
-                eprintln!("[peta] could not open the Cutting Mat: {e}");
-            }
-        }
-        Err(e) => eprintln!("[peta] could not read {}: {e}", path.display()),
-    }
 }

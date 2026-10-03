@@ -104,7 +104,7 @@ const Shell = (() => {
     win().hidden = false; S.windowOpen = true; renderNav();
     await go(id || S.page, { ...o, instant: true, force: true });
   }
-  async function close() { await Bridge.window.hide(); S.windowOpen = false; }
+  async function close() { Pages[S.page]?.suspend?.(); await Bridge.window.hide(); S.windowOpen = false; }
   function initChrome() {
     $("#wc-close").addEventListener("click", close);
     $("#wc-min").addEventListener("click", () => Bridge.window.minimize());

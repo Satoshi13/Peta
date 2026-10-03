@@ -26,3 +26,25 @@ pub fn start(app: &AppHandle) {
         }
     });
 }
+
+/// Inspect / display the very same native Menu instance installed on the tray (never HTML).
+#[tauri::command]
+pub fn port_capture_tray(window: WebviewWindow, popup: bool) -> Result<serde_json::Value, String> {
+    use tauri::menu::{ContextMenu, MenuItemKind};
+    if !cfg!(debug_assertions) || window.label()!=crate::app_window::APP_LABEL || std::env::var("PETA_PORT_CAPTURE_DIR").is_err() {
+        return Err("capture disabled".into());
+    }
+    let menu=&window.state::<crate::tray::TrayMenu>().0;
+    let mut items=Vec::new();
+    for item in menu.items().map_err(|e|e.to_string())? {
+        let value=match item {
+            MenuItemKind::MenuItem(i)=>serde_json::json!({"id":i.id().as_ref(),"text":i.text().map_err(|e|e.to_string())?,"enabled":i.is_enabled().map_err(|e|e.to_string())?}),
+            MenuItemKind::Check(i)=>serde_json::json!({"id":i.id().as_ref(),"text":i.text().map_err(|e|e.to_string())?,"enabled":i.is_enabled().map_err(|e|e.to_string())?,"checked":i.is_checked().map_err(|e|e.to_string())?}),
+            MenuItemKind::Predefined(_)=>serde_json::json!({"separator":true}),
+            _=>return Err("unexpected tray menu item".into()),
+        };
+        items.push(value);
+    }
+    if popup { menu.popup_at(window.as_ref().window().clone(), tauri::LogicalPosition::new(200.0,80.0)).map_err(|e|e.to_string())?; }
+    Ok(serde_json::json!({"items":items}))
+}

@@ -1,0 +1,79 @@
+{
+  "tabs": [
+    {
+      "circleOpacity": "1",
+      "circleWidth": "2px",
+      "selected": "Materials",
+      "selectedCount": 1
+    },
+    {
+      "circleOpacity": "1",
+      "circleWidth": "2px",
+      "selected": "Creators",
+      "selectedCount": 1
+    },
+    {
+      "circleOpacity": "1",
+      "circleWidth": "2px",
+      "selected": "Packs",
+      "selectedCount": 1
+    }
+  ],
+  "tray": {
+    "items": [
+      {
+        "enabled": true,
+        "id": "today",
+        "text": "Open Peta  \u2713"
+      },
+      {
+        "enabled": true,
+        "id": "resume_print",
+        "text": "Resume printing"
+      },
+      {
+        "checked": false,
+        "enabled": true,
+        "id": "edit",
+        "text": "Edit stickers"
+      },
+      {
+        "separator": true
+      },
+      {
+        "enabled": true,
+        "id": "settings",
+        "text": "Settings\u2026"
+      },
+      {
+        "enabled": true,
+        "id": "quit",
+        "text": "Quit Peta"
+      }
+    ]
+  },
+  "thinWhileDown": {
+    "alpha": 26,
+    "nativeStrokeCalls": 0,
+    "point": {
+      "x": 360,
+      "y": 286.8340061422696
+    },
+    "radius": 1
+  },
+  "thinStroke": {
+    "canUndo": true,
+    "changed": true,
+    "radius": 0.001388888888888889
+  },
+  "rapidStrokes": {
+    "calls": 2,
+    "changed": true,
+    "firstPoints": 19,
+    "newSteps": true
+  },
+  "independentUndoRedo": true,
+  "restoreUndo": true,
+  "leavingCommitsStroke": true,
+  "hidingCommitsStroke": true
+}

@@ -93,17 +93,3 @@ pub async fn gift_open(app: AppHandle, gift_id: String) -> Result<String, String
     // The ceremony hands it to the print layer after the main window closes.
     Ok(sticker_id)
 }
-
-/// Menu bar "Open Gift…": receive a file, then show the Inbox (Today's Peta).
-pub fn menu_open_gift(app: &AppHandle) {
-    let app2 = app.clone();
-    tauri::async_runtime::spawn(async move {
-        match gift_receive_file(app2.clone()).await {
-            Ok(Some(_)) => {
-                let _ = crate::app_window::open(&app2, "gifts");
-            }
-            Ok(None) => {}
-            Err(e) => eprintln!("[peta] could not receive the gift: {e}"),
-        }
-    });
-}

@@ -50,6 +50,7 @@ pub fn load_segmenter(dirs: &[PathBuf], bundled_u2netp: &[u8]) -> Result<Segment
 }
 
 /// The photo, downscaled, plus the (edge-snapped) subject probability.
+#[derive(Clone)]
 pub struct Analysis {
     pub work: RgbaImage,
     pub matte: Vec<f32>,
@@ -279,6 +280,13 @@ impl Session {
         self.base = self.edits.clone();
         self.history.clear();
         self.redo.clear();
+    }
+
+    /// Owned render inputs let native preview workers release the editing-session lock.
+    /// Do not copy the original upload or undo history for a preview.
+    pub fn render_inputs(&self, preview: bool) -> (Analysis, Edits) {
+        if preview { (self.preview.clone(), self.edits.downscaled(PREVIEW_DOWNSCALE)) }
+        else { (self.analysis.clone(), self.edits.clone()) }
     }
 
     /// Full-resolution render: what gets stuck on the desktop.
@@ -576,6 +584,25 @@ mod tests {
         assert!((1.7..2.3).contains(&ratio), "ratio {ratio}");
         assert!((full.aspect() - preview.aspect()).abs() < 0.05);
         assert!((full.coverage - preview.coverage).abs() < 0.03);
+    }
+
+    #[test]
+    fn render_inputs_keep_full_and_preview_pixels_and_do_not_follow_new_edits() {
+        let mut session = flat_session();
+        session.stroke(&[(45.0, 40.0), (60.0, 40.0)], 3.0, false, true);
+        let params = params("matte");
+        let (full, edits) = session.render_inputs(false);
+        let (preview, preview_edits) = session.render_inputs(true);
+        let expected = session.render(&params).unwrap();
+        let expected_preview = session.render_preview(&params).unwrap();
+        session.stroke(&[(55.0, 55.0)], 8.0, false, true);
+        let snapshot = render(&full, Some(&edits), &params).unwrap();
+        let snapshot_preview = render(&preview, Some(&preview_edits), &params).unwrap();
+        assert_eq!(snapshot.sticker_png, expected.sticker_png);
+        assert_eq!(snapshot.cutout_png, expected.cutout_png);
+        assert_eq!(snapshot_preview.sticker_png, expected_preview.sticker_png);
+        assert_eq!(snapshot_preview.cutout_png, expected_preview.cutout_png);
+        assert_ne!(snapshot.sticker_png, session.render(&params).unwrap().sticker_png);
     }
 
     #[test]

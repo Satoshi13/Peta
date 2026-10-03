@@ -34,6 +34,6 @@ for shell in ['studio','desk']:
                 assert time.monotonic()-start<60;time.sleep(.2)
         if page=='market':
             start=time.monotonic()
-            while ev('return document.querySelectorAll(".fan-s .stk").length;')!=4:
+            while not ev('return document.querySelectorAll(".fan-s .stk").length===document.querySelectorAll(".fan-s").length;'):
                 assert time.monotonic()-start<60;time.sleep(.2)
         shot(shell,page)

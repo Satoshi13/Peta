@@ -1,9 +1,9 @@
 /* The prototype's controls call the real Rust cutting session. */
-const CR = {stage:"empty",src:null,photo:null,border:20,smooth:4,tool:"erase",brush:26,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve(),zoom:{scale:1,x:0,y:0}};
+const CR = {stage:"empty",src:null,photo:null,original:null,border:20,smooth:4,tool:"erase",brush:12,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve(),zoom:{scale:1,x:0,y:0}};
 const SAMPLE_KEYS = ["sCat","sBlueFlower","sCoffee","sCamera","sEgg","sGoodDay","sPlant","sPolaroid","sCassette","sComputer","sScribble","sBubble"];
 const PHOTO_W = 720;
 const usesText = () => "Uses one "+MAT[S.chosen].name+(MAT[S.chosen].unlimited?" (never runs out)":` — ${S.stock[S.chosen]} left`);
-function crReset() { CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{stage:'empty',src:null,photo:null,res:null,note:'',urls:[],history:{canUndo:false,canRedo:false},zoom:{scale:1,x:0,y:0}}); }
+function crReset() { CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{stage:'empty',src:null,photo:null,original:null,res:null,note:'',urls:[],history:{canUndo:false,canRedo:false},zoom:{scale:1,x:0,y:0}}); }
 async function crBegin(bytes) {
   CR.stage='cutting'; Shell.refresh();
   try { await Bridge.invoke('creator_begin_bytes',{bytes:Array.from(bytes),materialId:S.chosen}); } catch(e) { crReset(); Shell.refresh(); Shell.toast(String(e)); }
@@ -22,7 +22,7 @@ async function crSync() {
   if(info.phase!=='ready') return;
   const bytes=await Bridge.invoke('creator_original'), url=URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:'image/jpeg'}));
   const i=await Stk.load(url), photo=Stk.cv(info.width,info.height); photo.getContext('2d').drawImage(i,0,0,info.width,info.height); URL.revokeObjectURL(url);
-  CR.photo=CR.samplePhoto || photo; CR.stage='ready'; await Bridge.reload(); if(S.page==='create') Shell.refresh();
+  CR.original=photo; CR.photo=CR.samplePhoto || photo; CR.stage='ready'; await Bridge.reload(); if(S.page==='create') Shell.refresh();
 }
 Bridge.listen('creator-changed',()=>crSync().catch(e=>Shell.toast(String(e))));
 const canvasPoint = (cv, e) => {
@@ -57,34 +57,69 @@ Pages.create = {
     const stkHost = h("div.stk-host"), pane = (cls, title, ...kids) => h("figure.pane." + cls, h("div.frame", ...kids), h("figcaption", title));
     const sizeCv = () => { origCv.width = CR.photo.width; origCv.height = CR.photo.height; cutCv.width = CR.photo.width; cutCv.height = CR.photo.height; };
     sizeCv();
-    let seq = 0;
-    const redraw = async () => {
-      const mine = ++seq;
-      try {
-        const buffer = await Bridge.invoke("creator_render", { materialId:S.chosen, strength:.5, smooth:CR.smooth/12, outline:CR.border, preview:false });
-        const bytes = new Uint8Array(buffer), length = new DataView(bytes.buffer).getUint32(0);
-        const head = JSON.parse(new TextDecoder().decode(bytes.slice(4,4+length)));
-        const offset = 4+length;
-        const sticker = URL.createObjectURL(new Blob([bytes.slice(offset,offset+head.stickerLen)], {type:"image/png"}));
-        const cutout = URL.createObjectURL(new Blob([bytes.slice(offset+head.stickerLen)], {type:"image/png"}));
-        const [stickerImg,cutImg] = await Promise.all([Stk.load(sticker),Stk.load(cutout)]);
-        if(mine !== seq || !stkHost.isConnected) { URL.revokeObjectURL(sticker); URL.revokeObjectURL(cutout); return; }
-        CR.urls.forEach(url=>URL.revokeObjectURL(url)); CR.urls=[sticker,cutout];
-        origCv.getContext("2d").drawImage(CR.photo,0,0);
-        const cx = cutCv.getContext("2d"); cx.clearRect(0,0,cutCv.width,cutCv.height);
-        // Rust returns the cutout at the original working-image size.
-        cx.drawImage(cutImg,0,0,cutCv.width,cutCv.height);
-        const dim=Stk.cv(origCv.width,origCv.height), dx=dim.getContext("2d"); dx.fillStyle="rgba(30,24,16,.5)"; dx.fillRect(0,0,dim.width,dim.height); dx.globalCompositeOperation="destination-out"; dx.drawImage(cutImg,0,0,dim.width,dim.height); origCv.getContext("2d").drawImage(dim,0,0);
-        const res = {url:sticker,w:head.width,h:head.height,aspect:head.width/head.height,material:S.chosen,mask:['holographic','gold'].includes(S.chosen)?sticker:null}; CR.res=res;
-        stkHost.replaceChildren(Stk.el(res,res.aspect>=1?230:230*res.aspect)); Stk.tilt(stkHost,{max:8,scale:1.02}); syncMake();
-      } catch(e) { CR.res=null; stkHost.replaceChildren(h("p.muted", "Nothing left to cut out")); syncMake(); Shell.toast(String(e)); }
+    let seq = 0, rendering = null, renderRequested = false;
+    const redraw = () => {
+      ++seq; renderRequested = true;
+      return drainRender();
     };
-    // brush
-    let painting=false,last=null,first=true;
+    // One render at a time. New edits invalidate its result and request only the latest image.
+    const drainRender = () => {
+      if (rendering) return rendering;
+      if (painting || !renderRequested) return Promise.resolve();
+      rendering = (async () => {
+        while (renderRequested && !painting && stkHost.isConnected) {
+          renderRequested = false;
+          let queued;
+          do { queued=CR.queue; await queued; } while(queued!==CR.queue);
+          if (painting) { renderRequested = true; break; }
+          const mine = seq;
+          try {
+            const buffer = await Bridge.invoke("creator_render", { materialId:S.chosen, strength:.5, smooth:CR.smooth/12, outline:CR.border, preview:false });
+            if(mine !== seq || painting || !stkHost.isConnected) continue;
+            const bytes = new Uint8Array(buffer), length = new DataView(bytes.buffer).getUint32(0);
+            const head = JSON.parse(new TextDecoder().decode(bytes.slice(4,4+length)));
+            const offset = 4+length;
+            const sticker = URL.createObjectURL(new Blob([bytes.slice(offset,offset+head.stickerLen)], {type:"image/png"}));
+            const cutout = URL.createObjectURL(new Blob([bytes.slice(offset+head.stickerLen)], {type:"image/png"}));
+            const [stickerImg,cutImg] = await Promise.all([Stk.load(sticker),Stk.load(cutout)]);
+            if(mine !== seq || painting || !stkHost.isConnected) { URL.revokeObjectURL(sticker); URL.revokeObjectURL(cutout); continue; }
+            CR.urls.forEach(url=>URL.revokeObjectURL(url)); CR.urls=[sticker,cutout];
+            origCv.getContext("2d").drawImage(CR.photo,0,0);
+            const cx = cutCv.getContext("2d"); cx.clearRect(0,0,cutCv.width,cutCv.height);
+            // Rust returns the cutout at the original working-image size.
+            cx.drawImage(cutImg,0,0,cutCv.width,cutCv.height);
+            const dim=Stk.cv(origCv.width,origCv.height), dx=dim.getContext("2d"); dx.fillStyle="rgba(30,24,16,.5)"; dx.fillRect(0,0,dim.width,dim.height); dx.globalCompositeOperation="destination-out"; dx.drawImage(cutImg,0,0,dim.width,dim.height); origCv.getContext("2d").drawImage(dim,0,0);
+            const res = {url:sticker,w:head.width,h:head.height,aspect:head.width/head.height,material:S.chosen,mask:['holographic','gold'].includes(S.chosen)?sticker:null}; CR.res=res;
+            stkHost.replaceChildren(Stk.el(res,res.aspect>=1?230:230*res.aspect)); Stk.tilt(stkHost,{max:8,scale:1.02}); syncMake();
+          } catch(e) {
+            if (mine !== seq || painting || !stkHost.isConnected) continue;
+            CR.res=null; stkHost.replaceChildren(h("p.muted", "Nothing left to cut out")); syncMake(); Shell.toast(String(e));
+          }
+        }
+      })().finally(() => { rendering=null; syncMake(); if(renderRequested && !painting && stkHost.isConnected) drainRender(); });
+      return rendering;
+    };
+    // Paint locally immediately, retain every input point, then commit one native undo step on release.
+    // Restore uses the real working photo, never the sample's invented background.
+    let painting=false, last=null, activeStroke=null;
     const stroke = p => {
-      const points = last ? [[last.x/CR.photo.width,last.y/CR.photo.height],[p.x/CR.photo.width,p.y/CR.photo.height]] : [[p.x/CR.photo.width,p.y/CR.photo.height]];
-      const newStroke = first; first=false; last=p;
-      CR.queue=CR.queue.then(()=>Bridge.invoke("creator_stroke",{points,radius:CR.brush/CR.photo.width,restore:CR.tool==='restore',newStroke})).then(history=>{ CR.history=history; syncUndo(); redraw(); }).catch(e=>Shell.toast(String(e)));
+      const c=cutCv.getContext("2d"), radius=activeStroke.radius;
+      activeStroke.points.push([p.x/CR.photo.width,p.y/CR.photo.height]);
+      c.save(); c.beginPath(); c.lineWidth=radius*2; c.lineCap=c.lineJoin="round";
+      if(last) { c.moveTo(last.x,last.y); c.lineTo(p.x,p.y); }
+      else { c.arc(p.x,p.y,radius,0,Math.PI*2); }
+      if(activeStroke.restore) {
+        // A stroke outline is needed to clip the original photo into a round brush path.
+        const mask=activeStroke.mask, m=mask.getContext("2d");
+        m.clearRect(0,0,mask.width,mask.height); m.lineWidth=radius*2; m.lineCap=m.lineJoin="round";
+        m.beginPath(); if(last) { m.moveTo(last.x,last.y); m.lineTo(p.x,p.y); m.stroke(); }
+        else { m.arc(p.x,p.y,radius,0,Math.PI*2); m.fill(); }
+        m.globalCompositeOperation="source-in"; m.drawImage(CR.original,0,0); m.globalCompositeOperation="source-over";
+        c.drawImage(mask,0,0);
+      } else {
+        c.globalCompositeOperation="destination-out"; last ? c.stroke() : c.fill();
+      }
+      c.restore(); last=p;
     };
     const resetZoom = h("button.preview-reset", { type:"button", hidden:CR.zoom.scale===1, "aria-label":"Reset cutout zoom", title:"Reset zoom", on:{click:()=>{Object.assign(CR.zoom,{scale:1,x:0,y:0});applyZoom();}} }, "100%");
     const cutFrame = h("div.frame.checker", { title:"Scroll to zoom the cutout" }, cutCv, ring, resetZoom);
@@ -113,18 +148,40 @@ Pages.create = {
     // The reset button must never start a Rust brush stroke.
     resetZoom.addEventListener("pointerdown",e=>e.stopPropagation());
     const moveRing = (e) => { const p = canvasPoint(cutCv, e), fr = cutFrame.getBoundingClientRect(), d = CR.brush * 2 * p.k; ring.style.width = ring.style.height = d + "px"; ring.style.left = e.clientX - fr.left + "px"; ring.style.top = e.clientY - fr.top + "px"; ring.dataset.tool = CR.tool; ring.style.opacity = 1; };
-    cutFrame.addEventListener("pointermove", (e) => { moveRing(e); if (painting) stroke(canvasPoint(cutCv, e)); });
+    cutFrame.addEventListener("pointermove", e => {
+      moveRing(e);
+      if(painting) { const events=e.getCoalescedEvents?.(); for(const point of events?.length ? events : [e]) stroke(canvasPoint(cutCv,point)); }
+    });
     cutFrame.addEventListener("pointerleave", () => { ring.style.opacity = 0; });
     cutFrame.addEventListener("pointerdown", (e) => {
       if(e.button!==0 || e.target.closest("button")) return;
       e.preventDefault();
-      cutFrame.setPointerCapture(e.pointerId); painting = true; last = null;
-      first = true;
+      cutFrame.setPointerCapture(e.pointerId); painting = true; last = null; ++seq;
+      activeStroke={points:[],radius:CR.brush,restore:CR.tool==='restore',pointerId:e.pointerId,
+        mask:CR.tool==='restore'?Stk.cv(cutCv.width,cutCv.height):null};
+      syncMake();
       stroke(canvasPoint(cutCv, e));
     });
-    const endPaint = () => { painting = false; last = null; }; cutFrame.addEventListener("pointerup", endPaint); cutFrame.addEventListener("pointercancel", endPaint);
+    const endPaint = e => {
+      if(!painting) return;
+      if(e?.type==='pointerup') stroke(canvasPoint(cutCv,e));
+      const completed=activeStroke; painting=false; activeStroke=null; last=null;
+      if(cutFrame.hasPointerCapture(completed.pointerId)) cutFrame.releasePointerCapture(completed.pointerId);
+      const args={points:completed.points,radius:completed.radius/CR.photo.width,restore:completed.restore,newStroke:true};
+      CR.queue=CR.queue.then(()=>Bridge.invoke("creator_stroke",args)).then(value=>{
+        CR.history=value; syncUndo();
+      }).catch(e=>Shell.toast(String(e)));
+      redraw();
+    };
+    cutFrame.addEventListener("pointerup",endPaint); cutFrame.addEventListener("pointercancel",endPaint);
+    cutFrame.addEventListener("lostpointercapture",endPaint);
+    CR.flushStroke=endPaint;
 
-    const history = async command => { await CR.queue; CR.history=await Bridge.invoke(command); syncUndo(); await redraw(); Snd.tap(); };
+    const history = async command => {
+      endPaint(); ++seq;
+      CR.queue=CR.queue.then(()=>Bridge.invoke(command)).then(value=>{CR.history=value;syncUndo();}).catch(e=>Shell.toast(String(e)));
+      await CR.queue; await redraw(); Snd.tap();
+    };
     const undo=()=>history("creator_undo"), redo=()=>history("creator_redo");
     const undoBtn = h("button.btn.paper.small", { title: "Undo (⌘Z)", on: { click: undo } }, "Undo");
     const redoBtn = h("button.btn.paper.small", { title: "Redo (⇧⌘Z)", on: { click: redo } }, "Redo");
@@ -135,7 +192,7 @@ Pages.create = {
     const slider = (label, key, min, max, unit, onChange) => { const out = h("output", CR[key] + unit); const inp = h("input", { type: "range", min, max, value: CR[key], on: { input: (e) => { CR[key] = +e.target.value; out.textContent = CR[key] + unit; onChange(); } } }); return h("label.slider", h("span", label), inp, out); };
     const seg = h("div.seg", ["erase", "restore"].map((t) => h("button", { "aria-pressed": String(CR.tool === t), on: { click: (e) => { CR.tool = t; $$(".seg button", mat).forEach((b) => b.setAttribute("aria-pressed", String(b === e.currentTarget))); Snd.tap(); } } }, t === "erase" ? "Erase" : "Restore")));
     const make = h("button.btn", { on: { click: () => this.make() } }, "Make this Peta");
-    const syncMake = () => { make.disabled = !CR.res; };
+    const syncMake = () => { make.disabled = !CR.res || painting || Boolean(rendering); };
 
     const tray = MaterialTray({ w: 86, onPick: () => { redraw(); const u = $(".uses"); if (u) u.textContent = usesText(); } });
     const mat = h("div.cr-mat",
@@ -147,14 +204,16 @@ Pages.create = {
       h("div.cr-controls",
         h("div.grp.g-mat", h("label.lbl", "Material"), tray),
         h("div.grp.g-look", h("label.lbl", "Look"), slider("Outline", "border", 4, 64, "", redraw), slider("Smooth", "smooth", 0, 12, "", redraw)),
-        h("div.grp.g-tools", h("label.lbl", "Brush"), h("div.tools", seg, undoBtn, redoBtn), slider("Size", "brush", 8, 60, "", () => {})),
-        h("div.grp.g-go", CR.note ? h("p.muted.small", CR.note) : null, h("div.go-btns", h("button.btn.paper", { on: { click: async () => { await Bridge.invoke("creator_cancel"); crReset(); await Shell.open("create"); } } }, "Cancel"), make))));
+        h("div.grp.g-tools", h("label.lbl", "Brush"), h("div.tools", seg, undoBtn, redoBtn), slider("Size", "brush", 1, 60, "", () => {})),
+        h("div.grp.g-go", CR.note ? h("p.muted.small", CR.note) : null, h("div.go-btns", h("button.btn.paper", { on: { click: async () => { CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open("create"); } } }, "Cancel"), make))));
     syncUndo(); syncMake(); redraw();
     return h("div.cr-wrap", mat);
   },
+  suspend() { CR.flushStroke?.(); },
+  leave() { CR.flushStroke?.(); CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener("keydown",CR.keys); },
   async make() {
     if (!CR.res || CR.finishing) return;
-    CR.finishing = true; Bridge.busy = true;
+    CR.flushStroke?.(); CR.finishing = true; Bridge.busy = true;
     try { await CR.queue; await Bridge.invoke("creator_finish",{materialId:S.chosen,strength:.5,smooth:CR.smooth/12,outline:CR.border}); crReset(); await Bridge.reload(); await Shell.close(); }
     catch(e) { Shell.toast(String(e)); } finally { CR.finishing=false; Bridge.busy=false; }
   },

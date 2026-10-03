@@ -6,14 +6,10 @@ use peta_core::{
     book, materials, BookEntry, Material, MonthIndex, StickerBack,
 };
 use serde::Serialize;
-use tauri::{AppHandle, State};
+use tauri::State;
 
 use crate::{store::Store};
 
-
-pub fn open_window(app: &AppHandle) -> tauri::Result<()> {
-    crate::app_window::open(app, "book")
-}
 
 /// Months that have a page, newest first.
 #[tauri::command]

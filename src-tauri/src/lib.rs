@@ -107,6 +107,7 @@ pub fn run() {
         .manage(Creator::default())
         .invoke_handler(tauri::generate_handler![
             port_capture::port_capture_report,
+            port_capture::port_capture_tray,
             layer_info,
             layer_placements,
             save_placement,
