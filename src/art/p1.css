@@ -48,7 +48,7 @@
   width: 44px;
   border-right: 0;
   opacity: 1;
-  background: url("book/spiral-rings.png") center top / 48px auto repeat-y; /* the art tiles vertically every 50 px */
+  background: url("book/spiral-binding.png") center top / 48px auto repeat-y; /* the art tiles vertically every 50 px */
 }
 
 /* Tabs: pastel paper tabs that stick out of the book's edge. The art (a tab with its round end on the right) is
