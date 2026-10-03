@@ -158,7 +158,7 @@ function pick(x, y) {
 // The card is drawn from what Rust says is printed on the back; nothing here is stored.
 
 const CARD_RATIO = 1.25; // height / width of the back card
-const cardWidth = (node) => Math.min(440, Math.max(240, node.baseW ?? 240));
+const cardWidth = () => 170;
 const backs = new Map(); // stickerId -> Promise<StickerBack | null>
 const fetchBack = (id) => {
   if (!backs.has(id)) backs.set(id, invoke("sticker_back", { stickerId: id }).catch(() => null));
@@ -221,7 +221,7 @@ function bringToFront(node) {
   layer.appendChild(node.el);
 }
 
-// ---- physical feel: lift when picked up, settle ("ペタッ") when let go (spec §29) ----
+// ---- physical feel: lift when picked up, settle ("Peta!") when let go (spec §29) ----
 
 function lift(node) {
   node.live = true;
@@ -233,8 +233,8 @@ function settle(node, { save = true } = {}) {
   node.el.classList.remove("lifted");
   render(node); // commit the final size (single re-raster)
   node.body.animate(
-    [{ transform: "scale(1.04)" }, { transform: "scale(0.98)", offset: 0.45 }, { transform: "scale(1)" }],
-    { duration: 240, easing: "ease-out" },
+    [{ transform: "scale(1.14)" }, { transform: "scale(.96)", offset: .45 }, { transform: "scale(1.02)", offset: .75 }, { transform: "scale(1)" }],
+    { duration: 340, easing: "ease-out" },
   );
   if (save) persist(node);
 }

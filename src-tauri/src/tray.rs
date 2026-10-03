@@ -19,7 +19,7 @@ pub struct TodayItem(pub MenuItem<Wry>);
 
 pub fn build(app: &AppHandle) -> tauri::Result<()> {
     let today_item = MenuItem::with_id(app, "today", "Today's Peta", true, None::<&str>)?;
-    let collection = MenuItem::with_id(app, "collection", "Collection", true, None::<&str>)?;
+    let collection = MenuItem::with_id(app, "collection", "Book", true, None::<&str>)?;
     let resume_print = MenuItem::with_id(app, "resume_print", "Sticker waiting at the print slot…", true, None::<&str>)?;
     let open_gift = MenuItem::with_id(app, "open_gift", "Open Gift…", true, None::<&str>)?;
     let edit = CheckMenuItem::with_id(app, "edit", "Edit Stickers", true, false, None::<&str>)?;
@@ -30,8 +30,8 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
 
     // Developer tools exist only in debug builds. They bypass or bend the daily rule on purpose.
     let dev: Option<Submenu<Wry>> = if cfg!(debug_assertions) {
-        let add_image = MenuItem::with_id(app, "dev_add_image", "Cut Out Image… (ignores daily rule)", true, None::<&str>)?;
-        let add_sample = MenuItem::with_id(app, "dev_add_sample", "Add Sample Cat (ignores daily rule)", true, None::<&str>)?;
+        let add_image = MenuItem::with_id(app, "dev_add_image", "Cut Out Image…", true, None::<&str>)?;
+        let add_sample = MenuItem::with_id(app, "dev_add_sample", "Add Sample Cat", true, None::<&str>)?;
         let next_day = MenuItem::with_id(app, "dev_next_day", "Next Day (+1 day)", true, None::<&str>)?;
         let reset_today = MenuItem::with_id(app, "dev_reset_today", "Reset Today", true, None::<&str>)?;
         Some(Submenu::with_items(

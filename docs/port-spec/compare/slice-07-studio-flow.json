@@ -1,0 +1,46 @@
+{
+  "shell": "studio",
+  "grabAnimation": {
+    "timings": [
+      160
+    ],
+    "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+  },
+  "returnAnimation": [
+    260,
+    260
+  ],
+  "returnedWithoutPasting": true,
+  "printed": true,
+  "pasted": true,
+  "tag": "peta-tag-0",
+  "placement": {
+    "displayId": "screen",
+    "isOnDesktop": true,
+    "materialId": "holographic",
+    "placedAt": "2026-10-03T17:28:53.582689614+00:00",
+    "relativeScale": 0.1284722222222222,
+    "relativeX": 0.7638878928290473,
+    "relativeY": 0.6674874369303385,
+    "rotation": 5,
+    "stickerId": "PETA-A1RS-5YB8",
+    "z": 45
+  },
+  "moved": {
+    "displayId": "screen",
+    "isOnDesktop": true,
+    "materialId": "holographic",
+    "placedAt": "2026-10-03T17:28:53.582689614+00:00",
+    "relativeScale": 0.1284722222222222,
+    "relativeX": 0.7916656706068251,
+    "relativeY": 0.7341541035970052,
+    "rotation": 5,
+    "stickerId": "PETA-A1RS-5YB8",
+    "z": 46
+  },
+  "peeled": true,
+  "labels": [
+    "peta-app",
+    "layer-1-0"
+  ]
+}

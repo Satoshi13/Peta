@@ -45,11 +45,11 @@ Pages.today = {
     if (target) {
       const to = target.getBoundingClientRect(), k = to.width / from.width;
       fl.style.cssText = `position:fixed;left:${from.left}px;top:${from.top}px;width:${from.width}px;z-index:300;pointer-events:none;--w:${from.width}px;transform-origin:0 0;`;
-      document.body.append(fl); target.style.visibility = "hidden"; res.close();
+      document.body.append(fl); target.style.visibility = "hidden"; res.close({keepScene:true});
       anim(block, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
       choices.forEach((c, i) => anim(c, [{ opacity: 0, transform: "translateY(18px) scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 520, delay: 260 + i * 80, easing: EASE.spring }));
       await anim(fl, [{ transform: "translate(0,0) rotate(-2deg) scale(1)" }, { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) rotate(-2deg) scale(${k})` }], { duration: 640, easing: EASE.inOut });
-      fl.remove(); target.style.visibility = ""; Snd.tap();
+      fl.remove(); target.style.visibility = ""; Snd.tap(); await Bridge.leaveCeremony();
     } else { res.close(); block.style.opacity = 1; }
     block.style.opacity = 1; block.getAnimations().forEach((a) => a.cancel()); Bridge.busy = false;
   },

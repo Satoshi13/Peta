@@ -53,7 +53,7 @@ pub fn print_pending(app: AppHandle) -> Result<Option<PendingPrint>, String> {
 
 /// Let go: stick it where the pointer is (centre as fractions of the primary display), spend the slot and enter Edit Mode.
 #[tauri::command]
-pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, sticker_id: String, x: f64, y: f64) -> Result<(), String> {
+pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, sticker_id: String, x: f64, y: f64, relative_scale: Option<f64>) -> Result<(), String> {
     let date = app.state::<today::Today>().date();
     {
         let mut lib = store.lock();
@@ -66,7 +66,12 @@ pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, s
             .sticker(&sticker_id)
             .map_err(|e| e.to_string())?
             .ok_or_else(|| format!("unknown sticker {sticker_id}"))?;
-        lib.stick_new(&sticker, &layers.primary_display_id(), x, y).map_err(|e| e.to_string())?;
+        let mut placement=lib.stick_new(&sticker, &layers.primary_display_id(), x, y).map_err(|e| e.to_string())?;
+        if let Some(scale)=relative_scale.filter(|v|v.is_finite()&&*v>0.0) {
+            placement.relative_scale=scale.clamp(0.01,1.0);
+            placement.rotation=((random_unit()*14.0)-7.0).round();
+            lib.db_mut().place(placement).map_err(|e|e.to_string())?;
+        }
         daily::mark_used(lib.db_mut(), &date).map_err(|e| e.to_string())?;
     }
     layers::set_print(&app, false);

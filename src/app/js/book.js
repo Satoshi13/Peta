@@ -87,7 +87,7 @@ Pages.book = {
     if (S.bookMonth == null || !months.includes(S.bookMonth)) S.bookMonth = months[0];
     const paint = () => {
       const items = S.lib.filter((e) => monthKey(e.date) === S.bookMonth).sort((a, b) => a.date - b.date);
-      const sel = S.lib.find((e) => e.id === BK.sel);
+      const sel = S.lib.find((e) => e.id === BK.sel && monthKey(e.date) === S.bookMonth);
       root.replaceChildren(
         PageHead("Book", "Sticker Book", S.pickMode ? h("div.pick-banner", h("span", "Choose one to stick on the desktop"), h("button.link", { on: { click: () => { S.pickMode = false; paint(); } } }, "Cancel")) : null),
         h("nav.months", months.map((k) => h("button.month", { "aria-current": k === S.bookMonth ? "true" : null, on: { click: () => { if (k === S.bookMonth) return; S.bookMonth = k; BK.sel = null; Snd.flip(); this.turn(root, paint); } } },
@@ -111,9 +111,10 @@ Pages.book = {
     BackingFront(e).then((el) => front.append(el)); flip.append(front, back);
     let turned = false;
     const turn = h("button.btn.paper.small", { on: { click: () => { turned = !turned; Snd.flip(); flip.classList.toggle("turned", turned); turn.textContent = turned ? "Turn back" : "Turn over"; } } }, "Turn over");
-    const history = h("ul.history");
+    const history = h("ul.history"), number = h("dd", e.kind === "received" ? "—" : pad4(e.no));
     Bridge.invoke("sticker_back", {stickerId:e.id}).then(b => {
       if (!b) return;
+      number.textContent = b.kind === "received" ? (b.editionNumber ? "#"+b.editionNumber : "—") : (b.originalNumber || "—");
       const labels = {created:"Created by",received:"Received from",pack_opened:"Pack opened",stuck:"Stuck on the desktop",peeled:"Peeled off",sent:"Gift sent to"};
       history.replaceChildren(...b.history.map(p=>h("li",h("span",(labels[p.type] || p.type)+(p.by?" "+p.by:"")),h("span",p.on))));
     }).catch(err=>Shell.toast(String(err)));
@@ -125,7 +126,7 @@ Pages.book = {
         onDesk ? h("button.btn.paper", { on: { click: async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Book."); paint(); } } }, "Peel off the desktop") : h("button.btn", { on: { click: () => this.stick(e) } }, "Stick on the desktop"),
         h("button.btn.paper.small", { on: { click: () => { BK.gift = true; paint(); } } }, "Gift…")),
       h("dl", h("dt", "Name"), h("dd", titleOf(e)), h("dt", "Material"), h("dd", h("span.seal", { data: { rarity: mat.rarity } }, mat.name)), h("dt", "Made"), h("dd", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })),
-        h("dt", e.kind === "received" ? "Edition" : "No."), h("dd", e.kind === "received" ? "#" + pad4(e.edition) : pad4(e.no))),
+        h("dt", e.kind === "received" ? "Edition" : "No."), number),
       history);
   },
   giftForm(e, paint) {

@@ -9,7 +9,7 @@ const Cer = (() => {
     const root = h("div.cer", { data: { kind }, tabindex: -1 }), stage = h("div.cer-stage"), top = h("p.cer-hint");
     root.append(h("i.cer-bg"), top, stage); $("#overlay").append(root);
     anim(root, [{ opacity: 0 }, { opacity: 1 }], { duration: 420 });
-    const close = async () => { await anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 }); root.remove(); await Bridge.leaveCeremony(); document.removeEventListener("keydown", onKey); };
+    const close = async ({keepScene=false} = {}) => { await anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 }); root.remove(); if(!keepScene) await Bridge.leaveCeremony(); document.removeEventListener("keydown", onKey); };
     const onKey = (e) => { if (e.key === "Escape") root._esc && root._esc(); };
     document.addEventListener("keydown", onKey);
     return { root, stage, close, hint: (t) => { if (top.textContent === t) return; top.textContent = t; anim(top, [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 400 }); } };
@@ -48,7 +48,7 @@ const Cer = (() => {
     cer.hint("Tilt it — it catches the light.");
     // who/what is it
     const info = h("div.rv-info", h("p.eyebrow", source), h("h2", titleOf(entry)),
-      h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: mat.rarity } }, mat.name + " · " + mat.rarity), h("span.no", entry.kind === "received" ? `Edition #${pad4(entry.edition)}` : "")),
+      h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: mat.rarity } }, mat.name + " · " + mat.rarity), h("span.no", entry.kind === "received" && entry.edition != null ? `Edition #${pad4(entry.edition)}` : "")),
       h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, "Stick it"), h("button.btn.paper", { on: { click: onLater } }, "Later")));
     stage.append(info);
     anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
@@ -153,7 +153,7 @@ const Cer = (() => {
           const info = h("div.rv-info", h("p.eyebrow", "Today's Material"), h("h2", m.name), h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: m.rarity } }, m.rarity), h("span.no", m.recipe)),
             h("div.rv-btns", h("button.btn.keep", { on: { click: async () => {
               Snd.tap(); const rect = card.getBoundingClientRect(), node = card.cloneNode(true); node.classList.remove("in-wrap", "big", "out"); node.getAnimations?.().forEach((a) => a.cancel());
-              resolve({ rect, node, close: () => cer.close() });
+              resolve({ rect, node, close: opts => cer.close(opts) });
             } } }, "Keep it")));
           stage.append(info); anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
           await sleep(260); Snd.seal(); anim($(".seal", info), [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 360, easing: EASE.spring });

@@ -29,6 +29,7 @@ const PACK_KINDS = {
 const packVar = (kind) => `var(--a-${(PACK_KINDS[kind] || PACK_KINDS.holo).key})`;
 
 A.gear = A.iconSettings; A.shop = A.iconMarket;
+// TODO(owner): the current Rust library has no sticker-title field; display its neutral label until that schema is decided.
 const titleOf = e => e.title || "Sticker";
 const dayLabel = () => fmtDate(S.today, { weekday:"short", month:"short", day:"numeric" });
 const packsLeftToday = () => S.packAvailable ? 1 : 0;

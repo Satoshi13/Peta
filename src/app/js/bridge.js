@@ -13,6 +13,7 @@ const Bridge = (() => {
     localStorage.setItem('peta.preferences', JSON.stringify(p));
     document.documentElement.dataset.motion = S.motion;
     Snd.on = S.sound;
+    if(S.motion==='reduce') document.getAnimations().forEach(a=>{if(a.effect?.getTiming().iterations===Infinity)a.cancel();});
     api.event.emit('preferences-changed', p);
   };
   async function reload() {
@@ -28,7 +29,7 @@ const Bridge = (() => {
     }
     if (!usableMats().includes(S.chosen)) S.chosen = usableMats()[0] || 'matte';
     const pages = await Promise.all(months.map(m => invoke('book_page', {year:m.year, month:m.month})));
-    S.lib = pages.flat().map(e => ({ id:e.stickerId, date:new Date(e.date+'T12:00:00'), no:e.originalNumber, material:e.materialId || 'matte', kind:['gift','pack'].includes(e.sourceType) ? 'received' : 'original', aspect:e.aspect, onDesktop:e.onDesktop, title:'Sticker' }));
+    S.lib = pages.flat().map(e => ({ id:e.stickerId, date:new Date(e.date+'T12:00:00'), no:e.originalNumber, material:e.materialId || 'matte', kind:(['gift','pack'].includes(e.sourceType) || (e.sourceType==='collection' && e.originalNumber==null)) ? 'received' : 'original', aspect:e.aspect, onDesktop:e.onDesktop, title:'Sticker' }));
     S.desk = S.lib.filter(e=>e.onDesktop).map(e=>({id:e.id}));
     S.stuckToday = S.lib.filter(e=>e.onDesktop && fmtDate(e.date)===fmtDate(S.today)).map(e=>e.id);
     S.gifts = inbox.map(g=>({id:g.giftId, from:g.from, note:g.note || '', opened:!!g.openedAt, material:g.materialId || 'matte', edition:g.edition}));
@@ -41,7 +42,7 @@ const Bridge = (() => {
   }
   async function entry(id) {
     const back = await invoke('sticker_back', {stickerId:id});
-    return { id, material:back.material?.id || 'matte', kind:back.kind, from:back.receivedFrom, no:Number(back.originalNumber), edition:Number(back.editionNumber), date:new Date(), back, title:'Sticker' };
+    return { id, material:back.material?.id || 'matte', kind:back.kind, from:back.receivedFrom, no:back.originalNumber == null ? null : Number(back.originalNumber), edition:back.editionNumber == null ? null : Number(back.editionNumber), date:new Date(), back, title:'Sticker' };
   }
   async function changed() { try { await reload(); Shell.renderNav(); if (!Bridge.busy && !document.querySelector('.cer') && S.page !== 'create') Shell.refresh(); } catch(e) { Shell.toast(String(e)); } }
   let sceneWindow=null, sceneTask=Promise.resolve();

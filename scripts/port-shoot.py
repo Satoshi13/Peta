@@ -3,6 +3,7 @@ import importlib, json, time, subprocess, sys, sqlite3, os
 from pathlib import Path
 c=importlib.import_module('port-capture')
 slice_id=int(sys.argv[1]); shell=sys.argv[2] if len(sys.argv)>2 else 'studio'
+output_slice=int(sys.argv[3]) if len(sys.argv)>3 else slice_id
 def wait_for(condition,timeout=30):
     start=time.monotonic()
     while not c.evaluate('return Boolean('+condition+');'):
@@ -10,7 +11,7 @@ def wait_for(condition,timeout=30):
         time.sleep(.15)
 def go(page): c.evaluate('await Bridge.window.show(); await Shell.open('+json.dumps(page)+'); return S.page;')
 def click(sel): c.evaluate('document.querySelector('+json.dumps(sel)+').click(); return true;')
-def shot(name): c.capture(slice_id,shell+'-'+name)
+def shot(name): c.capture(output_slice,shell+'-'+name)
 def gesture(sel,tear=False):
     r=c.evaluate('const r=document.querySelector('+json.dumps(sel)+').getBoundingClientRect(); return [r.left,r.top,r.width,r.height];')
     ids=subprocess.check_output(['xdotool','search','--name','^Peta$'],text=True).split()

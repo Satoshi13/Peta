@@ -16,3 +16,6 @@ input { user-select: text; -webkit-user-select: text; }
    temporarily, retaining its paper shell at the prototype's centered position, then restore it. */
 body[data-scene="expanded"] #win-layer { inset: auto; left: var(--scene-win-x); top: var(--scene-win-y); width: var(--scene-win-width); height: var(--scene-win-height); }
 body[data-scene="expanded"] .win { --win-w: var(--scene-win-width); --win-h: var(--scene-win-height); }
+
+/* The Settings switch applies to CSS animations as well as the prototype's Web Animations helper. */
+html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }

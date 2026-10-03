@@ -130,6 +130,7 @@ pub fn run() {
             creator::creator_undo,
             creator::creator_redo,
             creator::creator_cancel,
+            arrival::arrival_status,
             arrival::arrival_open,
             gifts::gift_send,
             gifts::gift_receive_file,
@@ -166,6 +167,7 @@ pub fn run() {
             layers::spawn_monitor_watcher(app.handle().clone());
             today::roll_day(app.handle()); // draws today's material; sets the menu indicator
             today::spawn_day_watcher(app.handle().clone());
+            arrival::spawn_hit_watcher(app.handle().clone());
             port_capture::start(app.handle());
             Ok(())
         })

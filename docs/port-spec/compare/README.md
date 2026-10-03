@@ -22,7 +22,7 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 
 - Today’s complete envelope → horizontal tear → pull → Keep it → material tray flow ran with native mouse gestures in both shells. Material ownership/counts come from `daily_open_material` / `material_book`; the UI does not award stock itself.
 - Ten comparison states (01–05, both shells); Today/Settings audit: 0 issues at both sizes.
-- Ceremonies retain the original viewport-relative CSS/JS. The prototype covers the whole simulated desktop; the native ceremony covers the app webview, so its available area and object positions differ in the supplied 1440×900 golden crop. Accent-font glyphs also differ because the native app loads the bundled Klee One rather than the golden’s apparent cursive fallback. These differences are visible, not claimed as pixel equality.
+- The initial slice-2 captures had a ceremony limited to the app webview. Slice 5 fixes the viewport geometry, and `slice-07-*-02/03/04/05-*` captures verify Today again after that fix. Accent-font glyphs also differ because the native app loads the bundled Klee One rather than the golden’s apparent cursive fallback. These differences are visible, not claimed as pixel equality.
 
 ## Slice 3
 
@@ -48,3 +48,16 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 - Static Market Packs/Materials/Creators and pack details copy the original data/DOM. Six comparisons (16–18, both shells), audit: 0 issues at both sizes.
 - Free local demo packs can be added to the actual shelf. Paid packs, material purchases and creator accounts retain `TODO(owner)` and do not pretend to transact.
 - Static catalog previews use the original cached canvas renderer, preserving its outline and scaling values. Real uploads/cutting/saved stickers continue to use Rust. Capture waits for all preview images; ownership labels reflect the fixture's real shelf.
+
+
+## Slice 7
+
+- Print slot/backing sheet/hint, 2400ms stepped feed, grab/return, 900ms retract, 340ms settle and four English Peta! tag variants copy the original desktop presentation. The existing real sticker layer handles placement/drag/Peel; there is still one main content window.
+- `slice-07-{studio,desk}-08-printed.jpg` compares the complete golden desktop and actual native layers. The black background is the real X11 desktop; the prototype wallpaper/menu/toolbar are deliberately excluded from the application. Native screenshots and post-paste captures are retained separately.
+- Both `*-flow.json` records prove Make → Print → 160ms grab at 1.08× → 260ms return without placement → native mouse Grab/Paste → persistent move → keyboard Peel. The displayed print scale is preserved in the saved Rust placement. The hint fades over 200ms; paste waits 450ms before the original 900ms retraction.
+- `slice-07-motion.json` verifies two queued native pastes wait for the preceding retraction before feeding the next sheet, and that returning an already-placed Book reprint retains its original placement before a subsequent paste moves it. Reproduce after all eight slices using an empty disposable v7 queue with `python3 scripts/port-verify-print.py`.
+- `slice-07-window.json`: native drag, resize/minimum 720×520, maximize/restore, minimize/resume, red/Esc/outside hide, and persisted Sound off/Reduce motion in both main window and desktop layer passed under an X11 window manager. Native gestures use mouse events with default selection prevented; the desktop arrival envelope cannot intercept the main window's resize corner.
+- `slice-07-gift-file.json`: Book's native Save dialog → finished PNG unchanged in the gift package → Gifts' native Open dialog → sealed Inbox entry. No original photograph is exported.
+- Today was recaptured through tear/pull/Keep in both shells, preserving the expanded scene until the card's 640ms flight into the tray finishes.
+- Full eight-page audit at both sizes/both shells: 0 actionable issues; raw paper-art false positives remain documented. Placement tests: 13 passed. Physical audio output and macOS native behavior cannot be verified on this Linux capture host.
+- Remaining visible differences are the real fixture's stock/history/sticker identities, platform sans/font glyph metrics, and Rust's real cutout/material renderer versus the reference canvas renderer. Missing sticky-note/notebook/tag art retains the original CSS with `TODO(art)`.

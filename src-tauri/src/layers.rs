@@ -62,6 +62,8 @@ impl Layers {
     pub fn primary_display_id(&self) -> String {
         self.0.lock().unwrap().primary_display_id.clone()
     }
+    pub fn interactive(&self)->bool { let state=self.0.lock().unwrap(); state.edit_mode||state.print }
+
 }
 
 /// Stable-ish display ids. macOS reports localized names ("Built-in Retina Display");

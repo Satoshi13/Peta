@@ -9,18 +9,21 @@ ROOT = Path(__file__).resolve().parents[1]
 CHANNEL = Path(os.environ.get('PETA_PORT_CAPTURE_DIR', '/tmp/peta-capture'))
 CHANNEL.mkdir(parents=True, exist_ok=True)
 
-def evaluate(script, timeout=30):
+def evaluate(script, timeout=30, label=None):
     result = CHANNEL / 'result.json'
     result.unlink(missing_ok=True)
     code = '(async()=>{try{const value=await(async()=>{'+script+'})(); await window.__TAURI__.core.invoke("port_capture_report",{result:{ok:true,value}});}catch(e){await window.__TAURI__.core.invoke("port_capture_report",{result:{ok:false,error:String(e)}});}})();'
     temp = CHANNEL / 'command.tmp'
-    temp.write_text(code)
+    temp.write_text(json.dumps(dict(label=label,script=code)) if label else code)
     temp.replace(CHANNEL / 'command.js')
     start = time.monotonic()
-    while not result.exists():
+    while True:
         if time.monotonic()-start > timeout: raise TimeoutError('Native capture IPC timed out')
-        time.sleep(.1)
-    value = json.loads(result.read_text())
+        try:
+            value = json.loads(result.read_text())
+            break
+        except (FileNotFoundError,json.JSONDecodeError):
+            time.sleep(.1)
     if not value['ok']: raise RuntimeError(value['error'])
     return value.get('value')
 

@@ -5,6 +5,7 @@ pub const APP_LABEL: &str = "peta-app";
 pub fn open(app: &AppHandle, page: &str) -> tauri::Result<()> {
     platform::activate_app();
     if let Some(w) = app.get_webview_window(APP_LABEL) {
+        w.unminimize()?;
         w.show()?;
         w.set_focus()?;
         w.emit("app-page", page)?;

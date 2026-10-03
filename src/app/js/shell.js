@@ -107,8 +107,8 @@ const Shell = (() => {
     $("#wc-close").addEventListener("click", close);
     $("#wc-min").addEventListener("click", () => Bridge.window.minimize());
     $("#wc-zoom").addEventListener("click", () => Bridge.window.toggleMaximize());
-    $("#titlebar").addEventListener("pointerdown", e => { if (e.button === 0 && !e.target.closest("button")) Bridge.window.startDragging(); });
-    $("#resize-h").addEventListener("pointerdown", e => { if (e.button === 0) Bridge.window.startResizeDragging("SouthEast"); });
+    $("#titlebar").addEventListener("mousedown", e => { if (e.button === 0 && !e.target.closest("button")) { e.preventDefault(); Bridge.window.startDragging(); } });
+    $("#resize-h").addEventListener("mousedown", e => { if (e.button === 0) { e.preventDefault(); Bridge.window.startResizeDragging("SouthEast"); } });
     document.addEventListener("keydown", e => { if(e.key === "Escape" && !e.defaultPrevented && !$(".cer") && !e.target.closest("input")) close(); });
   }
   function setShell(name) {

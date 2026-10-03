@@ -40,7 +40,7 @@ function h(sel, props, ...kids) {
 
 /** Web Animations wrapper: resolves when done; respects reduced motion (jumps to the end). */
 function anim(el, frames, o = {}) {
-  const a = el.animate(frames, { duration: 400, easing: EASE.out, fill: "both", ...o, ...(reduced() ? { duration: 1, delay: 0 } : {}) });
+  const a = el.animate(frames, { duration: 400, easing: EASE.out, fill: "both", ...o, ...(reduced() ? { duration: 1, delay: 0, iterations: 1 } : {}) });
   return a.finished.catch(() => {}).then(() => a);
 }
 /** Apply the last keyframe permanently, then drop the animation. */
