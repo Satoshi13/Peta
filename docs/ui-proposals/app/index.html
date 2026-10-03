@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="css/pack.css" />
 <link rel="stylesheet" href="css/polish.css" />
 </head>
-<body data-shell="studio" data-type="current" data-close="stitch">
+<body data-shell="studio" data-type="current">
 <div id="stage">
   <div id="desktop" aria-hidden="true">
     <svg id="wallpaper" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
@@ -56,7 +56,11 @@
   <div id="win-layer"><div id="win" class="win" hidden>
     <div class="win-frame">
       <div class="drag-strip" id="titlebar" title="Drag to move"></div>
-      <div class="grabber" id="grabber" title="Drag to move · double-click to recentre"><i class="grip"></i><button class="g-close" id="g-close" aria-label="Put Peta away (Esc)" title="Put away (Esc)">✕</button></div>
+      <div class="wctl" id="wctl" role="group" aria-label="Window controls"><i class="wc-back"></i>
+        <button class="wc wc-red" id="wc-close" type="button" aria-label="Close (Esc)" title="Close (Esc)"></button>
+        <button class="wc wc-yellow" id="wc-min" type="button" aria-label="Minimise to the menu bar" title="Minimise to the menu bar"></button>
+        <button class="wc wc-green" id="wc-zoom" type="button" aria-label="Fill the screen / restore" title="Fill the screen / restore"></button>
+      </div>
       <i class="resize-h" id="resize-h" title="Drag to resize"></i>
       <button class="ribbon" id="ribbon" aria-label="Put Peta away" title="Put away (Esc)"><i></i></button>
       <button class="close-tag" id="close-tag" aria-label="Put Peta away" title="Put away (Esc)"><span>Done</span></button>

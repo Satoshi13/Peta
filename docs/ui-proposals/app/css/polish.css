@@ -69,15 +69,9 @@ body { }
 .cr-controls .mtray { border-width: 22px; border-image-width: 22px; margin: 0 -10px; padding: 0; }
 .mcard.locked .art { background-image: var(--a-cardLocked); filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .25)); opacity: 1; } .mcard.locked .lab b { opacity: .45; }
 
-/* ---------- a window you can grab: no title bar, but a grabber, a rim and a corner ---------- */
+/* ---------- a window you can grab: no title bar; a rim and a corner ---------- */
 .lights-zone, .lights { display: none !important; }
 .drag-strip { height: 22px; }
-.grabber { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); z-index: 45; display: flex; align-items: center; gap: 2px; height: 26px; padding: 0 4px 0 12px; border-radius: 999px; cursor: grab; touch-action: none;
-  background: rgba(252, 249, 242, .9); box-shadow: 0 0 0 .5px rgba(60, 45, 20, .22), 0 2px 6px rgba(30, 20, 5, .22); opacity: .78; transition: opacity .18s, transform .25s var(--ease-spring); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.grabber:hover, .win:hover .grabber { opacity: 1; } .grabber:active { cursor: grabbing; }
-.grabber .grip { display: block; width: 26px; height: 10px; margin-right: 6px; background: radial-gradient(circle, rgba(60, 45, 20, .55) 1.1px, transparent 1.5px) 0 0 / 6px 5px; }
-.grabber .g-close { width: 20px; height: 20px; border: 0; border-radius: 50%; background: none; color: #6b665c; font: 600 11px/20px var(--sys); padding: 0; cursor: pointer; transition: background .15s, color .15s; }
-[data-shell="notebook"] .grabber .g-close:hover { background-color: #e0564a; color: #fff; }
 .resize-h { position: absolute; right: 2px; bottom: 2px; width: 30px; height: 30px; z-index: 44; cursor: nwse-resize; touch-action: none; opacity: .5; transition: opacity .15s;
   background: linear-gradient(135deg, transparent 52%, rgba(60, 45, 20, .5) 52% 56%, transparent 56% 66%, rgba(60, 45, 20, .5) 66% 70%, transparent 70% 80%, rgba(60, 45, 20, .5) 80% 84%, transparent 84%); }
 .resize-h:hover { opacity: 1; }
@@ -158,17 +152,14 @@ input[type="range"]::-webkit-slider-runnable-track { height: 5px; border-radius:
    control parts, per-material back papers, material cards, market tags. Desk / Studio are the two window styles.
    ===================================================================================================== */
 
-/* ---------- window chrome: no band, just a hand-made ✕ stuck on the top-right corner (the top edge itself is the drag strip) ---------- */
-:is([data-shell="desk"], [data-shell="studio"]) .grabber { top: -11px; right: -11px; left: auto; transform: none; width: 36px; height: 36px; padding: 0; gap: 0; border-radius: 0; background: none; box-shadow: none; opacity: 1; backdrop-filter: none; -webkit-backdrop-filter: none; cursor: default; }
-:is([data-shell="desk"], [data-shell="studio"]) .grabber .grip { display: none; }
+/* ---------- window chrome: no bar, no band. A little paper pill with three paper dots (close / minimise / fill) in the top-left corner; the top edge itself is the drag strip ---------- */
 .drag-strip { height: 28px; }
-.grabber .g-close { position: static; display: block; width: 100%; height: 100%; border-radius: 0; background-color: transparent; background-repeat: no-repeat; background-position: center; background-size: contain; font-size: 0; color: transparent;
-  filter: drop-shadow(0 2px 2px rgba(30, 20, 5, .35)); transition: transform .22s var(--ease-spring), filter .18s; }
-:is([data-shell="desk"], [data-shell="studio"]) .grabber .g-close:hover { background-color: transparent; transform: scale(1.14) rotate(-8deg); filter: drop-shadow(0 4px 4px rgba(30, 20, 5, .38)) brightness(1.04); }
-.grabber .g-close:active { transform: scale(.92) rotate(0); filter: drop-shadow(0 1px 1px rgba(30, 20, 5, .3)); }
-body[data-close="pencil"] .g-close { background-image: var(--a-closePencil); } body[data-close="stitch"] .g-close { background-image: var(--a-closeStitch); }
-body[data-close="tape"] .g-close { background-image: var(--a-closeTape); } body[data-close="wax"] .g-close { background-image: var(--a-closeWax); }
-[data-shell="notebook"] .grabber .g-close { width: 20px; height: 20px; }
+.wctl { position: absolute; left: 12px; top: 10px; width: 108px; height: 36px; z-index: 46; }
+[data-shell="desk"] .wctl { left: 4px; top: 8px; } [data-shell="notebook"] .wctl { display: none; }
+.wctl .wc-back { position: absolute; inset: 0; background: var(--a-wcBacking) center / 100% 100% no-repeat; pointer-events: none; }
+.wctl .wc { position: absolute; top: 6px; width: 24px; height: 24px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent center / 100% 100% no-repeat; cursor: pointer; transition: filter .12s, transform .12s; }
+.wctl .wc-red { left: 10px; background-image: var(--a-wcRed); } .wctl .wc-yellow { left: 42px; background-image: var(--a-wcYellow); } .wctl .wc-green { left: 74px; background-image: var(--a-wcGreen); }
+.wctl .wc:hover { filter: brightness(1.04); } .wctl .wc:active { transform: translateY(.5px); filter: brightness(.97); } .wctl .wc:focus-visible { outline: 2px solid #586b8b; outline-offset: 1px; }
 [data-shell="desk"] .page::before { display: none; }
 .resize-h, [data-shell="desk"] .resize-h { width: 34px; height: 34px; right: 1px; bottom: 1px; opacity: .85; background: var(--a-resizeCorner) center / contain no-repeat; } .resize-h:hover { opacity: 1; }
 
@@ -224,3 +215,8 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border: 0; bo
 .cr-controls::before { top: -44px; right: 34px; }
 .switch[aria-checked="true"] { background: var(--a-switchOn) center / 100% 100% no-repeat; }
 .mcard .lab { top: 60%; } .mcard .lab small { line-height: 1; }
+
+/* Studio: the sidebar logo sits below the window controls */
+[data-shell="studio"] .nav { padding-top: 94px; } [data-shell="studio"] .nav::before { top: 54px; }
+/* no scrollbars inside the window — scrolling still works */
+#win * { scrollbar-width: none; } #win *::-webkit-scrollbar { display: none; width: 0; height: 0; }

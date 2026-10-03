@@ -36,7 +36,7 @@ function freshState(prev) {
     { id: "L05", src: "sGoodDay", date: D(8, 3), no: 5, material: "matte", kind: "original" },
   ];
   return {
-    shell: prev?.shell || "studio", closeStyle: prev?.closeStyle || "stitch", sound: prev?.sound ?? true, motion: prev?.motion || "full",
+    shell: prev?.shell || "studio", sound: prev?.sound ?? true, motion: prev?.motion || "full",
     name: prev?.name || "Satoshi",
     today: new Date(2026, 9, 3), dayState: "arrived", todayMat: "holographic", chosen: "holographic",
     stock: { matte: Infinity, kraft: 1, holographic: 0 },

@@ -48,7 +48,6 @@ Pages.settings = {
     root.append(h("div.setcard",
       h("div.setrow", h("div", h("b", "Your name on stickers"), h("small", "Printed on the back of stickers you make from now on")), name),
       segRow("Window style", "Desk lays the pages on a cutting mat; Studio is a clean sidebar window", [["desk", "Desk"], ["studio", "Studio"]], () => S.shell, (v) => { Shell.setShell(v); }),
-      segRow("Close button", "The little hand-made ✕ at the top of the window", [["pencil", "Pencil"], ["stitch", "Stitch"], ["tape", "Tape"], ["wax", "Wax"]], () => S.closeStyle, (v) => Shell.setClose(v)),
       sw("Sounds", "Paper, tear, and the little peta", () => Snd.on, (v) => { Snd.on = v; S.sound = v; $("#tb-sound").setAttribute("aria-pressed", String(v)); }),
       sw("Put away on outside click", "A click on the desktop closes the window, like a menu", () => S.closeOutside, (v) => { S.closeOutside = v; }),
       sw("Reduce motion", "Skips page turns and ceremonies' flourishes", () => document.documentElement.dataset.motion === "reduce", (v) => { document.documentElement.dataset.motion = v ? "reduce" : "full"; S.motion = v ? "reduce" : "full"; })));

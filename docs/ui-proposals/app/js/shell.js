@@ -138,7 +138,7 @@ const Shell = (() => {
     Snd.swoosh();
     await anim(w, [{ transform: `translate(calc(var(--dx,0px) + ${dx}px), calc(var(--dy,0px) + ${dy}px)) scale(.08)`, opacity: 0 }, { transform: "translate(var(--dx,0px), var(--dy,0px)) scale(1)", opacity: 1 }], { duration: 560, easing: EASE.spring });
     w.getAnimations().forEach((x) => x.cancel());
-    if (!S.hinted) { S.hinted = true; setTimeout(() => toast("Drag the top edge to move it. Esc, the ✕, or a click on the desktop puts Peta away.", 4200), 900); }
+    if (!S.hinted) { S.hinted = true; setTimeout(() => toast("Drag the top edge to move it. Esc, the red button, or a click on the desktop puts Peta away.", 4200), 900); }
   }
   async function close() {
     const w = win(); if (w.hidden) return;
@@ -150,9 +150,9 @@ const Shell = (() => {
   }
 
   function initChrome() {
-    $("#g-close").addEventListener("click", close); $("#ribbon").addEventListener("click", close); $("#close-tag").addEventListener("click", close);
+    $("#wc-close").addEventListener("click", close); $("#wc-min").addEventListener("click", close); $("#wc-zoom").addEventListener("click", toggleZoom); $("#ribbon").addEventListener("click", close); $("#close-tag").addEventListener("click", close);
     // moving: the grabber chip, or the thin strip along the top edge
-    for (const h of [$("#titlebar"), $("#grabber")]) {
+    for (const h of [$("#titlebar")]) {
       drag(h, {
         down: (e) => !e.target.closest("button"),
         move: (dx, dy) => { win().style.setProperty("--dx", pos.x + dx + "px"); win().style.setProperty("--dy", pos.y + dy + "px"); },
@@ -172,7 +172,7 @@ const Shell = (() => {
       },
       up: (e, moved) => { if (!moved) return; const w = win(); pos = { x: parseFloat(w.style.getPropertyValue("--dx")), y: parseFloat(w.style.getPropertyValue("--dy")) }; },
     });
-    $("#resize-h").addEventListener("dblclick", () => { win().style.removeProperty("--win-w"); win().style.removeProperty("--win-h"); pos = { x: 0, y: 0 }; placeWin(); });
+    $("#resize-h").addEventListener("dblclick", () => { zoomed = null; win().style.removeProperty("--win-w"); win().style.removeProperty("--win-h"); pos = { x: 0, y: 0 }; placeWin(); });
     // putting it away: Esc, or a click on the desktop (can be turned off in Settings)
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !e.defaultPrevented && !win().hidden && !$(".cer") && !e.target.closest("input")) close(); });
     document.addEventListener("pointerdown", (e) => {
@@ -181,13 +181,29 @@ const Shell = (() => {
       close();
     });
   }
-  function setClose(name) { S.closeStyle = name; document.body.dataset.close = name; }
+  /* green: fill the stage / go back. Same limits as the resize corner; remembers the old size and position. */
+  let zoomed = null;
+  async function toggleZoom() {
+    const w = win(), r = w.getBoundingClientRect();
+    if (zoomed) { const z = zoomed; zoomed = null; w.style.transition = "none"; await tweenWin(z.w, z.h, z.x, z.y); return; }
+    zoomed = { w: r.width, h: r.height, x: pos.x, y: pos.y };
+    await tweenWin(innerWidth - 24, innerHeight - 28 - 80, 0, 0);
+  }
+  async function tweenWin(tw, th, tx, ty) {
+    const w = win(), r = w.getBoundingClientRect(), cs = getComputedStyle(w);
+    const from = { w: r.width, h: r.height, x: parseFloat(cs.getPropertyValue("--dx")) || 0, y: parseFloat(cs.getPropertyValue("--dy")) || 0 };
+    const set = (k) => { const e = EASE_OUT(k); w.style.setProperty("--win-w", from.w + (tw - from.w) * e + "px"); w.style.setProperty("--win-h", from.h + (th - from.h) * e + "px"); w.style.setProperty("--dx", from.x + (tx - from.x) * e + "px"); w.style.setProperty("--dy", from.y + (ty - from.y) * e + "px"); };
+    const reduce = document.documentElement.dataset.motion === "reduce";
+    if (!reduce) { Snd.swoosh(); const t0 = performance.now(), D = 360; await new Promise((res) => { const f = (t) => { const k = Math.min(1, (t - t0) / D); set(k); k < 1 ? requestAnimationFrame(f) : res(); }; requestAnimationFrame(f); }); } else set(1);
+    pos = { x: tx, y: ty };
+  }
+  const EASE_OUT = (k) => 1 - Math.pow(1 - k, 3);
   function setShell(name, quiet) {
     S.shell = name; document.body.dataset.shell = name;
     $$("#shell-switch button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.shell === name)));
     if (!quiet && current) refresh();
   }
-  return { applyAssetVars, toast, renderNav, go, refresh, open, close, initChrome, setShell, setClose, placeWin, get current() { return current; }, reset() { current = null; navigating = false; pos = { x: 0, y: 0 }; placeWin(); } };
+  return { applyAssetVars, toast, renderNav, go, refresh, open, close, initChrome, setShell, placeWin, get current() { return current; }, reset() { current = null; navigating = false; pos = { x: 0, y: 0 }; placeWin(); } };
 })();
 
 /* ---------- the menu bar's Peta menu: the way back into the one window ---------- */

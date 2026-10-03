@@ -31,6 +31,7 @@ const P = {
   cardGold: "today/material-card-gold.png", cardRiso: "today/material-card-riso.png", cardVintage: "today/material-card-vintage.png",
   priceFree: "ui/price-tag-free.png", priceTag: "ui/price-tag-paid.png", stampOwned: "ui/stamp-owned.png", ticketStub: "ui/ticket-stub.png", pinboard: "ui/pinboard.png", pinRed: "ui/pin-red.png",
   emptyStuck: "empty/stuck-empty.png", emptyInbox: "empty/inbox-empty.png", avatarFrame: "ui/avatar-frame.png",
+  wcBacking: "ui/window-controls/pill-backing.png", wcRed: "ui/window-controls/button-red.png", wcYellow: "ui/window-controls/button-yellow.png", wcGreen: "ui/window-controls/button-green.png",
   flagCream: "tabs/month-flag-cream.png", flagPink: "tabs/month-flag-pink.png", flagSky: "tabs/month-flag-sky.png", flagMint: "tabs/month-flag-mint.png", flagLemon: "tabs/month-flag-lemon.png",
   ribbonArt: "ui/ribbon-bookmark.png", shelfBoard: "ui/shelf-board.png", shelfShadow: "ui/shelf-contact-shadow.png",
   tabCream: "tabs/tab-paper-cream.png", tabPink: "tabs/tab-paper-pink.png", tabKraft: "tabs/tab-paper-kraft.png", tabSky: "tabs/tab-paper-sky.png", tabMint: "tabs/tab-paper-mint.png", tabLemon: "tabs/tab-paper-lemon.png", tabGrey: "tabs/tab-paper-grey.png",

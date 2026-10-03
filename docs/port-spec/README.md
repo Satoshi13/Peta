@@ -9,7 +9,8 @@
 - ウィンドウスタイルは **Desk と Studio の2つ**。**Settings の「Window style」で切り替える**(既定は Studio)。Notebook は廃止(Book ページの手帳素材だけ Desk で使う)。
   - **Studio**: 左サイドバー + 紙の質感の実物パーツ。上端に帯などは置かない。
   - **Desk**: 緑のカッティングマットが窓そのもの。左に素材アイコンのナビ、上端に帯などは置かない。**Create はマットの上に紙を敷かず、マットをそのまま使う**。**Book は手帳(表紙の厚紙・スパイラル・ドット罫のページ)をマットの上に置いた見た目**。他のページはマットの上に紙のページ。
-- 閉じるボタンは手作りの ✕(Pencil / Stitch / Tape / Wax の4種)。**Settings の「Close button」で選べる**(既定 Stitch)。**上端の帯(テープ/紙)は廃止**。窓の右上の角に ✕ だけ(窓の角に半分はみ出して貼る)。窓の上端の細い領域(高さ約28px、不可視)をつかんで動かす。hover は拡大+少し傾くだけ(画像の差し替えはしない)。
+- **ウィンドウ操作**: 左上に紙のピル(`src/art/ui/window-controls/`)+ 紙の3つの丸。**赤 = 閉じる**(Esc と同じ)、**黄 = 最小化**(本物は Tauri の minimize。プロトタイプでは閉じると同じ動き)、**緑 = 画面いっぱいに広げる / 元に戻す**(再クリックで元のサイズ・位置へ)。ピルは 108×36px、台紙を全面に置き、丸(24×24px)を left 10 / 42 / 74px、top 6px に重ねる。Desk は `left:4px; top:8px`、Studio は `left:12px; top:10px`。hover は明るさ +4%、押下は下へ 0.5px。**以前の ✕ / しおり / 荷札 / 上端の帯は全部廃止**。窓の上端の細い領域(高さ 28px、不可視)をつかんで動かす(ボタン上ではドラッグしない)。Studio はサイドバーのロゴをピルの下(top 54px)に置く。
+- **スクロールバーは窓の中では出さない**(スクロール自体はできる)。
 - 書体は **Aa Std**(システムのサンセリフが土台 + タイプライター/手書きのアクセントを少し)。Mix / Hand / Type / Pen は比較用で、移植しない。
 - ルール(下表)も確定。プロトタイプの挙動がそのまま仕様。
 
@@ -24,14 +25,15 @@
 | Undo / Redo | 両方。⌘Z / ⇧⌘Z |
 | 貼った瞬間の文字 | 英語の "Peta!" 系(複数バリエーション。`js/desktop.js` の `TAGS`) |
 | ステッカーの裏紙 | 素材に追従(`.back-card[data-mat]`) |
-| ウィンドウ | タイトルバーなし。上端の取っ手で移動、✕ / Esc / デスクトップクリックで閉じる(Settings でオフ可)、右下の角でリサイズ |
+| ウィンドウ | タイトルバーなし。上端の細い領域で移動、左上のピル(閉じる/最小化/最大化)、Esc / デスクトップクリックで閉じる(Settings でオフ可)、右下の角でリサイズ |
 
 ## 1. 正解の優先順位
 
-1. **`docs/port-spec/golden/*.jpg`**(1440×900、Studio、Aa Std)— 見た目の正解。
+1. **`docs/port-spec/golden/{studio,desk}-NN-*.jpg`**(1440×900、Aa Std、20状態ずつ)— 見た目の正解。Studio と Desk の両方を再現する(Settings の Window style で切り替える)。
 2. **プロトタイプのコード** `docs/ui-proposals/app/`(CSS・JS)— 数値(余白・色・時間・イージング)の正解。写し取る。
 3. この文書。
-4. `docs/ui-proposals/README.md`(経緯とルールの説明)。
+4. `docs/port-spec/tokens.md`(色・影・イージング・時間・寸法の抜き出し)。
+5. `docs/ui-proposals/README.md`(経緯とルールの説明)。
 
 見た目の値は**プロトタイプの CSS をそのままコピー**してよい。再解釈しない。
 
@@ -41,7 +43,7 @@
 python3 -m http.server 8766 --directory <repo root> &
 open http://localhost:8766/docs/ui-proposals/app/index.html         # ソース版(素材は src/art/ をそのまま参照)
 open docs/ui-proposals/peta-prototype.html                          # 1ファイル版(file:// でOK)
-node docs/ui-proposals/app/tools/shoot.mjs docs/port-spec/golden studio   # ゴールデン画像を撮り直す
+node docs/ui-proposals/app/tools/shoot.mjs docs/port-spec/golden studio   # ゴールデン画像を撮り直す(desk も同様)
 node docs/ui-proposals/app/tools/audit.mjs /tmp/audit 1440 900 studio current   # 文字のはみ出し検査(0 が正解)
 ```
 
@@ -75,8 +77,8 @@ node docs/ui-proposals/app/tools/audit.mjs /tmp/audit 1440 900 studio current   
 ## 5. 素材(`src/art/`)
 
 - 使うものは `docs/ui-proposals/app/js/assets.js` の `P` に全部ある。そこに無いパスは使わない。
-- Codex 納品済みで**プロトタイプに適用済み**(`css/polish.css` 末尾の「Pass 3」): 手作り ✕(右上の角、hover は拡大+傾き)(4種×通常/hover/pressed)、リサイズの角、スライダー・スイッチ・セグメント・紙パネル、素材別の裏紙6種、素材カード gold/riso/vintage、値札・所有スタンプ、アイコン market/settings。
-- 納品済みだが**採用しなかった**: 窓上端の帯 `window-top-*`、掲示板 `pinboard` と `pin-red`(オーナー判断で不採用。Market の目玉は従来の厚紙ボード+インデックスカード+クリップ)。
+- Codex 納品済みで**プロトタイプに適用済み**(`css/polish.css` 末尾の「Pass 3」): 左上のウィンドウ操作(紙のピル+赤黄緑の丸)、リサイズの角、スライダー・スイッチ・セグメント・紙パネル、素材別の裏紙6種、素材カード gold/riso/vintage、値札・所有スタンプ、アイコン market/settings。
+- 納品済みだが**採用しなかった**: 窓上端の帯 `window-top-*`、手作りの ✕ `close-*`(ウィンドウ操作のピルに置き換え)、掲示板 `pinboard` と `pin-red`(オーナー判断で不採用。Market の目玉は従来の厚紙ボード+インデックスカード+クリップ)。
 - 納品済みだが未使用: 空状態(`empty/*`)、半券、アバター台紙。
 - まだ仮(CSS 製)のもの: 付箋、ノートの端/とじ目/角の一部、Peta! タグの追加バリエーション。**届いたら差し替え**。それまでは今の CSS をそのまま移植し、`data-art` フックを残す。
 - **画像は加工しない**(拡大縮小は CSS のみ)。必要な新素材は作らず、`docs/codex-ui-polish-prompt.md` の該当節を見て依頼を出す。
@@ -98,7 +100,7 @@ node docs/ui-proposals/app/tools/audit.mjs /tmp/audit 1440 900 studio current   
    - Packs: Welcome は1日1回で `Open one` が無効化 / Market 入手分は何度でも / 引き裂く → スリーブを引く → ステッカー → `Stick it` / `Later`(ウィンドウが閉じ、印刷口で待つ)
    - Book: 月タブ、詳細(裏返し、素材別の裏紙)、Peel、Gift…
    - Gifts: 封蝋を割る。回数制限なし
-   - ウィンドウ: 取っ手で移動、右下でリサイズ(最小 720×520)、✕ / Esc / 外クリックで閉じる、メニューバーのトレイで戻る
+   - ウィンドウ: 上端で移動、右下でリサイズ(最小 720×520)、赤 / Esc / 外クリックで閉じる、黄で最小化、緑で最大化↔元に戻す、メニューバーのトレイで戻る
 4. **既存機能を壊さない**: デスクトップへの貼り付け・ドラッグ・Peel・Gift ファイルの読み書き・`cargo test`。
 5. **Reduce motion** と **Sound オフ**が効く。
 
@@ -123,7 +125,7 @@ node docs/ui-proposals/app/tools/audit.mjs /tmp/audit 1440 900 studio current   
 - グリッドの `1fr` は中身の min-content で押し広げられる → `minmax(0, 1fr)` を使う(`.cr-controls`)。
 - Desk の Create/Book の見た目は `.page[data-page=…]` に付ける(`body[data-page]` ではない)。手帳(表紙・スパイラル・ドット罫)は**ページ自身の一部**にして、フェードで丸ごと出入りさせる(窓側に置くと「手帳が固定でページだけ入ってくる」ように見える)。
 - 擬似要素 `z-index:-1` は、同じ要素の `background` より**上**に描かれる(`isolation` した要素の中では)。背景は子要素(`.page-in`)に持たせる。
-- `.g-close:hover` で `background` ショートハンドを使うと背景画像が消える(✕が消える原因だった)。
+- ボタンの画像は `background-image` だけで指定し、`:hover` で `background` ショートハンドを使わない(背景画像が消える)。ウィンドウ操作の丸は `.wctl .wc-red` のように詳細度を揃える(`.wctl .wc { background: … }` に負けて丸が消えた)。
 - ウィンドウ幅に応じた切替は `@media` ではなく **コンテナクエリ**(`.page-in { container-type: size }`)。窓幅はビューポートと無関係。
 - 上端の取っ手(高さ約30px)にページ見出しが潜らないよう `.page-in { padding-top: 38px }`。
 - 素材カードの文字は `white-space: nowrap` + `--w` 比のフォントサイズ(`Holographic` が収まる 0.08)。

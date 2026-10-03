@@ -12,7 +12,7 @@ const Guide = (() => {
     ["Stick it on the desktop", "After any of these, a sheet prints from the top. Drag the sticker anywhere — peta!", () => Shell.toast("Make or open something first, then grab the printed sticker.")],
     ["Turn a sticker over", "Book → tap a sticker → Turn over. Gift… seals it in an envelope.", () => Shell.open("book")],
     ["Break a gift's seal", "Gifts → Open. Click the wax seal. Gifts have no daily limit.", () => Shell.open("gifts")],
-    ["Put Peta away, bring it back", "No title bar: drag the top edge to move, the corner to resize. Esc, the ✕, or a click on the desktop puts it away. The Peta icon in the menu bar brings it back.", () => Menu.open()],
+    ["Put Peta away, bring it back", "No title bar: drag the top edge to move, the corner to resize. Esc, the red button, or a click on the desktop puts it away. The Peta icon in the menu bar brings it back.", () => Menu.open()],
     ["Browse the Market", "Market → get a pack or a new material, then find it on the Packs shelf or in Create.", () => Shell.open("market")],
     ["Switch direction", "A / B / C below — same app, three ways of moving through it.", () => Shell.toast("Use the A · B · C switch in the bar below.")],
     ["Try other typefaces", "Mix (typewriter body, fountain-pen headings) is the default. Aa Std / Hand / Type / Pen are the others.", () => Shell.toast("Use the Aa · Hand · Type · Pen switch in the bar below.")],
