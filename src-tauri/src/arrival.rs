@@ -104,7 +104,8 @@ fn show(app: &AppHandle, kind: ArrivalKind) -> tauri::Result<()> {    let Some(m
 /// The envelope was clicked.
 #[tauri::command]
 pub fn arrival_open(app: AppHandle) {
-    if let Err(e) = today::open_window(&app) {
+    let page = if gifts::unopened_count(&app) > 0 { "gifts" } else { "today" };
+    if let Err(e) = crate::app_window::open(&app, page) {
         eprintln!("[peta] could not open Today: {e}");
     }
 }

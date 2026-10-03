@@ -163,5 +163,92 @@ const Cer = (() => {
     });
   }
 
-  return { openMaterial };
+  /* ------------------------------------------------------------------ GIFT (open) */
+  async function openGift(gift) {
+    const cer = overlay("gift"), stage = cer.stage; cer.hint("Break the seal.");
+    const EW = Math.min(420, innerWidth * .6), EH = EW * 340 / 480;
+    const flapPoly = "polygon(10% 14%, 90% 14%, 50% 57%)", bodyPoly = "polygon(0 0, 10% 14%, 50% 57%, 90% 14%, 100% 0, 100% 100%, 0 100%)";
+    const hole = `radial-gradient(circle at 50% 54.5%, transparent 0, transparent ${EW * .066}px, #000 ${EW * .074}px)`;
+    const mk = (cls, clip, extra = {}) => h("img.ev-layer." + cls, { src: A.arrGift, alt: "", style: { clipPath: clip, webkitMaskImage: hole, maskImage: hole, ...extra } });
+    const inside = h("i.ev-inside"), body = mk("ev-body", bodyPoly), flap = mk("ev-flap", flapPoly);
+    const wax = h("div.wax", { style: { width: EW * .17 + "px", left: "50%", top: "54.5%" } }, img("waxSeal", "w-full"), img("waxL", "w-l"), img("waxR", "w-r"));
+    const note = h("div.ev-note", { style: { width: EW * .86 + "px" } }, img("noteBlank"), h("p.hand", h("small", "from"), h("b", gift.from), gift.note ? h("span", "“" + gift.note + "”") : null));
+    const sleeve = h("div.pk-sleeve.gsleeve", { style: { width: EW * .5 + "px" } }, img("mystery"));
+    const env = h("div.env-wrap", { style: { width: EW + "px", height: EH + "px", "--ew": EW + "px" } }, inside, sleeve, note, body, flap, wax);
+    const sc = h("div.gift-scene", env); stage.append(sc);
+    anim(sc, [{ opacity: 0, transform: "translateY(50px) rotate(-6deg) scale(.88)" }, { opacity: 1, transform: "none" }], { duration: 700, easing: EASE.spring });
+    let opened = false, entry = null;
+    const crack = async () => {
+      if (opened) return; opened = true; cer.hint(""); Snd.crack();
+      wax.classList.add("cracked");
+      anim($(".w-l", wax), [{ transform: "none", opacity: 1 }, { transform: "translate(-34px, 70px) rotate(-28deg)", opacity: 0 }], { duration: 760, easing: "cubic-bezier(.3,0,.7,.6)" });
+      anim($(".w-r", wax), [{ transform: "none", opacity: 1 }, { transform: "translate(40px, 84px) rotate(32deg)", opacity: 0 }], { duration: 820, easing: "cubic-bezier(.3,0,.7,.6)" });
+      anim($(".w-full", wax), [{ opacity: 1 }, { opacity: 0 }], { duration: 40 });
+      await sleep(260); Snd.swoosh();
+      flap.style.transformOrigin = "50% 14%"; inside.style.opacity = 1;
+      await anim(flap, [{ transform: "rotateX(0)" }, { transform: "rotateX(180deg)", filter: "brightness(.92)" }], { duration: 640, easing: EASE.out });
+      fix(flap, "rotateX(180deg)"); flap.style.zIndex = 0;
+      // the note comes out first
+      Snd.crinkle(6, .3);
+      await anim(note, [{ transform: "translate(-50%, 10%) rotate(0)", opacity: 1 }, { transform: `translate(-62%, -${EH * .78}px) rotate(-6deg)`, opacity: 1 }], { duration: 760, easing: EASE.out });
+      fix(note, `translate(-62%, -${EH * .78}px) rotate(-6deg)`);
+      cer.hint("Pull the sticker out.");
+      sleeve.classList.add("out");
+      await anim(sleeve, [{ transform: "translateY(0)" }, { transform: `translateY(-${EH * .34}px) rotate(1.5deg)` }], { duration: 640, easing: EASE.out });
+      fix(sleeve, `translateY(-${EH * .34}px) rotate(1.5deg)`);
+      try { Bridge.busy = true; const id=await Bridge.invoke("gift_open", {giftId:gift.id}); entry=await Bridge.entry(id); await Bridge.reload(); }
+      catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
+      let pulled = false; const base = sleeve.style.transform;
+      drag(sleeve, {
+        down: () => !pulled,
+        move: (dx, dy) => { const up = clamp(-dy, 0, 300); sleeve.style.transform = `translateY(${-EH * .34 - up}px) rotate(${1.5 + dx * .03}deg)`; Snd.crinkle(1, .03); if (up > 110 && !pulled) pull(); },
+        up: () => { if (!pulled) { anim(sleeve, [{ transform: sleeve.style.transform }, { transform: base }], { duration: 300, easing: EASE.spring }).then(() => fix(sleeve, base)); } },
+      });
+      sleeve.addEventListener("dblclick", () => !pulled && pull()); sleeve.tabIndex = 0; sleeve.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && !pulled && pull());
+      async function pull() {
+        pulled = true; gift.opened = true; Shell.renderNav();
+        anim(note, [{ opacity: 1 }, { opacity: 0, transform: note.style.transform + " translateY(-30px)" }], { duration: 500, delay: 100 });
+        anim(env, [{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(200px) rotate(4deg)", opacity: 0 }], { duration: 700, easing: "cubic-bezier(.5,0,.8,.4)", delay: 120 });
+        const r = sleeve.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+        stage.append(sleeve); sleeve.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;`;
+        await unwrapAndReveal({ cer, stage, sleeve, entry, source: `Gift from ${gift.from}`, onKeep: keep, onLater: later });
+      }
+    };
+    const keep = async () => { Bridge.busy=false; await cer.close(); Shell.toast("A gift from " + gift.from + "."); await Desktop.print(entry); };
+    const later = async () => { Bridge.busy=false; await Bridge.invoke("print_later"); await cer.close(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); Shell.close(); };
+    wax.addEventListener("click", crack); wax.addEventListener("pointerdown", () => Snd.tap()); wax.tabIndex = 0; wax.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && crack());
+    wax.style.cursor = "pointer"; cer.root._esc = () => { if (!opened) cer.close(); };
+  }
+
+  /* ------------------------------------------------------------------ GIFT (seal and save) */
+  async function sealGift(entry, to, note) {
+    Bridge.dialogOpen = true;
+    let saved;
+    try { saved=await Bridge.invoke("gift_send", {stickerId:entry.id, to, note}); }
+    catch(e) { Shell.toast(String(e)); return; } finally { Bridge.dialogOpen=false; }
+    if (!saved) return;
+    const cer = overlay("seal"), stage = cer.stage; cer.hint("");
+    const EW = Math.min(400, innerWidth * .58), EH = EW * 2 / 3;
+    const res = await resOf(entry, { max: 420 });
+    const stk = Stk.el(res, res.aspect >= 1 ? EW * .42 : EW * .42 * res.aspect);
+    const back = img("envBack", "ev-layer"), pocket = h("span.ev-layer.pk", img("envPocket"), h("span.env-label", "To", h("br"), to)), flap = img("envFlap", "ev-layer flap");
+    const wax = h("div.wax.one", { style: { width: EW * .2 + "px", left: "50%", top: "40%", opacity: 0 } }, img("waxSeal", "w-full"));
+    const env = h("div.env-wrap.send", { style: { width: EW + "px", height: EH + "px" } }, back, h("div.slide-stk", stk), pocket, flap, wax);
+    stage.append(h("div.gift-scene", env));
+    anim(env, [{ opacity: 0, transform: "translateY(40px) scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.spring });
+    flap.style.transformOrigin = "50% 12.5%"; await anim(flap, [{ transform: "rotateX(0)" }, { transform: "rotateX(-172deg)" }], { duration: 480, easing: EASE.out, delay: 300 }); fix(flap, "rotateX(-172deg)");
+    const holder = $(".slide-stk", env); Snd.swoosh();
+    await anim(holder, [{ transform: `translateY(-${EH * .75}px) rotate(-8deg) scale(1.1)`, opacity: 0 }, { transform: `translateY(-${EH * .45}px) rotate(-3deg) scale(1)`, opacity: 1, offset: .4 }, { transform: `translateY(${EH * .08}px) rotate(0) scale(.7)`, opacity: 1 }], { duration: 900, easing: EASE.inOut });
+    await anim(flap, [{ transform: "rotateX(-172deg)" }, { transform: "rotateX(0)" }], { duration: 480, easing: EASE.out }); fix(flap, "rotateX(0)");
+    await sleep(120);
+    wax.style.opacity = 1; Snd.seal();
+    await anim(wax, [{ transform: "translate(-50%,-50%) scale(2.2)", opacity: 0 }, { transform: "translate(-50%,-50%) scale(.9)", opacity: 1, offset: .6 }, { transform: "translate(-50%,-50%) scale(1)", opacity: 1 }], { duration: 420, easing: "ease-out" });
+    fix(wax, "translate(-50%,-50%)");
+    cer.hint(`Sealed. ${to}.peta is saved.`); await sleep(900);
+    await anim(env, [{ transform: "none", opacity: 1 }, { transform: "translateY(-260px) rotate(-5deg) scale(.9)", opacity: 0 }], { duration: 900, easing: "cubic-bezier(.5,0,.9,.4)" });
+    await cer.close(); Shell.toast(`Saved “${to}.peta” — your own sticker stays in the Book.`);
+  }
+  return { openMaterial, openGift, sealGift };
 })();
+
+const GiftSeal = (e,to,note) => Cer.sealGift(e,to,note);

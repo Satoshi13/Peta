@@ -1,0 +1,314 @@
+[
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "studio",
+    "page": "book",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "97>93",
+          "Turn over"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "278>274",
+          "Peel off the desktop"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "278>274",
+          "Gift\u2026"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "studio",
+    "page": "materials",
+    "issues": [],
+    "knownFalsePositives": []
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "studio",
+    "page": "gifts",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "161>157",
+          "Open a gift file\u2026"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "studio",
+    "page": "settings",
+    "issues": [],
+    "knownFalsePositives": []
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "desk",
+    "page": "book",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "97>93",
+          "Turn over"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "278>274",
+          "Peel off the desktop"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "278>274",
+          "Gift\u2026"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "desk",
+    "page": "materials",
+    "issues": [],
+    "knownFalsePositives": []
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "desk",
+    "page": "gifts",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "161>157",
+          "Open a gift file\u2026"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "desk",
+    "page": "settings",
+    "issues": [],
+    "knownFalsePositives": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "studio",
+    "page": "book",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "97>93",
+          "Turn over"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "620>616",
+          "Peel off the desktop"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "620>616",
+          "Gift\u2026"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "studio",
+    "page": "materials",
+    "issues": [],
+    "knownFalsePositives": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "studio",
+    "page": "gifts",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "161>157",
+          "Open a gift file\u2026"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "studio",
+    "page": "settings",
+    "issues": [],
+    "knownFalsePositives": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "desk",
+    "page": "book",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "97>93",
+          "Turn over"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "558>554",
+          "Peel off the desktop"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "558>554",
+          "Gift\u2026"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "desk",
+    "page": "materials",
+    "issues": [],
+    "knownFalsePositives": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "desk",
+    "page": "gifts",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "161>157",
+          "Open a gift file\u2026"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "desk",
+    "page": "settings",
+    "issues": [],
+    "knownFalsePositives": []
+  }
+]

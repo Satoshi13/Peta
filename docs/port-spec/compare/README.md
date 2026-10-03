@@ -23,3 +23,9 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 - Today’s complete envelope → horizontal tear → pull → Keep it → material tray flow ran with native mouse gestures in both shells. Material ownership/counts come from `daily_open_material` / `material_book`; the UI does not award stock itself.
 - Ten comparison states (01–05, both shells); Today/Settings audit: 0 issues at both sizes.
 - Ceremonies retain the original viewport-relative CSS/JS. The prototype covers the whole simulated desktop; the native ceremony covers the app webview, so its available area and object positions differ in the supplied 1440×900 golden crop. Accent-font glyphs also differ because the native app loads the bundled Klee One rather than the golden’s apparent cursive fallback. These differences are visible, not claimed as pixel equality.
+
+## Slice 3
+
+- Book month tabs/details/turn-over, Materials stock and sealed Gifts now use real library commands. Gift import/export use native file dialogs; the previous Collection page was removed.
+- Eight native/golden comparisons (09, 10, 15, 19, both shells). Back-card history comes from provenance, rather than invented names or timestamps. The fixture's PNGs have their original alpha; golden stickers were outlined by the prototype renderer.
+- At both sizes: 0 text/layout issues, with known WebKit false positives from the paper button artwork (`::before` inset -3px -4px). Raw entries and the exact exclusion reason are retained in the audit JSON; CSS values are unchanged.

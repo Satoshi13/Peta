@@ -107,7 +107,7 @@ pub fn menu_open_gift(app: &AppHandle) {
     tauri::async_runtime::spawn(async move {
         match gift_receive_file(app2.clone()).await {
             Ok(Some(_)) => {
-                let _ = today::open_window(&app2);
+                let _ = crate::app_window::open(&app2, "gifts");
             }
             Ok(None) => {}
             Err(e) => eprintln!("[peta] could not receive the gift: {e}"),

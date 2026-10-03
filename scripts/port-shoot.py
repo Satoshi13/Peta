@@ -27,7 +27,7 @@ if slice_id==2:
     gesture('.mcard.in-wrap'); wait_for('document.querySelector(".rv-btns .btn")'); time.sleep(2); shot('04-today-material-reveal')
     click('.rv-btns .btn'); wait_for('!Bridge.busy'); shot('05-today-opened')
 elif slice_id==3:
-    go('book'); shot('09-book'); click('.tile'); shot('10-book-detail'); click('.turn-row button'); time.sleep(.7)
+    c.evaluate('BK.sel=null; S.bookMonth=null; return true;'); go('book'); shot('09-book'); click('.tile'); shot('10-book-detail'); click('.turn-row button'); time.sleep(.7)
     go('gifts'); shot('15-gifts'); go('materials'); shot('19-materials')
 elif slice_id==4:
     go('create'); shot('06-create-empty'); click('.sample:nth-child(3)'); wait_for('CR.stage==="ready" && CR.res',60); shot('07-create-cutting-mat')
