@@ -3,7 +3,7 @@ Pages.gifts = {
   build() {
     const root = h("div.page-in.giftspage"), locked = false;
     const waiting = S.gifts.filter((g) => !g.opened), got = S.gifts.filter((g) => g.opened);
-    root.append(PageHead("Gifts", "Sealed until you open them", h("span.quota", h("b", "No daily limit"), h("small", "open each one whenever you like"))));
+    root.append(PageHead("Gifts", "Sealed until you open them"));
     root.append(h("p.muted.lede", "A friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material."));
     root.append(waiting.length
       ? h("div.inbox", waiting.map((g, i) => h("button.gift", { disabled: locked, style: { "--i": i, "--r": [-3, 2.5, -1.5][i % 3] + "deg" }, on: { click: () => { Snd.tap(); Cer.openGift(g); } } },

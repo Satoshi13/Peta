@@ -35,7 +35,9 @@ const Shell = (() => {
   function build(id) {
     const wrap = h("section.page", { data: { page: id, art: "page-" + id } });
     const el = Pages[id].build();
-    wrap.append(el); return wrap;
+    wrap.append(el);
+    if (id === "book") wrap.append(h("div.book-binding", { "aria-hidden": "true" }, Array.from({length:96},()=>h("i.coil"))));
+    return wrap;
   }
   function cloneStatic(node) {
     const c = node.cloneNode(true);

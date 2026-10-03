@@ -1,9 +1,9 @@
 /* The prototype's controls call the real Rust cutting session. */
-const CR = {stage:"empty",src:null,photo:null,border:20,smooth:4,tool:"erase",brush:26,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve()};
+const CR = {stage:"empty",src:null,photo:null,border:20,smooth:4,tool:"erase",brush:26,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve(),zoom:{scale:1,x:0,y:0}};
 const SAMPLE_KEYS = ["sCat","sBlueFlower","sCoffee","sCamera","sEgg","sGoodDay","sPlant","sPolaroid","sCassette","sComputer","sScribble","sBubble"];
 const PHOTO_W = 720;
 const usesText = () => "Uses one "+MAT[S.chosen].name+(MAT[S.chosen].unlimited?" (never runs out)":` — ${S.stock[S.chosen]} left`);
-function crReset() { if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{stage:'empty',src:null,photo:null,res:null,note:'',urls:[],history:{canUndo:false,canRedo:false}}); }
+function crReset() { CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{stage:'empty',src:null,photo:null,res:null,note:'',urls:[],history:{canUndo:false,canRedo:false},zoom:{scale:1,x:0,y:0}}); }
 async function crBegin(bytes) {
   CR.stage='cutting'; Shell.refresh();
   try { await Bridge.invoke('creator_begin_bytes',{bytes:Array.from(bytes),materialId:S.chosen}); } catch(e) { crReset(); Shell.refresh(); Shell.toast(String(e)); }
@@ -86,11 +86,38 @@ Pages.create = {
       const newStroke = first; first=false; last=p;
       CR.queue=CR.queue.then(()=>Bridge.invoke("creator_stroke",{points,radius:CR.brush/CR.photo.width,restore:CR.tool==='restore',newStroke})).then(history=>{ CR.history=history; syncUndo(); redraw(); }).catch(e=>Shell.toast(String(e)));
     };
-    const cutFrame = h("div.frame.checker", cutCv, ring);
+    const resetZoom = h("button.preview-reset", { type:"button", hidden:CR.zoom.scale===1, "aria-label":"Reset cutout zoom", title:"Reset zoom", on:{click:()=>{Object.assign(CR.zoom,{scale:1,x:0,y:0});applyZoom();}} }, "100%");
+    const cutFrame = h("div.frame.checker", { title:"Scroll to zoom the cutout" }, cutCv, ring, resetZoom);
+    const constrainZoom = () => {
+      const fit=Math.min(cutFrame.clientWidth/cutCv.width,cutFrame.clientHeight/cutCv.height);
+      const mx=Math.max(0,(cutCv.width*fit*CR.zoom.scale-cutFrame.clientWidth)/2),my=Math.max(0,(cutCv.height*fit*CR.zoom.scale-cutFrame.clientHeight)/2);
+      CR.zoom.x=clamp(CR.zoom.x,-mx,mx);CR.zoom.y=clamp(CR.zoom.y,-my,my);
+    };
+    const applyZoom = () => {
+      constrainZoom();
+      cutCv.style.transform=`translate(${CR.zoom.x}px,${CR.zoom.y}px) scale(${CR.zoom.scale})`;
+      resetZoom.textContent=Math.round(CR.zoom.scale*100)+"%";
+      resetZoom.hidden=CR.zoom.scale===1;
+    };
+    cutFrame.addEventListener("wheel",e=>{
+      e.preventDefault();
+      if(painting || e.target.closest("button")) return;
+      const r=cutFrame.getBoundingClientRect(),delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?r.height:1);
+      const next=clamp(CR.zoom.scale*Math.exp(-delta*.002),1,6),factor=next/CR.zoom.scale;
+      const x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;
+      CR.zoom.x=x-(x-CR.zoom.x)*factor;CR.zoom.y=y-(y-CR.zoom.y)*factor;CR.zoom.scale=next;
+      applyZoom();moveRing(e);
+    },{passive:false});
+    const resizePreview=new ResizeObserver(()=>applyZoom());resizePreview.observe(cutFrame);
+    CR.previewObserver?.disconnect();CR.previewObserver=resizePreview;
+    // The reset button must never start a Rust brush stroke.
+    resetZoom.addEventListener("pointerdown",e=>e.stopPropagation());
     const moveRing = (e) => { const p = canvasPoint(cutCv, e), fr = cutFrame.getBoundingClientRect(), d = CR.brush * 2 * p.k; ring.style.width = ring.style.height = d + "px"; ring.style.left = e.clientX - fr.left + "px"; ring.style.top = e.clientY - fr.top + "px"; ring.dataset.tool = CR.tool; ring.style.opacity = 1; };
     cutFrame.addEventListener("pointermove", (e) => { moveRing(e); if (painting) stroke(canvasPoint(cutCv, e)); });
     cutFrame.addEventListener("pointerleave", () => { ring.style.opacity = 0; });
     cutFrame.addEventListener("pointerdown", (e) => {
+      if(e.button!==0 || e.target.closest("button")) return;
+      e.preventDefault();
       cutFrame.setPointerCapture(e.pointerId); painting = true; last = null;
       first = true;
       stroke(canvasPoint(cutCv, e));

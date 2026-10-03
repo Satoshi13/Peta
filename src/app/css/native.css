@@ -1,4 +1,4 @@
-/* Only adapt the prototype's window to a native webview. Page declarations remain verbatim. */
+/* Native window geometry and owner-requested corrections over the copied prototype CSS. */
 :root { --win-w: 100vw; --win-h: 100vh; }
 html, body { background: transparent; user-select: none; -webkit-user-select: none; }
 input { user-select: text; -webkit-user-select: text; }
@@ -19,3 +19,104 @@ body[data-scene="expanded"] .win { --win-w: var(--scene-win-width); --win-h: var
 
 /* The Settings switch applies to CSS animations as well as the prototype's Web Animations helper. */
 html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+
+/* Owner review 01: correct the shared parts and native layout, without altering artwork. */
+/* Rarity art contains transparent gutters; the old common inset border outlined those gutters. */
+.seal, .seal[data-rarity] {
+  min-width: 0; width: fit-content; height: 28px; padding: 0 12px;
+  background-image: var(--seal, var(--a-sealCommon)); background-color: transparent;
+  background-position: center; background-repeat: no-repeat; background-size: 152% 116%;
+  box-shadow: none; border: 0;
+  filter: drop-shadow(0 1px 1px rgba(40, 30, 10, .18));
+}
+.rv-info .seal { height: 30px; }
+
+/* Keep the supplied paper dots, with a shorter backing and even centres. */
+.wctl { width: 96px; }
+.wctl .wc-red { left: 8px; }
+.wctl .wc-yellow { left: 36px; }
+.wctl .wc-green { left: 64px; }
+/* The corner remains a native resize target, without the folded-paper decoration. */
+.resize-h, [data-shell="desk"] .resize-h { background: none; opacity: 1; }
+
+/* Market tabs, Window style and Brush share one component and one selected state. */
+.seg {
+  display: inline-flex; align-items: stretch; flex: none; gap: 2px; padding: 3px;
+  border: 1px solid rgba(120, 100, 60, .18); border-radius: 10px;
+  background: #eee7db var(--a-pagePaper) 0 0 / 420px;
+  box-shadow: inset 0 1px 2px rgba(60, 45, 20, .08);
+}
+.seg button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 56px; min-height: 30px; padding: 5px 14px; margin: 0;
+  border: 1px solid transparent; border-radius: 7px; background: transparent;
+  color: var(--ink2); font: 500 12.5px/1.2 var(--sys); filter: none; box-shadow: none;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.seg button:hover { background: rgba(255, 253, 249, .55); }
+.seg button[aria-pressed="true"] {
+  color: var(--ink); font-weight: 600;
+  background: #fffdf9 var(--a-pagePaper) 0 0 / 420px;
+  border-color: rgba(120, 100, 60, .18);
+  box-shadow: 0 1px 2px rgba(60, 45, 20, .16); filter: none;
+}
+
+/* Layout the card around its visible paper, rather than its transparent image bounds. */
+.mk-hero { grid-template-columns: minmax(200px, .8fr) minmax(0, 1.1fr); gap: 24px; padding: 24px; border-radius: 12px; }
+.mk-hero-art { min-width: 0; height: 218px; }
+.mk-hero-art .mk-pouch { width: 132px; margin-left: 0; }
+.mk-hero .fan { left: 88px; top: 20px; }
+.mk-hero .fan-s { left: calc(var(--i) * 28px); top: calc(18px + var(--i) * 16px); }
+.mk-hero-text {
+  min-width: 0; margin: 0; padding: 24px;
+  background-size: 120% 140%; transform: none;
+}
+.mk-hero-text::before { right: 14px; top: -24px; width: 54px; height: 54px; }
+.mk-hero-text h2 { font-size: 28px; }
+.mk-hero-text .btn { margin-top: 12px; }
+@container (max-width: 640px) {
+  .mk-hero { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 20px; }
+  .mk-hero-art { height: 184px; }
+  .mk-hero-art .mk-pouch { width: 116px; }
+}
+
+/* Selected Desk navigation stays on the same centre line as its neighbours. */
+[data-shell="desk"] .nav-item { transform: none; }
+[data-shell="desk"] .nav-item[aria-current="page"] { transform: none; }
+[data-shell="desk"] .nav-item[aria-current="page"]::after { display: none; }
+[data-shell="desk"] .nav-item .ni-label { font-family: var(--sys); }
+
+/* A cover, a fixed binding and a separate scrolling sheet. Each coil attaches to one hole. */
+.book-binding { display: none; }
+[data-shell="desk"] .page[data-page="book"] { inset: 14px 10px 18px 32px; }
+[data-shell="desk"] .page[data-page="book"]::before { inset: -8px -8px -8px -20px; border-radius: 14px; }
+[data-shell="desk"] .page[data-page="book"]::after { display: none; }
+[data-shell="desk"] .page[data-page="book"] .page-in {
+  padding-left: 44px; border-radius: 4px 10px 10px 4px;
+  box-shadow: inset 12px 0 18px -16px rgba(70, 45, 10, .35), 1px 1px 0 #e5ddcd, 2px 2px 0 #f1eadb;
+}
+[data-shell="desk"] .book-binding {
+  display: flex; flex-direction: column; gap: 6px;
+  position: absolute; left: -18px; top: 12px; bottom: 12px; width: 48px;
+  overflow: hidden; z-index: 12; pointer-events: none;
+}
+.book-binding .coil { flex: none; position: relative; height: 24px; }
+.book-binding .coil::before {
+  content: ""; position: absolute; left: 38px; top: 4px; width: 5px; height: 16px;
+  border-radius: 50%; background: #85725a;
+  box-shadow: inset 1px 0 2px rgba(30, 20, 10, .5), 1px 0 0 rgba(255, 253, 249, .8);
+}
+.book-binding .coil::after {
+  content: ""; position: absolute; left: 0; top: 3px; width: 48px; height: 19px;
+  background: var(--a-spiralCoil) left top / 48px auto no-repeat;
+  filter: drop-shadow(1px 1px 1px rgba(40, 25, 5, .25));
+}
+
+/* Only the cutout canvas moves; the transparency checker and brush cursor stay in the frame. */
+.frame.checker canvas { transform-origin: 50% 50%; }
+.preview-reset {
+  position: absolute; top: 8px; right: 8px; z-index: 3;
+  border: 1px solid rgba(60, 45, 20, .18); border-radius: 7px; padding: 4px 8px;
+  background: rgba(255, 253, 249, .94); color: var(--ink); font: 600 11px/1.4 var(--sys);
+  cursor: pointer; box-shadow: 0 1px 2px rgba(60, 45, 20, .12);
+}

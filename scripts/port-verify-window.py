@@ -1,5 +1,5 @@
 """Real native window controls/gestures and preferences, under an X11 window manager."""
-import importlib,json,subprocess,time
+import importlib,json,subprocess,time,sys
 c=importlib.import_module('port-capture')
 def ev(s):return c.evaluate(s)
 def wait(s):
@@ -51,4 +51,5 @@ layer=c.evaluate('return {sound:Snd.on,motion:document.documentElement.dataset.m
 if main['sound'] or layer['sound'] or main['motion']!='reduce' or layer['motion']!='reduce':raise RuntimeError('Preferences did not reach the layer')
 ev('S.closeOutside=false; S.motion="full"; S.sound=true; Bridge.savePreferences(); await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700)); await Bridge.window.setPosition(new window.__TAURI__.dpi.LogicalPosition(190,79)); return true;')
 result=dict(maximizeRestore=True,maximized=maximized,minimizeResume=True,redClose=True,escapeClose=True,dragStrip=True,nativeResize=True,minimum=minimum,outsideClose=True,preferences=dict(main=main,layer=layer))
-(c.ROOT/'docs/port-spec/compare/slice-07-window.json').write_text(json.dumps(result,indent=2));print(result)
+output=c.ROOT/'docs/port-spec/compare'/(sys.argv[1] if len(sys.argv)>1 else 'slice-07-window.json')
+output.parent.mkdir(parents=True,exist_ok=True);output.write_text(json.dumps(result,indent=2));print(result)

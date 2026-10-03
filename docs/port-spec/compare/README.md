@@ -1,5 +1,7 @@
 # Native port comparisons
 
+[Latest owner-requested corrections: real before/after comparisons and wheel zoom](review-01/README.md). The original slice captures below document the initial port; the new review captures show the current UI.
+
 The right-hand images are captures of `src/app.html` in the **real debug Tauri application / WebKitGTK**, using Rust IPC and a temporary SQLite library. No mock bridge or prototype desktop is rendered there. The original golden JPGs remain unchanged. Window comparisons crop their 1060×700 app rectangle at (190,79); capture files retain the native screenshot separately.
 
 Reproduce on a desktop with Rust, Tauri's platform dependencies, Python/Pillow, ImageMagick and xdotool (Linux):
