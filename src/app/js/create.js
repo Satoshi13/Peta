@@ -55,6 +55,14 @@ Pages.create = {
   mat() {
     const origCv = h("canvas"), cutCv = h("canvas.cut"), ring = h("i.ring");
     const stkHost = h("div.stk-host"), pane = (cls, title, ...kids) => h("figure.pane." + cls, h("div.frame", ...kids), h("figcaption", title));
+    const fitSticker = () => {
+      const sticker = stkHost.querySelector(".stk"), res = CR.res;
+      if (!sticker || !res) return;
+      const css = getComputedStyle(stkHost);
+      const width = stkHost.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight);
+      const height = stkHost.clientHeight - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom);
+      if (width > 0 && height > 0) sticker.style.width = Math.min(230, 230 * res.aspect, width, height * res.aspect) + "px";
+    };
     const sizeCv = () => { origCv.width = CR.photo.width; origCv.height = CR.photo.height; cutCv.width = CR.photo.width; cutCv.height = CR.photo.height; };
     sizeCv();
     let seq = 0, rendering = null, renderRequested = false;
@@ -90,7 +98,7 @@ Pages.create = {
             cx.drawImage(cutImg,0,0,cutCv.width,cutCv.height);
             const dim=Stk.cv(origCv.width,origCv.height), dx=dim.getContext("2d"); dx.fillStyle="rgba(30,24,16,.5)"; dx.fillRect(0,0,dim.width,dim.height); dx.globalCompositeOperation="destination-out"; dx.drawImage(cutImg,0,0,dim.width,dim.height); origCv.getContext("2d").drawImage(dim,0,0);
             const res = {url:sticker,w:head.width,h:head.height,aspect:head.width/head.height,material:S.chosen,mask:['holographic','gold'].includes(S.chosen)?sticker:null}; CR.res=res;
-            stkHost.replaceChildren(Stk.el(res,res.aspect>=1?230:230*res.aspect)); Stk.tilt(stkHost,{max:8,scale:1.02}); syncMake();
+            stkHost.replaceChildren(Stk.el(res,res.aspect>=1?230:230*res.aspect)); fitSticker(); Stk.tilt(stkHost,{max:8,scale:1.02}); syncMake();
           } catch(e) {
             if (mine !== seq || painting || !stkHost.isConnected) continue;
             CR.res=null; stkHost.replaceChildren(h("p.muted", "Nothing left to cut out")); syncMake(); Shell.toast(String(e));
@@ -143,7 +151,7 @@ Pages.create = {
       CR.zoom.x=x-(x-CR.zoom.x)*factor;CR.zoom.y=y-(y-CR.zoom.y)*factor;CR.zoom.scale=next;
       applyZoom();moveRing(e);
     },{passive:false});
-    const resizePreview=new ResizeObserver(()=>applyZoom());resizePreview.observe(cutFrame);
+    const resizePreview=new ResizeObserver(()=>{ applyZoom(); fitSticker(); });resizePreview.observe(cutFrame);resizePreview.observe(stkHost);
     CR.previewObserver?.disconnect();CR.previewObserver=resizePreview;
     // The reset button must never start a Rust brush stroke.
     resetZoom.addEventListener("pointerdown",e=>e.stopPropagation());

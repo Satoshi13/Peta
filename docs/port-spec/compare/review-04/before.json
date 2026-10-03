@@ -1,0 +1,24 @@
+{
+  "aspect": 1.7889610389610389,
+  "computedHeight": "227px",
+  "display": {
+    "bottom": 372,
+    "height": 227,
+    "left": 776,
+    "right": 1006,
+    "top": 145,
+    "width": 230,
+    "x": 776,
+    "y": 145
+  },
+  "material": "holographic",
+  "natural": [
+    551,
+    308
+  ],
+  "source": [
+    551,
+    308
+  ],
+  "renderedPngSha256": "90282d59c521cae270c05723c68ccee27807cbdc647bbeb5b232f3eca49b4dcf"
+}

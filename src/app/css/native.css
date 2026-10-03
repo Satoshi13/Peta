@@ -132,6 +132,9 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 .shelf .pack { display: grid; grid-template-rows: 224px minmax(68px, auto) 24px; justify-items: center; align-items: center; gap: 10px; width: 192px; }
 .shelf .pack .pack-tag { width: 100%; min-height: 68px; align-self: stretch; justify-content: center; }
 
+/* Create fits the sticker to both frame dimensions; its image and sheen retain the PNG ratio. */
+.stk-host .stk { height: auto; max-width: 100%; max-height: none; }
+.stk-host .stk img { height: auto; }
 /* Only the cutout canvas moves; the transparency checker and brush cursor stay in the frame. */
 .frame.checker canvas { transform-origin: 50% 50%; }
 .preview-reset {
