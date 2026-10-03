@@ -84,29 +84,23 @@ body { }
 [data-shell="desk"] .resize-h { background-image: linear-gradient(135deg, transparent 52%, rgba(255, 255, 255, .65) 52% 56%, transparent 56% 66%, rgba(255, 255, 255, .65) 66% 70%, transparent 70% 80%, rgba(255, 255, 255, .65) 80% 84%, transparent 84%); }
 
 /* bookmark ribbon (A): a real satin ribbon */
-[data-shell="notebook"] .ribbon { top: -38px; right: 128px; width: 26px; height: 78px; filter: drop-shadow(1px 3px 2px rgba(40, 10, 5, .4)); }
-[data-shell="notebook"] .ribbon i { background:
-  repeating-linear-gradient(180deg, rgba(255, 255, 255, .09) 0 1px, rgba(0, 0, 0, .06) 1px 2px),
-  linear-gradient(90deg, #7e1a16 0%, #b82f27 14%, #e65a4b 34%, #f0766a 46%, #d2463a 62%, #a32a22 84%, #7e1a16 100%);
-  box-shadow: inset 2px 0 0 rgba(255, 255, 255, .12), inset -2px 0 0 rgba(0, 0, 0, .25); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%); position: relative; }
-[data-shell="notebook"] .ribbon i::before { content: ""; position: absolute; left: 0; right: 0; top: 36px; height: 14px; background: linear-gradient(180deg, rgba(0, 0, 0, .16), rgba(0, 0, 0, 0) 60%, rgba(255, 255, 255, .08)); }
-[data-shell="notebook"] .ribbon i::after { content: ""; position: absolute; left: 4px; right: 4px; bottom: 6px; height: 42px; background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .22)); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 62%, 0 100%); }
+[data-shell="notebook"] .ribbon { top: -30px; right: 128px; width: 28px; height: 94px; filter: drop-shadow(1px 3px 2px rgba(40, 10, 5, .4)); }
+[data-shell="notebook"] .ribbon i { display: block; width: 100%; height: 100%; background: var(--a-ribbonArt) center top / 100% 100% no-repeat; }
 [data-shell="desk"] .close-tag { top: -26px; right: 76px; width: 58px; height: 72px; padding: 36px 0 0; clip-path: none; background: var(--a-tagKraft) center / contain no-repeat; font: 600 11px var(--hand); color: #2b2a28; filter: drop-shadow(1px 2px 2px rgba(15, 30, 20, .4)); }
 [data-shell="desk"] .close-tag::before { display: none; }
 
 /* ---------- month tabs: little paper flags ---------- */
 .months { gap: 2px; margin: 0 0 16px; padding-top: 6px; }
-.month { --tab: var(--a-tabCream); height: 38px; padding: 0 16px 0 24px; border: 0; border-radius: 0; box-shadow: none; background: var(--tab) center / 100% 100% no-repeat; color: #3a3226; font: 600 13px var(--sys); filter: drop-shadow(1px 2px 1.4px rgba(40, 25, 5, .28)); transition: transform .25s var(--ease-spring), filter .2s; }
-.month:nth-child(3n + 2) { --tab: var(--a-tabPink); } .month:nth-child(3n) { --tab: var(--a-tabSky); }
+.month { --tab: var(--a-flagCream); height: 38px; padding: 0 16px 0 24px; border: 0; border-radius: 0; box-shadow: none; background: var(--tab) center / 100% 100% no-repeat; color: #3a3226; font: 600 13px var(--sys); filter: drop-shadow(1px 2px 1.4px rgba(40, 25, 5, .28)); transition: transform .25s var(--ease-spring), filter .2s; }
+.month:nth-child(5n + 2) { --tab: var(--a-flagPink); } .month:nth-child(5n + 3) { --tab: var(--a-flagSky); } .month:nth-child(5n + 4) { --tab: var(--a-flagMint); } .month:nth-child(5n) { --tab: var(--a-flagLemon); }
 .month small { margin-left: 5px; opacity: .6; } .month:hover { background: var(--tab) center / 100% 100% no-repeat; transform: translateY(-3px); }
 .month[aria-current="true"] { background: var(--tab) center / 100% 100% no-repeat; transform: translateY(-6px); filter: drop-shadow(2px 4px 3px rgba(40, 25, 5, .34)); box-shadow: none; }
 .month[aria-current="true"]::after { display: none; }
 
 /* ---------- the pack shelf: a board with a front edge, not a gradient bar ---------- */
-.ledge { height: 30px; bottom: -22px; border-radius: 3px 3px 6px 6px; background: linear-gradient(180deg, rgba(255, 255, 255, .42) 0 30%, rgba(60, 40, 10, 0) 30% 62%, rgba(60, 40, 10, .2) 62%), var(--a-coverBoard) 0 0 / 420px, #c4a171;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .45) inset, 0 -1px 0 rgba(90, 60, 25, .35) inset, 0 14px 18px -6px rgba(60, 40, 10, .5), 0 3px 3px rgba(60, 40, 10, .3); }
-.ledge::before { content: ""; position: absolute; left: 0; right: 0; top: 9px; height: 1px; background: rgba(90, 60, 25, .28); } .ledge::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 5px; height: 1px; background: rgba(255, 255, 255, .25); }
-.pack::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: 74px; height: 12px; border-radius: 50%; background: radial-gradient(closest-side, rgba(40, 25, 5, .38), transparent); filter: blur(2px); z-index: -1; }
+.ledge { height: 46px; bottom: -34px; border-radius: 0; background: none; box-shadow: none; border-style: solid; border-width: 0 60px; border-image: var(--a-shelfBoard) 0 120 fill / 0 60px / 0 stretch; filter: drop-shadow(0 8px 8px rgba(60, 40, 10, .28)); }
+.ledge::before, .ledge::after { display: none; }
+.pack::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: 74px; height: 12px; background: var(--a-shelfShadow) center / 100% 100% no-repeat; z-index: -1; }
 .pack { padding-bottom: 6px; }
 
 /* ---------- Create: the controls are a card clipped onto the mat ---------- */
@@ -138,3 +132,23 @@ input[type="range"]::-webkit-slider-runnable-track { height: 5px; border-radius:
 [data-shell="desk"] .page::before { left: 22%; }
 .mk-hero-text .btn { margin-top: 8px; }
 .mk-hero-text { padding-left: 44px; padding-right: 36px; }
+
+/* ---------- layout hygiene (found by the overflow audit) ---------- */
+.mcard .lab { white-space: nowrap; } .mcard .lab b { font-size: calc(var(--w) * .08); } .mcard .lab small { font-size: calc(var(--w) * .06); }
+.mk-hero-text { padding-top: 40px; }
+.btn { white-space: nowrap; } .btn.paper { padding-inline: 26px; }
+.ph { flex-wrap: wrap; row-gap: 10px; } .ph > div:first-child { min-width: max-content; } .ph .quota { white-space: normal; max-width: 100%; flex-wrap: wrap; }
+.page-in { container-type: size; }
+.sample-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
+@container (max-width: 700px) { .cr-empty { grid-template-columns: 1fr; gap: 20px; min-height: 0; } .drop { min-height: 260px; } }
+/* the grab pill sits in the top 30px; page content starts below it in every shell */
+.page-in { padding-top: 38px; }
+.stk-host { grid-template: minmax(0, 1fr) / minmax(0, 1fr); width: 100%; height: 100%; box-sizing: border-box; }
+.stk-host .stk { width: 100%; height: 100%; max-width: none; max-height: none; min-width: 0; min-height: 0; object-fit: contain; }
+.cr-controls::before { left: auto; right: 26px; }
+.cr-controls .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; } .cr-controls .tools .btn.paper.small { padding: 6px 14px; }
+[data-shell="notebook"] .nav-item { padding-right: 6px; width: 128px; } [data-shell="notebook"] .nav-item .ni-label { font-size: 12px; letter-spacing: -.01em; }
+.shelf { padding-bottom: 16px; }
+.bk, .mk { min-height: 620px; } /* the sticky detail card must fit inside its row, or the page can't scroll to its bottom */
+.cr-controls { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1.2fr); } .cr-controls > * { min-width: 0; }
+@container (max-width: 760px) { .cr-controls { grid-template-columns: minmax(0, 1fr); } }

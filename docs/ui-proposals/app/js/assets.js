@@ -19,6 +19,8 @@ const P = {
   tagJa: "fx/peta-tag-ja.png", tagEn: "fx/peta-tag-en.png", emptyBook: "empty/collection-empty.png",
   pouch: "pack/pack-pouch-closed.png", packHolo: "pack/pack-holographic.png", packKraft: "pack/pack-kraft.png", packMatte: "pack/pack-matte.png",
   pagePaper: "book/page-paper.jpg", coverBoard: "book/cover-board.jpg",
+  flagCream: "tabs/month-flag-cream.png", flagPink: "tabs/month-flag-pink.png", flagSky: "tabs/month-flag-sky.png", flagMint: "tabs/month-flag-mint.png", flagLemon: "tabs/month-flag-lemon.png",
+  ribbonArt: "ui/ribbon-bookmark.png", shelfBoard: "ui/shelf-board.png", shelfShadow: "ui/shelf-contact-shadow.png",
   tabCream: "tabs/tab-paper-cream.png", tabPink: "tabs/tab-paper-pink.png", tabKraft: "tabs/tab-paper-kraft.png", tabSky: "tabs/tab-paper-sky.png", tabMint: "tabs/tab-paper-mint.png", tabLemon: "tabs/tab-paper-lemon.png", tabGrey: "tabs/tab-paper-grey.png",
   sealCommon: "ui/seal-common.png", sealUncommon: "ui/seal-uncommon.png", sealRare: "ui/seal-rare.png", sealSpecial: "ui/seal-special.png", sealArchive: "ui/seal-archive.png",
   btnLabel: "ui/button-label.png", btnLabelDown: "ui/button-label-pressed.png", trayBox: "ui/material-tray.png", cardLocked: "ui/card-locked.png", dateStamp: "ui/date-stamp.png",
