@@ -212,17 +212,16 @@
     {
       "id": "BK-01",
       "file": "book/cover-kraft.png",
-      "bytes": 157141,
+      "bytes": 232360,
       "width": 1600,
       "height": 1100,
       "alpha": true,
-      "priority": "P1",
+      "priority": "P0",
       "usedBy": [
-        "today/choice-collection.png",
         "art/preview.html"
       ],
-      "prompt": "Same approved kraft cover geometry with the chosen samples/blue-flower.png.",
-      "status": "ready",
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: replace old binding only; retain original paper, grid and blue flower.",
+      "status": "review-notebook-binding",
       "restyle": "mixed-v1-v2",
       "sampleSources": [
         "blue-flower"
@@ -476,16 +475,17 @@
     {
       "id": "TD-05",
       "file": "today/choice-collection.png",
-      "bytes": 20467,
+      "bytes": 18120,
       "width": 384,
       "height": 384,
       "alpha": true,
       "priority": "P0",
       "usedBy": [
-        "today.html"
+        "today.html",
+        "art/preview.html"
       ],
-      "prompt": "Retina thumbnail of the updated BK-01 cover.",
-      "status": "ready",
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: Retina thumbnail of cover candidate 1. Small-display export: 10 larger twin-loop groups for 112px readability; retained original kraft cover and flower.",
+      "status": "review-notebook-binding",
       "restyle": "mixed-v1-v2",
       "sampleSources": [
         "blue-flower"
@@ -1535,14 +1535,14 @@
       "file": "book/page-left.jpg",
       "width": 1400,
       "height": 1000,
-      "bytes": 43889,
+      "bytes": 56146,
       "alpha": false,
-      "priority": "P1",
+      "priority": "P0",
       "usedBy": [
         "Phase 4–5 delivery / art/preview.html"
       ],
-      "prompt": "Cream notebook page, faint dot grid, evenly spaced punched ring holes; matching six-pixel binding gutter.",
-      "status": "ready",
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: retain paper and dot grid; share the exact hole partition at 50px pitch, mirror for left page.",
+      "status": "review-notebook-binding",
       "stage": 2,
       "bindingEdge": "right",
       "ringHoleCenters": [
@@ -1626,21 +1626,22 @@
           1358,
           975
         ]
-      ]
+      ],
+      "repeatPx": 50
     },
     {
       "id": "BK-02",
       "file": "book/page-right.jpg",
       "width": 1400,
       "height": 1000,
-      "bytes": 43937,
+      "bytes": 56050,
       "alpha": false,
-      "priority": "P1",
+      "priority": "P0",
       "usedBy": [
         "Phase 4–5 delivery / art/preview.html"
       ],
-      "prompt": "Cream notebook page, faint dot grid, evenly spaced punched ring holes; matching six-pixel binding gutter.",
-      "status": "ready",
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: retain paper and dot grid; share the exact hole partition at 50px pitch, mirror for left page.",
+      "status": "review-notebook-binding",
       "stage": 2,
       "bindingEdge": "left",
       "ringHoleCenters": [
@@ -1724,7 +1725,8 @@
           42,
           975
         ]
-      ]
+      ],
+      "repeatPx": 50
     },
     {
       "id": "BK-03",
@@ -2032,6 +2034,123 @@
         0.0
       ],
       "rgbPalette": null
+    },
+    {
+      "id": "UI-BK-03H",
+      "file": "book/spiral-holes.png",
+      "bytes": 6231,
+      "rgbPalette": null,
+      "width": 128,
+      "height": 1000,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: hole partition from candidate 1.",
+      "status": "review-notebook-binding",
+      "repeatPx": 50,
+      "tileableAxis": "y"
+    },
+    {
+      "id": "UI-BK-03C",
+      "file": "book/spiral-coil.png",
+      "bytes": 10893,
+      "rgbPalette": null,
+      "width": 128,
+      "height": 1000,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: wire partition from candidate 1.",
+      "status": "review-notebook-binding",
+      "repeatPx": 50,
+      "tileableAxis": "y"
+    },
+    {
+      "id": "UI-BK-03",
+      "file": "book/spiral-binding.png",
+      "bytes": 12729,
+      "rgbPalette": null,
+      "width": 128,
+      "height": 1000,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .book::before",
+        "art/p1.css .spiral",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2.",
+      "status": "review-notebook-binding",
+      "repeatPx": 50,
+      "tileableAxis": "y"
+    },
+    {
+      "id": "UI-BK-03G",
+      "file": "book/spiral-binding-graphite.png",
+      "bytes": 12412,
+      "rgbPalette": null,
+      "width": 128,
+      "height": 1000,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nFour candidates in a 2x2 grid, isolated transparent margins, no text. Edit the provided graphite twin-loop notebook wire cells ONLY: keep their double-loop shape and two warm cream punched holes, but darken the metal drastically to MATTE DARK GRAPHITE. Every metal tone must lie between #2B2A28 and #55524D. NO pale silver stripe, NO white reflection, NO glossy highlight. The brightest graphite highlight is #55524D and the rest is #2B2A28. One very subtle broad grey step, flat-ish charcoal stationery illustration. Not chrome, not polished metal, no fine texture or scratches. All paper and metal opaque except edge antialiasing. No cast shadow, no speckles or white fringe outside the object. Do not change the warm paper hole tone. Choose subtle shape differences across four candidates, not shine.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, silver highlights, white glare, neon, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, watermark, signature, gibberish text, logos, people, harsh black outlines, heavy shadows, grunge, dirt.\n",
+      "status": "review-notebook-binding",
+      "repeatPx": 50,
+      "tileableAxis": "y"
+    },
+    {
+      "id": "UI-BK-03T",
+      "file": "book/spiral-cap-top.png",
+      "bytes": 8113,
+      "rgbPalette": null,
+      "width": 128,
+      "height": 64,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: first 64 rows, same phase, overlay at top of 50*N high binding.",
+      "status": "review-notebook-binding"
+    },
+    {
+      "id": "UI-BK-03B",
+      "file": "book/spiral-cap-bottom.png",
+      "bytes": 8315,
+      "rgbPalette": null,
+      "width": 128,
+      "height": 64,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: last 64 rows, overlay at bottom of 50*N high binding.",
+      "status": "review-notebook-binding"
+    },
+    {
+      "id": "UI-BK-02P",
+      "file": "book/notebook-page.png",
+      "bytes": 436219,
+      "rgbPalette": null,
+      "width": 1200,
+      "height": 900,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid with transparent spacing, no captions or dividers. Each quadrant is one flat rectangular CREAM NOTEBOOK PAGE BLOCK, straight-on TOP VIEW, width:height 4:3, rounded corners about 7% of height. No notebook binding, no rings, no punched holes, NO text, no doodles. The left 11% is an empty binding margin; the whole central writing area is almost uniform cream #F5F0E6, with exceptionally faint paper grain. Along only the right and bottom edge, TWO OR THREE very fine paper-edge lines, indicating the thickness of stacked pages. No folds, no curled corners, no strong perspective. The whole face is opaque. Very low detail, calm simple drawing to match the supplied paper texture. All decoration confined to within 7% of the corners/edges so the centre can stretch for 9-slice UI export. Weak neutral contact shadow at lower right, no shadow spreading outside. The card shape must be crisp, no white fringe or dirt.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "review-notebook-binding",
+      "nineSlicePx": 90,
+      "bindingMarginPx": 128
     }
   ],
   "deliveryStages": {
@@ -2041,5 +2160,14 @@
   },
   "sampleStyle": "Mixed set (owner decision 2026-10-02): v2 simple forms for most subjects; v1 painterly for blue-flower, polaroid-mountain, good-day, purple-scribble. See mixDecision on each sample.",
   "sampleBudgetBytes": 900000,
-  "sampleStyleVersion": 2
+  "sampleStyleVersion": 2,
+  "uiPartsReview": {
+    "scope": "P0 notebook only",
+    "selectedCandidate": 1,
+    "status": "awaiting owner spring review",
+    "ringCentres": "y=25+50*k; exactly 20 cells in 1000px",
+    "layers": "spiral-holes then spiral-coil reproduce spiral-binding exactly",
+    "capUsage": "Overlay first/last 64px on a finite 50*N-pixel band; keep background phase anchored to band top.",
+    "remaining": "Today parts and P1 are not started."
+  }
 }
