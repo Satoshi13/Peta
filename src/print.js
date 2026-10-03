@@ -201,5 +201,10 @@ export function initPrint(ctx) {
     if (completing || hold) return;
     if (printVisible) refresh(); else hide();
   });
+  listen("sticker-updated", async e => {
+    if(job?.pending.stickerId !== e.payload) return;
+    if(hold) { if(hold.node) removeNode(hold.node); if(layer.hasPointerCapture(hold.pointer)) layer.releasePointerCapture(hold.pointer); hold=null; layer.classList.remove("dragging"); layer.dataset.cursor=""; }
+    await hide(true); if(printVisible) await refresh();
+  });
   refresh();
 }

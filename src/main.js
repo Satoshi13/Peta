@@ -541,6 +541,13 @@ async function boot() {
     if (node) flip(node);
   });
   await listen("placements-changed", () => reconcile());
+  await listen("sticker-updated", async e => {
+    const id=e.payload, old=assets.get(id); assets.delete(id);
+    old?.then(a=>URL.revokeObjectURL(a.url)).catch(()=>{});
+    const node=nodes.get(id);
+    if(node) { if(drag?.node===node) drag=null; if(gest?.node===node) gest=null; removeNode(node); }
+    await reconcile();
+  });
   await wireFileDrop();
   initPrint({ layer, invoke, listen, info, addSticker, nodes, render, lift, settle, removeNode, layerSize, fromPixels, loadAsset });
   await listen("edit-mode", (e) => setEditMode(Boolean(e.payload)));

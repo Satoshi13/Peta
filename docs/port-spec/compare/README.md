@@ -1,5 +1,7 @@
 # Native port comparisons
 
+[Latest: Book click-to-flip, consistent actions and original cutout editing/deletion](review-05/README.md). Original-only editing was explicitly requested as cutout/outline re-editing; title naming remains undecided.
+
 [Previous owner-requested corrections: Pack rows, window-bounded opening, persistent main window and notebook left edge](review-03/README.md). [Image layout, pen-circle selection, fast thin brush and minimal tray](review-02/README.md). [Previous corrections and cutout zoom](review-01/README.md). The original slice captures below document the initial port; the review captures show the subsequent UI changes.
 
 The right-hand images are captures of `src/app.html` in the **real debug Tauri application / WebKitGTK**, using Rust IPC and a temporary SQLite library. No mock bridge or prototype desktop is rendered there. The original golden JPGs remain unchanged. Window comparisons crop their 1060×700 app rectangle at (190,79); capture files retain the native screenshot separately.

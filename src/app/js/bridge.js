@@ -27,9 +27,9 @@ const Bridge = (() => {
       Object.assign(MAT[m.id], { name:m.name, rarity:m.rarity, locked:!unlocked, unlimited:m.unlimited, found:m.unlockedAt ? fmtDate(new Date(m.unlockedAt)) : '', });
       S.stock[m.id] = m.unlimited ? Infinity : m.count;
     }
-    if (!usableMats().includes(S.chosen)) S.chosen = usableMats()[0] || 'matte';
+    if (!(typeof CR !== 'undefined' && CR.editing) && !usableMats().includes(S.chosen)) S.chosen = usableMats()[0] || 'matte';
     const pages = await Promise.all(months.map(m => invoke('book_page', {year:m.year, month:m.month})));
-    S.lib = pages.flat().map(e => ({ id:e.stickerId, date:new Date(e.date+'T12:00:00'), no:e.originalNumber, material:e.materialId || 'matte', kind:(['gift','pack'].includes(e.sourceType) || (e.sourceType==='collection' && e.originalNumber==null)) ? 'received' : 'original', aspect:e.aspect, onDesktop:e.onDesktop, title:'Sticker' }));
+    S.lib = pages.flat().map(e => ({ id:e.stickerId, date:new Date(e.date+'T12:00:00'), no:e.originalNumber, material:e.materialId || 'matte', kind:(['gift','pack'].includes(e.sourceType) || (e.sourceType==='collection' && e.originalNumber==null)) ? 'received' : 'original', aspect:e.aspect, onDesktop:e.onDesktop, canManage:e.canManage, title:'Sticker' }));
     S.desk = S.lib.filter(e=>e.onDesktop).map(e=>({id:e.id}));
     S.stuckToday = S.lib.filter(e=>e.onDesktop && fmtDate(e.date)===fmtDate(S.today)).map(e=>e.id);
     S.gifts = inbox.map(g=>({id:g.giftId, from:g.from, note:g.note || '', opened:!!g.openedAt, material:g.materialId || 'matte', edition:g.edition}));
@@ -40,6 +40,7 @@ const Bridge = (() => {
     if (!assets.has(id)) assets.set(id, invoke('sticker_asset', {stickerId:id}).then(bytes => URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type:'image/png'}))));
     return assets.get(id);
   }
+  function invalidateAsset(id) { const old = assets.get(id); assets.delete(id); old?.then(URL.revokeObjectURL).catch(()=>{}); }
   async function entry(id) {
     const back = await invoke('sticker_back', {stickerId:id});
     return { id, material:back.material?.id || 'matte', kind:back.kind, from:back.receivedFrom, no:back.originalNumber == null ? null : Number(back.originalNumber), edition:back.editionNumber == null ? null : Number(back.editionNumber), date:new Date(), back, title:'Sticker' };
@@ -57,7 +58,7 @@ const Bridge = (() => {
     try { return await invoke(cmd, args); }
     catch(e) { Bridge.printFocusTransfer=false; throw e; }
   }
-  return { invoke, printAction, enterCeremony, leaveCeremony, window:windowApi, reload, asset, entry, savePreferences, changed, listen:api.event.listen };
+  return { invoke, printAction, enterCeremony, leaveCeremony, window:windowApi, reload, asset, invalidateAsset, entry, savePreferences, changed, listen:api.event.listen };
 })();
 async function resOf(entry) {
   const url = await Bridge.asset(entry.id), i = await Stk.load(url);

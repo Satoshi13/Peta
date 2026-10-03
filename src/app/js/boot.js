@@ -5,6 +5,7 @@ async function boot() {
   await Bridge.listen('app-page', async e => { await Shell.open(e.payload); });
   await Bridge.listen('daily-changed', Bridge.changed);
   await Bridge.listen('placements-changed', Bridge.changed);
+  await Bridge.listen('sticker-updated', e => { Bridge.invalidateAsset(e.payload); Bridge.changed(); });
   await Bridge.window.onFocusChanged(e => {
     if(e.payload) { Bridge.printFocusTransfer=false; return; }
     Pages[S.page]?.suspend?.();

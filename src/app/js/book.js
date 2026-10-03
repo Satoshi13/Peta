@@ -1,5 +1,5 @@
 /* Sticker Book: a page per month, a detail card you can turn over, peel / gift / stick-as-today. */
-const BK = { sel: null, gift: false, anim: false };
+const BK = { sel: null, gift: false, anim: false, deleteId: null };
 
 const monthKey = (d) => d.getFullYear() * 12 + d.getMonth();
 const monthName = (k) => fmtDate(new Date(Math.floor(k / 12), k % 12, 1), { month: "long", year: "numeric" });
@@ -102,7 +102,7 @@ Pages.book = {
   tile(e, i, paint) {
     const holder = h("div.tile-stk"), onDesk = S.desk.some((d) => d.id === e.id);
     resOf(e, { max: 360 }).then((res) => holder.append(Stk.el(res, res.aspect >= 1 ? 128 : 128 * res.aspect)));
-    const b = h("button.tile", { "aria-pressed": String(BK.sel === e.id), style: { "--i": i }, on: { click: () => { BK.sel = BK.sel === e.id ? null : e.id; BK.gift = false; Snd.tap(); paint(); } } },
+    const b = h("button.tile", { "aria-pressed": String(BK.sel === e.id), style: { "--i": i }, on: { click: () => { BK.sel = BK.sel === e.id ? null : e.id; BK.gift = false; BK.deleteId = null; Snd.tap(); paint(); } } },
       holder, h("small", fmtDate(e.date), " · ", titleOf(e)), onDesk ? h("i.on-desk", "on desktop") : null, e.kind === "received" ? h("i.recv", "gift") : null);
     Stk.tilt(holder, { max: 8, scale: 1.04 }); return b;
   },
@@ -110,7 +110,10 @@ Pages.book = {
     const mat = MAT[e.material], onDesk = S.desk.some((d) => d.id === e.id), flip = h("div.flip-inner"), front = h("div.flip-face.f-front"), back = h("div.flip-face.f-back", BackCard(e));
     BackingFront(e).then((el) => front.append(el)); flip.append(front, back);
     let turned = false;
-    const turn = h("button.btn.paper.small", { on: { click: () => { turned = !turned; Snd.flip(); flip.classList.toggle("turned", turned); turn.textContent = turned ? "Turn back" : "Turn over"; } } }, "Turn over");
+    const turn = h("button.flip-stage.book-flip", { type: "button", "aria-label": "Show sticker back", "aria-pressed": "false", on: { click: () => {
+      turned = !turned; Snd.flip(); flip.classList.toggle("turned", turned);
+      turn.setAttribute("aria-pressed", String(turned)); turn.setAttribute("aria-label", turned ? "Show sticker front" : "Show sticker back");
+    } } }, flip);
     const history = h("ul.history"), number = h("dd", e.kind === "received" ? "—" : pad4(e.no));
     Bridge.invoke("sticker_back", {stickerId:e.id}).then(b => {
       if (!b) return;
@@ -120,20 +123,37 @@ Pages.book = {
     }).catch(err=>Shell.toast(String(err)));
     const form = BK.gift ? this.giftForm(e, paint) : null;
     return h("aside.detail", { role: "dialog", "aria-label": "Sticker details" },
-      h("button.x", { "aria-label": "Close", on: { click: () => { BK.sel = null; BK.gift = false; paint(); } } }, "✕"),
-      h("div.flip-stage", flip), h("div.turn-row", turn),
-      form || h("div.actions",
-        onDesk ? h("button.btn.paper", { on: { click: async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Book."); paint(); } } }, "Peel off the desktop") : h("button.btn", { on: { click: () => this.stick(e) } }, "Stick on the desktop"),
-        h("button.btn.paper.small", { on: { click: () => { BK.gift = true; paint(); } } }, "Gift…")),
+      h("button.x", { "aria-label": "Close", on: { click: () => { BK.sel = null; BK.gift = false; BK.deleteId = null; paint(); } } }, "✕"),
+      turn,
+      form || (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions",
+        onDesk ? h("button.btn.book-action.primary", { data: { action: "peel" }, on: { click: async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Book."); paint(); } } }, "Peel off desktop") : h("button.btn.book-action.primary", { data: { action: "stick" }, on: { click: () => this.stick(e) } }, "Stick on desktop"),
+        h("div.book-action-row", h("button.btn.book-action.secondary", { data: { action: "gift" }, on: { click: () => { BK.deleteId = null; BK.gift = true; paint(); } } }, "Gift…"),
+          e.canManage ? h("button.btn.book-action.secondary", { data: { action: "edit" }, on: { click: () => this.edit(e) } }, "Edit") : null),
+        e.canManage ? h("button.btn.book-action.danger", { data: { action: "delete" }, on: { click: () => { BK.deleteId = e.id; paint(); } } }, "Delete…") : null)),
       h("dl", h("dt", "Name"), h("dd", titleOf(e)), h("dt", "Material"), h("dd", h("span.seal", { data: { rarity: mat.rarity } }, mat.name)), h("dt", "Made"), h("dd", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })),
         h("dt", e.kind === "received" ? "Edition" : "No."), number),
       history);
+  },
+  deleteForm(e, paint) {
+    return h("div.book-delete", { role: "group", "aria-label": "Confirm sticker deletion" },
+      h("b", "Delete this sticker?"), h("p", "Remove it from your Book, desktop and print queue. Gifts already sent stay with their recipients."),
+      h("div.book-action-row", h("button.btn.book-action.secondary", { data: { action: "delete-cancel" }, on: { click: () => { BK.deleteId = null; paint(); } } }, "Cancel"),
+        h("button.btn.book-action.danger", { data: { action: "delete-confirm" }, on: { click: async ev => {
+          const button = ev.currentTarget; button.disabled = true; Bridge.busy = true;
+          try { await Bridge.invoke("sticker_delete_original", { stickerId: e.id }); BK.deleteId = null; BK.sel = null; await Bridge.reload(); Shell.refresh(); Shell.toast("Sticker deleted."); }
+          catch(err) { Shell.toast(String(err)); button.disabled = false; }
+          finally { Bridge.busy = false; }
+        } } }, "Delete")));
+  },
+  async edit(e) {
+    try { await Bridge.invoke("creator_cancel"); crReset(); CR.editing = e.id; CR.stage = "cutting"; CR.samplePhoto = null; await Shell.open("create"); await Bridge.invoke("creator_edit_original", { stickerId: e.id }); }
+    catch(err) { crReset(); await Shell.open("book"); Shell.toast(String(err)); }
   },
   giftForm(e, paint) {
     const to = h("input", { type: "text", maxlength: 40, placeholder: "Who is it for?", autocomplete: "off" }), note = h("input", { type: "text", maxlength: 140, placeholder: "(optional)", autocomplete: "off" });
     return h("form.gift-form", { on: { submit: (ev) => { ev.preventDefault(); GiftSeal(e, to.value.trim() || "a friend", note.value.trim()).then(() => { BK.gift = false; paint(); }); } } },
       h("label", "To", to), h("label", "A few words", note),
-      h("div.row-btns", h("button.btn.stamp", { type: "submit" }, "Seal & save…"), h("button.link", { type: "button", on: { click: () => { BK.gift = false; paint(); } } }, "Cancel")),
+      h("div.book-action-row", h("button.btn.book-action.secondary", { type: "button", on: { click: () => { BK.gift = false; paint(); } } }, "Cancel"), h("button.btn.book-action.primary", { type: "submit" }, "Seal & save…")),
       h("small.muted", "You give a copy; yours stays in your book. The file holds only the finished sticker — never your photo."));
   },
   async stick(e) {
