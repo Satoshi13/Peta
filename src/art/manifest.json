@@ -1,6 +1,6 @@
 {
   "stage": 2,
-  "status": "ui-polish-stage1-awaiting-review",
+  "status": "ui-polish-complete",
   "sourcePolicy": "assets-src/art/ ignored and untracked; only optimized runtime copies in src/art/.",
   "alphaPolicy": "Paper surfaces opaque alpha 255; AA contours; coloured film tips, washi and glassine intentionally translucent; printed ink, contact shadow and existing glow/curl masks use explicit metadata exceptions.",
   "shadowPolicy": {
@@ -3545,7 +3545,7 @@
         "art/preview.html ui-polish-review; prototype integration by owner"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nExactly FOUR separate alternative bookmark ribbons in one evenly spaced row of four. Each slender vertical ribbon must have width:height aspect ratio 96:320. Front view, straight vertical, flat isolated satin fabric, colour muted deep red around #D8453A slightly darker. A short dark folded insertion at top, no metal eyelets. Fine woven cloth texture and extremely delicate stitching along BOTH straight edges, a muted highlight streak down left and shadow streak down right. Bottom V notch with tiny frayed threads, two cut points symmetric. Not a loop, not a bow, no folds in middle, no letters. Four quiet cloth alternatives with slightly different weave and one short top fold. Actual alpha transparency outside EACH object; generous separation; no contact shadows baked into source.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
-      "status": "review-ui-polish-stage1",
+      "status": "ready",
       "polishStage": 1,
       "selectedCandidate": 2
     },
@@ -3561,7 +3561,7 @@
         "art/preview.html ui-polish-review; prototype integration by owner"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nFOUR isolated shelf-board alternatives arranged 2 columns by 2 rows, aligned identical horizontal wide aspect 1400:96. Each is one VERY THIN shelf made of kraft chipboard matching Peta cover-board #C9A878. Perspective extremely shallow frontal slight overhead: top lit face ~one third height, darker vertical front face ~two thirds height. Both ends show several fine laminated paper layers, very slightly worn cut corners. No legs, no brackets, no side supports. Completely empty quiet top, low-contrast fine fibres. Long straight middle stays uniform and horizontally stretchable; detailed ends confined to outer 8 percent. Show restrained pale highlight top edge and lower-right micro shadow. Transparent outside all four separated shelf silhouettes. No text.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
-      "status": "review-ui-polish-stage1",
+      "status": "ready",
       "polishStage": 1,
       "selectedCandidate": 2,
       "nineSlicePx": 120,
@@ -3585,7 +3585,7 @@
         "art/preview.html ui-polish-review; prototype integration by owner"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWENTY separate blank cardstock MONTH flags in EXACT five rows and four columns. Every flag has same WIDE horizontal aspect 220:96, but it rises UP from notebook page top: BOTH upper corners gently rounded and slightly handcut, BOTH lower corners SQUARE with a straight lower insertion edge and fine glue-dark contact line. No notebook, no page, no other objects. This is NOT a side tab: top symmetric round corners, bottom squared. Paper fully opaque, subtle pale cut-edge thickness top and sides, fine low-contrast fibres like existing thick paper index tabs. Row1 FOUR cream #F1EBDC alternatives; Row2 FOUR pastel pink #F6C6E3; Row3 FOUR sky #BFE3F7; Row4 FOUR mint #C8F2DC; Row5 FOUR lemon #F7F0BE. Slight differences in handcut outlines across four candidates, quiet central blank label. Straight on, isolated alpha transparent outside each paper flag, ample spacing. No text/no month names/no numbers.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
-      "status": "review-ui-polish-stage1",
+      "status": "ready",
       "polishStage": 1,
       "selectedCandidate": 4
     },
@@ -3601,7 +3601,7 @@
         "art/preview.html ui-polish-review; prototype integration by owner"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWENTY separate blank cardstock MONTH flags in EXACT five rows and four columns. Every flag has same WIDE horizontal aspect 220:96, but it rises UP from notebook page top: BOTH upper corners gently rounded and slightly handcut, BOTH lower corners SQUARE with a straight lower insertion edge and fine glue-dark contact line. No notebook, no page, no other objects. This is NOT a side tab: top symmetric round corners, bottom squared. Paper fully opaque, subtle pale cut-edge thickness top and sides, fine low-contrast fibres like existing thick paper index tabs. Row1 FOUR cream #F1EBDC alternatives; Row2 FOUR pastel pink #F6C6E3; Row3 FOUR sky #BFE3F7; Row4 FOUR mint #C8F2DC; Row5 FOUR lemon #F7F0BE. Slight differences in handcut outlines across four candidates, quiet central blank label. Straight on, isolated alpha transparent outside each paper flag, ample spacing. No text/no month names/no numbers.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
-      "status": "review-ui-polish-stage1",
+      "status": "ready",
       "polishStage": 1,
       "selectedCandidate": 4
     },
@@ -3617,7 +3617,7 @@
         "art/preview.html ui-polish-review; prototype integration by owner"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWENTY separate blank cardstock MONTH flags in EXACT five rows and four columns. Every flag has same WIDE horizontal aspect 220:96, but it rises UP from notebook page top: BOTH upper corners gently rounded and slightly handcut, BOTH lower corners SQUARE with a straight lower insertion edge and fine glue-dark contact line. No notebook, no page, no other objects. This is NOT a side tab: top symmetric round corners, bottom squared. Paper fully opaque, subtle pale cut-edge thickness top and sides, fine low-contrast fibres like existing thick paper index tabs. Row1 FOUR cream #F1EBDC alternatives; Row2 FOUR pastel pink #F6C6E3; Row3 FOUR sky #BFE3F7; Row4 FOUR mint #C8F2DC; Row5 FOUR lemon #F7F0BE. Slight differences in handcut outlines across four candidates, quiet central blank label. Straight on, isolated alpha transparent outside each paper flag, ample spacing. No text/no month names/no numbers.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
-      "status": "review-ui-polish-stage1",
+      "status": "ready",
       "polishStage": 1,
       "selectedCandidate": 4
     },
@@ -3633,7 +3633,7 @@
         "art/preview.html ui-polish-review; prototype integration by owner"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWENTY separate blank cardstock MONTH flags in EXACT five rows and four columns. Every flag has same WIDE horizontal aspect 220:96, but it rises UP from notebook page top: BOTH upper corners gently rounded and slightly handcut, BOTH lower corners SQUARE with a straight lower insertion edge and fine glue-dark contact line. No notebook, no page, no other objects. This is NOT a side tab: top symmetric round corners, bottom squared. Paper fully opaque, subtle pale cut-edge thickness top and sides, fine low-contrast fibres like existing thick paper index tabs. Row1 FOUR cream #F1EBDC alternatives; Row2 FOUR pastel pink #F6C6E3; Row3 FOUR sky #BFE3F7; Row4 FOUR mint #C8F2DC; Row5 FOUR lemon #F7F0BE. Slight differences in handcut outlines across four candidates, quiet central blank label. Straight on, isolated alpha transparent outside each paper flag, ample spacing. No text/no month names/no numbers.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
-      "status": "review-ui-polish-stage1",
+      "status": "ready",
       "polishStage": 1,
       "selectedCandidate": 4
     },
@@ -3649,7 +3649,7 @@
         "art/preview.html ui-polish-review; prototype integration by owner"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWENTY separate blank cardstock MONTH flags in EXACT five rows and four columns. Every flag has same WIDE horizontal aspect 220:96, but it rises UP from notebook page top: BOTH upper corners gently rounded and slightly handcut, BOTH lower corners SQUARE with a straight lower insertion edge and fine glue-dark contact line. No notebook, no page, no other objects. This is NOT a side tab: top symmetric round corners, bottom squared. Paper fully opaque, subtle pale cut-edge thickness top and sides, fine low-contrast fibres like existing thick paper index tabs. Row1 FOUR cream #F1EBDC alternatives; Row2 FOUR pastel pink #F6C6E3; Row3 FOUR sky #BFE3F7; Row4 FOUR mint #C8F2DC; Row5 FOUR lemon #F7F0BE. Slight differences in handcut outlines across four candidates, quiet central blank label. Straight on, isolated alpha transparent outside each paper flag, ample spacing. No text/no month names/no numbers.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
-      "status": "review-ui-polish-stage1",
+      "status": "ready",
       "polishStage": 1,
       "selectedCandidate": 4
     },
@@ -3665,13 +3665,945 @@
         "art/preview.html ui-polish-review; prototype integration by owner"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nFour extremely quiet contact-shadow masks for a pack standing on shelf, laid out 2 by 2, each is an isolated very wide flattened horizontal ellipse aspect320:48. Neutral graphite #2B2B2B only, subtle translucent alpha, soft narrow feather at edges, darkest at central horizontal region, very low opacity. No coloured paper, no objects, no shelf, no light halo, no text. Transparent RGBA background. Shapes never touch. Four variations of short soft elliptical contact shadow, not a cast shadow and not a broad ambient gradient.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
-      "status": "review-ui-polish-stage1",
+      "status": "ready",
       "polishStage": 1,
       "selectedCandidate": 3,
       "intentionalTranslucency": true,
       "shadowMask": true,
       "maxAlpha": 28,
       "colour": "#2B2B2B"
+    },
+    {
+      "id": "UP-PANEL-PAPER",
+      "file": "ui/panel-paper.png",
+      "width": 900,
+      "height": 500,
+      "bytes": 202255,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSTRICT ASSET SHEET: exactly FOUR alternatives of a completely UNDECORATED heavy cream paper control panel, arranged TWO columns by TWO rows. Each panel is LANDSCAPE wide rectangle ratio900:500, NOT portrait. Only subtle cream paper grain, very thin pale cut edge, very slightly rounded corners, one tiny punched hole at upper RIGHT about3% diameter whose centre is3.5% from top/right. Absolutely NO TAPE, NO STICKERS, NO FOIL, NO colour patches, NO drawings, NO folded corner, NO layers over face, NO torn areas, NO contrasting bottom corners. Each face fully blank quiet opaque cream. All edge detail INCLUDING hole confined to thin outer7% rim; centre rectangle must be uniform cream grain for 9slice. Alpha transparent outside allfour separated objects. Fine understated illustration like Peta blank index-card-blank.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal",
+      "nineSlicePx": 70
+    },
+    {
+      "id": "UP-SLIDER-TRACK",
+      "file": "ui/slider-track.png",
+      "width": 600,
+      "height": 40,
+      "bytes": 24483,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate objects in FOUR rows and FOUR columns, four alternatives EACH row. Row1: very thin horizontal graphite-pencil ruler groove width:height15:1, tiny regular vertical tick marks WITHOUT ANY numbers or letters, transparent outside the narrow groove, no solid large ruler body. Row2: cream paper recessed pill-shaped slide-switch groove width:height120:64, blank empty channel, NO knob. Row3: same EMPTY channel but kraft tinted warm #C9A878, NO knob. Row4: wide horizontal cream paper recessed segmented-switch groove width:height360:80, EMPTY quiet blank inside with NO chip and NO divisions. Opaque paper for rows2–4. Thin paper edge, upper-left light, low contrast, handmade stationery not flat vector.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 1,
+      "state": "normal",
+      "nineSliceInsetsPx": [
+        0,
+        18,
+        0,
+        18
+      ],
+      "stretchAxis": "x"
+    },
+    {
+      "id": "UP-SWITCH-TRACK-OFF",
+      "file": "ui/switch-track-off.png",
+      "width": 120,
+      "height": 64,
+      "bytes": 9023,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate objects in FOUR rows and FOUR columns, four alternatives EACH row. Row1: very thin horizontal graphite-pencil ruler groove width:height15:1, tiny regular vertical tick marks WITHOUT ANY numbers or letters, transparent outside the narrow groove, no solid large ruler body. Row2: cream paper recessed pill-shaped slide-switch groove width:height120:64, blank empty channel, NO knob. Row3: same EMPTY channel but kraft tinted warm #C9A878, NO knob. Row4: wide horizontal cream paper recessed segmented-switch groove width:height360:80, EMPTY quiet blank inside with NO chip and NO divisions. Opaque paper for rows2–4. Thin paper edge, upper-left light, low contrast, handmade stationery not flat vector.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-SWITCH-TRACK-ON",
+      "file": "ui/switch-track-on.png",
+      "width": 120,
+      "height": 64,
+      "bytes": 11987,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate objects in FOUR rows and FOUR columns, four alternatives EACH row. Row1: very thin horizontal graphite-pencil ruler groove width:height15:1, tiny regular vertical tick marks WITHOUT ANY numbers or letters, transparent outside the narrow groove, no solid large ruler body. Row2: cream paper recessed pill-shaped slide-switch groove width:height120:64, blank empty channel, NO knob. Row3: same EMPTY channel but kraft tinted warm #C9A878, NO knob. Row4: wide horizontal cream paper recessed segmented-switch groove width:height360:80, EMPTY quiet blank inside with NO chip and NO divisions. Opaque paper for rows2–4. Thin paper edge, upper-left light, low contrast, handmade stationery not flat vector.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-SEG-TRACK",
+      "file": "ui/seg-track.png",
+      "width": 360,
+      "height": 80,
+      "bytes": 33903,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate objects in FOUR rows and FOUR columns, four alternatives EACH row. Row1: very thin horizontal graphite-pencil ruler groove width:height15:1, tiny regular vertical tick marks WITHOUT ANY numbers or letters, transparent outside the narrow groove, no solid large ruler body. Row2: cream paper recessed pill-shaped slide-switch groove width:height120:64, blank empty channel, NO knob. Row3: same EMPTY channel but kraft tinted warm #C9A878, NO knob. Row4: wide horizontal cream paper recessed segmented-switch groove width:height360:80, EMPTY quiet blank inside with NO chip and NO divisions. Opaque paper for rows2–4. Thin paper edge, upper-left light, low contrast, handmade stationery not flat vector.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal",
+      "nineSlicePx": 36
+    },
+    {
+      "id": "UP-SLIDER-KNOB",
+      "file": "ui/slider-knob.png",
+      "width": 64,
+      "height": 64,
+      "bytes": 6080,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate objects in THREE rows FOUR columns. Row1 four simple ROUND BRASS pin-knob alternatives, no stem, no hole, warm matte brass circle with muted upperleft highlight, low relief, easy silhouette at20px. Row2 four simple ROUND CREAM PAPER knob alternatives, thick diecut circle with pale layered edge, no folds no text, slight graphite contact shadow. Row3 four WIDE blank cream paper chip alternatives aspect200:64, lightly rounded corners, opaque paper, pale cut edge, quiet blank interior, 9slice stretchable. No decorations on faces. All isolated transparent outside.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 1,
+      "state": "normal"
+    },
+    {
+      "id": "UP-SLIDER-KNOB-PAPER",
+      "file": "ui/slider-knob-paper.png",
+      "width": 64,
+      "height": 64,
+      "bytes": 4950,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate objects in THREE rows FOUR columns. Row1 four simple ROUND BRASS pin-knob alternatives, no stem, no hole, warm matte brass circle with muted upperleft highlight, low relief, easy silhouette at20px. Row2 four simple ROUND CREAM PAPER knob alternatives, thick diecut circle with pale layered edge, no folds no text, slight graphite contact shadow. Row3 four WIDE blank cream paper chip alternatives aspect200:64, lightly rounded corners, opaque paper, pale cut edge, quiet blank interior, 9slice stretchable. No decorations on faces. All isolated transparent outside.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-SEG-CHIP",
+      "file": "ui/seg-chip.png",
+      "width": 200,
+      "height": 64,
+      "bytes": 14802,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate objects in THREE rows FOUR columns. Row1 four simple ROUND BRASS pin-knob alternatives, no stem, no hole, warm matte brass circle with muted upperleft highlight, low relief, easy silhouette at20px. Row2 four simple ROUND CREAM PAPER knob alternatives, thick diecut circle with pale layered edge, no folds no text, slight graphite contact shadow. Row3 four WIDE blank cream paper chip alternatives aspect200:64, lightly rounded corners, opaque paper, pale cut edge, quiet blank interior, 9slice stretchable. No decorations on faces. All isolated transparent outside.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal",
+      "nineSlicePx": 20
+    },
+    {
+      "id": "UP-WINDOW-TOP-NOTEBOOK",
+      "file": "ui/window-top-notebook.png",
+      "width": 1400,
+      "height": 72,
+      "bytes": 111627,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate VERY THIN horizontal bands arranged THREE rows FOUR columns, each aspect1400:72. Row1 four kraft notebook cover top edges matching #C9A878 chipboard: slightly raised thick edge with very fine stitching, at exact CENTRE a short shallow horizontal grip groove, no lettering. Row2 four softly translucent cream masking-tape strips: deckled ends, centre has a tiny finger-pressed overlapping crease, no mat or other object. Row3 four thick warm cream paper top header strips: pale cut edge, exact centre a short faint perforation dash line. Stretchable middle, keep grip subtly visible atcentre, detailed ends within8.5% each. All separate true alpha outside.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal",
+      "nineSliceInsetsPx": [
+        0,
+        120,
+        0,
+        120
+      ],
+      "stretchAxis": "x"
+    },
+    {
+      "id": "UP-WINDOW-TOP-NOTEBOOK-HOVER",
+      "file": "ui/window-top-notebook-hover.png",
+      "width": 1400,
+      "height": 72,
+      "bytes": 111589,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate VERY THIN horizontal bands arranged THREE rows FOUR columns, each aspect1400:72. Row1 four kraft notebook cover top edges matching #C9A878 chipboard: slightly raised thick edge with very fine stitching, at exact CENTRE a short shallow horizontal grip groove, no lettering. Row2 four softly translucent cream masking-tape strips: deckled ends, centre has a tiny finger-pressed overlapping crease, no mat or other object. Row3 four thick warm cream paper top header strips: pale cut edge, exact centre a short faint perforation dash line. Stretchable middle, keep grip subtly visible atcentre, detailed ends within8.5% each. All separate true alpha outside.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "hover",
+      "nineSliceInsetsPx": [
+        0,
+        120,
+        0,
+        120
+      ],
+      "stretchAxis": "x"
+    },
+    {
+      "id": "UP-WINDOW-TOP-DESK",
+      "file": "ui/window-top-desk.png",
+      "width": 1400,
+      "height": 72,
+      "bytes": 85371,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate VERY THIN horizontal bands arranged THREE rows FOUR columns, each aspect1400:72. Row1 four kraft notebook cover top edges matching #C9A878 chipboard: slightly raised thick edge with very fine stitching, at exact CENTRE a short shallow horizontal grip groove, no lettering. Row2 four softly translucent cream masking-tape strips: deckled ends, centre has a tiny finger-pressed overlapping crease, no mat or other object. Row3 four thick warm cream paper top header strips: pale cut edge, exact centre a short faint perforation dash line. Stretchable middle, keep grip subtly visible atcentre, detailed ends within8.5% each. All separate true alpha outside.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal",
+      "nineSliceInsetsPx": [
+        0,
+        120,
+        0,
+        120
+      ],
+      "stretchAxis": "x",
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "UP-WINDOW-TOP-DESK-HOVER",
+      "file": "ui/window-top-desk-hover.png",
+      "width": 1400,
+      "height": 72,
+      "bytes": 85390,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate VERY THIN horizontal bands arranged THREE rows FOUR columns, each aspect1400:72. Row1 four kraft notebook cover top edges matching #C9A878 chipboard: slightly raised thick edge with very fine stitching, at exact CENTRE a short shallow horizontal grip groove, no lettering. Row2 four softly translucent cream masking-tape strips: deckled ends, centre has a tiny finger-pressed overlapping crease, no mat or other object. Row3 four thick warm cream paper top header strips: pale cut edge, exact centre a short faint perforation dash line. Stretchable middle, keep grip subtly visible atcentre, detailed ends within8.5% each. All separate true alpha outside.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "hover",
+      "nineSliceInsetsPx": [
+        0,
+        120,
+        0,
+        120
+      ],
+      "stretchAxis": "x",
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "UP-WINDOW-TOP-STUDIO",
+      "file": "ui/window-top-studio.png",
+      "width": 1400,
+      "height": 72,
+      "bytes": 86026,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate VERY THIN horizontal bands arranged THREE rows FOUR columns, each aspect1400:72. Row1 four kraft notebook cover top edges matching #C9A878 chipboard: slightly raised thick edge with very fine stitching, at exact CENTRE a short shallow horizontal grip groove, no lettering. Row2 four softly translucent cream masking-tape strips: deckled ends, centre has a tiny finger-pressed overlapping crease, no mat or other object. Row3 four thick warm cream paper top header strips: pale cut edge, exact centre a short faint perforation dash line. Stretchable middle, keep grip subtly visible atcentre, detailed ends within8.5% each. All separate true alpha outside.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal",
+      "nineSliceInsetsPx": [
+        0,
+        120,
+        0,
+        120
+      ],
+      "stretchAxis": "x"
+    },
+    {
+      "id": "UP-WINDOW-TOP-STUDIO-HOVER",
+      "file": "ui/window-top-studio-hover.png",
+      "width": 1400,
+      "height": 72,
+      "bytes": 85821,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate VERY THIN horizontal bands arranged THREE rows FOUR columns, each aspect1400:72. Row1 four kraft notebook cover top edges matching #C9A878 chipboard: slightly raised thick edge with very fine stitching, at exact CENTRE a short shallow horizontal grip groove, no lettering. Row2 four softly translucent cream masking-tape strips: deckled ends, centre has a tiny finger-pressed overlapping crease, no mat or other object. Row3 four thick warm cream paper top header strips: pale cut edge, exact centre a short faint perforation dash line. Stretchable middle, keep grip subtly visible atcentre, detailed ends within8.5% each. All separate true alpha outside.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "hover",
+      "nineSliceInsetsPx": [
+        0,
+        120,
+        0,
+        120
+      ],
+      "stretchAxis": "x"
+    },
+    {
+      "id": "UP-CLOSE-PENCIL-NORMAL",
+      "file": "ui/close-pencil-normal.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 14143,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-CLOSE-PENCIL-HOVER",
+      "file": "ui/close-pencil-hover.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 14155,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "hover"
+    },
+    {
+      "id": "UP-CLOSE-PENCIL-PRESSED",
+      "file": "ui/close-pencil-pressed.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 14048,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "pressed"
+    },
+    {
+      "id": "UP-CLOSE-STITCH-NORMAL",
+      "file": "ui/close-stitch-normal.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 15015,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-CLOSE-STITCH-HOVER",
+      "file": "ui/close-stitch-hover.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 15035,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "hover"
+    },
+    {
+      "id": "UP-CLOSE-STITCH-PRESSED",
+      "file": "ui/close-stitch-pressed.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 14900,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "pressed"
+    },
+    {
+      "id": "UP-CLOSE-TAPE-NORMAL",
+      "file": "ui/close-tape-normal.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 11906,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal",
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "UP-CLOSE-TAPE-HOVER",
+      "file": "ui/close-tape-hover.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 11883,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "hover",
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "UP-CLOSE-TAPE-PRESSED",
+      "file": "ui/close-tape-pressed.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 11863,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "pressed",
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "UP-CLOSE-WAX-NORMAL",
+      "file": "ui/close-wax-normal.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 15337,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-CLOSE-WAX-HOVER",
+      "file": "ui/close-wax-hover.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 15380,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "hover"
+    },
+    {
+      "id": "UP-CLOSE-WAX-PRESSED",
+      "file": "ui/close-wax-pressed.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 15256,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate handmade CLOSE buttons, FOUR rows FOUR columns, four alternatives per material. Square cells with compact symmetric button about96px. Each has ONE unambiguous drawn CROSS X, not text; no other symbols. Row1 kraft round sticker with graphite pencil X made of two strong handwritten strokes of uneven pressure, centrally placed. Row2 cream round felt patch with deep-red CROSS STITCH X, two diagonals thick enough to read at24px, one tiny loose thread. Row3 two crossed semi-translucent strips of cream masking tape making X, each deckled end, overlap slightly darker, NO disc behind. Row4 red wax seal like Peta gift/wax-seal, friendly softly irregular round wax rim with a deep recessed unambiguous diagonal X, NO P letter. Left/right balanced to work both window corners, mild organic asymmetry only.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "pressed"
+    },
+    {
+      "id": "UP-ICON-MARKET",
+      "file": "ui/icon-market.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 53491,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate stationery icons in THREE rows FOUR columns. Row1 four simple kraft paper shopping bags with a tiny RED blank price tag tied on handle, front view, readable atsmall size. Row2 four simple matte brass cogwheels, six to eight gear teeth, small central hole, no surrounding tools or penstand. Row3 four folded cream paper dog-ear corners pointing to LOWER RIGHT, a soft triangular fold, transparent outside, minimal icon, no page or notebook. Brushy semi-flat cutouts matching Peta choice icons, NOT photographs, NO text.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-ICON-SETTINGS",
+      "file": "ui/icon-settings.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 51242,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate stationery icons in THREE rows FOUR columns. Row1 four simple kraft paper shopping bags with a tiny RED blank price tag tied on handle, front view, readable atsmall size. Row2 four simple matte brass cogwheels, six to eight gear teeth, small central hole, no surrounding tools or penstand. Row3 four folded cream paper dog-ear corners pointing to LOWER RIGHT, a soft triangular fold, transparent outside, minimal icon, no page or notebook. Brushy semi-flat cutouts matching Peta choice icons, NOT photographs, NO text.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-RESIZE-CORNER",
+      "file": "ui/resize-corner.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 10847,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate stationery icons in THREE rows FOUR columns. Row1 four simple kraft paper shopping bags with a tiny RED blank price tag tied on handle, front view, readable atsmall size. Row2 four simple matte brass cogwheels, six to eight gear teeth, small central hole, no surrounding tools or penstand. Row3 four folded cream paper dog-ear corners pointing to LOWER RIGHT, a soft triangular fold, transparent outside, minimal icon, no page or notebook. Brushy semi-flat cutouts matching Peta choice icons, NOT photographs, NO text.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-MATERIAL-CARD-GOLD",
+      "file": "today/material-card-gold.png",
+      "width": 560,
+      "height": 380,
+      "bytes": 289353,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE material SAMPLE cards in THREE rows FOUR columns, four alternatives per material, each aspect560:380. Rounded rectangular stiff paper swatch with softly imperfect cut edge and small bottom-centre completely BLANK cream rectangular label area, about60% ofwidth and20% ofheight. Row1 warm muted gold foil #D9B24F, tiny foil mottling, no glitter flare. Row2 pink-and-sky two-colour risograph with subtle misregistered pastel print and fine halftone on paper. Row3 warm aged paper, sparse foxing near outeredges, darker corners, quiet central surface. ALL surfaces fully opaque including foil; transparent outside each card. No letters logos numerals.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-MATERIAL-CARD-RISO",
+      "file": "today/material-card-riso.png",
+      "width": 560,
+      "height": 380,
+      "bytes": 276687,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE material SAMPLE cards in THREE rows FOUR columns, four alternatives per material, each aspect560:380. Rounded rectangular stiff paper swatch with softly imperfect cut edge and small bottom-centre completely BLANK cream rectangular label area, about60% ofwidth and20% ofheight. Row1 warm muted gold foil #D9B24F, tiny foil mottling, no glitter flare. Row2 pink-and-sky two-colour risograph with subtle misregistered pastel print and fine halftone on paper. Row3 warm aged paper, sparse foxing near outeredges, darker corners, quiet central surface. ALL surfaces fully opaque including foil; transparent outside each card. No letters logos numerals.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-MATERIAL-CARD-VINTAGE",
+      "file": "today/material-card-vintage.png",
+      "width": 560,
+      "height": 380,
+      "bytes": 291089,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE material SAMPLE cards in THREE rows FOUR columns, four alternatives per material, each aspect560:380. Rounded rectangular stiff paper swatch with softly imperfect cut edge and small bottom-centre completely BLANK cream rectangular label area, about60% ofwidth and20% ofheight. Row1 warm muted gold foil #D9B24F, tiny foil mottling, no glitter flare. Row2 pink-and-sky two-colour risograph with subtle misregistered pastel print and fine halftone on paper. Row3 warm aged paper, sparse foxing near outeredges, darker corners, quiet central surface. ALL surfaces fully opaque including foil; transparent outside each card. No letters logos numerals.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-PRICE-TAG-FREE",
+      "file": "ui/price-tag-free.png",
+      "width": 240,
+      "height": 120,
+      "bytes": 40668,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate blank stationery objects FOUR rows FOUR columns. Row1 four pale MINT blank small horizontal hangtags240:120 with tiny punched hole onleft. Row2 same type but warm CREAM. Row3 four EMPTY blue faded dry-ink rubberstamp rounded rectangle FRAMES300:120, slightly tilted, doubleline allowed, centre TRANSPARENT, NO text NO paper. Row4 four warm cream blank ticketstubs360:120, perforated line close to right end, tiny side notches and torn cut edges, no print. No letters numbers or symbols.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-PRICE-TAG-PAID",
+      "file": "ui/price-tag-paid.png",
+      "width": 240,
+      "height": 120,
+      "bytes": 41521,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate blank stationery objects FOUR rows FOUR columns. Row1 four pale MINT blank small horizontal hangtags240:120 with tiny punched hole onleft. Row2 same type but warm CREAM. Row3 four EMPTY blue faded dry-ink rubberstamp rounded rectangle FRAMES300:120, slightly tilted, doubleline allowed, centre TRANSPARENT, NO text NO paper. Row4 four warm cream blank ticketstubs360:120, perforated line close to right end, tiny side notches and torn cut edges, no print. No letters numbers or symbols.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-STAMP-OWNED",
+      "file": "ui/stamp-owned.png",
+      "width": 300,
+      "height": 120,
+      "bytes": 8627,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate blank stationery objects FOUR rows FOUR columns. Row1 four pale MINT blank small horizontal hangtags240:120 with tiny punched hole onleft. Row2 same type but warm CREAM. Row3 four EMPTY blue faded dry-ink rubberstamp rounded rectangle FRAMES300:120, slightly tilted, doubleline allowed, centre TRANSPARENT, NO text NO paper. Row4 four warm cream blank ticketstubs360:120, perforated line close to right end, tiny side notches and torn cut edges, no print. No letters numbers or symbols.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal",
+      "intentionalTranslucency": true,
+      "printedInkMask": true
+    },
+    {
+      "id": "UP-TICKET-STUB",
+      "file": "ui/ticket-stub.png",
+      "width": 360,
+      "height": 120,
+      "bytes": 62257,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nSIXTEEN separate blank stationery objects FOUR rows FOUR columns. Row1 four pale MINT blank small horizontal hangtags240:120 with tiny punched hole onleft. Row2 same type but warm CREAM. Row3 four EMPTY blue faded dry-ink rubberstamp rounded rectangle FRAMES300:120, slightly tilted, doubleline allowed, centre TRANSPARENT, NO text NO paper. Row4 four warm cream blank ticketstubs360:120, perforated line close to right end, tiny side notches and torn cut edges, no print. No letters numbers or symbols.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-PINBOARD",
+      "file": "ui/pinboard.png",
+      "width": 1200,
+      "height": 520,
+      "bytes": 234944,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nEIGHT separate objects TWO rows FOUR columns. Row1 four rectangular kraft-cork bulletin boards aspect1200:520, thin wooden frame with subtle asymmetrical wear and a few tiny empty pinholes near corner, EMPTY QUIET cork centre, no notes no pins, 9slice friendly details withinouter7%. Row2 four small RED pushpins isolated seen from above/front, low-relief red round head and a SHORT silver point beneath, no board. Upperleft light, no text.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal",
+      "nineSlicePx": 160
+    },
+    {
+      "id": "UP-PIN-RED",
+      "file": "ui/pin-red.png",
+      "width": 96,
+      "height": 96,
+      "bytes": 10549,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nEIGHT separate objects TWO rows FOUR columns. Row1 four rectangular kraft-cork bulletin boards aspect1200:520, thin wooden frame with subtle asymmetrical wear and a few tiny empty pinholes near corner, EMPTY QUIET cork centre, no notes no pins, 9slice friendly details withinouter7%. Row2 four small RED pushpins isolated seen from above/front, low-relief red round head and a SHORT silver point beneath, no board. Upperleft light, no text.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-STUCK-EMPTY",
+      "file": "empty/stuck-empty.png",
+      "width": 640,
+      "height": 240,
+      "bytes": 182316,
+      "alpha": true,
+      "priority": "P2",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE isolated objects THREE rows FOUR columns. Row1 four wide cream backing cards aspect640:240 with ONE dashed rounded sticker outline printed nearcentre, graphite very quiet, no sticker no words. Row2 four EMPTY kraft envelope sorting trays aspect640:240, shallow front lip and open interior, no envelopes no labels, flat semiillustration. Row3 four round thick cream diecut avatar rings with EMPTY fully TRANSPARENT centre window about65% ofdiameter, pale cut edge, no picture no decoration, four alternatives. No letters numerals.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 1,
+      "state": "normal"
+    },
+    {
+      "id": "UP-INBOX-EMPTY",
+      "file": "empty/inbox-empty.png",
+      "width": 640,
+      "height": 240,
+      "bytes": 234157,
+      "alpha": true,
+      "priority": "P2",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE isolated objects THREE rows FOUR columns. Row1 four wide cream backing cards aspect640:240 with ONE dashed rounded sticker outline printed nearcentre, graphite very quiet, no sticker no words. Row2 four EMPTY kraft envelope sorting trays aspect640:240, shallow front lip and open interior, no envelopes no labels, flat semiillustration. Row3 four round thick cream diecut avatar rings with EMPTY fully TRANSPARENT centre window about65% ofdiameter, pale cut edge, no picture no decoration, four alternatives. No letters numerals.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal"
+    },
+    {
+      "id": "UP-AVATAR-FRAME",
+      "file": "ui/avatar-frame.png",
+      "width": 240,
+      "height": 240,
+      "bytes": 49504,
+      "alpha": true,
+      "priority": "P2",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE isolated objects THREE rows FOUR columns. Row1 four wide cream backing cards aspect640:240 with ONE dashed rounded sticker outline printed nearcentre, graphite very quiet, no sticker no words. Row2 four EMPTY kraft envelope sorting trays aspect640:240, shallow front lip and open interior, no envelopes no labels, flat semiillustration. Row3 four round thick cream diecut avatar rings with EMPTY fully TRANSPARENT centre window about65% ofdiameter, pale cut edge, no picture no decoration, four alternatives. No letters numerals.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 1,
+      "state": "normal"
+    },
+    {
+      "id": "UP-BACK-MATTE",
+      "file": "back/back-matte.jpg",
+      "width": 1024,
+      "height": 1280,
+      "bytes": 178979,
+      "alpha": false,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nFOUR FULL-BLEED material texture variations in a simple2 by2 atlas. Each tile is a flat texture ONLY: warm cream uncoated writing paper fine fibres #FAF6EC, no lines. No framed cards, no cutout objects, no perspective, NO text. Every tile fills its entire cell; all areas quiet enough for14px graphite writing. Designed for seamless repeating XY without strong motif. Straight rectangular edges, no shadows. Gentle physical grain, semiillustrated NOT macro photograph. Transparent background is NOT needed for these four texture surfaces.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 1,
+      "state": "normal",
+      "tileableAxis": "xy",
+      "meanRGB": [
+        249.8,
+        245.1,
+        233.1
+      ],
+      "luminanceStd": 3.203,
+      "seamMeanHorizontal": 1.091,
+      "seamMeanVertical": 1.257
+    },
+    {
+      "id": "UP-BACK-KRAFT",
+      "file": "back/back-kraft.jpg",
+      "width": 1024,
+      "height": 1280,
+      "bytes": 247661,
+      "alpha": false,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nFOUR FULL-BLEED material texture variations in a simple2 by2 atlas. Each tile is a flat texture ONLY: kraft paper #C9A878, long pale fibres tiny dark flecks. No framed cards, no cutout objects, no perspective, NO text. Every tile fills its entire cell; all areas quiet enough for14px graphite writing. Designed for seamless repeating XY without strong motif. Straight rectangular edges, no shadows. Gentle physical grain, semiillustrated NOT macro photograph. Transparent background is NOT needed for these four texture surfaces.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 4,
+      "state": "normal",
+      "tileableAxis": "xy",
+      "meanRGB": [
+        200.98,
+        168.12,
+        120.17
+      ],
+      "luminanceStd": 5.585,
+      "seamMeanHorizontal": 1.476,
+      "seamMeanVertical": 1.674
+    },
+    {
+      "id": "UP-BACK-HOLOGRAPHIC",
+      "file": "back/back-holographic.jpg",
+      "width": 1024,
+      "height": 1280,
+      "bytes": 226482,
+      "alpha": false,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nFOUR FULL-BLEED material texture variations in a simple2 by2 atlas. Each tile is a flat texture ONLY: very quiet silver holographic foil, fine silver microglitter with faint pastel pink lavender sky mint lemon diffraction streaks, no neon, restrained. No framed cards, no cutout objects, no perspective, NO text. Every tile fills its entire cell; all areas quiet enough for14px graphite writing. Designed for seamless repeating XY without strong motif. Straight rectangular edges, no shadows. Gentle physical grain, semiillustrated NOT macro photograph. Transparent background is NOT needed for these four texture surfaces.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 3,
+      "state": "normal",
+      "tileableAxis": "xy",
+      "meanRGB": [
+        220.1,
+        219.0,
+        224.97
+      ],
+      "luminanceStd": 6.008,
+      "seamMeanHorizontal": 1.414,
+      "seamMeanVertical": 1.506
+    },
+    {
+      "id": "UP-BACK-GOLD",
+      "file": "back/back-gold.jpg",
+      "width": 1024,
+      "height": 1280,
+      "bytes": 219515,
+      "alpha": false,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nFOUR FULL-BLEED material texture variations in a simple2 by2 atlas. Each tile is a flat texture ONLY: warm muted gold foil #D9B24F, very fine foil-stamp mottling no glaring reflection. No framed cards, no cutout objects, no perspective, NO text. Every tile fills its entire cell; all areas quiet enough for14px graphite writing. Designed for seamless repeating XY without strong motif. Straight rectangular edges, no shadows. Gentle physical grain, semiillustrated NOT macro photograph. Transparent background is NOT needed for these four texture surfaces.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 2,
+      "state": "normal",
+      "tileableAxis": "xy",
+      "meanRGB": [
+        216.92,
+        177.97,
+        79.18
+      ],
+      "luminanceStd": 5.501,
+      "seamMeanHorizontal": 1.223,
+      "seamMeanVertical": 1.344
+    },
+    {
+      "id": "UP-BACK-RISO",
+      "file": "back/back-riso.jpg",
+      "width": 1024,
+      "height": 1280,
+      "bytes": 224686,
+      "alpha": false,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nFOUR FULL-BLEED material texture variations in a simple2 by2 atlas. Each tile is a flat texture ONLY: very pale pink risograph paper, fine weak halftone and tiny misregistration in blue ink, low contrast writing surface. No framed cards, no cutout objects, no perspective, NO text. Every tile fills its entire cell; all areas quiet enough for14px graphite writing. Designed for seamless repeating XY without strong motif. Straight rectangular edges, no shadows. Gentle physical grain, semiillustrated NOT macro photograph. Transparent background is NOT needed for these four texture surfaces.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 3,
+      "state": "normal",
+      "tileableAxis": "xy",
+      "meanRGB": [
+        244.07,
+        219.96,
+        226.81
+      ],
+      "luminanceStd": 4.015,
+      "seamMeanHorizontal": 1.589,
+      "seamMeanVertical": 1.725
+    },
+    {
+      "id": "UP-BACK-VINTAGE",
+      "file": "back/back-vintage.jpg",
+      "width": 1024,
+      "height": 1280,
+      "bytes": 216921,
+      "alpha": false,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nFOUR FULL-BLEED material texture variations in a simple2 by2 atlas. Each tile is a flat texture ONLY: light aged yellow cream paper, subtle sparse brown foxing and very faint darkening near corners, quiet writing face. No framed cards, no cutout objects, no perspective, NO text. Every tile fills its entire cell; all areas quiet enough for14px graphite writing. Designed for seamless repeating XY without strong motif. Straight rectangular edges, no shadows. Gentle physical grain, semiillustrated NOT macro photograph. Transparent background is NOT needed for these four texture surfaces.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 1,
+      "state": "normal",
+      "tileableAxis": "xy",
+      "meanRGB": [
+        237.07,
+        221.95,
+        188.93
+      ],
+      "luminanceStd": 4.951,
+      "seamMeanHorizontal": 1.569,
+      "seamMeanVertical": 1.68
+    },
+    {
+      "id": "UP-SWITCH-KNOB",
+      "file": "ui/switch-knob.png",
+      "width": 64,
+      "height": 64,
+      "bytes": 6080,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/preview.html UI polish; prototype integration by owner"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\nREALISM BOOST — tactile illustration, not a photograph and not flat vector.\nShow believable material physics: paper thickness at the cut edge, fibres catching the light, a faint glue edge, a micro-shadow where one paper sits on another, tiny hand-cut irregularities (no two edges perfectly straight, no perfectly round corners).\nKeep contrast LOW inside the paper areas: UI text will be laid on top, so texture must never fight with 14 px type.\nAvoid the AI gloss: no plastic sheen, no overly clean gradients, no repeated identical blemishes, no symmetric wear.\nTWELVE separate objects in THREE rows FOUR columns. Row1 four simple ROUND BRASS pin-knob alternatives, no stem, no hole, warm matte brass circle with muted upperleft highlight, low relief, easy silhouette at20px. Row2 four simple ROUND CREAM PAPER knob alternatives, thick diecut circle with pale layered edge, no folds no text, slight graphite contact shadow. Row3 four WIDE blank cream paper chip alternatives aspect200:64, lightly rounded corners, opaque paper, pale cut edge, quiet blank interior, 9slice stretchable. No decorations on faces. All isolated transparent outside.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "polishStage": 2,
+      "selectedCandidate": 1,
+      "state": "normal",
+      "sourceAsset": "ui/slider-knob.png",
+      "selectionBasis": "Reuse identical brass material after same four-candidate comparison"
     }
   ],
   "deliveryStages": {
@@ -3713,59 +4645,16 @@
     }
   },
   "uiPolishReview": {
-    "status": "awaiting owner review of ribbon, shelf and month flags",
+    "status": "complete; user approved continuation after stage1",
+    "checkpoint": "2e0c92d",
     "stage1AssetCount": 8,
-    "preview": "art/preview.html#ui-polish-review",
-    "remaining": "P0 controls, sticker backs, window tops and handmade close buttons; P1 and P2; deferred per user checkpoint",
-    "remainingFiles": [
-      "ui/panel-paper.png",
-      "ui/slider-track.png",
-      "ui/slider-knob.png",
-      "ui/switch-track-off.png",
-      "ui/switch-track-on.png",
-      "ui/switch-knob.png",
-      "ui/seg-track.png",
-      "ui/seg-chip.png",
-      "back/back-matte.jpg",
-      "back/back-kraft.jpg",
-      "back/back-holographic.jpg",
-      "back/back-gold.jpg",
-      "back/back-riso.jpg",
-      "back/back-vintage.jpg",
-      "ui/window-top-notebook.png",
-      "ui/window-top-notebook-hover.png",
-      "ui/window-top-desk.png",
-      "ui/window-top-desk-hover.png",
-      "ui/window-top-studio.png",
-      "ui/window-top-studio-hover.png",
-      "ui/close-pencil-normal.png",
-      "ui/close-pencil-hover.png",
-      "ui/close-pencil-pressed.png",
-      "ui/close-stitch-normal.png",
-      "ui/close-stitch-hover.png",
-      "ui/close-stitch-pressed.png",
-      "ui/close-tape-normal.png",
-      "ui/close-tape-hover.png",
-      "ui/close-tape-pressed.png",
-      "ui/close-wax-normal.png",
-      "ui/close-wax-hover.png",
-      "ui/close-wax-pressed.png",
-      "ui/resize-corner.png",
-      "ui/icon-market.png",
-      "ui/icon-settings.png",
-      "ui/price-tag-free.png",
-      "ui/price-tag-paid.png",
-      "ui/stamp-owned.png",
-      "ui/ticket-stub.png",
-      "ui/pinboard.png",
-      "ui/pin-red.png",
-      "today/material-card-gold.png",
-      "today/material-card-riso.png",
-      "today/material-card-vintage.png",
-      "empty/stuck-empty.png",
-      "empty/inbox-empty.png",
-      "ui/avatar-frame.png"
-    ],
-    "remainingAssetCount": 47
+    "stage2RequestedAssetCount": 47,
+    "stage2ExtraAssetCount": 1,
+    "extra": "ui/slider-knob-paper.png",
+    "remainingFiles": [],
+    "remainingAssetCount": 0,
+    "preview": "art/preview.html#ui-polish-rest",
+    "report": "docs/ui-polish-report.md",
+    "integration": "Prototype implementation by owner; images and art preview only"
   }
 }
