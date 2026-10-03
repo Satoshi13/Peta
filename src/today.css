@@ -175,3 +175,21 @@ button.primary:not(:disabled):active { transform: translateY(1px); box-shadow: 0
   .seal[data-rarity="common"] { background: #34312b; color: #cfc9bb; box-shadow: none; }
 }
 @media (prefers-reduced-motion: reduce) { .mcard, button.primary, html body .choice .choice-icon { transition: none; } }
+
+/* Dedicated Paper Desk parts; labels remain live text. */
+#date { border: 0; border-radius: 0; background: url("art/ui/date-stamp.png") center / 100% 100% no-repeat; padding: 6px 12px; }
+.tray { border: 10px solid transparent; border-image: url("art/ui/material-tray.png") 80 fill / 10px stretch; background: none; box-shadow: none; border-radius: 0; }
+.seal[data-rarity] { background: center / 100% 100% no-repeat; box-shadow: none; color: #2b2a28; }
+.seal[data-rarity="common"] { background-image: url("art/ui/seal-common.png"); }
+.seal[data-rarity="uncommon"] { background-image: url("art/ui/seal-uncommon.png"); }
+.seal[data-rarity="rare"] { background-image: url("art/ui/seal-rare.png"); }
+.seal[data-rarity="special"] { background-image: url("art/ui/seal-special.png"); }
+.seal[data-rarity="archive"] { background-image: url("art/ui/seal-archive.png"); }
+.mcard[aria-checked="true"]::before { background-image: url("art/ui/tape-7.png"); }
+.mcard[aria-checked="true"][data-rarity="uncommon"]::before { background-image: url("art/ui/tape-8.png"); }
+.mcard[aria-checked="true"][data-rarity="rare"]::before { background-image: url("art/ui/tape-5.png"); }
+.mcard[aria-checked="true"][data-rarity="special"]::before { background-image: url("art/ui/tape-6.png"); }
+.mcard[aria-checked="true"][data-rarity="archive"]::before { background-image: url("art/ui/tape-8.png"); }
+@media (prefers-color-scheme: light) {
+  .book { border-image: url("art/book/notebook-page.png") 90 fill / 12px stretch; background: none; box-shadow: none; border-radius: 0; }
+}

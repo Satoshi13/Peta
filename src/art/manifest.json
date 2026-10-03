@@ -221,7 +221,7 @@
         "art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: replace old binding only; retain original paper, grid and blue flower.",
-      "status": "review-notebook-binding",
+      "status": "ready",
       "restyle": "mixed-v1-v2",
       "sampleSources": [
         "blue-flower"
@@ -485,7 +485,7 @@
         "art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: Retina thumbnail of cover candidate 1. Small-display export: 10 larger twin-loop groups for 112px readability; retained original kraft cover and flower.",
-      "status": "review-notebook-binding",
+      "status": "ready",
       "restyle": "mixed-v1-v2",
       "sampleSources": [
         "blue-flower"
@@ -1542,7 +1542,7 @@
         "Phase 4–5 delivery / art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: retain paper and dot grid; share the exact hole partition at 50px pitch, mirror for left page.",
-      "status": "review-notebook-binding",
+      "status": "ready",
       "stage": 2,
       "bindingEdge": "right",
       "ringHoleCenters": [
@@ -1641,7 +1641,7 @@
         "Phase 4–5 delivery / art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: retain paper and dot grid; share the exact hole partition at 50px pitch, mirror for left page.",
-      "status": "review-notebook-binding",
+      "status": "ready",
       "stage": 2,
       "bindingEdge": "left",
       "ringHoleCenters": [
@@ -2048,7 +2048,7 @@
         "art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: hole partition from candidate 1.",
-      "status": "review-notebook-binding",
+      "status": "ready",
       "repeatPx": 50,
       "tileableAxis": "y"
     },
@@ -2065,7 +2065,7 @@
         "art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: wire partition from candidate 1.",
-      "status": "review-notebook-binding",
+      "status": "ready",
       "repeatPx": 50,
       "tileableAxis": "y"
     },
@@ -2084,7 +2084,7 @@
         "art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2.",
-      "status": "review-notebook-binding",
+      "status": "ready",
       "repeatPx": 50,
       "tileableAxis": "y"
     },
@@ -2101,7 +2101,7 @@
         "art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nFour candidates in a 2x2 grid, isolated transparent margins, no text. Edit the provided graphite twin-loop notebook wire cells ONLY: keep their double-loop shape and two warm cream punched holes, but darken the metal drastically to MATTE DARK GRAPHITE. Every metal tone must lie between #2B2A28 and #55524D. NO pale silver stripe, NO white reflection, NO glossy highlight. The brightest graphite highlight is #55524D and the rest is #2B2A28. One very subtle broad grey step, flat-ish charcoal stationery illustration. Not chrome, not polished metal, no fine texture or scratches. All paper and metal opaque except edge antialiasing. No cast shadow, no speckles or white fringe outside the object. Do not change the warm paper hole tone. Choose subtle shape differences across four candidates, not shine.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, silver highlights, white glare, neon, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, watermark, signature, gibberish text, logos, people, harsh black outlines, heavy shadows, grunge, dirt.\n",
-      "status": "review-notebook-binding",
+      "status": "ready",
       "repeatPx": 50,
       "tileableAxis": "y"
     },
@@ -2118,7 +2118,7 @@
         "art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: first 64 rows, same phase, overlay at top of 50*N high binding.",
-      "status": "review-notebook-binding"
+      "status": "ready"
     },
     {
       "id": "UI-BK-03B",
@@ -2133,7 +2133,7 @@
         "art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid, separated by generous transparent margins, no captions or grid lines. Each quadrant is ONE repeating cell of twin-loop SILVER WIRE NOTEBOOK BINDING, viewed straight from above, with its two punched paper holes at the RIGHT. It must read as two close oval wire loops in parallel, thick enough for a small notebook thumbnail. The two wire strands arc from two small recessed cream-paper holes at right, curve toward the left over the notebook edge, and re-enter at right. Give each loop a gentle oblique twist so it reads as real double-wire binding, not a flat letter C. Silver #D8DCE2 highlights at upper left, #9AA1AB midtone, softly darker wire at its entry into the holes. Restrained broad tonal steps, brushed aluminium, no chrome. Holes are tiny warm grey-beige recesses with slightly darker inner edge, never black; just a tiny rim of cream around each, no large rectangle of paper. No other objects, no whole notebook, no page, no flower. Width:height of each cell approximately 2.6:1, suitable to export into 128x50 pixels. All metal and paper pixels opaque except edge antialiasing. No cast shadow outside the shapes; the export pipeline adds a policy-limited contact shadow. Match the supplied artwork's quiet simple line and low detail. Reference old C rings only as the flaw to FIX; make the double wire and punched hole geometry convincing, with minimal detail.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.\nCORRECTION OF THE LAST GENERATED SHEET: The previous result looks like one thick U-shaped door handle. We need TWO SEPARATE THIN WIRE LOOPS per cell, NOT one thick bar. Two visible independent parallel U/oval loops with a small transparent gap between the two wires, like standard Wire-O twin-loop binding. Use clean broad flat silver shading, no scratch texture, no speckles or white fringe. The wire thickness is only 4% of the cell width; each punched hole is tiny, about 7% of cell width. Two parallel U wires enter the same two punched holes on the right. One rear strand is grey, one front strand is light silver. Each candidate is compact, clean and low-detail, and uses only subtle grey-beige recessed holes. No black hole fill. The top-right candidate of the previous sheet has the closest topology; simplify it drastically and make both wire strands easy to distinguish. Four candidates, 2x2. Export: last 64 rows, overlay at bottom of 50*N high binding.",
-      "status": "review-notebook-binding"
+      "status": "ready"
     },
     {
       "id": "UI-BK-02P",
@@ -2145,12 +2145,593 @@
       "alpha": true,
       "priority": "P0",
       "usedBy": [
+        "today.css .book (light mode, 90px nine-slice)",
         "art/preview.html"
       ],
       "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere. No logos, no brands.\n\nCreate FOUR candidates in a strict 2x2 grid with transparent spacing, no captions or dividers. Each quadrant is one flat rectangular CREAM NOTEBOOK PAGE BLOCK, straight-on TOP VIEW, width:height 4:3, rounded corners about 7% of height. No notebook binding, no rings, no punched holes, NO text, no doodles. The left 11% is an empty binding margin; the whole central writing area is almost uniform cream #F5F0E6, with exceptionally faint paper grain. Along only the right and bottom edge, TWO OR THREE very fine paper-edge lines, indicating the thickness of stacked pages. No folds, no curled corners, no strong perspective. The whole face is opaque. Very low detail, calm simple drawing to match the supplied paper texture. All decoration confined to within 7% of the corners/edges so the centre can stretch for 9-slice UI export. Weak neutral contact shadow at lower right, no shadow spreading outside. The card shape must be crisp, no white fringe or dirt.\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
-      "status": "review-notebook-binding",
+      "status": "ready",
       "nineSlicePx": 90,
       "bindingMarginPx": 128
+    },
+    {
+      "id": "UI-SEAL-COMMON",
+      "file": "ui/seal-common.png",
+      "width": 320,
+      "height": 112,
+      "bytes": 21848,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .seal[data-rarity]",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nCreate a strict grid of EIGHT isolated small rectangular paper sticker labels, FOUR columns and TWO rows. Each row is four subtly different candidates of ONE material. Top row: plain soft white #FBF9F4 paper. Bottom row: warm kraft #C9A878 paper. Blank faces with absolutely no writing, symbols or logos. Label width:height 320:112, slightly rounded corners, quiet broad paper shading and faint fibres, slight left tilt of at most 2 degrees. Generous transparent spacing between labels; no captions, dividers or other objects. No ornaments in the middle. The outer margin is transparent, ALL paper surface pixels opaque. No cast shadow or glow; the export pipeline adds a tiny controlled contact shadow. Match the supplied blank material cards, but smaller paper labels, no card-within-card design. Keep detail exceptionally restrained.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-SEAL-UNCOMMON",
+      "file": "ui/seal-uncommon.png",
+      "width": 320,
+      "height": 112,
+      "bytes": 30608,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .seal[data-rarity]",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nCreate a strict grid of EIGHT isolated small rectangular paper sticker labels, FOUR columns and TWO rows. Each row is four subtly different candidates of ONE material. Top row: plain soft white #FBF9F4 paper. Bottom row: warm kraft #C9A878 paper. Blank faces with absolutely no writing, symbols or logos. Label width:height 320:112, slightly rounded corners, quiet broad paper shading and faint fibres, slight left tilt of at most 2 degrees. Generous transparent spacing between labels; no captions, dividers or other objects. No ornaments in the middle. The outer margin is transparent, ALL paper surface pixels opaque. No cast shadow or glow; the export pipeline adds a tiny controlled contact shadow. Match the supplied blank material cards, but smaller paper labels, no card-within-card design. Keep detail exceptionally restrained.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-SEAL-RARE",
+      "file": "ui/seal-rare.png",
+      "width": 320,
+      "height": 112,
+      "bytes": 30927,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .seal[data-rarity]",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nFOUR candidates in a strict 2x2 grid. Each is ONE small blank pastel holographic foil sticker LABEL, width:height 320:112, slightly rounded corners, no other panel inside it. Match the supplied Peta holographic card's quiet pink, lavender, sky, mint and lemon sheen but greatly simplify its detail: soft broad pastel bands and extremely sparse fine sparkle, NO drawn stars, NO symbols, NO text. Leave the entire label face blank and easy for code to place dark text over it. Slight left tilt at most 2 degrees. Transparent margins between candidates. Foil fully opaque except edge antialiasing. No shadow outside the label, no glow, no detached pixels. No captions or grid lines.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 4
+    },
+    {
+      "id": "UI-SEAL-SPECIAL",
+      "file": "ui/seal-special.png",
+      "width": 320,
+      "height": 112,
+      "bytes": 37800,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .seal[data-rarity]",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nEIGHT labels in a strict FOUR-column TWO-row grid, four subtle candidates per row. Top row: one small rectangular SILVER FOIL label with very quiet broad brushed-aluminium shading from #D8DCE2 to #9AA1AB, no chrome shine or sharp folds. Bottom row: one small rectangular warm aged cream paper label with a SINGLE very faint incomplete round postmark ring off to the LEFT edge. The ring contains NO letters, NO numbers, NO stamps or pictograms, just a barely visible circular ink trace. Label width:height 320:112, slightly rounded corners, nearly level (at most 2 degree left tilt). Large completely blank central text area. Opaque foil/paper, transparent surrounding margins. Match existing simple Peta labels, no heavy paper detail, no folds crossing the writing area, no cast shadows. No extra objects or captions.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-SEAL-ARCHIVE",
+      "file": "ui/seal-archive.png",
+      "width": 320,
+      "height": 112,
+      "bytes": 27787,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .seal[data-rarity]",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nEIGHT labels in a strict FOUR-column TWO-row grid, four subtle candidates per row. Top row: one small rectangular SILVER FOIL label with very quiet broad brushed-aluminium shading from #D8DCE2 to #9AA1AB, no chrome shine or sharp folds. Bottom row: one small rectangular warm aged cream paper label with a SINGLE very faint incomplete round postmark ring off to the LEFT edge. The ring contains NO letters, NO numbers, NO stamps or pictograms, just a barely visible circular ink trace. Label width:height 320:112, slightly rounded corners, nearly level (at most 2 degree left tilt). Large completely blank central text area. Opaque foil/paper, transparent surrounding margins. Match existing simple Peta labels, no heavy paper detail, no folds crossing the writing area, no cast shadows. No extra objects or captions.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-MATERIAL-TRAY",
+      "file": "ui/material-tray.png",
+      "width": 1120,
+      "height": 400,
+      "bytes": 420080,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .tray",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nFOUR candidates in a strict 2x2 grid. Each is an EMPTY SHALLOW CARD-STOCK TRAY viewed directly from above, wide rectangular proportions 1120:400. Cream paper, lightly raised rounded rim and a soft shallow inner recess. It is only a simple illustrated paper tray, not wood, not a real desk, not a scene. The interior is almost uniform cream and COMPLETELY EMPTY; no labels, text, tools or cards. Keep corners small: all shape detail within 7% of the long edge, so it can be 9-sliced with 80px corners. No deep perspective or vertical sides. No exterior cast shadows. Subtle broad paper shading, less detail than the reference pouch. Generous transparent margins, no captions.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1,
+      "nineSlicePx": 80
+    },
+    {
+      "id": "UI-BUTTON-LABEL",
+      "file": "ui/button-label.png",
+      "width": 720,
+      "height": 200,
+      "bytes": 142269,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/art.css button.primary (Today and Creator)",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nFOUR candidates in a strict 2x2 grid. Each is ONE simple soft WHITE-CREAM PAPER LABEL used as a button, width:height 720:200. Rounded ends with a very modest deckled paper edge, blank centre with ABSOLUTELY no text, marks or doodles. Only quiet broad paper shading, very faint paper grain. Central 78% is almost uniform pale cream, with no crease or decoration, allowing horizontal stretch; all corner detail within the end 80 pixels of 720 width. Match the reference blank paper card. Opaque paper, transparent margins, no outer shadow or glow. No captions, no multiple overlapping labels, no wrapper. The same chosen label will also be exported as a pressed state with a smaller contact shadow.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1,
+      "nineSlicePx": 80
+    },
+    {
+      "id": "UI-BUTTON-LABEL-PRESSED",
+      "file": "ui/button-label-pressed.png",
+      "width": 720,
+      "height": 200,
+      "bytes": 141807,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "art/art.css button.primary (Today and Creator)",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nFOUR candidates in a strict 2x2 grid. Each is ONE simple soft WHITE-CREAM PAPER LABEL used as a button, width:height 720:200. Rounded ends with a very modest deckled paper edge, blank centre with ABSOLUTELY no text, marks or doodles. Only quiet broad paper shading, very faint paper grain. Central 78% is almost uniform pale cream, with no crease or decoration, allowing horizontal stretch; all corner detail within the end 80 pixels of 720 width. Match the reference blank paper card. Opaque paper, transparent margins, no outer shadow or glow. No captions, no multiple overlapping labels, no wrapper. The same chosen label will also be exported as a pressed state with a smaller contact shadow.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1,
+      "nineSlicePx": 80,
+      "pressedOffsetPx": 1,
+      "maxContactShadowAlpha": 17
+    },
+    {
+      "id": "UI-CARD-LOCKED",
+      "file": "ui/card-locked.png",
+      "width": 560,
+      "height": 380,
+      "bytes": 148244,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "collection.css .material[data-locked=true] .swatch",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nFOUR candidates in a strict 2x2 grid. Match the provided plain matte material card's exact simple shape: a wide rounded rectangular WHITE-CREAM card with one broad blank soft-white label area along the lower third. Width:height 560:380. Make an UNACQUIRED MATERIAL CARD: very pale paper with only a tiny embossed rounded-rectangle outline suggesting a missing material, very low contrast. No colour swatch, no text, no question mark, no symbols, no logos, no illustration. Empty quiet broad surface; the app draws the question mark. Keep the same corner radius and faint paper grain as the reference. Full opaque paper and blank label, transparent outer margins. No cast shadow, no glow, no dirt, no glitter. Each candidate separated by large transparent margins, no captions.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-DATE-STAMP",
+      "file": "ui/date-stamp.png",
+      "width": 480,
+      "height": 160,
+      "bytes": 20395,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css #date",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nFOUR candidates in a strict 2x2 grid. One wide rectangular RUBBER-STAMP FRAME per quadrant, width:height 480:160. Just two very fine red-brown ink lines, colour #B8665B, gently uneven and with only tiny dry-ink breaks, plus four small corner registration ticks. EXACTLY like the supplied existing blank original stamp-frame, but faded red-brown instead of graphite and a little rounder at the corners. Entire centre FULLY TRANSPARENT and empty. No text, letters, numerals, symbols, seal, paper card or background. No handwriting. Ink strokes opaque except their antialiasing; sparse dry breaks are fully transparent, not a cloud of noise. Clean cutout of a small UI frame, no shadow. Candidates separated by ample transparent margin, no captions.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-TAPE-5",
+      "file": "ui/tape-5.png",
+      "width": 480,
+      "height": 140,
+      "bytes": 48873,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .mcard[aria-checked=true]::before",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA strict FOUR-COLUMN FOUR-ROW grid of SIXTEEN short WASHi MASKING TAPE strips, no captions or dividers. Four subtle candidates in each row. Row 1: dusty pale PINK. Row 2: pale MINT. Row 3: pale SKY BLUE. Row 4: warm pale KRAFT. One horizontal 480:140 strip per cell, gently deckled zigzag ends and almost straight long edges, no folds, no wrinkles crossing the strip, no printed patterns, no text, no logos. Match the supplied simple Peta masking tape shape and faint paper texture. The tape is genuinely semi-transparent rice paper, the outside is fully transparent. Keep colour quiet, especially pink and mint, not candy-bright. Generous clean gaps so each strip remains an isolated object. No external glow or shadows, no scene, no background rectangle.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1,
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "UI-TAPE-6",
+      "file": "ui/tape-6.png",
+      "width": 480,
+      "height": 140,
+      "bytes": 50384,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .mcard[aria-checked=true]::before",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA strict FOUR-COLUMN FOUR-ROW grid of SIXTEEN short WASHi MASKING TAPE strips, no captions or dividers. Four subtle candidates in each row. Row 1: dusty pale PINK. Row 2: pale MINT. Row 3: pale SKY BLUE. Row 4: warm pale KRAFT. One horizontal 480:140 strip per cell, gently deckled zigzag ends and almost straight long edges, no folds, no wrinkles crossing the strip, no printed patterns, no text, no logos. Match the supplied simple Peta masking tape shape and faint paper texture. The tape is genuinely semi-transparent rice paper, the outside is fully transparent. Keep colour quiet, especially pink and mint, not candy-bright. Generous clean gaps so each strip remains an isolated object. No external glow or shadows, no scene, no background rectangle.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1,
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "UI-TAPE-7",
+      "file": "ui/tape-7.png",
+      "width": 480,
+      "height": 140,
+      "bytes": 47677,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .mcard[aria-checked=true]::before",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA strict FOUR-COLUMN FOUR-ROW grid of SIXTEEN short WASHi MASKING TAPE strips, no captions or dividers. Four subtle candidates in each row. Row 1: dusty pale PINK. Row 2: pale MINT. Row 3: pale SKY BLUE. Row 4: warm pale KRAFT. One horizontal 480:140 strip per cell, gently deckled zigzag ends and almost straight long edges, no folds, no wrinkles crossing the strip, no printed patterns, no text, no logos. Match the supplied simple Peta masking tape shape and faint paper texture. The tape is genuinely semi-transparent rice paper, the outside is fully transparent. Keep colour quiet, especially pink and mint, not candy-bright. Generous clean gaps so each strip remains an isolated object. No external glow or shadows, no scene, no background rectangle.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1,
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "UI-TAPE-8",
+      "file": "ui/tape-8.png",
+      "width": 480,
+      "height": 140,
+      "bytes": 53208,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P0",
+      "usedBy": [
+        "today.css .mcard[aria-checked=true]::before",
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nA strict FOUR-COLUMN FOUR-ROW grid of SIXTEEN short WASHi MASKING TAPE strips, no captions or dividers. Four subtle candidates in each row. Row 1: dusty pale PINK. Row 2: pale MINT. Row 3: pale SKY BLUE. Row 4: warm pale KRAFT. One horizontal 480:140 strip per cell, gently deckled zigzag ends and almost straight long edges, no folds, no wrinkles crossing the strip, no printed patterns, no text, no logos. Match the supplied simple Peta masking tape shape and faint paper texture. The tape is genuinely semi-transparent rice paper, the outside is fully transparent. Keep colour quiet, especially pink and mint, not candy-bright. Generous clean gaps so each strip remains an isolated object. No external glow or shadows, no scene, no background rectangle.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1,
+      "intentionalTranslucency": true
+    },
+    {
+      "id": "UI-PACK-KRAFT",
+      "file": "pack/pack-kraft.png",
+      "width": 768,
+      "height": 1024,
+      "bytes": 331802,
+      "rgbPalette": 128,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nFOUR candidates in a strict 2x2 grid. Edit the supplied closed Peta pouch into a KRAFT PAPER PACK. Keep the same tall narrow front-on silhouette and restrained drawing quality, width:height 768:1024. Replace silver foil with warm kraft paper #C9A878, a simple folded-over sealed mouth at top, two quiet side folds only, no realistic packaging photo. Keep a large blank cream rectangular label in the lower middle, matching the reference blank label exactly in purpose. No text, letters, logo or pictograms. No extra marks or objects. Entire paper and label opaque, transparent margins. Fine paper fibres much quieter than the favourite silver pouch, no heavy creases, no deep shadow, no shine, no holographic patches. Four subtle candidates, generous margin and gaps, no captions or dividing lines. No external cast shadow.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-PACK-MATTE",
+      "file": "pack/pack-matte.png",
+      "width": 768,
+      "height": 1024,
+      "bytes": 566416,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nFOUR candidates in a strict 2x2 grid. Edit the supplied closed Peta pouch into a MATTE CREAM PAPER ENVELOPE PACK. Preserve the same tall front-on proportions and simple silhouette, width:height 768:1024. Uncoated cream #F5F0E6 and soft white paper, a small sealed folded mouth at the top, faint envelope folds at the sides only. Large completely blank soft-white rectangular label in the lower middle. No writing, brands, logos or pictograms. Make it the quiet paper sibling of the supplied favourite silver pouch: fewer creases and less texture, very broad simple shading, NOT photographic packaging and NOT an inflated plastic bag. Entire paper and label opaque, transparent margins. Four subtle candidates, generous separate margins, no captions or extra objects. No exterior cast shadow or glow.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 2
+    },
+    {
+      "id": "UI-PACK-HOLOGRAPHIC",
+      "file": "pack/pack-holographic.png",
+      "bytes": 509741,
+      "rgbPalette": 128,
+      "width": 768,
+      "height": 1024,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nFOUR candidates in a strict 2x2 grid. Carefully redraw the supplied FAVOURITE CLOSED PETA SILVER-HOLOGRAPHIC PACK. Preserve its exact tall frontal silhouette, crimped zigzag sealed top and bottom, thin illustrated foil, large blank cream label in the lower middle and soft broad side folds. Width:height 768:1024. Quiet silver #D8DCE2 to #9AA1AB with very modest pastel holographic sheen at the upper-right, pink/lavender/sky/mint/lemon. Less creasing than the original if anything, NEVER more detail, no dramatic shine or texture noise. This is a semi-flat stationery illustration, not a photo and not plastic packaging. No text, words, symbols or logos. Entire foil and paper opaque, transparent margins, no external shadow. Four extremely subtle variations, match the reference closely, no captions or other objects.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "priorityNote": "Stage 0 correction; no Pack-opening implementation.",
+      "selectedCandidate": null,
+      "selectionBasis": "retained approved reference after four-candidate comparison",
+      "sourceAsset": "pack/pack-pouch-closed.png"
+    },
+    {
+      "id": "UI-TAG-CREAM",
+      "file": "ui/tag-cream.png",
+      "width": 360,
+      "height": 440,
+      "bytes": 87299,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nEIGHT blank stationery HANG TAGS in a strict FOUR-column TWO-row grid. Four subtle candidates per row. Top row: warm cream #F5F0E6 cardstock. Bottom row: kraft #C9A878 cardstock. Each tag is portrait 360:440 with top corners cut diagonally, one small punched hole near the top and a SINGLE fine short cream string loop through the hole. Straight front-on view, clean illustrated flat paper, slight fibres only. Tag faces COMPLETELY BLANK, no text, lines, labels, emblems or logos. Delicate string, not a ribbon, no bow, no tassels. Paper and string opaque except antialiasing, outside fully transparent. Generous margins around each complete tag including string, no shadow or glow, no captions or other objects. Keep very quiet to fit beside the supplied Peta paper cards.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-TAG-KRAFT",
+      "file": "ui/tag-kraft.png",
+      "width": 360,
+      "height": 440,
+      "bytes": 113767,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nEIGHT blank stationery HANG TAGS in a strict FOUR-column TWO-row grid. Four subtle candidates per row. Top row: warm cream #F5F0E6 cardstock. Bottom row: kraft #C9A878 cardstock. Each tag is portrait 360:440 with top corners cut diagonally, one small punched hole near the top and a SINGLE fine short cream string loop through the hole. Straight front-on view, clean illustrated flat paper, slight fibres only. Tag faces COMPLETELY BLANK, no text, lines, labels, emblems or logos. Delicate string, not a ribbon, no bow, no tassels. Paper and string opaque except antialiasing, outside fully transparent. Generous margins around each complete tag including string, no shadow or glow, no captions or other objects. Keep very quiet to fit beside the supplied Peta paper cards.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-INDEX-CARD-BLANK",
+      "file": "ui/index-card-blank.png",
+      "width": 900,
+      "height": 600,
+      "bytes": 355659,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nCreate a transparent candidate sheet with THREE ROWS and FOUR COLUMNS, twelve isolated horizontal 3:2 stationery index cards, equal spacing. Four alternatives per row. Top row blank cream index cards. Middle row faint thin warm-gray ruled index cards. Bottom row faint tiny warm-gray dot-grid index cards. All have slightly rounded corners and a single tiny punched hole at upper right. Minimal paper grain, opaque paper, very quiet details, no label panel, no writing or letters. Straight-on flat front view, no perspective. Transparent space between separate cards. Keep lines and dots very faint so code-rendered text stays legible.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-INDEX-CARD-RULED",
+      "file": "ui/index-card-ruled.png",
+      "width": 900,
+      "height": 600,
+      "bytes": 305830,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nCreate a transparent candidate sheet with THREE ROWS and FOUR COLUMNS, twelve isolated horizontal 3:2 stationery index cards, equal spacing. Four alternatives per row. Top row blank cream index cards. Middle row faint thin warm-gray ruled index cards. Bottom row faint tiny warm-gray dot-grid index cards. All have slightly rounded corners and a single tiny punched hole at upper right. Minimal paper grain, opaque paper, very quiet details, no label panel, no writing or letters. Straight-on flat front view, no perspective. Transparent space between separate cards. Keep lines and dots very faint so code-rendered text stays legible.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-INDEX-CARD-DOT",
+      "file": "ui/index-card-dot.png",
+      "width": 900,
+      "height": 600,
+      "bytes": 314036,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nCreate a transparent candidate sheet with THREE ROWS and FOUR COLUMNS, twelve isolated horizontal 3:2 stationery index cards, equal spacing. Four alternatives per row. Top row blank cream index cards. Middle row faint thin warm-gray ruled index cards. Bottom row faint tiny warm-gray dot-grid index cards. All have slightly rounded corners and a single tiny punched hole at upper right. Minimal paper grain, opaque paper, very quiet details, no label panel, no writing or letters. Straight-on flat front view, no perspective. Transparent space between separate cards. Keep lines and dots very faint so code-rendered text stays legible.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-MEMO-TORN",
+      "file": "ui/memo-torn.png",
+      "width": 640,
+      "height": 400,
+      "bytes": 220767,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nTransparent candidate sheet, TWO ROWS TWO COLUMNS, four alternatives of a blank warm cream torn memo slip, landscape 8:5, straight-on. One short translucent beige washi tape centered along upper edge attaching the slip, rough torn lower edge with restrained handmade irregularity, paper fully opaque. Very subtle warm fibre, faint neutral contact shadow only. NO writing, symbols, doodles, stamps, circles or printed panels. Each object isolated with ample transparent space. Keep shape clean for code-rendered text.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-PAPER-CLIP",
+      "file": "ui/paper-clip.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 33140,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nTransparent candidate sheet TWO ROWS FOUR COLUMNS, eight isolated small stationery clips. Top row four alternatives of simple oval double-loop wire paperclip, dull silver light gray, thin dark contour, slightly tilted 15 degrees, no glossy chrome. Bottom row four alternatives of small graphite black binder clip with folded triangular black body and two thin dull silver wire handles upright, slight three-quarter view enough to identify body. Clean semi-flat painted metal, opaque metal, weak short neutral shadow. Objects equally sized, generously spaced, no papers attached, no decorative background or badges. Must remain recognizable at 24 CSS pixels.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-BINDER-CLIP",
+      "file": "ui/binder-clip.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 47563,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nTransparent candidate sheet TWO ROWS FOUR COLUMNS, eight isolated small stationery clips. Top row four alternatives of simple oval double-loop wire paperclip, dull silver light gray, thin dark contour, slightly tilted 15 degrees, no glossy chrome. Bottom row four alternatives of small graphite black binder clip with folded triangular black body and two thin dull silver wire handles upright, slight three-quarter view enough to identify body. Clean semi-flat painted metal, opaque metal, weak short neutral shadow. Objects equally sized, generously spaced, no papers attached, no decorative background or badges. Must remain recognizable at 24 CSS pixels.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1
+    },
+    {
+      "id": "UI-POCKET-BACK",
+      "file": "ui/pocket-back.png",
+      "width": 1200,
+      "height": 520,
+      "bytes": 153320,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nTransparent candidate sheet TWO ROWS TWO COLUMNS, four alternatives of an empty kraft-paper card pocket, landscape outline ratio 1200:520, straight-on flat view. Each pocket has a full rectangular rear plate with gently rounded top corners; a front plate covers precisely the lower half with a perfectly horizontal upper lip halfway down the pocket. Thin dashed stitched line just BELOW this upper lip across the lower front plate. Rear exposed upper half is blank kraft, front plate slightly lighter warm kraft. Side and bottom folded seams very faint, no diagonal envelope flaps, no labels, no objects/cards inside, no writing. Leave generous transparent space between objects. Keep detail very sparse and shadow tiny neutral. This master will be partitioned horizontally at the front lip to make exactly aligned rear/front layers.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1,
+      "layerRole": "back",
+      "splitY": 248
+    },
+    {
+      "id": "UI-POCKET-FRONT",
+      "file": "ui/pocket-front.png",
+      "width": 1200,
+      "height": 520,
+      "bytes": 125389,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nTransparent candidate sheet TWO ROWS TWO COLUMNS, four alternatives of an empty kraft-paper card pocket, landscape outline ratio 1200:520, straight-on flat view. Each pocket has a full rectangular rear plate with gently rounded top corners; a front plate covers precisely the lower half with a perfectly horizontal upper lip halfway down the pocket. Thin dashed stitched line just BELOW this upper lip across the lower front plate. Rear exposed upper half is blank kraft, front plate slightly lighter warm kraft. Side and bottom folded seams very faint, no diagonal envelope flaps, no labels, no objects/cards inside, no writing. Leave generous transparent space between objects. Keep detail very sparse and shadow tiny neutral. This master will be partitioned horizontally at the front lip to make exactly aligned rear/front layers.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1,
+      "layerRole": "front",
+      "splitY": 248
+    },
+    {
+      "id": "UI-BK-PAPER",
+      "file": "book/page-paper.jpg",
+      "width": 1400,
+      "height": 1000,
+      "bytes": 44490,
+      "alpha": false,
+      "priority": "P0",
+      "usedBy": [
+        "art/p1.css .page",
+        "art/preview.html"
+      ],
+      "prompt": "Retained cream paper and dot grid from original page-right; export the same paper master with the hole layer omitted. Binding supplies the sole fixed-pitch hole layer at every window size.",
+      "status": "ready",
+      "stage": 2,
+      "bindingEdge": "left",
+      "ringHoleCenters": [
+        [
+          42,
+          25
+        ],
+        [
+          42,
+          75
+        ],
+        [
+          42,
+          125
+        ],
+        [
+          42,
+          175
+        ],
+        [
+          42,
+          225
+        ],
+        [
+          42,
+          275
+        ],
+        [
+          42,
+          325
+        ],
+        [
+          42,
+          375
+        ],
+        [
+          42,
+          425
+        ],
+        [
+          42,
+          475
+        ],
+        [
+          42,
+          525
+        ],
+        [
+          42,
+          575
+        ],
+        [
+          42,
+          625
+        ],
+        [
+          42,
+          675
+        ],
+        [
+          42,
+          725
+        ],
+        [
+          42,
+          775
+        ],
+        [
+          42,
+          825
+        ],
+        [
+          42,
+          875
+        ],
+        [
+          42,
+          925
+        ],
+        [
+          42,
+          975
+        ]
+      ],
+      "repeatPx": 50
+    },
+    {
+      "id": "UI-TAG",
+      "file": "ui/tag.png",
+      "width": 360,
+      "height": 440,
+      "bytes": 87299,
+      "rgbPalette": null,
+      "alpha": true,
+      "priority": "P1",
+      "usedBy": [
+        "art/preview.html"
+      ],
+      "prompt": "STYLE LOCK — Peta app art.\nWarm, tactile stationery illustration for a Mac desktop app about collecting stickers.\nSemi-flat object illustration: clean cut-out shapes with believable paper grain, paper fibre, torn/deckled edges and foil sheen — NOT a photograph and NOT a glossy 3D render.\nSoft natural light from the upper left; a very soft, low-opacity contact shadow falling slightly to the lower right.\nPalette: warm cream paper (#F5F0E6), kraft brown (#C9A878), graphite ink (#2B2A28), soft white (#FBF9F4), pastel holographic rainbow (pink #F6C6E3, lavender #C9C3F5, sky #BFE3F7, mint #C8F2DC, lemon #F7F0BE), silver foil (#D8DCE2 to #9AA1AB), and at most one small accent red (#D8453A).\nSlightly imperfect and hand-made: masking tape, tiny doodles, a hint of late-90s / early-2000s Japanese stationery-shop nostalgia — calm, restrained, premium, indie-Mac-app taste. Never grungy, never cutesy-kawaii overload.\nA single isolated object, centred, generous clean margin, on a fully transparent background. No scene, no desk, no hands, no printer, no scissors or cutter, no people.\nNo text, letters or numbers anywhere unless an exact string is given in quotes. No logos, no brands.\n\nEIGHT blank stationery HANG TAGS in a strict FOUR-column TWO-row grid. Four subtle candidates per row. Top row: warm cream #F5F0E6 cardstock. Bottom row: kraft #C9A878 cardstock. Each tag is portrait 360:440 with top corners cut diagonally, one small punched hole near the top and a SINGLE fine short cream string loop through the hole. Straight front-on view, clean illustrated flat paper, slight fibres only. Tag faces COMPLETELY BLANK, no text, lines, labels, emblems or logos. Delicate string, not a ribbon, no bow, no tassels. Paper and string opaque except antialiasing, outside fully transparent. Generous margins around each complete tag including string, no shadow or glow, no captions or other objects. Keep very quiet to fit beside the supplied Peta paper cards.\n\nAvoid: photograph, photorealistic scene, 3D render, plastic gloss, neon or saturated gradients, dashboard UI, game UI, emoji style, hands, desk, wooden table, printer, scissors, cutter, tape dispenser, watermark, signature, gibberish text, brand logos, people, harsh black outlines, heavy drop shadows, grunge, dirt.",
+      "status": "ready",
+      "selectedCandidate": 1,
+      "sourceAsset": "ui/tag-cream.png",
+      "selectionBasis": "generic filename aliases the selected cream variant"
     }
   ],
   "deliveryStages": {
@@ -2162,12 +2743,15 @@
   "sampleBudgetBytes": 900000,
   "sampleStyleVersion": 2,
   "uiPartsReview": {
-    "scope": "P0 notebook only",
+    "scope": "P0 notebook and Today; P1 packs and stationery",
     "selectedCandidate": 1,
-    "status": "awaiting owner spring review",
+    "status": "complete",
     "ringCentres": "y=25+50*k; exactly 20 cells in 1000px",
     "layers": "spiral-holes then spiral-coil reproduce spiral-binding exactly",
     "capUsage": "Overlay first/last 64px on a finite 50*N-pixel band; keep background phase anchored to band top.",
-    "remaining": "Today parts and P1 are not started."
+    "remaining": [],
+    "collectionAlignment": "Hole-free page-paper.jpg plus the fixed-pitch spiral-binding tile. No second scaled hole row.",
+    "pocketLayers": "back then card then front; common 1200x520 canvas, splitY=248 at the illustrated front lip",
+    "buttonPress": "same selected label, lowered 1 source px; shallower neutral contact shadow"
   }
 }
