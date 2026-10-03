@@ -638,6 +638,10 @@ body[data-type="hand"] { --sys: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", 
 body[data-type="typewriter"] { --sys: "Courier Prime", "Zen Kaku Gothic New", "Courier New", monospace; --display: "Special Elite", "Courier Prime", "Courier New", monospace; --dw: 400; --dls: -.01em; --hand: "Special Elite", "Courier Prime", monospace; }
 body[data-type="pen"] { --sys: "Shippori Mincho", "Cormorant Garamond", "Hiragino Mincho ProN", Georgia, serif; --display: "Cormorant Garamond", "Shippori Mincho", Georgia, serif; --dw: 600; --di: italic; --dls: 0; --hand: "Homemade Apple", "Reenie Beanie", "Klee One", cursive; }
 body[data-type="mix"] { --sys: "Courier Prime", "Zen Kaku Gothic New", "Courier New", monospace; --display: "Cormorant Garamond", "Shippori Mincho", Georgia, serif; --dw: 600; --di: italic; --dls: 0; --hand: "Homemade Apple", "Special Elite", "Klee One", cursive; }
+/* Aa Std = the base. System sans everywhere, with a few typewriter / hand-lettered accents so it still smells of paper. */
+body[data-type="current"] { --type: "Special Elite", "Courier Prime", "Courier New", monospace; }
+body[data-type="current"] .eyebrow, body[data-type="current"] .quota small, body[data-type="current"] .rule-cap, body[data-type="current"] .pack small, body[data-type="current"] .mmeta small { font-family: var(--type); letter-spacing: .05em; }
+body[data-type="current"] .back-card { font-family: var(--hand); }
 body[data-type="mix"] .ph h1 { font-size: 54px; line-height: .95; } body[data-type="mix"] h2 { font-size: 23px; } body[data-type="mix"] .eyebrow, body[data-type="mix"] .ni-label { letter-spacing: .06em; }
 body[data-type="mix"] .mcard .lab b, body[data-type="mix"] .mmeta b { font-size: 1.05em; } body[data-type="mix"] .btn { font-weight: 700; letter-spacing: .02em; }
 body[data-type="mix"] .back-card { font-family: var(--hand); } body[data-type="mix"] .seal, body[data-type="mix"] .price { font-family: var(--sys); }
@@ -766,7 +770,7 @@ input[type="range"]::-webkit-slider-runnable-track { height: 5px; border-radius:
 
 </style>
 </head>
-<body data-shell="notebook" data-type="mix">
+<body data-shell="studio" data-type="current">
 <div id="stage">
   <div id="desktop" aria-hidden="true">
     <svg id="wallpaper" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
@@ -837,7 +841,7 @@ input[type="range"]::-webkit-slider-runnable-track { height: 5px; border-radius:
   <div class="tb-sep"></div>
   <div class="tb-group" id="type-switch" role="tablist" aria-label="Typeface">
     <button data-type="mix" role="tab" title="Typewriter body, fountain-pen headings">Mix</button>
-    <button data-type="current" role="tab" title="Current: system sans with hand-lettered labels">Aa Std</button>
+    <button data-type="current" role="tab" title="Base: system sans, with typewriter accents and hand-lettered labels">Aa Std</button>
     <button data-type="hand" role="tab" title="Handwritten">Hand</button>
     <button data-type="typewriter" role="tab" title="Typewriter">Type</button>
     <button data-type="pen" role="tab" title="Fountain pen">Pen</button>
@@ -1147,7 +1151,7 @@ function freshState(prev) {
     { id: "L05", src: "sGoodDay", date: D(8, 3), no: 5, material: "matte", kind: "original" },
   ];
   return {
-    shell: prev?.shell || "notebook", sound: prev?.sound ?? true, motion: prev?.motion || "full",
+    shell: prev?.shell || "studio", sound: prev?.sound ?? true, motion: prev?.motion || "full",
     name: prev?.name || "Satoshi",
     today: new Date(2026, 9, 3), dayState: "arrived", todayMat: "holographic", chosen: "holographic",
     stock: { matte: Infinity, kraft: 1, holographic: 0 },
@@ -2442,7 +2446,7 @@ function wireToolbar() {
 async function boot() {
   Shell.applyAssetVars(); Shell.initChrome(); Menu.init(); wireToolbar(); Guide.init();
   Shell.setShell(new URLSearchParams(location.search).get("shell") || S.shell, true);
-  setType(new URLSearchParams(location.search).get("type") || "mix");
+  setType(new URLSearchParams(location.search).get("type") || "current");
   $("#clock").textContent = fmtDate(S.today, { weekday: "short" }) + " 10:24";
   await Desktop.renderAll(); Shell.renderNav();
   S.lib.forEach((e) => { resOf(e, { max: 360 }); resOf(e, { max: 520 }); }); // warm the sticker cache so tiles don't pop in

@@ -9,6 +9,10 @@ body[data-type="hand"] { --sys: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", 
 body[data-type="typewriter"] { --sys: "Courier Prime", "Zen Kaku Gothic New", "Courier New", monospace; --display: "Special Elite", "Courier Prime", "Courier New", monospace; --dw: 400; --dls: -.01em; --hand: "Special Elite", "Courier Prime", monospace; }
 body[data-type="pen"] { --sys: "Shippori Mincho", "Cormorant Garamond", "Hiragino Mincho ProN", Georgia, serif; --display: "Cormorant Garamond", "Shippori Mincho", Georgia, serif; --dw: 600; --di: italic; --dls: 0; --hand: "Homemade Apple", "Reenie Beanie", "Klee One", cursive; }
 body[data-type="mix"] { --sys: "Courier Prime", "Zen Kaku Gothic New", "Courier New", monospace; --display: "Cormorant Garamond", "Shippori Mincho", Georgia, serif; --dw: 600; --di: italic; --dls: 0; --hand: "Homemade Apple", "Special Elite", "Klee One", cursive; }
+/* Aa Std = the base. System sans everywhere, with a few typewriter / hand-lettered accents so it still smells of paper. */
+body[data-type="current"] { --type: "Special Elite", "Courier Prime", "Courier New", monospace; }
+body[data-type="current"] .eyebrow, body[data-type="current"] .quota small, body[data-type="current"] .rule-cap, body[data-type="current"] .pack small, body[data-type="current"] .mmeta small { font-family: var(--type); letter-spacing: .05em; }
+body[data-type="current"] .back-card { font-family: var(--hand); }
 body[data-type="mix"] .ph h1 { font-size: 54px; line-height: .95; } body[data-type="mix"] h2 { font-size: 23px; } body[data-type="mix"] .eyebrow, body[data-type="mix"] .ni-label { letter-spacing: .06em; }
 body[data-type="mix"] .mcard .lab b, body[data-type="mix"] .mmeta b { font-size: 1.05em; } body[data-type="mix"] .btn { font-weight: 700; letter-spacing: .02em; }
 body[data-type="mix"] .back-card { font-family: var(--hand); } body[data-type="mix"] .seal, body[data-type="mix"] .price { font-family: var(--sys); }
