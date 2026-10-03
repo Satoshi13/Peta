@@ -30,6 +30,15 @@ function recipeSummary(m) {
   return parts.join(" · ");
 }
 
+/** "found Oct 2" for the Material Book (nothing when the date is missing or unreadable). */
+function foundOn(iso) {
+  const d = iso ? new Date(iso) : null;
+  return d && !Number.isNaN(d.getTime()) ? `found ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : "";
+}
+
+/** Today's Peta is already stuck: the choices are shown but can't be used until tomorrow. */
+const isLocked = (s) => s.slot === "confirmed" || s.slot === "used";
+
 function setError(message) {
   $("error").textContent = message || "";
   show($("error"), Boolean(message));
@@ -48,7 +57,8 @@ async function render() {
   const done = s.slot === "confirmed" || s.slot === "used";
   show(stages.envelope, !s.materialOpened && !done);
   show(stages.material, s.materialOpened);
-  show(stages.choose, !done && view === "main" && s.materialOpened);
+  // The four choices stay on screen after today's Peta is stuck (looked at, not usable until tomorrow).
+  show(stages.choose, view === "main" && s.materialOpened);
   show(stages.collection, !done && view === "collection");
   show(stages.pack, !done && view === "pack");
   show(stages.gift, !done && view === "gift");
@@ -64,28 +74,51 @@ async function render() {
 
   // Material picker: what is in stock (materials are used up; plain paper never is). Today's material is the
   // default until the user picks another.
+  const locked = isLocked(s);
+  $("choose-title").textContent = locked ? "Tomorrow's Peta is waiting" : "How will you make today's Peta?";
+  $("choose-lede").textContent = locked
+    ? "Today's Peta is already stuck. These open again tomorrow."
+    : "You get one new Peta a day. Looking around doesn't use it up — only sticking one down does.";
+  stages.choose.dataset.locked = String(locked);
+  for (const id of ["choose-create", "choose-collection", "choose-gift"]) $(id).disabled = locked;
+  if (locked) $("choose-pack").disabled = true;
+
   const usable = s.unlocked.filter((m) => m.unlimited || m.count > 0);
   if (chosenMaterial && !usable.some((m) => m.id === chosenMaterial)) chosenMaterial = null;
   const selected = chosenMaterial ?? (usable.some((m) => m.id === s.material?.id) ? s.material.id : usable[0]?.id) ?? null;
   const picker = $("material-picker");
+  picker.hidden = locked || usable.length === 0;
   picker.replaceChildren(...usable.map((m) => {
     const b = document.createElement("button");
     b.type = "button";
-    b.className = "chip";
+    b.className = "mcard";
     b.setAttribute("role", "radio");
     b.setAttribute("aria-checked", String(m.id === selected));
     b.dataset.materialId = m.id; // for the art layer
-    b.textContent = m.unlimited ? m.name : `${m.name} ×${m.count}`;
+    b.dataset.rarity = m.rarity;
+    b.innerHTML = `<span class="mcard-art"></span><span class="mcard-label"><b></b><small></small></span>`;
+    b.querySelector("b").textContent = m.name;
+    b.querySelector("small").textContent = m.rarity;
+    if (!m.unlimited) {
+      const count = document.createElement("span");
+      count.className = "mcard-count";
+      count.textContent = `×${m.count}`;
+      count.setAttribute("aria-label", `${m.count} in stock`);
+      b.append(count);
+    }
     b.addEventListener("click", () => { chosenMaterial = m.id; render(); });
     return b;
   }));
 
   $("material-list").replaceChildren(...s.unlocked.map((m) => {
     const li = document.createElement("li");
-    li.innerHTML = `<span></span><span class="badge"></span>`;
-    li.firstChild.textContent = m.unlimited ? m.name : `${m.name} ×${m.count}`;
-    li.lastChild.textContent = m.rarity;
-    li.lastChild.dataset.rarity = m.rarity;
+    li.dataset.materialId = m.id; // for the art layer
+    li.innerHTML = `<span class="sw"></span><span class="name"><b></b><small></small></span><span class="seal"></span>`;
+    li.querySelector("b").textContent = m.name;
+    li.querySelector("small").textContent = m.unlimited ? "Always available" : [`×${m.count}`, foundOn(m.unlockedAt)].filter(Boolean).join(" · ");
+    const seal = li.querySelector(".seal");
+    seal.textContent = m.rarity;
+    seal.dataset.rarity = m.rarity;
     return li;
   }));
 
@@ -146,7 +179,7 @@ async function refreshPackChoice() {
   try {
     const { packs, canOpen } = await invoke("pack_status");
     const left = packs.reduce((n, p) => n + p.remaining, 0);
-    $("choose-pack").disabled = !canOpen || left === 0;
+    $("choose-pack").disabled = !canOpen || left === 0 || (status ? isLocked(status) : false);
     $("pack-note").textContent = left === 0 ? "All opened" : `Open one at random · ${left} left`;
   } catch { /* leave it disabled */ }
 }

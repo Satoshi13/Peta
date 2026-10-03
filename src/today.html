@@ -54,12 +54,20 @@
       </div>
     </section>
 
+    <!-- 4. Done for today -->
+    <section id="stage-done" hidden>
+      <div class="art-slot" data-art="see-you-tomorrow" data-art-note="Closing moment. Shows today's sticker." aria-hidden="true"></div>
+      <img id="done-sticker" alt="" />
+      <p class="lead">See you tomorrow.</p>
+    </section>
+
     <!-- 3. Choose today's Peta (slot is still free) -->
     <section id="stage-choose" hidden>
-      <h2>How will you make today's Peta?</h2>
-      <p class="muted">You get one new Peta a day. Looking around doesn't use it up — only sticking one down does.</p>
+      <h2 id="choose-title">How will you make today's Peta?</h2>
+      <p id="choose-lede" class="muted">You get one new Peta a day. Looking around doesn't use it up — only sticking one down does.</p>
 
-      <div id="material-picker" class="chips" role="radiogroup" aria-label="Material"></div>
+      <!-- Material cards (art hook: mcard-art). Picking one only chooses what the next Create is made of. -->
+      <div id="material-picker" class="tray" role="radiogroup" aria-label="Material"></div>
 
       <div class="choices">
         <button id="choose-create" class="choice" type="button" data-art="choice-create">
@@ -117,17 +125,10 @@
       <div id="pack-list" class="packs"></div>
     </section>
 
-    <!-- 4. Done for today -->
-    <section id="stage-done" hidden>
-      <div class="art-slot" data-art="see-you-tomorrow" data-art-note="Closing moment. Shows today's sticker." aria-hidden="true"></div>
-      <img id="done-sticker" alt="" />
-      <p class="lead">See you tomorrow.</p>
-    </section>
-
     <p id="error" class="error" role="alert" hidden></p>
 
-    <!-- Material Book (everything unlocked so far) -->
-    <section id="material-book">
+    <!-- Material Book (everything unlocked so far): a small ring-bound notebook -->
+    <section id="material-book" class="book" data-art="material-book">
       <h3>Material Book</h3>
       <ul id="material-list" class="list"></ul>
     </section>
