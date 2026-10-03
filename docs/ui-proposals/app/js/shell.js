@@ -30,7 +30,7 @@ const Shell = (() => {
     }));
     $("#tray-dot").classList.toggle("on", b.gifts > 0 || S.dayState === "arrived" || !!S.pending);
   }
-  function markNav() { $$(".nav-item").forEach((b) => b.toggleAttribute("aria-current", b.dataset.page === S.page)); $$(".nav-item[aria-current]").forEach((b) => b.setAttribute("aria-current", "page")); }
+  function markNav() { document.body.dataset.page = S.page; $$(".nav-item").forEach((b) => b.toggleAttribute("aria-current", b.dataset.page === S.page)); $$(".nav-item[aria-current]").forEach((b) => b.setAttribute("aria-current", "page")); }
 
   function build(id) {
     const wrap = h("section.page", { data: { page: id } });
@@ -181,12 +181,13 @@ const Shell = (() => {
       close();
     });
   }
+  function setClose(name) { S.closeStyle = name; document.body.dataset.close = name; }
   function setShell(name, quiet) {
     S.shell = name; document.body.dataset.shell = name;
     $$("#shell-switch button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.shell === name)));
     if (!quiet && current) refresh();
   }
-  return { applyAssetVars, toast, renderNav, go, refresh, open, close, initChrome, setShell, placeWin, get current() { return current; }, reset() { current = null; navigating = false; pos = { x: 0, y: 0 }; placeWin(); } };
+  return { applyAssetVars, toast, renderNav, go, refresh, open, close, initChrome, setShell, setClose, placeWin, get current() { return current; }, reset() { current = null; navigating = false; pos = { x: 0, y: 0 }; placeWin(); } };
 })();
 
 /* ---------- the menu bar's Peta menu: the way back into the one window ---------- */

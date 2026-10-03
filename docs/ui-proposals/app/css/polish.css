@@ -152,3 +152,86 @@ input[type="range"]::-webkit-slider-runnable-track { height: 5px; border-radius:
 .bk, .mk { min-height: 620px; } /* the sticky detail card must fit inside its row, or the page can't scroll to its bottom */
 .cr-controls { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1.2fr); } .cr-controls > * { min-width: 0; }
 @container (max-width: 760px) { .cr-controls { grid-template-columns: minmax(0, 1fr); } }
+
+/* =====================================================================================================
+   Pass 3 — Codex's finished parts replace the CSS stand-ins: window top band + hand-made ✕, resize corner,
+   control parts, per-material back papers, material cards, market tags. Desk / Studio are the two window styles.
+   ===================================================================================================== */
+
+/* ---------- window top: a strip of tape (Desk) / a paper band (Studio) you grab, and a hand-made ✕ ---------- */
+:is([data-shell="desk"], [data-shell="studio"]) .grabber { top: -9px; left: -6px; right: -6px; transform: none; width: auto; height: 44px; padding: 0; gap: 0; border-radius: 0; background: none; box-shadow: none; opacity: 1; backdrop-filter: none; -webkit-backdrop-filter: none;
+  border-style: solid; border-width: 0 67px; border-image: var(--top) 0 120 fill / 0 67px / 0 stretch; filter: drop-shadow(0 2px 2px rgba(30, 20, 5, .3)); transition: filter .18s; }
+[data-shell="desk"] .grabber { --top: var(--a-topDesk); --top-h: var(--a-topDeskHover); } [data-shell="studio"] .grabber { --top: var(--a-topStudio); --top-h: var(--a-topStudioHover); }
+:is([data-shell="desk"], [data-shell="studio"]) .grabber:hover { border-image-source: var(--top-h); filter: drop-shadow(0 3px 3px rgba(30, 20, 5, .34)); }
+:is([data-shell="desk"], [data-shell="studio"]) .grabber .grip { display: none; }
+.grabber .g-close { position: absolute; right: 24px; top: 6px; width: 30px; height: 30px; border-radius: 0; background-color: transparent; background-repeat: no-repeat; background-position: center; background-size: contain; font-size: 0; color: transparent; }
+:is([data-shell="desk"], [data-shell="studio"]) .grabber .g-close:hover { background-color: transparent; }
+body[data-close="pencil"] .g-close { background-image: var(--a-closePencil); } body[data-close="pencil"] .g-close:hover { background-image: var(--a-closePencilHover); } body[data-close="pencil"] .g-close:active { background-image: var(--a-closePencilDown); }
+body[data-close="stitch"] .g-close { background-image: var(--a-closeStitch); } body[data-close="stitch"] .g-close:hover { background-image: var(--a-closeStitchHover); } body[data-close="stitch"] .g-close:active { background-image: var(--a-closeStitchDown); }
+body[data-close="tape"] .g-close { background-image: var(--a-closeTape); } body[data-close="tape"] .g-close:hover { background-image: var(--a-closeTapeHover); } body[data-close="tape"] .g-close:active { background-image: var(--a-closeTapeDown); }
+body[data-close="wax"] .g-close { background-image: var(--a-closeWax); } body[data-close="wax"] .g-close:hover { background-image: var(--a-closeWaxHover); } body[data-close="wax"] .g-close:active { background-image: var(--a-closeWaxDown); }
+[data-shell="notebook"] .grabber .g-close { position: static; width: 20px; height: 20px; font-size: 0; }
+[data-shell="desk"] .page::before { display: none; }
+:is([data-shell="desk"], [data-shell="studio"]) .page-in { padding-top: 44px; }
+.resize-h, [data-shell="desk"] .resize-h { width: 34px; height: 34px; right: 1px; bottom: 1px; opacity: .85; background: var(--a-resizeCorner) center / contain no-repeat; } .resize-h:hover { opacity: 1; }
+
+/* ---------- Desk · Create: no sheet of paper under the mat — the window IS the cutting mat ---------- */
+body[data-shell="desk"][data-page="create"] .viewport { inset: 0; }
+body[data-shell="desk"][data-page="create"] .page, body[data-shell="desk"][data-page="create"] .leaf-face { background: none; box-shadow: none; }
+body[data-shell="desk"][data-page="create"] .cr-mat { background: none; box-shadow: none; padding: 6px 4px 0; }
+body[data-shell="desk"][data-page="create"] .ph h1 { color: #fbf9f4; text-shadow: 0 1px 3px rgba(20, 40, 25, .55); }
+body[data-shell="desk"][data-page="create"] .ph .eyebrow, body[data-shell="desk"][data-page="create"] .ph .muted, body[data-shell="desk"][data-page="create"] .cr-samples .eyebrow { color: rgba(251, 249, 244, .82); text-shadow: 0 1px 2px rgba(20, 40, 25, .5); }
+body[data-shell="desk"][data-page="create"] .ph .uses, body[data-shell="desk"][data-page="create"] .ph small, body[data-shell="desk"][data-page="create"] .ph p { color: rgba(251, 249, 244, .9); }
+
+/* ---------- Desk · Book: the notebook (cover board, spiral, dotted page) lying on the mat ---------- */
+body[data-shell="desk"][data-page="book"] .book { left: 142px; right: 22px; top: 30px; bottom: 26px; border-radius: 6px 14px 14px 6px; isolation: isolate;
+  box-shadow: inset 14px 0 20px -12px rgba(70, 45, 10, .35), 3px 3px 0 -1px #f1ead9, 3px 3px 0 0 rgba(90, 65, 25, .22), 6px 6px 0 -2px #e8dfca, 6px 6px 0 -1px rgba(90, 65, 25, .18); }
+body[data-shell="desk"][data-page="book"] .book::before { content: ""; position: absolute; inset: -14px -14px -14px -26px; z-index: -1; border-radius: 16px 20px 20px 16px; background: #c4a171 var(--a-coverBoard) 0 0 / 420px;
+  box-shadow: 0 0 0 1px rgba(80, 55, 20, .4), inset 0 0 0 1px rgba(255, 255, 255, .2), 0 14px 26px rgba(14, 20, 12, .4); }
+body[data-shell="desk"][data-page="book"] .spiral { display: block; position: absolute; left: -33px; top: -2px; bottom: -2px; width: 54px; z-index: 12; pointer-events: none; }
+body[data-shell="desk"][data-page="book"] .spiral::before, body[data-shell="desk"][data-page="book"] .spiral::after { content: ""; position: absolute; inset: 0; background-position: center top; background-size: 54px auto; background-repeat: repeat-y; }
+body[data-shell="desk"][data-page="book"] .spiral::before { background-image: var(--a-spiralHoles); } body[data-shell="desk"][data-page="book"] .spiral::after { background-image: var(--a-spiralCoil); filter: drop-shadow(2px 1px 1.5px rgba(40, 25, 5, .35)); }
+body[data-shell="desk"][data-page="book"] .viewport { left: 32px; }
+body[data-shell="desk"][data-page="book"] .page, body[data-shell="desk"][data-page="book"] .leaf-face { background: radial-gradient(circle, rgba(150, 128, 90, .22) 1px, transparent 1.3px) 7px 9px / 22px 22px, linear-gradient(rgba(250, 246, 236, .62), rgba(250, 246, 236, .62)), var(--a-paperCream) 0 0 / 520px, #faf6ec; border-radius: 0 12px 12px 0; }
+body[data-shell="desk"][data-page="book"] .page-in { padding-top: 40px; }
+.book::before { transition: opacity .3s; }
+
+/* ---------- control parts ---------- */
+input[type="range"] { height: 26px; }
+input[type="range"]::-webkit-slider-runnable-track { height: 20px; border-radius: 0; background: var(--a-sliderTrack) center / 100% 100% no-repeat; }
+input[type="range"]::-webkit-slider-thumb { width: 26px; height: 26px; margin-top: -3px; border: 0; border-radius: 0; background: var(--a-sliderKnob) center / contain no-repeat; box-shadow: none; filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .4)); }
+input[type="range"]::-moz-range-track { height: 20px; border-radius: 0; background: var(--a-sliderTrack) center / 100% 100% no-repeat; }
+input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border: 0; border-radius: 0; background: var(--a-sliderKnob) center / contain no-repeat; box-shadow: none; }
+.switch { width: 58px; height: 31px; border-radius: 0; background: var(--a-switchOff) center / 100% 100% no-repeat; box-shadow: none; } .switch[aria-checked="true"] { background-color: transparent; background-image: var(--a-switchOn); }
+.switch i { left: 3px; top: 2px; width: 27px; height: 27px; border-radius: 0; background: var(--a-switchKnob) center / contain no-repeat; box-shadow: none; filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .4)); } .switch[aria-checked="true"] i { transform: translateX(25px); }
+.seg { padding: 5px 7px; border-radius: 0; background: var(--a-segTrack) center / 100% 100% no-repeat; box-shadow: none; gap: 2px; }
+.seg button { border-radius: 0; padding: 5px 15px; } .seg button[aria-pressed="true"] { background: var(--a-segChip) center / 100% 100% no-repeat; box-shadow: none; filter: drop-shadow(0 1px 1px rgba(40, 30, 10, .25)); }
+.setcard { border-style: solid; border-width: 22px; border-image: var(--a-panelPaper) 70 fill / 22px / 0 stretch; border-radius: 0; background: none; box-shadow: none; filter: drop-shadow(0 6px 10px rgba(60, 45, 20, .2)); }
+.setcard .setrow { padding: 14px 8px; } .setcard .setrow + .setrow { border-top-color: rgba(120, 100, 60, .18); }
+
+/* ---------- back papers follow the material ---------- */
+.back-card[data-mat="kraft"], .backing[data-mat="kraft"] { background: var(--a-backKraft) center / cover, #cdac7e; }
+.back-card[data-mat="matte"], .backing[data-mat="matte"] { background: var(--a-backMatte) center / cover, #f4ecdd; }
+.back-card[data-mat="holographic"], .backing[data-mat="holographic"] { background: var(--a-backHolo) center / cover, #dfe4ec; }
+.back-card[data-mat="gold"], .backing[data-mat="gold"] { background: var(--a-backGold) center / cover, #e9d28a; }
+.back-card[data-mat="riso"], .backing[data-mat="riso"] { background: var(--a-backRiso) center / cover, #f6e0e4; }
+.back-card[data-mat="vintage"], .backing[data-mat="vintage"] { background: var(--a-backVintage) center / cover, #ecdcbb; box-shadow: none; }
+
+/* ---------- material cards ---------- */
+.mcard[data-m="gold"] .art { background-image: var(--a-cardGold); filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.mcard[data-m="riso"] .art { background-image: var(--a-cardRiso); filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.mcard[data-m="vintage"] .art { background-image: var(--a-cardVintage); filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+
+/* ---------- market: price tags, "owned" stamp, a real pinboard ---------- */
+.price { padding: 9px 16px 8px 30px; min-width: 72px; text-align: center; border-radius: 0; background: var(--a-priceTag) center / 100% 100% no-repeat; color: #2b2a28; font-weight: 700; filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.price.free { background-image: var(--a-priceFree); }
+.price.own { padding: 10px 18px; background: var(--a-stampOwned) center / 100% 100% no-repeat; color: #243f7a; letter-spacing: .04em; filter: none; }
+.mk-hero { border-style: solid; border-width: 36px; border-image: var(--a-pinboard) 160 fill / 36px / 0 stretch; border-radius: 0; background: none; box-shadow: none; padding: 4px 8px; filter: drop-shadow(0 8px 12px rgba(60, 40, 10, .3)); }
+.mk-hero-text::before { left: 50%; right: auto; top: -18px; width: 38px; height: 38px; margin-left: -19px; background: var(--a-pinRed) center / contain no-repeat; transform: none; filter: drop-shadow(1px 2px 1.5px rgba(0, 0, 0, .35)); }
+[data-shell="desk"] .close-tag { display: none; }
+.cr-controls { border-style: solid; border-width: 24px 26px; border-image: var(--a-panelPaper) 70 fill / 24px 26px / 0 stretch; border-radius: 0; background: none; box-shadow: none; padding: 0; filter: drop-shadow(0 8px 12px rgba(20, 40, 25, .28)); }
+.cr-controls::before { top: -44px; right: 34px; }
+.mk-hero-text { padding-bottom: 36px; }
+.switch[aria-checked="true"] { background: var(--a-switchOn) center / 100% 100% no-repeat; }
+[data-shell="studio"] .nav { padding-top: 84px; } [data-shell="studio"] .nav::before { top: 44px; }
+.mcard .lab { top: 60%; } .mcard .lab small { line-height: 1; }

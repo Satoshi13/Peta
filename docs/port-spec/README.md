@@ -6,7 +6,10 @@
 ## 0. 決まっていること
 
 - **1ウィンドウ**。今の Today / Cutting Mat / Sticker Book / Arrival の4ウィンドウを、メニューバーから出入りする1つのウィンドウに統合する(デスクトップに貼るステッカーのレイヤー `layers.rs` は今のまま別物)。
-- 採用シェルは **C = Studio**(左サイドバー + 紙の質感の実物パーツ)。A(Notebook)/ B(Desk)は**比較用で、移植しない**。
+- ウィンドウスタイルは **Desk と Studio の2つ**。**Settings の「Window style」で切り替える**(既定は Studio)。Notebook は廃止(Book ページの手帳素材だけ Desk で使う)。
+  - **Studio**: 左サイドバー + 紙の質感の実物パーツ。上端に紙の帯。
+  - **Desk**: 緑のカッティングマットが窓そのもの。左に素材アイコンのナビ、上端にマスキングテープの帯。**Create はマットの上に紙を敷かず、マットをそのまま使う**。**Book は手帳(表紙の厚紙・スパイラル・ドット罫のページ)をマットの上に置いた見た目**。他のページはマットの上に紙のページ。
+- 閉じるボタンは手作りの ✕(Pencil / Stitch / Tape / Wax の4種)。**Settings の「Close button」で選べる**(既定 Stitch)。上端の帯をつかんで窓を動かす。
 - 書体は **Aa Std**(システムのサンセリフが土台 + タイプライター/手書きのアクセントを少し)。Mix / Hand / Type / Pen は比較用で、移植しない。
 - ルール(下表)も確定。プロトタイプの挙動がそのまま仕様。
 
@@ -72,7 +75,9 @@ node docs/ui-proposals/app/tools/audit.mjs /tmp/audit 1440 900 studio current   
 ## 5. 素材(`src/art/`)
 
 - 使うものは `docs/ui-proposals/app/js/assets.js` の `P` に全部ある。そこに無いパスは使わない。
-- まだ仮(CSS 製の代用)のもの: 手作りの ✕ と上端の取っ手、リサイズの角、設定のスイッチ/スライダー、素材カード(gold/riso/vintage)、値札、付箋、一部アイコン。**届いたら差し替え**。それまでは今の CSS をそのまま移植し、`data-art` フックを残す。
+- Codex 納品済みで**プロトタイプに適用済み**(`css/polish.css` 末尾の「Pass 3」): 窓上端の帯(desk/studio、通常/hover)、手作り ✕(4種×通常/hover/pressed)、リサイズの角、スライダー・スイッチ・セグメント・紙パネル、素材別の裏紙6種、素材カード gold/riso/vintage、値札・所有スタンプ・掲示板・押しピン、アイコン market/settings。
+- 納品済みだが未使用: 空状態(`empty/*`)、半券、アバター台紙。
+- まだ仮(CSS 製)のもの: 付箋、ノートの端/とじ目/角の一部、Peta! タグの追加バリエーション。**届いたら差し替え**。それまでは今の CSS をそのまま移植し、`data-art` フックを残す。
 - **画像は加工しない**(拡大縮小は CSS のみ)。必要な新素材は作らず、`docs/codex-ui-polish-prompt.md` の該当節を見て依頼を出す。
 
 ## 6. 書体
@@ -115,6 +120,7 @@ node docs/ui-proposals/app/tools/audit.mjs /tmp/audit 1440 900 studio current   
 
 - `position: sticky` の詳細カードが行より高いと、下端までスクロールできない → 行に `min-height` を与える(`.bk, .mk { min-height: 620px }`)。
 - グリッドの `1fr` は中身の min-content で押し広げられる → `minmax(0, 1fr)` を使う(`.cr-controls`)。
+- Desk の Create/Book は `body[data-page]`(`Shell.markNav` が設定)で見た目を切り替える。ページ遷移はフェードなので、背景(紙/マット/手帳)もフェードで切り替わる。
 - ウィンドウ幅に応じた切替は `@media` ではなく **コンテナクエリ**(`.page-in { container-type: size }`)。窓幅はビューポートと無関係。
 - 上端の取っ手(高さ約30px)にページ見出しが潜らないよう `.page-in { padding-top: 38px }`。
 - 素材カードの文字は `white-space: nowrap` + `--w` 比のフォントサイズ(`Holographic` が収まる 0.08)。

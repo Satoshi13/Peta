@@ -102,3 +102,8 @@ Packs / Materials / Creators の3タブ。Pack は詳細で中身をのぞける
 - ウィンドウを1つ(例 `book`)にして、`index`(ページ)をURLハッシュ/コマンドで切り替える。`today.html` `creator.html` `collection.html` は同じ DOM 部品に分解する(今回のプロトタイプの `Pages.*` がそのまま下書き)。
 - 既存の契約(`daily_*` `creator_*` `book_*` `pack_*` `gift_*` のコマンド・イベント)は変えずに呼べる。`today.js` の状態遷移(arrived / opened / done)もそのまま。
 - 新しいアート(スプリング・シール・トレイ・ラベル)は [codex-ui-parts-prompt.md](../codex-ui-parts-prompt.md) で発注済み。
+
+
+## ウィンドウスタイル(2026-10-03)
+
+Notebook を廃止し、**Desk / Studio** を Settings で切り替える(ツールバーにも同じスイッチ)。窓の上端は Codex の帯(Desk=マステ、Studio=紙の帯)で、つかんで動かす。閉じるは手作りの ✕(Pencil / Stitch / Tape / Wax、Settings で選択)。Desk の Create はマットを窓いっぱいに使い、Book は手帳素材(表紙・スパイラル・ドット罫)をマットの上に置く。

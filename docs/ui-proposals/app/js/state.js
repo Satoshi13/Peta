@@ -36,7 +36,7 @@ function freshState(prev) {
     { id: "L05", src: "sGoodDay", date: D(8, 3), no: 5, material: "matte", kind: "original" },
   ];
   return {
-    shell: prev?.shell || "studio", sound: prev?.sound ?? true, motion: prev?.motion || "full",
+    shell: prev?.shell || "studio", closeStyle: prev?.closeStyle || "stitch", sound: prev?.sound ?? true, motion: prev?.motion || "full",
     name: prev?.name || "Satoshi",
     today: new Date(2026, 9, 3), dayState: "arrived", todayMat: "holographic", chosen: "holographic",
     stock: { matte: Infinity, kraft: 1, holographic: 0 },
@@ -62,8 +62,8 @@ function rollMaterial() { const r = Math.random(); return r < .5 ? "matte" : r <
 
 /* two small inline icons that have no file in src/art yet */
 const svgURI = (svg) => "data:image/svg+xml;utf8," + encodeURIComponent(svg);
-A.gear = svgURI('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3e6ea"/><stop offset="1" stop-color="#9aa1ab"/></linearGradient></defs><path fill="url(#g)" stroke="#6f757e" stroke-width="1.2" d="M20 4h8l1.4 5.2 4.2 1.8 4.7-2.8 5.6 5.6-2.8 4.7 1.8 4.2L48 20v8l-5.1 1.4-1.8 4.2 2.8 4.7-5.6 5.6-4.7-2.8-4.2 1.8L28 44h-8l-1.4-5.1-4.2-1.8-4.7 2.8L4.1 34.3l2.8-4.7-1.8-4.2L0 24v-4l5.1-1.4 1.8-4.2-2.8-4.7 5.6-5.6 4.7 2.8 4.2-1.8z" transform="translate(0 2) scale(.96)"/><circle cx="24" cy="24" r="7.5" fill="#f4efe4" stroke="#6f757e" stroke-width="1.2"/></svg>');
-A.shop = svgURI('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2c795"/><stop offset="1" stop-color="#c4a06a"/></linearGradient></defs><path d="M17 17v-4.5a7 7 0 0 1 14 0V17" fill="none" stroke="#8a6b3a" stroke-width="2.2" stroke-linecap="round"/><path d="M9 17h30l2.2 26H6.8z" fill="url(#b)" stroke="#9a7a46" stroke-width="1.2" stroke-linejoin="round"/><path d="M9 17h30l.5 6H8.6z" fill="#fff" fill-opacity=".22"/><path d="M13 43l3-9 5 4 4-6 4 5 5-4 3 10" fill="none" stroke="#9a7a46" stroke-opacity=".35" stroke-width="1"/><circle cx="31" cy="23" r="3.4" fill="#d8453a" stroke="#fff" stroke-opacity=".8"/></svg>');
+A.gear = A.iconSettings;
+A.shop = A.iconMarket;
 
 /* Pack art per kind. cut = where the tear line is (% of height); xl / xr = the pack's left / right edge (fraction of width). */
 const PACK_KINDS = {

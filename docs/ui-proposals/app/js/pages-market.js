@@ -38,7 +38,7 @@ Pages.market = {
   packs(paint, sel) {
     const feat = MARKET_PACKS[0];
     const cell = (p, i) => h("button.mk-tile", { "aria-pressed": String(MK.sel === p.id), style: { "--i": i }, on: { click: () => { MK.sel = MK.sel === p.id ? null : p.id; Snd.tap(); paint(); } } },
-      Market.pouch(p), h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.count} stickers`)), h("span.price" + (Market.own(p.id) ? ".own" : ""), Market.own(p.id) ? "On your shelf" : p.price));
+      Market.pouch(p), h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.count} stickers`)), h("span.price" + (Market.own(p.id) ? ".own" : p.price === "Free" ? ".free" : ""), Market.own(p.id) ? "On your shelf" : p.price));
     const main = h("div.mk-main",
       h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat), h("div.fan", feat.keys.slice(0, 4).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => e.append(Stk.el(r, r.aspect >= 1 ? 92 : 92 * r.aspect))); return e; }))),
         h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", feat.title), h("p.muted", `by ${feat.by} · ${feat.count} stickers`), h("p", feat.blurb),

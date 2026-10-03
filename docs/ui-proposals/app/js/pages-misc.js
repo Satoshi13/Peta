@@ -44,8 +44,11 @@ Pages.settings = {
     root.append(PageHead("Settings", "Quiet by default"));
     const name = h("input", { type: "text", value: S.name, maxlength: 40, autocomplete: "off", spellcheck: false, on: { input: (e) => (S.name = e.target.value || "Me") } });
     const sw = (label, sub, get, set) => { const b = h("button.switch", { role: "switch", "aria-checked": String(get()), on: { click: () => { set(!get()); b.setAttribute("aria-checked", String(get())); Snd.tap(); } } }, h("i")); return h("div.setrow", h("div", h("b", label), h("small", sub)), b); };
+    const segRow = (label, sub, opts, get, set) => { const seg = h("div.seg", opts.map(([v, text]) => h("button", { "aria-pressed": String(get() === v), on: { click: () => { set(v); Snd.tap(); $$("button", seg).forEach((b, i) => b.setAttribute("aria-pressed", String(opts[i][0] === v))); } } }, text))); return h("div.setrow", h("div", h("b", label), h("small", sub)), seg); };
     root.append(h("div.setcard",
       h("div.setrow", h("div", h("b", "Your name on stickers"), h("small", "Printed on the back of stickers you make from now on")), name),
+      segRow("Window style", "Desk lays the pages on a cutting mat; Studio is a clean sidebar window", [["desk", "Desk"], ["studio", "Studio"]], () => S.shell, (v) => { Shell.setShell(v); }),
+      segRow("Close button", "The little hand-made ✕ at the top of the window", [["pencil", "Pencil"], ["stitch", "Stitch"], ["tape", "Tape"], ["wax", "Wax"]], () => S.closeStyle, (v) => Shell.setClose(v)),
       sw("Sounds", "Paper, tear, and the little peta", () => Snd.on, (v) => { Snd.on = v; S.sound = v; $("#tb-sound").setAttribute("aria-pressed", String(v)); }),
       sw("Put away on outside click", "A click on the desktop closes the window, like a menu", () => S.closeOutside, (v) => { S.closeOutside = v; }),
       sw("Reduce motion", "Skips page turns and ceremonies' flourishes", () => document.documentElement.dataset.motion === "reduce", (v) => { document.documentElement.dataset.motion = v ? "reduce" : "full"; S.motion = v ? "reduce" : "full"; })));
