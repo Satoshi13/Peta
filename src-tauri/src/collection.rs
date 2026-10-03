@@ -6,7 +6,7 @@ use peta_core::{
     book, materials, BookEntry, Material, MonthIndex, StickerBack,
 };
 use serde::Serialize;
-use tauri::State;
+use tauri::{AppHandle, Emitter, State};
 
 use crate::{store::Store};
 
@@ -21,10 +21,26 @@ pub fn book_index(store: State<Store>) -> Result<Vec<MonthIndex>, String> {
 
 /// One month's page, oldest first.
 #[tauri::command]
-pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookEntry>, String> {
+pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookItem>, String> {
     let lib = store.lock();
     let entries = book::entries_local(lib.db()).map_err(|e| e.to_string())?;
-    Ok(book::page(&entries, year, month))
+    book::page(&entries, year, month).into_iter().map(|entry| {
+        let can_manage = lib.db().sticker(&entry.sticker_id).map_err(|e| e.to_string())?.is_some_and(|s| s.source_type == peta_core::SourceType::Created);
+        Ok(BookItem { entry, can_manage })
+    }).collect()
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool }
+
+#[tauri::command]
+pub fn sticker_delete_original(app: AppHandle, store: State<Store>, sticker_id: String) -> Result<(), String> {
+    store.lock().delete_original(&sticker_id).map_err(|e| e.to_string())?;
+    let _ = app.emit("sticker-updated", &sticker_id);
+    if crate::print::pending(&app)?.is_none() { crate::layers::set_print(&app, false); }
+    crate::today::announce(&app);
+    Ok(())
 }
 
 /// What is printed on the back of a sticker (ORIGINAL / Received, who, when, which material, history).

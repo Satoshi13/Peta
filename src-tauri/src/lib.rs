@@ -128,6 +128,8 @@ pub fn run() {
             creator::creator_stroke,
             creator::creator_clear_edits,
             creator::creator_finish,
+            creator::creator_edit_original,
+            creator::creator_save_original,
             creator::creator_undo,
             creator::creator_redo,
             creator::creator_cancel,
@@ -147,6 +149,7 @@ pub fn run() {
             collection::book_index,
             collection::book_page,
             collection::sticker_back,
+            collection::sticker_delete_original,
             collection::material_book,
             collection::profile_get,
             collection::profile_set

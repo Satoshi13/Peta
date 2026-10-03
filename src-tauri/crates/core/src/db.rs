@@ -296,6 +296,18 @@ impl Database {
         Ok(self.conn.query_row("SELECT COUNT(*) FROM stickers", [], |r| r.get(0))?)
     }
 
+    pub fn update_original_assets(&mut self, id: &str, rendered: &str, mask: &str, aspect: f64) -> Result<()> {
+        let n = self.conn.execute("UPDATE stickers SET rendered_asset_path=?2, mask_asset_path=?3, aspect=?4 WHERE id=?1 AND source_type='created'", params![id, rendered, mask, aspect])?;
+        if n != 1 { return Err(Error::Invalid("only your original stickers can be edited".into())); }
+        Ok(())
+    }
+
+    pub fn delete_original(&mut self, id: &str) -> Result<()> {
+        let n = self.conn.execute("DELETE FROM stickers WHERE id=?1 AND source_type='created'", [id])?;
+        if n != 1 { return Err(Error::Invalid("only your original stickers can be deleted".into())); }
+        Ok(())
+    }
+
     /// Insert a sticker. Stickers the user made (`Created`) get the next `ORIGINAL` number.
     pub fn create_sticker(&mut self, new: NewSticker) -> Result<Sticker> {
         let created_at = now();
