@@ -1,0 +1,26 @@
+/* Asset map. Dev: points at the real art in src/art. The single-file build (build.mjs) swaps this whole file for
+   a map of optimized data: URIs, so keep every path in the P object below and nowhere else. */
+const ART = "../../../src/art/";
+const P = {
+  paperCream: "back/paper-cream.jpg", paperKraft: "back/paper-kraft.jpg", stampFrame: "back/stamp-original-frame.png",
+  pageRight: "book/page-right.jpg", spiral: "book/spiral-rings.png", curl: "book/page-curl-shadow.png", cover: "book/cover-kraft.png",
+  tab1: "book/tab-blank-1.png", tab2: "book/tab-blank-2.png", tab3: "book/tab-blank-3.png", tab4: "book/tab-blank-4.png", tab5: "book/tab-blank-5.png", tab6: "book/tab-blank-6.png",
+  tape1: "creator/tape-1.png", tape2: "creator/tape-2.png", tape3: "creator/tape-3.png", tape4: "creator/tape-4.png",
+  mat: "creator/cutting-mat.jpg", cutSheet: "creator/cut-line-sheet.png",
+  swMatte: "materials/swatch-matte.png", swKraft: "materials/swatch-kraft.png", swHolo: "materials/swatch-holographic.png",
+  cardMatte: "today/material-card-matte.png", cardKraft: "today/material-card-kraft.png", cardHolo: "today/material-card-holographic.png",
+  envBack: "today/envelope-back.png", envCard: "today/envelope-card.png", envPocket: "today/envelope-pocket.png", envFlap: "today/envelope-flap.png",
+  foilBack: "today/foil-back.png", foilFront: "today/foil-front.png", sparkles: "today/sparkles-sheet.png", seeTomorrow: "today/see-you-tomorrow.png",
+  chCreate: "today/choice-create.png", chCollection: "today/choice-collection.png", chGift: "today/choice-gift.png", chPack: "today/choice-pack-pouch.png",
+  waxSeal: "gift/wax-seal.png", waxL: "gift/wax-seal-left.png", waxR: "gift/wax-seal-right.png", noteBlank: "gift/note-blank.png", mystery: "gift/mystery-sticker.png",
+  arrGift: "arrival/arrival-gift.png", arrMaterial: "arrival/arrival-material.png",
+  slot: "print/print-slot.png", slotGlow: "print/print-slot-glow.png", sheet: "print/backing-sheet.png",
+  logo: "brand/logo-wordmark-ink.svg", logoWhite: "brand/logo-wordmark-white.svg", tray: "brand/tray-template.svg",
+  tagJa: "fx/peta-tag-ja.png", tagEn: "fx/peta-tag-en.png", emptyBook: "empty/collection-empty.png",
+  pouch: "pack/pack-pouch-closed.png",
+  sBlueFlower: "samples/blue-flower.png", sCassette: "samples/cassette-tape.png", sCat: "samples/cat-skateboard.png", sCoffee: "samples/coffee-cup.png",
+  sCamera: "samples/film-camera.png", sEgg: "samples/fried-egg.png", sGoodDay: "samples/good-day.png", sBubble: "samples/peta-bubble.png",
+  sPolaroid: "samples/polaroid-mountain.png", sPlant: "samples/potted-plant.png", sScribble: "samples/purple-scribble.png", sComputer: "samples/retro-computer.png",
+};
+const A = {};
+for (const k in P) A[k] = ART + P[k];

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Peta — one-window prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/shells.css" />
+<link rel="stylesheet" href="css/pages.css" />
+<link rel="stylesheet" href="css/pack.css" />
+</head>
+<body data-shell="notebook">
+<div id="stage">
+  <div id="desktop" aria-hidden="true">
+    <svg id="wallpaper" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7f9bb6"/><stop offset=".45" stop-color="#c9c3c4"/><stop offset=".72" stop-color="#efd2b6"/><stop offset="1" stop-color="#f3dcc1"/></linearGradient>
+        <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8aa6b6"/><stop offset="1" stop-color="#5d7c8c"/></linearGradient>
+        <linearGradient id="m1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d9fb2"/><stop offset="1" stop-color="#b3bcc3"/></linearGradient>
+        <linearGradient id="m2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5f778c"/><stop offset="1" stop-color="#8a9aa5"/></linearGradient>
+        <linearGradient id="m3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3c5a52"/><stop offset="1" stop-color="#2b4039"/></linearGradient>
+        <radialGradient id="sun" cx=".72" cy=".62" r=".5"><stop offset="0" stop-color="#fff2d6" stop-opacity=".95"/><stop offset="1" stop-color="#fff2d6" stop-opacity="0"/></radialGradient>
+        <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .2 0 0 0 .09 0"/></filter>
+      </defs>
+      <rect width="1600" height="900" fill="url(#sky)"/>
+      <rect width="1600" height="900" fill="url(#sun)"/>
+      <path d="M0 520 L140 430 L230 470 L380 360 L470 430 L560 390 L700 470 L820 400 L930 450 L1060 350 L1180 440 L1300 390 L1440 470 L1600 410 L1600 640 L0 640Z" fill="url(#m1)"/>
+      <path d="M380 360 L420 395 L380 385 L350 400Z M1060 350 L1100 388 L1060 378 L1030 395Z" fill="#f4f1ec" opacity=".85"/>
+      <path d="M0 600 L110 520 L220 575 L330 500 L450 580 L600 510 L740 590 L880 520 L1010 595 L1150 525 L1290 590 L1430 530 L1600 585 L1600 700 L0 700Z" fill="url(#m2)"/>
+      <rect y="640" width="1600" height="150" fill="url(#lake)"/>
+      <path d="M0 640 L1600 640" stroke="#fff" stroke-opacity=".35"/>
+      <path d="M0 705 Q120 650 240 700 T480 690 T720 705 T960 690 T1200 700 T1440 688 T1600 700 L1600 900 L0 900Z" fill="url(#m3)"/>
+      <g fill="#243830">
+        <path d="M60 760 l14 -60 l14 60z M96 770 l18 -84 l18 84z M142 764 l12 -52 l12 52z"/>
+        <path d="M1380 770 l16 -70 l16 70z M1420 764 l20 -92 l20 92z M1470 772 l14 -62 l14 62z M1520 766 l12 -56 l12 56z"/>
+      </g>
+      <rect width="1600" height="900" filter="url(#grain)"/>
+    </svg>
+  </div>
+
+  <div id="menubar">
+    <div class="mb-left"><b>◐</b><span>Finder</span><span class="dim">File</span><span class="dim">Edit</span><span class="dim">View</span></div>
+    <div class="mb-right">
+      <button id="tray" class="tray-btn" aria-label="Peta menu"><i id="tray-icon"></i><u id="tray-dot"></u></button>
+      <span class="dim">􀙇</span><span id="clock">Sat 10:24</span>
+    </div>
+  </div>
+  <div id="tray-menu" hidden></div>
+
+  <div id="desk-stickers"></div>
+  <div id="arrival" hidden></div>
+
+  <div id="win-layer"><div id="win" class="win" hidden>
+    <div class="win-frame">
+      <div class="titlebar" id="titlebar">
+        <div class="lights"><button class="l-red" aria-label="Close"></button><i class="l-yel"></i><i class="l-grn"></i></div>
+        <div class="tb-title"><i class="tb-logo"></i></div>
+        <div class="tb-right"></div>
+      </div>
+      <nav class="nav" id="nav" aria-label="Peta sections"></nav>
+      <div class="book" id="bookbox">
+        <div class="spiral" aria-hidden="true"></div>
+        <div class="viewport" id="viewport"></div>
+      </div>
+    </div>
+  </div></div>
+
+  <div id="print-layer"></div>
+  <div id="overlay"></div>
+  <div id="toast" role="status"></div>
+  <aside id="guide" hidden></aside>
+</div>
+
+<div id="toolbar">
+  <div class="tb-group" id="shell-switch" role="tablist" aria-label="Design direction">
+    <button data-shell="notebook" role="tab"><b>A</b> Notebook</button>
+    <button data-shell="desk" role="tab"><b>B</b> Desk</button>
+    <button data-shell="studio" role="tab"><b>C</b> Studio</button>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-group">
+    <button id="tb-nextday" title="Start a new day: a new envelope arrives">Next day ▸</button>
+    <button id="tb-reset" title="Reset the whole prototype">Reset</button>
+    <button id="tb-sound" title="Sound on/off" aria-pressed="true">Sound ●</button>
+    <button id="tb-guide" title="What to touch">Guide ?</button>
+    <button id="tb-motion" title="Reduce motion" aria-pressed="false">Motion ●</button>
+  </div>
+</div>
+
+<script src="js/assets.js"></script>
+<script src="js/core.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/sticker.js"></script>
+<script src="js/state.js"></script>
+<script src="js/shell.js"></script>
+<script src="js/desktop.js"></script>
+<script src="js/pages-today.js"></script>
+<script src="js/pages-create.js"></script>
+<script src="js/pages-book.js"></script>
+<script src="js/pages-packs.js"></script>
+<script src="js/pages-misc.js"></script>
+<script src="js/pack.js"></script>
+<script src="js/guide.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
