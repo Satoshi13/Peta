@@ -41,7 +41,7 @@ function freshState(prev) {
     today: new Date(2026, 9, 3), dayState: "arrived", todayMat: "holographic", chosen: "holographic",
     stock: { matte: Infinity, kraft: 1, holographic: 0 },
     lib, nextNo: 13, desk: [{ id: "L12", x: 0.68, y: 0.5, rot: -5 }, { id: "L11", x: 0.2, y: 0.62, rot: 4 }],
-    packs: [{ id: "welcome", title: "Welcome Pack", by: "Peta", total: 12, left: ["sBubble", "sComputer", "sScribble"], hue: 0, kind: "holo" }],
+    packs: [{ id: "welcome", title: "Welcome Pack", by: "Peta", total: 12, left: ["sBubble", "sComputer", "sScribble"], hue: 0, kind: "holo", daily: true }],
     gifts: [
       { id: "G1", from: "Nao", note: "for your desk", src: "sCassette", material: "kraft", edition: 42, opened: false },
       { id: "G2", from: "Yuki", note: "", src: "sGoodDay", material: "matte", edition: 7, opened: false },
@@ -53,9 +53,11 @@ let S = freshState();
 const titleOf = (e) => e.title || SAMPLE_TITLES[e.src] || "Sticker";
 const dayLabel = () => fmtDate(S.today, { weekday: "short", month: "short", day: "numeric" });
 /* Rules (changed): one new material a day; stickers are limited only by the materials you hold (Matte never runs out).
-   Packs and Gifts have their own counters: a pack opens once a day, gifts open whenever they arrive. */
+   The Welcome Pack opens once a day; packs from the Market and Gifts open any time. */
 const PACK_DAILY = 1;
 const packsLeftToday = () => Math.max(0, PACK_DAILY - S.packsOpened);
+/** Welcome Pack: once a day. Packs you got from the Market: any time, as often as you like, until they are empty. */
+const packOpenable = (p) => p.left.length > 0 && (!p.daily || packsLeftToday() > 0);
 function rollMaterial() { const r = Math.random(); return r < .5 ? "matte" : r < .82 ? "kraft" : "holographic"; }
 
 /* two small inline icons that have no file in src/art yet */

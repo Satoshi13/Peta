@@ -7,7 +7,7 @@ const Guide = (() => {
   };
   const TASKS = [
     ["Open today's envelope", "Today → Open. You get one new material a day; the card settles beside today's choices.", () => { S.dayState === "arrived" ? Shell.open("today") : Shell.toast("Today's envelope is already open — press “Next day” for a new one."); }],
-    ["Tear a Pack", "Packs → Open one. Drag across the top, then pull the sleeve out. One pack a day, on its own counter.", () => Shell.open("packs")],
+    ["Tear a Pack", "Packs → Open one. Drag across the top, then pull the sleeve out. The Welcome Pack opens once a day; packs from the Market open any time.", () => Shell.open("packs")],
     ["Make as many Petas as you like", "Create → pick a sample (or drop your own image) → Erase / Restore (⌘Z, ⇧⌘Z) → Make this Peta. Each one uses a material; Matte never runs out.", () => Shell.open("create")],
     ["Stick it on the desktop", "After any of these, a sheet prints from the top. Drag the sticker anywhere — peta!", () => Shell.toast("Make or open something first, then grab the printed sticker.")],
     ["Turn a sticker over", "Book → tap a sticker → Turn over. Gift… seals it in an envelope.", () => Shell.open("book")],
@@ -15,7 +15,7 @@ const Guide = (() => {
     ["Put Peta away, bring it back", "No title bar: drag the handle at the top (or the top edge) to move, the corner to resize. Esc, the ✕, or a click on the desktop puts it away. The Peta icon in the menu bar brings it back.", () => Menu.open()],
     ["Browse the Market", "Market → get a pack or a new material, then find it on the Packs shelf or in Create.", () => Shell.open("market")],
     ["Switch direction", "A / B / C below — same app, three ways of moving through it.", () => Shell.toast("Use the A · B · C switch in the bar below.")],
-    ["Try other typefaces", "Aa Std / Hand / Type / Pen in the bar: current, handwritten, typewriter, fountain pen.", () => Shell.toast("Use the Aa · Hand · Type · Pen switch in the bar below.")],
+    ["Try other typefaces", "Mix (typewriter body, fountain-pen headings) is the default. Aa Std / Hand / Type / Pen are the others.", () => Shell.toast("Use the Aa · Hand · Type · Pen switch in the bar below.")],
   ];
   function render() {
     const g = $("#guide"), d = DIR[S.shell];

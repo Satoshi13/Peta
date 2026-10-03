@@ -92,3 +92,8 @@ img.peta-tag { width: 120px; }
 .pk-layer.tinted { filter: sepia(.55) saturate(1.9) hue-rotate(calc(var(--hue, 0deg) - 40deg)) brightness(1.03); }
 .pouch[data-kind="kraft"] .pk-inside { background: linear-gradient(180deg, #4d3a22, #86683b 62%, #b08d58); } .pouch[data-kind="matte"] .pk-inside { background: linear-gradient(180deg, #a69b86, #cdc3ae 62%, #e4dbc8); }
 .pouch[data-kind="kraft"] .pk-line, .pouch[data-kind="matte"] .pk-line { border-top-color: rgba(70, 50, 25, .6); }
+
+.pk-wrap .mcard.in-wrap { position: absolute; z-index: 3; filter: drop-shadow(0 4px 5px rgba(0, 0, 0, .3)); touch-action: none; outline: none; }
+.pk-wrap .mcard.in-wrap.out { cursor: grab; } .pk-wrap .mcard.in-wrap.out:active { cursor: grabbing; }
+.pk-wrap .mcard.in-wrap.out::before { content: "↑"; position: absolute; left: 50%; top: -34px; translate: -50% 0; font: 600 22px var(--sys); color: #f5efe2; animation: nudge 1.2s ease-in-out infinite; text-shadow: 0 1px 6px rgba(0, 0, 0, .4); }
+.cer .mcard.big { will-change: transform; }

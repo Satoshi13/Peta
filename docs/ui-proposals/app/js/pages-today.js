@@ -25,11 +25,11 @@ const CHOICES = [
   { id: "create", key: "chCreate", label: "Create", sub: "From an image you pick" },
   { id: "book", key: "chCollection", label: "Collection", sub: "Stick one you already have" },
   { id: "gifts", key: "chGift", label: "Gift", sub: () => { const n = S.gifts.filter((g) => !g.opened).length; return n ? `${n} waiting` : "Open one that arrived"; } },
-  { id: "packs", key: "chPack", label: "Pack", sub: () => (!S.packs.some((p) => p.left.length) ? "All opened" : packsLeftToday() ? "One a day · resets at midnight" : "Opened today · back tomorrow") },
+  { id: "packs", key: "chPack", label: "Pack", sub: () => { const n = S.packs.filter(packOpenable).length; return n ? "Open one at random" : S.packs.some((p) => p.left.length) ? "Welcome Pack: back tomorrow" : "All opened"; } },
 ];
 function Choices({ compact } = {}) {
   return h("div.choices" + (compact ? ".compact" : ""), CHOICES.map((c, i) => {
-    const sub = typeof c.sub === "function" ? c.sub() : c.sub, off = c.id === "packs" && (!S.packs.some((p) => p.left.length) || !packsLeftToday());
+    const sub = typeof c.sub === "function" ? c.sub() : c.sub, off = c.id === "packs" && !S.packs.some(packOpenable);
     return h("button.choice", { disabled: off, style: { "--i": i }, data: { id: c.id },
       on: { click: (e) => { Snd.tap(); if (c.id === "book") S.pickMode = true; Shell.go(c.id, { origin: e.currentTarget, via: "object" }); } } },
       h("span.choice-obj", { style: { backgroundImage: `var(--a-${c.key})` } }), h("b", c.label), compact ? null : h("small", sub));
@@ -95,44 +95,23 @@ Pages.today = {
     anim(lead, [{ opacity: 1 }, { opacity: 0 }], { duration: 240 }); anim(btn, [{ opacity: 1 }, { opacity: 0 }], { duration: 240 });
     await anim(scene, [{ transform: "scale(1.04) translateY(0)", opacity: 1 }, { transform: "scale(.96) translateY(26px)", opacity: 0 }], { duration: 360, easing: EASE.inOut });
     S.dayState = "opened"; if (!m.unlimited) S.stock[m.id]++; Shell.renderNav(); Desktop.hideArrival();
-    // reveal
-    const stageEl = $(".t-arrived", root); stageEl.replaceChildren();
-    const rev = RevealScene(m); stageEl.append(rev);
-    const info = h("div.reveal-info", h("p.eyebrow", "Today's Material"), h("h2.big", m.name),
-      h("span.seal.stamp-in", { data: { rarity: m.rarity } }, m.rarity), h("p.muted", m.recipe), h("p.addnote.hand", "Added to your Material Book"),
-      h("button.btn.cont", { on: { click: () => settle() } }, "Keep it"));
-    stageEl.append(info);
-    const rare = RARITY_ORDER.indexOf(m.rarity) >= 2;
-    Snd.tear(); await sleep(60);
-    const cardEl = $(".mcard.big", rev), foil = $(".foil-front", rev), glow = $(".glow", rev);
-    anim(foil, [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(34px) rotate(2deg)" }], { duration: 420, easing: EASE.inOut });
-    anim(glow, [{ opacity: 0, transform: "scale(.4)" }, { opacity: 1, transform: "scale(1)" }], { duration: 900, easing: EASE.out });
-    await anim(cardEl, [{ transform: "translateY(36px) rotate(-5deg) scale(.92)", opacity: 0 }, { transform: "translateY(0) rotate(-2deg) scale(1)", opacity: 1 }], { duration: 560, easing: EASE.spring });
-    cardEl.style.transform = "rotate(-2deg)";
-    if (rare) { Snd.chime(5, 988); sparkBurst(rev, 26); } else Snd.chime(2, 660);
-    anim($(".seal", info), [{ opacity: 0, transform: "scale(2.2) rotate(-12deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 380, easing: EASE.spring, delay: 200 });
-    anim($(".eyebrow", info), [{ opacity: 0 }, { opacity: 1 }], { duration: 300 });
-    Stk.tilt(cardEl, { max: 10, scale: 1.02 });
-    const settle = async () => {
-      info.querySelector(".cont").disabled = true; Snd.tap();
-      anim(info, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 });
-      const from = cardEl.getBoundingClientRect();
-      const block = Pages.today.openedBlock(); block.style.opacity = 0; stageEl.replaceWith(block);
-      const target = $(".tm-card .mcard", block);
-      const choices = $$(".choice", block);
-      await sleep(30);
-      if (target) {
-        const to = target.getBoundingClientRect(), fl = cardEl.cloneNode(true), k = to.width / from.width;
-        fl.style.cssText = `position:fixed;left:${from.left}px;top:${from.top}px;width:${from.width}px;z-index:90;pointer-events:none;--w:${from.width}px;transform-origin:0 0;`;
-        document.body.append(fl); target.style.visibility = "hidden";
-        anim(block, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
-        choices.forEach((c, i) => anim(c, [{ opacity: 0, transform: "translateY(18px) scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 520, delay: 260 + i * 80, easing: EASE.spring }));
-        const rot = parseFloat(getComputedStyle(target).getPropertyValue("--r")) || 0;
-        await anim(fl, [{ transform: "translate(0,0) rotate(-2deg) scale(1)" }, { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) rotate(${rot}deg) scale(${k})` }], { duration: 640, easing: EASE.inOut });
-        fl.remove(); target.style.visibility = ""; Snd.tap();
-      } else block.style.opacity = 1;
-      block.style.opacity = 1; block.getAnimations().forEach((a) => a.cancel());
-    };
+    // The card is in a wrapper of its own material (foil, kraft or paper): tear it, pull the card out.
+    const stageEl = $(".t-arrived", root);
+    const res = await Cer.openMaterial(m);
+    const block = Pages.today.openedBlock(); block.style.opacity = 0; stageEl.replaceWith(block);
+    const target = $(".tm-card .mcard", block), choices = $$(".choice", block);
+    await sleep(30);
+    const from = res.rect, fl = res.node;
+    if (target) {
+      const to = target.getBoundingClientRect(), k = to.width / from.width;
+      fl.style.cssText = `position:fixed;left:${from.left}px;top:${from.top}px;width:${from.width}px;z-index:300;pointer-events:none;--w:${from.width}px;transform-origin:0 0;`;
+      document.body.append(fl); target.style.visibility = "hidden"; res.close();
+      anim(block, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+      choices.forEach((c, i) => anim(c, [{ opacity: 0, transform: "translateY(18px) scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 520, delay: 260 + i * 80, easing: EASE.spring }));
+      await anim(fl, [{ transform: "translate(0,0) rotate(-2deg) scale(1)" }, { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) rotate(-2deg) scale(${k})` }], { duration: 640, easing: EASE.inOut });
+      fl.remove(); target.style.visibility = ""; Snd.tap();
+    } else { res.close(); block.style.opacity = 1; }
+    block.style.opacity = 1; block.getAnimations().forEach((a) => a.cancel());
   },
 };
 

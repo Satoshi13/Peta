@@ -59,18 +59,38 @@
 - すべて**文字面は静か**(上に ORIGINAL の印、Created by、日付、素材名、No. が載る。コントラスト低め)。
 - 縁は**直線のまま**(角丸と影はコード)。
 
-### 6. ウィンドウの取っ手と角 `ui/`
-ウィンドウにタイトルバーがないので、**触れる場所**を物として用意します。
+### 6. ウィンドウの「上の部分」と手作りの ✕ `ui/`
+オーナーの方針が決まりました。**Mac 標準の赤・黄・緑の丸は使わない**(世界観が壊れるため)。代わりに次の2つを**物として**用意します。実装は素材が届いてからこちらでやります。
+
+**(a) ウィンドウの上端 = 「ここを掴めば動く」と直感でわかる帯**
+タイトルバー(文字や丸ボタンの帯)ではなく、ノート・マット・紙の**上端そのものが、掴める物に見える**ことが目的です。方向(A/B/C)ごとに1枚。横に伸ばせる9スライス(左右 120px)、**中央に小さな「握る目印」**(浅い溝・縫い目・テープの重なりなど。**文字なし**)。
 
 | ファイル | サイズ | 内容 |
 |---|---|---|
-| `grabber-strap.png` | 240 × 64・透過 | ウィンドウ上端に付く**革/紙のつまみ帯**。中央に**浅い横溝(握る目印)**、左右に小さなリベット。右側に ✕ を置く**丸い凹み**(✕ はコード) |
-| `resize-corner.png` | 96 × 96・透過 | 右下の**折れた角(ドッグイヤー)**。ページを少し折った影つき。ドラッグでサイズ変更 |
+| `window-top-notebook.png` | 1400 × 72・透過 | **ノートの表紙の上端**。厚紙が少し盛り上がった帯、表紙の縫い目(ステッチ)、中央に浅い横溝。既存の `cover-board.jpg` と同じ厚紙 |
+| `window-top-desk.png` | 1400 × 72・透過 | **カッティングマットの上端**に貼った**マスキングテープ**(半透明、両端がギザギザ、中央に指で押さえたような薄い皺) |
+| `window-top-studio.png` | 1400 × 72・透過 | **紙のヘッダー帯**(厚い紙の切れ端が窓の上に貼られている、小口が見える、中央にミシン目のような小さな点線) |
+| `window-top-*-hover.png` | 同上 | 掴めるときの状態(ほんの少し明るく、影が深い) |
+
+**(b) 手作りの ✕(閉じるボタン)** 上の**角**に置きます(左上か右上かはこちらで決める。**どちらでも使える**ように、左右対称に作る)。
+**4案**を作ってください(オーナーが選びます)。各案に **normal / hover / pressed の3状態**、**96 × 96**・透過。
+
+| 案 | 内容 |
+|---|---|
+| `close-pencil-*.png` | **クラフトの小さな丸いシール**に、**鉛筆で手書きした ✕**(線に筆圧のむら、少しはみ出す) |
+| `close-stitch-*.png` | **フェルトの丸いパッチ**に**赤い糸のクロスステッチ ✕**(糸のほつれが1か所) |
+| `close-tape-*.png` | **マスキングテープを2本交差**させた ✕(半透明の重なり、端がギザギザ) |
+| `close-wax-*.png` | **赤い封蝋**に**凹んだ ✕**(`gift/wax-seal.png` と兄弟。押した瞬間の凹み) |
+
+- hover は「少し持ち上がる/色が明るくなる」、pressed は「沈む/影が浅くなる」。
+- **✕ の印そのものを画像に描く**(文字ではなく図案なので OK)。それ以外の文字は入れない。
+- 実寸の 24 px まで縮めても ✕ が読めること。
 
 ## P1
 
 | ファイル | サイズ | 内容 |
 |---|---|---|
+| `ui/resize-corner.png` | 96 × 96・透過 | ウィンドウ右下の**折れた角(ドッグイヤー)**。ページを少し折った影つき。ドラッグでサイズ変更(いまは斜線の仮) |
 | `ui/icon-market.png` / `ui/icon-settings.png` | 各 192 × 192・透過 | 見出しタブや Peta メニューのアイコン。**既存の `today/choice-*.png` と同じ筆致**で、Market は**クラフトの紙袋(小さな赤い値札)**、Settings は**真鍮の歯車(ペン立てに挿した工具のような)** |
 | `today/material-card-gold.png` `-riso.png` `-vintage.png` | 各 560 × 380・透過 | **新しい素材のカード**(`material-card-holographic.png` と同じ寸法・同じ紙の厚み・同じ空白のラベル面)。gold=金箔、riso=2色刷りのピンクと青のずれ、vintage=古紙。いまは既存カードに色フィルタをかけた代用 |
 | `ui/price-tag-free.png` `price-tag-paid.png` | 各 240 × 120・透過 | Market の**値札**(小さな荷札型か、丸いシール型)。文字はコード。free は緑がかった台紙、paid はクリーム |
@@ -94,7 +114,8 @@
 (slider) A ruler-like groove with fine tick marks and graphite shading, plus a round brass pin knob with a soft highlight (or a folded paper pull-tab).
 (switch) A paper slide switch: a recessed groove (off: plain cream, on: kraft-tinted) and a round knob matching the slider knob.
 (back-matte) Seamless cream paper, fine fibres, blank. (back-kraft) Seamless kraft paper with dark flecks. (back-holographic) A silver holographic foil backing sheet: fine silver glitter, faint pastel diffraction streaks (pink, lavender, sky, mint, lemon), still, low contrast. (back-gold) Warm gold foil with subtle foil-stamp mottling, not glaring. (back-riso) Pale pink risograph print on paper with halftone dots and a slight misregistration. (back-vintage) Aged yellowed paper with brown foxing spots and darker corners.
-(grabber) A small leather-or-paper handle strap for the top edge of a window: a shallow horizontal grip groove in the middle, tiny rivets at both ends, a round recess on the right for a close mark.
+(window top) A thin horizontal band for the top edge of an app window that reads as "grab here" without any text: <a kraft notebook cover edge with stitching and a shallow grip groove / a strip of translucent washi tape with a small pressed crease in the middle / a thick paper header strip with a faint perforation line>. Stretchable left and right; all detail in the middle.
+(close x) A hand-made close button, 96 px, symmetrical so it works in either top corner: <a small kraft round sticker with a pencil-drawn X, uneven pressure / a felt patch with a red cross-stitched X, one loose thread / two crossed strips of masking tape / a red wax seal with a pressed X>. Three states: normal, hover (slightly lifted, a bit brighter), pressed (sunk, shallower shadow). The X is a drawn mark, no letters.
 (resize corner) A page corner folded over (a dog-ear), with a soft shadow, seen straight on.
 (icons) Same brush and palette as the existing choice icons: a kraft paper shopping bag with a tiny red price tag; a small brass gear.
 (price tag) A small hang tag or round price sticker, blank.
@@ -126,6 +147,6 @@
 | month flag | 同 `.month` |
 | panel / slider / switch / seg | `css/pages.css` の `.cr-controls` `input[type=range]` `.switch` `.seg`、`css/polish.css` の同名 |
 | back-* | `css/polish.css` の `.back-card[data-mat=…]` `.backing[data-mat=…]` |
-| grabber / resize | `css/polish.css` の `.grabber` `.resize-h` |
+| window-top / close | `css/polish.css` の `.grabber` `.drag-strip`、`index.html` の `#g-close`(いまは仮の取っ手+✕) |
 | icons | `js/state.js` の `A.shop` `A.gear`(インライン SVG の代用) |
 | material cards | `css/base.css` の `.mcard[data-m="gold|riso|vintage"]`(色フィルタの代用) |

@@ -29,7 +29,7 @@ function wireToolbar() {
 async function boot() {
   Shell.applyAssetVars(); Shell.initChrome(); Menu.init(); wireToolbar(); Guide.init();
   Shell.setShell(new URLSearchParams(location.search).get("shell") || S.shell, true);
-  setType(new URLSearchParams(location.search).get("type") || "current");
+  setType(new URLSearchParams(location.search).get("type") || "mix");
   $("#clock").textContent = fmtDate(S.today, { weekday: "short" }) + " 10:24";
   await Desktop.renderAll(); Shell.renderNav();
   S.lib.forEach((e) => { resOf(e, { max: 360 }); resOf(e, { max: 520 }); }); // warm the sticker cache so tiles don't pop in
