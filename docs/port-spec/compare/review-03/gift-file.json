@@ -1,0 +1,72 @@
+{
+  "nativeSaveDialog": true,
+  "nativeOpenDialog": true,
+  "sealedInbox": true,
+  "finishedPngUnchanged": true,
+  "header": {
+    "giftId": "GIFT-GYCG155FV52C",
+    "from": "Satoshi",
+    "note": null,
+    "sentAt": "2026-10-03T21:49:52.416264561+00:00",
+    "edition": 2,
+    "origin": {
+      "stickerId": "PETA-PORT-0011",
+      "creatorName": "Satoshi",
+      "createdAt": "2026-10-01T12:00:00Z",
+      "materialId": "matte",
+      "aspect": 1.1810841983852365
+    },
+    "pngLen": 890846,
+    "maskLen": 0
+  },
+  "fileBytes": 891153,
+  "before": {
+    "position": {
+      "x": 190,
+      "y": 100
+    },
+    "size": {
+      "height": 520,
+      "width": 720
+    },
+    "visible": true
+  },
+  "sealing": {
+    "envelope": {
+      "bottom": 392.765625,
+      "height": 193.109375,
+      "left": 214.890625,
+      "right": 504.5625,
+      "top": 199.65625,
+      "width": 289.671875,
+      "x": 214.890625,
+      "y": 199.65625
+    },
+    "position": {
+      "x": 190,
+      "y": 100
+    },
+    "size": {
+      "height": 520,
+      "width": 720
+    },
+    "viewport": [
+      720,
+      520
+    ],
+    "visible": true
+  },
+  "finished": {
+    "bookDetail": true,
+    "giftForm": false,
+    "position": {
+      "x": 190,
+      "y": 100
+    },
+    "size": {
+      "height": 520,
+      "width": 720
+    },
+    "visible": true
+  }
+}

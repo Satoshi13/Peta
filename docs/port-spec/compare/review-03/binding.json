@@ -1,0 +1,143 @@
+[
+  {
+    "band": {
+      "bottom": 653.71875,
+      "height": 611.71875,
+      "left": 120,
+      "right": 174,
+      "top": 42,
+      "width": 54,
+      "x": 120,
+      "y": 42
+    },
+    "capHeights": [
+      27,
+      27
+    ],
+    "coverBorder": "0px",
+    "gutterLeft": "0px",
+    "middle": {
+      "bottom": 626.71875,
+      "height": 557.71875,
+      "left": 120,
+      "right": 174,
+      "top": 69,
+      "width": 54,
+      "x": 120,
+      "y": 69
+    },
+    "oldCoilCount": 0,
+    "viewport": [
+      1060,
+      700
+    ],
+    "scrolled": {
+      "binding": {
+        "bottom": 653.71875,
+        "height": 611.71875,
+        "left": 120,
+        "right": 174,
+        "top": 42,
+        "width": 54,
+        "x": 120,
+        "y": 42
+      },
+      "maximum": 208,
+      "scrollTop": 208
+    }
+  },
+  {
+    "band": {
+      "bottom": 419.6875,
+      "height": 379.6875,
+      "left": 16,
+      "right": 70,
+      "top": 40,
+      "width": 54,
+      "x": 16,
+      "y": 40
+    },
+    "capHeights": [
+      27,
+      27
+    ],
+    "coverBorder": "0px",
+    "gutterLeft": "0px",
+    "middle": {
+      "bottom": 392.6875,
+      "height": 325.6875,
+      "left": 16,
+      "right": 70,
+      "top": 67,
+      "width": 54,
+      "x": 16,
+      "y": 67
+    },
+    "oldCoilCount": 0,
+    "viewport": [
+      720,
+      520
+    ],
+    "scrolled": {
+      "binding": {
+        "bottom": 419.6875,
+        "height": 379.6875,
+        "left": 16,
+        "right": 70,
+        "top": 40,
+        "width": 54,
+        "x": 16,
+        "y": 40
+      },
+      "maximum": 1992,
+      "scrollTop": 1992
+    }
+  },
+  {
+    "band": {
+      "bottom": 653.71875,
+      "height": 611.71875,
+      "left": 120,
+      "right": 174,
+      "top": 42,
+      "width": 54,
+      "x": 120,
+      "y": 42
+    },
+    "capHeights": [
+      27,
+      27
+    ],
+    "coverBorder": "0px",
+    "gutterLeft": "0px",
+    "middle": {
+      "bottom": 626.71875,
+      "height": 557.71875,
+      "left": 120,
+      "right": 174,
+      "top": 69,
+      "width": 54,
+      "x": 120,
+      "y": 69
+    },
+    "oldCoilCount": 0,
+    "viewport": [
+      1060,
+      700
+    ],
+    "scrolled": {
+      "binding": {
+        "bottom": 653.71875,
+        "height": 611.71875,
+        "left": 120,
+        "right": 174,
+        "top": 42,
+        "width": 54,
+        "x": 120,
+        "y": 42
+      },
+      "maximum": 208,
+      "scrollTop": 208
+    }
+  }
+]

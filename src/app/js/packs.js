@@ -18,7 +18,7 @@ Pages.packs = {
     const card = h("button.pack", { disabled: off, "aria-label": `${p.title}, ${p.left.length} left`, data: { empty: p.empty }, style: { "--i": i }, on: { click: () => { Snd.tap(); Cer.openPack(p); } } },
       stack,
       h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.empty ? "all opened" : p.left.length + " of " + p.total + " left"}`), h("small.rule", p.empty ? "" : p.daily ? (packsLeftToday() ? "once a day" : "back tomorrow") : "open any time")),
-      off ? null : h("span.open-cta", "Open one"));
+      h("span.open-cta", { "aria-hidden": off ? "true" : null, style: { visibility: off ? "hidden" : "visible" } }, "Open one"));
     if (!off) { onPointerFollow(stack, (x, y) => { stack.style.setProperty("--sx", (1 - x) * 100 + "%"); stack.style.setProperty("--sy", (1 - y) * 100 + "%"); stack.style.setProperty("--ry", (x - .5) * 14 + "deg"); stack.style.setProperty("--rx", -(y - .5) * 10 + "deg"); }, () => { stack.style.setProperty("--ry", "0deg"); stack.style.setProperty("--rx", "0deg"); }); }
     return card;
   },

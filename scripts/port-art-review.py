@@ -4,7 +4,7 @@ from PIL import Image,ImageDraw
 c=importlib.import_module('port-capture');out=c.ROOT/'docs/port-spec/compare/art-03';out.mkdir(exist_ok=True)
 def ev(s):return c.evaluate(s,timeout=60)
 def ready():
-    ev('await document.fonts.ready;await Promise.all(["pageDots","pageGutter","pageEdgeRight","pageEdgeBottom","pageCorner","coverEdge","spiralBinding","spiralCapTop","spiralCapBottom","noteStickyYellow","indexCard","paperClip"].map(k=>Stk.load(A[k])));return true;')
+    ev('await document.fonts.ready;await Promise.all(["pageDots","pageGutter","pageEdgeRight","pageEdgeBottom","pageCorner","spiralBinding","spiralCapTop","spiralCapBottom","noteStickyYellow","indexCard","paperClip"].map(k=>Stk.load(A[k])));return true;')
     start=time.monotonic()
     while not ev('return Array.from(document.querySelectorAll("#viewport img")).every(i=>i.complete && i.naturalWidth>0) && document.querySelectorAll(".tile-stk .stk").length===document.querySelectorAll(".tile-stk").length && (!document.querySelector(".f-front") || Boolean(document.querySelector(".f-front .stk"))) && document.querySelectorAll(".fan-s .stk").length===document.querySelectorAll(".fan-s").length;'):
         assert time.monotonic()-start<60;time.sleep(.2)
@@ -21,7 +21,7 @@ def shot(name,width=1060):
         d=ImageDraw.Draw(pair);d.text((12,8),'Golden (original window crop)',fill='#2b2a28');d.text((1072,8),'Actual Tauri / delivered paper parts',fill='#2b2a28');pair.save(out/(name+'.jpg'),quality=90)
     print(name,flush=True)
 def geometry():
-    return ev('const band=document.querySelector(".binding-band"),detail=document.querySelector(".detail");return {shell:S.shell,page:S.page,width:innerWidth,height:innerHeight,bindingHeight:band?.getBoundingClientRect().height,bindingBackground:band?getComputedStyle(band).backgroundImage:null,oldCoilCount:document.querySelectorAll(".coil").length,detailBackground:detail?getComputedStyle(detail).backgroundImage:null,paperArt:Array.from(document.querySelectorAll(".book-paper-parts [data-art]")).map(e=>e.dataset.art)};')
+    return ev('const band=document.querySelector(".binding-band"),detail=document.querySelector(".detail");return {shell:S.shell,page:S.page,width:innerWidth,height:innerHeight,bindingHeight:band?.getBoundingClientRect().height,bindingWidth:band?.getBoundingClientRect().width,bindingBackground:band?getComputedStyle(band.querySelector(".binding-middle")).backgroundImage:null,oldCoilCount:document.querySelectorAll(".coil").length,detailBackground:detail?getComputedStyle(detail).backgroundImage:null,paperArt:Array.from(document.querySelectorAll(".book-paper-parts [data-art]")).map(e=>e.dataset.art)};')
 ev('S.closeOutside=false; await Bridge.invoke("print_later");await Bridge.invoke("exit_edit_mode");await Bridge.window.show();await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700));await Bridge.window.setPosition(new window.__TAURI__.dpi.LogicalPosition(190,79));return true;')
 records=[]
 for width,height in [(1060,700),(720,520)]:
@@ -35,7 +35,8 @@ for width,height in [(1060,700),(720,520)]:
             shot(shell+'-'+name+('-720x520' if width==720 else ''),width)
             record=geometry();records.append(record)
             if shell=='desk' and page.startswith('book'):
-                assert record['bindingHeight']>0 and abs(record['bindingHeight']/18.75-round(record['bindingHeight']/18.75))<1e-6
+                pitch=record['bindingWidth']/128*50
+                assert record['bindingHeight']>0 and abs(record['bindingHeight']/pitch-round(record['bindingHeight']/pitch))<1e-6
                 assert record['oldCoilCount']==0 and len(record['paperArt'])==4
             if page=='book-detail':
                 assert 'note-sticky-yellow.png' in record['detailBackground']

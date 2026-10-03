@@ -19,7 +19,7 @@ const P = {
   tagJa: "fx/peta-tag-ja.png", tagEn: "fx/peta-tag-en.png", tagRound: "fx/peta-tag-round.png", tagHolo: "fx/peta-tag-holo.png", tagStamp: "fx/peta-tag-stamp.png", emptyBook: "empty/collection-empty.png",
   pouch: "pack/pack-pouch-closed.png", packHolo: "pack/pack-holographic.png", packKraft: "pack/pack-kraft.png", packMatte: "pack/pack-matte.png",
   pagePaper: "book/page-paper.jpg", coverBoard: "book/cover-board.jpg",
-  coverEdge: "book/cover-edge.png", pageDots: "book/page-dots.png", pageGutter: "book/page-gutter.png",
+  pageDots: "book/page-dots.png", pageGutter: "book/page-gutter.png",
   pageEdgeRight: "book/page-edge-right.png", pageEdgeBottom: "book/page-edge-bottom.png", pageCorner: "book/page-corner-curl.png",
   spiralBinding: "book/spiral-binding.png", spiralCapTop: "book/spiral-cap-top.png", spiralCapBottom: "book/spiral-cap-bottom.png",
   noteStickyYellow: "notes/note-sticky-yellow.png",

@@ -21,8 +21,9 @@ const Cer = (() => {
     cer.hint("");
     const W = stage.clientWidth, Hh = stage.clientHeight;
     const holder = h("div.rv-holder");
-    const sw = Math.min(280, (res.aspect >= 1 ? 1 : res.aspect) * 280);
-    const stk = Stk.el(res, res.aspect >= 1 ? 280 : sw); holder.append(stk);
+    const max = Math.min(280, W * .45, Hh * .4);
+    const sw = max * Math.min(1, res.aspect);
+    const stk = Stk.el(res, sw); holder.append(stk);
     const glow = h("i.rv-glow", { data: { m: entry.material } }), rays = h("i.rv-rays", { data: { m: entry.material } });
     stage.append(glow, rays, holder); holder.style.opacity = 0;
     // sleeve glides to the middle and gets a little crumpled
@@ -64,7 +65,7 @@ const Cer = (() => {
   /* One tearable wrapper, used by Packs (the sticker comes out) and by Today's material (the card comes out).
      `content` sits inside, behind the front of the wrapper; `onTear(rig)` runs once, the moment the top is torn off. */
   function buildRig(cer, stage, { kind, hue, content, onTear }) {
-    const K = PACK_KINDS[kind] || PACK_KINDS.holo, PW = Math.min(310, screen.height * .4), PH = PW * 4 / 3, CUT = K.cut;
+    const K = PACK_KINDS[kind] || PACK_KINDS.holo, PW = Math.min(310, stage.clientHeight * .48, stage.clientWidth * .55), PH = PW * 4 / 3, CUT = K.cut;
     const jag = jagged(26, CUT), tint = K.foil && hue ? ".tinted" : "";
     const mk = (cls, clip) => h("div.pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--hue": (hue || 0) + "deg" } }, K.foil ? h("i.sheen") : null);
     const body = mk("pk-body", polyBody(jag)), topStrip = mk("pk-top", polyTop(jag)), inside = h("div.pk-inside");
@@ -134,7 +135,8 @@ const Cer = (() => {
       const w = MAT_WRAP[m.id] || MAT_WRAP.matte, fx = RAR_FX[m.rarity] || RAR_FX.common;
       const card = h("div.mcard.big.in-wrap", { data: { m: m.id }, vars: { "--w": "216px" } }, h("i.art"), h("span.lab", h("b", m.name), h("small", m.rarity)));
       const rig = buildRig(cer, stage, { kind: w.kind, hue: w.hue, content: card, onTear: async (rig) => {
-        card.style.cssText += `;position:absolute;left:${rig.PW * .14}px;top:${rig.cutY - 216 * .38 * .1}px`;
+        const cardWidth = Math.min(216, rig.PW * .72);
+        card.style.cssText += `;position:absolute;left:${rig.PW * .14}px;top:${rig.cutY - cardWidth * .038}px;--w:${cardWidth}px`;
         await anim(card, [{ transform: card.style.transform || "none" }, { transform: `translateY(${-rig.PH * .28}px) rotate(-2deg)` }], { duration: 760, easing: EASE.out });
         fix(card, `translateY(${-rig.PH * .28}px) rotate(-2deg)`); card.classList.add("out"); cer.hint("Pull it out.");
         rig.pullable(card, { rise: .28, need: .3, onPull: async () => {
@@ -142,14 +144,14 @@ const Cer = (() => {
           const r = card.getBoundingClientRect(), sr = stage.getBoundingClientRect();
           stage.append(card); card.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;--w:${r.width}px;`;
           const W = stage.clientWidth, Hh = stage.clientHeight, st = stage.getBoundingClientRect();
-          const dx = st.left + W / 2 - (r.left + r.width / 2), dy = st.top + Hh * .42 - (r.top + r.height / 2), k = 300 / r.width;
+          const dx = st.left + W / 2 - (r.left + r.width / 2), dy = st.top + Hh * .42 - (r.top + r.height / 2), k = Math.min(300, W * .5, Hh * .58) / r.width;
           const glow = h("i.rv-glow", { data: { m: m.id === "gold" ? "kraft" : m.id } }), rays = h("i.rv-rays", { data: { m: m.id } }); stage.append(glow, rays);
           anim(glow, [{ opacity: 0, transform: "scale(.3)" }, { opacity: 1, transform: "scale(1)" }], { duration: 900, easing: EASE.out });
           if (m.id !== "matte") anim(rays, [{ opacity: 0, transform: "scale(.5) rotate(0)" }, { opacity: .85, transform: "scale(1) rotate(40deg)" }], { duration: 1200, easing: EASE.out });
           await anim(card, [{ transform: "none" }, { transform: `translate(${dx}px, ${dy}px) scale(${k * 1.08}) rotate(-3deg)`, offset: .7 }, { transform: `translate(${dx}px, ${dy}px) scale(${k}) rotate(-2deg)` }], { duration: 820, easing: EASE.out });
           fix(card, `translate(${dx}px, ${dy}px) scale(${k}) rotate(-2deg)`);
           if (fx.n) sparkBurst(stage, fx.n, { cx: .5, cy: .42, power: m.rarity === "rare" ? 1.5 : 1, colors: m.id === "kraft" ? ["#f2d9a8", "#fff", "#e8bf80"] : undefined }); Snd.chime(fx.chime, 880);
-          cer.hint("Tilt it — it catches the light."); Stk.tilt(card, { max: 12, scale: 1.02 });
+          cer.hint("Tilt it — it catches the light."); Stk.tilt(card, { max: 12, scale: 1.02, baseTransform: card.style.transform });
           const info = h("div.rv-info", h("p.eyebrow", "Today's Material"), h("h2", m.name), h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: m.rarity } }, m.rarity), h("span.no", m.recipe)),
             h("div.rv-btns", h("button.btn.keep", { on: { click: async () => {
               Snd.tap(); const rect = card.getBoundingClientRect(), node = card.cloneNode(true); node.classList.remove("in-wrap", "big", "out"); node.getAnimations?.().forEach((a) => a.cancel());
@@ -159,7 +161,8 @@ const Cer = (() => {
           await sleep(260); Snd.seal(); anim($(".seal", info), [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 360, easing: EASE.spring });
         } });
       } });
-      card.style.cssText = `position:absolute;left:${rig.PW * .14}px;top:${rig.cutY - 216 * .38 * .1}px;--w:216px`;
+      const cardWidth = Math.min(216, rig.PW * .72);
+      card.style.cssText = `position:absolute;left:${rig.PW * .14}px;top:${rig.cutY - cardWidth * .038}px;--w:${cardWidth}px`;
       rig.focus(); cer.root._esc = () => {};
     });
   }
@@ -167,7 +170,7 @@ const Cer = (() => {
   /* ------------------------------------------------------------------ GIFT (open) */
   async function openGift(gift) {
     const cer = overlay("gift"), stage = cer.stage; cer.hint("Break the seal.");
-    const EW = Math.min(420, screen.width * .6), EH = EW * 340 / 480;
+    const EW = Math.min(420, stage.clientWidth * .6, stage.clientHeight * .75), EH = EW * 340 / 480;
     const flapPoly = "polygon(10% 14%, 90% 14%, 50% 57%)", bodyPoly = "polygon(0 0, 10% 14%, 50% 57%, 90% 14%, 100% 0, 100% 100%, 0 100%)";
     const hole = `radial-gradient(circle at 50% 54.5%, transparent 0, transparent ${EW * .066}px, #000 ${EW * .074}px)`;
     const mk = (cls, clip, extra = {}) => h("img.ev-layer." + cls, { src: A.arrGift, alt: "", style: { clipPath: clip, webkitMaskImage: hole, maskImage: hole, ...extra } });
@@ -215,8 +218,8 @@ const Cer = (() => {
         await unwrapAndReveal({ cer, stage, sleeve, entry, source: `Gift from ${gift.from}`, onKeep: keep, onLater: later });
       }
     };
-    const keep = async () => { Bridge.busy=false; await cer.close(); Shell.toast("A gift from " + gift.from + "."); await Desktop.print(entry); };
-    const later = async () => { Bridge.busy=false; await Bridge.invoke("print_later"); await cer.close(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); Shell.close(); };
+    const keep = async () => { Bridge.busy=false; await cer.close(); Shell.refresh(); Shell.toast("A gift from " + gift.from + "."); await Desktop.print(entry); };
+    const later = async () => { Bridge.busy=false; await Bridge.invoke("print_later"); await cer.close(); Shell.refresh(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); };
     wax.addEventListener("click", crack); wax.addEventListener("pointerdown", () => Snd.tap()); wax.tabIndex = 0; wax.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && crack());
     wax.style.cursor = "pointer"; cer.root._esc = () => { if (!opened) cer.close(); };
   }
@@ -229,7 +232,7 @@ const Cer = (() => {
     catch(e) { Shell.toast(String(e)); return; } finally { Bridge.dialogOpen=false; }
     if (!saved) return;
     const cer = overlay("seal"), stage = cer.stage; cer.hint("");
-    const EW = Math.min(400, screen.width * .58), EH = EW * 2 / 3;
+    const EW = Math.min(400, stage.clientWidth * .58, stage.clientHeight * .68), EH = EW * 2 / 3;
     const res = await resOf(entry, { max: 420 });
     const stk = Stk.el(res, res.aspect >= 1 ? EW * .42 : EW * .42 * res.aspect);
     const back = img("envBack", "ev-layer"), pocket = h("span.ev-layer.pk", img("envPocket"), h("span.env-label", "To", h("br"), to)), flap = img("envFlap", "ev-layer flap");
@@ -266,8 +269,8 @@ const Cer = (() => {
       } });
     } });
     sleeve.style.cssText = `width:${rig.PW * .72}px;left:${rig.PW * .14}px;top:${rig.cutY - rig.PW * .72 * .12}px`;
-    const keep = async () => { Bridge.busy=false; await cer.close(); Shell.toast("It's yours."); await Desktop.print(entry); };
-    const later = async () => { Bridge.busy=false; await Bridge.invoke("print_later"); await cer.close(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); Shell.close(); };
+    const keep = async () => { Bridge.busy=false; await cer.close(); Shell.refresh(); Shell.toast("It's yours."); await Desktop.print(entry); };
+    const later = async () => { Bridge.busy=false; await Bridge.invoke("print_later"); await cer.close(); Shell.refresh(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); };
     cer.root._esc = () => { if (!rig.done) cer.close(); else if (entry && $(".rv-info")) later(); };
     rig.focus();
   }

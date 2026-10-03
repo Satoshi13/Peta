@@ -43,7 +43,7 @@ const Shell = (() => {
           h("i.page-edge-right", { data: { art: "page-edge-right" } }),
           h("i.page-edge-bottom", { data: { art: "page-edge-bottom" } }),
           h("i.page-corner", { data: { art: "page-corner-curl" } })),
-        h("div.book-binding", { "aria-hidden": "true", data: { art: "spiral-binding" } }, h("i.binding-band")));
+        h("div.book-binding", { "aria-hidden": "true", data: { art: "spiral-binding" } }, h("i.binding-band", h("i.binding-middle"))));
       queueMicrotask(sizeBookBinding);
     }
     return wrap;
@@ -51,8 +51,10 @@ const Shell = (() => {
   function sizeBookBinding() {
     // Delivered 128×1000 tile: twenty cells, ring centres at 25 + 50*k.
     // End only at a cell boundary so the 64px end caps keep the same phase.
-    const pitch = 48 / 128 * 50;
-    $$(".book-binding").forEach(e => { e.firstElementChild.style.height = Math.floor(e.clientHeight / pitch) * pitch + "px"; });
+    $$(".book-binding").forEach(e => {
+      const pitch = parseFloat(getComputedStyle(e).width) / 128 * 50;
+      if(pitch > 0) e.firstElementChild.style.height = Math.floor(e.clientHeight / pitch) * pitch + "px";
+    });
   }
   function cloneStatic(node) {
     const c = node.cloneNode(true);

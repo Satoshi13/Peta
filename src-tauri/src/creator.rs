@@ -298,9 +298,6 @@ pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, 
     tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth, outline))
         .await
         .map_err(|e| e.to_string())??;
-    if let Some(w) = app.get_webview_window(crate::app_window::APP_LABEL) {
-        let _ = w.hide();
-    }
     clear(&app);
     Ok(())
 }

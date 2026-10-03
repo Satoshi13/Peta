@@ -138,6 +138,6 @@ Pages.book = {
   },
   async stick(e) {
     S.pickMode = false; BK.sel = null; Snd.tap();
-    try { await Bridge.invoke("daily_stick_from_collection", {stickerId:e.id}); await Desktop.print(e); } catch(err) { Shell.toast(String(err)); }
+    try { await Bridge.printAction("daily_stick_from_collection", {stickerId:e.id}); await Desktop.print(e); } catch(err) { Shell.toast(String(err)); }
   },
 };

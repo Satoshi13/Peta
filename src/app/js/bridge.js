@@ -45,29 +45,23 @@ const Bridge = (() => {
     return { id, material:back.material?.id || 'matte', kind:back.kind, from:back.receivedFrom, no:back.originalNumber == null ? null : Number(back.originalNumber), edition:back.editionNumber == null ? null : Number(back.editionNumber), date:new Date(), back, title:'Sticker' };
   }
   async function changed() { try { await reload(); Shell.renderNav(); if (!Bridge.busy && !document.querySelector('.cer') && S.page !== 'create') Shell.refresh(); } catch(e) { Shell.toast(String(e)); } }
-  let sceneWindow=null, sceneTask=Promise.resolve();
   function enterCeremony() {
-    if(sceneWindow) return;
-    const w=innerWidth,h=innerHeight,sw=screen.width,sh=screen.height;
-    sceneWindow={w,h};
-    const css=document.documentElement.style;
-    css.setProperty('--scene-win-width',w+'px'); css.setProperty('--scene-win-height',h+'px');
-    css.setProperty('--scene-win-x',((sw-w)/2)+'px'); css.setProperty('--scene-win-y',((sh-h-42)/2)+'px');
-    document.body.dataset.scene='expanded';
-    sceneTask=(async()=>{ const position=await windowApi.outerPosition(); if(sceneWindow) sceneWindow.position=position; await windowApi.setPosition(new api.dpi.LogicalPosition(0,0)); await windowApi.setSize(new api.dpi.LogicalSize(sw,sh)); })();
+    document.body.dataset.scene='ceremony';
   }
-  async function leaveCeremony() {
-    await sceneTask;
-    const prev=sceneWindow; if(!prev)return;
-    await windowApi.setSize(new api.dpi.LogicalSize(prev.w,prev.h));
-    if(prev.position) await windowApi.setPosition(prev.position);
-    sceneWindow=null; delete document.body.dataset.scene;
+  function leaveCeremony() {
+    delete document.body.dataset.scene;
   }
-  return { invoke, enterCeremony, leaveCeremony, window:windowApi, reload, asset, entry, savePreferences, changed, listen:api.event.listen };
+  async function printAction(cmd, args) {
+    // Print changes focus through the native desktop layer, rather than an outside click.
+    Bridge.printFocusTransfer=true;
+    try { return await invoke(cmd, args); }
+    catch(e) { Bridge.printFocusTransfer=false; throw e; }
+  }
+  return { invoke, printAction, enterCeremony, leaveCeremony, window:windowApi, reload, asset, entry, savePreferences, changed, listen:api.event.listen };
 })();
 async function resOf(entry) {
   const url = await Bridge.asset(entry.id), i = await Stk.load(url);
   return { url, w:i.naturalWidth, h:i.naturalHeight, aspect:i.naturalWidth/i.naturalHeight, material:entry.material, mask:['holographic','gold'].includes(entry.material) ? url : null };
 }
 // Desktop rendering and placement belong to the existing layer windows.
-const Desktop = { hideArrival() {}, async print(entry) { await Shell.close(); await Bridge.invoke("print_resume"); }, async later() { await Bridge.invoke('print_later'); }, };
+const Desktop = { hideArrival() {}, async print(entry) { await Bridge.printAction("print_resume"); }, async later() { await Bridge.invoke('print_later'); }, };

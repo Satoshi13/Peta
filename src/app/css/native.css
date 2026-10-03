@@ -12,10 +12,9 @@ input { user-select: text; -webkit-user-select: text; }
 .panes { height: clamp(190px, calc(var(--desktop-height) * .31), 290px); }
 .choice-obj { width: clamp(84px, calc(var(--desktop-width) * .11), 124px); }
 
-/* The prototype's ceremonies fill the surrounding display. Use the same main native window
-   temporarily, retaining its paper shell at the prototype's centered position, then restore it. */
-body[data-scene="expanded"] #win-layer { inset: auto; left: var(--scene-win-x); top: var(--scene-win-y); width: var(--scene-win-width); height: var(--scene-win-height); }
-body[data-scene="expanded"] .win { --win-w: var(--scene-win-width); --win-h: var(--scene-win-height); }
+/* Ceremonies stay within this window, including the shell's transparent rounded corners. */
+.cer { overflow: hidden; border-radius: 18px; }
+[data-shell="desk"] .cer { border-radius: 20px; }
 
 /* The Settings switch applies to CSS animations as well as the prototype's Web Animations helper. */
 html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
@@ -98,25 +97,28 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 }
 [data-shell="desk"] .book-binding {
   display: block;
-  position: absolute; left: -18px; top: 12px; bottom: 12px; width: 48px;
+  position: absolute; left: -24px; top: 12px; bottom: 12px; width: 54px;
   overflow: hidden; z-index: 12; pointer-events: none;
 }
 .binding-band {
-  position: relative; display: block; width: 48px;
-  background: var(--a-spiralBinding) left top / 48px 375px repeat-y;
+  position: relative; display: block; width: 54px;
+}
+.binding-middle {
+  position: absolute; display: block; inset: 27px 0;
+  background: var(--a-spiralBinding) left -27px / 54px 421.875px repeat-y;
 }
 .binding-band::before, .binding-band::after {
-  content: ""; position: absolute; left: 0; width: 48px; height: 24px; pointer-events: none;
-  background: center / 48px 24px no-repeat;
+  content: ""; position: absolute; left: 0; width: 54px; height: 27px; pointer-events: none;
+  background: center / 54px 27px no-repeat;
 }
 .binding-band::before { top: 0; background-image: var(--a-spiralCapTop); }
 .binding-band::after { bottom: 0; background-image: var(--a-spiralCapBottom); }
 [data-shell="desk"] .page[data-page="book"]::before {
-  border: 8px solid transparent; border-image: var(--a-coverEdge) 88 / 8px stretch; background-clip: padding-box;
+  border: 0; border-image: none; background-clip: border-box;
 }
 [data-shell="desk"] .book-paper-parts { display: block; position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .book-paper-parts i { position: absolute; display: block; pointer-events: none; background: center / 100% 100% no-repeat; }
-.book-paper-parts .page-gutter { left: 28px; top: 0; bottom: 0; width: 10px; background-image: var(--a-pageGutter); background-position: left top; background-size: 160px 100%; }
+.book-paper-parts .page-gutter { left: 0; top: 0; bottom: 0; width: 8px; background-image: var(--a-pageGutter); background-position: left top; background-size: 160px 100%; }
 .book-paper-parts .page-edge-right { right: -5px; top: 0; bottom: 0; width: 8px; background-image: var(--a-pageEdgeRight); }
 .book-paper-parts .page-edge-bottom { left: 0; right: 0; bottom: -5px; height: 8px; background-image: var(--a-pageEdgeBottom); }
 .book-paper-parts .page-corner { right: 0; bottom: 0; width: 28px; height: 28px; background-image: var(--a-pageCorner); }
@@ -124,6 +126,11 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 /* The shared sticky details keep their prototype width, padding and scrolling behaviour.
    CSS sizing trims only the supplied transparent gutters; the PNG itself is unchanged. */
 .detail { border-radius: 0; background: var(--a-noteStickyYellow) center / 121% 129% no-repeat; box-shadow: none; filter: drop-shadow(0 4px 8px rgba(60, 45, 20, .2)); }
+
+/* All shelf objects use the same bag, label and action rows, even when opening is unavailable. */
+.shelf { display: grid; grid-template-columns: repeat(auto-fit, 192px); align-items: stretch; justify-content: center; }
+.shelf .pack { display: grid; grid-template-rows: 224px minmax(68px, auto) 24px; justify-items: center; align-items: center; gap: 10px; width: 192px; }
+.shelf .pack .pack-tag { width: 100%; min-height: 68px; align-self: stretch; justify-content: center; }
 
 /* Only the cutout canvas moves; the transparency checker and brush cursor stay in the frame. */
 .frame.checker canvas { transform-origin: 50% 50%; }

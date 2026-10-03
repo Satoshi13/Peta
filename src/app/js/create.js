@@ -214,7 +214,7 @@ Pages.create = {
   async make() {
     if (!CR.res || CR.finishing) return;
     CR.flushStroke?.(); CR.finishing = true; Bridge.busy = true;
-    try { await CR.queue; await Bridge.invoke("creator_finish",{materialId:S.chosen,strength:.5,smooth:CR.smooth/12,outline:CR.border}); crReset(); await Bridge.reload(); await Shell.close(); }
+    try { await CR.queue; await Bridge.printAction("creator_finish",{materialId:S.chosen,strength:.5,smooth:CR.smooth/12,outline:CR.border}); crReset(); await Bridge.reload(); Shell.refresh(); }
     catch(e) { Shell.toast(String(e)); } finally { CR.finishing=false; Bridge.busy=false; }
   },
 };

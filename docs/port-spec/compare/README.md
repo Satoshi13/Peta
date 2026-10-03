@@ -1,6 +1,6 @@
 # Native port comparisons
 
-[Latest owner-requested corrections: image layout, pen-circle selection, fast thin brush and minimal tray](review-02/README.md). [Previous corrections and cutout zoom](review-01/README.md). The original slice captures below document the initial port; the review captures show the subsequent UI changes.
+[Latest owner-requested corrections: Pack rows, window-bounded opening, persistent main window and notebook left edge](review-03/README.md). [Image layout, pen-circle selection, fast thin brush and minimal tray](review-02/README.md). [Previous corrections and cutout zoom](review-01/README.md). The original slice captures below document the initial port; the review captures show the subsequent UI changes.
 
 The right-hand images are captures of `src/app.html` in the **real debug Tauri application / WebKitGTK**, using Rust IPC and a temporary SQLite library. No mock bridge or prototype desktop is rendered there. The original golden JPGs remain unchanged. Window comparisons crop their 1060×700 app rectangle at (190,79); capture files retain the native screenshot separately.
 
@@ -74,3 +74,9 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 - Final workspace Rust tests: **83 passed** (including migration, FIFO/restart/day-roll, independent quotas and existing cutout/gift/material/placement behavior). Placement JS tests: **13 passed**. Native debug build passed without warnings. Final all-page/two-size/two-shell audit: **0 actionable issues**, with only the unchanged paper-button artwork false positives.
 
 To reproduce the rule regression, seed a **fresh** disposable directory with `port-fixture.py`, build/run the native debug binary using that directory as `XDG_DATA_HOME`, then run `python3 scripts/port-verify-rules.py`. Restart the native process using the same directory and run `python3 scripts/port-verify-rules.py restart`. This test does not reset real user data or mock Rust IPC.
+
+## Review 03 — current opening behavior
+
+The owner's latest review replaces the display-wide opening and automatic window closing described in slices 5 / 7 above. Opening and Gift sealing now stay inside the existing native window, including at 720×520; completion keeps that window open. Explicit close / Esc / the outside-click preference remain available. Pack shelf rows reserve the same bag / label / action height, and the notebook left edge uses a single continuous binding without an inner paper seam or framed cover.
+
+[Before/after native captures, unchanged golden comparisons, physical opening and window checks](review-03/README.md). Delivered artwork files are unchanged; cover-edge is unused again because it framed the opened notebook.

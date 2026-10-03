@@ -1,0 +1,28 @@
+{
+  "before": {
+    "position": {
+      "x": 190,
+      "y": 100
+    },
+    "size": {
+      "height": 700,
+      "width": 1060
+    },
+    "visible": true
+  },
+  "after": {
+    "page": "book",
+    "position": {
+      "x": 190,
+      "y": 100
+    },
+    "recorded": true,
+    "selected": null,
+    "size": {
+      "height": 700,
+      "width": 1060
+    },
+    "visible": true
+  },
+  "outsideClickPreferenceEnabled": true
+}

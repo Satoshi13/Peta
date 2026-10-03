@@ -89,11 +89,11 @@ const Stk = (() => {
     return e;
   }
   /** Pointer-reactive tilt + sheen for a sticker element (or any wrapper containing .stk). */
-  function tilt(target, { max = 12, scale = 1.04 } = {}) {
+  function tilt(target, { max = 12, scale = 1.04, baseTransform = "" } = {}) {
     const stk = target.matches(".stk") ? target : target.querySelector(".stk") || target;
-    const reset = () => { target.style.transform = ""; stk.style.setProperty("--sx", "30%"); stk.style.setProperty("--sy", "30%"); };
+    const reset = () => { target.style.transform = baseTransform; stk.style.setProperty("--sx", "30%"); stk.style.setProperty("--sy", "30%"); };
     onPointerFollow(target, (x, y) => {
-      target.style.transform = `perspective(700px) rotateY(${(x - 0.5) * max * 2}deg) rotateX(${-(y - 0.5) * max * 2}deg) scale(${scale})`;
+      target.style.transform = `${baseTransform} perspective(700px) rotateY(${(x - 0.5) * max * 2}deg) rotateX(${-(y - 0.5) * max * 2}deg) scale(${scale})`;
       stk.style.setProperty("--sx", `${(1 - x) * 100}%`); stk.style.setProperty("--sy", `${(1 - y) * 100}%`);
     }, reset);
     return reset;
