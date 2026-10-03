@@ -6,6 +6,9 @@
     "layer-*"
   ],
   "permissions": [
-    "core:default"
+    "core:default",
+    "allow-set-reflection-active",
+    "allow-reflection-status",
+    "allow-existing-app-commands"
   ]
 }

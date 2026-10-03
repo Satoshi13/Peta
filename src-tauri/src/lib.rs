@@ -109,6 +109,8 @@ pub fn run() {
             port_capture::port_capture_report,
             port_capture::port_capture_tray,
             layer_info,
+            layers::set_reflection_active,
+            layers::reflection_status,
             layer_placements,
             save_placement,
             peel_sticker,
@@ -155,6 +157,7 @@ pub fn run() {
             collection::profile_set
         ])
         .on_window_event(|window, event| {
+            if matches!(event, tauri::WindowEvent::Destroyed) { layers::forget_reflection(window.app_handle(), window.label()); }
             // closing the Cutting Mat with the window button is a cancel: nothing was spent
             if window.label() == app_window::APP_LABEL && matches!(event, tauri::WindowEvent::Destroyed) {
                 creator::clear(window.app_handle());
@@ -169,6 +172,7 @@ pub fn run() {
             tray::build(app.handle())?;
             layers::sync(app.handle())?;
             layers::spawn_monitor_watcher(app.handle().clone());
+            layers::spawn_reflection_watcher(app.handle().clone());
             today::roll_day(app.handle()); // draws today's material; sets the menu indicator
             today::spawn_day_watcher(app.handle().clone());
             arrival::spawn_hit_watcher(app.handle().clone());
@@ -178,7 +182,8 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building Peta");
 
-    app.run(|_app, event| {
+    app.run(|app, event| {
+        if matches!(event, tauri::RunEvent::Exit) { layers::stop_reflection(app); }
         // Layers are destroyed/recreated on display changes; that must not quit the app.
         // Only an explicit `app.exit(..)` (tray -> Quit) carries an exit code.
         if let tauri::RunEvent::ExitRequested { api, code, .. } = event {

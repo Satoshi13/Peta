@@ -1,5 +1,6 @@
 import { renderBackCard, renderBackFallback } from "./back-card.js";
 import { initPrint } from "./print.js";
+import { REFLECTIVE_MATERIALS, staticSheen, reflectedSheen, approachSheen } from "./reflection.js";
 import {
   toPixels, fromPixels, toLocalUV, isPivotGrab, pivotResult, pointerAngle, distance, normalizeAngle,
   peelPose, PEEL_COMMIT, PEEL_DISTANCE,
@@ -87,18 +88,56 @@ function render(node) {
   const k = box.w / node.baseW;
   node.el.style.transform =
     `translate3d(${box.cx - node.baseW / 2}px, ${box.cy - node.baseH / 2}px, 0) rotate(${box.rotation}deg) scale(${k})`;
-  if (node.el.dataset.material === "holographic") setSheen(node, box);
+  if (REFLECTIVE_MATERIALS.has(node.el.dataset.material)) setSheen(node, box);
+  syncReflection();
 }
 
-/** Holographic: the reflection band depends on where the sticker sits and how it is turned, like a fixed
- *  light on a real foil. Static at rest (no animation = no idle cost); it slides as you move or turn it. */
-function setSheen(node, box) {
-  const { w, h } = layerSize();
-  const s = node.el.style;
-  s.setProperty("--sx", `${(box.cx / w) * 100}%`);
-  s.setProperty("--sy", `${(box.cy / h) * 100}%`);
-  s.setProperty("--sa", `${115 - box.rotation}deg`);
+// Reflection never changes the placement transform, lift or shadow.
+let reflectionCursor=null, reflectionRaf=0, reflectionTime=0, reflectionActive=false, reflectionQueue=Promise.resolve();
+function applySheen(node, value) {
+  node.sheen=value;
+  const s=node.el.style;
+  s.setProperty("--sx",value.x+"%"); s.setProperty("--sy",value.y+"%"); s.setProperty("--sa",value.angle+"deg");
 }
+function setSheen(node, box) {
+  const {w,h}=layerSize(), base=staticSheen(box,w,h);
+  if (!node.sheen || reduced()) applySheen(node,base);
+  node.sheenTarget=reflectedSheen(box,w,h,reduced() ? null : reflectionCursor);
+  if(reduced()) return;
+  requestReflection();
+}
+function requestReflection() {
+  if(!reflectionRaf && !reduced()) { reflectionTime=performance.now(); reflectionRaf=requestAnimationFrame(reflectFrame); }
+}
+function reflectFrame(now) {
+  reflectionRaf=0; let pending=false;
+  for(const node of nodes.values()) if(node.sheenTarget) {
+    const next=approachSheen(node.sheen,node.sheenTarget,now-reflectionTime);
+    applySheen(node,next.value); pending ||= !next.done;
+  }
+  reflectionTime=now;
+  if(pending && !reduced()) reflectionRaf=requestAnimationFrame(reflectFrame);
+}
+function syncReflection() {
+  const {w,h}=layerSize();
+  const active=!reduced() && Array.from(nodes.values()).some(n=>{
+    const b=boxOf(n); return REFLECTIVE_MATERIALS.has(n.el.dataset.material) && !n.peeled && !n.flipped && b.cx+b.w/2>0 && b.cx-b.w/2<w && b.cy+b.h/2>0 && b.cy-b.h/2<h;
+  });
+  if(active!==reflectionActive) { reflectionActive=active; if(!active) reflectionCursor=null; reflectionQueue=reflectionQueue.then(()=>invoke("set_reflection_active",{active})).catch(console.error); }
+}
+function cursorReflect(cursor) {
+  if(reduced() || !reflectionActive) return;
+  if(!cursor.inside && !reflectionCursor) return;
+  reflectionCursor=cursor.inside ? cursor : null;
+  for(const node of nodes.values()) if(REFLECTIVE_MATERIALS.has(node.el.dataset.material)) setSheen(node,boxOf(node));
+}
+function reflectionPreferences() {
+  if(reduced()) { cancelAnimationFrame(reflectionRaf); reflectionRaf=0; reflectionCursor=null; }
+  nodes.forEach(n=>{if(REFLECTIVE_MATERIALS.has(n.el.dataset.material)) setSheen(n,boxOf(n));});
+  syncReflection();
+}
+window.addEventListener("layer-preferences",reflectionPreferences);
+matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change",reflectionPreferences);
 
 function scheduleRender(node) {
   if (node.raf) return;
@@ -202,7 +241,7 @@ async function flip(node, to = !node.flipped) {
   } catch {
     /* an animation was cancelled (edit mode ended mid-flip): the state below is already consistent */
   } finally {
-    node.flipping = false;
+    node.flipping = false; syncReflection();
   }
 }
 
@@ -213,6 +252,8 @@ function unflipNow(node) {
   node.flipping = false;
   node.body.getAnimations().forEach((a) => a.cancel());
   node.cardEl?.getAnimations().forEach((a) => a.cancel());
+  if(REFLECTIVE_MATERIALS.has(node.el.dataset.material)) setSheen(node,boxOf(node));
+  syncReflection();
 }
 
 function bringToFront(node) {
@@ -265,6 +306,7 @@ function removeNode(node) {
   const i = stack.indexOf(node);
   if (i >= 0) stack.splice(i, 1);
   node.el.remove();
+  syncReflection();
 }
 
 /** The sticker comes away: keeps turning up and off along the pull, fades, then it's gone for good. */
@@ -531,6 +573,7 @@ async function wireFileDrop() {
 }
 
 async function boot() {
+  await listen("cursor-reflect",e=>cursorReflect(e.payload));
   const info = await invoke("layer_info");
   setEditMode(info.editMode);
   await reconcile();
@@ -552,6 +595,11 @@ async function boot() {
   initPrint({ layer, invoke, listen, info, addSticker, nodes, render, lift, settle, removeNode, layerSize, fromPixels, loadAsset });
   await listen("edit-mode", (e) => setEditMode(Boolean(e.payload)));
   window.addEventListener("resize", () => nodes.forEach(render));
+  window.addEventListener("pointermove", e => cursorReflect({x:e.clientX,y:e.clientY,inside:true}));
+  document.documentElement.addEventListener("pointerleave", e => {
+    const {w,h} = layerSize();
+    if(e.clientX<0 || e.clientY<0 || e.clientX>=w || e.clientY>=h) cursorReflect({x:0,y:0,inside:false});
+  });
   window.addEventListener("keydown", (e) => {
     if (!editing) return;
     if (e.key === "Escape") invoke("exit_edit_mode");

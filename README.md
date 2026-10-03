@@ -66,7 +66,7 @@ Today の **Create**、またはデスクトップへの画像ドロップで開
 - スマホ写真の**向き(EXIF)**は自動で直します。
 - 背景除去は**同梱の u2netp(4.5MB)**を純Rust(tract)で実行します。**初回の解析に 1〜3 秒**かかります(Mac の方が速いはずです)。
   大きいモデル(silueta など)は `PETA_MODEL=silueta` で切り替えられます。細い部分に強いですが数倍遅いです → [src-tauri/models/README.md](src-tauri/models/README.md)。
-- **Holographic の光沢**はデスクトップ上でも出ます。ステッカーの位置と角度で反射の帯が変わり、動かすとスッと滑ります(静止中はアニメーションなし)。
+- **Holographic の光沢**はmacOSのグローバルカーソルに追従します。帯の位置・角度だけが変わり、ステッカーの傾き・影・大きさは変えません。カーソルが未移動／層の外なら従来の位置・回転による反射へ戻ります。補間は収束で停止し、ホロ0枚／Reduce motionでは33msのカーソル取得も停止します。Goldは未実装のまま、反射対象は `REFLECTIVE_MATERIALS` に集約。`reflection_status` の activeLayers / timerRunning / cursorReads とdebugログで停止を確認できます。Windows／Linuxのグローバル取得は未提供です。
 
 ### ステッカーの裏面(裏返す)
 

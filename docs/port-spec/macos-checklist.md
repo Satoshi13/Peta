@@ -83,6 +83,14 @@ W2〜W5の実装根拠は `platform/macos.rs` の resting = wallpaper+10 / editi
 
 Linuxでの実操作結果は [review-05](compare/review-05/README.md) に記録する。macOSの画像キャッシュ・フォーカス・複数画面での同期はこの実機検証で確認する。
 
+## 6. カーソル反射（2026-10-04）
+
+- [ ] R1 Restingでもカーソルを近づける／離すとホロの帯だけが滑る。傾き・影・倍率は変化せず、Matte／Kraftも変わらない。
+- [ ] R2 Retina／非Retinaの2画面、主画面の左・上・下の配置で各層の座標が合う。画面外では静止の反射に滑らかに戻り、起動直後に未移動なら従来の見た目。
+- [ ] R3 ホロを剥がして0枚でdebugのreflection layers=0、reflection_statusのtimerRunning=false、cursorReads不変を確認。アクティビティモニタで反射取得のコストがアイドルへ戻る。
+- [ ] R4 Reduce motionで帯が位置・回転による静止表現になり、取得停止。解除後とEdit／Resting切替で同じ計算を使い、急に跳ねない。
+- [ ] R5 ディスプレイ再構成／Re-sync Displaysで旧層の取得が止まり、新しい層のホロだけで再開。Quitで停止する。カーソル停止後はJSの補間フレームも収束して止まる。
+
 ## 結果の残し方
 
 各ケースの記録: `ID / OK・NG・未確認 / 手順の差分 / 期待結果 / 実際の結果 / 証拠ファイル`。画像・短い動画を `docs/port-spec/compare/macos/` に置き、機種・OS・解像度・commitを添える。手元の個人データを写さず、テスト素材で再現する。
