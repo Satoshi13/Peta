@@ -7,3 +7,7 @@ input { user-select: text; -webkit-user-select: text; }
 .drag-strip { height: 28px; }
 
 /* TODO(art): retain the prototype CSS for sticky notes and notebook corners/binding until approved replacement art arrives. */
+/* Prototype viewport units refer to the display around the 1060×700 shell. Preserve that
+   reference for page objects; using the smaller native webview would shorten the Cutting Mat. */
+.panes { height: clamp(190px, calc(var(--desktop-height) * .31), 290px); }
+.choice-obj { width: clamp(84px, calc(var(--desktop-width) * .11), 124px); }

@@ -29,3 +29,9 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 - Book month tabs/details/turn-over, Materials stock and sealed Gifts now use real library commands. Gift import/export use native file dialogs; the previous Collection page was removed.
 - Eight native/golden comparisons (09, 10, 15, 19, both shells). Back-card history comes from provenance, rather than invented names or timestamps. The fixture's PNGs have their original alpha; golden stickers were outlined by the prototype renderer.
 - At both sizes: 0 text/layout issues, with known WebKit false positives from the paper button artwork (`::before` inset -3px -4px). Raw entries and the exact exclusion reason are retained in the audit JSON; CSS values are unchanged.
+
+## Slice 4
+
+- Native Create retains the prototype DOM, sliders (outline 4–64/default 20), material tray and brush gestures. Rust performs all real cutting/rendering/history; sample backgrounds alone use the original `fakePhoto` display helper.
+- Four comparisons (06–07, both shells); audit at both sizes: 0 issues apart from the documented paper-art false positives. The original 31vh pane height uses display height, matching the prototype's surrounding desktop viewport.
+- `slice-04-controls.json`: a native mouse Erase stroke changed Rust PNG bytes; Cmd-Z restored identical bytes and Shift-Cmd-Z restored the edited bytes. Restore and the outline control were also exercised. The Rust material renderer naturally differs from the prototype's reference canvas renderer.

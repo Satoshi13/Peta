@@ -1,4 +1,6 @@
 async function boot() {
+  const displayUnits = () => { document.documentElement.style.setProperty('--desktop-height',screen.height+'px'); document.documentElement.style.setProperty('--desktop-width',screen.width+'px'); };
+  displayUnits(); window.addEventListener('resize',displayUnits);
   Shell.applyAssetVars(); Shell.initChrome(); Shell.setShell(S.shell); Bridge.savePreferences();
   for (const n of NAV) if (!Pages[n.id]) Pages[n.id] = { build:()=>h('div.page-in', PageHead(n.label, ''), h('p.muted', 'TODO(owner): Port slice pending.')) };
   await Bridge.listen('app-page', async e => { await Shell.open(e.payload); });

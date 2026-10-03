@@ -8,7 +8,7 @@ def wait_for(condition,timeout=30):
     while not c.evaluate('return Boolean('+condition+');'):
         if time.monotonic()-start>timeout: raise TimeoutError(condition)
         time.sleep(.15)
-def go(page): c.evaluate('await Shell.open('+json.dumps(page)+'); return S.page;')
+def go(page): c.evaluate('await Bridge.window.show(); await Shell.open('+json.dumps(page)+'); return S.page;')
 def click(sel): c.evaluate('document.querySelector('+json.dumps(sel)+').click(); return true;')
 def shot(name): c.capture(slice_id,shell+'-'+name)
 def gesture(sel,tear=False):
@@ -30,7 +30,7 @@ elif slice_id==3:
     c.evaluate('BK.sel=null; S.bookMonth=null; return true;'); go('book'); shot('09-book'); click('.tile'); shot('10-book-detail'); click('.turn-row button'); time.sleep(.7)
     go('gifts'); shot('15-gifts'); go('materials'); shot('19-materials')
 elif slice_id==4:
-    go('create'); shot('06-create-empty'); click('.sample:nth-child(3)'); wait_for('CR.stage==="ready" && CR.res',60); shot('07-create-cutting-mat')
+    c.evaluate('await Bridge.invoke("creator_cancel"); crReset(); if(S.stock.holographic>0) S.chosen="holographic"; return true;'); go('create'); shot('06-create-empty'); click('.sample:nth-child(3)'); wait_for('CR.stage==="ready" && CR.res',60); shot('07-create-cutting-mat')
 elif slice_id==5:
     go('packs'); shot('11-packs-shelf'); click('.pack:not(:disabled)'); wait_for('document.querySelector(".pouch")'); shot('12-pack-ceremony')
     gesture('.pouch',True); wait_for('document.querySelector(".pk-sleeve.out")'); shot('13-pack-torn'); gesture('.pk-sleeve'); wait_for('document.querySelector(".rv-btns")'); time.sleep(2); shot('14-pack-reveal')

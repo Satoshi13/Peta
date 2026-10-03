@@ -119,6 +119,8 @@ pub fn run() {
             today::daily_create,
             today::collection_unused,
             today::daily_stick_from_collection,
+            creator::creator_begin_path,
+            creator::creator_begin_bytes,
             creator::creator_info,
             creator::creator_original,
             creator::creator_render,

@@ -19,5 +19,19 @@ const cv = (w,h) => { const c = document.createElement("canvas"); c.width=w; c.h
     }, reset);
     return reset;
   }
-return { load, cv, el, tilt };
+  /** A stand-in "photo" for the Create demo: the sticker art over a soft bokeh background. */
+  async function fakePhoto(srcUrl, size = 520) {
+    const img = await load(srcUrl), c = cv(size, size * 0.8), x = c.getContext("2d");
+    const hue = Math.floor(rand(15, 45));
+    const g = x.createLinearGradient(0, 0, c.width, c.height); g.addColorStop(0, `hsl(${hue + 150},22%,62%)`); g.addColorStop(1, `hsl(${hue},38%,70%)`);
+    x.fillStyle = g; x.fillRect(0, 0, c.width, c.height);
+    for (let i = 0; i < 26; i++) { x.beginPath(); x.fillStyle = `hsla(${rand(0, 360)},45%,${rand(60, 85)}%,${rand(0.15, 0.4)})`; x.arc(Math.random() * c.width, Math.random() * c.height, rand(14, 60), 0, 7); x.fill(); }
+    x.fillStyle = "rgba(255,255,255,.14)"; x.fillRect(0, c.height * 0.72, c.width, c.height * 0.28);
+    const k = Math.min((c.width * 0.72) / img.naturalWidth, (c.height * 0.78) / img.naturalHeight);
+    const w = img.naturalWidth * k, hh = img.naturalHeight * k, px = (c.width - w) / 2, py = (c.height - hh) / 2 + c.height * 0.02;
+    x.save(); x.shadowColor = "rgba(30,20,10,.35)"; x.shadowBlur = 18; x.shadowOffsetY = 8; x.drawImage(img, px, py, w, hh); x.restore();
+    const a = cv(c.width, c.height), ax = a.getContext("2d"); ax.drawImage(img, px, py, w, hh);
+    return { photo: c, alpha: a };
+  }
+return { load, cv, el, tilt, fakePhoto };
 })();

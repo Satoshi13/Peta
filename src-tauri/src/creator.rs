@@ -196,9 +196,11 @@ pub fn creator_original(creator: State<Creator>) -> Result<Response, String> {
     a.session.original_jpeg().map(Response::new).map_err(|e| e.to_string())
 }
 
-fn params_for(material_id: &str, strength: f32, smooth: f32) -> Params {
+fn params_for(material_id: &str, strength: f32, smooth: f32, outline: Option<f32>) -> Params {
     let material = materials::get(material_id).or_else(|| materials::get(materials::DEFAULT_MATERIAL)).expect("default material exists");
-    Params { strength, smooth, recipe: material.recipe }
+    let mut recipe = material.recipe;
+    if let (Some(width), Some(border)) = (outline, recipe.border.as_mut()) { border.width = width.clamp(4.0, 64.0) as f64 / 520.0; }
+    Params { strength, smooth, recipe }
 }
 
 /// Wire format: 4-byte big-endian JSON length, JSON `{ stickerLen, cutoutLen, width, height, coverage }`,
@@ -219,12 +221,12 @@ fn pack(r: &creator::Rendered) -> Vec<u8> {
 
 /// Re-render with the current settings. `preview` = half size, fast (live feedback).
 #[tauri::command]
-pub async fn creator_render(app: AppHandle, material_id: String, strength: f32, smooth: f32, preview: bool) -> Result<Response, String> {
+pub async fn creator_render(app: AppHandle, material_id: String, strength: f32, smooth: f32, preview: bool, outline: Option<f32>) -> Result<Response, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let creator = app.state::<Creator>();
         let active = creator.active.lock().unwrap();
         let a = active.as_ref().ok_or("no image is open")?;
-        let params = params_for(&material_id, strength, smooth);
+        let params = params_for(&material_id, strength, smooth, outline);
         let rendered = if preview { a.session.render_preview(&params) } else { a.session.render(&params) };
         rendered.map(|r| Response::new(pack(&r))).map_err(|e| e.to_string())
     })
@@ -287,9 +289,9 @@ impl History {
 
 /// "Make this Peta": render at full size, keep it in the library, stick it down, spend today's slot.
 #[tauri::command]
-pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32) -> Result<(), String> {
+pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: Option<f32>) -> Result<(), String> {
     let app2 = app.clone();
-    tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth))
+    tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth, outline))
         .await
         .map_err(|e| e.to_string())??;
     if let Some(w) = app.get_webview_window(crate::app_window::APP_LABEL) {
@@ -299,12 +301,12 @@ pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, 
     Ok(())
 }
 
-fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32) -> Result<(), String> {
+fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outline: Option<f32>) -> Result<(), String> {
     let creator = app.state::<Creator>();
     let (rendered, original, ext, target) = {
         let active = creator.active.lock().unwrap();
         let a = active.as_ref().ok_or("no image is open")?;
-        let rendered = a.session.render(&params_for(material_id, strength, smooth)).map_err(|e| e.to_string())?;
+        let rendered = a.session.render(&params_for(material_id, strength, smooth, outline)).map_err(|e| e.to_string())?;
         (rendered, a.session.original.clone(), a.session.original_ext, a.target.clone())
     };
     let material = materials::get(material_id).map(|m| m.id).unwrap_or_else(|| materials::DEFAULT_MATERIAL.to_owned());
@@ -343,8 +345,16 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32) -> Res
 /// Cancel: close the window, keep everything as it was.
 #[tauri::command]
 pub fn creator_cancel(app: AppHandle) {
-    if let Some(w) = app.get_webview_window(crate::app_window::APP_LABEL) {
-        let _ = w.hide();
-    }
     clear(&app);
+}
+
+#[tauri::command]
+pub fn creator_begin_bytes(app: AppHandle, layers: State<crate::layers::Layers>, bytes: Vec<u8>, material_id: String) -> Result<(), String> {
+    begin(&app, bytes, Target { display_id: layers.primary_display_id(), x: 0.5, y: 0.5, counts_for_today: true, material_hint: Some(material_id) })
+}
+
+#[tauri::command]
+pub fn creator_begin_path(app: AppHandle, layers: State<crate::layers::Layers>, path: String, material_id: String) -> Result<(), String> {
+    let bytes=std::fs::read(path).map_err(|e|e.to_string())?;
+    begin(&app,bytes,Target {display_id:layers.primary_display_id(),x:0.5,y:0.5,counts_for_today:true,material_hint:Some(material_id)})
 }
