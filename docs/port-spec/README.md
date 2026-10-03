@@ -142,6 +142,7 @@ node docs/ui-proposals/app/tools/audit.mjs /tmp/audit 1440 900 studio current   
 ブランチ claude/relaxed-dijkstra-ocnjzu の docs/port-spec/README.md を最初から最後まで読み、その指示どおりに作業してください。
 目的は、docs/ui-proposals/app/ のプロトタイプ(Studio シェル + Aa Std 書体)を、本物の Tauri アプリ(src/ と src-tauri/)へ見た目も動きもそのまま移植することです。
 見た目の正解は docs/port-spec/golden/*.jpg、数値の正解はプロトタイプの CSS/JS です。再解釈せず、写してください。
+触れる実物は docs/ui-proposals/peta-prototype.html(1ファイル、ブラウザで開くだけ。オーナーが見ている Artifact と同一のビルド)です。ソースは docs/ui-proposals/app/。操作の流れ(開封、貼り付け、窓の移動など)はこれを実際に触って確認してください。
 README の「8. 進め方」のスライス1から順に、1スライス1コミットで進め、各スライスの最後に本物の画面を golden と並べた比較画像を docs/port-spec/compare/ に置いてください。
 素材が足りない所は仮実装して TODO(art) を残し、作業は止めないでください。ルール(Rust 側)の変更は UI とは別コミットにしてください。
 ```
