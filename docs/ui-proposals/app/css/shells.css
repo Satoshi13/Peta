@@ -28,14 +28,17 @@ body[data-shell="notebook"] #win-layer { padding-right: 70px; }
 .page.under { z-index: 1; }
 
 /* ================================================================== A · NOTEBOOK */
-body[data-shell="notebook"] { --paper-img: linear-gradient(rgba(250, 246, 236, .5), rgba(250, 246, 236, .5)), var(--a-pageRight) left top / cover, #faf6ec; }
+body[data-shell="notebook"] { --paper-img: radial-gradient(circle, rgba(150, 128, 90, .22) 1px, transparent 1.3px) 7px 9px / 22px 22px, linear-gradient(rgba(250, 246, 236, .62), rgba(250, 246, 236, .62)), var(--a-paperCream) 0 0 / 520px, #faf6ec; }
 [data-shell="notebook"] .win-frame { border-radius: 16px 20px 20px 16px; background: #c4a171 var(--a-paperKraft) 0 0 / 420px; background-blend-mode: multiply;
   box-shadow: 0 0 0 1px rgba(80, 55, 20, .4), inset 0 0 0 1px rgba(255, 255, 255, .2), 0 36px 80px rgba(14, 20, 32, .5), 0 10px 22px rgba(14, 20, 32, .3); }
 [data-shell="notebook"] .titlebar .tb-logo { background: #4a3a20; opacity: .55; }
 [data-shell="notebook"] .book { position: absolute; left: 0; right: 14px; top: 38px; bottom: 14px; border-radius: 6px 14px 14px 6px; background: var(--paper-img);
   box-shadow: inset 14px 0 20px -12px rgba(70, 45, 10, .35), 0 1px 0 rgba(255, 255, 255, .5), 3px 3px 0 -1px #f1ead9, 3px 3px 0 0 rgba(90, 65, 25, .22), 6px 6px 0 -2px #e8dfca, 6px 6px 0 -1px rgba(90, 65, 25, .18); }
-[data-shell="notebook"] .spiral { position: absolute; left: -17px; top: -4px; bottom: -4px; width: 50px; z-index: 12; background: var(--a-spiral) center top / 48px auto repeat-y; filter: drop-shadow(2px 1px 1.5px rgba(40, 25, 5, .35)); pointer-events: none; }
-[data-shell="notebook"] .viewport { left: 46px; right: 0; top: 0; bottom: 0; perspective: 2600px; perspective-origin: 20% 40%; }
+[data-shell="notebook"] .spiral { position: absolute; left: -33px; top: -2px; bottom: -2px; width: 54px; z-index: 12; pointer-events: none; }
+[data-shell="notebook"] .spiral::before, [data-shell="notebook"] .spiral::after { content: ""; position: absolute; inset: 0; background-position: center top; background-size: 54px auto; background-repeat: repeat-y; }
+[data-shell="notebook"] .spiral::before { background-image: var(--a-spiralHoles); }
+[data-shell="notebook"] .spiral::after { background-image: var(--a-spiralCoil); filter: drop-shadow(2px 1px 1.5px rgba(40, 25, 5, .35)); }
+[data-shell="notebook"] .viewport { left: 32px; right: 0; top: 0; bottom: 0; perspective: 2600px; perspective-origin: 20% 40%; }
 [data-shell="notebook"] .page { background: var(--paper-img); }
 [data-shell="notebook"] .leaf-face { background: var(--paper-img); }
 [data-shell="notebook"] .leaf-face.back { background: linear-gradient(270deg, rgba(60, 40, 10, .18), rgba(60, 40, 10, 0) 40%), var(--paper-img); }

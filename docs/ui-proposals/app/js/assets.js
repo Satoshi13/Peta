@@ -3,7 +3,7 @@
 const ART = "../../../src/art/";
 const P = {
   paperCream: "back/paper-cream.jpg", paperKraft: "back/paper-kraft.jpg", stampFrame: "back/stamp-original-frame.png",
-  pageRight: "book/page-right.jpg", spiral: "book/spiral-rings.png", curl: "book/page-curl-shadow.png", cover: "book/cover-kraft.png",
+  spiralCoil: "book/spiral-coil.png", spiralHoles: "book/spiral-holes.png", curl: "book/page-curl-shadow.png", cover: "book/cover-kraft.png",
   tab1: "book/tab-blank-1.png", tab2: "book/tab-blank-2.png", tab3: "book/tab-blank-3.png", tab4: "book/tab-blank-4.png", tab5: "book/tab-blank-5.png", tab6: "book/tab-blank-6.png",
   tape1: "creator/tape-1.png", tape2: "creator/tape-2.png", tape3: "creator/tape-3.png", tape4: "creator/tape-4.png",
   mat: "creator/cutting-mat.jpg", cutSheet: "creator/cut-line-sheet.png",
