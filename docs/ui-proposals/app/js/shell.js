@@ -138,8 +138,7 @@ const Shell = (() => {
     Snd.swoosh();
     await anim(w, [{ transform: `translate(calc(var(--dx,0px) + ${dx}px), calc(var(--dy,0px) + ${dy}px)) scale(.08)`, opacity: 0 }, { transform: "translate(var(--dx,0px), var(--dy,0px)) scale(1)", opacity: 1 }], { duration: 560, easing: EASE.spring });
     w.getAnimations().forEach((x) => x.cancel());
-    w.classList.add("show-lights"); setTimeout(() => w.classList.remove("show-lights"), 2600);
-    if (!S.hinted) { S.hinted = true; setTimeout(() => toast("Esc, a click on the desktop, or the " + ({ notebook: "ribbon", desk: "tag", studio: "corner dots" }[document.body.dataset.shell]) + " puts Peta away.", 3600), 900); }
+    if (!S.hinted) { S.hinted = true; setTimeout(() => toast("Drag the handle at the top to move it. Esc, the ✕, or a click on the desktop puts Peta away.", 4200), 900); }
   }
   async function close() {
     const w = win(); if (w.hidden) return;
@@ -151,12 +150,29 @@ const Shell = (() => {
   }
 
   function initChrome() {
-    $(".l-red").addEventListener("click", close); $("#ribbon").addEventListener("click", close); $("#close-tag").addEventListener("click", close);
-    drag($("#titlebar"), {
-      move: (dx, dy) => { win().style.setProperty("--dx", pos.x + dx + "px"); win().style.setProperty("--dy", pos.y + dy + "px"); },
+    $("#g-close").addEventListener("click", close); $("#ribbon").addEventListener("click", close); $("#close-tag").addEventListener("click", close);
+    // moving: the grabber chip, or the thin strip along the top edge
+    for (const h of [$("#titlebar"), $("#grabber")]) {
+      drag(h, {
+        down: (e) => !e.target.closest("button"),
+        move: (dx, dy) => { win().style.setProperty("--dx", pos.x + dx + "px"); win().style.setProperty("--dy", pos.y + dy + "px"); },
+        up: (e, moved) => { if (!moved) return; const w = win(); pos = { x: parseFloat(w.style.getPropertyValue("--dx")), y: parseFloat(w.style.getPropertyValue("--dy")) }; },
+      });
+      h.addEventListener("dblclick", (e) => { if (e.target.closest("button")) return; pos = { x: 0, y: 0 }; placeWin(); });
+    }
+    // resizing: the corner. The window grows around its centre, so the offset moves by half the change to keep the opposite corner still.
+    let size0 = null;
+    drag($("#resize-h"), {
+      down: () => { const r = win().getBoundingClientRect(); size0 = { w: r.width, h: r.height, x: pos.x, y: pos.y }; },
+      move: (dx, dy) => {
+        const maxW = innerWidth - 24, maxH = innerHeight - 28 - 80;
+        const w = clamp(size0.w + dx, Math.min(720, maxW), maxW), hh = clamp(size0.h + dy, Math.min(520, maxH), maxH);
+        win().style.setProperty("--win-w", w + "px"); win().style.setProperty("--win-h", hh + "px");
+        win().style.setProperty("--dx", size0.x + (w - size0.w) / 2 + "px"); win().style.setProperty("--dy", size0.y + (hh - size0.h) / 2 + "px");
+      },
       up: (e, moved) => { if (!moved) return; const w = win(); pos = { x: parseFloat(w.style.getPropertyValue("--dx")), y: parseFloat(w.style.getPropertyValue("--dy")) }; },
     });
-    $("#titlebar").addEventListener("dblclick", () => { pos = { x: 0, y: 0 }; placeWin(); });
+    $("#resize-h").addEventListener("dblclick", () => { win().style.removeProperty("--win-w"); win().style.removeProperty("--win-h"); pos = { x: 0, y: 0 }; placeWin(); });
     // putting it away: Esc, or a click on the desktop (can be turned off in Settings)
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !e.defaultPrevented && !win().hidden && !$(".cer") && !e.target.closest("input")) close(); });
     document.addEventListener("pointerdown", (e) => {

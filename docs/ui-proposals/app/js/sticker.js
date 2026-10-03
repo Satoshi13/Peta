@@ -6,19 +6,25 @@ const Stk = (() => {
     return imgCache.get(src);
   };
   const cv = (w, h) => { const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
-  const offsets = (r) => {
-    const pts = [[0, 0]], rings = Math.max(1, Math.ceil(r / 2.5));
-    for (let k = 1; k <= rings; k++) { const rr = (r * k) / rings, n = Math.max(10, Math.round(rr * 2.4)); for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; pts.push([Math.cos(a) * rr, Math.sin(a) * rr]); } }
-    return pts;
-  };
+  /* Growing a silhouette by r px: a few passes of "union of shifted copies" (each pass <= 8 px), so a 60 px border costs
+     ~200 draws instead of ~2000. The union of discs adds up, so the shape stays round. */
+  const ring = (r) => { const pts = [[0, 0]], n1 = Math.max(8, Math.ceil((Math.PI * 2 * r) / 2.6)), n2 = Math.max(6, Math.ceil(n1 / 2));
+    for (let i = 0; i < n1; i++) { const a = (i / n1) * Math.PI * 2; pts.push([Math.cos(a) * r, Math.sin(a) * r]); }
+    for (let i = 0; i < n2; i++) { const a = ((i + .5) / n2) * Math.PI * 2; pts.push([Math.cos(a) * r * .5, Math.sin(a) * r * .5]); } return pts; };
   /** Solid-colour silhouette of an alpha source, grown by r px. `src` is any drawable. */
   function grow(src, w, h, r, pad, fill) {
-    const out = cv(w + pad * 2, h + pad * 2), x = out.getContext("2d");
-    const sil = cv(w, h), sx = sil.getContext("2d");
+    const cw = w + pad * 2, ch = h + pad * 2;
+    let cur = cv(cw, ch); const sil = cv(w, h), sx = sil.getContext("2d");
     sx.drawImage(src, 0, 0, w, h); sx.globalCompositeOperation = "source-in"; sx.fillStyle = "#fff"; sx.fillRect(0, 0, w, h);
-    if (r > 0) for (const [dx, dy] of offsets(r)) x.drawImage(sil, pad + dx, pad + dy); else x.drawImage(sil, pad, pad);
-    x.globalCompositeOperation = "source-in"; x.fillStyle = fill; x.fillRect(0, 0, out.width, out.height);
-    return out;
+    cur.getContext("2d").drawImage(sil, pad, pad);
+    let rem = r;
+    while (rem > 0.5) {
+      const st = Math.min(rem, 8), nxt = cv(cw, ch), nx = nxt.getContext("2d");
+      for (const [dx, dy] of ring(st)) nx.drawImage(cur, dx, dy);
+      cur = nxt; rem -= st;
+    }
+    const x = cur.getContext("2d"); x.globalCompositeOperation = "source-in"; x.fillStyle = fill; x.fillRect(0, 0, cw, ch);
+    return cur;
   }
   async function fromDrawable(src, w0, h0, { border = 14, material = "matte", max = 520 } = {}) {
     const k = Math.min(1, max / Math.max(w0, h0)), w = Math.round(w0 * k), h = Math.round(h0 * k);

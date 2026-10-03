@@ -135,3 +135,4 @@ img { -webkit-user-drag: none; user-select: none; }
 .mcard[data-m="riso"] .art { background-image: var(--a-cardMatte); filter: sepia(1) saturate(3.4) hue-rotate(312deg) brightness(1.04) drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
 .mcard[data-m="vintage"] .art { background-image: var(--a-cardKraft); filter: sepia(.85) brightness(.9) contrast(.92) drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
 .stk[data-material="gold"] .sheen { background: linear-gradient(115deg, transparent 20%, rgba(255, 244, 200, 0) 36%, rgba(255, 244, 200, .95) 48%, rgba(255, 214, 120, .6) 53%, transparent 68%); background-size: 260% 260%; background-position: var(--sx, 30%) var(--sy, 30%); }
+#toolbar #type-switch button[aria-selected="true"] { opacity: 1; background: #f1eee8; color: #1d1d1d; }

@@ -1,11 +1,11 @@
 /* Market: packs, materials and creators. Everything is a sample; "Get" adds it to your own shelf. */
 const MARKET_PACKS = [
-  { id: "tokyo", title: "Tokyo Pack", by: "Peta", count: 8, price: "Free", hue: 200, blurb: "A walk through the city in eight small things.", keys: ["sCamera", "sCoffee", "sPolaroid", "sCassette", "sComputer", "sBubble", "sGoodDay", "sEgg"] },
-  { id: "coffee", title: "Coffee Club", by: "Nao", count: 6, price: "Free", hue: 28, blurb: "Slow mornings, one cup at a time.", keys: ["sCoffee", "sEgg", "sGoodDay", "sCamera", "sPlant", "sCat"] },
-  { id: "pixel", title: "Pixel Dream", by: "Ryo", count: 6, price: "¥480", hue: 120, blurb: "Late-night screens and soft glow.", keys: ["sComputer", "sCassette", "sBubble", "sScribble", "sCamera", "sGoodDay"] },
-  { id: "cats", title: "Cats", by: "Yuki", count: 5, price: "¥300", hue: 300, blurb: "Mostly asleep. Occasionally on a skateboard.", keys: ["sCat", "sScribble", "sCoffee", "sPlant", "sBubble"] },
-  { id: "plants", title: "Houseplants", by: "Mika", count: 5, price: "Free", hue: 85, blurb: "Leaves for the corner of your screen.", keys: ["sPlant", "sBlueFlower", "sEgg", "sPolaroid", "sCoffee"] },
-  { id: "night", title: "Night Market", by: "Ren", count: 6, price: "¥380", hue: 245, blurb: "Paper lanterns and street snacks.", keys: ["sEgg", "sCassette", "sGoodDay", "sPolaroid", "sCamera", "sBubble"] },
+  { id: "tokyo", title: "Tokyo Pack", by: "Peta", count: 8, price: "Free", hue: 200, kind: "holo", blurb: "A walk through the city in eight small things.", keys: ["sCamera", "sCoffee", "sPolaroid", "sCassette", "sComputer", "sBubble", "sGoodDay", "sEgg"] },
+  { id: "coffee", title: "Coffee Club", by: "Nao", count: 6, price: "Free", hue: 0, kind: "kraft", blurb: "Slow mornings, one cup at a time.", keys: ["sCoffee", "sEgg", "sGoodDay", "sCamera", "sPlant", "sCat"] },
+  { id: "pixel", title: "Pixel Dream", by: "Ryo", count: 6, price: "¥480", hue: 120, kind: "holo", blurb: "Late-night screens and soft glow.", keys: ["sComputer", "sCassette", "sBubble", "sScribble", "sCamera", "sGoodDay"] },
+  { id: "cats", title: "Cats", by: "Yuki", count: 5, price: "¥300", hue: 0, kind: "matte", blurb: "Mostly asleep. Occasionally on a skateboard.", keys: ["sCat", "sScribble", "sCoffee", "sPlant", "sBubble"] },
+  { id: "plants", title: "Houseplants", by: "Mika", count: 5, price: "Free", hue: 0, kind: "kraft", blurb: "Leaves for the corner of your screen.", keys: ["sPlant", "sBlueFlower", "sEgg", "sPolaroid", "sCoffee"] },
+  { id: "night", title: "Night Market", by: "Ren", count: 6, price: "¥380", hue: 245, kind: "holo", blurb: "Paper lanterns and street snacks.", keys: ["sEgg", "sCassette", "sGoodDay", "sPolaroid", "sCamera", "sBubble"] },
 ];
 const MARKET_CREATORS = [
   { name: "Nao", src: "sCoffee", packs: 3, line: "Cafés, cups and quiet mornings" }, { name: "Ryo", src: "sComputer", packs: 5, line: "Pixels, cables, small screens" },
@@ -14,11 +14,11 @@ const MARKET_CREATORS = [
 const MK = { tab: "packs", sel: null };
 
 const Market = {
-  pouch(hue, sheen = true) { return h("div.pk-stack.mk-pouch", { style: { "--hue": hue + "deg" } }, h("i.pk-img" + (hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": hue + "deg" } }, sheen ? h("i.sheen") : null)); },
+  pouch(p) { const foil = (p.kind || "holo") === "holo"; return h("div.pk-stack.mk-pouch", h("i.pk-img" + (foil && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, foil ? h("i.sheen") : null)); },
   own(id) { return !!S.owned[id]; },
   get(pack) {
     if (this.own(pack.id)) return;
-    S.owned[pack.id] = true; S.packs.push({ id: pack.id, title: pack.title, by: pack.by, total: pack.count, left: [...pack.keys], hue: pack.hue });
+    S.owned[pack.id] = true; S.packs.push({ id: pack.id, title: pack.title, by: pack.by, total: pack.count, left: [...pack.keys], hue: pack.hue, kind: pack.kind });
     Snd.chime(3, 784); Shell.toast(`${pack.title} is on your Packs shelf.`); Shell.renderNav();
   },
 };
@@ -38,9 +38,9 @@ Pages.market = {
   packs(paint, sel) {
     const feat = MARKET_PACKS[0];
     const cell = (p, i) => h("button.mk-tile", { "aria-pressed": String(MK.sel === p.id), style: { "--i": i }, on: { click: () => { MK.sel = MK.sel === p.id ? null : p.id; Snd.tap(); paint(); } } },
-      Market.pouch(p.hue), h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.count} stickers`)), h("span.price" + (Market.own(p.id) ? ".own" : ""), Market.own(p.id) ? "On your shelf" : p.price));
+      Market.pouch(p), h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.count} stickers`)), h("span.price" + (Market.own(p.id) ? ".own" : ""), Market.own(p.id) ? "On your shelf" : p.price));
     const main = h("div.mk-main",
-      h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat.hue), h("div.fan", feat.keys.slice(0, 4).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => e.append(Stk.el(r, r.aspect >= 1 ? 92 : 92 * r.aspect))); return e; }))),
+      h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat), h("div.fan", feat.keys.slice(0, 4).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => e.append(Stk.el(r, r.aspect >= 1 ? 92 : 92 * r.aspect))); return e; }))),
         h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", feat.title), h("p.muted", `by ${feat.by} · ${feat.count} stickers`), h("p", feat.blurb),
           h("button.btn", { on: { click: () => { Market.get(feat); paint(); } } }, Market.own(feat.id) ? "On your shelf" : "Get — Free"))),
       h("p.eyebrow.mk-h", "New and popular"), h("div.mk-grid", MARKET_PACKS.slice(1).map(cell)));
@@ -49,7 +49,7 @@ Pages.market = {
   detail(p, paint) {
     const own = Market.own(p.id);
     return h("aside.detail.mk-detail", h("button.x", { "aria-label": "Close", on: { click: () => { MK.sel = null; paint(); } } }, "✕"),
-      h("div.mk-d-art", Market.pouch(p.hue)), h("h3", p.title), h("p.muted", `by ${p.by} · ${p.count} stickers`), h("p", p.blurb),
+      h("div.mk-d-art", Market.pouch(p)), h("h3", p.title), h("p.muted", `by ${p.by} · ${p.count} stickers`), h("p", p.blurb),
       h("p.eyebrow", { style: { marginTop: "10px" } }, "A peek inside"),
       h("div.peek", p.keys.slice(0, p.count).map((k, i) => { const c = h("div.peek-s" + (i < 3 ? "" : ".sealed")); if (i < 3) Stk.make(A[k], { border: 10, material: "matte", max: 240 }).then((r) => c.append(Stk.el(r, r.aspect >= 1 ? 62 : 62 * r.aspect))); else c.append(h("b", "?")); return c; })),
       h("button.btn", { disabled: own, style: { width: "100%", marginTop: "12px" }, on: { click: () => { Market.get(p); paint(); } } }, own ? "On your shelf" : p.price === "Free" ? "Get — Free" : `Get — ${p.price}`),

@@ -1,6 +1,6 @@
 /* The desktop around the window: stickers stuck on it, the arrival envelope, and Print -> Grab -> Paste. */
 const srcOf = (e) => e.cutout || A[e.src];
-const resOf = (e, o = {}) => Stk.make(srcOf(e), { border: 14, material: e.material, max: 520, ...o });
+const resOf = (e, o = {}) => Stk.make(srcOf(e), { border: e.border ?? 14, material: e.material, max: 520, ...o });
 
 const Desktop = (() => {
   const layer = () => $("#desk-stickers");

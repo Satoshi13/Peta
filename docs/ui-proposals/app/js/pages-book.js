@@ -8,18 +8,20 @@ const monthShort = (k) => fmtDate(new Date(Math.floor(k / 12), k % 12, 1), { mon
 function BackCard(entry) {
   const recv = entry.kind === "received", mat = MAT[entry.material];
   const row = (l, ...v) => h("div.row", h("span.label", l), v.filter(Boolean).map((t) => h("span.value", t)));
-  return h("div.back-card", { data: { kind: entry.kind } },
+  const card = h("div.back-card", { data: { kind: entry.kind, mat: entry.material } },
     h("div.face",
       recv ? null : h("div.stamp", "ORIGINAL"),
       h("div.rows", row("Created by", recv ? entry.from : S.name, fmtDate(entry.date, { month: "short", day: "numeric", year: "numeric" })),
         recv ? row("Received from", entry.from, fmtDate(S.today, { month: "short", day: "numeric", year: "numeric" })) : null, row("Material", mat.name)),
       h("div.number", recv ? `Edition #${pad4(entry.edition || 1)}` : `No. ${pad4(entry.no)}`),
       h("i.peta-mark"), h("small.code", `PETA-${(entry.id + "A6F4").slice(0, 4).toUpperCase()}-${pad4(entry.no || entry.edition || 1).slice(1)}Q2`)));
+  if (entry.material === "holographic" || entry.material === "gold") onPointerFollow(card, (x, y) => { card.style.setProperty("--sx", (1 - x) * 100 + "%"); card.style.setProperty("--sy", (1 - y) * 100 + "%"); });
+  return card;
 }
 
 async function BackingFront(entry) {
   const res = await resOf(entry, { max: 420 });
-  const el = h("div.backing", h("i.tape.t3"), Stk.el(res, res.aspect >= 1 ? 170 : 170 * res.aspect));
+  const el = h("div.backing", { data: { mat: entry.material } }, h("i.tape.t3"), Stk.el(res, res.aspect >= 1 ? 170 : 170 * res.aspect));
   return el;
 }
 

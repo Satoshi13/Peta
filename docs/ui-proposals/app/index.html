@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Peta — one-window prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Yomogi&family=Zen+Maru+Gothic:wght@400;500;700&family=Special+Elite&family=Courier+Prime:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Shippori+Mincho:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500;1,700&family=Homemade+Apple&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/shells.css" />
 <link rel="stylesheet" href="css/pages.css" />
 <link rel="stylesheet" href="css/pack.css" />
+<link rel="stylesheet" href="css/polish.css" />
 </head>
-<body data-shell="notebook">
+<body data-shell="notebook" data-type="current">
 <div id="stage">
   <div id="desktop" aria-hidden="true">
     <svg id="wallpaper" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
@@ -55,8 +56,8 @@
   <div id="win-layer"><div id="win" class="win" hidden>
     <div class="win-frame">
       <div class="drag-strip" id="titlebar" title="Drag to move"></div>
-      <div class="lights-zone"></div>
-      <div class="lights"><button class="l-red" aria-label="Close (Esc)"></button><i class="l-yel"></i><i class="l-grn"></i></div>
+      <div class="grabber" id="grabber" title="Drag to move · double-click to recentre"><i class="grip"></i><button class="g-close" id="g-close" aria-label="Put Peta away (Esc)" title="Put away (Esc)">✕</button></div>
+      <i class="resize-h" id="resize-h" title="Drag to resize"></i>
       <button class="ribbon" id="ribbon" aria-label="Put Peta away" title="Put away (Esc)"><i></i></button>
       <button class="close-tag" id="close-tag" aria-label="Put Peta away" title="Put away (Esc)"><span>Done</span></button>
       <nav class="nav" id="nav" aria-label="Peta sections"></nav>
@@ -78,6 +79,13 @@
     <button data-shell="notebook" role="tab"><b>A</b> Notebook</button>
     <button data-shell="desk" role="tab"><b>B</b> Desk</button>
     <button data-shell="studio" role="tab"><b>C</b> Studio</button>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-group" id="type-switch" role="tablist" aria-label="Typeface">
+    <button data-type="current" role="tab" title="Current: system sans with hand-lettered labels">Aa Std</button>
+    <button data-type="hand" role="tab" title="Handwritten">Hand</button>
+    <button data-type="typewriter" role="tab" title="Typewriter">Type</button>
+    <button data-type="pen" role="tab" title="Fountain pen">Pen</button>
   </div>
   <div class="tb-sep"></div>
   <div class="tb-group">

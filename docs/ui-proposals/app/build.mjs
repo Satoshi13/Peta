@@ -14,7 +14,7 @@ const P = new Function("return " + assetsSrc.match(/const P = (\{[\s\S]*?\n\});/
 
 // [pattern, max box, quality]
 const RULES = [
-  [/^samples\//, "560x560", 84], [/^pack\//, "620x830", 86], [/^today\/(choice|material-card)/, "360x360", 86], [/^today\/envelope|^today\/foil/, "640x430", 86],
+  [/^samples\//, "560x560", 84], [/^pack\//, "620x830", 86], [/^tabs\//, "320x128", 88], [/^ui\/(seal|button)/, "480x140", 88], [/^ui\/material-tray/, "840x300", 84], [/^ui\/(card-locked|memo|index)/, "560x380", 84], [/^ui\/tag/, "300x370", 86], [/^ui\/(paper-clip|binder)/, "160x160", 86], [/^book\/(cover-board|page-paper)/, "640x640", 70], [/^today\/(choice|material-card)/, "360x360", 86], [/^today\/envelope|^today\/foil/, "640x430", 86],
   [/^print\/backing/, "520x780", 84], [/^book\/page-curl/, "900x640", 70], [/^back\/paper/, "700x700", 76], [/^book\/page-right/, "1100x800", 72], [/^creator\/cutting-mat/, "1700x850", 74],
   [/^book\/cover/, "800x550", 80], [/^gift\/mystery/, "420x420", 86], [/^gift\/note/, "520x330", 84], [/^arrival/, "480x340", 86], [/^empty|^onboarding/, "640x420", 80],
 ];

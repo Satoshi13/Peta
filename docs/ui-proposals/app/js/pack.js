@@ -64,17 +64,18 @@ const Cer = (() => {
   async function openPack(pack) {
     if (!pack.left.length) return;
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
-    const PW = Math.min(310, innerHeight * .4), PH = PW * 4 / 3, CUT = 21;
-    const jag = jagged();
-    const tint = pack.hue ? ".tinted" : "";
-    const mk = (cls, clip) => h("div.pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--hue": (pack.hue || 0) + "deg" } }, h("i.sheen"));
+    const K = PACK_KINDS[pack.kind] || PACK_KINDS.holo, PW = Math.min(310, innerHeight * .4), PH = PW * 4 / 3, CUT = K.cut;
+    const jag = jagged(26, CUT);
+    const tint = K.foil && pack.hue ? ".tinted" : "";
+    const mk = (cls, clip) => h("div.pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--hue": (pack.hue || 0) + "deg" } }, K.foil ? h("i.sheen") : null);
     const body = mk("pk-body", polyBody(jag)), topStrip = mk("pk-top", polyTop(jag)), inside = h("div.pk-inside");
     const sleeve = h("div.pk-sleeve", img("mystery"));
     const tab = h("i.pk-tab", h("b", "tear")), line = h("i.pk-line");
-    const pouch = h("div.pouch", { style: { width: PW + "px", height: PH + "px" } }, inside, sleeve, body, topStrip, line, tab);
+    const pouch = h("div.pouch", { data: { kind: pack.kind || "holo" }, style: { width: PW + "px", height: PH + "px", "--pk": packVar(pack.kind) } }, inside, sleeve, body, topStrip, line, tab);
+    line.style.top = CUT + "%"; tab.style.top = CUT - 3.6 + "%";
     const wrapper = h("div.pk-wrap", pouch); stage.append(wrapper);
     anim(wrapper, [{ opacity: 0, transform: "translateY(60px) rotate(8deg) scale(.86)" }, { opacity: 1, transform: "none" }], { duration: 720, easing: EASE.spring });
-    const xL = PW * .115, xR = PW * .875, cutY = PH * CUT / 100, span = xR - xL;
+    const xL = PW * K.xl, xR = PW * K.xr, cutY = PH * CUT / 100, span = xR - xL;
     sleeve.style.cssText = `width:${PW * .72}px;left:${PW * .14}px;top:${cutY - PW * .72 * .12}px`;
     // tear state
     let prog = 0, done = false;

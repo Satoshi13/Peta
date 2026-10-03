@@ -10,8 +10,8 @@
 .pk-wrap { position: absolute; left: 50%; top: 46%; translate: -50% -50%; will-change: transform; }
 .pouch { position: relative; touch-action: none; cursor: grab; outline: none; filter: drop-shadow(0 22px 26px rgba(0, 0, 0, .5)); }
 .pouch.pulling { cursor: grabbing; }
-.pk-layer { position: absolute; inset: 0; background: var(--a-pouch) center / 100% 100% no-repeat; }
-.pk-layer .sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; -webkit-mask: var(--a-pouch) center / 100% 100% no-repeat; mask: var(--a-pouch) center / 100% 100% no-repeat;
+.pk-layer { position: absolute; inset: 0; background: var(--pk, var(--a-pouch)) center / 100% 100% no-repeat; }
+.pk-layer .sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; -webkit-mask: var(--pk, var(--a-pouch)) center / 100% 100% no-repeat; mask: var(--pk, var(--a-pouch)) center / 100% 100% no-repeat;
   background: linear-gradient(115deg, transparent 18%, rgba(255, 255, 255, 0) 34%, rgba(255, 255, 255, .95) 48%, rgba(190, 225, 255, .6) 54%, rgba(255, 190, 235, .45) 60%, transparent 72%); background-size: 280% 280%; background-position: var(--sx, 30%) var(--sy, 30%); }
 .pk-body { z-index: 4; } .pk-top { z-index: 6; } .pouch.torn { cursor: default; } .pouch.torn .pk-body, .pouch.torn .pk-top { pointer-events: none; }
 .pk-inside { position: absolute; inset: 0; z-index: 2; opacity: 0; background: linear-gradient(180deg, #4a4e57, #707680 65%, #a3a9b2); }
@@ -90,3 +90,5 @@ img.peta-tag { width: 120px; }
 .peta-tag.v-holo { border-radius: 999px; background: var(--holo); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .85); } .peta-tag.v-holo .wm { background: #3b3552; }
 .peta-tag.v-stamp { width: 112px; height: 52px; border: 3px double #b94a3e; border-radius: 6px; background: rgba(255, 253, 249, .92); } .peta-tag.v-stamp .wm { background: #b94a3e; width: 70%; }
 .pk-layer.tinted { filter: sepia(.55) saturate(1.9) hue-rotate(calc(var(--hue, 0deg) - 40deg)) brightness(1.03); }
+.pouch[data-kind="kraft"] .pk-inside { background: linear-gradient(180deg, #4d3a22, #86683b 62%, #b08d58); } .pouch[data-kind="matte"] .pk-inside { background: linear-gradient(180deg, #a69b86, #cdc3ae 62%, #e4dbc8); }
+.pouch[data-kind="kraft"] .pk-line, .pouch[data-kind="matte"] .pk-line { border-top-color: rgba(70, 50, 25, .6); }

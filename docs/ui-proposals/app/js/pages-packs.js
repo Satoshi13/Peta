@@ -14,7 +14,7 @@ Pages.packs = {
   },
   pack(p, i, locked) {
     const off = p.empty || locked, n = Math.min(3, p.left.length || 1);
-    const stack = h("div.pk-stack", Array.from({ length: n }, (_, k) => h("i.pk-img" + (p.hue ? ".tinted" : ""), { style: { "--k": k, "--hue": p.hue + "deg" } }, k === n - 1 ? h("i.sheen") : null)));
+    const stack = h("div.pk-stack", Array.from({ length: n }, (_, k) => h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": k, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, k === n - 1 && (p.kind || "holo") === "holo" ? h("i.sheen") : null)));
     const card = h("button.pack", { disabled: off, "aria-label": `${p.title}, ${p.left.length} left`, data: { empty: p.empty }, style: { "--i": i }, on: { click: () => { Snd.tap(); Cer.openPack(p); } } },
       stack,
       h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.empty ? "all opened" : p.left.length + " of " + p.total + " left"}`)),

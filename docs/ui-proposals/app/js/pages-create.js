@@ -1,6 +1,6 @@
 /* Create: the Cutting Mat. Same ideas as the app (original -> cutout -> sticker, brush, outline, material),
    done in canvas. Samples are already cut out, so we paint them onto a fake "photo" and cut it again. */
-const CR = { stage: "empty", src: null, photo: null, mask: null, border: 14, smooth: 4, tool: "erase", brush: 26, undo: [], redo: [], res: null, cutCanvas: null, note: "" };
+const CR = { stage: "empty", src: null, photo: null, mask: null, border: 20, smooth: 4, tool: "erase", brush: 26, undo: [], redo: [], res: null, cutCanvas: null, note: "" };
 const SAMPLE_KEYS = ["sCat", "sBlueFlower", "sCoffee", "sCamera", "sEgg", "sGoodDay", "sPlant", "sPolaroid", "sCassette", "sComputer", "sScribble", "sBubble"];
 const PHOTO_W = 720;
 
@@ -90,7 +90,7 @@ Pages.create = {
         const cx = cutCv.getContext("2d"); cx.clearRect(0, 0, cutCv.width, cutCv.height); cx.drawImage(cut, 0, 0);
         const crop = bboxCrop(cut); if (!crop) { stkHost.replaceChildren(h("p.muted", "Nothing left to cut out")); CR.res = null; syncMake(); return; }
         CR.crop = crop;
-        const res = await Stk.fromDrawable(crop, crop.width, crop.height, { border: CR.border, material: S.chosen, max: 520 }); CR.res = res;
+        const res = await Stk.fromDrawable(crop, crop.width, crop.height, { border: CR.border, material: S.chosen, max: 400 }); CR.res = res;
         const maxD = 230, el = Stk.el(res, res.aspect >= 1 ? maxD : maxD * res.aspect); el.classList.add("live");
         stkHost.replaceChildren(el); Stk.tilt(stkHost, { max: 8, scale: 1.02 }); syncMake();
       });
@@ -139,7 +139,7 @@ Pages.create = {
         h("figure.pane.stk-pane", h("div.frame.desk", stkHost), h("figcaption", "Sticker"))),
       h("div.cr-controls",
         h("div.grp.g-mat", h("label.lbl", "Material"), tray),
-        h("div.grp.g-look", h("label.lbl", "Look"), slider("Outline", "border", 4, 30, "", redraw), slider("Smooth", "smooth", 0, 12, "", redraw)),
+        h("div.grp.g-look", h("label.lbl", "Look"), slider("Outline", "border", 4, 64, "", redraw), slider("Smooth", "smooth", 0, 12, "", redraw)),
         h("div.grp.g-tools", h("label.lbl", "Brush"), h("div.tools", seg, undoBtn, redoBtn), slider("Size", "brush", 8, 60, "", () => {})),
         h("div.grp.g-go", CR.note ? h("p.muted.small", CR.note) : null, h("div.go-btns", h("button.btn.paper", { on: { click: () => { crReset(); Shell.refresh(); } } }, "Cancel"), make))));
     syncUndo(); syncMake(); redraw();
@@ -150,7 +150,7 @@ Pages.create = {
     const id = "L" + pad4(S.nextNo).slice(2), mat = S.chosen;
     if (!MAT[mat].unlimited) S.stock[mat]--;
     const url = CR.crop.toDataURL("image/png");
-    const entry = { id, cutout: url, material: mat, kind: "original", no: S.nextNo++, date: S.today, title: "My Peta" };
+    const entry = { id, cutout: url, material: mat, border: CR.border, kind: "original", no: S.nextNo++, date: S.today, title: "My Peta" };
     Snd.tap(); crReset(); Shell.refresh();
     await Desktop.print(entry);
   },
