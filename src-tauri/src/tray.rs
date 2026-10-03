@@ -20,6 +20,7 @@ pub struct TodayItem(pub MenuItem<Wry>);
 pub fn build(app: &AppHandle) -> tauri::Result<()> {
     let today_item = MenuItem::with_id(app, "today", "Today's Peta", true, None::<&str>)?;
     let collection = MenuItem::with_id(app, "collection", "Collection", true, None::<&str>)?;
+    let resume_print = MenuItem::with_id(app, "resume_print", "Sticker waiting at the print slot…", true, None::<&str>)?;
     let open_gift = MenuItem::with_id(app, "open_gift", "Open Gift…", true, None::<&str>)?;
     let edit = CheckMenuItem::with_id(app, "edit", "Edit Stickers", true, false, None::<&str>)?;
     let resync = MenuItem::with_id(app, "resync", "Re-sync Displays", true, None::<&str>)?;
@@ -43,7 +44,9 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
         None
     };
 
-    let mut items: Vec<&dyn tauri::menu::IsMenuItem<Wry>> = vec![&today_item, &collection, &open_gift, &edit, &sep1];
+    let pages = ["create", "packs", "gifts", "market", "materials", "settings"].iter().map(|page| MenuItem::with_id(app, *page, format!("{}{}", page[0..1].to_uppercase(), &page[1..]), true, None::<&str>)).collect::<tauri::Result<Vec<_>>>()?;
+    let mut items: Vec<&dyn tauri::menu::IsMenuItem<Wry>> = vec![&today_item, &collection, &resume_print, &open_gift, &edit, &sep1];
+    items.extend(pages.iter().map(|item| item as &dyn tauri::menu::IsMenuItem<Wry>));
     if let Some(dev) = dev.as_ref() {
         items.push(dev);
     }
@@ -60,15 +63,10 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
         .menu(&menu)
         .show_menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id().as_ref() {
-            "today" => {
-                // a Peta is waiting at the print slot (put aside earlier): bring it back instead
-                if matches!(crate::print::pending(app), Ok(Some(_))) {
-                    crate::print::begin(app);
-                } else if let Err(e) = today::open_window(app) {
-                    eprintln!("[peta] could not open Today: {e}");
-                }
-            }
+            "today" => { let _ = today::open_window(app); }
+            "resume_print" => crate::print::begin(app),
             "open_gift" => crate::gifts::menu_open_gift(app),
+            "create" | "packs" | "gifts" | "market" | "materials" | "settings" => { let _ = crate::app_window::open(app, event.id().as_ref()); },
             "collection" => {
                 if let Err(e) = collection::open_window(app) {
                     eprintln!("[peta] could not open the Sticker Book: {e}");

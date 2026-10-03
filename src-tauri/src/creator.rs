@@ -16,11 +16,10 @@ use peta_core::{
     Material, SourceType,
 };
 use serde::Serialize;
-use tauri::{ipc::Response, AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
+use tauri::{ipc::Response, AppHandle, Emitter, Manager, State};
 
-use crate::{platform, print, store::Store, today};
+use crate::{print, store::Store, today};
 
-pub const CREATOR_LABEL: &str = "creator";
 
 /// u2netp, 4.5 MB: bundled so cutting out works offline from the first launch.
 const BUNDLED_MODEL: &[u8] = include_bytes!("../models/u2netp.onnx");
@@ -119,18 +118,7 @@ pub fn begin(app: &AppHandle, bytes: Vec<u8>, target: Target) -> Result<(), Stri
 }
 
 fn open_window(app: &AppHandle) -> tauri::Result<()> {
-    platform::activate_app();
-    if let Some(w) = app.get_webview_window(CREATOR_LABEL) {
-        w.show()?;
-        return w.set_focus();
-    }
-    WebviewWindowBuilder::new(app, CREATOR_LABEL, WebviewUrl::App("creator.html".into()))
-        .title("Cutting Mat")
-        .inner_size(1120.0, 760.0)
-        .min_inner_size(860.0, 620.0)
-        .center()
-        .build()?;
-    Ok(())
+    crate::app_window::open(app, "create")
 }
 
 /// The window was closed (or cancelled): forget the session. Nothing was spent.
@@ -304,8 +292,8 @@ pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, 
     tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth))
         .await
         .map_err(|e| e.to_string())??;
-    if let Some(w) = app.get_webview_window(CREATOR_LABEL) {
-        let _ = w.destroy();
+    if let Some(w) = app.get_webview_window(crate::app_window::APP_LABEL) {
+        let _ = w.hide();
     }
     clear(&app);
     Ok(())
@@ -355,8 +343,8 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32) -> Res
 /// Cancel: close the window, keep everything as it was.
 #[tauri::command]
 pub fn creator_cancel(app: AppHandle) {
-    if let Some(w) = app.get_webview_window(CREATOR_LABEL) {
-        let _ = w.destroy();
+    if let Some(w) = app.get_webview_window(crate::app_window::APP_LABEL) {
+        let _ = w.hide();
     }
     clear(&app);
 }

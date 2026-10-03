@@ -1,0 +1,9 @@
+/* Only adapt the prototype's window to a native webview. Page declarations remain verbatim. */
+:root { --win-w: 100vw; --win-h: 100vh; }
+html, body { background: transparent; user-select: none; -webkit-user-select: none; }
+input { user-select: text; -webkit-user-select: text; }
+#win-layer, body[data-shell] #win-layer { position: fixed; inset: 0; padding: 0; }
+.win { width: 100%; height: 100%; --win-w: 100vw; --win-h: 100vh; }
+.drag-strip { height: 28px; }
+
+/* TODO(art): retain the prototype CSS for sticky notes and notebook corners/binding until approved replacement art arrives. */

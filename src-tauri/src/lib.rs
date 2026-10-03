@@ -1,3 +1,5 @@
+mod app_window;
+mod port_capture;
 mod arrival;
 mod collection;
 mod creator;
@@ -104,6 +106,7 @@ pub fn run() {
         .manage(Today::default())
         .manage(Creator::default())
         .invoke_handler(tauri::generate_handler![
+            port_capture::port_capture_report,
             layer_info,
             layer_placements,
             save_placement,
@@ -144,7 +147,7 @@ pub fn run() {
         ])
         .on_window_event(|window, event| {
             // closing the Cutting Mat with the window button is a cancel: nothing was spent
-            if window.label() == creator::CREATOR_LABEL && matches!(event, tauri::WindowEvent::Destroyed) {
+            if window.label() == app_window::APP_LABEL && matches!(event, tauri::WindowEvent::Destroyed) {
                 creator::clear(window.app_handle());
             }
         })
@@ -159,6 +162,7 @@ pub fn run() {
             layers::spawn_monitor_watcher(app.handle().clone());
             today::roll_day(app.handle()); // draws today's material; sets the menu indicator
             today::spawn_day_watcher(app.handle().clone());
+            port_capture::start(app.handle());
             Ok(())
         })
         .build(tauri::generate_context!())

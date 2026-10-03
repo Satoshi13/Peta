@@ -17,10 +17,10 @@ use peta_core::{
     Database, Material, SlotState, SourceType,
 };
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt;
 
-use crate::{creator, layers::Layers, platform, store::Store, tray};
+use crate::{creator, layers::Layers, store::Store, tray};
 
 pub const TODAY_LABEL: &str = "today";
 /// Error string the UI recognises: today's new Peta has already been confirmed.
@@ -114,18 +114,7 @@ pub fn announce(app: &AppHandle) {
 // ---- opening the Today screen ----
 
 pub fn open_window(app: &AppHandle) -> tauri::Result<()> {
-    platform::activate_app(); // we're an Accessory app; bring the window to the front
-    if let Some(w) = app.get_webview_window(TODAY_LABEL) {
-        w.show()?;
-        return w.set_focus();
-    }
-    WebviewWindowBuilder::new(app, TODAY_LABEL, WebviewUrl::App("today.html".into()))
-        .title("Today's Peta")
-        .inner_size(560.0, 720.0)
-        .min_inner_size(460.0, 520.0)
-        .center()
-        .build()?;
-    Ok(())
+    crate::app_window::open(app, "today")
 }
 
 // ---- the actions ----

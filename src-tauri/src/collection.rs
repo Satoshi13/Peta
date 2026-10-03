@@ -6,25 +6,13 @@ use peta_core::{
     book, materials, BookEntry, Material, MonthIndex, StickerBack,
 };
 use serde::Serialize;
-use tauri::{AppHandle, Manager, State, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, State};
 
-use crate::{platform, store::Store};
+use crate::{store::Store};
 
-pub const COLLECTION_LABEL: &str = "collection";
 
 pub fn open_window(app: &AppHandle) -> tauri::Result<()> {
-    platform::activate_app();
-    if let Some(w) = app.get_webview_window(COLLECTION_LABEL) {
-        w.show()?;
-        return w.set_focus();
-    }
-    WebviewWindowBuilder::new(app, COLLECTION_LABEL, WebviewUrl::App("collection.html".into()))
-        .title("Sticker Book")
-        .inner_size(1040.0, 740.0)
-        .min_inner_size(820.0, 560.0)
-        .center()
-        .build()?;
-    Ok(())
+    crate::app_window::open(app, "book")
 }
 
 /// Months that have a page, newest first.
