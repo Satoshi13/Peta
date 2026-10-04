@@ -76,3 +76,9 @@ Make / Collect / DiscoverをStudioに追加し、表示順と遷移方向を一�
 Createカード内のChoose imageはspanで主ボタンの見た目を重ね、外側のbutton.choiceを唯一の操作面とする（二重buttonはHTMLとして不正で、入れ子のホバー移動も生むため）。押す位置に関わらず現行Shell.goへ移動する。Stockは素材カード下の共通行に広げ、Holographic等の長い名前と3種類の在庫が収まるようにした。下段は内容に応じて約218px（196pxは目安）。≤1000pxの1列と≤880pxの2列Choicesを維持。
 
 実Tauri・720×520で封筒→tear→pull→Keep→.tm-card .mcardまで完了。カード下端309.6px、情報欄上端334.8px、重なりなし、終了後もwindowOpen=true。開封後の4サイズ・シェルで横はみ出し0。開封の更新処理・Rust契約は変更していない。
+
+## E: Book List
+
+242pxの等高カード、256pxのドット罫、Special Elite 13pxの日付札、名前と素材／No.／Receivedの2行。On desktopは緑の点、Giftは静かなチップ。選択はカード内側の2pxリング。今日未貼付・非pick・Book非空のときだけ先頭に空きスロットを表示する。Listは全期間のまま、Calendarと詳細・Flip／Peel／Gift／Edit／Delete／Stick・Make a Packを保持。クイックアクションは詳細と重複するため追加しない。
+
+新素材・タイトル推測は追加せず、現行titleOfと既存素材／番号を使う。未決O1に踏み込まず、無名のものはStickerのまま。画像は既存lazyStickerとIntersectionObserverを再利用。
