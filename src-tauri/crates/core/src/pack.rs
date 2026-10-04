@@ -18,17 +18,21 @@ pub struct MarketPack {
     pub title: &'static str,
     pub by: &'static str,
     pub keys: &'static [&'static str],
+    pub free: bool,
 }
 
-/// Local free packs; installation and empty-bag refills use the same shipped pictures.
+/// Local catalog packs; purchases and empty-bag refills use the same shipped pictures.
 pub fn market_pack(id: &str) -> Option<MarketPack> {
     let (id, title, by, keys): (_, _, _, &[&str]) = match id {
         "tokyo" => ("tokyo", "Tokyo Pack", "Peta", &["film-camera","coffee-cup","polaroid-mountain","cassette-tape","retro-computer","peta-bubble","good-day","fried-egg"]),
         "coffee" => ("coffee", "Coffee Club", "Nao", &["coffee-cup","fried-egg","good-day","film-camera","potted-plant","cat-skateboard"]),
         "plants" => ("plants", "Houseplants", "Mika", &["potted-plant","blue-flower","fried-egg","polaroid-mountain","coffee-cup"]),
+        "pixel" => ("pixel", "Pixel Dream", "Ryo", &["retro-computer","cassette-tape","peta-bubble","purple-scribble","film-camera","good-day"]),
+        "cats" => ("cats", "Cats", "Yuki", &["cat-skateboard","purple-scribble","coffee-cup","potted-plant","peta-bubble"]),
+        "night" => ("night", "Night Market", "Ren", &["fried-egg","cassette-tape","good-day","polaroid-mountain","film-camera","peta-bubble"]),
         _ => return None,
     };
-    Some(MarketPack { id, title, by, keys })
+    Some(MarketPack { id, title, by, keys, free: matches!(id,"tokyo"|"coffee"|"plants") })
 }
 
 /// The Welcome Pack's items: file names (without extension) of the sample stickers shipped under `art/samples/`.

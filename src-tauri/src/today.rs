@@ -86,7 +86,7 @@ fn build_status(app: &AppHandle, record: &DailyRecord, db: &Database) -> DailySt
         bonus_envelopes: db.bonus_envelopes().unwrap_or(0),
         material: if opened { material_view(db, &record.material_id) } else { None },
         slot,
-        can_create: true,
+        can_create: peta_core::materials::catalog().iter().any(|m| db.has_material(&m.id).unwrap_or(false)),
         sticker_id: record.sticker_id.clone(),
         unlocked,
     }

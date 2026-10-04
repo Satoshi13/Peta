@@ -766,7 +766,7 @@ impl Database {
         Ok(())
     }
 
-    // ---- material stock (materials are used up; plain paper is the exception) ----
+    // ---- material stock (each creation uses one sheet) ----
 
     pub fn scrap_status(&self) -> Result<crate::scraps::Status> {
         crate::scraps::status(&self.conn)
@@ -776,7 +776,7 @@ impl Database {
         crate::scraps::trade(&mut self.conn, request, request_id)
     }
 
-    /// How many of a material you hold. (Plain paper is unlimited regardless of this number.)
+    /// How many unused sheets of a material you hold.
     pub fn material_count(&self, material_id: &str) -> Result<i64> {
         Ok(self
             .conn
@@ -807,7 +807,7 @@ impl Database {
         Ok(materials::is_unlimited(material_id) || self.material_count(material_id)? >= 1)
     }
 
-    /// Use one up. Fails with `MaterialUnavailable` if none is left. Plain paper is never used up.
+    /// Use one up. Fails with `MaterialUnavailable` if none is left.
     pub fn consume_material(&mut self, material_id: &str) -> Result<()> {
         if materials::is_unlimited(material_id) {
             return Ok(());
@@ -1154,8 +1154,8 @@ mod tests {
         let db = Database::open(&path).unwrap();
         assert_eq!(db.material_count("holographic").unwrap(), 1);
         assert_eq!(db.material_count("kraft").unwrap(), 1);
-        assert_eq!(db.material_count("matte").unwrap(), 0, "plain paper needs no stock");
-        assert!(db.has_material("matte").unwrap());
+        assert_eq!(db.material_count("matte").unwrap(), 0, "no sheets have been granted");
+        assert!(!db.has_material("matte").unwrap());
         let _ = std::fs::remove_dir_all(dir);
     }
 

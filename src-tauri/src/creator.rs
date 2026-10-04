@@ -95,6 +95,16 @@ impl Creator {
 /// background and the window is told when it is done. Fails with `already_used_today` if today's Peta
 /// is already made (and this one would count).
 pub fn begin(app: &AppHandle, bytes: Vec<u8>, target: Target) -> Result<(), String> {
+    if target.counts_for_today {
+        let store = app.state::<Store>();
+        let lib = store.lock();
+        let available = if let Some(id) = &target.material_hint {
+            materials::get(id).is_some() && lib.db().has_material(id).map_err(|e| e.to_string())?
+        } else {
+            materials::catalog().iter().any(|m| lib.db().has_material(&m.id).unwrap_or(false))
+        };
+        if !available { return Err(peta_core::Error::MaterialUnavailable.to_string()); }
+    }
     let creator = app.state::<Creator>();
     let generation = creator.generation.fetch_add(1, Ordering::SeqCst) + 1;
     *creator.active.lock().unwrap() = None;

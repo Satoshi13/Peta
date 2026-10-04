@@ -90,7 +90,7 @@ SettingsのCreator icon、またはMarket → Creatorsの自分のプロフィ�
 Marketの購入済みパックは、Featuredのボタン・一覧の`On your shelf`・詳細の同ボタンからPacksへ移動し、該当する袋を表示します。表示はチェック付きの小さな紙色ラベル。棚への移動だけではパックを開封せず、残数や素材を消費しません。Reduce motionでは移動後のスクロールも即時にします。
 
 - 今日の素材はローカル日付ごとに1つ抽選し、初回はHolographic。以降の重みはMatte / Kraft / Holographic = 50 / 32 / 18。
-- 封筒を開けると素材を獲得。Matteは無制限、Kraft / Holographicは作成時に選んだものを1つ消費します。素材帳の発見記録は残ります。
+- 封筒を開けると素材を獲得。Matte / Kraft / Holographicはすべて有限で、作成時に選んだ素材を1枚消費します。在庫がないと新規作成できません。素材帳の発見記録は残ります。
 - CreateとBookからの再印刷に1日1枚の上限はありません。Welcome Packは1日1回、Market Pack / Giftは回数制限なしで素材を消費しません。
 - Cutting Matで作成を確定するまでは素材を消費しません。Cancel・画像ダイアログの取消・閲覧だけでは変わらず、編集・剥がし・貼り直しも素材を消費しません。
 - 素材選択は位置を固定したカードの薄い紙色の台座と小さなチェックで示し、上の装飾テープ・持ち上げ・傾きは使いません。選択してもボタンを作り直さず、フォーカスを保持します。Materials／Packsの反射は固定した操作面から算出し、Createの見本・画像ドロップ・Giftの操作面もホバーで動かしません。Reduce motionでは追従と装飾の移動を止めます。
@@ -99,9 +99,9 @@ Marketの購入済みパックは、Featuredのボタン・一覧の`On your she
 
 ### Scrapsの分解・引換
 
-未使用のKraft 1枚は1 Scrap、Holographic 1枚は3 Scrapsへ分解できます。Matte・作成済みステッカー・Giftは対象外で、素材帳の発見記録は残ります。Kraft 1枚は2 Scraps、Holographic 1枚は6 Scrapsで引換。初回無料のTokyo／Coffee／Houseplantsは、空になった同じ袋へ16／12／10 Scrapsで8／6／5枚を補充できます。開封済み項目・来歴を残し、袋の総数は累計、残数は未開封数です。中身が残る袋・Welcome・有料表示のPackは補充対象外です。
+未使用のMatte／Kraft 1枚は1 Scrap、Holographic 1枚は3 Scrapsへ分解できます。作成済みステッカー・Giftは対象外で、素材帳の発見記録は残ります。Matte 1枚は1 Scrap、Kraft 1枚は2 Scraps、Holographic 1枚は6 Scrapsで引換。初回無料のTokyo／Coffee／Houseplantsは、空になった同じ袋へ16／12／10 Scrapsで8／6／5枚を補充できます。開封済み項目・来歴を残し、袋の総数は累計、残数は未開封数です。Pixel Dream／Cats／Night Marketは12／10／12 Scrapsで初回購入と空袋の補充ができます。中身が残る袋・Welcomeは交換対象外です。現金価格は表示しません。
 
-MarketとMaterialsの右上にScraps残高を表示します。Materialsのカードはクリックでプレビューを開くだけで、Createの素材を選び直しません。分解ボタンは選択後のプレビューだけに置き、一覧には素材ごとの所持枚数（Matteは∞）を大きく表示します。`Dismantle…`から数量・受取Scraps・残る素材を確認し、Marketでは受取数・合計消費Scraps・引換後残高を確認してから確定します。キャンセルや閲覧では消費しません。応答が途切れた場合のRetryは同じリクエストを確認し、既に完了していても二重消費しません。
+MarketとMaterialsの右上にScraps残高を表示します。Materialsのカードはクリックでプレビューを開くだけで、Createの素材を選び直しません。分解ボタンは選択後のプレビューだけに置き、一覧には素材ごとの所持枚数を大きく表示します。`Dismantle…`から数量・受取Scraps・残る素材を確認し、Marketでは受取数・合計消費Scraps・引換後残高を確認してから確定します。キャンセルや閲覧では消費しません。応答が途切れた場合のRetryは同じリクエストを確認し、既に完了していても二重消費しません。
 
 残高の初期値は0。Rustが残高・在庫・付与・リクエストごとの取引結果を1つのSQLiteトランザクションで更新し、再送で二重消費・二重付与しません。既存DB v7のmetaを使い、スキーマと既存の作成・開封・FIFOルールは変えません。現金決済・未実装のGold／Riso／Vintage取得・アカウント同期は含みません。
 

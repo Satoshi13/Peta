@@ -13,11 +13,12 @@ pub struct MaterialRate { pub id: &'static str, pub dismantle: i64, pub exchange
 #[serde(rename_all = "camelCase")]
 pub struct PackRate { pub id: &'static str, pub exchange: i64, pub stickers: usize }
 
-const MATERIALS: [MaterialRate; 2] = [
+const MATERIALS: [MaterialRate; 3] = [
+    MaterialRate { id:"matte", dismantle:1, exchange:1 },
     MaterialRate { id:"kraft", dismantle:1, exchange:2 },
     MaterialRate { id:"holographic", dismantle:3, exchange:6 },
 ];
-const PACKS: [(&str, i64); 3] = [("tokyo",16),("coffee",12),("plants",10)];
+const PACKS: [(&str, i64); 6] = [("tokyo",16),("coffee",12),("plants",10),("pixel",12),("cats",10),("night",12)];
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -60,7 +61,7 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str) ->
         Kind::Dismantle => rate.ok_or_else(|| invalid("This material cannot be dismantled."))?.dismantle * request.quantity,
         Kind::Material => -rate.ok_or_else(|| invalid("This material is not available to exchange."))?.exchange * request.quantity,
         Kind::Pack => {
-            if request.quantity!=1 { return Err(invalid("Refill one empty pack at a time.")); }
+            if request.quantity!=1 { return Err(invalid("Exchange for one pack at a time.")); }
             -PACKS.iter().find(|(id,_)| *id==request.item_id).ok_or_else(|| invalid("This pack is not available to exchange."))?.1
         }
     };
@@ -81,7 +82,11 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str) ->
         }
         Kind::Pack => {
             let own: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM packs WHERE id=?1)", [&request.item_id], |r| r.get(0))?;
-            if !own { return Err(invalid("Get this pack for free before refilling it.")); }
+            let p = pack::market_pack(&request.item_id).unwrap();
+            if !own {
+                if p.free { return Err(invalid("Get this pack for free before refilling it.")); }
+                tx.execute("INSERT INTO packs(id,title,by_name,created_at) VALUES(?1,?2,?3,?4)", params![p.id,p.title,p.by,chrono::Utc::now().to_rfc3339()])?;
+            }
             let left: i64 = tx.query_row("SELECT COUNT(*) FROM pack_items WHERE pack_id=?1 AND opened_at IS NULL", [&request.item_id], |r| r.get(0))?;
             if left!=0 { return Err(invalid("Open the remaining stickers before refilling this pack.")); }
             for item in pack::market_pack(&request.item_id).unwrap().keys {
@@ -108,13 +113,13 @@ mod tests {
         db.scrap_trade(&request(Kind::Dismantle,"holographic",20),"fund").unwrap();db
     }
     #[test]
-    fn dismantling_preserves_discovery_and_cannot_spend_matte_or_unowned_sheets() {
+    fn dismantling_preserves_discovery_and_cannot_spend_unowned_sheets() {
         let mut db=Database::open_in_memory().unwrap();
         db.unlock_material("kraft").unwrap();let found=db.material_unlocked_at("kraft").unwrap();db.add_material("kraft",2).unwrap();
         assert_eq!(db.scrap_trade(&request(Kind::Dismantle,"kraft",2),"one").unwrap().balance,2);
         assert_eq!(db.material_count("kraft").unwrap(),0);assert_eq!(db.material_unlocked_at("kraft").unwrap(),found);
         for id in ["kraft","matte","gold","unknown"] { assert!(db.scrap_trade(&request(Kind::Dismantle,id,1),id).is_err()); }
-        assert_eq!(db.scrap_status().unwrap().balance,2);assert!(db.has_material(materials::DEFAULT_MATERIAL).unwrap());
+        assert_eq!(db.scrap_status().unwrap().balance,2);assert!(!db.has_material(materials::DEFAULT_MATERIAL).unwrap());
     }
     #[test]
     fn exchange_prices_cannot_create_scraps_and_unlocks_keep_their_original_date() {
@@ -140,8 +145,8 @@ mod tests {
     fn invalid_quantities_products_ids_and_insufficient_balance_do_not_mutate_stock() {
         let mut db=Database::open_in_memory().unwrap();
         for q in [0,-1,1001,i64::MAX] { assert!(db.scrap_trade(&request(Kind::Material,"kraft",q),"bad-q").is_err()); }
-        for id in ["matte","gold","riso","vintage","unknown"] { assert!(db.scrap_trade(&request(Kind::Material,id,1),"bad-material").is_err()); }
-        for id in ["welcome","cats","pixel","night","unknown"] { assert!(db.scrap_trade(&request(Kind::Pack,id,1),"bad-pack").is_err()); }
+        for id in ["gold","riso","vintage","unknown"] { assert!(db.scrap_trade(&request(Kind::Material,id,1),"bad-material").is_err()); }
+        for id in ["welcome","unknown"] { assert!(db.scrap_trade(&request(Kind::Pack,id,1),"bad-pack").is_err()); }
         for id in ["","../bad","id with spaces"] { assert!(db.scrap_trade(&request(Kind::Material,"kraft",1),id).is_err()); }
         assert!(db.scrap_trade(&request(Kind::Material,"kraft",1),"no-funds").is_err());
         assert_eq!(db.material_count("kraft").unwrap(),0);assert_eq!(db.scrap_status().unwrap().balance,0);
@@ -149,7 +154,7 @@ mod tests {
     #[test]
     fn empty_packs_refill_without_overwriting_opened_history_or_welcome_allowance() {
         let mut db=funded();pack::ensure_welcome_pack(&mut db).unwrap();
-        for (id,cost) in PACKS {
+        for (id,cost) in &PACKS[..3] {
             let p=pack::market_pack(id).unwrap();let req=request(Kind::Pack,id,1);
             assert!(db.scrap_trade(&req,&format!("missing-{id}")).is_err());
             db.pack_install(p.id,p.title,p.by,p.keys).unwrap();assert!(db.scrap_trade(&req,&format!("full-{id}")).is_err());
@@ -157,10 +162,35 @@ mod tests {
             let before=db.scrap_status().unwrap().balance;
             db.scrap_trade(&req,&format!("refill-{id}")).unwrap();
             assert_eq!(db.scrap_status().unwrap().balance,before-cost);
-            let row=db.packs().unwrap().into_iter().find(|p|p.id==id).unwrap();assert_eq!(row.total,p.keys.len() as i64*2);assert_eq!(row.remaining,p.keys.len() as i64);
+            let row=db.packs().unwrap().into_iter().find(|p|p.id==*id).unwrap();assert_eq!(row.total,p.keys.len() as i64*2);assert_eq!(row.remaining,p.keys.len() as i64);
             assert!(!db.pack_install(p.id,p.title,p.by,p.keys).unwrap());
         }
         assert!(db.welcome_available("2026-10-04").unwrap());assert_eq!(db.packs().unwrap().iter().find(|p|p.id=="welcome").unwrap().total,12);
+    }
+    #[test]
+    fn paid_packs_are_installed_atomically_and_retries_do_not_add_items() {
+        let mut db=funded();
+        for (id,cost) in &PACKS[3..] {
+            let req=request(Kind::Pack,id,1);
+            let before=db.scrap_status().unwrap().balance;
+            let receipt=db.scrap_trade(&req,&format!("buy-{id}")).unwrap();
+            assert_eq!(receipt.balance,before-cost);
+            assert_eq!(db.scrap_trade(&req,&format!("buy-{id}")).unwrap(),receipt);
+            let p=pack::market_pack(id).unwrap();
+            let row=db.packs().unwrap().into_iter().find(|p|p.id==*id).unwrap();
+            assert_eq!((row.total,row.remaining),(p.keys.len() as i64,p.keys.len() as i64));
+            assert!(db.scrap_trade(&req,&format!("full-{id}")).is_err());
+        }
+    }
+    #[test]
+    fn matte_exchange_and_consumption_use_real_stock_without_creating_scraps() {
+        let mut db=funded();
+        db.scrap_trade(&request(Kind::Material,"matte",2),"paper").unwrap();
+        db.consume_material("matte").unwrap();
+        assert_eq!(db.material_count("matte").unwrap(),1);
+        db.scrap_trade(&request(Kind::Dismantle,"matte",1),"scrap-paper").unwrap();
+        assert_eq!(db.scrap_status().unwrap().balance,59);
+        assert!(!db.has_material("matte").unwrap());
     }
     #[test]
     fn balance_stock_receipts_and_schema_survive_restart_and_failed_receipt_rolls_everything_back() {

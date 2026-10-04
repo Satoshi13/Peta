@@ -77,7 +77,7 @@ pub struct Material {
     /// How many you hold (filled in from stock; 0 in the bare catalog). Materials are used up.
     #[serde(default)]
     pub count: i64,
-    /// Plain paper never runs out.
+    /// True only for an edition with unlimited manufacturing.
     #[serde(default)]
     pub unlimited: bool,
 }
@@ -89,16 +89,13 @@ impl Material {
     }
 }
 
-/// Always unlocked from the first launch, so there is something to make a sticker with on day one.
+/// Plain paper is known from the first launch; making one still requires a sheet.
 pub const DEFAULT_MATERIAL: &str = "matte";
 /// The very first Today's Material is always this one (the Alpha story, spec §88).
 pub const FIRST_DRAW_MATERIAL: &str = "holographic";
 
-/// Plain paper is the one material that never runs out, so there is always something to make a sticker with.
-/// Every other material is used up when a sticker is made with it.
-pub fn is_unlimited(id: &str) -> bool {
-    id == DEFAULT_MATERIAL
-}
+/// All manufacturing materials consume stock in the distribution edition.
+pub fn is_unlimited(_id: &str) -> bool { false }
 
 fn border(width: f64, style: &str) -> Option<Border> {
     Some(Border { enabled: true, width, style: style.into() })

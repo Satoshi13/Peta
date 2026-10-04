@@ -193,9 +193,9 @@ mod tests {
     }
 
     #[test]
-    fn opening_adds_one_to_stock_once_a_day_and_matte_is_unlimited() {
+    fn opening_adds_one_to_stock_once_a_day() {
         let mut db = Database::open_in_memory().unwrap();
-        assert!(db.has_material("matte").unwrap(), "plain paper always available");
+        assert!(!db.has_material("matte").unwrap(), "plain paper requires stock too");
         assert!(!db.has_material("holographic").unwrap());
         open_material(&mut db, "2026-10-01", 0.5).unwrap(); // first draw: holographic
         open_material(&mut db, "2026-10-01", 0.5).unwrap(); // same day again: nothing more
@@ -231,11 +231,12 @@ mod tests {
         assert!(!db.has_material("holographic").unwrap());
         // still in the Material Book
         assert!(db.unlocked_material_ids().unwrap().contains(&"holographic".to_string()));
-        // plain paper: never runs out
-        for _ in 0..5 {
-            db.consume_material("matte").unwrap();
-        }
-        assert!(db.has_material("matte").unwrap());
+        open_material(&mut db, "2026-10-02", 0.0).unwrap();
+        assert_eq!(db.material_count("matte").unwrap(), 1);
+        db.consume_material("matte").unwrap();
+        assert_eq!(db.material_count("matte").unwrap(), 0);
+        assert!(matches!(db.consume_material("matte"), Err(Error::MaterialUnavailable)));
+        assert!(!db.has_material("matte").unwrap());
     }
 
     #[test]
