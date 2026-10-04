@@ -70,7 +70,8 @@ pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, s
         }
         lib.db_mut().finish_print(&sticker_id).map_err(|e|e.to_string())?;
     }
-    sync(&app);
+    // Keep later jobs queued until an explicit Resume; don't feed another sheet while this Peta is being adjusted.
+    layers::set_print(&app, false);
     // Straight into Edit Mode: the new sticker can be resized, turned and moved right away instead of being stuck
     // before you have had a chance to adjust it. Esc / Done leaves it.
     layers::set_edit_mode(&app, true);

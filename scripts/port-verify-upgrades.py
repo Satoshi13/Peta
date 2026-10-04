@@ -182,6 +182,36 @@ elif sys.argv[1]=='countdown-layout':
     ev('await Bridge.window.show();await Shell.open("today");return true;');wait('Pages.today.timer!==null')
     (out/'layout.json').write_text(json.dumps(dict(layouts=records,secondsAdvance=True,pageLeaveStopsTimer=True,windowCloseStopsTimer=True,resumeRestartsTimer=True),indent=2))
     print('Native countdown layout: no added scroll, fixed ticket/cells, both shells/sizes, ticking and timer lifetime passed')
+elif sys.argv[1]=='print-pause':
+    from PIL import Image,ImageDraw
+    out=c.ROOT/'docs/port-spec/compare/review-09';out.mkdir(exist_ok=True)
+    ev('S.closeOutside=false;S.motion="reduce";Bridge.savePreferences();await Bridge.invoke("print_later");await Bridge.invoke("exit_edit_mode");await Bridge.reload();window.printStock=JSON.stringify(S.stock);await Bridge.invoke("daily_stick_from_collection",{stickerId:"PETA-PORT-0010"});await Bridge.invoke("daily_stick_from_collection",{stickerId:"PETA-PORT-0011"});await Bridge.window.hide();await Bridge.invoke("print_resume");return true;')
+    wait('document.querySelector(".print-sheet.ready")',layer)
+    first=ev('return await Bridge.invoke("print_pending");')
+    def paste():
+        x,y=ev('const r=document.querySelector(".print-sheet .stk").getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2];',layer)
+        subprocess.run(['xdotool','mousemove',str(round(x)),str(round(y)),'mousedown','1'],check=True);time.sleep(.15)
+        for i in range(1,11):
+            subprocess.run(['xdotool','mousemove',str(round(x+(800-x)*i/10)),str(round(y+(550-y)*i/10))],check=True);time.sleep(.025)
+        subprocess.run(['xdotool','mouseup','1'],check=True)
+        wait('!document.querySelector(".print-sheet")',layer)
+    paste();time.sleep(.7)
+    next=ev('return await Bridge.invoke("print_pending");')
+    assert next and first['stickerId']!=next['stickerId']
+    assert ev('return (await window.__TAURI__.core.invoke("layer_info")).editMode;',layer)
+    subprocess.run(['import','-window','root',str(out/'print-after.png')],check=True)
+    before=Image.open(out/'print-before.png');after=Image.open(out/'print-after.png');pair=Image.new('RGB',(2880,928),'#f5f0e6');pair.paste(before,(0,28));pair.paste(after,(1440,28));d=ImageDraw.Draw(pair);d.text((12,7),'Before: another sheet appears automatically',fill='#2b2a28');d.text((1452,7),'Actual Tauri: next job stays queued',fill='#2b2a28');pair.save(out/'print-comparison.jpg',quality=90)
+    ev('await Bridge.invoke("exit_edit_mode");await Bridge.window.show();await Shell.open("book");return true;');time.sleep(.3)
+    assert not ev('return !!document.querySelector(".print-sheet");',layer) and ev('return await Bridge.invoke("print_pending");')==next
+    repeated=ev('try {await Bridge.invoke("print_paste",{stickerId:'+json.dumps(first['stickerId'])+',x:.5,y:.5});return false;}catch {return true;}')
+    assert repeated and ev('return await Bridge.invoke("print_pending");')==next
+    ev('await Bridge.window.hide();await Bridge.invoke("print_resume");return true;');wait('document.querySelector(".print-sheet.ready")',layer)
+    assert ev('return await Bridge.invoke("print_pending");')==next
+    ev('await Bridge.invoke("print_later");return true;');wait('!document.querySelector(".print-sheet")',layer)
+    assert ev('return await Bridge.invoke("print_pending");')==next
+    ev('await Bridge.reload();return true;');assert ev('return JSON.stringify(S.stock)===window.printStock;')
+    (out/'print.json').write_text(json.dumps(dict(first=first,next=next,actualMousePaste=True,noAutomaticNextSheet=True,editModeAfterPaste=True,exitEditAndBookDoNotResume=True,explicitResumeShowsSameNext=True,laterKeepsNext=True,repeatedPasteRejected=True,stockUnchanged=True),indent=2))
+    print('Native print: one mouse paste pauses, next job retained, explicit Resume/Later, no duplicate spend and stock unchanged passed')
 elif sys.argv[1]=='reflection':
     wait('document.querySelectorAll("#layer>.sticker").length===3',layer)
     ev('applyLayerPreferences({motion:"full",sound:false});const original=requestAnimationFrame;window.testReflectionFrames=0;window.requestAnimationFrame=fn=>{window.testReflectionFrames++;return original(fn);};return true;',layer);time.sleep(.5)
