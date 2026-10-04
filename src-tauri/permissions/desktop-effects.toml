@@ -33,3 +33,8 @@ commands.allow = ["scrap_status", "scrap_trade"]
 identifier = "allow-signed-distribution"
 description = "Redeem a signed official code and read local distribution receipts."
 commands.allow = ["redeem_code", "event_inbox", "creator_pack_accept", "creator_pack_pending", "creator_pack_decline", "creator_pack_save"]
+
+[[permission]]
+identifier = "allow-developer-tools"
+description = "Developer tools are rejected by the distribution edition in Rust."
+commands.allow = ["developer_next_day", "developer_sync_displays"]

@@ -29,6 +29,7 @@ pub struct Opened {
 #[tauri::command]
 pub fn pack_status(app: AppHandle, store: tauri::State<Store>) -> Result<PackStatus, String> {
     let can_open = store.lock().db().welcome_available(&app.state::<today::Today>().date()).map_err(|e|e.to_string())?;
+    store.lock().db_mut().replenish_developer_packs().map_err(|e|e.to_string())?;
     let packs = store.lock().db().packs().map_err(|e| e.to_string())?;
     Ok(PackStatus { packs, can_open })
 }
@@ -44,7 +45,8 @@ fn item_bytes(app: &AppHandle, key: &str) -> Option<Vec<u8>> {
 pub async fn pack_open(app: AppHandle, pack_id: String) -> Result<Opened, String> {
     let (item_id, key, title, by) = {
         let store = app.state::<Store>();
-        let lib = store.lock();
+        let mut lib = store.lock();
+        lib.db_mut().replenish_developer_packs().map_err(|e|e.to_string())?;
         if pack_id==pack::WELCOME_PACK_ID && !lib.db().welcome_available(&app.state::<today::Today>().date()).map_err(|e|e.to_string())? { return Err("welcome_already_opened_today".into()); }
         let pack_row = lib.db().packs().map_err(|e| e.to_string())?.into_iter().find(|p| p.id == pack_id).ok_or("unknown pack")?;
         let (id, key) = peta_core::creator_pack::pick(lib.db(),&pack_id,random_unit(),random_unit()).map_err(|e| e.to_string())?.ok_or("pack_empty")?;

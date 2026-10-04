@@ -14,9 +14,9 @@ Settings の Sounds / Haptics / Reduce motion は `peta.preferences` に保存�
 
 文字は役割で統一します。見出し・説明・在庫はシステム書体、補足は12px以上、Overlineは11px。Special Eliteは13px以上の日付・時計・Scrapsの印字、Klee Oneは裏紙・ギフトのメモ・値札などの物にだけ使います。補助色は暖かい濃色 `#655e51`、平らな面と文字は共通トークンで管理し、本文のコントラスト4.5:1以上を検査します。
 
-StudioのナビはMake / Collect / Discoverに分け、PetaロゴをTodayの上、Settingsとローカルプロフィール札を下端に置きます。Deskは従来の縦並びと下端のSettings、≤880pxは従来の下部バーです。⌘1〜⌘7はToday / Create / Book / Packs / Gifts / Materials / Market、⌘,はSettings。入力・ダイアログ・演出中は無効。未開封Giftは数、今日の封筒はクラフト色の点で示します。
+StudioのナビはMake / Collect / Discoverに分け、PetaロゴをTodayの上、Settingsとローカルプロフィール札を下端に置きます。Deskは従来の縦並びと下端のSettings、≤880pxは従来の下部バーです。⌘1〜⌘7はToday / Create / Collection / Packs / Gifts / Materials / Market、⌘,はSettings。入力・ダイアログ・演出中は無効。未開封Giftは数、今日の封筒はクラフト色の点で示します。
 
-開封後のTodayはCreateを主導線にし、今日の素材とStuck todayを同じ高さのカードに配置します。素材の特徴はチップ、在庫はスウォッチと∞／×Nで示します。開封前の封筒と開封の順序、次の封筒の札・Redeem Codeは維持します。
+開封後のTodayはCreateを主導線にし、今日の素材とStuck todayを同じ高さのカードに配置します。素材の説明ピルは置かず、在庫はスウォッチと枚数で示します。開封前の封筒と開封の順序、次の封筒の札・Redeem Codeは維持します。
 
 ### Todayの次の封筒
 
@@ -244,3 +244,9 @@ npm run check:mac    # Linux等から macOS 向けRustの型検査(要 rustup ta
 ### 画面整理（2026-10-05）
 
 ステッカーの保存場所の表示名はCollectionに統一しました。Todayの素材カードはトレイ中央に配置し、説明ピルを撤去。所持素材は0枚も含めて実数を表示します。Stuck todayの空表示は文字のみで、テープと作成ボタンは置きません。Materials一覧の発見日・レシピ説明と、プレビューの発見日を省き、分解ボタンを所持数の下に配置します。Collection ListのToday’s slotを撤去し、StudioのPetaロゴを少し拡大。Creatorsの平面カードはDay／Nightの共通面・文字色を使用します。
+
+### 配布版と開発者版
+
+通常版は`npm run dev`／`npm run build`。開発者版は`npm run dev:developer`／`npm run build:developer`。ビルド時のRust featureで分け、Settingsのスイッチでは切り替えません。buildは配布用releaseビルドです。
+
+Peta Developerは`app.peta.developer`、通常版は`app.peta.desktop`。アプリ名・在庫・Scraps・Collection・署名鍵・設定の保存先を分離します。開発者版は実装済み3素材を利用可能にし、素材消費・Scraps支払い・封筒／Welcome回数・袋の枯渇を解除。空袋は元の項目と署名済み素材情報を複製して補充し、開封済み履歴を残します。Settingsに封筒の再開封・Next Day・Re-sync Displaysを表示します。署名検証・所有権・ファイル仕様／サイズの検証は両版共通です。未実装の素材や共有Marketを追加する機能ではありません。モデレーターは依頼者の回答により後回しにします。

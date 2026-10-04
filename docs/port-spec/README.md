@@ -17,7 +17,7 @@
 | 何 | ルール |
 |---|---|
 | 新しい素材 | 1日1個(Today の封筒)。Today に素材ピッカーは**ない**(素材を選ぶのは Create の中だけ) |
-| ステッカーを作る/貼る | 何枚でも。Create は素材を1つ消費(Matte は無限) |
+| ステッカーを作る/貼る | 何枚でも。Create は全素材を1枚消費（Matteも有限。2026-10-05の明示変更） |
 | Welcome Pack | 1日1回(0時にリセット)。素材は使わない |
 | Market で入手した Pack | いつでも何度でも(中身がなくなるまで)。素材は使わない |
 | Gift | 制限なし。素材は使わない |
@@ -68,7 +68,7 @@ node docs/ui-proposals/app/tools/audit.mjs /tmp/audit 1440 900 studio current   
 
 ## 4. Rust 側で変えるもの(UI と同時に)
 
-- `daily.rs` のルールを上の表に合わせる(現状「1日1枚」)。Welcome Pack の日次回数、Market Pack の無制限、Gift の無制限、Create の素材消費(Matte 無限)。
+- `daily.rs` のルールを上の表に合わせる(現状「1日1枚」)。Welcome Pack の日次回数、Market Pack の無制限、Gift の無制限、Create の素材消費（全素材が有限）。
 - ウィンドウ:`today.rs` `collection.rs` `creator.rs` `arrival.rs` の別ウィンドウ生成を、メイン1枚+ページ切替に。コマンド名は極力維持(UI だけ差し替える)。
 - トレイ(`tray.rs`)のメニュー項目 → 開くページを指定してメインウィンドウを出す(`Shell.open(page)` 相当)。
 
@@ -146,3 +146,7 @@ node docs/ui-proposals/app/tools/audit.mjs /tmp/audit 1440 900 studio current   
 README の「8. 進め方」のスライス1から順に、1スライス1コミットで進め、各スライスの最後に本物の画面を golden と並べた比較画像を docs/port-spec/compare/ に置いてください。
 素材が足りない所は仮実装して TODO(art) を残し、作業は止めないでください。ルール(Rust 側)の変更は UI とは別コミットにしてください。
 ```
+
+### 2026-10-05の後続決定
+
+保存場所の表示名をCollectionへ統一。全素材を有限化し、MatteもScraps分解・引換の対象にした。旧現金価格3PackはScrapsで購入できる。画像・プロトタイプ・DB v8のスキーマは変更しない。Peta Developerは別identifier・保存先とビルドfeatureで分離し、素材／Scraps支払い／封筒／Welcome／袋の枯渇制限を解除する。共有Market・モデレーター機能は使用構成の検討後へ保留する。UIの確認は[review-15](compare/review-15/README.md)。

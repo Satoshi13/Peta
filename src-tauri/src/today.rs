@@ -27,12 +27,18 @@ pub const DEFAULT_SPOT: (f64, f64) = (0.5, 0.45);
 
 #[derive(Default)]
 pub struct Today {
-    /// Developer "next day" switch. Always 0 in release builds.
+    /// Developer edition day offset. Distribution always starts at 0.
     day_offset: AtomicI64,
     last_seen: Mutex<String>,
 }
 
 impl Today {
+    pub fn next_day(&self) -> Result<(), String> {
+        if !cfg!(feature="developer") { return Err("Developer edition required.".into()); }
+        self.day_offset.fetch_add(1, Ordering::SeqCst);
+        Ok(())
+    }
+
     /// Local date, `YYYY-MM-DD`. The slot resets when this changes (spec §13).
     pub fn date(&self) -> String {
         daily::local_today(self.day_offset.load(Ordering::SeqCst))
@@ -235,4 +241,22 @@ pub fn spawn_day_watcher(app: AppHandle) {
             roll_day(&app);
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn advancing_the_day_is_available_only_in_the_developer_edition() {
+        let today=Today::default();
+        let before=today.date();
+        let result=today.next_day();
+        if cfg!(feature="developer") {
+            result.unwrap();
+            assert_eq!(today.date(),daily::local_today(1));
+        } else {
+            assert!(result.is_err());
+            assert_eq!(today.date(),before);
+        }
+    }
 }

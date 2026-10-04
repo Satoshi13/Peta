@@ -202,6 +202,7 @@ pub struct IncomingGift {
 
 pub struct Database {
     pub(crate) conn: Connection,
+    pub(crate) unrestricted: bool,
 }
 
 /// A raw Sticker Book row (see `Database::book_rows`).
@@ -240,10 +241,39 @@ impl Database {
         Self::init(Connection::open_in_memory()?)
     }
 
+    /// Enabled only by a separately built developer app, never by preferences or a command argument.
+    #[cfg(feature="developer")]
+    pub fn enable_developer(&mut self) -> Result<()> {
+        for m in materials::catalog() { self.unlock_material(&m.id)?; }
+        self.unrestricted = true;
+        Ok(())
+    }
+
+    /// Copy a depleted developer pack's original items, retaining every opened row and signed metadata.
+    pub fn replenish_developer_packs(&mut self) -> Result<()> {
+        if !self.unrestricted { return Ok(()); }
+        let empty: Vec<_> = self.packs()?.into_iter().filter(|p| p.remaining==0).collect();
+        let tx = self.conn.transaction()?;
+        for p in empty {
+            let originals: Vec<(i64,String)> = {
+                let mut stmt = tx.prepare("SELECT MIN(id), item_key FROM pack_items WHERE pack_id=?1 GROUP BY item_key ORDER BY MIN(id)")?;
+                let rows = stmt.query_map([&p.id], |r| Ok((r.get(0)?,r.get(1)?)))?;
+                rows.collect::<std::result::Result<_,_>>()?
+            };
+            for (old,key) in originals {
+                tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES(?1,?2)",params![p.id,key])?;
+                let new = tx.last_insert_rowid();
+                tx.execute("INSERT INTO signed_pack_items SELECT ?1,png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?2",params![new,old])?;
+            }
+        }
+        tx.commit()?;
+        Ok(())
+    }
+
     fn init(conn: Connection) -> Result<Self> {
         conn.pragma_update(None, "foreign_keys", true)?;
         let _: String = conn.query_row("PRAGMA journal_mode = WAL", [], |r| r.get(0))?;
-        let mut db = Database { conn };
+        let mut db = Database { conn, unrestricted: false };
         db.migrate()?;
         db.unlock_material(materials::DEFAULT_MATERIAL)?; // idempotent
         Ok(db)
@@ -773,7 +803,7 @@ impl Database {
     }
 
     pub fn scrap_trade(&mut self, request: &crate::scraps::Trade, request_id: &str) -> Result<crate::scraps::Receipt> {
-        crate::scraps::trade(&mut self.conn, request, request_id)
+        crate::scraps::trade(&mut self.conn, request, request_id, self.unrestricted)
     }
 
     /// How many unused sheets of a material you hold.
@@ -799,17 +829,18 @@ impl Database {
         let Some(mut m) = materials::get(id) else { return Ok(None) };
         m.unlocked_at = self.material_unlocked_at(id)?;
         m.count = self.material_count(id)?;
+        m.unlimited = self.unrestricted;
         Ok(Some(m))
     }
 
     /// Can a sticker be made with this material right now?
     pub fn has_material(&self, material_id: &str) -> Result<bool> {
-        Ok(materials::is_unlimited(material_id) || self.material_count(material_id)? >= 1)
+        Ok(materials::get(material_id).is_some() && (self.unrestricted || self.material_count(material_id)? >= 1))
     }
 
     /// Use one up. Fails with `MaterialUnavailable` if none is left.
     pub fn consume_material(&mut self, material_id: &str) -> Result<()> {
-        if materials::is_unlimited(material_id) {
+        if self.unrestricted && materials::get(material_id).is_some() {
             return Ok(());
         }
         let n = self.conn.execute(
@@ -888,7 +919,7 @@ impl Database {
     }
 
     pub fn welcome_available(&self, date: &str) -> Result<bool> {
-        Ok(!self.conn.query_row("SELECT EXISTS(SELECT 1 FROM welcome_openings WHERE date=?1)",[date],|r|r.get::<_,bool>(0))?)
+        Ok(self.unrestricted || !self.conn.query_row("SELECT EXISTS(SELECT 1 FROM welcome_openings WHERE date=?1)",[date],|r|r.get::<_,bool>(0))?)
     }
 
     pub fn pack_item_available(&self, item_id: i64) -> Result<bool> {
@@ -903,7 +934,7 @@ impl Database {
         if tx.execute("UPDATE pack_items SET opened_at=?1,sticker_id=?2 WHERE id=?3 AND opened_at IS NULL",params![now(),sticker_id,item_id])?==0 {
             return Err(Error::Invalid("that pack item was already opened".into()));
         }
-        if pack_id=="welcome" { tx.execute("INSERT INTO welcome_openings(date,item_id) VALUES (?1,?2)",params![date,item_id])?; }
+        if pack_id=="welcome" && !self.unrestricted { tx.execute("INSERT INTO welcome_openings(date,item_id) VALUES (?1,?2)",params![date,item_id])?; }
         tx.commit()?;
         Ok(())
     }
@@ -975,6 +1006,51 @@ mod tests {
             is_on_desktop: true,
             z: 0,
         }
+    }
+
+    #[cfg(feature="developer")]
+    #[test]
+    fn developer_stock_and_pack_openings_are_unlimited_but_history_is_preserved() {
+        let mut db=Database::open_in_memory().unwrap();
+        assert!(!db.has_material("matte").unwrap());
+        db.enable_developer().unwrap();
+        for id in ["matte","kraft","holographic"] {
+            for _ in 0..4 { db.consume_material(id).unwrap(); }
+            assert_eq!(db.material_count(id).unwrap(),0);
+            assert!(db.material_with_stock(id).unwrap().unwrap().available());
+        }
+        assert!(!db.has_material("gold").unwrap());
+        assert!(db.consume_material("unknown").is_err());
+        db.pack_install("welcome","Welcome Pack","Peta",&["cat-skateboard"]).unwrap();
+        for id in ["one","two"] {
+            db.create_sticker(new(id,SourceType::Pack)).unwrap();
+            db.replenish_developer_packs().unwrap();
+            let (item,_) = db.pack_pick("welcome",0.0).unwrap().unwrap();
+            db.pack_open_on(item,id,"2026-10-05").unwrap();
+            assert!(db.welcome_available("2026-10-05").unwrap());
+        }
+        assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_items WHERE opened_at IS NOT NULL",[],|r|r.get::<_,i64>(0)).unwrap(),2);
+        db.pack_install("signed-test","Signed","Friend",&["item"]).unwrap();
+        let (old,_) = db.pack_pick("signed-test",0.0).unwrap().unwrap();
+        db.conn.execute("INSERT INTO signed_pack_items VALUES(?1,'render.png','mask.png','holographic',1.5,'Cutout','rare',1)",[old]).unwrap();
+        db.pack_mark_opened(old,"one").unwrap();
+        db.replenish_developer_packs().unwrap();
+        let (fresh,_) = db.pack_pick("signed-test",0.0).unwrap().unwrap();
+        assert_ne!(old,fresh);
+        let copy = crate::pack::stored_item(&db,fresh).unwrap().unwrap();
+        assert_eq!((copy.material_id.as_str(),copy.png_path.as_str(),copy.mask_path.as_deref(),copy.finished),("holographic","render.png",Some("mask.png"),true));
+        crate::daily::open_material(&mut db,"2026-10-05",0.0).unwrap();
+        crate::daily::open_material(&mut db,"2026-10-05",0.0).unwrap();
+        assert_eq!(db.material_count("matte").unwrap(),1);
+        let scraps=crate::scraps::Trade {kind:crate::scraps::Kind::Dismantle,item_id:"holographic".into(),quantity:3};
+        assert_eq!(db.scrap_trade(&scraps,"developer-scraps").unwrap().balance,9);
+        assert_eq!(db.material_count("holographic").unwrap(),1);
+        let req=crate::scraps::Trade {kind:crate::scraps::Kind::Pack,item_id:"pixel".into(),quantity:1};
+        let receipt=db.scrap_trade(&req,"developer-pack").unwrap();
+        assert_eq!((receipt.delta,receipt.balance),(0,9));
+        assert_eq!(db.scrap_trade(&req,"developer-pack").unwrap(),receipt);
+        assert_eq!(db.packs().unwrap().iter().find(|p|p.id=="pixel").unwrap().remaining,6);
+        assert!(db.scrap_trade(&crate::scraps::Trade{quantity:0,..req},"invalid").is_err());
     }
 
     #[test]

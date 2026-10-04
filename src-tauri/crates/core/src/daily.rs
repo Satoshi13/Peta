@@ -83,10 +83,10 @@ pub fn ensure_today(db: &mut Database, today: &str, roll: f64) -> Result<DailyRe
 pub fn open_material(db: &mut Database, today: &str, roll: f64) -> Result<(DailyRecord, bool)> {
     let record = ensure_today(db, today, roll)?;
     let bonus=record.material_opened_at.is_some();
-    if bonus && db.bonus_envelopes()?==0 {return Ok((record,false));}
+    if bonus && !db.unrestricted && db.bonus_envelopes()?==0 {return Ok((record,false));}
     let material=if bonus {materials::draw(roll,false)} else {record.material_id.clone()};
     let tx=db.conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    if bonus {
+    if bonus && !db.unrestricted {
         let changed=tx.execute("UPDATE meta SET value=CAST(value AS INTEGER)-1 WHERE key='bonus_envelopes' AND CAST(value AS INTEGER)>0",[])?;
         if changed==0 {return Err(Error::Invalid("No extra envelopes remain.".into()));}
     }

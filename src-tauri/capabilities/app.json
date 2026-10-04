@@ -19,6 +19,7 @@
     "allow-haptic-tap",
     "allow-profile-icon",
     "allow-scrap-trades",
-    "allow-signed-distribution"
+    "allow-signed-distribution",
+    "allow-developer-tools"
   ]
 }

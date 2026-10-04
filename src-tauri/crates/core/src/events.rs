@@ -187,6 +187,10 @@ pub fn from_code(value:&str)->Result<Verified> {from_code_with(value,sign::resol
     #[test] fn limits_dates_unsupported_materials_and_atomic_rollback() {
         let mut lib=lib();
         for (kind,payload) in [("extra_envelope",serde_json::json!({"count":4})),("grant_material",serde_json::json!({"materialId":"kraft","count":11})),("grant_material",serde_json::json!({"materialId":"unknown","count":2})),("future",serde_json::json!({}))]{assert!(apply_event(&mut lib,&verified(event("bad",kind,payload)),"file",time()).is_err());}
+        let paper=verified(event("paper","grant_material",serde_json::json!({"materialId":"matte","count":2})));
+        apply_event(&mut lib,&paper,"file",time()).unwrap();
+        assert!(apply_event(&mut lib,&paper,"file",time()).is_err());
+        assert_eq!(lib.db().material_count("matte").unwrap(),2);
         let e=verified(event("good","grant_material",serde_json::json!({"materialId":"kraft","count":10})));
         assert!(apply_event(&mut lib,&e,"file",time()-chrono::Duration::days(2)).is_err());assert!(apply_event(&mut lib,&e,"file",time()+chrono::Duration::days(40)).is_err());
         lib.db().conn.execute_batch("CREATE TRIGGER fail_event BEFORE INSERT ON applied_events BEGIN SELECT RAISE(ABORT,'injected failure'); END;").unwrap();

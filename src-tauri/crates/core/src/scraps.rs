@@ -44,7 +44,7 @@ pub(crate) fn status(conn: &Connection) -> Result<Status> {
     Ok(Status { balance:balance(conn)?, materials:MATERIALS.to_vec(), packs:PACKS.iter().map(|(id,exchange)| PackRate { id, exchange:*exchange, stickers:pack::market_pack(id).unwrap().keys.len() }).collect() })
 }
 
-pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str) -> Result<Receipt> {
+pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, unrestricted: bool) -> Result<Receipt> {
     if request_id.is_empty() || request_id.len()>128 || !request_id.bytes().all(|c| c.is_ascii_alphanumeric() || c==b'-') {
         return Err(invalid("Invalid exchange request."));
     }
@@ -65,12 +65,13 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str) ->
             -PACKS.iter().find(|(id,_)| *id==request.item_id).ok_or_else(|| invalid("This pack is not available to exchange."))?.1
         }
     };
+    let delta = if unrestricted && delta<0 { 0 } else { delta };
     let next = balance(&tx)?.checked_add(delta).ok_or_else(|| invalid("Scraps balance is out of range."))?;
     if next<0 { return Err(invalid("Not enough Scraps.")); }
     if next>MAX_SAFE_COUNT { return Err(invalid("Scraps balance is out of range.")); }
     match request.kind {
         Kind::Dismantle => {
-            if tx.execute("UPDATE material_stock SET count=count-?2 WHERE material_id=?1 AND count>=?2", params![request.item_id,request.quantity])?==0 {
+            if !unrestricted && tx.execute("UPDATE material_stock SET count=count-?2 WHERE material_id=?1 AND count>=?2", params![request.item_id,request.quantity])?==0 {
                 return Err(invalid("Not enough material sheets."));
             }
         }
@@ -220,7 +221,7 @@ mod tests {
         while let Some((item,_))=db.pack_pick(p.id,0.0).unwrap() { db.pack_mark_opened(item,"previous-sticker").unwrap(); }
         let conn=Connection::open(&path).unwrap();
         conn.execute_batch("CREATE TRIGGER fail_scrap_receipt BEFORE INSERT ON meta WHEN NEW.key='scraps.tx.fail' BEGIN SELECT RAISE(ABORT,'injected receipt failure'); END;").unwrap();
-        for req in [request(Kind::Dismantle,"kraft",2),request(Kind::Pack,"plants",1)] {
+        for req in [request(Kind::Dismantle,"kraft",2),request(Kind::Pack,"plants",1),request(Kind::Pack,"cats",1)] {
             assert!(db.scrap_trade(&req,"fail").is_err());assert_eq!(db.scrap_status().unwrap().balance,60);assert_eq!(db.material_count("kraft").unwrap(),2);
             let row=db.packs().unwrap().pop().unwrap();assert_eq!((row.total,row.remaining),(5,0));
         }

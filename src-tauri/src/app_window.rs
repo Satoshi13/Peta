@@ -11,7 +11,7 @@ pub fn open(app: &AppHandle, page: &str) -> tauri::Result<()> {
         w.emit("app-page", page)?;
     } else {
         WebviewWindowBuilder::new(app, APP_LABEL, WebviewUrl::App(format!("app.html?page={page}").into()))
-            .title("Peta").inner_size(1060.0, 700.0).min_inner_size(720.0, 520.0)
+            .title(if cfg!(feature="developer") { "Peta Developer" } else { "Peta" }).inner_size(1060.0, 700.0).min_inner_size(720.0, 520.0)
             .decorations(false).transparent(true).shadow(false).resizable(true).center().build()?;
     }
     Ok(())

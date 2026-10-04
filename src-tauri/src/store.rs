@@ -53,6 +53,8 @@ impl Store {
         fs::create_dir_all(&dir)?;
         let first_run = !dir.join("peta.db").exists() && !dir.join(LEGACY_JSON).exists();
         let mut lib = Library::open(&dir)?;
+        #[cfg(feature="developer")]
+        lib.db_mut().enable_developer()?;
 
         if dir.join(LEGACY_JSON).exists() && lib.db().sticker_count()? == 0 {
             migrate_legacy_json(&mut lib, &dir.join(LEGACY_JSON));

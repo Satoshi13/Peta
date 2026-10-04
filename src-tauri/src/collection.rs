@@ -93,6 +93,7 @@ pub fn scrap_trade(app: AppHandle, store: State<Store>, trade: peta_core::scraps
 pub struct Profile {
     pub display_name: String,
     pub icon_sticker_id: Option<String>,
+    pub developer: bool,
 }
 
 #[tauri::command]
@@ -100,7 +101,7 @@ pub fn profile_get(store: State<Store>) -> Result<Profile, String> {
     let lib = store.lock();
     let display_name = lib.db().display_name().map_err(|e| e.to_string())?;
     let icon_sticker_id = lib.db().profile_icon().map_err(|e| e.to_string())?;
-    Ok(Profile { display_name, icon_sticker_id })
+    Ok(Profile { display_name, icon_sticker_id, developer: cfg!(feature="developer") })
 }
 
 #[tauri::command]

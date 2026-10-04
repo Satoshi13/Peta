@@ -104,7 +104,28 @@ fn haptic_tap(app: AppHandle, kind: String) -> Result<(), String> {
     app.run_on_main_thread(move || platform::haptic(&kind)).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn developer_next_day(app: AppHandle) -> Result<(), String> {
+    app.state::<Today>().next_day()?;
+    today::roll_day(&app);
+    Ok(())
+}
+
+#[tauri::command]
+fn developer_sync_displays(app: AppHandle) -> Result<(), String> {
+    if !cfg!(feature="developer") { return Err("Developer edition required.".into()); }
+    layers::sync(&app).map_err(|e| e.to_string())
+}
+
 pub fn run() {
+    let context = tauri::generate_context!();
+    #[cfg(feature="developer")]
+    let context = {
+        let mut context = context;
+        context.config_mut().identifier = "app.peta.developer".into();
+        context.config_mut().product_name = Some("Peta Developer".into());
+        context
+    };
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(Store::default())
@@ -116,6 +137,8 @@ pub fn run() {
             port_capture::port_capture_report,
             port_capture::port_capture_tray,
             haptic_tap,
+            developer_next_day,
+            developer_sync_displays,
             layer_info,
             layers::set_reflection_active,
             layers::reflection_status,
@@ -196,7 +219,7 @@ pub fn run() {
             port_capture::start(app.handle());
             Ok(())
         })
-        .build(tauri::generate_context!())
+        .build(context)
         .expect("error while building Peta");
 
     app.run(|app, event| {

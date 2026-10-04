@@ -35,7 +35,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
     TrayIconBuilder::with_id("peta")
         .icon(Image::from_bytes(include_bytes!("../icons/tray.png"))?)
         .icon_as_template(true) // macOS: adapts to light/dark menu bar
-        .tooltip("Peta")
+        .tooltip(if cfg!(feature="developer") { "Peta Developer" } else { "Peta" })
         .menu(&menu)
         .show_menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id().as_ref() {
