@@ -1,6 +1,9 @@
 /* Native window geometry and owner-requested corrections over the copied prototype CSS. */
 :root { --win-w: 100vw; --win-h: 100vh; }
 html, body { background: transparent; user-select: none; -webkit-user-select: none; }
+/* Clip the entire webview, including the frame's shadow, to the native window outline. */
+body { --window-radius:18px; clip-path:inset(0 round var(--window-radius)); }
+body[data-shell="desk"] { --window-radius:20px; }
 input { user-select: text; -webkit-user-select: text; }
 #win-layer, body[data-shell] #win-layer { position: fixed; inset: 0; padding: 0; }
 .win { width: 100%; height: 100%; --win-w: 100vw; --win-h: 100vh; }

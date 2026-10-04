@@ -1,0 +1,292 @@
+{
+  "backdrop": "white",
+  "records": [
+    {
+      "shell": "studio",
+      "size": [
+        1060,
+        700
+      ],
+      "geometry": {
+        "clip": "inset(0px round 18px)",
+        "cornerHits": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "resize": "resize-h",
+        "titlebar": "titlebar"
+      },
+      "shots": [
+        {
+          "file": "studio-today-1060.png",
+          "cornerPixels": [
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ]
+          ]
+        },
+        {
+          "file": "studio-ceremony-1060.png",
+          "cornerPixels": [
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "shell": "studio",
+      "size": [
+        720,
+        520
+      ],
+      "geometry": {
+        "clip": "inset(0px round 18px)",
+        "cornerHits": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "resize": "resize-h",
+        "titlebar": "titlebar"
+      },
+      "shots": [
+        {
+          "file": "studio-today-720.png",
+          "cornerPixels": [
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ]
+          ]
+        },
+        {
+          "file": "studio-ceremony-720.png",
+          "cornerPixels": [
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "shell": "desk",
+      "size": [
+        1060,
+        700
+      ],
+      "geometry": {
+        "clip": "inset(0px round 20px)",
+        "cornerHits": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "resize": "resize-h",
+        "titlebar": "titlebar"
+      },
+      "shots": [
+        {
+          "file": "desk-today-1060.png",
+          "cornerPixels": [
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ]
+          ]
+        },
+        {
+          "file": "desk-ceremony-1060.png",
+          "cornerPixels": [
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "shell": "desk",
+      "size": [
+        720,
+        520
+      ],
+      "geometry": {
+        "clip": "inset(0px round 20px)",
+        "cornerHits": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "resize": "resize-h",
+        "titlebar": "titlebar"
+      },
+      "shots": [
+        {
+          "file": "desk-today-720.png",
+          "cornerPixels": [
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ]
+          ]
+        },
+        {
+          "file": "desk-ceremony-720.png",
+          "cornerPixels": [
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ],
+            [
+              255,
+              255,
+              255
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "nativeResize": [
+    1090,
+    720
+  ],
+  "eightPagesBothShellsBothSizes": true,
+  "stockUnchanged": true,
+  "compositor": "xcompmgr (Xvfb, no compositor shadow)"
+}

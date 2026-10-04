@@ -1,6 +1,6 @@
 # Native port comparisons
 
-[最新: 素材選択の黒枠を除去](review-11/README.md)。[素材選択とホバーの安定化](review-10/README.md)。[印刷後の自動給紙停止](review-09/README.md)。[カウントダウン札の配置と固定幅](review-08/README.md)。[Market購入済みラベルとPacksへの移動](review-07/README.md)。[Option剥がしの紙カール・巻戻し・Reduce motion](review-06/README.md)。[ホロ・触覚・カウントダウン・Book・素材の検証記録](upgrade-2026-10-04/README.md)。
+[最新: ネイティブ窓の四隅の尖りを除去](review-12/README.md)。[素材選択の黒枠を除去](review-11/README.md)。[素材選択とホバーの安定化](review-10/README.md)。[印刷後の自動給紙停止](review-09/README.md)。[カウントダウン札の配置と固定幅](review-08/README.md)。[Market購入済みラベルとPacksへの移動](review-07/README.md)。[Option剥がしの紙カール・巻戻し・Reduce motion](review-06/README.md)。[ホロ・触覚・カウントダウン・Book・素材の検証記録](upgrade-2026-10-04/README.md)。
 
 [前回: Book click-to-flip, consistent actions and original cutout editing/deletion](review-05/README.md). Original-only editing was explicitly requested as cutout/outline re-editing; title naming remains undecided.
 
