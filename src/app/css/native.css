@@ -418,3 +418,56 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 @container (max-width:720px) { .create .cr-controls { grid-template-columns:repeat(2,minmax(0,1fr)); } .create .g-mat { grid-column:1 / -1; } .create .mtray { grid-template-columns:repeat(auto-fit,minmax(80px,104px)); } }
 @container (max-width:480px) { .create .cr-controls { grid-template-columns:minmax(0,1fr); } }
 @media (max-width:880px) { .create .panes { flex-direction:row; height:176px; } .create .panes .pane { min-height:0; } .create .arrow { display:block; } .create .cr-mat { padding:14px 12px; } }
+
+/* Night changes the room, while physical papers keep their own ink and texture. */
+[data-theme="night"] :is(.btn.paper, .detail, .back-card, .backing, .datestamp, .envelope-ticket, .tile-date,
+  .mcard .lab, .pack-tag, .mk-hero-text, .seal, .calendar-complete, .ev-note, .env-label, .note, .setcard, .cer),
+[data-theme="night"] [data-shell="desk"] .page,
+[data-theme="night"] [data-shell="desk"] .nav-item[aria-current="page"] {
+  --ink:#2b2a28; --ink2:#4a463f; --muted:#655e51; --paper:#faf6ec; --cream:#f5f0e6; --soft:#fbf9f4; --line:#ddd4c2; --red:#d8453a;
+  --w-win:#f6f1e6; --w-side:#efe9dc; --w-surface:#fffdf8; --w-surface2:#f8f3e7; --w-sunken:#efe8d7;
+  --w-line:#e3dac7; --w-line2:#ece5d4; --w-btn:#2b2a28; --w-btnfg:#ffffff; --w-ok:#456a40;
+}
+[data-theme="night"] [data-shell="studio"] { --studio-paper:radial-gradient(ellipse at 30% 10%,rgba(97,76,44,.08),transparent 70%),var(--w-win); }
+[data-theme="night"] [data-shell="studio"] .win-frame { background:var(--w-win); }
+[data-theme="night"] [data-shell="studio"] .nav::before { background-image:var(--a-logoWhite); }
+[data-theme="night"] [data-shell="studio"] .ni-tile { background:var(--w-surface); box-shadow:inset 0 0 0 1px var(--w-line); }
+[data-theme="night"] [data-shell="desk"] .win-frame { background:var(--w-win) var(--a-matDark) center / cover; }
+[data-theme="night"] :is(.mbook, .material-preview, .scrap-trade, .cr-item, .peek-s, .sample, .drop, .quota) {
+  background:var(--w-surface); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh1);
+}
+[data-theme="night"] :is(.mk-tile:hover, .mk-tile[aria-pressed="true"], .mbook:not(:disabled):hover) { background:var(--w-surface2); }
+[data-theme="night"] .scraps-count { background:var(--w-surface); color:var(--ink); box-shadow:inset 0 0 0 1px var(--w-line); }
+[data-theme="night"] dialog { color:var(--ink); }
+[data-theme="night"] :is(dialog, .setcard, .gift-form, .scrap-summary) :is(input:not([type="range"]), select, textarea) {
+  background:var(--w-surface2); border-color:var(--w-line); color:var(--ink);
+}
+[data-theme="night"] .gift-form { background:var(--w-surface2); outline-color:var(--w-line); }
+[data-theme="night"] .seg button:hover { background:var(--w-surface2); }
+[data-theme="night"] .seg button::after { border-color:var(--ink2); }
+[data-theme="night"] .btn:not(.paper):not(.stamp):not(.quiet),
+[data-theme="night"] .pick-banner { background:var(--w-btn); color:var(--w-btnfg); }
+[data-theme="night"] .btn.stamp { color:#ffffff; }
+[data-theme="night"] .bookpage .tile-stk { background:var(--w-surface2); }
+[data-theme="night"] [data-shell="desk"] .bookpage .tile-stk { background:var(--a-pageDots) center / 256px,var(--w-surface2); }
+[data-theme="night"] .stuckstrip .empty-stuck { border-color:var(--w-line); }
+[data-theme="night"] .calendar-ledger { background:var(--w-surface); }
+[data-theme="night"] .calendar-day { border-color:var(--w-line2); }
+[data-theme="night"] .calendar-day.stuck { background:var(--w-surface2); }
+[data-theme="night"] .calendar-day.stuck:hover { background:var(--w-sunken); }
+.calendar-rest { color:var(--muted); }
+[data-theme="night"] .calendar-day.future { color:var(--muted); border-color:transparent; }
+[data-theme="night"] .calendar-add { color:var(--w-ok); border-color:var(--w-ok); }
+@media(max-width:880px) {
+  [data-theme="night"] [data-shell] .nav { background:var(--w-side) !important; }
+  [data-theme="night"] [data-shell] .nav-item[aria-current="page"] { background:var(--w-surface) !important; }
+}
+[data-theme="night"] :is(.detail, .back-card, .backing, .pack-tag, .mk-hero-text, .ev-note, .env-label, .note, .setcard),
+[data-theme="night"] [data-shell="desk"] .page { color:var(--ink); --w-ink:var(--ink); }
+[data-theme="night"] .open-cta { background:var(--w-btn); color:var(--w-btnfg); }
+[data-theme="night"] .creator-icon-choice { background:var(--w-surface2); }
+[data-theme="night"] .creator-icon-choice[aria-checked="true"] { background:var(--w-sunken); box-shadow:inset 0 0 0 2px var(--ink); }
+[data-theme="night"] .scrap-error { color:var(--red); }
+/* Keep the handwritten sender on the envelope, including against the dark room. */
+.g-from { top:50%; font-size:18px; line-height:20px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.gift-form small, .creator-icon-choice small, .cr-t small, .shelf-note, .setrow small { font:var(--meta); }

@@ -55,3 +55,7 @@ export function navShortcut(event, {input=false, dialog=false, busy=false, cerem
   if(event.key === ',') return 'settings';
   return ({1:'today',2:'create',3:'book',4:'packs',5:'gifts',6:'materials',7:'market'})[event.key] || null;
 }
+
+export function resolveTheme(pref, systemDark) {
+  return pref === 'night' || pref === 'auto' && systemDark ? 'night' : 'day';
+}

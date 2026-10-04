@@ -182,3 +182,4 @@ Book / Market の見た目は `compare/art-03/*.jpg` と元の `golden/*.jpg` �
 - [ ] Q3: Appearance=AutoのときだけmacOSのライト／ダーク変更へ追従し、Day／Nightでは固定。再起動後も設定保持、Sounds／Haptics／Reduce motionは独立。
 - [ ] Q4: Nightの全ページ・Gift dialog・開封を両シェルで巡回。アートの色は昼と同じ、紙ラベル・付箋上の文字は暗く判読可能。Studioの平らな面は暗い部屋、Deskのページは紙。Retinaでも四隅・影が尖らない。
 - [ ] Q5: ホロのカーソル反射が夜でも判読可能。デスクトップ層の色・挙動は変わらず、ホロ0枚／Reduce motionの取得停止も維持。
+- [ ] Q6: Createの段階表示／3本のスライダー値／素材名・残数・コスト・Cancel／Makeが両シェルの最小窓で縦スクロールしてすべて読める。Original再描画がブラシ中に発生せず、編集・Undo／Redo／⌘Z／拡大パンは維持。Gift差出人（長い日本語名も含む）が封筒内に収まる。

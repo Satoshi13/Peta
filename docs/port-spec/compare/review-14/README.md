@@ -25,3 +25,21 @@ Marketで5種類の外形は幅148.34375／高さ89.578125／角丸5.632pxと一
 - `npm run check:mac`: Linuxの検査用C依存スタブを使ったaarch64 macOS向けRust型検査のみ成功。macOSのリンク／実行／VoiceOver／Retinaの描画は未確認で、macos-checklist.mdのC1〜C4へ追記した。
 
 待機中のタイマー／常時アニメーションは追加していない。アイコンの画像は既存PNGキャッシュを使い、選択一覧は表示付近だけ読み込む。Reduce motionで操作可能。素材の製造輪郭は変更していない。
+
+
+## デザイン品質・素材帳（2026-10-05）
+
+詳細は[デザイン品質の報告](../../../design-quality-report.md)。先行のCreatorアイコン／素材形状の証跡は保持し、今回の撮影は接頭辞を分けた。
+
+| 接頭辞 | 内容 |
+| --- | --- |
+| material-stock | 一覧の所持枚数、選択後のみDismantle |
+| ab | 文字と昼のコントラスト |
+| c | グループ／下端固定／520px高とキー検査 |
+| d | 開封後Todayと実際の素材開封 |
+| e | Book Listと選択維持 |
+| f | Create通常／編集、720pxの操作盤 |
+| g-day / g-night | 全8ページ×Studio／Desk×1060×700／720×520 |
+| g-…-gift-form / dialog / gift-opening / calendar / edit-controls | 紙上の文字、dialog、開封、Calendar、編集の追加検査 |
+
+各PNGは実Tauri窓のキャプチャ。goldenは歴史的な基準として保持し、今回意図した差分はTodayのヒーロー／等高カード、Book Listの242px台紙、Createの操作格子、Studioのグループと下端固定、Nightの部屋色。Listの月タブやCalendar構造・ルールは戻さない。JSONに横はみ出し／在庫／操作／遅延描画の測定値を保存。npm test 39件、check:macのRust型検査成功。macOSの実機描画・Retina／VoiceOverは未確認。

@@ -14,6 +14,15 @@
   --win-w: min(1060px, calc(100vw - 150px)); --win-h: min(700px, calc(100vh - 118px));
   --ease-out: cubic-bezier(.2, .8, .2, 1); --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
 }
+[data-theme="night"] {
+  --w-win:#1d1a16; --w-side:#171410; --w-surface:#2d2923; --w-surface2:#262219; --w-sunken:#1a1713;
+  --ink:#f1ead9; --ink2:#d9cfba; --muted:#b8ad97; --w-line:#3d372e; --w-line2:#332e26;
+  --w-btn:#f1ead9; --w-btnfg:#1d1a16; --w-ok:#8fc088; --red:#ef8274;
+  --paper:var(--w-surface); --cream:var(--w-win); --soft:var(--w-surface2); --line:var(--w-line);
+  --sh1:0 1px 2px rgba(0,0,0,.5),0 4px 10px rgba(0,0,0,.2);
+  --sh2:0 1px 2px rgba(0,0,0,.5),0 10px 22px rgba(0,0,0,.3);
+  --sh3:0 2px 4px rgba(0,0,0,.5),0 24px 44px rgba(0,0,0,.4);
+}
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #7f9bb6; color: var(--ink); font: 14px/1.5 var(--sys); -webkit-font-smoothing: antialiased; }
 button { font: inherit; color: inherit; cursor: pointer; }

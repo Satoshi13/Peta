@@ -1,0 +1,74 @@
+[
+  {
+    "haptics": true,
+    "motion": "reduce",
+    "restartAppearance": "day",
+    "sound": false,
+    "theme": "day"
+  },
+  {
+    "appearance": "day",
+    "paper": "rgb(43, 42, 40)",
+    "pref": "day",
+    "shell": "studio"
+  },
+  {
+    "appearance": "day",
+    "paper": "rgb(43, 42, 40)",
+    "pref": "day",
+    "shell": "studio"
+  },
+  {
+    "appearance": "day",
+    "paper": "rgb(43, 42, 40)",
+    "pref": "day",
+    "shell": "desk"
+  },
+  {
+    "appearance": "day",
+    "paper": "rgb(43, 42, 40)",
+    "pref": "day",
+    "shell": "desk"
+  },
+  {
+    "appearance": "night",
+    "paper": "rgb(43, 42, 40)",
+    "pref": "night",
+    "shell": "studio"
+  },
+  {
+    "appearance": "night",
+    "paper": "rgb(43, 42, 40)",
+    "pref": "night",
+    "shell": "studio"
+  },
+  {
+    "appearance": "night",
+    "paper": "rgb(43, 42, 40)",
+    "pref": "night",
+    "shell": "desk"
+  },
+  {
+    "appearance": "night",
+    "paper": "rgb(43, 42, 40)",
+    "pref": "night",
+    "shell": "desk"
+  },
+  {
+    "lazy": {
+      "rendered": 11,
+      "tiles": 300,
+      "afterScroll": 27
+    }
+  },
+  {
+    "editing": "PETA-D2S3-C3FY",
+    "stock": {
+      "holographic": 1,
+      "kraft": 1,
+      "matte": null
+    },
+    "theme": "night",
+    "uses": "Editing original · no material used"
+  }
+]

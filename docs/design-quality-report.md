@@ -90,3 +90,48 @@ Createカード内のChoose imageはspanで主ボタンの見た目を重ね、�
 720×520では3ペインを横並びに保ち、操作盤は2列（素材は上段）にする。全操作を一画面に詰め込まず、既存の縦スクロールで3本のスライダー・決定ボタンへ届く。Studioは平らな面、Deskは既存panel-paperを保持。通常／実際に作成したOriginalの編集を両シェル・両サイズで撮影。3本のoutputはすべて行内で、下端までスクロールすると欠けなく表示された。実際のポインタ入力でブラシ→Undo→⌘⇧Z、ホイール拡大を確認。ブラシ／再生成中のOriginal drawImageは0回。在庫消費や保存ルールは変えていない。
 
 各段階終了時のnpm testとcheck:macは成功（C〜Fは35件）。実機専用の検査は未実施。
+
+
+## G: Night Desk
+
+AppearanceをWindow styleの直下へ追加。Dayが既定、Nightは固定、AutoだけmatchMediaのchangeを購読する。保存・通知は既存Bridge.savePreferencesに追加。切り替えは即時、ポーリング／タイマー／新しいアニメーションなし。resolveThemeは純関数、実装の購読ライフサイクルもテストし、Autoの重複購読なし・Day／Nightで解除を確認した。
+
+| トークン | Night |
+| --- | --- |
+| w-win / w-side | #1d1a16 / #171410 |
+| w-surface / w-surface2 / w-sunken | #2d2923 / #262219 / #1a1713 |
+| ink / ink2 / muted | #f1ead9 / #d9cfba / #b8ad97 |
+| w-line / w-line2 | #3d372e / #332e26 |
+| w-btn / w-btnfg / w-ok / red | #f1ead9 / #1d1a16 / #8fc088 / #ef8274 |
+
+Studioの部屋・ナビ・平らなカード・入力・dialogを夜色へ。白版ロゴは元の位置。画像の色は変えず、物理的な紙面のトークンと継承される文字色はDayへ戻す。Deskは既存cutting-mat-darkを登録して外側だけ置換し、ページと内容は紙のまま。開封ceremonyも現行の色を保つ。
+
+現行を優先した差分: Settingsのsetcardは既にpanel-paperの画像がborder-imageで貼られた物理的な紙なので、紙を削って暗い平面に変更する案は採用しない。周囲だけ夜色にして操作盤と説明は暗い昼インクのまま。既存の手描き丸によるセグメント選択を保持し、夜の平らな面では明るいインクへ切り替える。
+
+オーナー判断: Appearanceの既定Auto案はopen-questions P3へ提案として記載。実装はDayを保持。サイドバー204pxは本文幅のため、216pxへの変更は見送り。⌘ナビは採用（macOS実機の衝突確認は保留）。Bookのhoverクイックアクションは詳細と重複するため見送り。
+
+追加の読める文字の検査で、Giftの補足・Creatorアイコン選択の番号・Settingsの説明もMeta 12/16へ統一。Gift一覧の差出人は既存top:56%だと封筒から下へはみ出して暗い部屋で読めなかったため、top:50%／18pxへ移し、長い名前を省略表示する。英語／日本語の値そのものは変更せず、昼夜共通で紙の内側へ収める。
+
+## 最終の検証
+
+- npm test: **39件成功**（Day/NightのAA、ナビ、テーマ解決とAuto購読／解除を含む）。
+- npm run check:mac: **成功**。Linux上のaarch64 macOS向けRust型検査。ネイティブC／ObjCの生成は検査用スタブで、macOSでのリンク／起動を確認した結果ではない。
+- Linuxの実Tauri／WebKitGTK、専用DBで両シェル・1060×700／720×520を撮影。GはDay/Night×8ページ×両シェル×2サイズ（64画面）、横はみ出し0。Giftフォーム、通常dialog、Gift開封、Calendar、編集モードも撮影。
+- BookをUI検査用に300件へ増やすと、最初の画像生成は11件、スクロール後27件。既存PNGキャッシュを再利用し、300件を一括生成しない。実DBの記録は増やしていない。
+- 通常の作成と実際のOriginalの編集を確認。編集のコスト表示はEditing original · no material used、Kraft／Holographic在庫は各1のまま。Cancelで既存のBookへ戻る。
+- Appearanceはプロセス再起動後にDay／Nightの保存値が保持された。Sounds=false・Haptics=true・Reduce motionも維持。
+- macOS実機の外観追従・キー競合・四隅と影・Retina・ホロは未確認。macos-checklist §18のQ1〜Q6へ記録。
+
+## コミット
+
+| 段階 | コミット |
+| --- | --- |
+| 素材帳 | 1a5764e |
+| A+B | 5b100dd |
+| C | 115d167 |
+| D | 06e3c99 |
+| E | 2e9a758 |
+| F | 2efc7e1 |
+| G | 本レポートを含む `feat(ui): add persisted Day Night Auto appearance without idle polling` |
+
+変更は主窓の既存JS／CSS、純関数とテスト、README／決定表／未決提案／チェックリスト／比較証跡。src/art、プロトタイプ、golden、Rustのコマンド・DBは変更していない。O1〜O5・素材の消費・印刷FIFO・Welcome回数・署名配布も保持。撮影のLinuxシステムフォントはmacOSのSF Proと字幅が異なり、ピクセル一致は保証しない。

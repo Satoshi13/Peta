@@ -1,6 +1,6 @@
 /* Rust is the source of truth. S contains only the last command snapshot and UI selections. */
 const prefs = JSON.parse(localStorage.getItem('peta.preferences') || '{}');
-const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, bookView: prefs.bookView === 'calendar' ? 'calendar' : 'list', motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
+const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, appearance: ['day','night','auto'].includes(prefs.appearance) ? prefs.appearance : 'day', bookView: prefs.bookView === 'calendar' ? 'calendar' : 'list', motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
   envelopeDeadline: null, name: '', iconStickerId: null, today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], events: [], packOffer:null, packs: [],
   bonusEnvelopes: 0, extraEnvelope: false, pending: null, stuckToday: [], packAvailable: false, scraps: {balance:0, materials:[], packs:[]}, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
 const Bridge = (() => {
@@ -9,9 +9,10 @@ const Bridge = (() => {
   const windowApi = api.window.getCurrentWindow();
   const assets = new Map();
   const savePreferences = () => {
-    const p = { shell:S.shell, sound:S.sound, haptics:S.haptics, bookView:S.bookView, motion:S.motion, closeOutside:S.closeOutside };
+    const p = { shell:S.shell, sound:S.sound, haptics:S.haptics, appearance:S.appearance, bookView:S.bookView, motion:S.motion, closeOutside:S.closeOutside };
     localStorage.setItem('peta.preferences', JSON.stringify(p));
     document.documentElement.dataset.motion = S.motion;
+    Appearance.apply();
     Snd.on = S.sound; Haptic.on = S.haptics;
     if(S.motion==='reduce') document.getAnimations().forEach(a=>{if(a.effect?.getTiming().iterations===Infinity)a.cancel();});
     api.event.emit('preferences-changed', p);
@@ -74,3 +75,18 @@ async function resOf(entry) {
 }
 // Desktop rendering and placement belong to the existing layer windows.
 const Desktop = { hideArrival() {}, async print(entry) { await Bridge.printAction("print_resume"); }, async later() { await Bridge.invoke('print_later'); }, };
+
+const Appearance = (() => {
+  const media = matchMedia('(prefers-color-scheme: dark)');
+  let following = false;
+  const update = () => { document.documentElement.dataset.theme = PetaMath.resolveTheme(S.appearance, media.matches); };
+  const apply = () => {
+    const auto = S.appearance === 'auto';
+    if(auto !== following) {
+      auto ? media.addEventListener('change', update) : media.removeEventListener('change', update);
+      following = auto;
+    }
+    update();
+  };
+  return {apply};
+})();

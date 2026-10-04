@@ -21,3 +21,5 @@ test('WCAG formula handles black, white and identical colours',()=>{
   assert.equal(contrast('#000000','#ffffff'),21);assert.equal(contrast('#655e51','#655e51'),1);
 });
 test('day UI text, status and primary button meet AA',()=>check(day));
+
+test('night UI text, status and primary button meet AA',()=>check({...day,...tokens(css.match(/\[data-theme="night"\]\s*{([^}]+)}/)[1])}));

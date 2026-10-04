@@ -8,6 +8,8 @@
 
 窓の描画全体をStudioは18px、Deskは20pxの丸い外周に収めます。紙の影が透明な四隅へ残って尖って見えることを防ぎ、開封画面にも同じ外周を適用します。上端の移動と右下のリサイズは引き続き使えます。
 
+Settings の Appearance は Day（既定）／Night／Auto。AutoだけmacOSの外観変更を購読し、Day／Nightでは購読・ポーリングを行いません。Studioでは窓・サイドバー・平らな面を夜色に、Deskでは外側のマットだけを暗い既存素材にします。紙札・付箋・裏紙・素材カード・Settingsの紙操作盤は色と暗いインクを保ち、切り替えは即時。設定は `peta.preferences` に保存します。
+
 Settings の Sounds / Haptics / Reduce motion は `peta.preferences` に保存され、開いているデスクトップ層にも通知されます。Haptics は既定オン。Printの貼り付け成功・編集モードで動かして貼り直した成功時に LevelChange(2)、剥がし成功・Giftの封蝋を割った瞬間に Generic(0) を各1回。ドラッグ途中・ホバー・単なるボタン操作では鳴らしません。Sounds と Reduce motion とは独立し、対応トラックパッドのない環境では何も起きません。
 
 文字は役割で統一します。見出し・説明・在庫はシステム書体、補足は12px以上、Overlineは11px。Special Eliteは13px以上の日付・時計・Scrapsの印字、Klee Oneは裏紙・ギフトのメモ・値札などの物にだけ使います。補助色は暖かい濃色 `#655e51`、平らな面と文字は共通トークンで管理し、本文のコントラスト4.5:1以上を検査します。

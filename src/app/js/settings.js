@@ -10,6 +10,7 @@ Pages.settings = {
       h("div.setrow", h("div", h("b", "Creator icon"), h("small", "Choose an original sticker from your Book")),
         h("button.btn.paper.creator-icon-change", {on:{click:e=>CreatorIcon.choose(e.currentTarget)}}, CreatorIcon.image(), "Change icon…")),
       segRow("Window style", "Desk lays the pages on a cutting mat; Studio is a clean sidebar window", [["desk", "Desk"], ["studio", "Studio"]], () => S.shell, (v) => { Shell.setShell(v); }),
+      segRow("Appearance", "Auto follows macOS", [["day", "Day"], ["night", "Night"], ["auto", "Auto"]], () => S.appearance, (v) => { S.appearance=v; Bridge.savePreferences(); }),
       sw("Sounds", "Paper, tear, and the little peta", () => Snd.on, (v) => { Snd.on = v; S.sound = v; Bridge.savePreferences(); }),
       sw("Haptics", "A small tap when you stick, peel, or break a seal", () => Haptic.on, (v) => { Haptic.on = v; S.haptics = v; Bridge.savePreferences(); }),
       sw("Put away on outside click", "A click on the desktop closes the window, like a menu", () => S.closeOutside, (v) => { S.closeOutside = v; Bridge.savePreferences(); }),

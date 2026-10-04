@@ -6,7 +6,7 @@ const P = {
   spiralCoil: "book/spiral-coil.png", spiralHoles: "book/spiral-holes.png", curl: "book/page-curl-shadow.png", cover: "book/cover-kraft.png",
   tab1: "book/tab-blank-1.png", tab2: "book/tab-blank-2.png", tab3: "book/tab-blank-3.png", tab4: "book/tab-blank-4.png", tab5: "book/tab-blank-5.png", tab6: "book/tab-blank-6.png",
   tape1: "creator/tape-1.png", tape2: "creator/tape-2.png", tape3: "creator/tape-3.png", tape4: "creator/tape-4.png",
-  mat: "creator/cutting-mat.jpg", cutSheet: "creator/cut-line-sheet.png",
+  mat: "creator/cutting-mat.jpg", matDark: "creator/cutting-mat-dark.jpg", cutSheet: "creator/cut-line-sheet.png",
   swMatte: "materials/swatch-matte.png", swKraft: "materials/swatch-kraft.png", swHolo: "materials/swatch-holographic.png",
   cardMatte: "today/material-card-matte.png", cardKraft: "today/material-card-kraft.png", cardHolo: "today/material-card-holographic.png",
   envBack: "today/envelope-back.png", envCard: "today/envelope-card.png", envPocket: "today/envelope-pocket.png", envFlap: "today/envelope-flap.png",
