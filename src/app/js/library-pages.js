@@ -1,4 +1,4 @@
-/* Gifts (inbox), Materials (the Material Book), Settings. */
+/* Gifts (inbox), Materials (the Materials), Settings. */
 Pages.gifts = {
   build() {
     const root = h("div.page-in.giftspage"), locked = false;
@@ -9,7 +9,7 @@ Pages.gifts = {
       ? h("div.inbox", waiting.map((g, i) => h("div", h("button.gift", { disabled: locked, style: { "--i": i, "--r": [-3, 2.5, -1.5][i % 3] + "deg" }, on: { click: () => { Snd.tap(); Cer.openGift(g); } } },
           img("arrGift", "g-env"), h("span.g-from.hand", h("small", "From"), g.from + (["known","official"].includes(g.signatureStatus) ? " ✓" : "")), locked ? null : h("span.open-cta", "Open")), h("p.muted.small", {style:{maxWidth:"240px",textAlign:"center"}}, Distribution.trust(g)))))
       : h("div.empty", h("p", "Nothing has arrived yet."), h("p.muted", "When a friend sends you a .peta file, it lands here.")));
-    root.append(h("div.gift-actions", h("button.btn.paper", { on: { click: () => this.receiveFile() } }, "Open Peta file…"), h("button.link", {on:{click:()=>Distribution.redeem()}}, "Redeem Code…"), got.length ? h("span.muted.small", `${got.length} already opened and kept in your Book`) : null));
+    root.append(h("div.gift-actions", h("button.btn.paper", { on: { click: () => this.receiveFile() } }, "Open Peta file…"), h("button.link", {on:{click:()=>Distribution.redeem()}}, "Redeem Code…"), got.length ? h("span.muted.small", `${got.length} already opened and kept in your Collection`) : null));
     if(S.events.length) root.append(h("section", h("h2", "From Peta ✓"), S.events.map(e=>h("article",h("b",e.title),h("p.muted.small",e.result),e.message ? h("p.small",e.message) : null))));
     return root;
   },
@@ -24,8 +24,8 @@ Pages.materials = {
   selected: null,
   build() {
     const root = h("div.page-in.materialspage");
-    root.append(PageHead("Materials", "Material Book", Scraps.badge()));
-    root.append(h("p.muted.lede", "Preview the materials you've found, or save unused sheets as Scraps. Plain Matte is always available and cannot be dismantled."));
+    root.append(PageHead("Materials", "Materials", Scraps.badge()));
+    root.append(h("p.muted.lede", "Preview the materials you've found, or save unused sheets as Scraps. Each sticker uses one sheet."));
     const panel = Scraps.form() || this.preview(); if(panel) root.append(panel);
     const grid = h("div.mgrid", Object.values(MAT).map((m, i) => {
       const lock = !!m.locked;
@@ -36,7 +36,7 @@ Pages.materials = {
       } } },
         h("div.mc", h("div.mcard" + (lock ? ".locked" : ""), { data: { m: lock ? "matte" : m.id }, vars: { "--w": "190px" } }, h("i.art"), h("span.lab", lock ? h("b", "?") : [h("b", m.name), h("small", m.rarity)]))),
         h("div.mmeta", h("b", lock ? "Not found yet" : m.name), h("span.seal", { data: { rarity: m.rarity } }, lock ? "locked" : m.rarity),
-          lock ? h("small", "Open Today's Material to find it") : this.stock(m), !lock && !m.unlimited ? h("small", `Found ${m.found}`) : null, lock ? null : h("small.recipe", m.recipe)));
+          lock ? h("small", "Open Today's Material to find it") : this.stock(m)));
       if (!lock) Stk.tilt($(".mcard", card), { max: 9, scale: 1.03, trigger: card });
       return h("div.material-entry", card);
     }));
@@ -48,8 +48,8 @@ Pages.materials = {
   preview() {
     const m = MAT[this.selected]; if(!m || m.locked) return null;
     return h("section.material-preview", {"aria-label":`${m.name} preview`}, MatCard(m,240),
-      h("div", h("h2",m.name), h("p",m.recipe), this.stock(m), !m.unlimited ? h("p.muted.small", `Found ${m.found}`) : null,
-        Scraps.material(m.id) ? Scraps.button("dismantle",m.id,"Dismantle…",!(S.stock[m.id]>0)) : null),
+      h("div", h("h2",m.name), h("p",m.recipe), this.stock(m),
+        Scraps.material(m.id) ? h("div.material-preview-actions", Scraps.button("dismantle",m.id,"Dismantle…",!(S.stock[m.id]>0))) : null),
       h("button.x", {"aria-label":"Close material preview",on:{click:()=>{const id=this.selected;this.selected=null;Shell.refresh();$(`[data-material="${id}"]`)?.focus({preventScroll:true});}}}, "✕"));
   },
 };

@@ -48,7 +48,7 @@ const PackMaker = {
           body.append(h("label", {style:{display:"flex",flexDirection:"row",alignItems:"center",gap:"10px"}},check,thumb,`${fmtDate(entry.date)} · ${MAT[entry.material].name} · ${entry.id}`));observer.observe(thumb);
         });
       } else {
-        body.replaceChildren(h("label","Pack name",title),h("label","Wrapper",pouch),h("p.small",`by ${S.name} · Finished copies only. Your own stickers stay in the Book.`),
+        body.replaceChildren(h("label","Pack name",title),h("label","Wrapper",pouch),h("p.small",`by ${S.name} · Finished copies only. Your own stickers stay in the Collection.`),
           h("div.row-btns",h("small","Set all:"),...["common","uncommon","rare"].map(r=>h("button.link",{type:"button",on:{click:()=>{for(const item of selected.values())item.rarity=r;paint();}}},r[0].toUpperCase()+r.slice(1)))));
         for(const item of selected.values()) {
           const name=h("input",{maxLength:40,required:true,value:item.name,"aria-label":`Name for ${item.stickerId}`,on:{input:e=>item.name=e.target.value}});
@@ -60,7 +60,7 @@ const PackMaker = {
     };
     const form=h("form.gift-form",{on:{submit:async e=>{
       e.preventDefault();if(pending || step!==2)return;pending=true;Bridge.dialogOpen=true;save.disabled=true;cancel.disabled=true;back.disabled=true;
-      try {const file=await Bridge.invoke("creator_pack_save",{title:title.value.trim(),pouch:pouch.value,items:[...selected.values()]});if(file){dialog.close();Shell.toast("Pack saved. Your own stickers stay in the Book.");}}
+      try {const file=await Bridge.invoke("creator_pack_save",{title:title.value.trim(),pouch:pouch.value,items:[...selected.values()]});if(file){dialog.close();Shell.toast("Pack saved. Your own stickers stay in the Collection.");}}
       catch(error){status.textContent=Distribution.error(error);}
       finally {pending=false;save.disabled=false;cancel.disabled=false;back.disabled=false;}
     }}},h("h2","Make a Pack"),body,status,h("div.row-btns",cancel,back,next,save));

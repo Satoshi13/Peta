@@ -2,13 +2,15 @@
 const CR = {stage:"empty",src:null,photo:null,original:null,border:20,smooth:4,strength:.5,editing:null,editMaterial:null,tool:"erase",brush:12,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve(),zoom:{scale:1,x:0,y:0}};
 const SAMPLE_KEYS = ["sCat","sBlueFlower","sCoffee","sCamera","sEgg","sGoodDay","sPlant","sPolaroid","sCassette","sComputer","sScribble","sBubble"];
 const PHOTO_W = 720;
-const usesText = () => CR.editing ? "Editing original · no material used" : (MAT[S.chosen].unlimited ? "Uses one "+MAT[S.chosen].name+" (never runs out)" : `Uses 1 ${MAT[S.chosen].name} · ${S.stock[S.chosen]} left`);
+const usesText = () => !S.chosen ? "No material sheets left" : CR.editing ? "Editing original · no material used" : (MAT[S.chosen].unlimited ? "Uses one "+MAT[S.chosen].name+" (never runs out)" : `Uses 1 ${MAT[S.chosen].name} · ${S.stock[S.chosen]} left`);
 const usesLabel = () => {
-  const text=usesText(), name=MAT[S.chosen].name, at=text.indexOf(name);
+  const text=usesText(); if(!S.chosen) return text;
+  const name=MAT[S.chosen].name, at=text.indexOf(name);
   return CR.editing ? text : [text.slice(0,at),h("b",name),text.slice(at+name.length)];
 };
 function crReset() { CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{stage:'empty',src:null,photo:null,original:null,res:null,note:'',editing:null,editMaterial:null,urls:[],history:{canUndo:false,canRedo:false},zoom:{scale:1,x:0,y:0}}); }
 async function crBegin(bytes) {
+  if(!usableMats().includes(S.chosen)) { Shell.toast("No material sheets left. Visit Market to exchange Scraps."); return; }
   CR.stage='cutting'; Shell.refresh();
   try { await Bridge.invoke('creator_begin_bytes',{bytes:Array.from(bytes),materialId:S.chosen}); } catch(e) { crReset(); Shell.refresh(); Shell.toast(String(e)); }
 }
@@ -43,6 +45,10 @@ Pages.create = {
     const root = h("div.page-in.create");
     const ready = CR.stage === "ready";
     root.append(PageHead(CR.editing ? "Edit sticker" : "Create", ready ? "Cutting Mat" : "Make a Peta"));
+    if(!CR.editing && !S.chosen) {
+      root.append(h("div.empty",h("p","No material sheets left."),h("p.muted","Open an envelope or exchange Scraps for more."),h("button.btn.paper",{on:{click:()=>{MK.tab="materials";Shell.go("market");}}},"Visit Market")));
+      return root;
+    }
     if (CR.stage === "empty") root.append(this.empty());
     else if (CR.stage === "cutting") root.append(h("div.cr-cutting", h("div.cut-anim"), h("p", "Cutting…"), h("p.muted", "Taking the background away")));
     else root.append(this.mat());

@@ -37,12 +37,11 @@ Pages.today = {
   openedBlock() {
     const m = MAT[S.todayMat];
     return h("section.t-choose",
-      h("div.t-top", h("p.today-lead", "A new material arrives every day. Matte never runs out."), h("p.eyebrow.make-label", "Make a Peta"), Choices({hero:true})),
+      h("div.t-top", h("p.today-lead", "A new material arrives every day. Each sticker uses one sheet."), h("p.eyebrow.make-label", "Make a Peta"), Choices({hero:true})),
       h("div.t-bottom",
-        h("div.t-mat", h("div.tm-card", MatCard(m, 138)),
-          h("div.tm-text", h("div.tm-heading", h("p.eyebrow", "Today's material"), h("small.addnote", "Added to your Material Book")), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)),
-            h("div.material-features", m.recipe.split(" · ").map(text=>h("span.chip.fill", text[0].toUpperCase()+text.slice(1))))),
-          h("div.stock", usableMats().map(id=>h("span.stock-pill", MaterialSwatch(MAT[id]), MAT[id].name, " ", h("b", MAT[id].unlimited ? "∞" : "×"+S.stock[id]))))),
+        h("div.t-mat", h("div.tm-card", MatCard(m, 120)),
+          h("div.tm-text", h("div.tm-heading", h("p.eyebrow", "Today's material"), h("small.addnote", "Added to your Materials")), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity))),
+          h("div.stock", Object.keys(S.stock).filter(id=>MAT[id] && !MAT[id].locked).map(id=>h("span.stock-pill", MaterialSwatch(MAT[id]), MAT[id].name, " ", h("b", MAT[id].unlimited ? "∞" : String(S.stock[id] || 0)))))),
         h("div.t-stuck", h("div.stuck-heading", h("b", "Stuck today"), h("small.muted", `${S.stuckToday.length} on your desktop`)), StuckStrip())));
   },
 

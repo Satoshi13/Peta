@@ -2,7 +2,7 @@
 
 毎日、ひとつだけ。デスクトップに残る、ステッカーのある暮らし。
 
-現在は `src/` と `src-tauri/` の本物のTauriアプリに、Studio / Desk、Cutting Mat、Print → Grab → Paste、Book、Packs、Gifts、MaterialsとSettingsがあります。DBはv8。Matteは無制限、Welcomeは1日1回、Market / Giftは回数制限なしです。Kraft / Holographicの作成は選んだ素材の残数だけ消費します。最新のルールは [docs/decisions.md](docs/decisions.md)、移植・未決事項は [docs/port-spec/README.md](docs/port-spec/README.md) を参照してください。
+現在は `src/` と `src-tauri/` の本物のTauriアプリに、Studio / Desk、Cutting Mat、Print → Grab → Paste、Collection、Packs、Gifts、MaterialsとSettingsがあります。DBはv8。配布版の素材はすべて有限で、Welcomeは1日1回、Market / Giftは回数制限なしです。作成は選んだ素材を1枚消費します。最新のルールは [docs/decisions.md](docs/decisions.md)、移植・未決事項は [docs/port-spec/README.md](docs/port-spec/README.md) を参照してください。
 
 ## ネイティブUIの設定
 
@@ -240,3 +240,7 @@ npm test             # 座標計算の単体テスト(JS)
 cargo test -p peta-core --manifest-path src-tauri/Cargo.toml   # ライブラリ層の単体テスト(Rust)
 npm run check:mac    # Linux等から macOS 向けRustの型検査(要 rustup target add aarch64-apple-darwin。ObjC依存のため CC のダミー指定が必要)
 ```
+
+### 画面整理（2026-10-05）
+
+ステッカーの保存場所の表示名はCollectionに統一しました。Todayの素材カードはトレイ中央に配置し、説明ピルを撤去。所持素材は0枚も含めて実数を表示します。Stuck todayの空表示は文字のみで、テープと作成ボタンは置きません。Materials一覧の発見日・レシピ説明と、プレビューの発見日を省き、分解ボタンを所持数の下に配置します。Collection ListのToday’s slotを撤去し、StudioのPetaロゴを少し拡大。Creatorsの平面カードはDay／Nightの共通面・文字色を使用します。

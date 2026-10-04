@@ -92,7 +92,7 @@ Pages.book = {
       }, { root, rootMargin: "80px" });
       const items = PetaMath.newestBookEntries(S.lib);
       const sel = items.find(e => e.id === BK.sel && PetaMath.bookDateKey(e.date) === BK.day) || items.find(e => e.id === BK.sel);
-      const view = h("div.seg.book-view", { role: "group", "aria-label": "Book view" }, ["list", "calendar"].map(v => h("button", { "aria-pressed": String(S.bookView === v), on: { click: () => {
+      const view = h("div.seg.book-view", { role: "group", "aria-label": "Collection view" }, ["list", "calendar"].map(v => h("button", { "aria-pressed": String(S.bookView === v), on: { click: () => {
         if(S.bookView === v) return; S.bookView = v;
         if(v === "calendar" && sel) S.bookMonth = monthKey(sel.date);
         Bridge.savePreferences(); paint();
@@ -100,10 +100,9 @@ Pages.book = {
       const main = h("div.bk-main");
       if(S.bookView === "calendar") main.append(this.calendar(items, select, root, paint));
       else {
-        const slot = items.length && !S.stuckToday.length && !S.pickMode ? h("button.tile.today-slot", {on:{click:()=>Shell.go("today")}}, h("span.slot-plus", "+"), h("b", "Today's slot"), h("small", "still open")) : null;
-        main.append(h("p.muted.book-count", `${items.length} sticker${items.length === 1 ? "" : "s"}`), items.length ? h("div.bk-grid", slot, items.map((e,i) => this.tile(e,i,select))) : h("p.empty-note", "Your Book is waiting for its first sticker."));
+        main.append(h("p.muted.book-count", `${items.length} sticker${items.length === 1 ? "" : "s"}`), items.length ? h("div.bk-grid", items.map((e,i) => this.tile(e,i,select))) : h("p.empty-note", "Your Collection is waiting for its first sticker."));
       }
-      root.replaceChildren(PageHead("Book", "Sticker Book", view, h("button.btn.paper.small", {disabled:S.lib.length<3,on:{click:()=>PackMaker.open()}}, "Make a Pack…")),
+      root.replaceChildren(PageHead("Collection", "Your stickers", view, h("button.btn.paper.small", {disabled:S.lib.length<3,on:{click:()=>PackMaker.open()}}, "Make a Pack…")),
         ...(S.pickMode ? [h("div.pick-banner", h("span", "Choose one to stick on the desktop"), h("button.link", { on: { click: () => { S.pickMode = false; paint(); } } }, "Cancel"))] : []),
         h("div.bk" + (sel ? ".has-detail" : ""), main, sel ? this.detail(sel, paint) : null));
     };
@@ -184,7 +183,7 @@ Pages.book = {
       turn,
       S.bookView === "calendar" ? this.dayChoices(e, paint) : null,
       form || (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions",
-        onDesk ? h("button.btn.book-action.primary", { data: { action: "peel" }, on: { click: async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Book."); paint(); } } }, "Peel off desktop") : h("button.btn.book-action.primary", { data: { action: "stick" }, on: { click: () => this.stick(e) } }, "Stick on desktop"),
+        onDesk ? h("button.btn.book-action.primary", { data: { action: "peel" }, on: { click: async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Collection."); paint(); } } }, "Peel off desktop") : h("button.btn.book-action.primary", { data: { action: "stick" }, on: { click: () => this.stick(e) } }, "Stick on desktop"),
         h("div.book-action-row", h("button.btn.book-action.secondary", { data: { action: "gift" }, on: { click: () => { BK.deleteId = null; BK.gift = true; paint(); } } }, "Gift…"),
           e.canManage ? h("button.btn.book-action.secondary", { data: { action: "edit" }, on: { click: () => this.edit(e) } }, "Edit") : null),
         e.canManage ? h("button.btn.book-action.danger", { data: { action: "delete" }, on: { click: () => { BK.deleteId = e.id; paint(); } } }, "Delete…") : null)),
@@ -203,7 +202,7 @@ Pages.book = {
   },
   deleteForm(e, paint) {
     return h("div.book-delete", { role: "group", "aria-label": "Confirm sticker deletion" },
-      h("b", "Delete this sticker?"), h("p", "Remove it from your Book, desktop and print queue. Gifts already sent stay with their recipients."),
+      h("b", "Delete this sticker?"), h("p", "Remove it from your Collection, desktop and print queue. Gifts already sent stay with their recipients."),
       h("div.book-action-row", h("button.btn.book-action.secondary", { data: { action: "delete-cancel" }, on: { click: () => { BK.deleteId = null; paint(); } } }, "Cancel"),
         h("button.btn.book-action.danger", { data: { action: "delete-confirm" }, on: { click: async ev => {
           const button = ev.currentTarget; button.disabled = true; Bridge.busy = true;

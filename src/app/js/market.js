@@ -1,11 +1,11 @@
-/* Local free packs and Scraps exchanges; paid packs and creators remain previews. */
+/* Local catalog packs and Scraps exchanges; creator accounts remain previews. */
 const MARKET_PACKS = [
   { id: "tokyo", title: "Tokyo Pack", by: "Peta", count: 8, price: "Free", hue: 200, kind: "holo", blurb: "A walk through the city in eight small things.", keys: ["sCamera", "sCoffee", "sPolaroid", "sCassette", "sComputer", "sBubble", "sGoodDay", "sEgg"] },
   { id: "coffee", title: "Coffee Club", by: "Nao", count: 6, price: "Free", hue: 0, kind: "kraft", blurb: "Slow mornings, one cup at a time.", keys: ["sCoffee", "sEgg", "sGoodDay", "sCamera", "sPlant", "sCat"] },
-  { id: "pixel", title: "Pixel Dream", by: "Ryo", count: 6, price: "¥480", hue: 120, kind: "holo", blurb: "Late-night screens and soft glow.", keys: ["sComputer", "sCassette", "sBubble", "sScribble", "sCamera", "sGoodDay"] },
-  { id: "cats", title: "Cats", by: "Yuki", count: 5, price: "¥300", hue: 0, kind: "matte", blurb: "Mostly asleep. Occasionally on a skateboard.", keys: ["sCat", "sScribble", "sCoffee", "sPlant", "sBubble"] },
+  { id: "pixel", title: "Pixel Dream", by: "Ryo", count: 6, price: "Scraps", hue: 120, kind: "holo", blurb: "Late-night screens and soft glow.", keys: ["sComputer", "sCassette", "sBubble", "sScribble", "sCamera", "sGoodDay"] },
+  { id: "cats", title: "Cats", by: "Yuki", count: 5, price: "Scraps", hue: 0, kind: "matte", blurb: "Mostly asleep. Occasionally on a skateboard.", keys: ["sCat", "sScribble", "sCoffee", "sPlant", "sBubble"] },
   { id: "plants", title: "Houseplants", by: "Mika", count: 5, price: "Free", hue: 0, kind: "kraft", blurb: "Leaves for the corner of your screen.", keys: ["sPlant", "sBlueFlower", "sEgg", "sPolaroid", "sCoffee"] },
-  { id: "night", title: "Night Market", by: "Ren", count: 6, price: "¥380", hue: 245, kind: "holo", blurb: "Paper lanterns and street snacks.", keys: ["sEgg", "sCassette", "sGoodDay", "sPolaroid", "sCamera", "sBubble"] },
+  { id: "night", title: "Night Market", by: "Ren", count: 6, price: "Scraps", hue: 245, kind: "holo", blurb: "Paper lanterns and street snacks.", keys: ["sEgg", "sCassette", "sGoodDay", "sPolaroid", "sCamera", "sBubble"] },
 ];
 const MARKET_CREATORS = [
   { name: "Nao", src: "sCoffee", packs: 3, line: "Cafés, cups and quiet mornings" }, { name: "Ryo", src: "sComputer", packs: 5, line: "Pixels, cables, small screens" },
@@ -16,6 +16,11 @@ const MK = { tab: "packs", sel: null };
 const Market = {
   pouch(p) { const foil = (p.kind || "holo") === "holo"; return h("div.pk-stack.mk-pouch", h("i.pk-img" + (foil && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, foil ? h("i.sheen") : null)); },
   own(id) { return !!S.owned[id]; },
+  price(pack) { const rate = Scraps.pack(pack.id); return pack.price === "Free" ? "Free" : rate ? `${rate.exchange} Scraps` : "Coming later"; },
+  exchange(pack) {
+    const rate = Scraps.pack(pack.id);
+    return Scraps.button("pack",pack.id,rate ? `Exchange — ${rate.exchange} Scraps` : "Coming later",!rate || S.scraps.balance<rate.exchange);
+  },
   refill(pack) {
     const rate = Scraps.pack(pack.id);
     if(!rate || !S.packs.some(p=>p.id===pack.id && !p.left.length)) return null;
@@ -29,8 +34,7 @@ const Market = {
       if (bag && !bag.disabled) bag.focus({preventScroll:true});
       return;
     }
-    // TODO(owner): paid packs need a purchase backend; do not simulate a payment.
-    if (pack.price !== "Free") { Shell.toast("Purchases are not available yet."); return; }
+    if (pack.price !== "Free") { this.exchange(pack).click(); return; }
     try { await Bridge.invoke("pack_install_demo", {packId:pack.id}); await Bridge.reload(); Snd.chime(3,784); Shell.toast(`${pack.title} is on your Packs shelf.`); Shell.refresh(); }
     catch(e) { Shell.toast(String(e)); }
   },
@@ -54,7 +58,7 @@ Pages.market = {
     const cell = (p, i) => {
       const own = Market.own(p.id);
       return h("div.mk-item", h("button.mk-tile", { "aria-pressed": own ? null : String(MK.sel === p.id), "aria-label": own ? `${p.title} — view on your Packs shelf` : null, style: { "--i": i }, on: { click: () => { if (own) { Market.get(p); return; } MK.sel = MK.sel === p.id ? null : p.id; Snd.tap(); paint(); } } },
-        Market.pouch(p), h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.count} stickers`)), h("span.price" + (own ? ".own" : p.price === "Free" ? ".free" : ""), own ? "On your shelf" : p.price)), Market.refill(p));
+        Market.pouch(p), h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.count} stickers`)), h("span.price" + (own ? ".own" : p.price === "Free" ? ".free" : ""), own ? "On your shelf" : Market.price(p))), Market.refill(p));
     };
     const main = h("div.mk-main",
       h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat), h("div.fan", feat.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
@@ -69,14 +73,14 @@ Pages.market = {
       h("div.mk-d-art", Market.pouch(p)), h("h3", p.title), h("p.muted", `by ${p.by} · ${p.count} stickers`), h("p", p.blurb),
       h("p.eyebrow", { style: { marginTop: "10px" } }, "A peek inside"),
       h("div.peek", p.keys.slice(0, p.count).map((k, i) => { const c = h("div.peek-s" + (i < 3 ? "" : ".sealed")); if (i < 3) Stk.make(A[k], { border: 10, material: "matte", max: 240 }).then((r) => c.append(Stk.el(r, r.aspect >= 1 ? 62 : 62 * r.aspect))); else c.append(h("b", "?")); return c; })),
-      h("button.btn", { style: { width: "100%", marginTop: "12px" }, on: { click: () => Market.get(p) } }, own ? "On your shelf" : p.price === "Free" ? "Get — Free" : `Get — ${p.price}`),
+      !own && p.price !== "Free" ? Market.exchange(p) : h("button.btn", { style: { width: "100%", marginTop: "12px" }, on: { click: () => Market.get(p) } }, own ? "On your shelf" : "Get — Free"),
       Market.refill(p),
       h("p.muted.small", { style: { marginTop: "8px" } }, "Open it any time, as often as you like. What's inside stays a surprise until you tear it."));
   },
   materials(paint) {
     // TODO(owner): cash purchases and future material recipes are still unavailable.
-    const items = ["kraft", "holographic", "gold", "riso", "vintage"].map((id) => MAT[id]);
-    return h("div.mk-mats", h("p.muted.lede", "Exchange Scraps for sheets. Save unused Kraft or Holographic as Scraps in your Material Book."),
+    const items = ["matte", "kraft", "holographic", "gold", "riso", "vintage"].map((id) => MAT[id]);
+    return h("div.mk-mats", h("p.muted.lede", "Exchange Scraps for sheets. Save unused sheets as Scraps in your Materials."),
       h("button.btn.paper.small.scrap-action", {on:{click:()=>Shell.go("materials")}}, "Dismantle materials…"),
       h("div.mgrid", items.map((m, i) => h("div.mbook.mk-mat", { style: { "--i": i } },
         h("div.mc", MatCard({ ...m, id: m.id }, 176)), h("div.mmeta", h("b", m.name), h("span.seal", { data: { rarity: m.rarity } }, m.rarity), h("small.recipe", m.recipe),

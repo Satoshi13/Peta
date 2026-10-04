@@ -135,3 +135,7 @@ Studioの部屋・ナビ・平らなカード・入力・dialogを夜色へ。�
 | G | 本レポートを含む `feat(ui): add persisted Day Night Auto appearance without idle polling` |
 
 変更は主窓の既存JS／CSS、純関数とテスト、README／決定表／未決提案／チェックリスト／比較証跡。src/art、プロトタイプ、golden、Rustのコマンド・DBは変更していない。O1〜O5・素材の消費・印刷FIFO・Welcome回数・署名配布も保持。撮影のLinuxシステムフォントはmacOSのSF Proと字幅が異なり、ピクセル一致は保証しない。
+
+## 後続の整理（2026-10-05）
+
+明示依頼で説明ピル・素材一覧の発見日／レシピ・Stuck todayのテープとCTA・ListのToday’s slotを撤去。Bookの表示名をCollectionに統一し、ロゴを少し拡大。CreatorsのNight対象セレクターを実在する`.cr-card`へ修正した。所持数はMatteも有限で0を含め表示する。Scrapsで旧現金価格の3パックを購入できる。比較と実購入／Retry確認は[review-15](port-spec/compare/review-15/README.md)。

@@ -28,7 +28,7 @@ const Bridge = (() => {
       Object.assign(MAT[m.id], { name:m.name, rarity:m.rarity, locked:!unlocked, unlimited:m.unlimited, found:m.unlockedAt ? fmtDate(new Date(m.unlockedAt)) : '', });
       S.stock[m.id] = m.unlimited ? Infinity : m.count;
     }
-    if (!(typeof CR !== 'undefined' && CR.editing) && !usableMats().includes(S.chosen)) S.chosen = usableMats()[0] || 'matte';
+    if (!(typeof CR !== 'undefined' && CR.editing) && !usableMats().includes(S.chosen)) S.chosen = usableMats()[0] || null;
     const pages = await Promise.all(months.map(m => invoke('book_page', {year:m.year, month:m.month})));
     S.lib = pages.flat().map(e => ({ id:e.stickerId, date:new Date(e.date+'T12:00:00'), createdAt:e.createdAt, no:e.originalNumber, material:e.materialId || 'matte', kind:(['gift','pack'].includes(e.sourceType) || (e.sourceType==='collection' && e.originalNumber==null)) ? 'received' : 'original', aspect:e.aspect, onDesktop:e.onDesktop, canManage:e.canManage, title:e.packName || 'Sticker' }));
     S.desk = S.lib.filter(e=>e.onDesktop).map(e=>({id:e.id}));

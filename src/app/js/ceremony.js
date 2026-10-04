@@ -272,7 +272,7 @@ const Cer = (() => {
     fix(wax, "translate(-50%,-50%)");
     cer.hint(`Sealed. ${to}.peta is saved.`); await sleep(900);
     await anim(env, [{ transform: "none", opacity: 1 }, { transform: "translateY(-260px) rotate(-5deg) scale(.9)", opacity: 0 }], { duration: 900, easing: "cubic-bezier(.5,0,.9,.4)" });
-    await cer.close(); Shell.toast(`Saved “${to}.peta” — your own sticker stays in the Book.`);
+    await cer.close(); Shell.toast(`Saved “${to}.peta” — your own sticker stays in the Collection.`);
   }
   async function openPack(pack) {
     if (!packOpenable(pack)) return;

@@ -1,11 +1,11 @@
 /* The prototype's world. Everything is in memory; "Reset" rebuilds it. */
 const MAT = {
-  matte: { id: "matte", name: "Matte", rarity: "common", card: "cardMatte", sw: "swMatte", unlimited: true, recipe: "soft paper · white border", found: "Sep 1" },
+  matte: { id: "matte", name: "Matte", rarity: "common", card: "cardMatte", sw: "swMatte", unlimited: false, recipe: "soft paper · white border", found: "Sep 1" },
   kraft: { id: "kraft", name: "Kraft", rarity: "uncommon", card: "cardKraft", sw: "swKraft", recipe: "kraft paper · fibre texture", found: "Sep 28" },
   holographic: { id: "holographic", name: "Holographic", rarity: "rare", card: "cardHolo", sw: "swHolo", recipe: "foil · rainbow reflection · glitter edge", found: "Oct 2" },
-  gold: { id: "gold", name: "Gold Foil", rarity: "special", locked: true, recipe: "gold leaf · warm shimmer", price: "¥200" },
+  gold: { id: "gold", name: "Gold Foil", rarity: "special", locked: true, recipe: "gold leaf · warm shimmer", price: "Coming later" },
   riso: { id: "riso", name: "Riso", rarity: "uncommon", locked: true, recipe: "two-colour print · offset ink", price: "Free" },
-  vintage: { id: "vintage", name: "Vintage", rarity: "archive", locked: true, recipe: "aged paper · speckle", price: "¥150" },
+  vintage: { id: "vintage", name: "Vintage", rarity: "archive", locked: true, recipe: "aged paper · speckle", price: "Coming later" },
 };
 const SAMPLE_TITLES = {
   sCat: "Cat on a skateboard", sCoffee: "Latte", sBlueFlower: "Blue flower", sEgg: "Fried egg", sCamera: "Film camera", sPlant: "Monstera", sPolaroid: "Mountain polaroid",
@@ -14,7 +14,7 @@ const SAMPLE_TITLES = {
 const NAV = [
   { id: "today", label: "Today", tab: "tab1", icon: "envBack" },
   { id: "create", group:"Make", label: "Create", tab: "tab3", icon: "chCreate" },
-  { id: "book", group:"Collect", label: "Book", tab: "tab2", icon: "chCollection" },
+  { id: "book", group:"Collect", label: "Collection", tab: "tab2", icon: "chCollection" },
   { id: "packs", label: "Packs", tab: "tab5", icon: "chPack" },
   { id: "gifts", label: "Gifts", tab: "tab4", icon: "chGift" },
   { id: "materials", label: "Materials", tab: "tab6", icon: "cardHolo" },

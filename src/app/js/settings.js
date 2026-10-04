@@ -7,7 +7,7 @@ Pages.settings = {
     const segRow = (label, sub, opts, get, set) => { const seg = h("div.seg", opts.map(([v, text]) => h("button", { "aria-pressed": String(get() === v), on: { click: () => { set(v); Snd.tap(); $$("button", seg).forEach((b, i) => b.setAttribute("aria-pressed", String(opts[i][0] === v))); } } }, text))); return h("div.setrow", h("div", h("b", label), h("small", sub)), seg); };
     root.append(h("div.setcard",
       h("div.setrow", h("div", h("b", "Your name on stickers"), h("small", "Printed on the back of stickers you make from now on")), name),
-      h("div.setrow", h("div", h("b", "Creator icon"), h("small", "Choose an original sticker from your Book")),
+      h("div.setrow", h("div", h("b", "Creator icon"), h("small", "Choose an original sticker from your Collection")),
         h("button.btn.paper.creator-icon-change", {on:{click:e=>CreatorIcon.choose(e.currentTarget)}}, CreatorIcon.image(), "Change icon…")),
       segRow("Window style", "Desk lays the pages on a cutting mat; Studio is a clean sidebar window", [["desk", "Desk"], ["studio", "Studio"]], () => S.shell, (v) => { Shell.setShell(v); }),
       segRow("Appearance", "Auto follows macOS", [["day", "Day"], ["night", "Night"], ["auto", "Auto"]], () => S.appearance, (v) => { S.appearance=v; Bridge.savePreferences(); }),
@@ -15,7 +15,7 @@ Pages.settings = {
       sw("Haptics", "A small tap when you stick, peel, or break a seal", () => Haptic.on, (v) => { Haptic.on = v; S.haptics = v; Bridge.savePreferences(); }),
       sw("Put away on outside click", "A click on the desktop closes the window, like a menu", () => S.closeOutside, (v) => { S.closeOutside = v; Bridge.savePreferences(); }),
       sw("Reduce motion", "Skips page turns and ceremonies' flourishes", () => document.documentElement.dataset.motion === "reduce", (v) => { document.documentElement.dataset.motion = v ? "reduce" : "full"; S.motion = v ? "reduce" : "full"; Bridge.savePreferences(); })));
-    root.append(h("p.muted.fine", "In the real app this window also hosts Cutting Mat, the Sticker Book, Packs and Gifts — what used to be four separate windows. Stickers stay on your desktop; this window comes and goes from the menu bar."));
+    root.append(h("p.muted.fine", "In the real app this window also hosts Cutting Mat, Collection, Packs and Gifts — what used to be four separate windows. Stickers stay on your desktop; this window comes and goes from the menu bar."));
     return root;
   },
 };
@@ -55,7 +55,7 @@ const CreatorIcon = {
       try {const profile=await Bridge.invoke("profile_set_icon",{stickerId:selected});S.iconStickerId=profile.iconStickerId;dialog.close();Shell.refresh();Shell.toast("Creator icon saved.");}
       catch(error){status.textContent=String(error);}
       finally {pending=false;cancel.disabled=false;mark();}
-    }}},h("h2","Creator icon"),h("p.muted.small",entries.length ? "Choose one of your original stickers. It stays in your Book." : "Create an original sticker to use it as your icon."),grid,status,h("div.row-btns",cancel,save));
+    }}},h("h2","Creator icon"),h("p.muted.small",entries.length ? "Choose one of your original stickers. It stays in your Collection." : "Create an original sticker to use it as your icon."),grid,status,h("div.row-btns",cancel,save));
     const dialog=h("dialog.creator-icon-dialog",{style:Distribution.dialogStyle,"aria-label":"Choose creator icon",on:{
       cancel:e=>{e.stopPropagation();if(pending)e.preventDefault();},keydown:e=>{if(e.key==="Escape")e.stopPropagation();},
       close:()=>{observer.disconnect();dialog.remove();Distribution.afterClose();(trigger.isConnected ? trigger : $(".creator-icon-change"))?.focus({preventScroll:true});}

@@ -245,7 +245,7 @@ html[data-motion="reduce"] .mbook .mcard { transform:rotate(-2deg) !important; }
 .scrap-actions .btn { min-width:108px; height:40px; padding:0 14px; border-radius:10px; }
 .material-preview { display:grid; grid-template-columns:minmax(0,240px) minmax(0,1fr); align-items:center; gap:24px; }
 .material-preview > .mcard { width:100%; }
-.material-preview > .x { position:absolute; right:10px; top:10px; }
+.material-preview > .x { color:var(--ink); background:var(--w-surface2); position:absolute; right:10px; top:10px; }
 @media (max-width:880px) {
   [data-shell="studio"] .materialspage .ph, [data-shell="studio"] .marketpage .ph { padding-top:12px; }
 }
@@ -338,7 +338,7 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .t-choose .t-bottom { grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:12px; align-items:stretch; padding-top:0; border:0; }
 .t-choose .t-mat, .t-choose .t-stuck { min-width:0; min-height:196px; padding:16px; border-radius:16px; background:var(--w-surface); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh1); }
 .t-choose .t-mat { display:grid; grid-template-columns:138px minmax(0,1fr); gap:12px 16px; align-items:stretch; }
-.tm-card { display:grid; place-items:center; border-radius:12px; background:var(--w-sunken); box-shadow:inset 0 2px 5px rgba(60,45,20,.12); }
+.tm-card { display:grid; place-items:center; padding:8px; border-radius:12px; background:var(--w-sunken); box-shadow:inset 0 2px 5px rgba(60,45,20,.12); }
 .t-mat .tm-text { min-width:0; }
 .t-mat h3 { font:700 22px/26px var(--sys); letter-spacing:-.02em; gap:6px; }
 .tm-heading { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 8px; }
@@ -361,7 +361,7 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .btn.secondary { background:var(--w-surface); color:var(--ink); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh1); }
 @media (max-width:1000px) { .t-choose .t-bottom { grid-template-columns:minmax(0,1fr); } }
 @media (max-width:880px) { .choices.featured { grid-template-columns:repeat(2,minmax(0,1fr)); }  }
-@container (max-width:470px) { .t-choose .t-mat { grid-template-columns:104px minmax(0,1fr); gap:10px; } .tm-card .mcard { --w:104px!important; } }
+@container (max-width:470px) { .t-choose .t-mat { grid-template-columns:104px minmax(0,1fr); gap:10px; } .tm-card .mcard { --w:88px!important; } }
 
 .t-stuck .stuck-strip { padding:0; background:none; box-shadow:none; }
 
@@ -433,7 +433,7 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 [data-theme="night"] [data-shell="studio"] .nav::before { background-image:var(--a-logoWhite); }
 [data-theme="night"] [data-shell="studio"] .ni-tile { background:var(--w-surface); box-shadow:inset 0 0 0 1px var(--w-line); }
 [data-theme="night"] [data-shell="desk"] .win-frame { background:var(--w-win) var(--a-matDark) center / cover; }
-[data-theme="night"] :is(.mbook, .material-preview, .scrap-trade, .cr-item, .peek-s, .sample, .drop, .quota) {
+[data-theme="night"] :is(.mbook, .material-preview, .scrap-trade, .cr-card, .peek-s, .sample, .drop, .quota) {
   background:var(--w-surface); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh1);
 }
 [data-theme="night"] :is(.mk-tile:hover, .mk-tile[aria-pressed="true"], .mbook:not(:disabled):hover) { background:var(--w-surface2); }
@@ -471,3 +471,8 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 /* Keep the handwritten sender on the envelope, including against the dark room. */
 .g-from { top:50%; font-size:18px; line-height:20px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .gift-form small, .creator-icon-choice small, .cr-t small, .shelf-note, .setrow small { font:var(--meta); }
+
+.material-preview-actions { display:flex; margin-top:18px; }
+.material-preview-actions .scrap-action { margin:0; }
+.cr-card { background:var(--w-surface); color:var(--ink); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh1); }
+.cr-card .cr-t small { color:var(--muted); }
