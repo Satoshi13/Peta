@@ -82,3 +82,11 @@ Createカード内のChoose imageはspanで主ボタンの見た目を重ね、�
 242pxの等高カード、256pxのドット罫、Special Elite 13pxの日付札、名前と素材／No.／Receivedの2行。On desktopは緑の点、Giftは静かなチップ。選択はカード内側の2pxリング。今日未貼付・非pick・Book非空のときだけ先頭に空きスロットを表示する。Listは全期間のまま、Calendarと詳細・Flip／Peel／Gift／Edit／Delete／Stick・Make a Packを保持。クイックアクションは詳細と重複するため追加しない。
 
 新素材・タイトル推測は追加せず、現行titleOfと既存素材／番号を使う。未決O1に踏み込まず、無名のものはStickerのまま。画像は既存lazyStickerとIntersectionObserverを再利用。
+
+## F: Createの操作盤
+
+段階1／2／3をペイン上端へ移し、切り取らないOriginalの余白を同じ写真の暗いぼかしで埋めた。操作盤はMaterial／Look／Brushの格子、スライダーは62px／可変／34px、行高34px。迷子の数字はrange inputの既定最小幅が可変列を押し広げていたため、width:100%・min-width:0で各outputを行内に固定した。Undo／Redoは既存ロジックのままSVGボタン。素材トレイは共通の皿・スウォッチ・名前・残数、選択リングとチェック。使う素材の文言は決定ボタン横へ。MaterialTrayの呼び出し元はCreateのみ。
+
+720×520では3ペインを横並びに保ち、操作盤は2列（素材は上段）にする。全操作を一画面に詰め込まず、既存の縦スクロールで3本のスライダー・決定ボタンへ届く。Studioは平らな面、Deskは既存panel-paperを保持。通常／実際に作成したOriginalの編集を両シェル・両サイズで撮影。3本のoutputはすべて行内で、下端までスクロールすると欠けなく表示された。実際のポインタ入力でブラシ→Undo→⌘⇧Z、ホイール拡大を確認。ブラシ／再生成中のOriginal drawImageは0回。在庫消費や保存ルールは変えていない。
+
+各段階終了時のnpm testとcheck:macは成功（C〜Fは35件）。実機専用の検査は未実施。

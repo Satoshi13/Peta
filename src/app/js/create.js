@@ -2,7 +2,11 @@
 const CR = {stage:"empty",src:null,photo:null,original:null,border:20,smooth:4,strength:.5,editing:null,editMaterial:null,tool:"erase",brush:12,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve(),zoom:{scale:1,x:0,y:0}};
 const SAMPLE_KEYS = ["sCat","sBlueFlower","sCoffee","sCamera","sEgg","sGoodDay","sPlant","sPolaroid","sCassette","sComputer","sScribble","sBubble"];
 const PHOTO_W = 720;
-const usesText = () => CR.editing ? "Editing original · no material used" : "Uses one "+MAT[S.chosen].name+(MAT[S.chosen].unlimited?" (never runs out)":` — ${S.stock[S.chosen]} left`);
+const usesText = () => CR.editing ? "Editing original · no material used" : (MAT[S.chosen].unlimited ? "Uses one "+MAT[S.chosen].name+" (never runs out)" : `Uses 1 ${MAT[S.chosen].name} · ${S.stock[S.chosen]} left`);
+const usesLabel = () => {
+  const text=usesText(), name=MAT[S.chosen].name, at=text.indexOf(name);
+  return CR.editing ? text : [text.slice(0,at),h("b",name),text.slice(at+name.length)];
+};
 function crReset() { CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{stage:'empty',src:null,photo:null,original:null,res:null,note:'',editing:null,editMaterial:null,urls:[],history:{canUndo:false,canRedo:false},zoom:{scale:1,x:0,y:0}}); }
 async function crBegin(bytes) {
   CR.stage='cutting'; Shell.refresh();
@@ -38,7 +42,7 @@ Pages.create = {
     else if (!usableMats().includes(S.chosen)) S.chosen = usableMats()[0];
     const root = h("div.page-in.create");
     const ready = CR.stage === "ready";
-    root.append(PageHead(CR.editing ? "Edit sticker" : "Create", ready ? "Cutting Mat" : "Make a Peta", ready ? h("span.muted.small.uses", usesText()) : null));
+    root.append(PageHead(CR.editing ? "Edit sticker" : "Create", ready ? "Cutting Mat" : "Make a Peta"));
     if (CR.stage === "empty") root.append(this.empty());
     else if (CR.stage === "cutting") root.append(h("div.cr-cutting", h("div.cut-anim"), h("p", "Cutting…"), h("p.muted", "Taking the background away")));
     else root.append(this.mat());
@@ -56,8 +60,9 @@ Pages.create = {
         h("button.sample", { style: { "--i": i }, title: SAMPLE_TITLES[k], on: { click: () => { Snd.tap(); crLoadSample(k); } } }, h("img", { src: A[k], alt: SAMPLE_TITLES[k] }))))));
   },
   mat() {
-    const origCv = h("canvas"), cutCv = h("canvas.cut"), ring = h("i.ring");
-    const stkHost = h("div.stk-host"), pane = (cls, title, ...kids) => h("figure.pane." + cls, h("div.frame", ...kids), h("figcaption", title));
+    const origCv = h("canvas"), origBg = h("canvas.original-background"), cutCv = h("canvas.cut"), ring = h("i.ring");
+    const caption = (n,title) => h("figcaption", h("i.step-number",String(n)), title);
+    const stkHost = h("div.stk-host"), pane = (cls, title, ...kids) => h("figure.pane." + cls, h("div.frame", ...kids), caption(1,title));
     const fitSticker = () => {
       const sticker = stkHost.querySelector(".stk"), res = CR.res;
       if (!sticker || !res) return;
@@ -68,6 +73,8 @@ Pages.create = {
     };
     const sizeCv = () => { origCv.width = CR.photo.width; origCv.height = CR.photo.height; cutCv.width = CR.photo.width; cutCv.height = CR.photo.height; };
     sizeCv();
+    origBg.width=origCv.width;origBg.height=origCv.height;
+    origBg.getContext("2d").drawImage(CR.photo,0,0);origCv.getContext("2d").drawImage(CR.photo,0,0);
     let seq = 0, rendering = null, renderRequested = false;
     const redraw = () => {
       ++seq; renderRequested = true;
@@ -95,11 +102,9 @@ Pages.create = {
             const [stickerImg,cutImg] = await Promise.all([Stk.load(sticker),Stk.load(cutout)]);
             if(mine !== seq || painting || !stkHost.isConnected) { URL.revokeObjectURL(sticker); URL.revokeObjectURL(cutout); continue; }
             CR.urls.forEach(url=>URL.revokeObjectURL(url)); CR.urls=[sticker,cutout];
-            origCv.getContext("2d").drawImage(CR.photo,0,0);
             const cx = cutCv.getContext("2d"); cx.clearRect(0,0,cutCv.width,cutCv.height);
             // Rust returns the cutout at the original working-image size.
             cx.drawImage(cutImg,0,0,cutCv.width,cutCv.height);
-            const dim=Stk.cv(origCv.width,origCv.height), dx=dim.getContext("2d"); dx.fillStyle="rgba(30,24,16,.5)"; dx.fillRect(0,0,dim.width,dim.height); dx.globalCompositeOperation="destination-out"; dx.drawImage(cutImg,0,0,dim.width,dim.height); origCv.getContext("2d").drawImage(dim,0,0);
             const res = {url:sticker,w:head.width,h:head.height,aspect:head.width/head.height,material:S.chosen,mask:['holographic','gold'].includes(S.chosen)?sticker:null}; CR.res=res;
             stkHost.replaceChildren(Stk.el(res,res.aspect>=1?230:230*res.aspect)); fitSticker(); syncMake();
           } catch(e) {
@@ -194,8 +199,14 @@ Pages.create = {
       await CR.queue; await redraw(); Snd.tap();
     };
     const undo=()=>history("creator_undo"), redo=()=>history("creator_redo");
-    const undoBtn = h("button.btn.paper.small", { title: "Undo (⌘Z)", on: { click: undo } }, "Undo");
-    const redoBtn = h("button.btn.paper.small", { title: "Redo (⇧⌘Z)", on: { click: redo } }, "Redo");
+    const historyIcon = reverse => {
+      const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"), path=document.createElementNS(svg.namespaceURI,"path");
+      svg.setAttribute("viewBox","0 0 24 24");svg.setAttribute("aria-hidden","true");
+      path.setAttribute("d",reverse ? "M21 8h-6M21 8V2M21 8c-3-5-11-5-13 0-3 5 1 11 6 11" : "M3 8h6M3 8V2M3 8c3-5 11-5 13 0 3 5-1 11-6 11");
+      path.setAttribute("fill","none");path.setAttribute("stroke","currentColor");path.setAttribute("stroke-width","1.7");path.setAttribute("stroke-linecap","round");path.setAttribute("stroke-linejoin","round");svg.append(path);return svg;
+    };
+    const undoBtn = h("button.history-button", { "aria-label":"Undo", title: "Undo (⌘Z)", on: { click: undo } }, historyIcon(false));
+    const redoBtn = h("button.history-button", { "aria-label":"Redo", title: "Redo (⇧⌘Z)", on: { click: redo } }, historyIcon(true));
     const syncUndo = () => { undoBtn.disabled = !CR.history.canUndo; redoBtn.disabled = !CR.history.canRedo; };
     CR.keys && document.removeEventListener("keydown", CR.keys);
     CR.keys = (e) => { if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z" || !$(".cr-mat") || e.target.closest("input")) return; e.preventDefault(); e.shiftKey ? redo() : undo(); };
@@ -205,18 +216,19 @@ Pages.create = {
     const make = h("button.btn", { on: { click: () => this.make() } }, CR.editing ? "Save changes" : "Make this Peta");
     const syncMake = () => { make.disabled = !CR.res || painting || Boolean(rendering); };
 
-    const tray = CR.editing ? h("div.edit-material", h("div.mcard", { data: { m:S.chosen }, vars: { "--w":"86px" } }, h("i.art"), h("span.lab", h("b", MAT[S.chosen].name), h("small", MAT[S.chosen].rarity))), h("small.muted", "Original material")) : MaterialTray({ w: 86, onPick: () => { redraw(); const u = $(".uses"); if (u) u.textContent = usesText(); } });
+    const tray = CR.editing ? h("div.edit-material", h("div.material-plate", {data:{m:S.chosen}}, MaterialPlateContents(MAT[S.chosen], "Original material"))) : MaterialTray({w:86,onPick:()=>{redraw();const u=$(".uses");if(u)u.replaceChildren(...usesLabel());}});
+
     const mat = h("div.cr-mat",
       h("i.tape.t1", { style: { left: "26px", top: "-12px", transform: "rotate(-6deg)" } }), h("i.tape.t4", { style: { right: "40px", top: "-12px", transform: "rotate(5deg)" } }),
       h("div.panes",
-        pane("orig", "Original", origCv), h("span.arrow", "→"),
-        h("figure.pane.cut", cutFrame, h("figcaption", "Cutout — paint to fix")), h("span.arrow", "→"),
-        h("figure.pane.stk-pane", h("div.frame.desk", stkHost), h("figcaption", "Sticker"))),
+        pane("orig", "Original", origBg, origCv), h("span.arrow", "→"),
+        h("figure.pane.cut", cutFrame, caption(2,"Cutout — paint to fix")), h("span.arrow", "→"),
+        h("figure.pane.stk-pane", h("div.frame.desk", stkHost), caption(3,"Sticker"))),
       h("div.cr-controls",
         h("div.grp.g-mat", h("label.lbl", "Material"), tray),
         h("div.grp.g-look", h("label.lbl", "Look"), slider("Outline", "border", 4, 64, "", redraw), slider("Smooth", "smooth", 0, 12, "", redraw)),
         h("div.grp.g-tools", h("label.lbl", "Brush"), h("div.tools", seg, undoBtn, redoBtn), slider("Size", "brush", 1, 60, "", () => {})),
-        h("div.grp.g-go", CR.note ? h("p.muted.small", CR.note) : null, h("div.go-btns", h("button.btn.paper", { on: { click: async () => { const editing=CR.editing; CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open(editing ? "book" : "create"); } } }, "Cancel"), make))));
+        h("div.grp.g-go", CR.note ? h("p.muted.small", CR.note) : null, h("div.go-btns", h("span.muted.small.uses", usesLabel()), h("button.btn.quiet", { on: { click: async () => { const editing=CR.editing; CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open(editing ? "book" : "create"); } } }, "Cancel"), make))));
     Stk.tilt(stkHost, {max:8,scale:1.02,trigger:stkHost.parentElement});
     syncUndo(); syncMake(); redraw();
     return h("div.cr-wrap", mat);

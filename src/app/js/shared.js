@@ -8,17 +8,28 @@ const usableMats = () => ["matte", "kraft", "holographic", "gold", "riso", "vint
 /** A tray of material cards. Picking marks the material for the next Create without moving the controls. */
 function MaterialTray({ w = 148, onPick, interactive = true, selected = S.chosen } = {}) {
   const tray = h("div.mtray", { role: "radiogroup", "aria-label": "Material" });
+  if(usableMats().includes(selected)) S.chosen=selected;
   const render = () => {
-    const sel = usableMats().includes(S.chosen) ? S.chosen : usableMats()[0]; S.chosen = sel;
-    tray.replaceChildren(...usableMats().map((id, i) => {
-      const m = MAT[id], on = id === sel;
-      const c = h("button.mcard", { role: "radio", "aria-checked": String(on), data: { m: id, sel: on }, vars: { "--w": w + "px", "--r": [-3, 2, -1.5][i % 3] + "deg" }, disabled: !interactive,
-      on: { click: () => { if (S.chosen === id) return; S.chosen = id; Snd.tap(); $$(".mcard", tray).forEach(b => { const selected = b.dataset.m === id; b.dataset.sel = String(selected); b.setAttribute("aria-checked", String(selected)); }); onPick && onPick(id); } } },
-        h("i.art"), h("span.lab", h("b", m.name), h("small", m.rarity)), m.unlimited ? null : h("span.cnt", "×" + S.stock[id]));
-      return c;
+    const ids=usableMats(), sel=ids.includes(S.chosen) ? S.chosen : ids[0]; S.chosen=sel;
+    tray.replaceChildren(...ids.map(id => {
+      const m=MAT[id], on=id===sel;
+      return h("button.material-plate", {role:"radio", "aria-checked":String(on), tabindex:on ? 0 : -1, data:{m:id,sel:on}, vars:{"--w":w+"px"}, disabled:!interactive,
+        on:{click:()=>{
+          if(S.chosen===id) return;
+          S.chosen=id; Snd.tap(); $$("[role=radio]",tray).forEach(b=>{const selected=b.dataset.m===id;b.dataset.sel=String(selected);b.setAttribute("aria-checked",String(selected));b.tabIndex=selected ? 0 : -1;}); onPick?.(id);
+        }}}, MaterialPlateContents(m));
     }));
   };
-  render(); tray.rerender = render; return tray;
+  tray.addEventListener("keydown", e=>{
+    if(!interactive || !["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Home","End"].includes(e.key)) return;
+    e.preventDefault(); const buttons=$$("[role=radio]",tray), i=buttons.indexOf(e.target);
+    const next=e.key==="Home" ? 0 : e.key==="End" ? buttons.length-1 : (i+(["ArrowLeft","ArrowUp"].includes(e.key) ? -1 : 1)+buttons.length)%buttons.length;
+    buttons[next]?.click();buttons[next]?.focus();
+  });
+  render(); tray.rerender=render; return tray;
+}
+function MaterialPlateContents(m, stock = m.unlimited ? "∞" : `${S.stock[m.id]} left`) {
+  return [MaterialSwatch(m), h("b",m.name), h("small",stock)];
 }
 
 const CHOICES = [

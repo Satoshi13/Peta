@@ -1,0 +1,87 @@
+[
+  {
+    "shell": "studio",
+    "plates": [
+      "Matte∞",
+      "Kraft1 left",
+      "Holographic1 left"
+    ],
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "sliders": [
+      {
+        "inRow": true,
+        "text": "Outline20",
+        "visible": true
+      },
+      {
+        "inRow": true,
+        "text": "Smooth4",
+        "visible": true
+      },
+      {
+        "inRow": true,
+        "text": "Size12",
+        "visible": true
+      }
+    ],
+    "uses": "Uses one Matte (never runs out)"
+  },
+  {
+    "shell": "desk",
+    "plates": [
+      "Matte∞",
+      "Kraft1 left",
+      "Holographic1 left"
+    ],
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "sliders": [
+      {
+        "inRow": true,
+        "text": "Outline20",
+        "visible": true
+      },
+      {
+        "inRow": true,
+        "text": "Smooth4",
+        "visible": true
+      },
+      {
+        "inRow": true,
+        "text": "Size12",
+        "visible": true
+      }
+    ],
+    "uses": "Uses one Matte (never runs out)"
+  },
+  {
+    "paint": {
+      "history": {
+        "canRedo": false,
+        "canUndo": true
+      },
+      "originalDraws": 0
+    },
+    "undo": {
+      "canRedo": true,
+      "canUndo": false
+    },
+    "zoom": {
+      "history": {
+        "canRedo": false,
+        "canUndo": true
+      },
+      "originalDraws": 0,
+      "zoom": {
+        "scale": 1.22140275816017,
+        "x": 25.01851167209918,
+        "y": 0
+      }
+    }
+  }
+]
