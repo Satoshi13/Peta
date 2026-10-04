@@ -16,7 +16,8 @@ pub struct Event {
     pub not_before:Option<String>,pub not_after:Option<String>,pub title:String,pub message:String,
     pub payload:serde_json::Value,pub signer:Signer,#[serde(default)] pub attachments:Vec<Attachment>,
 }
-pub struct Verified {pub header:Event,pub attachments:Vec<(Attachment,Vec<u8>,Vec<u8>)>,pub bytes:Vec<u8>}
+pub struct Verified {header:Event,attachments:Vec<(Attachment,Vec<u8>,Vec<u8>)>,bytes:Vec<u8>}
+impl Verified {pub fn header(&self)->&Event {&self.header} pub(crate) fn attachments(&self)->&[(Attachment,Vec<u8>,Vec<u8>)] {&self.attachments}}
 #[derive(Clone,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
 pub struct Receipt {pub event_id:String,pub kind:String,pub title:String,pub message:String,pub result:String}

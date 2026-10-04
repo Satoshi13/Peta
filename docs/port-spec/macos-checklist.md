@@ -157,3 +157,13 @@ Book / Market の見た目は `compare/art-03/*.jpg` と元の `golden/*.jpg` �
 - [ ] S3: MarketでKraft／Holographicを2／6 Scrapsで1枚ずつ引換。数量・受取枚数・合計消費・引換後残高が一致。不足・不正数量・連打で二重に消費しない。エラー後のRetryは同じ取引を確認する。
 - [ ] S4: 空のTokyo／Coffee／Houseplantsだけ16／12／10 Scrapsで8／6／5枚補充。Packsで累計総数と残数が一致し、On your shelfは棚へ移動する。中身のある袋・Welcome・有料Packは補充不可。Gold／Riso／Vintageと現金決済は未提供。
 - [ ] S5: Quitして再起動後も残高・素材在庫・補充した袋・開封履歴が残る。Welcomeの日次制限・Market／Giftの開封・印刷待ちの順序が維持される。VoiceOver／Tabで残高・数量・確定／取消／プレビューを操作でき、Reduce motionで追従しない。
+
+## 16. 署名付き配布（DB V8）
+
+- [ ] D1: オーナーがリポジトリ外でpeta-pass keygenを実行し、公開鍵だけをofficial_keys.rsへ同梱してビルド。秘密鍵は0600・ログ／Gitに出ない。仮公開鍵のまま配布しない。
+- [ ] D2: Finderで.petaをダブルクリック。Peta未起動／起動中／窓を閉じた状態の全てで、Gift・公式イベント・作者Packが正しく分岐。取消した作者Packは棚／友達へ入らない。
+- [ ] D3: トレイOpen Peta file…／Redeem Code…とToday／Giftsの入口。コードの大小・空白・O/0・I/1差異、二重受領・期限外・改ざん・未知の鍵の人が読めるエラー。
+- [ ] D4: 今日開封後のextra_envelope受領でToday／トレイ／デスクトップ封筒に追加が見える。残数だけ開けられ、使い切れば止まり、日をまたいでも残る。通常の初回Holographic、Welcome、Matte、FIFOは維持。
+- [ ] D5: 2つのデータフォルダでGift v2を送り、New friend→2通目で✓。同名別鍵は警告・受領可能。v1はUnsigned。from／edition／PNGを変えたものは拒否。
+- [ ] D6: Studio／Deskの最小窓でMake a Pack…の選択・詳細・一括Rare・保存／取消。4枚のファイルを別フォルダで受領し、確認後に棚へ、Rareの開封演出、Receivedの裏面、ORIGINALなし、素材在庫不変。Reduce motionでも操作可能。
+- [ ] D7: 同Packの更新版は新しいkeyだけ増え、開封済みを保持。同版／Peta名／上限超えは拒否。新しいファイルが確認中に来ても、別ファイルを誤って同意した扱いにしない。VoiceOverのフォーカストラップ・Escape／Cancel・名前／指紋の読み上げ。

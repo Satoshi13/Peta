@@ -71,6 +71,12 @@ MarketとMaterialsの右上にScraps残高を表示します。Materialsのカ�
 
 残高の初期値は0。Rustが残高・在庫・付与・リクエストごとの取引結果を1つのSQLiteトランザクションで更新し、再送で二重消費・二重付与しません。既存DB v7のmetaを使い、スキーマと既存の作成・開封・FIFOルールは変えません。現金決済・未実装のGold／Riso／Vintage取得・アカウント同期は含みません。
 
+### 署名付き配布（Phase A）
+
+公式イベント・コード・Gift v2・作者Packをローカルで受け取れます。BookのMake a Pack…から完成ステッカー3〜24枚を署名して保存し、受け取りはOpen Peta file…の確認後に棚へ追加します。旧Gift v1もUnsignedとして読めます。DBは既存データを保つ追加マイグレーションV8です。素材／Welcome／作成／Scrapsの既存ルールは維持します。
+
+配布準備は[オーナー向け説明](docs/distribution-howto.md)、検証・制約は[実装報告](docs/signed-distribution-report.md)。本物の公式秘密鍵はオーナーがリポジトリ外でkeygenし、公開鍵だけを同梱します。現在の仮公開鍵は本番配布前に要差し替えです。署名は鍵と改ざんの確認であり、本人確認・配布済み取消・端末をまたぐ利用制限は提供しません。通信・決済・アカウントは追加しません。
+
 ### Cutting Mat(写真 → ステッカー)
 
 Today の **Create**、またはデスクトップへの画像ドロップで開きます。**Original → Cutout → 完成**の3ペインです。

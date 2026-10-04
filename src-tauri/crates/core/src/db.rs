@@ -112,6 +112,9 @@ pub struct PackSummary {
     pub by: String,
     pub total: i64,
     pub remaining: i64,
+    pub pouch: Option<String>,
+    pub signature_status: Option<String>,
+    pub fingerprint: Option<String>,
 }
 
 /// Gifts (spec §34-36): copies of a sticker sent to someone, and gifts received. A gift is a file; where it travels
@@ -703,12 +706,12 @@ impl Database {
 
     pub fn packs(&self) -> Result<Vec<PackSummary>> {
         let mut stmt = self.conn.prepare(
-            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0)
-             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id
+            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint
+             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id LEFT JOIN pack_distributions d ON d.pack_id=p.id
              GROUP BY p.id ORDER BY p.created_at, p.id",
         )?;
         let rows = stmt.query_map([], |r| {
-            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)? })
+            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)? })
         })?;
         Ok(rows.collect::<std::result::Result<Vec<_>, _>>()?)
     }

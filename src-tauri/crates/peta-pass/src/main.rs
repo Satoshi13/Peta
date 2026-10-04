@@ -84,8 +84,9 @@ fn run(cli:Cli)->Result<(),String> {
             let bytes=read(&file,sign::MAX_FILE)?;
             if bytes.starts_with(events::MAGIC) {
                 let verified=events::decode_with(&bytes,|signer|if let Some(key)=&public_key{sign::parse_public(key)}else{sign::resolve(signer)}).map_err(|e|e.to_string())?;
-                println!("Signature valid{}; not applied.\n{}",if public_key.is_some(){" for the supplied public key (not built-in trust)"}else{" for a trusted official key"},serde_json::to_string_pretty(&verified.header).unwrap());
-            }else if bytes.starts_with(b"PETAGIFT") {let gift=peta_core::gift::decode_gift(&bytes).map_err(|e|e.to_string())?;println!("Gift version {} parsed; not received.\n{}",bytes[8],serde_json::to_string_pretty(&gift.header).unwrap());}
+                println!("Signature valid{}; not applied.\n{}",if public_key.is_some(){" for the supplied public key (not built-in trust)"}else{" for a trusted official key"},serde_json::to_string_pretty(verified.header()).unwrap());
+            }else if bytes.starts_with(b"PETAGIFT") {let gift=peta_core::gift::decode_gift(&bytes).map_err(|e|e.to_string())?;println!("Gift version {} ({}); not received.\n{}",bytes[8],if bytes[8]==1{"unsigned"}else{"device signature valid"},serde_json::to_string_pretty(&gift.header).unwrap());}
+            else if bytes.starts_with(peta_core::creator_pack::MAGIC) {let pack=peta_core::creator_pack::decode(&bytes).map_err(|e|e.to_string())?;println!("Device signature valid; not added to any shelf.\n{}",serde_json::to_string_pretty(pack.header()).unwrap());}
             else {return Err("Unknown Peta file type.".into());}
         },
     }Ok(())

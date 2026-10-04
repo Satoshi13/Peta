@@ -138,3 +138,8 @@ pub fn stored_item(db:&Database,id:i64)->Result<Option<StoredItem>> {
     use rusqlite::OptionalExtension;
     Ok(db.conn.query_row("SELECT png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?1",[id],|r|Ok(StoredItem{png_path:r.get(0)?,mask_path:r.get(1)?,material_id:r.get(2)?,aspect:r.get(3)?,name:r.get(4)?,rarity:r.get(5)?,finished:r.get(6)?})).optional()?)
 }
+
+pub fn item_name(db:&Database,sticker_id:&str)->Result<Option<String>> {
+    use rusqlite::OptionalExtension;
+    Ok(db.conn.query_row("SELECT s.name FROM signed_pack_items s JOIN pack_items i ON i.id=s.item_id WHERE i.sticker_id=?1 LIMIT 1",[sticker_id],|r|r.get(0)).optional()?)
+}

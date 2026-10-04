@@ -111,6 +111,7 @@ pub fn run() {
         .manage(Layers::default())
         .manage(Today::default())
         .manage(Creator::default())
+        .manage(gifts::PendingPack::default())
         .invoke_handler(tauri::generate_handler![
             port_capture::port_capture_report,
             port_capture::port_capture_tray,
@@ -148,6 +149,10 @@ pub fn run() {
             gifts::gift_receive_file,
             gifts::gift_inbox,
             gifts::redeem_code,
+            gifts::creator_pack_accept,
+            gifts::creator_pack_pending,
+            gifts::creator_pack_decline,
+            gifts::creator_pack_save,
             gifts::event_inbox,
             gifts::gift_open,
             packs::pack_install_demo,

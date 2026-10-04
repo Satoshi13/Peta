@@ -101,9 +101,9 @@ fn bad(msg: &str) -> Error {
 /// Read a gift file, checking it is what it says it is. Nothing is trusted: sizes are bounded and the PNG is decoded.
 pub fn decode_gift(bytes: &[u8]) -> Result<Decoded<'_>> {
     if bytes.starts_with(crate::events::MAGIC) {
-        let verified=crate::events::decode(bytes)?;let e=&verified.header;
-        if e.kind!="grant_sticker" || verified.attachments.len()!=1 {return Err(bad("not a sticker event"));}
-        let (_,png,mask)=&verified.attachments[0];
+        let verified=crate::events::decode(bytes)?;let e=verified.header();
+        if e.kind!="grant_sticker" || verified.attachments().len()!=1 {return Err(bad("not a sticker event"));}
+        let (_,png,mask)=&verified.attachments()[0];
         // The original event remains the package; opening verifies its official signature again.
         let n=13+u32::from_be_bytes(bytes[9..13].try_into().unwrap()) as usize;
         let header=GiftHeader{gift_id:format!("GIFT-E-{}",e.event_id),from:"Peta".into(),note:Some(e.message.clone()),sent_at:e.issued_at.clone(),edition:1,

@@ -156,6 +156,13 @@ impl Library {
         self.db.sticker(&sticker.id)?.ok_or_else(|| Error::Invalid("sticker vanished".into()))
     }
 
+    /// A creator pack contains a finished copy, never an original photo or ORIGINAL number.
+    pub fn add_finished_from_pack(&mut self,png:&[u8],mask:&[u8],title:&str,author:&str,material:&str)->Result<Sticker> {
+        let image=image::load_from_memory_with_format(png,image::ImageFormat::Png)?;
+        let rendered=crate::creator::Rendered{sticker_png:png.to_vec(),width:image.width(),height:image.height(),cutout_png:Vec::new(),mask_png:mask.to_vec(),coverage:1.0};
+        self.add_from_pack(&rendered,png,"png",title,author,material)
+    }
+
     #[allow(clippy::too_many_arguments)]
     fn add_rendered(
         &mut self,

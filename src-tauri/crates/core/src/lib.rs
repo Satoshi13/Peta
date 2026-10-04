@@ -33,3 +33,4 @@ pub mod official_keys;
 pub mod device_key;
 pub mod events;
 pub mod friends;
+pub mod creator_pack;

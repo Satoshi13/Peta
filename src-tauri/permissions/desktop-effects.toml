@@ -27,4 +27,4 @@ commands.allow = ["scrap_status", "scrap_trade"]
 [[permission]]
 identifier = "allow-signed-distribution"
 description = "Redeem a signed official code and read local distribution receipts."
-commands.allow = ["redeem_code", "event_inbox"]
+commands.allow = ["redeem_code", "event_inbox", "creator_pack_accept", "creator_pack_pending", "creator_pack_decline", "creator_pack_save"]

@@ -28,13 +28,14 @@ pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookI
         let sticker = lib.db().sticker(&entry.sticker_id).map_err(|e| e.to_string())?;
         let can_manage = sticker.as_ref().is_some_and(|s| s.source_type == peta_core::SourceType::Created);
         let created_at = sticker.map(|s| s.created_at);
-        Ok(BookItem { entry, can_manage, created_at })
+        let pack_name=peta_core::pack::item_name(lib.db(),&entry.sticker_id).map_err(|e|e.to_string())?;
+        Ok(BookItem { entry, can_manage, created_at,pack_name })
     }).collect()
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool, created_at: Option<String> }
+pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool, created_at: Option<String>,pack_name:Option<String> }
 
 #[tauri::command]
 pub fn sticker_delete_original(app: AppHandle, store: State<Store>, sticker_id: String) -> Result<(), String> {

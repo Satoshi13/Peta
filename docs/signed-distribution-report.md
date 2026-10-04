@@ -55,3 +55,55 @@ Step 4結果: cargo test --workspace成功（CLI roundtrip 1件、Tauri 1件、c
 TOFUはfriends.rsにまとめた。初回は指紋＋New friend、既知の鍵は登録済みの名前＋✓、同名別鍵は警告して受領する。プレビューは友達を登録せず、受領で初めて登録する。名前だけでは本人と判断しない。受領パッケージは内容ハッシュの内部パスに保存し、別内容で同じGift IDのファイルが元の包みを上書きしない。開封済みGiftは新しいステッカーを作る前に拒否する。
 
 Step 5結果: cargo test --workspace成功（core 104件＋統合5件、Tauri 1件、CLI 1件）、npm test 31件成功。別ライブラリでNew friend→同じ端末鍵の2通目で✓→別端末の同名鍵で警告、v1のUnsigned、from／edition／PNG改ざんの拒否、秘密鍵再読込を確認した。指紋と警告は封筒の名前欄へ詰め込まず下に表示する。
+
+## Step 6 — 作者パック
+
+PETAPACK v1は端末署名・完成PNG＋maskだけを持つ。各項目にPNG／maskの長さを追加し、順番・境界を署名対象で固定した。3〜24枚、PNG／mask各2MB、全体24MB、名前／タイトル40文字、catalog素材ID、Common／Uncommon／Rareを検証する。署名済みの検証結果は読み取り専用の型とし、外からヘッダーだけ差し替えて適用できないようにした。
+
+BookのMake a Pack…は①3〜24枚選択（キャッシュ＋表示域に入ったサムネイルだけ生成）②名前・外装・各名前／レア度＋一括設定③Seal & Save…の順。保存先を取消したら鍵／版の記録も作らない。保存は完成した一時ファイルを置換してからpacks_madeへ記録する。自分の棚へ自動追加しない。Pack内の名前は元のステッカーの命名／編集とは別で、開封時とBookに引き継ぐ。
+
+公開packIdは端末指紋＋題名の短いslug＋題名SHA-256の先頭16桁。題名が同じなら版を上げる。受け取り側の内部IDは公開鍵全体のSHA-256＋packIdを使い、別鍵の作者が同じpackIdを名乗っても既存Packを上書きできない。
+
+受け取りは署名検証後のプレビューだけでは友達・棚・在庫を変更しない。確認ダイアログに題名／TOFU名＋指紋／枚数／1枚ずつランダムを表示する。Add to my shelfだけで取引し、同意したファイルのトークンと照合して再検証する。初版は棚へ、同版以下は拒否、上位版は未登録keyのみ追加し、開封履歴を残す。端末をまたぐ同意なしの自動取り込みはない。起動時のopen-fileイベントがUIの準備前に来ても、確認待ちをUIが取得する。確認待ちはメモリだけで、終了時は未取り込みのまま（再度ファイルを開ける）。
+
+開封はSourceType::Pack、ORIGINAL／Editionなし、Received fromはPack名、authorはTOFUの保存名、素材は裏面の情報だけ。完成PNGを再レンダリングせず、そのままコピーする。RARITY_WEIGHTSを1箇所に置きCommon 60／Uncommon 30／Rare 10で等級→残る項目を抽選する。枯れた等級を除き残る重みへ配分する。既存の公式Welcome／Market／素材抽選は変えず、作者のwelcomeというIDも日次制限に入らない。素材・封筒・Scraps・価格・決済を付与／消費する経路は持たない。
+
+新しいダイアログは既存の紙色・影・ボタンのトークンだけを使い、CSSファイルや既存画面の装飾は変更しない。レア度は既存の開封演出へ渡し、Reduce motionの既存処理を使う。署名の限界はcreator_pack.rs／friends.rsにも明記した。
+
+Step 6結果: `cargo test --manifest-path src-tauri/Cargo.toml --workspace`成功（core 108件、既存描画統合5件、Tauri 1件、CLI 1件）、`npm test`31件成功。署名改ざん、Peta名、枚数／画像サイズ／名前／不正rarity、重複key、同意なし、版更新、取引中断、重み／枯れた等級、別ライブラリへの完成コピーと来歴を確認した。全6 Stepの末尾でcargo／npmの両テストを実施した。
+
+## 実Tauriでの手動確認
+
+Linuxの実Tauri＋WebKitGTK、Xvfb上で行った。プロトタイプやmock backendではない。全データ／配布／画面キャプチャは`/tmp`の使い捨てフォルダで、実ユーザーのライブラリは使用していない。既存のサンプル画像は読むだけで、リポジトリの画像は変更していない。
+
+1. **テスト専用**の使い捨て鍵を`peta-pass keygen`で作り、公開鍵の1行目だけを一時的にk1へ入れた検証ビルドを作成。検証直後にソースを元の仮公開鍵へ戻した。本物の公式秘密鍵は作っていない。最終のcargo／npm／mac型検査は元の仮公開鍵のソースで実施。
+2. `extra_envelope`（2通）のファイルをネイティブOpen Fileで受領。通常の封筒を開け済みでもTodayの文言と残数が増えた。実Tauriの`daily_open_material`を2回呼んで残数0、3回目で在庫が増えないことを確認。封筒を手でドラッグする全演出の再確認は行っていない。
+3. 同じ封筒ファイルを再受領して`This event was already received.`。素材配布をコードで受領した後、そのファイルでも同じエラーとなり、ファイル／コードの二重付与がない。
+4. Redeem Codeの実HTML dialogへ、大小文字・空白・O/0・I/1を変えたコードを貼って送信。Kraft ×2、InboxのFrom Peta ✓、ダイアログ終了を確認。
+5. `grant_pack`のファイルをネイティブOpen Fileで受領し、Native Test Pack／Peta ✓／3枚が棚へ追加。`grant_sticker`も封をしたPetaのGiftとして届く。
+6. 実Gift保存ダイアログでv2を2通保存し、別のデータフォルダへ受領。1通目New friend、2通目同じ指紋＋✓、旧v1はUnsigned。Gift／Packの添付1バイトを変えたファイルは`invalid_signature`で拒否。同名別鍵の警告はcoreテストで確認。
+7. BookのMake a Pack…で4枚選び、Set all: Rare、題名Native Desk、Seal & Save…で初版を保存。自分の棚は増えない。別フォルダで確認ダイアログの題名／登録済み友達＋指紋／4枚／ランダム案内を確認。Cancelで棚が増えず確認待ちも消える。再度開きAdd to my shelfで追加。実開封のtear／pullを既存のEnter操作で進め、Holographic · rare、項目名、Rareの演出を確認。Laterで既存の印刷待ちへ進む。
+8. 同じ題名で5枚選び更新版を保存。初版の再取り込みは`This version is already on your shelf.`、更新版は総数5／残数4で開封済み1枚を維持。Bookの裏面はReceived／Received from: Native Desk／作者名、ORIGINAL／Editionなし。Holographic在庫0／Kraft在庫1のままで、素材在庫に変化なし。正しく端末署名したauthor=`  pEtA `のファイルも拒否。
+9. Studio／Deskの最小720×520でMake a Packの選択ダイアログ（640×416、内部スクロール）とRedeem Code（約447×218）を確認。外へはみ出さず、選択一覧を下へスクロールしてCancel／Nextへ到達できる。新しいダイアログの既定の黒枠は使わない。Reduce motionの保存／確認操作も可能。
+
+LinuxのGTK保存ダイアログでは、テスト自動操作でCtrl+Lに拡張子付きのフルパスを入れると`.peta`が重ねて付いた。ファイルは有効で受領可能。通常の名前入力欄の操作／macOSの保存ダイアログは実機チェックに含める。
+
+## 最終検証・残した事項
+
+- `cargo test --manifest-path src-tauri/Cargo.toml --workspace`: 全成功（計115件）。`npm test`: 31件成功。Linuxの実Tauriビルドと上記の実操作を確認。
+- `npm run check:mac`: 成功。LinuxのC／Objective-C依存生成を省略する既存の検査用コンパイラスタブを使った**aarch64 macOS向けRust型検査のみ**。macOSのリンク／実行／Finder関連付け／トレイ／VoiceOverは未確認。`docs/port-spec/macos-checklist.md`のD1〜D7へ追加済み。
+- `git diff --check`、変更JSの構文検査を実施。`src/art/`、CSS、プロトタイプ、`docs/decisions.md`は変更していない。別作業の未追跡アート報告書はこの納品に含めない。
+- TODO(owner): `official_keys.rs`のk1仮公開鍵を、オーナー自身がリポジトリ外で生成した本物の公開鍵へ差し替えてから本番配布する。使い方は`docs/distribution-howto.md`。秘密鍵をアプリ・Git・ログへ入れない。
+- 130文字前後のコード目標には届かない（234文字）。署名・ID・期限を保つためで、キー位置／期限の固定形式を説明書へ記載。Keychain移行、本人確認、配布数、時計改ざん対策、端末間の二重利用、配布済み取り消し、通信・決済・Scrapsのやり取りは範囲外。
+- 受領でDB取引が失敗した場合、内容ハッシュで保存した未参照の検証済みファイルが残り得る。DBの受領記録・棚・在庫は巻き戻る。掃除／バックアップ運用は今後の課題。
+
+## Stepのコミット
+
+| Step | コミット／内容 |
+|---|---|
+| 1 | `1ff77af` — Ed25519／公開鍵／端末鍵 |
+| 2 | `8962962` — 公式イベント／コード／追加封筒／V8 |
+| 3 | `ee8fdb6` — 取り込みUI／関連付け |
+| 4 | `2879db4` — peta-pass／オーナー説明 |
+| 5 | `5279e35` — Gift v2／TOFU |
+| 6 | `feat(pack): add signed creator pack export and consented versioned imports` — 作者パックと本報告（自身のコミットIDはgit logで確認） |

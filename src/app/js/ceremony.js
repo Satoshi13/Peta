@@ -18,7 +18,7 @@ const Cer = (() => {
   /* After the sleeve is pulled out: unwrap it, reveal the sticker, let the person play with it. */
   async function unwrapAndReveal({ cer, stage, sleeve, entry, source, onKeep, onLater }) {
     cer.hint("Tilt it to catch the light.");
-    const res = await resOf(entry, { max: 560 }), mat = MAT[entry.material], fx = RAR_FX[mat.rarity];
+    const res = await resOf(entry, { max: 560 }), mat = MAT[entry.material], fx = RAR_FX[entry.rarity || mat.rarity];
     const W = stage.clientWidth, Hh = stage.clientHeight;
     const holder = h("div.rv-holder");
     const max = Math.min(280, W * .45, Hh * .4);
@@ -39,7 +39,7 @@ const Cer = (() => {
     anim(sleeve, [{ opacity: 1, transform: `translate(${dx}px, ${dy}px) scale(1.1)` }, { opacity: 0, transform: `translate(${dx}px, ${dy - 20}px) scale(1.42) rotate(6deg)` }], { duration: 480, easing: EASE.out });
     anim(glow, [{ opacity: 0, transform: "scale(.3)" }, { opacity: 1, transform: "scale(1)" }], { duration: 900, easing: EASE.out });
     if (entry.material !== "matte") anim(rays, [{ opacity: 0, transform: "scale(.5) rotate(0)" }, { opacity: .9, transform: "scale(1) rotate(40deg)" }], { duration: 1200, easing: EASE.out });
-    if (fx.n) sparkBurst(stage, fx.n, { cx: .5, cy: .44, power: mat.rarity === "rare" ? 1.5 : 1, colors: entry.material === "kraft" ? ["#f2d9a8", "#fff", "#e8bf80"] : undefined });
+    if (fx.n) sparkBurst(stage, fx.n, { cx: .5, cy: .44, power: (entry.rarity || mat.rarity) === "rare" ? 1.5 : 1, colors: entry.material === "kraft" ? ["#f2d9a8", "#fff", "#e8bf80"] : undefined });
     await anim(holder, [{ opacity: 0, transform: "scale(.5) rotate(-12deg)" }, { opacity: 1, transform: "scale(1.06) rotate(2deg)", offset: .6 }, { opacity: 1, transform: "scale(1) rotate(0)" }], { duration: 760, easing: EASE.out });
     sleeve.remove();
     holder.style.opacity = 1; holder.getAnimations().forEach((a) => a.cancel());
@@ -49,7 +49,7 @@ const Cer = (() => {
     cer.hint("Tilt it to catch the light.");
     // who/what is it
     const info = h("div.rv-info", h("p.eyebrow", source), h("h2", titleOf(entry)),
-      h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: mat.rarity } }, mat.name + " · " + mat.rarity), h("span.no", entry.kind === "received" && entry.edition != null ? `Edition #${pad4(entry.edition)}` : "")),
+      h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: entry.rarity || mat.rarity } }, mat.name + " · " + (entry.rarity || mat.rarity)), h("span.no", entry.kind === "received" && entry.edition != null ? `Edition #${pad4(entry.edition)}` : "")),
       h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, "Stick it"), h("button.btn.paper", { on: { click: onLater } }, "Later")));
     stage.append(info);
     anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
@@ -279,7 +279,7 @@ const Cer = (() => {
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
     const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null;
     const rig = buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, onTear: async (rig) => {
-      try { Bridge.busy = true; const opened=await Bridge.invoke("pack_open", {packId:pack.id}); entry=await Bridge.entry(opened.stickerId); pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
+      try { Bridge.busy = true; const opened=await Bridge.invoke("pack_open", {packId:pack.id}); entry=await Bridge.entry(opened.stickerId); entry.rarity=opened.rarity; entry.title=opened.name || entry.title; pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
       await anim(sleeve, [{ transform: sleeve.style.transform }, { transform: `translateY(${-rig.PH * .3}px) rotate(-1.5deg)` }], { duration: 760, easing: EASE.out });
       fix(sleeve, `translateY(${-rig.PH * .3}px) rotate(-1.5deg)`); sleeve.classList.add("out"); cer.hint("Pull it out.");
