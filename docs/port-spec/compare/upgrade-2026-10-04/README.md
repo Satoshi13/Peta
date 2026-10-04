@@ -35,3 +35,158 @@
 `book-empty.json` は別の新規/tmpライブラリで、今日の＋→既存Today、1回の脈動終了、Reduce motionで脈動なし、両表示・両シェルの最小幅詳細を確認。最初の記録の月が開始点で、それ以前と未来月には移動しない。同じ原本を別の日に使った記録は既存Book同様にListにも各日残す。
 
 `npm test`: 24件成功。日付集計・作成時刻順・曜日開始・閏年・31日・COMPLETE・安定した傾きの純関数を追加。Rust workspace89件、Linux debugビルド、C依存省略条件のmacOS Rust型検査成功。共通ルール・DB v7・O1〜O5・src/art/・prototypeは変更なし。macOS固有の確認はB1〜B5へ。
+
+## 5. 素材の引き出し
+
+`material.json` と `*-material-*.png`: 本物のTodayの封筒を開封してKeep itからトレー／カウントダウンへ戻る経路を確認。さらに同じネイティブ部品と既存Holographic画像（長い説明文）で両シェル・1060×700／720×520を確認した。部品の再表示では素材を再付与しない。カード上端はヒント下端より下、下端は情報欄上端より上、Keep itは窓内。表示後の通常→最小サイズの変更でも収まる。
+
+引き出し確定直後の同じイベント内でヒントがTilt it to catch the light.へ変わる。Pack/Giftも画像読込のawaitより後にヒントを消していたため、共通スリーブ処理の冒頭で同文言へ切り替えた。Pack/Giftの位置・スケールは変更していない。カードの最終寸法はuniformに合わせ、拡大した小さいGPU描画がぼけないよう、移動後は実寸で描き直す。ResizeObserverはKeep itで切断する。
+
+`npm test`: 28件成功（位置計算4件: 通常・低いステージ・幅制約・空領域／ゼロ寸法）。Linux debugビルド、変更JS／Python構文、C依存省略条件のmacOS Rust型検査成功。DB/schema・日次ルール・O1〜O5・画像素材・prototypeは変更なし。古いREADMEのPhase3／日次上限／旧メニューの説明を現行v7の挙動に訂正した。これはルールを新しく変更したものではない。
+
+現行トレイにはNext Day (+1 day)と手動Re-syncが依頼前から存在しないため、その操作を通した検証はできない。既存の日付オフセットとsyncを維持し、入口の配置はopen-questionsの追加提案P1へ残した。実機のグローバルカーソル・触感・Retina・複数画面・実際の0時はチェックリストの未確認項目として残る。
+
+Reduce motionの追加検査では、引き裂きの手動RAFも省略し、新しい登場アニメーションが1ms・1回であること、Keep後のResizeObserverが0になること、部品再表示の前後で在庫が一致することを実Tauriで確認（`material.json`）。`studio-today-countdown-1060.png` は開封後の札の実画面。
+
+## 再現と検査コマンド
+
+親READMEの実Tauriデバッグキャプチャ手順を使い、`XDG_DATA_HOME`は専用の/tmpライブラリへ設定する。`scripts/port-verify-upgrades.py reflection / haptics / countdown / book` を順に行う。reflection用fixtureには3枚目のKraft配置、Bookの空の月用には6月1日のテスト記録を加える。Bookは専用データに400日分の記録を加えるため、`book-empty` と `material / material-reduced` には別の新規/tmp fixtureを使う。Stock付与は最初の実Today開封だけ、再表示検査はUI部品だけを呼ぶ。各コマンドは実IPCへ1本ずつ送る。
+
+```sh
+npm test
+cargo test --manifest-path src-tauri/Cargo.toml --workspace
+rustc --test tests/reflection-coordinates.rs -o /tmp/peta-reflection-coordinates
+/tmp/peta-reflection-coordinates
+npm run check:mac
+```
+
+最後のコマンドはAppleの開発環境で通常実行する。このLinux検証ではApple SDKが無いため、C/Objective-C依存のコンパイルだけを省略する一時CCを使ったRust型検査として扱い、macOSのリンクや実行成功は主張しない。
+
+## 変更ファイル（各コミット）
+
+### 1. ホロ反射
+
+```text
+README.md
+docs/decisions.md
+docs/port-spec/compare/README.md
+docs/port-spec/compare/upgrade-2026-10-04/README.md
+docs/port-spec/compare/upgrade-2026-10-04/reflection.json
+docs/port-spec/macos-checklist.md
+package.json
+scripts/port-verify-upgrades.py
+src-tauri/capabilities/app.json
+src-tauri/capabilities/layer.json
+src-tauri/permissions/desktop-effects.toml
+src-tauri/src/layers.rs
+src-tauri/src/lib.rs
+src-tauri/src/platform/coordinates.rs
+src-tauri/src/platform/macos.rs
+src-tauri/src/platform/mod.rs
+src-tauri/src/platform/windows.rs
+src/layer-port.js
+src/main.js
+src/reflection.js
+tests/reflection-coordinates.rs
+tests/reflection.test.mjs
+```
+
+### 2. 触覚
+
+```text
+README.md
+docs/decisions.md
+docs/port-spec/compare/upgrade-2026-10-04/README.md
+docs/port-spec/compare/upgrade-2026-10-04/haptics.json
+docs/port-spec/macos-checklist.md
+scripts/port-verify-upgrades.py
+src-tauri/capabilities/app.json
+src-tauri/capabilities/layer.json
+src-tauri/permissions/desktop-effects.toml
+src-tauri/src/lib.rs
+src-tauri/src/platform/macos.rs
+src-tauri/src/platform/mod.rs
+src-tauri/src/platform/windows.rs
+src/app/js/audio.js
+src/app/js/book.js
+src/app/js/bridge.js
+src/app/js/ceremony.js
+src/app/js/settings.js
+src/layer-port.js
+src/main.js
+src/print.js
+tests/haptic.test.mjs
+```
+
+### 3. Todayカウントダウン
+
+```text
+README.md
+docs/decisions.md
+docs/port-spec/compare/upgrade-2026-10-04/README.md
+docs/port-spec/compare/upgrade-2026-10-04/countdown.json
+docs/port-spec/macos-checklist.md
+scripts/port-verify-upgrades.py
+src-tauri/src/today.rs
+src/app.html
+src/app/css/native.css
+src/app/js/boot.js
+src/app/js/bridge.js
+src/app/js/shared.js
+src/app/js/shell.js
+src/app/js/today.js
+src/ui-math.js
+tests/countdown.test.mjs
+```
+
+### 4. Book List / Calendar
+
+```text
+README.md
+docs/decisions.md
+docs/port-spec/compare/upgrade-2026-10-04/README.md
+docs/port-spec/compare/upgrade-2026-10-04/book-empty.json
+docs/port-spec/compare/upgrade-2026-10-04/book.json
+docs/port-spec/compare/upgrade-2026-10-04/desk-book-calendar-1060.png
+docs/port-spec/compare/upgrade-2026-10-04/desk-book-calendar-720.png
+docs/port-spec/compare/upgrade-2026-10-04/desk-book-list-1060-golden.jpg
+docs/port-spec/compare/upgrade-2026-10-04/desk-book-list-1060.png
+docs/port-spec/compare/upgrade-2026-10-04/desk-book-list-720.png
+docs/port-spec/compare/upgrade-2026-10-04/studio-book-calendar-1060.png
+docs/port-spec/compare/upgrade-2026-10-04/studio-book-calendar-720.png
+docs/port-spec/compare/upgrade-2026-10-04/studio-book-list-1060-golden.jpg
+docs/port-spec/compare/upgrade-2026-10-04/studio-book-list-1060.png
+docs/port-spec/compare/upgrade-2026-10-04/studio-book-list-720.png
+docs/port-spec/compare/upgrade-2026-10-04/studio-calendar-complete.png
+docs/port-spec/compare/upgrade-2026-10-04/studio-calendar-empty-month.png
+docs/port-spec/macos-checklist.md
+scripts/port-verify-upgrades.py
+src-tauri/src/collection.rs
+src/app/css/native.css
+src/app/js/book.js
+src/app/js/bridge.js
+src/ui-math.js
+tests/calendar.test.mjs
+```
+
+### 5. 素材の引き出し
+
+```text
+README.md
+docs/decisions.md
+docs/port-spec/compare/README.md
+docs/port-spec/compare/upgrade-2026-10-04/README.md
+docs/port-spec/compare/upgrade-2026-10-04/desk-material-1060.png
+docs/port-spec/compare/upgrade-2026-10-04/desk-material-720.png
+docs/port-spec/compare/upgrade-2026-10-04/material.json
+docs/port-spec/compare/upgrade-2026-10-04/studio-material-1060.png
+docs/port-spec/compare/upgrade-2026-10-04/studio-material-720.png
+docs/port-spec/compare/upgrade-2026-10-04/studio-material-actual-1060.png
+docs/port-spec/compare/upgrade-2026-10-04/studio-today-countdown-1060.png
+docs/port-spec/macos-checklist.md
+docs/port-spec/open-questions.md
+scripts/port-verify-upgrades.py
+src/app/js/ceremony.js
+src/ui-math.js
+tests/material-layout.test.mjs
+```

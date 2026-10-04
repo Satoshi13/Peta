@@ -2,7 +2,7 @@
 
 [ネイティブ機能追加の検証記録](upgrade-2026-10-04/README.md)。
 
-[Latest: Book click-to-flip, consistent actions and original cutout editing/deletion](review-05/README.md). Original-only editing was explicitly requested as cutout/outline re-editing; title naming remains undecided.
+[前回: Book click-to-flip, consistent actions and original cutout editing/deletion](review-05/README.md). Original-only editing was explicitly requested as cutout/outline re-editing; title naming remains undecided.
 
 [Previous owner-requested corrections: Pack rows, window-bounded opening, persistent main window and notebook left edge](review-03/README.md). [Image layout, pen-circle selection, fast thin brush and minimal tray](review-02/README.md). [Previous corrections and cutout zoom](review-01/README.md). The original slice captures below document the initial port; the review captures show the subsequent UI changes.
 

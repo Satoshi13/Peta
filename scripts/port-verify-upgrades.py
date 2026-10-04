@@ -174,3 +174,56 @@ elif sys.argv[1]=='book-empty':
             assert result['detail'] and result['scrollWidth']==result['clientWidth'],result
             records.append(result)
     (out/'book-empty.json').write_text(json.dumps(dict(todayPlusUsesExistingToday=True,finitePulseSettles=True,reducedMotionNoPulse=True,minimumDetails=records),indent=2));print('Native empty Today/finite pulse/reduced motion and four minimum detail states passed')
+elif sys.argv[1]=='material':
+    ev('S.closeOutside=false;S.motion="full";S.bookView="list";Bridge.savePreferences();await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700));Shell.setShell("studio");BK.sel=null;await Shell.open("today");document.querySelector(".t-arrived .btn.open").click();return true;')
+    wait('document.querySelector(".pouch")')
+    def pull_material():
+        ev('document.querySelector(".pouch").dispatchEvent(new MouseEvent("dblclick",{bubbles:true}));return true;')
+        wait('document.querySelector(".mcard.in-wrap.out")')
+        text=ev('document.querySelector(".mcard.in-wrap.out").dispatchEvent(new MouseEvent("dblclick",{bubbles:true}));return document.querySelector(".cer-hint").textContent;')
+        assert text=='Tilt it to catch the light.',text
+        wait('document.querySelector(".rv-info")?.style.pointerEvents===""')
+        time.sleep(.8)
+    def material_bounds():return ev('const card=document.querySelector(".material-card-position .mcard").getBoundingClientRect(),hint=document.querySelector(".cer-hint").getBoundingClientRect(),info=document.querySelector(".rv-info").getBoundingClientRect(),button=document.querySelector(".rv-info .keep").getBoundingClientRect();return {shell:S.shell,size:[innerWidth,innerHeight],card:card.toJSON(),hint:hint.toJSON(),info:info.toJSON(),button:button.toJSON(),text:document.querySelector(".cer-hint").textContent};')
+    def no_overlap(result):
+        assert result['card']['top']>result['hint']['bottom'] and result['card']['bottom']<result['info']['top'],result
+        assert result['button']['bottom']<=result['size'][1] and result['card']['left']>=0 and result['card']['right']<=result['size'][0],result
+    pull_material();actual=material_bounds();no_overlap(actual);shot('studio-material-actual-1060')
+    ev('document.querySelector(".rv-info .keep").click();return true;');wait('!document.querySelector(".cer") && !Bridge.busy && document.querySelector(".envelope-ticket")')
+    records=[]
+    # Replay the same native component with existing Holographic art (longest recipe), without granting stock again.
+    for shell in ['studio','desk']:
+        for width,height in [(1060,700),(720,520)]:
+            ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize('+str(width)+','+str(height)+'));Shell.setShell('+json.dumps(shell)+');window.materialPreview=Cer.openMaterial(MAT.holographic).then(async result=>{result.node.remove();await result.close();});return true;')
+            pull_material();result=material_bounds();no_overlap(result);records.append(result);shot(shell+'-material-'+str(width))
+            if width==1060:
+                ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(720,520));return true;');time.sleep(.5)
+                resized=material_bounds();no_overlap(resized);records.append(dict(afterResize=True,**resized))
+            ev('document.querySelector(".rv-info .keep").click();return true;');wait('!document.querySelector(".cer")')
+    ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700));Shell.setShell("studio");await Shell.open("packs");Cer.openPack(S.packs.find(p=>p.id==="tokyo"));return true;')
+    wait('document.querySelector(".pouch")')
+    ev('document.querySelector(".pouch").dispatchEvent(new MouseEvent("dblclick",{bubbles:true}));return true;');wait('document.querySelector(".pk-sleeve.out")')
+    pack_hint=ev('document.querySelector(".pk-sleeve.out").dispatchEvent(new MouseEvent("dblclick",{bubbles:true}));return document.querySelector(".cer-hint").textContent;');assert pack_hint=='Tilt it to catch the light.'
+    wait('document.querySelector(".rv-btns .paper")');time.sleep(1)
+    ev('document.querySelector(".rv-btns .paper").click();return true;');wait('!document.querySelector(".cer")')
+    ev('await Shell.open("gifts");Cer.openGift(S.gifts.find(g=>!g.opened));return true;');wait('document.querySelector(".wax")')
+    ev('document.querySelector(".wax").click();return true;');wait('document.querySelector(".gsleeve.out")');time.sleep(1.2)
+    gift_hint=ev('document.querySelector(".gsleeve.out").dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true}));return document.querySelector(".cer-hint").textContent;');assert gift_hint=='Tilt it to catch the light.'
+    wait('document.querySelector(".rv-btns .paper")');time.sleep(1)
+    ev('document.querySelector(".rv-btns .paper").click();return true;');wait('!document.querySelector(".cer")')
+    (out/'material.json').write_text(json.dumps(dict(actualTodayOpeningAndKeep=actual,layouts=records,immediateMaterialHint=True,immediatePackHint=pack_hint,immediateGiftHint=gift_hint,resizeKeepsBounds=True,noNewStockFromComponentReplay=True),indent=2));print('Native material: immediate hint, card/hint/info/button bounds in both sizes/shells, live resize, actual Keep, Pack/Gift prompts passed')
+elif sys.argv[1]=='material-reduced':
+    ev('S.motion="reduce";Bridge.savePreferences();S.closeOutside=false;await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(720,520));Shell.setShell("desk");window.testResizeObservers=0;const Original=ResizeObserver;window.ResizeObserver=class extends Original {observe(...args){if(!this.active){this.active=true;window.testResizeObservers++;}super.observe(...args);}disconnect(){if(this.active){this.active=false;window.testResizeObservers--;}super.disconnect();}};window.testRafs=0;const raf=requestAnimationFrame;window.requestAnimationFrame=fn=>{window.testRafs++;return raf(fn);};window.stockBeforeReplay=JSON.stringify(S.stock);window.materialPreview=Cer.openMaterial(MAT.holographic).then(async result=>{result.node.remove();await result.close();});return true;')
+    ev('document.querySelector(".pouch").dispatchEvent(new MouseEvent("dblclick",{bubbles:true}));return true;');wait('document.querySelector(".mcard.in-wrap.out")')
+    assert ev('return window.testRafs;')==0
+    ev('document.querySelector(".mcard.in-wrap.out").dispatchEvent(new MouseEvent("dblclick",{bubbles:true}));return true;');wait('document.querySelector(".rv-info")?.style.pointerEvents===""')
+    assert ev('return window.testResizeObservers;')==1
+    animations=ev('return document.querySelector(".cer").getAnimations({subtree:true}).map(a=>({duration:a.effect.getTiming().duration,iterations:a.effect.getTiming().iterations}));')
+    assert all(a['duration']<=1 and a['iterations']==1 for a in animations),animations
+    ev('document.querySelector(".rv-info .keep").click();return true;');wait('!document.querySelector(".cer")')
+    assert ev('return window.testResizeObservers;')==0
+    ev('await Bridge.reload();return true;');assert ev('return JSON.stringify(S.stock)===window.stockBeforeReplay;')
+    p=out/'material.json';v=json.loads(p.read_text());v.update(reducedAnimations=animations,noReducedTearRaf=True,resizeObserverDisposed=True,replayStockUnchanged=True);p.write_text(json.dumps(v,indent=2))
+    ev('S.motion="full";Bridge.savePreferences();await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700));Shell.setShell("studio");await Shell.open("today");return true;')
+    shot('studio-today-countdown-1060')
+    print('Native reduced material: no manual tear RAF, short finite animations, observer disposed, stock unchanged passed')

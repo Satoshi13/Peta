@@ -2,10 +2,7 @@
 
 毎日、ひとつだけ。デスクトップに残る、ステッカーのある暮らし。
 
-現在は **Phase 3: Sticker Creator + 裏面 + Collection のデータ側**(macOS のみ)。Desktop Layer(Phase 0)、SQLite のステッカーライブラリ(Phase 1)、
-**1日1枚のルールと Today's Material**(Phase 2)の上に、**写真から自動でステッカーを作る Cutting Mat**
-(背景除去 → フチ → Matte / Kraft / Holographic の質感)が載っています。Print/Paste の演出と Collection 画面はまだありません。
-画像生成が必要な演出は未着手で、引き継ぎ資料は [docs/ui-handoff.md](docs/ui-handoff.md) にあります。
+現在は `src/` と `src-tauri/` の本物のTauriアプリに、Studio / Desk、Cutting Mat、Print → Grab → Paste、Book、Packs、Gifts、MaterialsとSettingsがあります。DBはv7。Matteは無制限、Welcomeは1日1回、Market / Giftは回数制限なしです。Kraft / Holographicの作成は選んだ素材の残数だけ消費します。最新のルールは [docs/decisions.md](docs/decisions.md)、移植・未決事項は [docs/port-spec/README.md](docs/port-spec/README.md) を参照してください。
 
 ## ネイティブUIの設定
 
@@ -20,6 +17,10 @@ Settings の Sounds / Haptics / Reduce motion は `peta.preferences` に保存�
 見出しの切り替えは設定へ保存され、既定はListです。Listは全期間の記録を貼付日の新しい順、同日は作成時刻の新しい順に表示し、月タブ・年月見出しは出しません。既存Bookと同じく、同じステッカーを別の日にも使った記録はそれぞれ残します。画像は画面付近に入ってから読み込み、既存のPNGと読み込み結果をキャッシュします。
 
 Calendarは既存の `e.date` をそのまま日単位で集計する紙の台帳です。最初の記録の月から今月まで、空の月も移動でき、未来月には進めません。週の先頭は端末ロケール、未対応時は日曜。複数枚の日は最新を開き、詳細のサムネイルで切り替えます。休んだ日は小さな `rest`、今日が空ならTodayへの `+`、未来日は薄い日付のみ。全日埋まった月だけCOMPLETEを表示し、今月は月末を迎えるまで出しません。スタンプは初表示で1回、`+`の脈動も表示時の短い1回だけとし、待機中の常時アニメーションを避けます。Reduce motionではめくり・持ち上がり・押印・脈動を省略します。切り替えても選択と既存の詳細・反転・Peel / Gift / Stick操作を保持します。
+
+### 素材カードの引き出し
+
+引き出しが確定した瞬間に `Tilt it to catch the light.` に切り替えます。Pack / Giftも共通のスリーブ処理で同じ文言へ即時切り替え、画像の読み込みを待ちません。素材カードの最終位置・縮尺はステージ内のヒントと情報欄の実寸から計算し、低い窓では縦横比を保って縮めます。表示後のリサイズもResizeObserverで再計算し、Keep itで破棄するため待機中のポーリングはありません。動く演出はReduce motionで省略します。
 
 ## 動かし方(Mac)
 
@@ -38,31 +39,22 @@ npm run dev        # = tauri dev
 
 | 項目 | 動作 |
 |---|---|
-| **Today's Peta** | Today 画面を開く。今日の素材が未開封なら `●`、今日の1枚を貼り終えたら `✓` が付く |
-| **Collection** | ステッカー帳(月ごとのページ・詳細・素材帳)を開く |
-| Edit Stickers | 編集モードのON/OFF。Esc / 画面上部の Done でも終了 |
-| Re-sync Displays | ディスプレイ構成を再読込(通常は2秒ごとに自動検知) |
+| Open Peta | Todayを開く。素材未開封は `●`、印刷確定・貼付後は `✓` |
+| Resume printing | 印刷待ちのFIFOを再開（待ちがあるとき有効） |
+| Edit stickers | 編集モードのON/OFF。Esc / Doneで終了 |
+| Settings… | 主窓のSettingsを開く |
 | Quit Peta | 終了 |
-| **Developer ▸**(デバッグビルドのみ) | 下の表 |
 
-**Developer メニュー**(`npm run dev` のときだけ表示。リリースビルドには出ません)
+トレイはこの5操作と区切り線の6項目。旧READMEにあったDeveloperのNext Day / Reset Todayと手動Re-syncは、現行ブランチには入口がありません。ディスプレイの自動再構成は維持しています。開発用コントロールをどこへ戻すかは [open-questions.md のP1](docs/port-spec/open-questions.md) に提案だけを残し、今回追加していません。
 
-| 項目 | 動作 |
-|---|---|
-| Cut Out Image… (ignores daily rule) | 画像を選んで Cutting Mat で作る。**1日1枚のルールを無視**する(今日の枠は使わない) |
-| Add Sample Cat (ignores daily rule) | サンプルの猫をそのまま貼る(切り抜きなし) |
-| Next Day (+1 day) | 時計を1日進める。日付変更・新しい素材の抽選・スロットのリセットを確かめる |
-| Reset Today | 今日の記録を消す。封筒・抽選・スロットが最初からやり直しになる(貼ったステッカーは残る) |
+### 素材と開封のルール
 
-### 1日1枚のルール
-
-- 今日の素材は日付ごとに1つ抽選され、**初回だけは必ず Holographic**(仕様 §88 の体験)。以降は Common 60 / Uncommon 30 / Rare 10 の重み。
-- **封筒を開ける**と素材が Material Book に入り、ずっと残ります(使い捨てではありません)。Matte は最初から使えます。
-- 今日の新しい1枚を**確定できるのは1回だけ**。Today 画面から **Create**(画像を選ぶ → Cutting Mat で仕上げる)か **Collection**(デスクトップに無いものを貼る)。
-  **編集モード中に画像ファイルをデスクトップへドロップするのも Create** です(Cutting Mat が開き、落とした場所に貼られます)。2回目は「See you tomorrow.」と断られます。
-- **Cutting Mat で「Make this Peta」を押すまでは何も消費しません**。Cancel / ウィンドウを閉じる、で元のままです。
-- 素材を眺める・Today 画面を開く・画像ダイアログをキャンセルする、では消費しません。移動・拡大縮小・回転・剥がす・貼り直しは何度でも。
-- 日付はローカル時間の 0:00 で切り替わります(起動したままでも、30秒以内に検知)。
+- 今日の素材はローカル日付ごとに1つ抽選し、初回はHolographic。以降の重みはMatte / Kraft / Holographic = 50 / 32 / 18。
+- 封筒を開けると素材を獲得。Matteは無制限、Kraft / Holographicは作成時に選んだものを1つ消費します。素材帳の発見記録は残ります。
+- CreateとBookからの再印刷に1日1枚の上限はありません。Welcome Packは1日1回、Market Pack / Giftは回数制限なしで素材を消費しません。
+- Cutting Matで作成を確定するまでは素材を消費しません。Cancel・画像ダイアログの取消・閲覧だけでは変わらず、編集・剥がし・貼り直しも素材を消費しません。
+- 画像ドロップも既存のCutting Matを開きます。原本の再編集は同じステッカーの切抜き・輪郭を更新し、在庫や番号を消費しません。
+- ローカル0時で切り替え。通常の30秒検知に加え、開封後のTodayが見える間はカウントダウンの境界で即座に同じ更新処理を呼びます。
 
 ### Cutting Mat(写真 → ステッカー)
 
@@ -74,7 +66,7 @@ Today の **Create**、またはデスクトップへの画像ドロップで開
 | **Material** | 獲得済みの素材から選ぶ。Matte(白い紙)/ Kraft(茶色い紙・くすんだ印刷)/ Holographic(白いリング+レインボーの膜・ラメ) |
 | **Cutout adjust** | Tight ↔ Loose。切り抜きの厳しさ(動かすと即座に更新) |
 | **Fix** | 中央のペインに **Erase / Restore** のブラシで描いて直す(Photoshop 的な編集機能はこれだけ)。Reset で全部戻す |
-| Make this Peta | フル解像度で仕上げて、デスクトップに貼り、今日の枠を使う |
+| Make this Peta | フル解像度で仕上げ、選んだ消耗素材を1つ使ってFIFO印刷待ちへ。Grab → Pasteで貼る |
 
 - 元から**透明な背景の PNG**は、モデルを使わずにそのまま使います(フチと素材だけ付きます)。
 - スマホ写真の**向き(EXIF)**は自動で直します。
@@ -87,17 +79,18 @@ Today の **Create**、またはデスクトップへの画像ドロップで開
 編集モード中に、ステッカーを**ダブルクリック**(または、ポインターを重ねて **F** キー)すると、ステッカーが真横を向いて**裏面のカード**に入れ替わります。もう一度ダブルクリックで表に戻ります。
 
 - 自分で作ったもの: `ORIGINAL` のスタンプ / Created by(名前と日付)/ Material / `No. 0001` / Peta。
-- 受け取ったもの(Gift・Pack、Phase 6〜7 以降): Created by / Received from(誰から・いつ)/ `Edition #0042`。データ側(来歴の記録と表示)は実装済みです。
+- 受け取ったもの(Gift・Pack): Created by / Received from(誰から・いつ)/ `Edition #0042`。データ側(来歴の記録と表示)は実装済みです。
 - 裏返している間は**移動と裏返しだけ**できます(拡大縮小・回転・剥がすは表のときだけ)。編集モードを終えると、全部表に戻ります。
-- 名前は Collection ウィンドウの「Your name on stickers」で変えられます(以降に作るステッカーから。既定は OS のユーザー名)。
+- 名前はSettingsの「Your name on stickers」で変えられます(以降に作るステッカーから。既定は OS のユーザー名)。
 
-### Collection(ステッカー帳)
+### Book(ステッカー帳)とMaterials
 
-メニューの **Collection** から開きます。
+主窓のBookナビゲーションから開きます。List / Calendarの表示は上記のとおり。記録の日付は既存どおり、今日のPetaとして使った日（別の日にも使えば両日）、一度も使っていないサンプル等は作成日です。
 
-- **Book**: 左の目次(年 → 月)と、その月のページ。ステッカーは**今日の1枚として貼った日**のページに載ります(後日コレクションから貼り直した月のページにも載ります。一度も今日の1枚になっていないもの=サンプル等は作った月)。
-- ステッカーをクリックすると詳細: 大きな表示、**Turn over**(裏面)、素材・作成日・作成者、**履歴**、そして「**Stick as today's Peta**」(今日の枠が空いていて、デスクトップに無いとき)/「**Peel off the desktop**」(デスクトップにあるとき)。Gift は後日。
-- **Materials**: 素材帳。獲得済みは名前とレア度、未獲得は `?`。
+- クリックで詳細を開き、ステッカーそのものをクリック／Space／Enterで表裏を切り替えます。Turn over行はありません。
+- 既存の素材・日付・番号・来歴と、Stick on desktop / Peel off desktop / Giftを表示します。今日の枠の空きに依存せず、再印刷は既存FIFOへ追加します。
+- オリジナルだけEdit（切抜き・輪郭の再編集）／確認付きDelete。Giftコピーは送信済みの相手側へ影響しません。タイトルの保存は未決のままです。
+- Materialsは独立したナビゲーションで開き、獲得済みの素材・レア度・残数と、未獲得の表示を確認できます。
 
 ### 編集モードの操作
 
@@ -112,17 +105,16 @@ Today の **Create**、またはデスクトップへの画像ドロップで開
 | Delete / Backspace | ポインター下のステッカーを剥がす |
 | **ダブルクリック / F** | **裏返す**(もう一度で表へ) |
 
-| **画像ファイルをデスクトップへドロップ**(編集モード中) | 落とした場所に貼る。**今日の Create として扱われる**(1日1枚) |
+| **画像ファイルをデスクトップへドロップ**(編集モード中) | 既存のCutting Matへ取り込み。素材残数の範囲で何枚でも作る |
 
 操作を離した時点で自動保存されます。触ったステッカーは最前面に来ます。
-剥がしたステッカーは**デスクトップから外れるだけでライブラリには残ります**(Collection は Phase 5 で見られるようになります)。再起動しても戻りません。
-**透過PNGがおすすめです。** 背景除去は Phase 3 なので、JPEG などは四角いまま貼られます。
+剥がしたステッカーは**デスクトップから外れるだけでライブラリには残ります**(Bookで確認できます)。再起動しても戻りません。
+透明PNGはモデルなしで使えます。JPEG等の背景除去にはONNXモデルが必要です。
 編集バーには、直近のドラッグの描画性能(fps / 最悪フレーム時間)が出ます。カクつき調査用です。
 
 ## 検証チェックリスト(仕様 §87 の Spike 順)
 
-実機で確認して ✅ を付けてください。**自動検証できたのは「Rustコードが macOS 向けに型検査を通ること」と
-座標計算の単体テストだけです。以下はすべて Mac での実機確認が必要です。**
+実機で確認して ✅ を付けてください。macOS固有の操作は実機確認が必要です。LinuxでのRust/JSテストと実Tauri画面の検証は [検証記録](docs/port-spec/compare/upgrade-2026-10-04/README.md)、今回追加した実機項目は [macOSチェックリスト](docs/port-spec/macos-checklist.md) を参照してください。
 
 | # | 項目 | 見るポイント | 状態 |
 |---|---|---|---|
@@ -171,11 +163,11 @@ src-tauri/crates/core/ peta-core: OS・UIに依存しない中核(Linuxでも ca
   book.rs              ステッカー帳(どの月のページに載るか・目次)
   daily.rs             Daily Slot(AVAILABLE→SELECTING→CONFIRMED→USED)
   materials.rs         素材カタログ(Matte / Kraft / Holographic)と抽選
-src-tauri/crates/core/ の daily.rs / materials.rs: 1日1枚のルールと素材カタログ(時計を外から渡せるのでテスト可能)
+src-tauri/crates/core/ の daily.rs / materials.rs: 日次素材・素材残数・無制限作成のルールと素材カタログ(時計を外から渡せるのでテスト可能)
 src-tauri/src/
   today.rs             Today の状態・コマンド・ウィンドウ・日付変更の監視
-  collection.rs        Collection ウィンドウと、裏面・ステッカー帳・素材帳・名前のコマンド
-  creator.rs           Cutting Mat のウィンドウとコマンド(確定すると保存・貼り付け・今日の枠を消費)
+  collection.rs        Bookのデータと、裏面・素材帳・名前のコマンド
+  creator.rs           Cutting Mat のコマンド(作成時に保存・素材消費・FIFO印刷待ちへ)
   layers.rs            ディスプレイごとの透明レイヤー生成・再同期
   store.rs             ライブラリの所有、初回起動、旧JSONの移行、取り込み
   tray.rs              メニューバー

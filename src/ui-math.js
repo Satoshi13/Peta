@@ -38,3 +38,14 @@ export function calendarMonth(entries, key, today, weekStart = 0) {
   const elapsed = key < bookMonthKey(today) || key === bookMonthKey(today) && today.getDate() === days;
   return {days, offset, cells, daysStuck, petas, complete:elapsed && daysStuck === days};
 }
+
+export function fitMaterialCard({stageWidth, stageHeight, cardWidth, cardHeight, hintBottom, infoTop, gap = 12}) {
+  const top = Math.max(0, Math.min(stageHeight, hintBottom + gap));
+  const bottom = Math.max(top, Math.min(stageHeight, infoTop - gap));
+  // Reserve room for the existing 1.08× flight overshoot, rotation and pointer tilt.
+  const margin = 1.18;
+  const scale = cardWidth > 0 && cardHeight > 0 ? Math.max(0, Math.min(300 / cardWidth, stageWidth * .5 / cardWidth, (bottom - top) / (cardHeight * margin))) : 0;
+  const halfHeight = cardHeight * scale * margin / 2;
+  const cy = Math.max(top + halfHeight, Math.min(bottom - halfHeight, stageHeight * .42));
+  return {cx:stageWidth / 2, cy, scale, top, bottom};
+}
