@@ -13,6 +13,24 @@ pub const WELCOME_PACK_ID: &str = "welcome";
 pub const WELCOME_PACK_TITLE: &str = "Welcome Pack";
 pub const PACK_AUTHOR: &str = "Peta";
 
+pub struct MarketPack {
+    pub id: &'static str,
+    pub title: &'static str,
+    pub by: &'static str,
+    pub keys: &'static [&'static str],
+}
+
+/// Local free packs; installation and empty-bag refills use the same shipped pictures.
+pub fn market_pack(id: &str) -> Option<MarketPack> {
+    let (id, title, by, keys): (_, _, _, &[&str]) = match id {
+        "tokyo" => ("tokyo", "Tokyo Pack", "Peta", &["film-camera","coffee-cup","polaroid-mountain","cassette-tape","retro-computer","peta-bubble","good-day","fried-egg"]),
+        "coffee" => ("coffee", "Coffee Club", "Nao", &["coffee-cup","fried-egg","good-day","film-camera","potted-plant","cat-skateboard"]),
+        "plants" => ("plants", "Houseplants", "Mika", &["potted-plant","blue-flower","fried-egg","polaroid-mountain","coffee-cup"]),
+        _ => return None,
+    };
+    Some(MarketPack { id, title, by, keys })
+}
+
 /// The Welcome Pack's items: file names (without extension) of the sample stickers shipped under `art/samples/`.
 pub const WELCOME_ITEMS: [&str; 12] = [
     "cat-skateboard", "fried-egg", "good-day", "blue-flower", "polaroid-mountain", "retro-computer",

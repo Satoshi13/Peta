@@ -78,13 +78,8 @@ pub async fn pack_open(app: AppHandle, pack_id: String) -> Result<Opened, String
 // Static, free catalog entries are local packs. Paid entries and creator accounts stay UI-only.
 #[tauri::command]
 pub fn pack_install_demo(app: AppHandle, pack_id: String) -> Result<(), String> {
-    let (title, by, keys): (&str, &str, &[&str]) = match pack_id.as_str() {
-        "tokyo" => ("Tokyo Pack", "Peta", &["film-camera","coffee-cup","polaroid-mountain","cassette-tape","retro-computer","peta-bubble","good-day","fried-egg"]),
-        "coffee" => ("Coffee Club", "Nao", &["coffee-cup","fried-egg","good-day","film-camera","potted-plant","cat-skateboard"]),
-        "plants" => ("Houseplants", "Mika", &["potted-plant","blue-flower","fried-egg","polaroid-mountain","coffee-cup"]),
-        _ => return Err("This pack is not available yet".into()),
-    };
-    app.state::<Store>().lock().db_mut().pack_install(&pack_id,title,by,keys).map_err(|e|e.to_string())?;
+    let p = pack::market_pack(&pack_id).ok_or("This pack is not available yet")?;
+    app.state::<Store>().lock().db_mut().pack_install(p.id,p.title,p.by,p.keys).map_err(|e|e.to_string())?;
     today::announce(&app);
     Ok(())
 }

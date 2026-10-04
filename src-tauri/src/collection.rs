@@ -75,6 +75,18 @@ pub fn material_book(store: State<Store>) -> Result<Vec<MaterialBookEntry>, Stri
         .collect()
 }
 
+#[tauri::command]
+pub fn scrap_status(store: State<Store>) -> Result<peta_core::scraps::Status, String> {
+    store.lock().db().scrap_status().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn scrap_trade(app: AppHandle, store: State<Store>, trade: peta_core::scraps::Trade, request_id: String) -> Result<peta_core::scraps::Receipt, String> {
+    let receipt = store.lock().db_mut().scrap_trade(&trade, &request_id).map_err(|e| e.to_string())?;
+    crate::today::announce(&app);
+    Ok(receipt)
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {

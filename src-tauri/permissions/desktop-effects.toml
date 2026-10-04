@@ -18,3 +18,8 @@ commands.allow = ["port_capture_report", "port_capture_tray", "layer_info", "lay
 identifier = "allow-haptic-tap"
 description = "Play optional tactile feedback for a completed paper gesture."
 commands.allow = ["haptic_tap"]
+
+[[permission]]
+identifier = "allow-scrap-trades"
+description = "Read Scraps and confirm local material dismantling and exchanges in the main app."
+commands.allow = ["scrap_status", "scrap_trade"]

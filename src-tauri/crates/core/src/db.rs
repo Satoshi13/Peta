@@ -714,6 +714,14 @@ impl Database {
 
     // ---- material stock (materials are used up; plain paper is the exception) ----
 
+    pub fn scrap_status(&self) -> Result<crate::scraps::Status> {
+        crate::scraps::status(&self.conn)
+    }
+
+    pub fn scrap_trade(&mut self, request: &crate::scraps::Trade, request_id: &str) -> Result<crate::scraps::Receipt> {
+        crate::scraps::trade(&mut self.conn, request, request_id)
+    }
+
     /// How many of a material you hold. (Plain paper is unlimited regardless of this number.)
     pub fn material_count(&self, material_id: &str) -> Result<i64> {
         Ok(self

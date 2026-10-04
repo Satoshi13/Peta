@@ -160,6 +160,8 @@ pub fn run() {
             collection::sticker_back,
             collection::sticker_delete_original,
             collection::material_book,
+            collection::scrap_status,
+            collection::scrap_trade,
             collection::profile_get,
             collection::profile_set
         ])

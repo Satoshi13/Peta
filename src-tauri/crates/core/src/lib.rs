@@ -15,6 +15,7 @@ pub mod materials;
 pub mod pack;
 pub mod models;
 pub mod segment;
+pub mod scraps;
 pub mod sticker;
 
 pub use back::StickerBack;
