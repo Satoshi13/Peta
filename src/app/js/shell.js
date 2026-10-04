@@ -20,16 +20,25 @@ const Shell = (() => {
   }
   function renderNav() {
     const nav = $("#nav"), b = badges();
-    nav.replaceChildren(...NAV.map((n, i) => {
-      const count = n.id === "gifts" ? b.gifts : n.id === "today" ? (b.today ? "•" : 0) : 0;
-      return h("button.nav-item", { data: { page: n.id }, style: { "--ti": i }, vars: { "--tab-img": `var(--a-${n.tab})`, "--tab-i": i },
-        "aria-current": S.page === n.id ? "page" : null, on: { click: (e) => go(n.id, { origin: e.currentTarget }) } },
-        h("span.ni-icon", { style: { backgroundImage: `var(--a-${n.icon})` } }),
+    const top = h("div.nav-top"), foot = h("div.nav-foot");
+    NAV.forEach((n, i) => {
+      const count = n.id === "gifts" ? b.gifts : 0, dot = n.id === "today" && b.today;
+      if(n.group) top.append(h("span.nav-group", n.group));
+      const label = n.label + (count ? `, ${count} unopened` : dot ? ", New envelope" : "");
+      const button = h("button.nav-item", { data: { page: n.id }, style: { "--ti": i }, vars: { "--tab-img": `var(--a-${n.tab})`, "--tab-i": i },
+        "aria-label":label, "aria-current": S.page === n.id ? "page" : null, on: { click: (e) => go(n.id, { origin: e.currentTarget }) } },
+        h("span.ni-tile", h("span.ni-icon", { style: { backgroundImage: `var(--a-${n.icon})` } })),
         h("span.ni-label", n.label),
-        count ? h("i.ni-badge", count) : null);
-    }));
-
+        count ? h("i.ni-badge", String(count)) : dot ? h("i.ni-dot", {"aria-label":"New envelope"}) : null,
+        h("span.ni-key", {"aria-hidden":"true"}, n.id === "settings" ? "⌘," : `⌘${i+1}`));
+      (n.id === "settings" ? foot : top).append(button);
+    });
+    const name = S.name.trim() || "You";
+    foot.append(h("button.nav-account", {"aria-label":`Account: ${name}. Open Settings`,on:{click:()=>go("settings")}},
+      CreatorIcon.image(), h("span", h("b", name), h("small", `${S.lib.length} sticker${S.lib.length===1 ? "" : "s"}`))));
+    nav.replaceChildren(top, foot);
   }
+
   function markNav() { document.body.dataset.page = S.page; $$(".nav-item").forEach((b) => b.toggleAttribute("aria-current", b.dataset.page === S.page)); $$(".nav-item[aria-current]").forEach((b) => b.setAttribute("aria-current", "page")); }
 
   function build(id) {
@@ -130,6 +139,11 @@ const Shell = (() => {
     $("#wc-zoom").addEventListener("click", () => Bridge.window.toggleMaximize());
     $("#titlebar").addEventListener("mousedown", e => { if (e.button === 0 && !e.target.closest("button")) { e.preventDefault(); Bridge.window.startDragging(); } });
     $("#resize-h").addEventListener("mousedown", e => { if (e.button === 0) { e.preventDefault(); Bridge.window.startResizeDragging("SouthEast"); } });
+    document.addEventListener("keydown", e => {
+      if(e.defaultPrevented || !document.hasFocus()) return;
+      const page = PetaMath.navShortcut(e, { input:!!e.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])'), dialog:Bridge.dialogOpen || !!$("dialog[open]"), busy:Bridge.busy, ceremony:!!$(".cer") });
+      if(page) { e.preventDefault(); go(page, {via:"nav"}); }
+    });
     document.addEventListener("keydown", e => { if(e.key === "Escape" && !e.defaultPrevented && !$(".cer") && !e.target.closest("input")) close(); });
   }
   function setShell(name) {

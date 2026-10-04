@@ -49,3 +49,9 @@ export function fitMaterialCard({stageWidth, stageHeight, cardWidth, cardHeight,
   const cy = Math.max(top + halfHeight, Math.min(bottom - halfHeight, stageHeight * .42));
   return {cx:stageWidth / 2, cy, scale, top, bottom};
 }
+
+export function navShortcut(event, {input=false, dialog=false, busy=false, ceremony=false} = {}) {
+  if(input || dialog || busy || ceremony || !event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || event.isComposing) return null;
+  if(event.key === ',') return 'settings';
+  return ({1:'today',2:'create',3:'book',4:'packs',5:'gifts',6:'materials',7:'market'})[event.key] || null;
+}

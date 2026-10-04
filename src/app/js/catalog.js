@@ -13,12 +13,12 @@ const SAMPLE_TITLES = {
 };
 const NAV = [
   { id: "today", label: "Today", tab: "tab1", icon: "envBack" },
-  { id: "create", label: "Create", tab: "tab3", icon: "chCreate" },
-  { id: "book", label: "Book", tab: "tab2", icon: "chCollection" },
+  { id: "create", group:"Make", label: "Create", tab: "tab3", icon: "chCreate" },
+  { id: "book", group:"Collect", label: "Book", tab: "tab2", icon: "chCollection" },
   { id: "packs", label: "Packs", tab: "tab5", icon: "chPack" },
   { id: "gifts", label: "Gifts", tab: "tab4", icon: "chGift" },
-  { id: "market", label: "Market", tab: "tab3", icon: "shop" },
   { id: "materials", label: "Materials", tab: "tab6", icon: "cardHolo" },
+  { id: "market", group:"Discover", label: "Market", tab: "tab3", icon: "shop" },
   { id: "settings", label: "Settings", tab: "tab6", icon: "gear" },
 ];
 const RARITY_ORDER = ["common", "uncommon", "rare", "special", "archive"];

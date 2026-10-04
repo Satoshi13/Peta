@@ -60,3 +60,11 @@ Display 40/44（Studio）、Title 22/26、Headline 15/20、Body 14/21、Meta 12/
 実Tauri Linux/WebKitGTK、専用テストDBで1060×700／720×520、Studio／Deskを撮影する。macOSの実機項目は未確認。最終テスト結果とC〜Gの確認結果は完了時に追記する。
 
 A+B検証: npm test 33件、check:mac成功（Linux上のRust型検査、ネイティブC/ObjCはスタブで未リンク）。4ページ×両シェル×2サイズで横はみ出し0。
+
+## C: サイドバー
+
+Make / Collect / DiscoverをStudioに追加し、表示順と遷移方向を一致させた。上側の一覧だけスクロールし、Settingsとローカルプロフィールは下端。Deskは元の92pxの縦並びを保持しSettingsを下端へ、狭幅ではラベル／札／キー表示を外して従来の下部バーへ戻す。
+
+幅は現行204pxを採用（216px案は本文の幅を12px削るため見送り）。ロゴtop54px・64×28px、窓操作ピルの位置・サイズはそのまま。グループの装飾Overlineのみ指示どおり10.5px、項目・プロフィールの補足は12px以上。未開封Giftは数のピル、封筒はクラフト色の点。全項目はbutton・data-page・aria-currentを保持、数の意味をaria-labelへ含めた。
+
+ショートカットは採用。tray.rsの既存アクセラレータは⌘Qだけで重複なし。純関数のテストで対応順／入力・dialog・busy・ceremony／IME／他修飾キー／⌘Zを確認。プロフィール名・アイコン変更時にもナビを更新する。アカウント認証は追加しない。

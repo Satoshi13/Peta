@@ -12,6 +12,8 @@ Settings の Sounds / Haptics / Reduce motion は `peta.preferences` に保存�
 
 文字は役割で統一します。見出し・説明・在庫はシステム書体、補足は12px以上、Overlineは11px。Special Eliteは13px以上の日付・時計・Scrapsの印字、Klee Oneは裏紙・ギフトのメモ・値札などの物にだけ使います。補助色は暖かい濃色 `#655e51`、平らな面と文字は共通トークンで管理し、本文のコントラスト4.5:1以上を検査します。
 
+StudioのナビはMake / Collect / Discoverに分け、PetaロゴをTodayの上、Settingsとローカルプロフィール札を下端に置きます。Deskは従来の縦並びと下端のSettings、≤880pxは従来の下部バーです。⌘1〜⌘7はToday / Create / Book / Packs / Gifts / Materials / Market、⌘,はSettings。入力・ダイアログ・演出中は無効。未開封Giftは数、今日の封筒はクラフト色の点で示します。
+
 ### Todayの次の封筒
 
 今日の素材を開封すると、小さな紙札に `Next envelope in HH:MM:SS` が表示されます。端末の実時間の次のローカル0時が基準で、開発用の日付送りによる `daily.date` には依存しません。Todayが見える間だけ秒を更新し、離れる・閉じる・最小化・開封演出中は止めます。0時で既存のRust日付切り替え処理を即時呼び出し、新しい封筒へ戻ります。日次枠の使用数には依存せず、毎秒の読み上げはありません。
