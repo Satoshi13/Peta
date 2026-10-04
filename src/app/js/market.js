@@ -85,7 +85,10 @@ Pages.market = {
             : h("button.btn.paper.small.scrap-action", {disabled:true}, "Coming later"))))));
   },
   creators(paint) {
-    return h("div.mk-creators", MARKET_CREATORS.map((c, i) => {
+    return h("div.mk-creators",
+      h("div.cr-card.cr-self", CreatorIcon.image(),h("div.cr-t",h("b",S.name),h("small","Your creator profile")),
+        h("button.btn.paper.small.creator-icon-change",{on:{click:e=>CreatorIcon.choose(e.currentTarget)}},"Change icon…")),
+      MARKET_CREATORS.map((c, i) => {
       const t = h("div.cr-av"); Stk.make(A[c.src], { border: 10, material: "matte", max: 240 }).then((r) => t.append(Stk.el(r, r.aspect >= 1 ? 70 : 70 * r.aspect)));
       const on = !!S.followed[c.name];
       return h("div.cr-card", { style: { "--i": i } }, t, h("div.cr-t", h("b", c.name), h("small", c.line), h("small", `${c.packs} packs`)),

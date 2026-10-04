@@ -10,6 +10,7 @@ async function boot() {
   await Bridge.listen('daily-changed', Bridge.changed);
   await Bridge.listen('placements-changed', Bridge.changed);
   await Bridge.listen('sticker-updated', e => { Bridge.invalidateAsset(e.payload); Bridge.changed(); });
+  await Bridge.listen('profile-changed', e => { S.iconStickerId=e.payload.iconStickerId; if(['settings','market'].includes(S.page)) Shell.refresh(); });
   await Bridge.window.onFocusChanged(async e => {
     if(e.payload) { Bridge.printFocusTransfer=false; if(await Bridge.window.isVisible() && !(await Bridge.window.isMinimized())) { S.windowOpen=true; Pages[S.page]?.resume?.(); } return; }
     if(S.page!=="today" || !(await Bridge.window.isVisible()) || await Bridge.window.isMinimized()) Pages[S.page]?.suspend?.();

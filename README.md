@@ -2,7 +2,7 @@
 
 毎日、ひとつだけ。デスクトップに残る、ステッカーのある暮らし。
 
-現在は `src/` と `src-tauri/` の本物のTauriアプリに、Studio / Desk、Cutting Mat、Print → Grab → Paste、Book、Packs、Gifts、MaterialsとSettingsがあります。DBはv7。Matteは無制限、Welcomeは1日1回、Market / Giftは回数制限なしです。Kraft / Holographicの作成は選んだ素材の残数だけ消費します。最新のルールは [docs/decisions.md](docs/decisions.md)、移植・未決事項は [docs/port-spec/README.md](docs/port-spec/README.md) を参照してください。
+現在は `src/` と `src-tauri/` の本物のTauriアプリに、Studio / Desk、Cutting Mat、Print → Grab → Paste、Book、Packs、Gifts、MaterialsとSettingsがあります。DBはv8。Matteは無制限、Welcomeは1日1回、Market / Giftは回数制限なしです。Kraft / Holographicの作成は選んだ素材の残数だけ消費します。最新のルールは [docs/decisions.md](docs/decisions.md)、移植・未決事項は [docs/port-spec/README.md](docs/port-spec/README.md) を参照してください。
 
 ## ネイティブUIの設定
 
@@ -38,6 +38,26 @@ npm run dev        # = tauri dev
 - Dockには出ません。メニューバーに Peta のアイコンが出ます。
 - 初回起動で、メインディスプレイの右上寄りにサンプルの猫が貼られます。
 - 保存先: `~/Library/Application Support/app.peta.desktop/`(`peta.db` と `assets/stickers/<ID>/`)。Phase 0 の `placements.json` は初回に自動で移行されます。
+
+### git pullで未コミット変更がある場合
+
+`cannot pull with rebase: You have unstaged changes`は、手元の変更が残っているため更新が止まった状態です。`git status --short`で対象を確認し、変更を残したまま更新するなら次の順に実行します。
+
+```sh
+cd ~/Peta
+git stash push -u -m "peta-before-update"
+git pull --rebase
+git stash pop
+npm run dev
+```
+
+競合が出たら、そのファイルを解決してから起動します。stash popが競合した場合、退避した変更はstashに残ります。`git reset --hard`で変更を消す必要はありません。
+
+### Creatorのアイコン
+
+SettingsのCreator icon、またはMarket → Creatorsの自分のプロフィールのChange icon…から、自作のオリジナルステッカーを選びます。Save iconで保存、Cancel／Escでは変更しません。Use initialで名前の頭文字へ戻せます。完成画像を縦横比を保って表示し、アイコン設定で素材やステッカーは消費しません。
+
+設定は既存DB v8のmetaへ保存し、再起動後も残ります。元のオリジナルを再編集すると表示も更新され、削除すると設定を解除します。Gift／Packの受取コピーは選択対象外です。現在はローカルのプロフィール設定で、アカウント同期や友達へのプロフィール配布は含みません。
 
 ### メニュー
 
