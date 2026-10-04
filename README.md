@@ -91,7 +91,7 @@ Marketの購入済みパックは、Featuredのボタン・一覧の`On your she
 
 未使用のKraft 1枚は1 Scrap、Holographic 1枚は3 Scrapsへ分解できます。Matte・作成済みステッカー・Giftは対象外で、素材帳の発見記録は残ります。Kraft 1枚は2 Scraps、Holographic 1枚は6 Scrapsで引換。初回無料のTokyo／Coffee／Houseplantsは、空になった同じ袋へ16／12／10 Scrapsで8／6／5枚を補充できます。開封済み項目・来歴を残し、袋の総数は累計、残数は未開封数です。中身が残る袋・Welcome・有料表示のPackは補充対象外です。
 
-MarketとMaterialsの右上にScraps残高を表示します。Materialsのカードはクリックでプレビューを開くだけで、Createの素材を選び直しません。`Dismantle…`から数量・受取Scraps・残る素材を確認し、Marketでは受取数・合計消費Scraps・引換後残高を確認してから確定します。キャンセルや閲覧では消費しません。応答が途切れた場合のRetryは同じリクエストを確認し、既に完了していても二重消費しません。
+MarketとMaterialsの右上にScraps残高を表示します。Materialsのカードはクリックでプレビューを開くだけで、Createの素材を選び直しません。分解ボタンは選択後のプレビューだけに置き、一覧には素材ごとの所持枚数（Matteは∞）を大きく表示します。`Dismantle…`から数量・受取Scraps・残る素材を確認し、Marketでは受取数・合計消費Scraps・引換後残高を確認してから確定します。キャンセルや閲覧では消費しません。応答が途切れた場合のRetryは同じリクエストを確認し、既に完了していても二重消費しません。
 
 残高の初期値は0。Rustが残高・在庫・付与・リクエストごとの取引結果を1つのSQLiteトランザクションで更新し、再送で二重消費・二重付与しません。既存DB v7のmetaを使い、スキーマと既存の作成・開封・FIFOルールは変えません。現金決済・未実装のGold／Riso／Vintage取得・アカウント同期は含みません。
 

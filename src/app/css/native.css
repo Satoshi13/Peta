@@ -285,3 +285,7 @@ html[data-motion="reduce"] .mbook .mcard { transform:rotate(-2deg) !important; }
 .mcard .lab, .mcard.big .lab { left:10.4%; right:10.4%; top:58%; height:25%; border-radius:calc(var(--card-radius) * .7); background:#fcf9f2; box-shadow:0 1px 2px rgba(60,45,20,.08); }
 .mcard.locked .art { background-image:var(--a-cardMatte); filter:grayscale(1) contrast(.7); opacity:.5; }
 .mcard[data-m="holographic"].big::after, .mcard[data-m="holographic"][data-sel="true"]::after, .mbook .mcard[data-m="holographic"]::after { inset:12.63% 7.86% 12.37%; border-radius:var(--card-radius); -webkit-mask:none; mask:none; }
+
+.material-stock { display:inline-flex; align-items:baseline; justify-content:center; gap:8px; margin:8px 0; color:var(--ink2); font:500 12px/16px var(--sys); font-variant-numeric:tabular-nums; }
+.material-stock strong { font:700 24px/28px var(--sys); color:var(--ink); }
+.material-preview .material-stock { justify-content:flex-start; }

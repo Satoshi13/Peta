@@ -1,0 +1,70 @@
+[
+  {
+    "shell": "studio",
+    "page": "materials",
+    "dismantleInGrid": 0,
+    "height": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [
+      "∞Always available",
+      "1sheets in stock",
+      "0sheets in stock"
+    ],
+    "width": 1060
+  },
+  {
+    "shell": "studio",
+    "page": "materials",
+    "dismantleInGrid": 0,
+    "height": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [
+      "∞Always available",
+      "1sheets in stock",
+      "0sheets in stock"
+    ],
+    "width": 720
+  },
+  {
+    "shell": "desk",
+    "page": "materials",
+    "dismantleInGrid": 0,
+    "height": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [
+      "∞Always available",
+      "1sheets in stock",
+      "0sheets in stock"
+    ],
+    "width": 1060
+  },
+  {
+    "shell": "desk",
+    "page": "materials",
+    "dismantleInGrid": 0,
+    "height": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [
+      "∞Always available",
+      "1sheets in stock",
+      "0sheets in stock"
+    ],
+    "width": 720
+  }
+]

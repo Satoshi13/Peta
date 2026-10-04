@@ -36,17 +36,19 @@ Pages.materials = {
       } } },
         h("div.mc", h("div.mcard" + (lock ? ".locked" : ""), { data: { m: lock ? "matte" : m.id }, vars: { "--w": "190px" } }, h("i.art"), h("span.lab", lock ? h("b", "?") : [h("b", m.name), h("small", m.rarity)]))),
         h("div.mmeta", h("b", lock ? "Not found yet" : m.name), h("span.seal", { data: { rarity: m.rarity } }, lock ? "locked" : m.rarity),
-          h("small", lock ? "Open Today's Material to find it" : m.unlimited ? "Always available" : `${S.stock[m.id]} in stock · found ${m.found}`), lock ? null : h("small.recipe", m.recipe)));
+          lock ? h("small", "Open Today's Material to find it") : this.stock(m), !lock && !m.unlimited ? h("small", `Found ${m.found}`) : null, lock ? null : h("small.recipe", m.recipe)));
       if (!lock) Stk.tilt($(".mcard", card), { max: 9, scale: 1.03, trigger: card });
-      const rate = Scraps.material(m.id);
-      return h("div.material-entry", card, h("div.material-tools", !lock && rate ? Scraps.button("dismantle", m.id, "Dismantle…", !(S.stock[m.id] > 0)) : null));
+      return h("div.material-entry", card);
     }));
     root.append(grid); return root;
+  },
+  stock(m) {
+    return h("span.material-stock", h("strong", m.unlimited ? "∞" : String(S.stock[m.id] || 0)), h("span", m.unlimited ? "Always available" : "sheets in stock"));
   },
   preview() {
     const m = MAT[this.selected]; if(!m || m.locked) return null;
     return h("section.material-preview", {"aria-label":`${m.name} preview`}, MatCard(m,240),
-      h("div", h("h2",m.name), h("p",m.recipe), h("p.muted.small",m.unlimited ? "Always available" : `${S.stock[m.id]} sheets in stock · found ${m.found}`),
+      h("div", h("h2",m.name), h("p",m.recipe), this.stock(m), !m.unlimited ? h("p.muted.small", `Found ${m.found}`) : null,
         Scraps.material(m.id) ? Scraps.button("dismantle",m.id,"Dismantle…",!(S.stock[m.id]>0)) : null),
       h("button.x", {"aria-label":"Close material preview",on:{click:()=>{const id=this.selected;this.selected=null;Shell.refresh();$(`[data-material="${id}"]`)?.focus({preventScroll:true});}}}, "✕"));
   },
