@@ -7,7 +7,7 @@ Pages.gifts = {
     root.append(h("p.muted.lede", "A friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material."));
     root.append(waiting.length
       ? h("div.inbox", waiting.map((g, i) => h("button.gift", { disabled: locked, style: { "--i": i, "--r": [-3, 2.5, -1.5][i % 3] + "deg" }, on: { click: () => { Snd.tap(); Cer.openGift(g); } } },
-          img("arrGift", "g-env"), h("span.g-from.hand", h("small", "from"), Distribution.sender(g)), locked ? null : h("span.open-cta", "Open"))))
+          img("arrGift", "g-env"), h("span.g-from.hand", h("small", "From"), g.from + (["known","official"].includes(g.signatureStatus) ? " ✓" : "")), h("small.muted", Distribution.trust(g)), locked ? null : h("span.open-cta", "Open"))))
       : h("div.empty", h("p.hand", "Nothing has arrived yet."), h("p.muted", "When a friend sends you a .peta file, it lands here.")));
     root.append(h("div.gift-actions", h("button.btn.paper", { on: { click: () => this.receiveFile() } }, "Open Peta file…"), h("button.link", {on:{click:()=>Distribution.redeem()}}, "Redeem Code…"), got.length ? h("span.muted.small", `${got.length} already opened and kept in your Book`) : null));
     if(S.events.length) root.append(h("section", h("h2", "From Peta ✓"), S.events.map(e=>h("article",h("b",e.title),h("p.muted.small",e.result),e.message ? h("p.small",e.message) : null))));
@@ -55,6 +55,13 @@ Pages.materials = {
 /* Native dialog semantics provide focus trapping and Escape without changing the paper UI. */
 const Distribution = {
   error(value) { return String(value).replace(/^invalid_signature:\s*/, "").replace(/^unknown_key:\s*/, "").replace("gift_already_received", "This gift was already received."); },
+  trust(g) {
+    if(g.signatureStatus==="official") return "Official Peta file";
+    if(g.signatureStatus==="known") return `${g.fingerprint} · Same key`;
+    if(g.signatureStatus==="new") return `${g.fingerprint} · New friend`;
+    if(g.signatureStatus==="warning") return `${g.fingerprint} · Same name, different key`;
+    return "Unsigned";
+  },
   sender(g) {
     if(g.signatureStatus === "official") return "Peta ✓";
     if(g.signatureStatus === "known") return `${g.from} ✓ (${g.fingerprint})`;

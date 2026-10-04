@@ -47,3 +47,11 @@ coreと同じフレーム／署名／コードを使うCLIをworkspaceに追加�
 `docs/distribution-howto.md`に、オーナーが自分で実行するkeygen、公開鍵差し替え、鍵の保護、ファイル／コード配布、範囲／限界を記載した。本物の公式秘密鍵は作っていない。CLI自動テストは毎回test-only.keyを/tmpへ生成し、検証後に削除する。
 
 Step 4結果: cargo test --workspace成功（CLI roundtrip 1件、Tauri 1件、core 102件＋統合5件）、npm test 31件成功。CLIの新規鍵／再生成拒否／公開鍵／ファイル＋コード／明示公開鍵verify／改ざん拒否／秘密鍵を出力しないことを一時テスト鍵で確認した。
+
+## Step 5 — Gift v2／TOFU
+
+新規Giftは端末鍵のv2署名付きで、MAGIC・from・edition・来歴・完成PNG・maskの全体を署名する。v1は署名を自称しないものだけUnsignedとして読める。元画像を送らず、コピー／Edition／8MB／一度だけの受領を維持。署名後のPNG／maskを検証し、受領と友達登録を同じ取引で行う。
+
+TOFUはfriends.rsにまとめた。初回は指紋＋New friend、既知の鍵は登録済みの名前＋✓、同名別鍵は警告して受領する。プレビューは友達を登録せず、受領で初めて登録する。名前だけでは本人と判断しない。受領パッケージは内容ハッシュの内部パスに保存し、別内容で同じGift IDのファイルが元の包みを上書きしない。開封済みGiftは新しいステッカーを作る前に拒否する。
+
+Step 5結果: cargo test --workspace成功（core 104件＋統合5件、Tauri 1件、CLI 1件）、npm test 31件成功。別ライブラリでNew friend→同じ端末鍵の2通目で✓→別端末の同名鍵で警告、v1のUnsigned、from／edition／PNG改ざんの拒否、秘密鍵再読込を確認した。指紋と警告は封筒の名前欄へ詰め込まず下に表示する。

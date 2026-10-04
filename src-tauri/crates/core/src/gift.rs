@@ -6,7 +6,8 @@
 //! * Where the file travels (AirDrop, a message, later an account server) is not this module's business.
 //!   A gift can be received once per device; its contents stay hidden until the envelope is opened.
 //!
-//! File layout: `PETAGIFT` · version(1) · u32 BE JSON length · JSON header · sticker PNG · mask PNG.
+//! File layout: PETAGIFT v2 signs the header and finished PNG/mask with a device key.
+//! Legacy v1 is readable as unsigned. TOFU proves key continuity, not real-world identity.
 
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +20,7 @@ use crate::{
 };
 
 const MAGIC: &[u8; 8] = b"PETAGIFT";
-const VERSION: u8 = 1;
+const VERSION: u8 = 2;
 /// Refuse anything bigger: a gift is one sticker, not a way to move files around.
 const MAX_PNG: usize = 8 * 1024 * 1024;
 const MAX_HEADER: usize = 64 * 1024;
@@ -47,6 +48,8 @@ pub struct GiftHeader {
     pub origin: Origin,
     pub png_len: usize,
     pub mask_len: usize,
+    #[serde(default,skip_serializing_if="Option::is_none")]
+    pub signer: Option<crate::sign::Signer>,
 }
 
 /// Seal a copy of one of your stickers for `to` (a label only you see: "Nao", "Mom"). Returns the gift id and the file.
@@ -58,6 +61,7 @@ pub fn build_gift(lib: &mut Library, sticker_id: &str, to: &str, note: Option<&s
         None => Vec::new(),
     };
     let from = lib.db().display_name()?;
+    let key=crate::device_key::load_or_create(lib.root())?;
     let edition = lib.db_mut().gift_next_edition(sticker_id)?;
     let gift_id = new_gift_id();
     let header = GiftHeader {
@@ -75,15 +79,9 @@ pub fn build_gift(lib: &mut Library, sticker_id: &str, to: &str, note: Option<&s
         },
         png_len: png.len(),
         mask_len: mask.len(),
+        signer: Some(crate::sign::Signer::Device{public_key:crate::sign::public_key(&key)}),
     };
-    let json = serde_json::to_vec(&header).map_err(|e| Error::Invalid(e.to_string()))?;
-    let mut out = Vec::with_capacity(13 + json.len() + png.len() + mask.len());
-    out.extend_from_slice(MAGIC);
-    out.push(VERSION);
-    out.extend_from_slice(&(json.len() as u32).to_be_bytes());
-    out.extend_from_slice(&json);
-    out.extend_from_slice(&png);
-    out.extend_from_slice(&mask);
+    let out=crate::sign::seal(MAGIC,VERSION,&header,&[png,mask].concat(),&key)?;
 
     lib.db_mut().gift_record_sent(&gift_id, sticker_id, edition, to)?;
     lib.db_mut().add_provenance(sticker_id, ProvenanceKind::Gifted, Some(to), &now())?;
@@ -109,32 +107,39 @@ pub fn decode_gift(bytes: &[u8]) -> Result<Decoded<'_>> {
         // The original event remains the package; opening verifies its official signature again.
         let n=13+u32::from_be_bytes(bytes[9..13].try_into().unwrap()) as usize;
         let header=GiftHeader{gift_id:format!("GIFT-E-{}",e.event_id),from:"Peta".into(),note:Some(e.message.clone()),sent_at:e.issued_at.clone(),edition:1,
-            origin:Origin{sticker_id:format!("EVENT-{}",e.event_id),creator_name:Some("Peta".into()),created_at:e.issued_at.clone(),material_id:Some("matte".into()),aspect:{let image=image::load_from_memory(png)?;image.width() as f64/image.height() as f64}},png_len:png.len(),mask_len:mask.len()};
+            origin:Origin{sticker_id:format!("EVENT-{}",e.event_id),creator_name:Some("Peta".into()),created_at:e.issued_at.clone(),material_id:Some("matte".into()),aspect:{let image=image::load_from_memory(png)?;image.width() as f64/image.height() as f64}},png_len:png.len(),mask_len:mask.len(),signer:Some(e.signer.clone())};
         return Ok(Decoded{header,png:&bytes[n..n+png.len()],mask:&bytes[n+png.len()..n+png.len()+mask.len()]});
     }
     if bytes.len() < 13 || &bytes[..8] != MAGIC {
         return Err(bad("wrong file"));
     }
-    if bytes[8] != VERSION {
+    if bytes.len()>crate::sign::MAX_FILE {return Err(bad("unreasonable size"));}
+    if bytes[8] != 1 && bytes[8] != VERSION {
         return Err(bad("made by a newer version of Peta"));
     }
     let json_len = u32::from_be_bytes([bytes[9], bytes[10], bytes[11], bytes[12]]) as usize;
     if json_len == 0 || json_len > MAX_HEADER || bytes.len() < 13 + json_len {
         return Err(bad("damaged header"));
     }
-    let header: GiftHeader = serde_json::from_slice(&bytes[13..13 + json_len]).map_err(|_| bad("damaged header"))?;
-    if header.png_len == 0 || header.png_len > MAX_PNG || header.mask_len > MAX_PNG {
-        return Err(bad("unreasonable size"));
-    }
-    let body = &bytes[13 + json_len..];
+    let (header,body):(GiftHeader,&[u8])=if bytes[8]==VERSION {
+        let (json,body)=crate::sign::unseal(bytes,MAGIC,VERSION)?;
+        let header:GiftHeader=serde_json::from_value(json).map_err(|_|bad("damaged header"))?;
+        if !matches!(header.signer,Some(crate::sign::Signer::Device{..})){return Err(bad("gift needs a device signature"));}
+        (header,body)
+    }else {
+        let header:GiftHeader=serde_json::from_slice(&bytes[13..13+json_len]).map_err(|_|bad("damaged header"))?;
+        if header.signer.is_some(){return Err(bad("unsigned gift claims a signature"));}
+        (header,&bytes[13+json_len..])
+    };
+    if header.png_len==0 || header.png_len>MAX_PNG || header.mask_len>MAX_PNG{return Err(bad("unreasonable size"));}
     if body.len() != header.png_len + header.mask_len {
         return Err(bad("damaged contents"));
     }
-    if !header.gift_id.starts_with("GIFT-") || header.gift_id.len() > 40 || header.from.len() > 200 {
+    if !header.gift_id.starts_with("GIFT-") || !crate::events::safe_id(&header.gift_id) || header.gift_id.len()>40 || header.from.len()>200 || header.from.trim().is_empty() || header.edition<1 || !header.origin.aspect.is_finite() || header.origin.aspect<=0.0 {
         return Err(bad("damaged header"));
     }
     let (png, mask) = body.split_at(header.png_len);
-    image::load_from_memory_with_format(png, image::ImageFormat::Png).map_err(|_| bad("the picture is damaged"))?;
+    crate::events::validate_png(png,MAX_PNG)?;if !mask.is_empty(){crate::events::validate_png(mask,MAX_PNG)?;}
     Ok(Decoded { header, png, mask })
 }
 
@@ -144,9 +149,15 @@ pub fn receive_gift(lib: &mut Library, bytes: &[u8]) -> Result<crate::db::Incomi
     if lib.db().gift_is_received(&d.header.gift_id)? {
         return Err(Error::GiftAlreadyReceived);
     }
-    let rel = format!("gifts/{}.peta", d.header.gift_id);
+    use sha2::{Digest,Sha256};
+    let content_id=Sha256::digest(bytes).iter().map(|b|format!("{b:02x}")).collect::<String>();
+    let rel = format!("gifts/{content_id}.peta");
     lib.write_asset(&rel, bytes)?;
-    lib.db_mut().gift_record_received(&d.header.gift_id, &d.header.from, d.header.note.as_deref(), &d.header.sent_at, &rel)?;
+    let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let identity=if let Some(crate::sign::Signer::Device{public_key})=&d.header.signer {Some(crate::friends::observe(&tx,public_key,&d.header.from)?)} else {None};
+    tx.execute("INSERT INTO gifts_received(gift_id,from_name,note,sent_at,received_at,package) VALUES (?1,?2,?3,?4,?5,?6)",rusqlite::params![d.header.gift_id,identity.as_ref().map(|i|i.name.as_str()).unwrap_or(&d.header.from),d.header.note,d.header.sent_at,now(),rel])?;
+    tx.execute("INSERT INTO gift_signers VALUES (?1,?2,?3,?4)",rusqlite::params![d.header.gift_id,identity.as_ref().map(|i|i.status.as_str()).unwrap_or("unsigned"),identity.as_ref().map(|i|&i.fingerprint),identity.as_ref().map(|i|&i.public_key)])?;
+    tx.commit()?;
     lib.db()
         .gifts_received()?
         .into_iter()
@@ -156,6 +167,7 @@ pub fn receive_gift(lib: &mut Library, bytes: &[u8]) -> Result<crate::db::Incomi
 
 /// Break the seal: the sticker becomes yours (source Gift, a copy with its edition number and lineage).
 pub fn open_gift(lib: &mut Library, gift_id: &str) -> Result<Sticker> {
+    if lib.db().gifts_received()?.iter().any(|g|g.gift_id==gift_id && g.opened_at.is_some()){return Err(Error::Invalid("That gift was already opened.".into()));}
     let rel = lib.db().gift_package_path(gift_id)?.ok_or_else(|| Error::Invalid(format!("unknown gift {gift_id}")))?;
     let bytes = lib.read_asset(&rel)?;
     let d = decode_gift(&bytes)?;
@@ -264,6 +276,27 @@ mod tests {
         assert_eq!(b.received_from.as_deref(), Some("Satoshi"));
         assert_eq!(b.edition_number.as_deref(), Some("0001"));
         assert!(open_gift(&mut theirs, &id1).is_err(), "a gift opens once");
+    }
+
+    #[test]
+    fn signed_gifts_use_tofu_and_legacy_gifts_stay_unsigned() {
+        let (mut mine,sticker)=sender_with_sticker();let mut theirs=lib();
+        let (_,first)=build_gift(&mut mine,&sticker.id,"Nao",None).unwrap();assert_eq!(first[8],2);
+        let one=receive_gift(&mut theirs,&first).unwrap();assert_eq!(one.signature_status,"new");assert_eq!(one.fingerprint.as_ref().unwrap().len(),9);
+        let (_,second)=build_gift(&mut mine,&sticker.id,"Nao",None).unwrap();assert_eq!(receive_gift(&mut theirs,&second).unwrap().signature_status,"known");
+        let (mut other,s)=sender_with_sticker();let (_,third)=build_gift(&mut other,&s.id,"Nao",None).unwrap();assert_eq!(receive_gift(&mut theirs,&third).unwrap().signature_status,"warning");
+        let d=decode_gift(&first).unwrap();let mut header=d.header.clone();header.signer=None;header.gift_id=crate::ids::new_gift_id();let json=serde_json::to_vec(&header).unwrap();let mut legacy=b"PETAGIFT".to_vec();legacy.push(1);legacy.extend_from_slice(&(json.len() as u32).to_be_bytes());legacy.extend(json);legacy.extend(d.png);legacy.extend(d.mask);
+        assert_eq!(receive_gift(&mut theirs,&legacy).unwrap().signature_status,"unsigned");
+    }
+    #[test]
+    fn changing_sender_edition_or_png_is_rejected_before_any_receipt() {
+        let (mut mine,sticker)=sender_with_sticker();let (_,good)=build_gift(&mut mine,&sticker.id,"Nao",None).unwrap();let mut theirs=lib();
+        for changed in [
+            {let mut b=good.clone();let at=b.windows(7).position(|s|s==b"Satoshi").unwrap();b[at]=b'N';b},
+            {let mut b=good.clone();let at=b.windows(11).position(|s|s==b"\"edition\":1").unwrap();b[at+10]=b'2';b},
+            {let mut b=good.clone();let n=b.len();b[n-65]^=1;b},
+        ] {assert!(matches!(receive_gift(&mut theirs,&changed),Err(Error::Invalid(e)) if e.contains("invalid_signature")));}
+        assert!(theirs.db().gifts_received().unwrap().is_empty());assert_eq!(theirs.db().conn.query_row("SELECT COUNT(*) FROM friends",[],|r|r.get::<_,i64>(0)).unwrap(),0);
     }
 
     #[test]
