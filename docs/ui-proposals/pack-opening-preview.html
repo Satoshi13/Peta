@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Peta Pack Opening Preview</title>
+<link rel="stylesheet" href="../../src/fonts/fonts.css" />
+<style>
+:root {
+  --ink: #2b2a28; --ink2: #4a463f; --muted: #7a7468; --cream: #f5f0e6; --paper: #faf6ec; --line: #ddd4c2; --red: #d8453a;
+  --hand: "Klee One", "Noteworthy", cursive; --type: "Special Elite", "Courier New", monospace;
+  --sys: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --sh2: 0 1px 2px rgba(60,45,20,.3), 0 10px 22px rgba(60,45,20,.14); --sh3: 0 2px 4px rgba(60,45,20,.25), 0 24px 44px rgba(60,45,20,.24);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--cream) url("../../src/art/book/page-paper.jpg") 0 0 / 520px; color: var(--ink); font: 15px/1.7 var(--sys); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+img { -webkit-user-drag: none; user-select: none; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+.eyebrow { font: 12px/1 var(--type); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.hero { padding: 44px 0 14px; }
+.hero h1 { font-size: clamp(28px, 4.6vw, 42px); line-height: 1.2; margin: 10px 0 12px; letter-spacing: -.01em; }
+.hero p { max-width: 720px; color: var(--ink2); margin: 0 0 8px; }
+.note { background: rgba(255,253,249,.82); border-radius: 14px; padding: 14px 16px; box-shadow: var(--sh2); font-size: 13.5px; }
+.note h4 { margin: 0 0 4px; font: 12px var(--type); letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
+.note ul { margin: 0; padding-left: 1.1em; } .note li { margin: 3px 0; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 16px 0 0; }
+
+/* controls */
+.bar { position: sticky; top: 0; z-index: 40; background: rgba(245,240,230,.9); backdrop-filter: blur(14px); box-shadow: 0 1px 0 var(--line); padding: 10px 0; margin-top: 18px; }
+@media (max-width: 700px) { .bar { position: static; } }
+.bar .row { display: flex; gap: 10px 18px; align-items: center; flex-wrap: wrap; }
+.seg { display: inline-flex; background: rgba(0,0,0,.07); border-radius: 999px; padding: 3px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 5px 13px; border-radius: 999px; font-size: 13px; white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); font-weight: 600; }
+.lab { font: 11px var(--type); letter-spacing: .1em; color: var(--muted); text-transform: uppercase; margin-right: 4px; }
+.btn { border: 0; border-radius: 999px; padding: 8px 18px; background: var(--ink); color: #fff; font-weight: 600; box-shadow: 0 2px 0 rgba(0,0,0,.4), 0 8px 16px rgba(0,0,0,.2); }
+.btn:active { transform: translateY(1px); }
+.btn.quiet { background: rgba(255,255,255,.85); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+
+/* stage */
+.fit { position: relative; width: 100%; overflow: hidden; border-radius: 18px; box-shadow: var(--sh3); margin: 16px 0 0; background: #e9e0cd; }
+.stage { position: absolute; left: 0; top: 0; width: 960px; height: 560px; transform-origin: 0 0; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: none; font-family: var(--sys); }
+.stage .bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(255,250,238,.5), rgba(120,96,60,.28) 100%), url("../../src/art/book/page-paper.jpg") 0 0 / 420px, #d9cdb4; }
+.stage .shade { position: absolute; inset: 0; background: #0c0a14; opacity: 0; transition: opacity .5s; pointer-events: none; }
+.stage .world { position: absolute; inset: 0; perspective: 1400px; }
+.stage canvas.fx { position: absolute; inset: 0; width: 960px; height: 560px; pointer-events: none; z-index: 60; }
+.stage .flash { position: absolute; inset: 0; opacity: 0; pointer-events: none; z-index: 70; }
+.stage .hintp { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 80; font: 600 15px/1 var(--hand); color: #fff; background: rgba(43,42,40,.78); padding: 9px 18px; border-radius: 999px; pointer-events: none; transition: opacity .3s; white-space: nowrap; }
+.stage .hintp:empty { opacity: 0; }
+.abs { position: absolute; }
+.fill { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
+.stkw { position: absolute; transform: translate(-50%, -50%); }
+.tilt { transition: transform .12s ease-out; }
+.stk { position: relative; isolation: isolate; filter: drop-shadow(0 2px 2px rgba(24,16,30,.34)) drop-shadow(0 12px 12px rgba(24,16,30,.18)); }
+.stk img.face { display: block; width: 100%; height: auto; pointer-events: none; }
+.stk .sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  background: linear-gradient(115deg, #ffc2e6, #c5bcff 20%, #a9e4ff 36%, #b9ffd9 52%, #fff3a8 68%, #ffc2e6 84%, #c5bcff); background-size: 320% 320%; background-position: var(--bx, 50%) var(--by, 50%); }
+.seal { position: absolute; width: 124px; height: 44px; background-size: 100% 100%; display: grid; place-items: center; font: 14px/1 var(--type); letter-spacing: .12em; color: #3a3226; text-shadow: 0 1px 0 rgba(255,255,255,.5); filter: drop-shadow(1px 2px 1px rgba(40,30,10,.3)); }
+.newstamp { position: absolute; font: 700 15px/1 var(--type); letter-spacing: .14em; color: var(--red); border: 2.5px solid var(--red); border-radius: 5px; padding: 5px 9px; background: rgba(255,250,240,.6); mix-blend-mode: multiply; }
+.cap { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; white-space: nowrap; pointer-events: none; }
+.cap b { display: block; font: 600 24px/1.2 var(--hand); color: #2b2a28; text-shadow: 0 1px 0 rgba(255,255,255,.6); }
+.cap small { font: 12px var(--type); letter-spacing: .08em; color: #5a5448; }
+.rays { position: absolute; width: 940px; height: 940px; margin: -470px 0 0 -470px; border-radius: 50%; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, rgba(255,226,122,.5) 0 5deg, rgba(255,226,122,0) 5deg 15deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0, rgba(0,0,0,.6) 40%, transparent 70%); mask-image: radial-gradient(circle, #000 0, rgba(0,0,0,.6) 40%, transparent 70%);
+  animation: spin 36s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pshadow { position: absolute; border-radius: 50%; background: radial-gradient(ellipse, rgba(50,36,16,.4), transparent 70%); filter: blur(4px); }
+.paper { background: #f7f1e2 url("../../src/art/book/page-paper.jpg") 0 0 / 300px; box-shadow: 0 1px 2px rgba(60,45,20,.35), 0 14px 26px rgba(60,45,20,.25); }
+.sheetface { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.menubar { position: absolute; left: 0; top: 0; width: 100%; height: 24px; background: rgba(36,33,30,.88); color: #e8e2d4; font: 11px/24px var(--type); padding: 0 14px; letter-spacing: .06em; z-index: 5; }
+
+/* info */
+.info { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; margin: 18px 0 0; } @media (max-width: 820px) { .info { grid-template-columns: 1fr; } }
+.info h2 { margin: 0 0 4px; font-size: 22px; }
+.info .sub { color: var(--ink2); margin: 0 0 8px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; } .tag { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
+.stars { font-family: var(--type); color: var(--red); letter-spacing: .1em; }
+section.blk { padding: 40px 0 6px; } section.blk h2 { font-size: clamp(22px, 3vw, 28px); margin: 6px 0 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: rgba(255,253,249,.85); border-radius: 14px; overflow: hidden; box-shadow: var(--sh2); }
+th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; } th { font: 11px var(--type); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: rgba(0,0,0,.03); }
+.tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+footer { padding: 40px 0 70px; color: var(--muted); font-size: 12.5px; }
+.toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px); background: var(--ink); color: #fff; padding: 8px 18px; border-radius: 999px; font-size: 13px; opacity: 0; transition: .25s; z-index: 99; pointer-events: none; } .toast.on { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Peta · Pack opening · preview only</div>
+    <h1>パックを開ける 7 つの手触り</h1>
+    <p>ガチャの気持ちよさは「<b>開ける動作</b>」と「<b>当たりの見せ方</b>」の掛け算です。ここでは<b>開け方を 7 種類</b>、<b>当たり演出を 3 段階(Common / Uncommon / Rare)</b>に分けて、Peta の紙・クラフト・ホログラム・台紙・印刷口の世界のまま触れるようにしました。</p>
+    <p>アプリ本体は変更していません(この HTML だけの試作です)。上のバーで<b>開け方</b>と<b>レアリティ</b>を切り替えて、実際に操作してみてください。</p>
+    <div class="cols">
+      <div class="note"><h4>見方</h4><ul><li>操作は<b>マウスのドラッグ / 長押し</b>(タッチも可)</li><li>「もう一度」で別のステッカー・別の抽選結果に</li><li>音は Web Audio の仮音(本実装では差し替え)</li></ul></div>
+      <div class="note"><h4>前提(決定事項より)</h4><ul><li>1枚だけランダムに開封 → 今日の Peta になる</li><li>素材は<b>紙・クラフト・ホログラム</b>、光は左上、影は薄く</li><li>ゲーム UI・数値の煽り・実写の机や手は<b>使わない</b></li></ul></div>
+    </div>
+  </header>
+</div>
+
+<div class="bar"><div class="wrap">
+  <div class="row">
+    <span><span class="lab">開け方</span><span class="seg" id="segPat"></span></span>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <span><span class="lab">レアリティ</span><span class="seg" id="segRar"></span></span>
+    <span><span class="lab">音</span><span class="seg" id="segSnd"></span></span>
+    <button class="btn" id="again">↻ もう一度</button>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <div class="fit" id="fit">
+    <div class="stage" id="stage">
+      <div class="bg"></div>
+      <div class="shade" id="shade"></div>
+      <div class="world" id="world"></div>
+      <canvas class="fx" id="fx" width="1920" height="1120"></canvas>
+      <div class="flash" id="flash"></div>
+      <div class="hintp" id="hint"></div>
+    </div>
+  </div>
+
+  <div class="info" id="info"></div>
+
+  <section class="blk">
+    <div class="eyebrow">Rarity tiers</div>
+    <h2>当たりの見せ方は、開け方とは別に「3 段階」で共通化</h2>
+    <p style="max-width:740px;color:var(--ink2)">開け方を変えても、最後の「めくれた瞬間」は同じレアリティ演出に集約すると、実装も世界観の統一も楽です。Peta は「1日ひとつ」の穏やかなアプリなので、<b>派手なのは Rare(約10%)だけ</b>にして、Common は 3 秒以内に静かに終わらせるのがおすすめです。</p>
+    <div class="tiers">
+      <div class="note"><h4>Common · 60%</h4><ul><li>白い光がふわっと・星 6 粒</li><li>ぺたっとクリーム色のシール</li><li>音は小さな「ぽん」</li><li>所要 ≒ 2.5 秒</li></ul></div>
+      <div class="note"><h4>Uncommon · 30%</h4><ul><li>暖色の光・星 14 粒・紙吹雪</li><li>うっすら画面が暗くなる</li><li>クラフト色のシール・和音 3 音</li><li>所要 ≒ 3.5 秒</li></ul></div>
+      <div class="note"><h4>Rare · 10%</h4><ul><li><b>ヒットストップ</b>(一瞬止まる)→ 画面が暗転</li><li>金の放射光・星 34 粒・紙吹雪 60 枚</li><li>ホログラムのシール + 角度で光る</li><li>上昇アルペジオ・所要 ≒ 5 秒</li></ul></div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="eyebrow">Comparison</div>
+    <h2>7 案の比較</h2>
+    <table>
+      <thead><tr><th>開け方</th><th>ドキドキ</th><th>世界観</th><th>手触り</th><th>実装</th><th>向いている場面</th></tr></thead>
+      <tbody>
+        <tr><td><b>1 ちぎる</b></td><td class="stars">★★★</td><td class="stars">★★★</td><td class="stars">★★★</td><td class="stars">★★☆</td><td>毎日の Welcome Pack の基本形(今の仕様の強化版)</td></tr>
+        <tr><td><b>2 ハサミ</b></td><td class="stars">★★☆</td><td class="stars">★★★</td><td class="stars">★★☆</td><td class="stars">★★☆</td><td>クラフト袋の Pack・文房具らしさを出したい時</td></tr>
+        <tr><td><b>3 ぺりっ</b></td><td class="stars">★★★</td><td class="stars">★★★</td><td class="stars">★★★</td><td class="stars">★★★</td><td><b>「ステッカーアプリ」らしさが一番出る</b>。チラ見え→全開の焦らしが強い</td></tr>
+        <tr><td><b>4 こする</b></td><td class="stars">★★★</td><td class="stars">★★☆</td><td class="stars">★★★</td><td class="stars">★★☆</td><td>ホログラム素材のカード・特別な日のパック</td></tr>
+        <tr><td><b>5 ためる</b></td><td class="stars">★★★</td><td class="stars">★★☆</td><td class="stars">★★☆</td><td class="stars">★★★</td><td>Market で手に入れたレア寄りのパック・まとめ開封</td></tr>
+        <tr><td><b>6 プリント</b></td><td class="stars">★★☆</td><td class="stars">★★★</td><td class="stars">★★★</td><td class="stars">★★★</td><td>既存の「印刷 → つかむ → 貼る」と一続きにできる</td></tr>
+        <tr><td><b>7 えらぶ</b></td><td class="stars">★★★</td><td class="stars">★★☆</td><td class="stars">★★☆</td><td class="stars">★★☆</td><td>自分で引いた感が欲しい時(中身の抽選は同じ)。外れの中身も見える</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="blk">
+    <div class="eyebrow">Recommendation</div>
+    <h2>おすすめの組み合わせ</h2>
+    <div class="cols">
+      <div class="note"><h4>毎日の Welcome Pack</h4><ul><li><b>3 ぺりっ</b>、または <b>1 ちぎる</b></li><li>静かで 1 日 1 回の儀式向き。「ステッカー」らしさ最大</li></ul></div>
+      <div class="note"><h4>Market のパック</h4><ul><li><b>5 ためる</b> or <b>4 こする</b></li><li>何度も開けるので、短くて気持ちいい方が飽きない</li></ul></div>
+      <div class="note"><h4>Gift / 特別な日</h4><ul><li><b>2 ハサミ</b>(封筒・クラフト)や封蝋を割る案</li><li>「誰かからの」文脈に文房具の手触りが合う</li></ul></div>
+    </div>
+    <div class="cols">
+      <div class="note"><h4>入れたい工夫(どの案にも共通)</h4><ul><li><b>スキップ</b>(2 回目以降は Space で省略)</li><li><b>NEW / Edition #</b> のスタンプ</li><li>開けたあとの<b>空き袋が机の隅に残る</b></li><li><code>prefers-reduced-motion</code> では光と揺れを減らす</li></ul></div>
+      <div class="note"><h4>入れない方がよい工夫</h4><ul><li>「あと少しで Rare だった」的な<b>ニアミス演出</b>(煽りになる)</li><li>確率の数字や連続ハズレの表示</li><li>画面全体の点滅・長い暗転(Rare でも 1 秒以内)</li></ul></div>
+      <div class="note"><h4>プレビューにはまだ無い案</h4><ul><li>ガチャ機のレバーを回す(要・専用の絵)</li><li>封蝋を割って開ける(Gift 向き)</li><li>10 枚まとめ開封(台紙が一列に並ぶ)</li><li>季節限定パックの外装違い / 日付スタンプぽん</li></ul></div>
+    </div>
+  </section>
+
+  <footer>Peta · docs/ui-proposals/pack-opening-preview.html — 実装なしのプレビュー。素材は <code>src/art/</code> を直接参照しています(ブラウザで <code>python3 -m http.server</code> 経由で開いてください)。</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ───────────── utils ───────────── */
+const ART = "../../src/art/";
+const $ = (s, r = document) => r.querySelector(s);
+const el = (cls, style, html) => { const d = document.createElement("div"); if (cls) d.className = cls; if (style) Object.assign(d.style, style); if (html != null) d.innerHTML = html; return d; };
+const imgEl = (src, cls, style) => { const i = new Image(); i.src = ART + src; i.draggable = false; if (cls) i.className = cls; if (style) Object.assign(i.style, style); return i; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const E = { out: "cubic-bezier(.2,.8,.2,1)", spring: "cubic-bezier(.34,1.56,.64,1)", in: "cubic-bezier(.5,0,.9,.4)" };
+const DEAD = Symbol("dead");
+
+const STICKERS = [
+  ["cat-skateboard.png", "Skate Cat"], ["blue-flower.png", "Blue Flower"], ["cassette-tape.png", "Cassette"], ["coffee-cup.png", "Morning Coffee"],
+  ["film-camera.png", "Film Camera"], ["fried-egg.png", "Fried Egg"], ["good-day.png", "GOOD DAY"], ["peta-bubble.png", "Peta Says"],
+  ["polaroid-mountain.png", "Polaroid Hills"], ["potted-plant.png", "Little Plant"], ["purple-scribble.png", "Purple Line"], ["retro-computer.png", "Retro PC"],
+].map(([file, name]) => ({ file, name }));
+STICKERS.forEach((s) => { const i = new Image(); i.src = ART + "samples/" + s.file; });
+["pack/pack-holographic.png", "pack/pack-kraft.png", "pack/pack-pouch-closed.png", "print/backing-sheet.png", "today/sparkles-sheet.png", "gift/wax-seal.png"].forEach((s) => { new Image().src = ART + s; });
+
+const RAR = {
+  common:   { label: "COMMON",   seal: "ui/seal-common.png",   color: "#fff3d2", glow: "rgba(255,244,214,.9)", spark: 6,  confetti: 0,  rays: false, flash: .12, dim: 0,   hit: 0,   notes: [660, 880], pal: ["#ffffff", "#f3ead6"] },
+  uncommon: { label: "UNCOMMON", seal: "ui/seal-uncommon.png", color: "#ffc98a", glow: "rgba(255,196,128,.9)", spark: 14, confetti: 22, rays: false, flash: .3,  dim: .18, hit: 0,   notes: [523, 659, 784], pal: ["#f4c58b", "#a8d8c8", "#fff4d6", "#e8a8b8"] },
+  rare:     { label: "RARE",     seal: "ui/seal-rare.png",     color: "#ffe27a", glow: "rgba(255,222,110,.95)", spark: 34, confetti: 64, rays: true,  flash: .55, dim: .5,  hit: 150, notes: [523, 659, 784, 1047, 1319], pal: ["#ffd96a", "#ffb3e0", "#a9e4ff", "#c5bcff", "#b9ffd9", "#fff3a8"] },
+};
+const rollRarity = () => { const r = Math.random(); return r < .6 ? "common" : r < .9 ? "uncommon" : "rare"; };
+
+/* ───────────── sound (tiny Web Audio) ───────────── */
+const Snd = {
+  on: true, c: null,
+  ctx() { if (!this.on) return null; if (!this.c) { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; this.c = new A(); } if (this.c.state === "suspended") this.c.resume(); return this.c; },
+  noise(dur = .06, { f = 2500, q = 1, g = .15, type = "bandpass", at = 0 } = {}) {
+    const c = this.ctx(); if (!c) return; const n = (c.sampleRate * dur) | 0, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const s = c.createBufferSource(); s.buffer = b; const fl = c.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q; const gn = c.createGain(); gn.gain.value = g;
+    s.connect(fl); fl.connect(gn); gn.connect(c.destination); s.start(c.currentTime + at);
+  },
+  tone(freq, { dur = .3, type = "sine", g = .1, at = 0, slide = 0 } = {}) {
+    const c = this.ctx(); if (!c) return; const o = c.createOscillator(), gn = c.createGain(), t = c.currentTime + at;
+    o.type = type; o.frequency.setValueAtTime(freq, t); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq * slide), t + dur);
+    gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(g, t + .012); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(gn); gn.connect(c.destination); o.start(t); o.stop(t + dur + .05);
+  },
+  rip(k = 1) { this.noise(.05 + rnd(0, .04), { f: rnd(1800, 3400) * k, q: .8, g: .13 }); },
+  snip() { this.noise(.035, { f: 5200, q: 1.2, g: .16, type: "highpass" }); this.tone(1800, { dur: .04, type: "square", g: .02 }); },
+  thud() { this.tone(130, { dur: .16, g: .22, slide: .4 }); this.noise(.06, { f: 400, g: .1, type: "lowpass" }); },
+  tick() { this.tone(2400, { dur: .02, type: "square", g: .015 }); },
+  pop() { this.tone(300, { dur: .18, g: .2, slide: 3 }); this.noise(.14, { f: 1400, g: .18 }); },
+  chime(notes) { notes.forEach((f, i) => { this.tone(f, { dur: .8, type: "triangle", g: .1, at: i * .075 }); this.tone(f * 2, { dur: .5, g: .03, at: i * .075 }); }); },
+  whirr(dur = 2) { const c = this.ctx(); if (!c) return; const o = c.createOscillator(), l = c.createOscillator(), lg = c.createGain(), g = c.createGain(), t = c.currentTime; o.type = "sawtooth"; o.frequency.value = 78; l.frequency.value = 22; lg.gain.value = 14; l.connect(lg); lg.connect(o.frequency); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .15); g.gain.setValueAtTime(.05, t + dur - .2); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(c.destination); o.start(t); l.start(t); o.stop(t + dur + .1); l.stop(t + dur + .1); },
+  charge() { const c = this.ctx(); if (!c) return null; const o = c.createOscillator(), g = c.createGain(); o.type = "triangle"; o.frequency.value = 180; g.gain.value = 0.0001; o.connect(g); g.connect(c.destination); o.start();
+    return { set(p) { const t = c.currentTime; o.frequency.setTargetAtTime(180 + p * 900, t, .05); g.gain.setTargetAtTime(p > 0 ? .02 + p * .07 : 0.0001, t, .05); }, stop() { g.gain.setTargetAtTime(0.0001, c.currentTime, .04); o.stop(c.currentTime + .2); } }; },
+};
+
+/* ───────────── particles ───────────── */
+const sparkImg = new Image(); sparkImg.src = ART + "today/sparkles-sheet.png";
+const FX = {
+  cv: null, g: null, ps: [], raf: 0, last: 0,
+  init() { this.cv = $("#fx"); this.g = this.cv.getContext("2d"); },
+  clear() { this.ps.length = 0; if (this.g) this.g.clearRect(0, 0, 1920, 1120); },
+  add(p) { this.ps.push(p); if (!this.raf) { this.last = performance.now(); this.raf = requestAnimationFrame((t) => this.loop(t)); } },
+  loop(t) {
+    const dt = Math.min(.05, (t - this.last) / 1000); this.last = t; const g = this.g; g.clearRect(0, 0, 1920, 1120);
+    this.ps = this.ps.filter((p) => (p.age += dt) < p.life);
+    for (const p of this.ps) {
+      p.vy += (p.g || 0) * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= p.drag ?? 1; p.rot += (p.vr || 0) * dt;
+      const k = p.age / p.life; let a = p.kind === "spark" ? Math.sin(Math.PI * Math.min(1, k * 1.15)) * (.65 + .35 * Math.sin(p.age * 22 + p.tw)) : 1 - Math.pow(k, 3);
+      g.save(); g.globalAlpha = clamp(a, 0, 1); g.translate(p.x * 2, p.y * 2); g.rotate(p.rot);
+      if (p.kind === "spark") { const s = p.size * 2 * (.6 + .4 * Math.sin(Math.PI * k)); if (sparkImg.complete) g.drawImage(sparkImg, p.frame * 256, 0, 256, 256, -s / 2, -s / 2, s, s); }
+      else if (p.kind === "conf") { g.scale(1, Math.cos(p.age * p.flip)); g.fillStyle = p.color; g.fillRect(-p.w, -p.h, p.w * 2, p.h * 2); }
+      else if (p.kind === "dot") { g.fillStyle = p.color; g.beginPath(); g.arc(0, 0, p.size, 0, 7); g.fill(); }
+      g.restore();
+    }
+    if (this.ps.length) this.raf = requestAnimationFrame((tt) => this.loop(tt)); else { this.raf = 0; g.clearRect(0, 0, 1920, 1120); }
+  },
+  spark(x, y, o = {}) { this.add({ kind: "spark", x, y, vx: o.vx ?? rnd(-30, 30), vy: o.vy ?? rnd(-60, -10), g: o.g ?? -20, drag: .985, rot: rnd(-.5, .5), vr: rnd(-1, 1), age: 0, life: o.life ?? rnd(.7, 1.3), size: o.size ?? rnd(16, 38), frame: (Math.random() * 4) | 0, tw: rnd(0, 6) }); },
+  burst(x, y, rar) {
+    const R = RAR[rar];
+    for (let i = 0; i < R.spark; i++) { const a = rnd(0, 6.283), v = rnd(100, rar === "rare" ? 520 : 340); this.spark(x, y, { vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, g: 60, life: rnd(.8, 1.7), size: rnd(16, rar === "rare" ? 48 : 34) }); }
+    for (let i = 0; i < R.confetti; i++) this.add({ kind: "conf", x, y, vx: rnd(-340, 340), vy: rnd(-620, -120), g: 760, drag: .992, rot: rnd(0, 6), vr: rnd(-6, 6), age: 0, life: rnd(1.4, 2.4), w: rnd(3, 7), h: rnd(2, 4), color: pick(R.pal), flip: rnd(6, 14) });
+  },
+};
+
+/* ───────────── stage + run context ───────────── */
+const stage = $("#stage"), world = $("#world"), fit = $("#fit"), hintEl = $("#hint");
+let K = 1, run = null, patIdx = 0, rarMode = "random", runCount = 0;
+function fitStage() { K = fit.clientWidth / 960; stage.style.transform = `scale(${K})`; fit.style.height = 560 * K + "px"; }
+addEventListener("resize", fitStage);
+const shade = (a) => { $("#shade").style.opacity = a; };
+const flash = (c, a) => { const f = $("#flash"); f.style.background = c; f.animate([{ opacity: a }, { opacity: 0 }], { duration: 480, easing: "ease-out" }); };
+const toast = (t) => { const e = $("#toast"); e.textContent = t; e.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove("on"), 1800); };
+
+function newRun() {
+  if (run) { run.dead = true; run.ctl.abort(); }
+  runCount++;
+  const ctl = new AbortController(); const r = { dead: false, ctl };
+  run = r; world.innerHTML = ""; FX.clear(); shade(0); hintEl.textContent = "";
+  const rar = rarMode === "random" ? rollRarity() : rarMode;
+  const sticker = pick(STICKERS);
+  const S = {
+    world, sig: ctl.signal, rar, sticker,
+    chk() { if (r.dead) throw DEAD; },
+    async sleep(ms) { await new Promise((res) => setTimeout(res, ms)); if (r.dead) throw DEAD; },
+    async anim(elm, kf, o = {}) { const a = elm.animate(kf, { fill: "forwards", easing: E.out, ...o }); await a.finished.catch(() => {}); if (r.dead) throw DEAD; return a; },
+    hint(t) { if (!r.dead) hintEl.textContent = t; },
+    pt(e) { const b = stage.getBoundingClientRect(); return { x: (e.clientX - b.left) / K, y: (e.clientY - b.top) / K }; },
+    on(target, ev, fn, opt) { target.addEventListener(ev, fn, { signal: ctl.signal, ...opt }); },
+  };
+  return S;
+}
+async function exec(fn) { const S = newRun(); try { await fn(S); } catch (e) { if (e !== DEAD) console.error(e); } }
+
+/* ───────────── shared: sticker, landing, reveal ───────────── */
+function makeSticker(S, w) {
+  const wrap = el("stkw", { width: w + "px" }), tilt = el("tilt"), stk = el("stk"), face = imgEl("samples/" + S.sticker.file, "face");
+  stk.append(face);
+  if (S.rar !== "common") { const sh = el("sheen"), u = `url(${ART}samples/${S.sticker.file})`; sh.style.webkitMaskImage = u; sh.style.maskImage = u; sh.style.opacity = S.rar === "rare" ? .62 : .2; stk.append(sh); }
+  tilt.append(stk); wrap.append(tilt);
+  return { wrap, tilt, stk, face };
+}
+function enableTilt(S, st) {
+  const w = st.wrap;
+  S.on(w, "pointermove", (e) => { const r = w.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    st.tilt.style.transform = `perspective(800px) rotateY(${(x - .5) * 22}deg) rotateX(${-(y - .5) * 18}deg)`; st.stk.style.setProperty("--bx", (1 - x) * 100 + "%"); st.stk.style.setProperty("--by", (1 - y) * 100 + "%"); });
+  S.on(w, "pointerleave", () => { st.tilt.style.transform = ""; });
+}
+function addRays(S, x, y, R) {
+  const r = el("rays", { left: x + "px", top: y + "px", opacity: 0 }); world.insertBefore(r, world.firstChild); r.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 700, fill: "forwards" }); return r;
+}
+/* seal + NEW + caption, positioned relative to the sticker wrap */
+function finishSticker(S, st, cx, cy, w, h, { caption = true } = {}) {
+  const R = RAR[S.rar];
+  const seal = el("seal", { left: "-14px", bottom: "-8px", backgroundImage: `url(${ART}${R.seal})`, transform: "rotate(-7deg)", opacity: 0 }, R.label); st.wrap.append(seal);
+  seal.animate([{ opacity: 0, transform: "rotate(-7deg) scale(2.4)" }, { opacity: 1, transform: "rotate(-7deg) scale(.92)", offset: .6 }, { opacity: 1, transform: "rotate(-7deg) scale(1)" }], { duration: 380, fill: "forwards", easing: E.out, delay: 150 });
+  setTimeout(() => Snd.thud(), 330);
+  const nw = el("newstamp", { right: "-6px", top: "-8px", opacity: 0, transform: "rotate(9deg)" }, "NEW"); st.wrap.append(nw);
+  nw.animate([{ opacity: 0, transform: "rotate(9deg) scale(2)" }, { opacity: .95, transform: "rotate(9deg) scale(1)" }], { duration: 300, fill: "forwards", easing: E.out, delay: 520 });
+  if (caption) {
+    const c = el("cap", { top: "calc(100% + 18px)", left: "50%", opacity: 0, filter: R.dim >= .3 ? "invert(1)" : "" }, `<b>${S.sticker.name}</b><small>Edition #${String(40 + ((Math.random() * 400) | 0)).padStart(4, "0")} · Welcome Pack by Peta</small>`);
+    st.wrap.append(c); c.animate([{ opacity: 0, transform: "translate(-50%,8px)" }, { opacity: 1, transform: "translate(-50%,0)" }], { duration: 500, fill: "forwards", easing: E.out, delay: 700 });
+  }
+  enableTilt(S, st);
+}
+/* the "hit": hit-stop, flash, dim, rays, burst, chime */
+async function hitMoment(S, x, y) {
+  const R = RAR[S.rar];
+  if (R.dim) shade(R.dim);
+  if (R.hit) await S.sleep(R.hit);
+  flash(R.color, R.flash); FX.burst(x, y, S.rar); if (R.rays) addRays(S, x, y, R); Snd.chime(R.notes);
+}
+/* generic reveal: flies a sticker from `from` to the centre and lands it */
+async function reveal(S, from, to = { x: 480, y: 238, w: 290 }) {
+  const st = makeSticker(S, to.w);
+  Object.assign(st.wrap.style, { left: to.x + "px", top: to.y + "px" });
+  const h = (st.face.naturalHeight / (st.face.naturalWidth || 1)) * to.w || to.w;
+  const start = `translate(-50%,-50%) translate(${from.x - to.x}px,${from.y - to.y}px) scale(${from.w / to.w}) rotate(${from.rot || 0}deg)`;
+  st.wrap.style.transform = start; world.append(st.wrap);
+  const a = await S.anim(st.wrap, [{ transform: start }, { transform: "translate(-50%,-50%) scale(1.14)", offset: .72 }, { transform: "translate(-50%,-50%) scale(1)" }], { duration: 640, easing: E.out });
+  st.wrap.style.transform = "translate(-50%,-50%)"; a.cancel();
+  await hitMoment(S, to.x, to.y);
+  finishSticker(S, st, to.x, to.y, to.w, h);
+  S.hint("");
+  return st;
+}
+const poly = (pts) => `polygon(${pts.map(([x, y]) => `${(x * 100).toFixed(2)}% ${(y * 100).toFixed(2)}%`).join(",")})`;
+const polyPx = (pts) => pts.length < 3 ? "polygon(0 0,0 0,0 0)" : `polygon(${pts.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(",")})`;
+
+/* 2D card flip: squeeze, swap faces, expand */
+async function flip(S, fl, back, front, dur = 440) {
+  await S.anim(fl, [{ transform: "scaleX(1)" }, { transform: "scaleX(0.02)" }], { duration: dur / 2, easing: "ease-in" });
+  back.style.display = "none"; front.style.display = "block";
+  await S.anim(fl, [{ transform: "scaleX(0.02)" }, { transform: "scaleX(1)" }], { duration: dur / 2, easing: "ease-out" });
+}
+/* the sticker backing sheet that rises out of a pack, flips, and hands over to reveal() */
+async function emergeSheet(S, { cx, cutY, pack, packShadow, clipW = 230 }) {
+  const SW = 170, SH = 170, clipH = 560, clipTop = cutY - clipH + 6;
+  const clip = el("abs", { left: cx - clipW / 2 + "px", top: clipTop + "px", width: clipW + "px", height: clipH + "px", overflow: "hidden" });
+  world.insertBefore(clip, pack);
+  const inner = el("abs", { left: (clipW - SW) / 2 + "px", top: clipH + "px", width: SW + "px", height: SH + "px" });
+  const back = el("sheetface paper"); back.append(imgEl("print/backing-sheet.png", "fill")); back.append(imgEl("gift/wax-seal.png", "abs", { width: "58px", left: SW / 2 - 29 + "px", top: SH / 2 - 29 + "px", opacity: .95 }));
+  const front = el("sheetface paper", { display: "none" }); front.append(imgEl("print/backing-sheet.png", "fill"));
+  const sp = imgEl("samples/" + S.sticker.file, "abs", { width: "122px", left: (SW - 122) / 2 + "px", top: SH / 2 - 52 + "px", filter: "drop-shadow(0 2px 2px rgba(30,20,10,.3))" }); front.append(sp);
+  const fl = el("", { position: "absolute", left: 0, top: 0, width: "100%", height: "100%" }); fl.append(back, front); inner.append(fl); clip.append(inner);
+  const rise = clipH - (SH + 14);
+  await S.anim(inner, [{ transform: "translateY(0)" }, { transform: `translateY(${-(clipH - rise) + 0}px)` }], { duration: 1000, easing: "cubic-bezier(.3,1.4,.5,1)" }).catch((e) => { throw e; });
+  /* detach into world coords */
+  const sx = cx, sy = clipTop + rise + SH / 2;
+  const free = el("abs", { left: sx - SW / 2 + "px", top: sy - SH / 2 + "px", width: SW + "px", height: SH + "px" });
+  free.append(fl); world.append(free); clip.remove();
+  S.hint("");
+  await Promise.all([S.anim(free, [{ transform: "translateY(0) scale(1)" }, { transform: "translateY(-22px) scale(1.12)", offset: .5 }, { transform: "translateY(0) scale(1.06)" }], { duration: 560, easing: "ease-in-out" }), flip(S, fl, back, front, 560)]);
+  sp.style.opacity = 0;
+  const bounds = { x: sx, y: sy, w: 122 };
+  free.animate([{ transform: "translateY(0) scale(1.06)", opacity: 1 }, { transform: "translateY(150px) rotate(-5deg) scale(1.02)", opacity: 0 }], { duration: 700, delay: 260, fill: "forwards", easing: E.in });
+  /* empty pack goes to the corner */
+  pack.animate([{ transform: "none", opacity: 1 }, { transform: "translate(-380px,130px) rotate(-14deg) scale(.5)", opacity: 1 }], { duration: 800, delay: 120, fill: "forwards", easing: E.out });
+  if (packShadow) packShadow.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: "forwards" });
+  return reveal(S, bounds);
+}
+function openGlow(S, x, y, w) {
+  const R = RAR[S.rar]; const g = el("abs", { left: x - w / 2 + "px", top: y - 40 + "px", width: w + "px", height: "70px", borderRadius: "50%", background: `radial-gradient(ellipse, ${R.glow}, transparent 70%)`, filter: "blur(6px)", opacity: 0, mixBlendMode: "screen" });
+  world.append(g); g.animate([{ opacity: 0 }, { opacity: S.rar === "rare" ? 1 : S.rar === "uncommon" ? .8 : .55 }], { duration: 500, fill: "forwards" });
+  return g;
+}
+
+/* ═════════════ 1 & 2: tear / scissors ═════════════ */
+async function patTear(S, mode) {
+  const kind = mode === "tear" ? "holographic" : "kraft", W = 250, H = 333, L = (960 - W) / 2, T = 190, N = 16, cut = mode === "tear" ? .122 : .14;
+  const cutY = T + cut * H, cx = 480;
+  const sh = el("pshadow", { left: L + 20 + "px", top: T + H - 16 + "px", width: W - 40 + "px", height: "34px" }); world.append(sh);
+  const pack = el("abs", { left: L + "px", top: T + "px", width: W + "px", height: H + "px", transformOrigin: "50% 100%" }); world.append(pack);
+  const offs = Array.from({ length: 81 }, (_, i) => mode === "tear" ? rnd(-.010, .010) + (i % 2 ? .007 : -.007) : 0);
+  const yAt = (i) => cut + offs[i];
+  const bodyPts = []; for (let i = 0; i <= 80; i++) bodyPts.push([i / 80, yAt(i)]); bodyPts.push([1, 1], [0, 1]);
+  const body = imgEl("pack/pack-" + kind + ".png", "fill"); body.style.clipPath = poly(bodyPts); pack.append(body);
+  const slices = [];
+  for (let j = 0; j < N; j++) {
+    const i0 = j * 5, i1 = (j + 1) * 5, pts = [[i0 / 80 - .002, 0], [i1 / 80 + .002, 0]]; for (let i = i1; i >= i0; i--) pts.push([i / 80, yAt(i)]);
+    const s = imgEl("pack/pack-" + kind + ".png", "fill"); s.style.clipPath = poly(pts); s.style.transformOrigin = `${((i0 + i1) / 160) * W}px ${cut * H}px`; pack.append(s); slices.push(s);
+  }
+  /* scissors guide */
+  let scis = null, lineDone = null;
+  if (mode === "scissors") {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("class", "abs"); svg.setAttribute("width", W); svg.setAttribute("height", H); svg.style.cssText = "left:0;top:0;pointer-events:none;overflow:visible";
+    svg.innerHTML = `<line x1="${W * .04}" y1="${cut * H}" x2="${W * .96}" y2="${cut * H}" stroke="#5b4a2e" stroke-width="2" stroke-dasharray="9 7" opacity=".75"/><line id="ld" x1="${W * .04}" y1="${cut * H}" x2="${W * .04}" y2="${cut * H}" stroke="#2b2a28" stroke-width="2.4"/>`;
+    pack.append(svg); lineDone = svg.querySelector("#ld");
+    scis = el("abs", { width: "120px", height: "60px", left: L - 70 + "px", top: cutY - 30 + "px", pointerEvents: "none", zIndex: 6, filter: "drop-shadow(0 4px 3px rgba(40,30,10,.35))" });
+    scis.innerHTML = `<svg width="120" height="60" viewBox="0 0 120 60" style="overflow:visible"><g class="bt" style="transform-origin:52px 30px;transition:transform .05s"><path d="M52 30 L119 28 L119 31 Z" fill="#dfe3ea" stroke="#6b7080" stroke-width="1"/><path d="M50 30 L28 15" stroke="#d8453a" stroke-width="5" stroke-linecap="round"/><ellipse cx="20" cy="11" rx="15" ry="9" fill="none" stroke="#d8453a" stroke-width="5"/></g><g class="bb" style="transform-origin:52px 30px;transition:transform .05s"><path d="M52 30 L119 32 L119 29 Z" fill="#cfd4dc" stroke="#6b7080" stroke-width="1"/><path d="M50 30 L28 45" stroke="#d8453a" stroke-width="5" stroke-linecap="round"/><ellipse cx="20" cy="49" rx="15" ry="9" fill="none" stroke="#d8453a" stroke-width="5"/></g><circle cx="52" cy="30" r="3.2" fill="#444"/></svg>`;
+    world.append(scis); scis.animate([{ transform: "translateX(0)" }, { transform: "translateX(10px)" }], { duration: 700, direction: "alternate", iterations: Infinity, easing: "ease-in-out" });
+  }
+  const zone = el("abs", { left: L - 60 + "px", top: cutY - 46 + "px", width: W + 120 + "px", height: "92px", cursor: "grab", zIndex: 7 }); world.append(zone);
+  S.hint(mode === "tear" ? "上のふちをつかんで、横へ引いてちぎる" : "点線のうえを、ハサミで なぞって切る");
+  const torn = new Array(N).fill(false); let side = null, dragging = false, last = 0, done = false, lastX = 0, openedLevel = 0;
+  const glow = openGlow(S, cx, cutY, W * .86); glow.style.opacity = 0; glow.getAnimations().forEach((a) => a.cancel());
+  function tearSlice(j) {
+    torn[j] = true; Snd.rip(rnd(.8, 1.3));
+    const s = slices[j], dir = side === "L" ? 1 : -1;
+    s.animate([{ transform: "none", opacity: 1 }, { transform: `translate(${dir * rnd(10, 30)}px,${-rnd(26, 70)}px) rotate(${dir * rnd(10, 40)}deg)`, opacity: 1, offset: .35 }, { transform: `translate(${dir * rnd(40, 110)}px,${rnd(160, 300)}px) rotate(${dir * rnd(60, 220)}deg)`, opacity: 0 }], { duration: 950, fill: "forwards", easing: "cubic-bezier(.3,.1,.6,1)" });
+    if (S.rar !== "common" && Math.random() < .5) FX.spark(L + ((j + .5) / N) * W, cutY - 4, { size: rnd(12, 24), life: .8 });
+  }
+  function cutSlice(j) {
+    torn[j] = true; Snd.snip();
+    slices[j].animate([{ transform: "none" }, { transform: "translateY(-3px) rotate(.4deg)" }], { duration: 140, fill: "forwards" });
+    if (lineDone) lineDone.setAttribute("x2", ((j + 1) / N) * W * .92 + W * .04);
+  }
+  function setScis(x, moving) {
+    const sx = clamp(x, L - 40, L + W + 40); scis.style.left = sx - 70 + "px"; scis.style.top = cutY - 30 + "px";
+    const a = moving ? (Math.sin(sx / 6) * .5 + .5) * 14 : 8; scis.querySelector(".bt").style.transform = `rotate(${-a}deg)`; scis.querySelector(".bb").style.transform = `rotate(${a}deg)`;
+  }
+  S.on(zone, "pointerdown", (e) => { if (done) return; dragging = true; zone.setPointerCapture(e.pointerId); const p = S.pt(e); side = p.x < cx ? "L" : "R"; lastX = p.x; if (mode === "scissors") { scis.getAnimations().forEach((a) => a.cancel()); if (side === "R") lineDone && lineDone.setAttribute("x1", W * .96); } S.hint(""); zone.style.cursor = "grabbing"; });
+  S.on(zone, "pointermove", (e) => {
+    if (!dragging || done) return; const p = S.pt(e); let u = side === "L" ? (p.x - L) / W : (L + W - p.x) / W; u = clamp(u, 0, 1);
+    const target = Math.floor(u * N + (u > .985 ? 1 : 0));
+    for (let j = 0; j < Math.min(N, target); j++) { const idx = side === "L" ? j : N - 1 - j; if (!torn[idx]) (mode === "tear" ? tearSlice : cutSlice)(idx); }
+    if (mode === "tear") { pack.style.transform = `rotate(${clamp((p.x - cx) / W, -.6, .6) * (side === "L" ? 3.2 : -3.2) * -1}deg) translateY(${-Math.sin(u * Math.PI) * 4}px)`; }
+    else setScis(p.x, Math.abs(p.x - lastX) > 0.5);
+    lastX = p.x;
+    if (target >= N && !done) finish();
+  });
+  S.on(zone, "pointerup", () => { dragging = false; zone.style.cursor = "grab"; if (mode === "scissors" && !done) scis.getAnimations(); });
+  S.on(zone, "dblclick", () => { if (!done) { for (let j = 0; j < N; j++) if (!torn[j]) { side = side || "L"; (mode === "tear" ? tearSlice : cutSlice)(j); } finish(); } });
+  async function finish() {
+    done = true; zone.remove();
+    if (mode === "scissors") {
+      scis.animate([{ opacity: 1 }, { opacity: 0, transform: "translate(80px,40px) rotate(20deg)" }], { duration: 500, fill: "forwards", delay: 150 });
+      slices.forEach((s, j) => s.animate([{ transform: "translateY(-3px) rotate(.4deg)", opacity: 1 }, { transform: `translate(${(j - N / 2) * 6}px,-30px) rotate(${(j - N / 2) * 2.5}deg)`, opacity: 1, offset: .3 }, { transform: `translate(${(j - N / 2) * 14}px,260px) rotate(${(j - N / 2) * 9}deg)`, opacity: 0 }], { duration: 1000, fill: "forwards", easing: "cubic-bezier(.3,.1,.6,1)", delay: j * 12 }));
+    }
+    Snd.pop();
+    pack.animate([{ transform: pack.style.transform || "none" }, { transform: "scale(.97,1.03)" }, { transform: "none" }], { duration: 500, easing: E.out });
+    glow.animate([{ opacity: 0 }, { opacity: S.rar === "rare" ? 1 : S.rar === "uncommon" ? .8 : .55 }], { duration: 400, fill: "forwards" });
+    if (S.rar === "rare") for (let i = 0; i < 8; i++) setTimeout(() => FX.spark(cx + rnd(-110, 110), cutY - rnd(0, 40), { vy: rnd(-160, -60), size: rnd(18, 34) }), i * 70);
+    await S.sleep(600);
+    await emergeSheet(S, { cx, cutY: cutY + 2, pack, packShadow: sh });
+  }
+}
+
+/* ═════════════ 3: peel the cover label off a sticker sitting on its backing sheet ═════════════ */
+async function patPeel(S) {
+  const SW = 300, SH = 450, SL = 480 - SW / 2, ST = 54, LW = 262, LL = 480 - LW / 2, LT = ST + 118;
+  const sh = el("pshadow", { left: SL + 20 + "px", top: ST + SH - 10 + "px", width: SW - 40 + "px", height: "30px" }); world.append(sh);
+  const sheet = el("abs paper", { left: SL + "px", top: ST + "px", width: SW + "px", height: SH + "px", borderRadius: "6px" }); sheet.append(imgEl("print/backing-sheet.png", "fill")); world.append(sheet);
+  const stw = 236, sticker = imgEl("samples/" + S.sticker.file, "abs", { width: stw + "px", left: 480 - stw / 2 + "px", top: LT + LW / 2 - stw / 2 + "px", filter: "drop-shadow(0 1px 1px rgba(40,30,10,.3))" }); world.append(sticker);
+  /* faint die-cut hint of sticker underneath */
+  const sheen = RAR[S.rar]; /* peek glow leaking through the peel */
+  const peek = el("abs", { left: LL + "px", top: LT + "px", width: LW + "px", height: LW + "px", borderRadius: "16px", boxShadow: "0 0 0 0 transparent", pointerEvents: "none" }); world.append(peek);
+  const lab = el("abs", { left: LL + "px", top: LT + "px", width: LW + "px", height: LW + "px", cursor: "grab", zIndex: 5 }); world.append(lab);
+  const faceCss = { position: "absolute", left: 0, top: 0, width: LW + "px", height: LW + "px", borderRadius: "16px", transformOrigin: "0 0" };
+  const kept = el("paper", faceCss), flap = el("", { ...faceCss, background: "linear-gradient(135deg,#efe8d6,#e4dcc6)", boxShadow: "0 0 0 1px rgba(0,0,0,.04) inset" });
+  kept.style.background = "#f4eddb url(" + ART + "book/page-paper.jpg) 0 0 / 300px"; kept.style.boxShadow = "0 1px 2px rgba(60,45,20,.35), 0 8px 14px rgba(60,45,20,.18)";
+  kept.append(imgEl("gift/wax-seal.png", "abs", { width: "92px", left: LW / 2 - 46 + "px", top: LW / 2 - 52 + "px" }), el("abs", { left: 0, width: "100%", top: LW / 2 + 52 + "px", textAlign: "center", font: "600 15px var(--hand)", color: "#6a5e48" }, "すみっこを つまんで、ぺりっ"));
+  const kShade = el("abs", { pointerEvents: "none", height: "900px", width: "46px", transformOrigin: "0 0" }), fShade = el("abs", { pointerEvents: "none", height: "900px", width: "70px", transformOrigin: "0 0" });
+  kShade.style.background = "linear-gradient(90deg, rgba(40,28,10,.30), rgba(40,28,10,0))"; fShade.style.background = "linear-gradient(90deg, rgba(40,28,10,.34), rgba(255,255,255,.35) 22%, rgba(40,28,10,0) 75%)";
+  kept.append(kShade); flap.append(fShade); lab.append(kept, flap);
+  const C = { x: LW, y: LW }, diag = Math.hypot(LW, LW);
+  function clipRect(m, n, s) {
+    const P = [[0, 0], [LW, 0], [LW, LW], [0, LW]], out = [], f = (p) => s * ((p[0] - m.x) * n.x + (p[1] - m.y) * n.y);
+    for (let i = 0; i < 4; i++) { const a = P[i], b = P[(i + 1) % 4], fa = f(a), fb = f(b); if (fa <= 0) out.push(a); if ((fa < 0 && fb > 0) || (fa > 0 && fb < 0)) { const t = fa / (fa - fb); out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); } }
+    return out;
+  }
+  let curD = 0, curN = { x: -.7071, y: -.7071 };
+  function upd(d, n) {
+    curD = d; curN = n; const F = { x: C.x - n.x * d, y: C.y - n.y * d }, m = { x: (C.x + F.x) / 2, y: (C.y + F.y) / 2 };
+    kept.style.clipPath = polyPx(clipRect(m, n, 1)); flap.style.clipPath = polyPx(clipRect(m, n, -1));
+    const mn = m.x * n.x + m.y * n.y; flap.style.transform = `matrix(${1 - 2 * n.x * n.x},${-2 * n.x * n.y},${-2 * n.x * n.y},${1 - 2 * n.y * n.y},${2 * mn * n.x},${2 * mn * n.y})`;
+    const th = Math.atan2(n.y, n.x) * 180 / Math.PI;
+    fShade.style.left = m.x + "px"; fShade.style.top = m.y + "px"; fShade.style.transform = `rotate(${th}deg) translateY(-450px)`;
+    kShade.style.left = m.x + "px"; kShade.style.top = m.y + "px"; kShade.style.transform = `rotate(${th + 180}deg) translateY(-450px)`;
+    const k = clamp(d / (diag * 1.2), 0, 1);
+    if (S.rar !== "common") peek.style.boxShadow = `0 0 ${10 + k * 44}px ${k * (S.rar === "rare" ? 12 : 5)}px ${RAR[S.rar].glow.replace(/[\d.]+\)$/, (S.rar === "rare" ? .55 : .35) * k + ")")}`;
+  }
+  upd(26, curN);
+  S.hint("右下のすみっこを つかんで、斜めに ぺりぺり");
+  let dragging = false, done = false, lastTick = 0;
+  S.on(lab, "pointerdown", (e) => { if (done) return; const p = S.pt(e); if (Math.hypot(p.x - (LL + C.x), p.y - (LT + C.y)) > 110 && curD < 60) return; dragging = true; lab.setPointerCapture(e.pointerId); lab.style.cursor = "grabbing"; S.hint(""); });
+  S.on(lab, "pointermove", (e) => {
+    if (!dragging || done) return; const p = S.pt(e), F = { x: p.x - LL, y: p.y - LT };
+    let dx = C.x - F.x, dy = C.y - F.y, d = Math.hypot(dx, dy); if (d < 22) return; if (dx < 0 && dy < 0) return;
+    const n = { x: dx / d, y: dy / d }; upd(d, n);
+    if (Math.abs(d - lastTick) > 26) { lastTick = d; Snd.rip(.7); }
+    if (d > diag * 1.15) finish();
+  });
+  S.on(lab, "pointerup", () => { dragging = false; lab.style.cursor = "grab"; });
+  S.on(lab, "dblclick", () => { if (!done) finish(); });
+  async function finish() {
+    done = true; dragging = false; lab.style.pointerEvents = "none";
+    const d0 = curD, n = curN, d1 = diag * 2.15, t0 = performance.now(); Snd.rip(1.2); Snd.rip(.8);
+    await new Promise((res) => { (function step(t) { if (run && run.dead) return res(); const k = clamp((t - t0) / 320, 0, 1); upd(d0 + (d1 - d0) * (k * k), n); if (k < 1) requestAnimationFrame(step); else res(); })(t0); });
+    S.chk(); lab.remove(); peek.remove();
+    sticker.style.opacity = 0;
+    sheet.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 10, fill: "forwards" });
+    const rv = reveal(S, { x: 480, y: LT + LW / 2, w: stw });
+    sheet.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(60px) rotate(2deg)", opacity: .0 }], { duration: 900, delay: 500, fill: "forwards", easing: E.in }); sh.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, delay: 500, fill: "forwards" });
+    await rv;
+  }
+}
+
+/* ═════════════ 4: scratch the holographic foil ═════════════ */
+async function patScratch(S) {
+  const R = RAR[S.rar], CW = 380, CH = 440, CL = 480 - CW / 2, CT = 52, WS = 300, WL = (CW - WS) / 2, WT = 78;
+  const sh = el("pshadow", { left: CL + 20 + "px", top: CT + CH - 14 + "px", width: CW - 40 + "px", height: "30px" }); world.append(sh);
+  const card = el("abs paper", { left: CL + "px", top: CT + "px", width: CW + "px", height: CH + "px", borderRadius: "12px", transition: "box-shadow .2s" }); world.append(card);
+  card.append(el("abs", { left: 0, top: "22px", width: "100%", textAlign: "center", font: "600 22px var(--hand)", color: "#4a463f" }, "Scratch &amp; see"));
+  card.append(imgEl("ui/tape-5.png", "abs", { width: "130px", left: CW / 2 - 65 + "px", top: "-14px", opacity: .9 }));
+  const win = el("abs", { left: WL + "px", top: WT + "px", width: WS + "px", height: WS + "px", borderRadius: "14px", overflow: "hidden", background: "#fffdf6", boxShadow: "inset 0 2px 6px rgba(60,45,20,.35)" }); card.append(win);
+  const sw = WS * .86, sticker = imgEl("samples/" + S.sticker.file, "abs", { width: sw + "px", left: (WS - sw) / 2 + "px", top: (WS - sw * .86) / 2 + "px", filter: "drop-shadow(0 2px 2px rgba(30,20,10,.3))" }); win.append(sticker);
+  const cv = document.createElement("canvas"); cv.width = WS * 2; cv.height = WS * 2; cv.className = "abs"; cv.style.cssText = `left:0;top:0;width:${WS}px;height:${WS}px;cursor:none;touch-action:none`; win.append(cv);
+  const g = cv.getContext("2d"); g.scale(2, 2);
+  const gr = g.createLinearGradient(0, 0, WS, WS); ["#c9cdd6", "#f6f8fb", "#bfc4cf", "#eceff4", "#b3b9c5", "#f2f4f8"].forEach((c, i, a) => gr.addColorStop(i / (a.length - 1), c)); g.fillStyle = gr; g.fillRect(0, 0, WS, WS);
+  const rb = g.createLinearGradient(0, WS, WS, 0); ["rgba(255,150,210,.28)", "rgba(150,200,255,.28)", "rgba(170,255,210,.26)", "rgba(255,240,150,.28)", "rgba(255,150,210,.28)"].forEach((c, i, a) => rb.addColorStop(i / (a.length - 1), c)); g.fillStyle = rb; g.fillRect(0, 0, WS, WS);
+  g.save(); g.globalAlpha = .26; g.fillStyle = "#4a4f5c"; g.font = "18px 'Special Elite', monospace"; g.rotate(-.35); for (let y = -60; y < WS + 120; y += 38) for (let x = -80; x < WS + 140; x += 118) g.fillText("PETA ✦", x + ((y / 38) % 2 ? 44 : 0), y); g.restore();
+  for (let i = 0; i < 1100; i++) { g.fillStyle = Math.random() < .5 ? "rgba(255,255,255,.7)" : "rgba(90,96,110,.18)"; g.fillRect(Math.random() * WS, Math.random() * WS, 1.4, 1.4); }
+  g.strokeStyle = "rgba(255,255,255,.9)"; g.lineWidth = 3; g.strokeRect(1.5, 1.5, WS - 3, WS - 3);
+  const coin = el("abs", { width: "46px", height: "46px", borderRadius: "50%", pointerEvents: "none", opacity: 0, zIndex: 9, background: "radial-gradient(circle at 35% 30%, #fff, #d9dde4 45%, #9aa1ae 80%)", boxShadow: "0 3px 6px rgba(40,30,10,.4), inset 0 0 0 3px rgba(255,255,255,.5)", font: "700 15px/46px var(--type)", textAlign: "center", color: "#6a7080" }, "P"); world.append(coin);
+  card.append(el("abs", { left: 0, top: WT + WS + 24 + "px", width: "100%", textAlign: "center", font: "600 15px var(--hand)", color: "#6a5e48" }, "こすって、ホログラムのふうを はがす"));
+  S.hint("銀のところを、指(コイン)でこすってみる");
+  const tmp = document.createElement("canvas"); tmp.width = 30; tmp.height = 30; const tg = tmp.getContext("2d", { willReadFrequently: true });
+  function cover() { tg.clearRect(0, 0, 30, 30); tg.drawImage(cv, 0, 0, 30, 30); const d = tg.getImageData(0, 0, 30, 30).data; let c = 0; for (let i = 3; i < d.length; i += 4) if (d[i] < 100) c++; return c / 900; }
+  let down = false, prev = null, n = 0, done = false, wasp = 0;
+  const loc = (e) => { const p = S.pt(e); return { x: p.x - (CL + WL), y: p.y - (CT + WT), px: p.x, py: p.y }; };
+  S.on(cv, "pointerdown", (e) => { if (done) return; down = true; cv.setPointerCapture(e.pointerId); prev = loc(e); S.hint(""); scr(prev, prev); });
+  S.on(cv, "pointermove", (e) => { const l = loc(e); coin.style.opacity = 1; coin.style.left = l.px - 23 + "px"; coin.style.top = l.py - 23 + "px"; coin.style.transform = `rotate(${(l.x - WS / 2) / 8}deg)`; if (down && !done) { scr(prev, l); prev = l; } });
+  S.on(cv, "pointerleave", () => { coin.style.opacity = 0; });
+  S.on(window, "pointerup", () => { down = false; });
+  function scr(a, b) {
+    g.globalCompositeOperation = "destination-out"; g.lineCap = "round"; g.lineJoin = "round"; g.lineWidth = 36 + rnd(-6, 6); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); g.globalCompositeOperation = "source-over";
+    if (Math.hypot(b.x - a.x, b.y - a.y) > 4 && Math.random() < .5) { Snd.noise(.04, { f: 4200, g: .05, type: "highpass" }); }
+    if (S.rar !== "common" && Math.random() < .25) FX.spark(b.px, b.py, { size: rnd(10, 22), life: .7 });
+    if ((++n) % 5 === 0) { const c = cover(); const k = clamp(c / .5, 0, 1); card.style.boxShadow = S.rar === "common" ? "" : `0 1px 2px rgba(60,45,20,.35), 0 14px 26px rgba(60,45,20,.25), 0 0 ${k * (S.rar === "rare" ? 60 : 28)}px ${k * (S.rar === "rare" ? 14 : 5)}px ${R.glow}`; if (c > .5 && !done) finish(); }
+  }
+  async function finish() {
+    done = true; cv.style.pointerEvents = "none"; coin.remove(); Snd.noise(.3, { f: 3000, g: .12 });
+    cv.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(1.08)" }], { duration: 420, fill: "forwards", easing: "ease-out" });
+    for (let i = 0; i < 28; i++) FX.add({ kind: "conf", x: CL + WL + rnd(20, WS - 20), y: CT + WT + rnd(20, WS - 20), vx: rnd(-90, 90), vy: rnd(-200, -20), g: 640, drag: .99, rot: rnd(0, 6), vr: rnd(-7, 7), age: 0, life: rnd(1, 1.7), w: rnd(3, 6), h: rnd(2, 4), color: pick(["#d9dde4", "#f6f8fb", "#bfc4cf", "#ffc2e6", "#a9e4ff"]), flip: rnd(6, 12) });
+    await S.sleep(300);
+    sticker.style.opacity = 0;
+    const rv = reveal(S, { x: CL + WL + WS / 2, y: CT + WT + WS / 2, w: sw });
+    card.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(40px) rotate(-3deg)" }], { duration: 800, delay: 400, fill: "forwards", easing: E.in }); sh.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, delay: 400, fill: "forwards" });
+    await rv;
+  }
+}
+
+/* ═════════════ 5: hold to charge, then pop ═════════════ */
+async function patCharge(S) {
+  const R = RAR[S.rar], W = 360, H = 480, L = 480 - W / 2, T = 36, cx = 480, cy = T + H / 2;
+  const aura = el("abs", { left: cx - 330 + "px", top: cy - 330 + "px", width: "660px", height: "660px", borderRadius: "50%", opacity: 0, background: `radial-gradient(circle, ${R.glow} 0, transparent 62%)`, mixBlendMode: "screen", pointerEvents: "none" }); world.append(aura);
+  const sh = el("pshadow", { left: L + 30 + "px", top: T + H - 14 + "px", width: W - 60 + "px", height: "34px" }); world.append(sh);
+  const ring = document.createElementNS("http://www.w3.org/2000/svg", "svg"); ring.setAttribute("class", "abs"); ring.setAttribute("width", 600); ring.setAttribute("height", 600); ring.style.cssText = `left:${cx - 300}px;top:${cy - 300}px;pointer-events:none`;
+  const C = 2 * Math.PI * 262; ring.innerHTML = `<circle cx="300" cy="300" r="262" fill="none" stroke="rgba(60,45,20,.18)" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/><circle id="arc" cx="300" cy="300" r="262" fill="none" stroke="#fffaf0" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90 300 300)" style="filter:drop-shadow(0 0 2px rgba(90,70,30,.7)) drop-shadow(0 0 8px rgba(255,255,255,.9))"/>`; world.append(ring);
+  const arc = ring.querySelector("#arc");
+  const pack = el("abs", { left: L + "px", top: T + "px", width: W + "px", height: H + "px", cursor: "pointer", touchAction: "none" }); world.append(pack);
+  const inner = el("abs fill"); pack.append(inner);
+  const top = imgEl("pack/pack-holographic.png", "fill"), bot = imgEl("pack/pack-holographic.png", "fill");
+  const zz = []; for (let i = 0; i <= 40; i++) zz.push([i / 40, .5 + (i % 2 ? .012 : -.012) + rnd(-.008, .008)]);
+  top.style.clipPath = poly([[0, 0], [1, 0], ...zz.slice().reverse()]); bot.style.clipPath = poly([...zz, [1, 1], [0, 1]]); inner.append(bot, top);
+  const leak = el("abs fill", { opacity: 0, mixBlendMode: "screen", background: `radial-gradient(ellipse at 50% 50%, ${R.glow}, transparent 70%)`, pointerEvents: "none" });
+  const mk = `url(${ART}pack/pack-holographic.png)`; leak.style.webkitMaskImage = mk; leak.style.maskImage = mk; leak.style.webkitMaskSize = "100% 100%"; leak.style.maskSize = "100% 100%"; pack.append(leak);
+  const rim = el("abs", { left: "50%", top: "50%", width: "0px", height: "0px" }); world.append(rim);
+  S.hint("パックを 長押しして、力をためる");
+  let p = 0, holding = false, done = false, t0 = performance.now(), snd = null, shownMore = false;
+  S.on(pack, "pointerdown", (e) => { if (done) return; holding = true; pack.setPointerCapture(e.pointerId); S.hint(""); if (!snd) snd = Snd.charge(); });
+  S.on(window, "pointerup", () => { if (holding && !done) { holding = false; if (p > .15 && p < 1) S.hint("もうすこし…! 離さずに"); } });
+  S.on(pack, "dblclick", () => { if (!done) p = 1; });
+  (function frame(t) {
+    if (run.dead || done) return; const dt = Math.min(.05, (t - t0) / 1000); t0 = t;
+    p = clamp(p + (holding ? dt / 1.9 : -dt / .7), 0, 1);
+    const amp = p * p * 6, sc = 1 + p * .085;
+    inner.style.transform = `translate(${rnd(-amp, amp)}px,${rnd(-amp, amp)}px) rotate(${rnd(-amp, amp) * .3}deg) scale(${sc})`;
+    aura.style.opacity = p > .08 ? Math.pow(p, 1.4) * (S.rar === "rare" ? 1 : S.rar === "uncommon" ? .7 : .45) : 0; aura.style.transform = `scale(${.6 + p * .6})`;
+    leak.style.opacity = Math.pow(p, 1.2) * 1.2; ring.style.opacity = 1; arc.setAttribute("stroke-dashoffset", C * (1 - p));
+    pack.style.filter = `brightness(${1 + p * .25}) saturate(${1 + p * .5})`;
+    if (snd) snd.set(holding ? p : 0);
+    if (holding && S.rar !== "common" && p > .35 && Math.random() < p * .5) FX.spark(cx + rnd(-W / 2, W / 2), cy + rnd(-H / 2, H / 2), { vy: rnd(-90, -30), size: rnd(12, 26), life: .9 });
+    if (holding && Math.random() < .05 * p) Snd.tick();
+    if (p >= 1) return pop();
+    requestAnimationFrame(frame);
+  })(performance.now());
+  async function pop() {
+    done = true; if (snd) snd.stop(); Snd.pop(); ring.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: "forwards" }); pack.style.pointerEvents = "none";
+    flash("#fff", .6);
+    top.animate([{ transform: "none", opacity: 1 }, { transform: "translate(-90px,-230px) rotate(-28deg)", opacity: 0 }], { duration: 800, fill: "forwards", easing: E.out });
+    bot.animate([{ transform: "none", opacity: 1 }, { transform: "translate(60px,230px) rotate(16deg)", opacity: 0 }], { duration: 800, fill: "forwards", easing: E.in });
+    leak.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: "forwards" }); sh.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: "forwards" });
+    aura.animate([{ transform: "scale(1.2)", opacity: 1 }, { transform: "scale(1.8)", opacity: 0 }], { duration: 700, fill: "forwards" });
+    FX.burst(cx, cy, S.rar);
+    await S.sleep(260);
+    await reveal(S, { x: cx, y: cy, w: 90 }, { x: 480, y: 252, w: 300 });
+  }
+}
+
+/* ═════════════ 6: drop into the print slot, printed on a backing sheet ═════════════ */
+async function patPrint(S) {
+  const R = RAR[S.rar];
+  world.append(el("menubar", null, "● Peta &nbsp;&nbsp; Today &nbsp; Collection &nbsp; Edit Stickers"));
+  const glow = imgEl("print/print-slot-glow.png", "abs", { left: 0, top: "20px", width: "960px", opacity: 0, mixBlendMode: "screen" }); world.append(glow);
+  const clip = el("abs", { left: 0, top: "40px", width: "960px", height: "520px", overflow: "hidden" }); world.append(clip);
+  world.append(imgEl("print/print-slot.png", "abs", { left: 0, top: "26px", width: "960px", zIndex: 4 }));
+  const PW = 170, PH = 227, PX = 480, PY = 420;
+  const sh = el("pshadow", { left: PX - PW / 2 + 14 + "px", top: PY + PH / 2 - 10 + "px", width: PW - 28 + "px", height: "26px" }); world.append(sh);
+  const pack = imgEl("pack/pack-pouch-closed.png", "abs", { width: PW + "px", left: PX - PW / 2 + "px", top: PY - PH / 2 + "px", cursor: "grab", touchAction: "none", filter: "drop-shadow(0 6px 5px rgba(40,30,10,.3))", zIndex: 6 }); world.append(pack);
+  pack.animate([{ transform: "translateY(0)" }, { transform: "translateY(-8px)" }], { duration: 900, direction: "alternate", iterations: Infinity, easing: "ease-in-out" });
+  S.hint("パックを、画面の上のスリットへ ドラッグ(クリックでも)");
+  let dragging = false, off = { x: 0, y: 0 }, cur = { x: PX, y: PY }, moved = 0, fed = false;
+  S.on(pack, "pointerdown", (e) => { if (fed) return; dragging = true; moved = 0; pack.setPointerCapture(e.pointerId); pack.getAnimations().forEach((a) => a.cancel()); const p = S.pt(e); off = { x: p.x - cur.x, y: p.y - cur.y }; pack.style.cursor = "grabbing"; S.hint(""); });
+  S.on(pack, "pointermove", (e) => { if (!dragging) return; const p = S.pt(e); moved += 1; cur = { x: clamp(p.x - off.x, 120, 840), y: clamp(p.y - off.y, 120, 470) }; pack.style.left = cur.x - PW / 2 + "px"; pack.style.top = cur.y - PH / 2 + "px"; pack.style.transform = `rotate(${(cur.x - 480) / 50}deg)`; sh.style.opacity = clamp((cur.y - 120) / 300, 0, 1); glow.style.opacity = clamp((260 - cur.y) / 200, 0, .7); });
+  S.on(pack, "pointerup", () => { if (!dragging) return; dragging = false; pack.style.cursor = "grab"; if (moved < 3 || cur.y < 230) feed(); else { pack.animate([{ transform: pack.style.transform }, { transform: "rotate(0)" }], { duration: 300, fill: "forwards" }); const x0 = cur.x, y0 = cur.y; pack.animate([{ left: x0 - PW / 2 + "px", top: y0 - PH / 2 + "px" }, { left: PX - PW / 2 + "px", top: PY - PH / 2 + "px" }], { duration: 420, fill: "forwards", easing: E.spring }); cur = { x: PX, y: PY }; glow.style.opacity = 0; } });
+  async function feed() {
+    fed = true; Snd.tick(); const x0 = cur.x, y0 = cur.y; pack.getAnimations().forEach((a) => a.commitStyles && 0);
+    glow.animate([{ opacity: glow.style.opacity || 0 }, { opacity: .9 }], { duration: 400, fill: "forwards" }); sh.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: "forwards" });
+    await S.anim(pack, [{ left: x0 - PW / 2 + "px", top: y0 - PH / 2 + "px", transform: pack.style.transform || "none", opacity: 1 }, { left: 480 - PW * .3 + "px", top: 20 - PH * .3 + "px", transform: "scale(.6) rotate(0deg)", opacity: 1, offset: .75 }, { left: 480 - PW * .25 + "px", top: -30 + "px", transform: "scale(.5)", opacity: 0 }], { duration: 650, easing: E.in });
+    pack.remove(); Snd.whirr(2.6); S.hint("プリント中…");
+    const SW = 210, SH = 315, SL = 480 - SW / 2;
+    const sheet = el("abs paper", { left: SL + "px", top: "-" + SH + "px", width: SW + "px", height: SH + "px", borderRadius: "4px", boxShadow: "0 8px 18px rgba(40,28,10,.35)" }); sheet.append(imgEl("print/backing-sheet.png", "fill")); clip.append(sheet);
+    const stw = 156, sx = (SW - stw) / 2, sy = (SH - stw * .86) / 2;
+    const rv = el("abs", { left: sx + "px", top: sy - 6 + "px", width: stw + "px", height: stw + "px", clipPath: "inset(0 0 100% 0)", filter: "saturate(.2) blur(2px)" }); const ps = imgEl("samples/" + S.sticker.file, "fill", { objectFit: "contain", objectPosition: "top", filter: "drop-shadow(0 1px 1px rgba(30,20,10,.3))" }); rv.append(ps); sheet.append(rv);
+    const line = el("abs", { left: sx - 6 + "px", top: sy - 6 + "px", width: stw + 12 + "px", height: "3px", background: R.color, boxShadow: `0 0 12px 3px ${R.glow}`, opacity: 0 }); sheet.append(line);
+    for (let i = 0; i < 24; i++) setTimeout(() => { if (!run.dead) Snd.tick(); }, i * 100);
+    glow.animate([{ opacity: .9 }, { opacity: .45 }, { opacity: .9 }], { duration: 900, iterations: 3, fill: "forwards" });
+    const SY = 40; /* sheet top when out (inside clip box) */
+    await S.anim(sheet, [{ transform: "translateY(0)" }, { transform: `translateY(${SH + SY - 4}px)` }], { duration: 2400, easing: "steps(22, jump-end)" });
+    await S.sleep(200); line.style.opacity = 1;
+    S.hint("");
+    line.animate([{ top: sy - 6 + "px" }, { top: sy + stw * .9 + "px" }], { duration: 1500, fill: "forwards", easing: "linear" });
+    rv.animate([{ clipPath: "inset(0 0 100% 0)", filter: "saturate(.2) blur(2px)" }, { clipPath: "inset(0 0 0% 0)", filter: "saturate(1) blur(0)" }], { duration: 1500, fill: "forwards", easing: "linear" });
+    await S.sleep(1600); line.remove(); glow.animate([{ opacity: .9 }, { opacity: 0 }], { duration: 600, fill: "forwards" });
+    /* grab → paste */
+    S.hint("ステッカーを つかんで、机へ ぺたっ");
+    const body = el("abs", { left: SL + sx + "px", top: 40 + SY + sy - 6 + "px", width: stw + "px", height: stw + "px", cursor: "grab", touchAction: "none", zIndex: 8 });
+    const bh = el("abs", { left: 0, top: 0, width: "100%", height: "100%" }); const st = makeSticker(S, stw); st.wrap.style.left = stw / 2 + "px"; st.wrap.style.top = stw * .43 + "px"; st.wrap.style.transform = "translate(-50%,-50%)"; bh.append(st.wrap); body.append(bh); world.append(body);
+    rv.style.opacity = 0;
+    body.animate([{ transform: "translateY(0)" }, { transform: "translateY(-5px)" }], { duration: 700, direction: "alternate", iterations: Infinity, easing: "ease-in-out" });
+    let drag = false, o = { x: 0, y: 0 }, pos = { x: SL + sx + stw / 2, y: 40 + SY + sy - 6 + stw / 2 };
+    S.on(body, "pointerdown", (e) => { drag = true; body.setPointerCapture(e.pointerId); body.getAnimations().forEach((a) => a.cancel()); const p = S.pt(e); o = { x: p.x - pos.x, y: p.y - pos.y }; bh.style.transition = "transform .15s"; bh.style.transform = "scale(1.45) rotate(-4deg)"; st.stk.style.filter = "drop-shadow(0 2px 2px rgba(24,16,30,.3)) drop-shadow(0 22px 18px rgba(24,16,30,.3))"; S.hint(""); Snd.rip(1.4); });
+    S.on(body, "pointermove", (e) => { if (!drag) return; const p = S.pt(e); pos = { x: clamp(p.x - o.x, 120, 840), y: clamp(p.y - o.y, 150, 440) }; body.style.left = pos.x - stw / 2 + "px"; body.style.top = pos.y - stw / 2 + "px"; });
+    S.on(body, "pointerup", async () => {
+      if (!drag) return; drag = false; body.style.pointerEvents = "none";
+      await S.anim(bh, [{ transform: "scale(1.45) rotate(-4deg)" }, { transform: "scale(1.2) rotate(0deg)", offset: .55 }, { transform: "scale(1.5) rotate(0)" }, { transform: "scale(1.45) rotate(0)" }], { duration: 380, easing: "ease-out" });
+      st.stk.style.filter = ""; Snd.thud(); await hitMoment(S, pos.x, pos.y); finishSticker(S, st, pos.x, pos.y, stw * 1.45, stw * 1.45 * .85, { caption: false });
+      st.wrap.style.transform = "translate(-50%,-50%) scale(1.45)";
+      sheet.animate([{ transform: `translateY(${SH + SY - 4}px)`, opacity: 1 }, { transform: `translateY(${SH + SY + 80}px) rotate(2deg)`, opacity: 0 }], { duration: 900, delay: 600, fill: "forwards", easing: E.in });
+    });
+  }
+}
+
+/* ═════════════ 7: pick one of five face-down cards ═════════════ */
+async function patPick(S) {
+  const CWD = 150, CHT = 220, n = 5, pos = (i) => ({ x: 480 + (i - 2) * 142, y: 360 + Math.abs(i - 2) * 12, r: (i - 2) * 6 });
+  const others = STICKERS.filter((s) => s !== S.sticker).sort(() => Math.random() - .5).slice(0, n - 1);
+  const cards = [], slotOf = [0, 1, 2, 3, 4];
+  const mkCard = (i, sticker) => {
+    const c = el("abs", { left: 0, top: 0, width: CWD + "px", height: CHT + "px", cursor: "pointer", transition: "transform .28s cubic-bezier(.3,.9,.3,1)" });
+    const bk = el("sheetface paper", { borderRadius: "8px", border: "1px solid rgba(120,100,60,.25)" }); bk.append(imgEl("gift/wax-seal.png", "abs", { width: "70px", left: CWD / 2 - 35 + "px", top: CHT / 2 - 38 + "px" }), el("abs", { left: 0, width: "100%", top: CHT - 38 + "px", textAlign: "center", font: "600 13px var(--hand)", color: "#8a7e68" }, "?"));
+    const ft = el("sheetface paper", { display: "none", borderRadius: "8px" }); ft.append(imgEl("print/backing-sheet.png", "fill")); const sw = CWD * .8; const si = imgEl("samples/" + sticker.file, "abs", { width: sw + "px", left: (CWD - sw) / 2 + "px", top: CHT / 2 - sw * .43 + "px", filter: "drop-shadow(0 1px 1px rgba(30,20,10,.3))" }); ft.append(si);
+    const fl = el("", { position: "absolute", left: 0, top: 0, width: "100%", height: "100%" }); fl.append(bk, ft); c.append(fl); c._si = si; c._fl = fl; c._bk = bk; c._ft = ft; return c;
+  };
+  const sets = [others[0], others[1], S.sticker, others[2], others[3]]; /* chosen content assigned at pick time */
+  const pool = [...others];
+  for (let i = 0; i < n; i++) { const c = mkCard(i, pool[i] || S.sticker); c._slot = i; cards.push(c); world.append(c); }
+  const setPos = (c, slot, extra = "", lift = 0) => { const p = pos(slot); c.style.transform = `translate(${p.x - CWD / 2}px,${p.y - CHT / 2 - lift}px) rotate(${p.r}deg) ${extra}`; };
+  cards.forEach((c) => { c.style.transition = "none"; c.style.transform = `translate(${480 - CWD / 2}px,${340 - CHT / 2}px) rotate(0deg)`; c.style.opacity = 0; });
+  await S.sleep(60);
+  S.hint("5枚のカードを ならべます…");
+  cards.forEach((c, i) => { c.style.transition = "transform .45s cubic-bezier(.3,1.3,.5,1), opacity .3s"; c.style.opacity = 1; setTimeout(() => { if (!run.dead) { setPos(c, c._slot); Snd.tick(); } }, i * 90); });
+  await S.sleep(900);
+  S.hint("シャッフル…");
+  for (let k = 0; k < 7; k++) {
+    const a = (Math.random() * n) | 0; let b = (Math.random() * n) | 0; if (b === a) b = (a + 2) % n;
+    const ca = cards.find((c) => c._slot === a), cb = cards.find((c) => c._slot === b);
+    setPos(ca, b, "", 36); setPos(cb, a, "", 0); ca._slot = b; cb._slot = a; Snd.rip(.6); await S.sleep(260);
+    setPos(ca, b); await S.sleep(70);
+  }
+  S.hint("好きな1枚を えらんで");
+  let chosen = null;
+  cards.forEach((c) => {
+    S.on(c, "pointerenter", () => { if (!chosen) { c.style.transition = "transform .18s"; setPos(c, c._slot, "scale(1.05)", 24); c.style.zIndex = 5; } });
+    S.on(c, "pointerleave", () => { if (!chosen) { setPos(c, c._slot); c.style.zIndex = ""; } });
+    S.on(c, "click", () => { if (!chosen) choose(c); });
+  });
+  async function choose(c) {
+    chosen = c; S.hint(""); Snd.tick(); const idx = cards.indexOf(c);
+    /* make the picked card carry the real draw; reshuffle the others' faces */
+    c._si.src = ART + "samples/" + S.sticker.file; c._si.style.filter = "drop-shadow(0 1px 1px rgba(30,20,10,.3))";
+    c.style.zIndex = 20; c.style.transition = "transform .55s cubic-bezier(.2,.9,.2,1)"; c.style.transform = `translate(${480 - CWD / 2}px,${232 - CHT / 2}px) scale(1.55)`;
+    let oi = 0; cards.forEach((o) => { if (o === c) return; o.style.transition = "transform .6s cubic-bezier(.3,.9,.3,1), opacity .5s"; const dx = (oi - 1.5) * 128; oi++; o.style.transform = `translate(${480 + dx - CWD / 2}px,${470 - CHT / 2}px) rotate(${(oi - 2.5) * 4}deg) scale(.56)`; o._i = oi; });
+    await S.sleep(650);
+    Snd.rip(1.1); await flip(S, c._fl, c._bk, c._ft, 520);
+    cards.forEach((o, i) => { if (o === c) return; setTimeout(() => { if (run.dead) return; o.style.transition = "opacity .6s"; o.style.opacity = .6; flip(S, o._fl, o._bk, o._ft, 520).catch(() => {}); }, 150 + i * 110); });
+    await S.sleep(500);
+    c._si.style.opacity = 0;
+    const rvp = reveal(S, { x: 480, y: 232 + 6, w: CWD * .8 * 1.55 });
+    c.style.transition = "opacity .6s .35s, transform .6s .35s"; c.style.opacity = 0; c.style.transform += " translateY(30px)";
+    await rvp;
+  }
+}
+
+/* ───────────── pattern registry + info ───────────── */
+const PATS = [
+  { id: "tear", label: "1 ちぎる", fn: (S) => patTear(S, "tear"), title: "1 ちぎる(ホログラムのパウチ)", sub: "上のふちをつかんで横に引くと、ギザギザの端が 1 片ずつ破れていく。今の仕様の「Tear along the top」を、手触りと音で厚くした基本形。",
+    flow: ["ふちを引く速さに合わせて、紙片がちぎれて落ちる(音も連動)", "開いた口から光がもれる(色はレアリティのヒント)", "中から台紙がせり上がり、くるっと裏返ってステッカーが見える", "ステッカーが中央へ飛んで、レアリティ演出 → 空き袋は机の隅へ"],
+    gacha: "「ちぎる」手応えがそのまま期待感に。口の光の色でうっすら当たりが分かるので、<b>引いている間のドキドキ</b>がある。", world: "既存のホログラムパウチ・台紙・封蝋をそのまま使える。最も Peta の物語に素直。", stars: "実装 ★★☆", need: "追加素材ほぼ不要(破片は同じ絵を切って使う)" },
+  { id: "scissors", label: "2 ハサミ", fn: (S) => patTear(S, "scissors"), title: "2 ハサミでチョキ(クラフト袋)", sub: "点線に沿ってハサミを動かすと、切った部分から線が引かれ、最後に上の細い帯がはらりと落ちる。",
+    flow: ["点線に沿ってドラッグ(ハサミが刃を開閉)", "切るたびにチョキッと音、切り口に線が伸びる", "最後に帯が一気に落ち、台紙がせり上がる", "以降は 1 と同じ(裏返し → 当たり演出)"],
+    gacha: "ちぎるより<b>丁寧で儀式的</b>。ガチャの勢いは控えめだが、1 日 1 回の特別感が出る。", world: "文房具の世界観に最も合う。Gift や封筒・クラフト素材の Pack と相性が良い。", stars: "実装 ★★☆", need: "ハサミの絵(今回は仮のベクター)を 1 枚描き起こすとよい" },
+  { id: "peel", label: "3 ぺりっ", fn: patPeel, title: "3 カバーシールをぺりっとはがす", sub: "台紙に貼られたステッカーに、封蝋つきの「カバーシール」が貼ってある。すみっこをつまんで斜めに剥がすと、<b>剥がした分だけ下のステッカーが見えてくる</b>。",
+    flow: ["右下のすみっこがちょっと浮いている(ヒント)", "ドラッグで紙がめくれる。裏面・折り目の影つき", "めくるほど下の絵がチラ見え(Rare はふちがうっすら光る)", "剥がしきるとステッカーが台紙から浮いて当たり演出"],
+    gacha: "<b>見えそうで見えない焦らし</b>が一番強い。剥がすスピードを自分で決められるので「溜め」を自分で作れる。", world: "<b>ステッカーを剥がす=Peta の核の動作</b>。デスクトップに貼る行為とも一続きで、最も世界観が深い。", stars: "実装 ★★★(めくり表示の計算だけ少し複雑)", need: "カバーシール(封蝋つき)の絵があると完成度が上がる" },
+  { id: "scratch", label: "4 こする", fn: patScratch, title: "4 ホログラムのふうをこする", sub: "銀のホログラム箔で隠されたカード。コインで削ると、下のステッカーが少しずつ現れる。スクラッチくじの気持ちよさ。",
+    flow: ["銀箔(PETA の地模様・ラメ)を指で削る", "削った所から星がこぼれる。Rare は削るほどカードのふちが光る", "半分ほど削ると、残りの箔がはらりと剥がれて全開", "ステッカーが浮いて当たり演出"],
+    gacha: "<b>削る量=自分で決める焦らし</b>。当たりの気配(光)が漏れてくるので、手が止まらなくなる。", world: "ホログラム素材の主役感が出る。紙のカードと銀箔の取り合わせは Peta らしい。", stars: "実装 ★★☆(canvas 1 枚)", need: "銀箔のテクスチャ(今回はコードで描画)を絵で作ると更によい" },
+  { id: "charge", label: "5 ためる", fn: patCharge, title: "5 長押しでためて、ぱんっ", sub: "透明なホログラムのパウチを長押しすると、中の光が強くなって、震えて、はじける。離すと元に戻る。",
+    flow: ["長押し → リングが一周するまで(約 2 秒)", "震えが大きくなり、透けた袋の中から光がもれる", "最後にぱんっと上下に割れて、中から台紙とステッカー", "当たり演出(ためた分、Rare の見せ場が気持ちよい)"],
+    gacha: "<b>ためる=ドキドキの時間</b>。光の色がレアリティの伏線になる。短い操作で何度も開ける時(Market)向き。", world: "「透明パウチ」ならではの見せ方。ただし「割れる」表現はやや派手めで、紙の世界観からは少し離れる。", stars: "実装 ★★★(rAF とアニメだけ)", need: "透けた袋の中に入れる「ステッカー束」の絵があると良い" },
+  { id: "print", label: "6 プリント", fn: patPrint, title: "6 スリットに入れて、プリント → 貼る", sub: "パックを画面上端の印刷口に入れると、ジー…と台紙が出てきて、ステッカーが<b>印刷されていく</b>。つかんで机に貼る。",
+    flow: ["パックをドラッグしてスリットへ(クリックでも)", "印刷口が光り、台紙が一行ずつ出てくる(ステップ送り)", "スキャン線が走って、ステッカーが上から印刷される", "つかんで ぺたっ → 当たり演出"],
+    gacha: "「機械が作ってくれた」感で期待が高まる。<b>今の印刷 → つかむ → 貼る の流れに自然につながる</b>。", world: "Peta の既存の儀式(Print / Grab / Paste)そのもの。開封をその前振りにできる。", stars: "実装 ★★★", need: "既存素材のみ(印刷口・台紙・光)" },
+  { id: "pick", label: "7 えらぶ", fn: patPick, title: "7 5 枚から 1 枚えらぶ", sub: "封蝋つきの 5 枚のカードがシャッフルされて並ぶ。好きな 1 枚を選ぶと、裏返って中身が出る。<b>選ばなかった 4 枚も、あとから裏返って中身が見える</b>。",
+    flow: ["5 枚が扇状に並び、シャッフル", "ホバーで浮かび、クリックで選択", "選んだカードが中央に来て、くるっと裏返る", "残りの 4 枚もめくれて「もう 1 つの可能性」が見える → 当たり演出"],
+    gacha: "<b>自分で引いた感</b>が強い(中身の抽選は選ぶ前に決まっているので確率は同じ)。「別のを選んでたら…」が次の 1 日への楽しみに。", world: "カード型は少しゲーム寄り。台紙+封蝋のデザインに寄せれば紙の世界観に収まる。", stars: "実装 ★★☆", need: "カードの裏(封蝋デザイン)が数種類あると楽しい" },
+];
+let info = $("#info");
+function renderInfo() {
+  const p = PATS[patIdx];
+  info.innerHTML = `<div class="note"><h2>${p.title}</h2><p class="sub">${p.sub}</p><h4>流れ</h4><ul>${p.flow.map((x) => `<li>${x}</li>`).join("")}</ul></div>
+  <div class="note"><h4>ガチャ感</h4><p style="margin:0 0 10px">${p.gacha}</p><h4>世界観との相性</h4><p style="margin:0 0 10px">${p.world}</p><div class="tags"><span class="tag stars">${p.stars}</span><span class="tag">${p.need}</span></div></div>`;
+}
+function mount() { renderInfo(); [...$("#segPat").children].forEach((b, i) => b.setAttribute("aria-pressed", i === patIdx)); exec(PATS[patIdx].fn); }
+function seg(id, items, get, set) {
+  const root = $(id); items.forEach(([v, t]) => { const b = document.createElement("button"); b.textContent = t; b.onclick = () => { set(v); [...root.children].forEach((x, i) => x.setAttribute("aria-pressed", items[i][0] === v)); }; b.setAttribute("aria-pressed", get() === v); root.append(b); });
+}
+seg("#segPat", PATS.map((p, i) => [i, p.label]), () => patIdx, (v) => { patIdx = v; mount(); });
+seg("#segRar", [["random", "ランダム 60/30/10"], ["common", "Common"], ["uncommon", "Uncommon"], ["rare", "Rare"]], () => rarMode, (v) => { rarMode = v; mount(); });
+seg("#segSnd", [[true, "ON"], [false, "OFF"]], () => Snd.on, (v) => { Snd.on = v; });
+$("#again").onclick = mount;
+addEventListener("keydown", (e) => { if (e.key === "r" || e.key === "R") mount(); });
+FX.init(); fitStage(); mount();
+document.fonts && document.fonts.ready.then(fitStage);
+</script>
+</body>
+</html>
