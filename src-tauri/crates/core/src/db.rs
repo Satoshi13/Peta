@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-const SCHEMA_VERSION: i64 = 7;
+pub const SCHEMA_VERSION: i64 = 8;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -170,6 +170,18 @@ INSERT OR IGNORE INTO welcome_openings(date, item_id)
     FROM pack_items i WHERE i.pack_id='welcome' AND i.opened_at IS NOT NULL;
 ";
 
+// All signed-distribution storage is additive in V8, including the later Gift/creator steps.
+const MIGRATION_V8: &str = "
+CREATE TABLE applied_events (event_id TEXT PRIMARY KEY, kind TEXT NOT NULL, applied_at TEXT NOT NULL, source TEXT NOT NULL);
+CREATE TABLE revoked_events (event_id TEXT PRIMARY KEY, revoked_at TEXT NOT NULL);
+CREATE TABLE friends (public_key TEXT PRIMARY KEY, name TEXT NOT NULL, first_seen_at TEXT NOT NULL);
+INSERT INTO meta(key,value) VALUES ('bonus_envelopes','0');
+CREATE TABLE gift_signers (gift_id TEXT PRIMARY KEY REFERENCES gifts_received(gift_id), status TEXT NOT NULL, fingerprint TEXT, public_key TEXT);
+CREATE TABLE pack_distributions (pack_id TEXT PRIMARY KEY REFERENCES packs(id), external_id TEXT NOT NULL, version INTEGER NOT NULL, public_key TEXT, fingerprint TEXT, status TEXT NOT NULL, pouch TEXT NOT NULL);
+CREATE TABLE signed_pack_items (item_id INTEGER PRIMARY KEY REFERENCES pack_items(id), png_path TEXT NOT NULL, mask_path TEXT, material_id TEXT NOT NULL, aspect REAL NOT NULL, name TEXT NOT NULL, rarity TEXT NOT NULL, finished INTEGER NOT NULL);
+CREATE TABLE packs_made (pack_id TEXT PRIMARY KEY, title TEXT NOT NULL, version INTEGER NOT NULL, made_at TEXT NOT NULL);
+";
+
 /// A gift waiting in the Inbox (or already opened).
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -184,7 +196,7 @@ pub struct IncomingGift {
 }
 
 pub struct Database {
-    conn: Connection,
+    pub(crate) conn: Connection,
 }
 
 /// A raw Sticker Book row (see `Database::book_rows`).
@@ -281,7 +293,18 @@ impl Database {
             tx.pragma_update(None, "user_version", 7)?;
             tx.commit()?;
         }
+        if version < 8 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V8)?;
+            tx.pragma_update(None, "user_version", 8)?;
+            tx.commit()?;
+        }
         Ok(())
+    }
+
+    pub fn bonus_envelopes(&self) -> Result<i64> {
+        let value:String=self.conn.query_row("SELECT value FROM meta WHERE key='bonus_envelopes'",[],|r|r.get(0))?;
+        value.parse().map_err(|_|Error::Invalid("Extra envelope count is damaged.".into()))
     }
 
     pub fn sticker_id_exists(&self, id: &str) -> Result<bool> {
@@ -1083,6 +1106,24 @@ mod tests {
         assert_eq!(db.create_sticker(new("B", SourceType::Created)).unwrap().original_number, Some(2));
         let _ = std::fs::remove_dir_all(dir);
     }
+    #[test]
+    fn v7_to_v8_preserves_stickers_stock_packs_gifts_and_meta() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7] {conn.execute_batch(migration).unwrap();}
+        conn.pragma_update(None,"user_version",7).unwrap();
+        conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect) VALUES ('old','x','o','r','created',1)",[]).unwrap();
+        conn.execute("INSERT INTO packs VALUES ('welcome','Welcome Pack','Peta','x')",[]).unwrap();
+        conn.execute("INSERT INTO pack_items(pack_id,item_key) VALUES ('welcome','cat')",[]).unwrap();
+        conn.execute("INSERT INTO gifts_received(gift_id,from_name,sent_at,received_at,package) VALUES ('GIFT-old','Nao','x','x','old.peta')",[]).unwrap();
+        conn.execute("INSERT INTO material_stock VALUES ('kraft',4)",[]).unwrap();
+        conn.execute("INSERT INTO meta VALUES ('scraps.balance','9')",[]).unwrap();
+        let db=Database::init(conn).unwrap();
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),8);
+        assert!(db.sticker("old").unwrap().is_some());assert_eq!(db.material_count("kraft").unwrap(),4);
+        assert_eq!(db.packs().unwrap()[0].remaining,1);assert_eq!(db.gifts_received().unwrap()[0].from,"Nao");
+        assert_eq!(db.scrap_status().unwrap().balance,9);assert_eq!(db.bonus_envelopes().unwrap(),0);
+    }
+
     #[test]
     fn v6_migration_keeps_previous_day_prints_history_and_welcome_allowance() {
         let conn=Connection::open_in_memory().unwrap();

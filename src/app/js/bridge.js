@@ -2,7 +2,7 @@
 const prefs = JSON.parse(localStorage.getItem('peta.preferences') || '{}');
 const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, bookView: prefs.bookView === 'calendar' ? 'calendar' : 'list', motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
   envelopeDeadline: null, name: '', today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], packs: [],
-  pending: null, stuckToday: [], packAvailable: false, scraps: {balance:0, materials:[], packs:[]}, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
+  bonusEnvelopes: 0, extraEnvelope: false, pending: null, stuckToday: [], packAvailable: false, scraps: {balance:0, materials:[], packs:[]}, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
 const Bridge = (() => {
   const api = window.__TAURI__;
   const invoke = (cmd, args) => api.core.invoke(cmd, args);
@@ -20,7 +20,7 @@ const Bridge = (() => {
     const [profile, daily, materials, months, inbox, packs, pending, scraps] = await Promise.all([
       invoke('profile_get'), invoke('daily_status'), invoke('material_book'), invoke('book_index'), invoke('gift_inbox'), invoke('pack_status'), invoke('print_pending'), invoke('scrap_status')
     ]);
-    S.name = profile.displayName; S.today = new Date(daily.date + 'T12:00:00'); S.dayState = daily.materialOpened ? 'opened' : 'arrived';
+    S.name = profile.displayName; S.today = new Date(daily.date + 'T12:00:00'); S.bonusEnvelopes = daily.bonusEnvelopes || 0; S.extraEnvelope = daily.materialOpened && S.bonusEnvelopes > 0; S.dayState = daily.materialOpened && !S.extraEnvelope ? 'opened' : 'arrived';
     S.todayMat = daily.material?.id || 'matte'; S.packAvailable = packs.canOpen; S.pending = pending; S.scraps = scraps;
     for (const { material:m, unlocked } of materials) {
       if (!MAT[m.id]) continue;

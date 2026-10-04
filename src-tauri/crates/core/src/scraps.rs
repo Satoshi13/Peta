@@ -167,7 +167,7 @@ mod tests {
         let dir=std::env::temp_dir().join(format!("peta-scraps-{}",ids::new_sticker_id()));std::fs::create_dir_all(&dir).unwrap();let path=dir.join("test.db");
         let req=request(Kind::Dismantle,"holographic",2);
         let receipt={let mut db=Database::open(&path).unwrap();db.unlock_material("holographic").unwrap();db.add_material("holographic",3).unwrap();db.scrap_trade(&req,"persist").unwrap()};
-        let conn=Connection::open(&path).unwrap();assert_eq!(conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),7);
+        let conn=Connection::open(&path).unwrap();assert_eq!(conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),crate::db::SCHEMA_VERSION);
         let schema:String=conn.query_row("SELECT group_concat(sql) FROM sqlite_master WHERE sql IS NOT NULL",[],|r|r.get(0)).unwrap();
         conn.execute_batch("CREATE TRIGGER fail_scrap_receipt BEFORE INSERT ON meta WHEN NEW.key='scraps.tx.fail' BEGIN SELECT RAISE(ABORT,'injected receipt failure'); END;").unwrap();
         {
@@ -178,7 +178,7 @@ mod tests {
         }
         conn.execute_batch("DROP TRIGGER fail_scrap_receipt;").unwrap();
         assert_eq!(conn.query_row("SELECT group_concat(sql) FROM sqlite_master WHERE sql IS NOT NULL",[],|r|r.get::<_,String>(0)).unwrap(),schema);
-        assert_eq!(conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),7);
+        assert_eq!(conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),crate::db::SCHEMA_VERSION);
         drop(conn);std::fs::remove_dir_all(dir).unwrap();
     }
     #[test]

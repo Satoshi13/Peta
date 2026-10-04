@@ -45,6 +45,7 @@ pub struct DailyStatus {
     pub date: String,
     /// Today's material is a surprise until the envelope is opened.
     pub material_opened: bool,
+    pub bonus_envelopes: i64,
     pub material: Option<Material>,
     pub slot: SlotState,
     pub can_create: bool,
@@ -82,6 +83,7 @@ fn build_status(app: &AppHandle, record: &DailyRecord, db: &Database) -> DailySt
     DailyStatus {
         date: record.date.clone(),
         material_opened: opened,
+        bonus_envelopes: db.bonus_envelopes().unwrap_or(0),
         material: if opened { material_view(db, &record.material_id) } else { None },
         slot,
         can_create: true,

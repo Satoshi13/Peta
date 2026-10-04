@@ -129,3 +129,12 @@ mod tests {
         let _ = std::fs::remove_dir_all(dir);
     }
 }
+
+/// Signed item metadata lives outside the shipped catalog. Paths are generated locally after verification.
+#[derive(Clone, serde::Serialize)]
+#[serde(rename_all="camelCase")]
+pub struct StoredItem {pub png_path:String,pub mask_path:Option<String>,pub material_id:String,pub aspect:f64,pub name:String,pub rarity:String,pub finished:bool}
+pub fn stored_item(db:&Database,id:i64)->Result<Option<StoredItem>> {
+    use rusqlite::OptionalExtension;
+    Ok(db.conn.query_row("SELECT png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?1",[id],|r|Ok(StoredItem{png_path:r.get(0)?,mask_path:r.get(1)?,material_id:r.get(2)?,aspect:r.get(3)?,name:r.get(4)?,rarity:r.get(5)?,finished:r.get(6)?})).optional()?)
+}

@@ -82,13 +82,19 @@ pub fn ensure_today(db: &mut Database, today: &str, roll: f64) -> Result<DailyRe
 /// opening again the same day adds nothing.
 pub fn open_material(db: &mut Database, today: &str, roll: f64) -> Result<(DailyRecord, bool)> {
     let record = ensure_today(db, today, roll)?;
-    if record.material_opened_at.is_some() {
-        return Ok((record, false));
+    let bonus=record.material_opened_at.is_some();
+    if bonus && db.bonus_envelopes()?==0 {return Ok((record,false));}
+    let material=if bonus {materials::draw(roll,false)} else {record.material_id.clone()};
+    let tx=db.conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    if bonus {
+        let changed=tx.execute("UPDATE meta SET value=CAST(value AS INTEGER)-1 WHERE key='bonus_envelopes' AND CAST(value AS INTEGER)>0",[])?;
+        if changed==0 {return Err(Error::Invalid("No extra envelopes remain.".into()));}
     }
-    db.daily_set_opened(today, &now())?;
-    let newly = db.unlock_material(&record.material_id)?;
-    db.add_material(&record.material_id, 1)?;
-    Ok((db.daily_get(today)?.expect("just updated"), newly))
+    tx.execute("UPDATE daily_records SET material_id=?1,material_opened_at=?2 WHERE date=?3",rusqlite::params![material,now(),today])?;
+    let newly=tx.execute("INSERT OR IGNORE INTO material_unlocks VALUES (?1,?2)",rusqlite::params![material,now()])?>0;
+    tx.execute("INSERT INTO material_stock VALUES (?1,1) ON CONFLICT(material_id) DO UPDATE SET count=count+1",[&material])?;
+    tx.commit()?;
+    Ok((db.daily_get(today)?.expect("just updated"),newly))
 }
 
 /// Keep this sticker in the durable print queue and Book history. No daily sticker quota.
@@ -200,6 +206,19 @@ mod tests {
         assert_eq!(again.material_id, "holographic");
         assert_eq!(db.material_count("holographic").unwrap(), 2);
         again.used_at = None;
+    }
+
+    #[test]
+    fn extra_envelopes_are_consumed_after_daily_open_and_survive_midnight() {
+        let mut db=Database::open_in_memory().unwrap();
+        db.conn.execute("UPDATE meta SET value='2' WHERE key='bonus_envelopes'",[]).unwrap();
+        assert_eq!(open_material(&mut db,"2026-10-01",0.0).unwrap().0.material_id,"holographic");
+        assert_eq!(db.bonus_envelopes().unwrap(),2);
+        assert_eq!(open_material(&mut db,"2026-10-01",0.7).unwrap().0.material_id,"kraft");assert_eq!(db.bonus_envelopes().unwrap(),1);
+        ensure_today(&mut db,"2026-10-02",0.0).unwrap();assert_eq!(db.bonus_envelopes().unwrap(),1);
+        open_material(&mut db,"2026-10-02",0.0).unwrap();assert_eq!(db.bonus_envelopes().unwrap(),1);
+        open_material(&mut db,"2026-10-02",0.95).unwrap();assert_eq!(db.bonus_envelopes().unwrap(),0);
+        let stock=db.material_count("holographic").unwrap();open_material(&mut db,"2026-10-02",0.95).unwrap();assert_eq!(db.material_count("holographic").unwrap(),stock);
     }
 
     #[test]

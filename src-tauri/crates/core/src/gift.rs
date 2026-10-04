@@ -102,6 +102,16 @@ fn bad(msg: &str) -> Error {
 
 /// Read a gift file, checking it is what it says it is. Nothing is trusted: sizes are bounded and the PNG is decoded.
 pub fn decode_gift(bytes: &[u8]) -> Result<Decoded<'_>> {
+    if bytes.starts_with(crate::events::MAGIC) {
+        let verified=crate::events::decode(bytes)?;let e=&verified.header;
+        if e.kind!="grant_sticker" || verified.attachments.len()!=1 {return Err(bad("not a sticker event"));}
+        let (_,png,mask)=&verified.attachments[0];
+        // The original event remains the package; opening verifies its official signature again.
+        let n=13+u32::from_be_bytes(bytes[9..13].try_into().unwrap()) as usize;
+        let header=GiftHeader{gift_id:format!("GIFT-E-{}",e.event_id),from:"Peta".into(),note:Some(e.message.clone()),sent_at:e.issued_at.clone(),edition:1,
+            origin:Origin{sticker_id:format!("EVENT-{}",e.event_id),creator_name:Some("Peta".into()),created_at:e.issued_at.clone(),material_id:Some("matte".into()),aspect:{let image=image::load_from_memory(png)?;image.width() as f64/image.height() as f64}},png_len:png.len(),mask_len:mask.len()};
+        return Ok(Decoded{header,png:&bytes[n..n+png.len()],mask:&bytes[n+png.len()..n+png.len()+mask.len()]});
+    }
     if bytes.len() < 13 || &bytes[..8] != MAGIC {
         return Err(bad("wrong file"));
     }

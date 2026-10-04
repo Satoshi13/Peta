@@ -22,7 +22,7 @@ async function syncArrival() {
     if(!arrival){arrival=h('div#arrival',{role:'button',tabindex:0,'aria-label':'Open Peta arrival'});document.getElementById('layer').append(arrival);arrival.onclick=()=>window.__TAURI__.core.invoke('arrival_open');arrival.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')arrival.click();};}
     if(arrival.dataset.kind===kind)return;
     arrival.dataset.kind=kind; arrival.dataset.art='arrival-envelope';
-    arrival.replaceChildren(img(kind==='gift'?'arrGift':'arrMaterial'),h('span.arr-note',kind==='gift'?'A sealed gift':"Today's Material"));
+    arrival.replaceChildren(img(kind==='gift'?'arrGift':'arrMaterial'),h('span.arr-note',kind==='gift'?'A sealed gift':kind==='extra'?'An extra envelope from Peta.':"Today's Material"));
     Snd.chime(2,660);anim(arrival,[{transform:'translateY(60px) rotate(6deg) scale(.7)',opacity:0},{transform:'translateY(-10px) rotate(-2deg) scale(1.04)',opacity:1,offset:.7},{transform:'none',opacity:1}],{duration:760,easing:EASE.out}).then(a=>a.cancel());
 }
 window.__TAURI__.event.listen('arrival-changed',syncArrival);syncArrival().catch(console.error);

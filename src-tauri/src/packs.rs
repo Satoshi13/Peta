@@ -22,6 +22,7 @@ pub struct Opened {
     pub sticker_id: String,
     pub pack_title: String,
     pub remaining: i64,
+    pub rarity: Option<String>,
 }
 
 #[tauri::command]
@@ -48,7 +49,8 @@ pub async fn pack_open(app: AppHandle, pack_id: String) -> Result<Opened, String
         let (id, key) = lib.db().pack_pick(&pack_id, random_unit()).map_err(|e| e.to_string())?.ok_or("pack_empty")?;
         (id, key, pack_row.title, pack_row.by)
     };
-    let bytes = item_bytes(&app, &key).ok_or_else(|| format!("the picture for {key} is missing"))?;
+    let stored={let store=app.state::<Store>();let lib=store.lock();pack::stored_item(lib.db(),item_id).map_err(|e|e.to_string())?};
+    let bytes = if let Some(item)=&stored {app.state::<Store>().lock().read_asset(&item.png_path).map_err(|e|e.to_string())?} else {item_bytes(&app,&key).ok_or_else(||format!("the picture for {key} is missing"))?};
 
     let to_render = bytes.clone();
     let rendered = tauri::async_runtime::spawn_blocking(move || pack::render_pack_sticker(&to_render))
@@ -72,7 +74,7 @@ pub async fn pack_open(app: AppHandle, pack_id: String) -> Result<Opened, String
     };
     today::announce(&app);
     // The ceremony hands it to the print layer after the main window closes.
-    Ok(Opened { sticker_id: remaining.0, pack_title: title, remaining: remaining.1 })
+    Ok(Opened { sticker_id: remaining.0, pack_title: title, remaining: remaining.1, rarity: stored.map(|i|i.rarity) })
 }
 
 // Static, free catalog entries are local packs. Paid entries and creator accounts stay UI-only.

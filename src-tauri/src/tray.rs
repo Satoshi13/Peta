@@ -59,6 +59,7 @@ pub fn sync_edit_checkbox(app: &AppHandle, on: bool) {
 pub fn refresh_today(app: &AppHandle) {
     let Some(item) = app.try_state::<TodayItem>() else { return };
     let label = match today::status(app) {
+        Ok(s) if s.material_opened && s.bonus_envelopes>0 => "An extra envelope from Peta.",
         Ok(s) if !s.material_opened => "Open Peta  ●",
         Ok(s) if matches!(s.slot, peta_core::SlotState::Confirmed | peta_core::SlotState::Used) => "Open Peta  ✓",
         _ => "Open Peta",

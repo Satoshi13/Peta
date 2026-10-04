@@ -31,3 +31,4 @@ pub use models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceT
 pub mod sign;
 pub mod official_keys;
 pub mod device_key;
+pub mod events;

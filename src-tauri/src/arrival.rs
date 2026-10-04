@@ -5,6 +5,7 @@ static VISIBLE:AtomicBool=AtomicBool::new(false);
 use crate::{gifts,today,layers::Layers};
 fn wanted(app:&AppHandle)->Option<&'static str> {
     if gifts::unopened_count(app)>0 {Some("gift")}
+    else if matches!(today::status(app),Ok(s) if s.material_opened && s.bonus_envelopes>0) {Some("extra")}
     else if matches!(today::status(app),Ok(s) if !s.material_opened) {Some("material")}
     else {None}
 }

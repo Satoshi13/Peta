@@ -38,6 +38,8 @@ impl Library {
         Ok(Library { db: Database::open(&dir.join("peta.db"))?, assets_dir: dir.join("assets") })
     }
 
+    pub fn root(&self) -> &Path { self.assets_dir.parent().expect("library root") }
+
     pub fn db(&self) -> &Database {
         &self.db
     }
@@ -223,7 +225,7 @@ impl Library {
         Ok(fs::read(self.assets_dir.join(rel))?)
     }
 
-    pub(crate) fn read_asset(&self, rel: &str) -> Result<Vec<u8>> {
+    pub fn read_asset(&self, rel: &str) -> Result<Vec<u8>> {
         Ok(fs::read(self.assets_dir.join(rel))?)
     }
 

@@ -29,7 +29,7 @@ Pages.today = {
       const scene = EnvelopeScene();
       const open = () => Pages.today.openEnvelope(root);
       scene.addEventListener("click", open); scene.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && open());
-      root.append(h("section.t-arrived", scene, h("p.lead.hand", "Today's Material has arrived."), h("button.btn.open", { on: { click: open } }, "Open")));
+      root.append(h("section.t-arrived", scene, h("p.lead.hand", S.extraEnvelope ? "An extra envelope from Peta." : "Today's Material has arrived."), h("button.btn.open", { on: { click: open } }, "Open")));
     } else root.append(Pages.today.openedBlock());
     return root;
   },
@@ -75,7 +75,7 @@ Pages.today = {
       await anim(fl, [{ transform: "translate(0,0) rotate(-2deg) scale(1)" }, { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) rotate(-2deg) scale(${k})` }], { duration: 640, easing: EASE.inOut });
       fl.remove(); target.style.visibility = ""; Snd.tap(); await Bridge.leaveCeremony();
     } else { res.close(); block.style.opacity = 1; }
-    block.style.opacity = 1; block.getAnimations().forEach((a) => a.cancel()); Bridge.busy = false; this.resume();
+    block.style.opacity = 1; block.getAnimations().forEach((a) => a.cancel()); Bridge.busy = false; if(S.bonusEnvelopes > 0) Shell.refresh(); this.resume();
   },
 };
 
