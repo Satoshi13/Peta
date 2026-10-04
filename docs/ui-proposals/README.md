@@ -4,6 +4,7 @@
 |---|---|
 | [`peta-prototype.html`](peta-prototype.html) | **触れるプロトタイプ(1ファイル)**。ブラウザで開くだけ(`file://` でOK。画像・CSS・JS は全部埋め込み済み、約1.1MB) |
 | [`app/`](app) | そのソース(素材は `src/art/` をそのまま参照)。ビルド: `node docs/ui-proposals/app/build.mjs`(要 ImageMagick) |
+| [`design-quality-preview.html`](design-quality-preview.html) | **デザイン品質レビュー**。実機スクリーンショット(Before)と実素材を使った提案(After)を左右ワイプで比較。文字の役割・コントラスト・Today/Book/Create/Market/Packs・Sidebar・Night Desk・部品の状態表・動き・着手順。**1ファイル完結**(画像・フォント埋め込み、約1.6MB)。ソースは `design-quality-preview.src.html`、再生成は `python3 scripts/build-design-quality-preview.py` |
 | [`index.html`](index.html) | 最初の静的な比較(素材ピッカー3案・全体3方向)。プロトタイプの前段 |
 
 開発中にソースの `app/index.html` を開くときは、ファイルを直接開かず `python3 -m http.server` などで配信する(canvas が `file://` の画像で汚染されるため)。

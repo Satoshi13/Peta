@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peta Design Quality Review</title>
+<link rel="stylesheet" href="../../src/fonts/fonts.css">
+<style>
+/* =====================================================================================================
+   Peta · Design Quality Review
+   Before = 実機(Tauri)のスクリーンショット  /  After = 実素材(src/art)を使った HTML の提案
+   ===================================================================================================== */
+:root{
+  --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Hiragino Sans","Noto Sans JP",sans-serif;
+  --type:"Special Elite","Courier Prime","Courier New",monospace;
+  --hand:"Klee One","Noteworthy","Bradley Hand",cursive;
+  --ease-out:cubic-bezier(.2,.8,.2,1); --ease-spring:cubic-bezier(.34,1.56,.64,1); --ease-paper:cubic-bezier(.5,.05,.2,1);
+  /* docs chrome */
+  --d-bg:#ebe5d6; --d-card:#fbf8f0; --d-ink:#26241f; --d-ink2:#4a463f; --d-ink3:#655e51; --d-line:#d9d0bb;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--d-bg);color:var(--d-ink);font:15px/1.65 var(--sys);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* ---------- docs chrome ---------- */
+.top{position:sticky;top:0;z-index:50;background:rgba(235,229,214,.82);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid rgba(60,45,20,.1)}
+.top .wrap{display:flex;align-items:center;gap:18px;height:52px}
+.top b{font:700 15px var(--sys);letter-spacing:-.01em;white-space:nowrap}
+.top nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1}
+.top nav a{font:500 12.5px var(--sys);color:var(--d-ink3);text-decoration:none;padding:6px 10px;border-radius:8px;white-space:nowrap}
+.top nav a:hover{background:rgba(0,0,0,.06);color:var(--d-ink)}
+.night-toggle{display:flex;align-items:center;gap:8px;font:500 12.5px var(--sys);color:var(--d-ink2);white-space:nowrap;cursor:pointer;user-select:none}
+.sw{width:36px;height:22px;border-radius:99px;background:#cfc6b0;position:relative;transition:background .2s}
+.sw::after{content:"";position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .25s var(--ease-spring)}
+.night-toggle[aria-pressed=true] .sw{background:#2b2a28}.night-toggle[aria-pressed=true] .sw::after{transform:translateX(14px)}
+
+.hero{padding:76px 0 40px}
+.hero .kick{font:600 12px var(--sys);letter-spacing:.1em;text-transform:uppercase;color:var(--d-ink3)}
+.hero h1{font:700 clamp(36px,5.6vw,64px)/1.08 var(--sys);letter-spacing:-.035em;margin:14px 0 18px;max-width:15em}
+.hero h1 em{font-style:normal;background:linear-gradient(105deg,#d7a8c8,#a9a3e6,#8fc7e8,#9edfbf,#e7da8a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:17px;max-width:44em;color:var(--d-ink2);margin:0 0 10px}
+.principles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:34px 0 0}
+.principle{background:var(--d-card);border:1px solid var(--d-line);border-radius:16px;padding:18px 18px 16px}
+.principle i{font:600 11px var(--type);font-style:normal;color:var(--d-ink3);letter-spacing:.08em}
+.principle h3{font:650 16px/1.35 var(--sys);margin:8px 0 6px;letter-spacing:-.01em}
+.principle p{font:13.5px/1.6 var(--sys);margin:0;color:var(--d-ink2)}
+
+.findings{margin:46px 0 0;background:var(--d-card);border:1px solid var(--d-line);border-radius:20px;overflow:hidden}
+.findings table{width:100%;border-collapse:collapse;font-size:14px}
+.findings th{font:600 11px var(--sys);letter-spacing:.08em;text-transform:uppercase;color:var(--d-ink3);text-align:left;padding:14px 18px;border-bottom:1px solid var(--d-line)}
+.findings td{padding:13px 18px;border-bottom:1px solid #e8e0cd;vertical-align:top}
+.findings tr:last-child td{border-bottom:0}
+.findings td:first-child{font:700 13px var(--type);color:var(--d-ink3);width:48px}
+.findings a{text-decoration:none;font-weight:650}.findings a:hover{text-decoration:underline}
+.dots{display:inline-flex;gap:3px}.dots i{width:9px;height:9px;border-radius:50%;background:#d9d0bb}.dots i.on{background:var(--d-ink)}
+.tag{display:inline-block;font:600 11px var(--sys);padding:2px 8px;border-radius:99px;background:#e9e1cc;color:var(--d-ink2)}
+
+section.case{padding:76px 0 0}
+.case-head{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-bottom:22px}
+.case-head .n{font:600 12px var(--type);letter-spacing:.1em;color:var(--d-ink3)}
+.case-head h2{font:700 clamp(26px,3.4vw,38px)/1.18 var(--sys);letter-spacing:-.03em;margin:0}
+.case-head p{margin:6px 0 0;max-width:46em;color:var(--d-ink2);font-size:16px}
+.case-head p b{color:var(--d-ink)}
+
+/* ---------- stage: before/after ---------- */
+.stage{background:#d9d1bd;border-radius:24px;padding:14px;box-shadow:inset 0 0 0 1px rgba(60,45,20,.08)}
+.stage-bar{display:flex;align-items:center;gap:10px;margin:2px 4px 12px;flex-wrap:wrap}
+.seg{display:inline-flex;background:rgba(255,255,255,.55);border-radius:99px;padding:3px;box-shadow:inset 0 0 0 1px rgba(60,45,20,.1)}
+.seg button{border:0;background:none;font:550 12.5px var(--sys);color:var(--d-ink2);padding:5px 14px;border-radius:99px;cursor:pointer;transition:background .18s,color .18s,box-shadow .18s}
+.seg button[aria-pressed=true]{background:var(--d-ink);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.stage-bar .hint{font:12.5px var(--sys);color:var(--d-ink3);margin-left:auto}
+.stage-view{position:relative;width:100%;aspect-ratio:1060/700;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 1px 2px rgba(40,30,10,.3),0 18px 40px rgba(40,30,10,.18);--x:50%;--s:1;touch-action:pan-y;cursor:ew-resize}
+.stage[data-mode=before] .stage-view{--x:100%;cursor:default}.stage[data-mode=after] .stage-view{--x:0%;cursor:default}
+.scaler{position:absolute;left:0;top:0;width:1060px;height:700px;transform:scale(var(--s));transform-origin:0 0}
+.scaler>img.before{position:absolute;inset:0;width:1060px;height:700px;display:block;clip-path:inset(0 calc(100% - var(--x)) 0 0);-webkit-user-drag:none}
+.handle{position:absolute;top:0;bottom:0;left:var(--x);width:0;pointer-events:none;z-index:6}
+.stage[data-mode=before] .handle,.stage[data-mode=after] .handle{display:none}
+.handle::before{content:"";position:absolute;left:-1px;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.18),0 0 12px rgba(0,0,0,.25)}
+.handle b{position:absolute;left:-19px;top:50%;margin-top:-19px;width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:grid;place-items:center;font:700 13px var(--sys);color:var(--d-ink);pointer-events:auto;cursor:ew-resize}
+.handle:focus-visible b,.stage-view:focus-visible .handle b{outline:3px solid #3f5fd1;outline-offset:2px}
+.badge-ba{position:absolute;top:12px;z-index:7;font:650 11px var(--sys);letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:99px;background:rgba(30,28,26,.82);color:#fff;pointer-events:none}
+.badge-ba.b{left:12px}.badge-ba.a{right:12px;background:rgba(255,255,255,.92);color:#26241f}
+.stage[data-mode=before] .badge-ba.a,.stage[data-mode=after] .badge-ba.b{display:none}
+.pins{position:absolute;inset:0;pointer-events:none;z-index:4}
+.stage[data-pins=off] .pins,.stage[data-mode=before] .pins{display:none}
+.pin{position:absolute;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:#d8453a;color:#fff;font:700 13px/28px var(--sys);text-align:center;box-shadow:0 0 0 3px rgba(255,255,255,.95),0 3px 8px rgba(0,0,0,.35);transition:transform .25s var(--ease-spring)}
+.pin.hl{transform:scale(1.35)}
+.notes{margin:16px 6px 4px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 26px;padding:0;list-style:none;counter-reset:n}
+.notes li{counter-increment:n;position:relative;padding:10px 12px 10px 42px;border-radius:12px;font:13.5px/1.6 var(--sys);color:var(--d-ink2);transition:background .15s;cursor:default}
+.notes li:hover{background:rgba(255,255,255,.55)}
+.notes li::before{content:counter(n);position:absolute;left:8px;top:11px;width:22px;height:22px;border-radius:50%;background:#d8453a;color:#fff;font:700 12px/22px var(--sys);text-align:center}
+.notes li b{color:var(--d-ink)}
+
+/* =====================================================================================================
+   THE PROPOSED WINDOW (1060 × 700 coordinate space)
+   ===================================================================================================== */
+.win{
+  position:absolute;inset:0;overflow:hidden;font:14px/1.5 var(--sys);color:var(--w-ink);background:var(--w-win);
+  --w-win:#f6f1e6; --w-side:#efe9dc; --w-surface:#fffdf8; --w-surface2:#f8f3e7; --w-sunken:#efe8d7;
+  --w-ink:#2b2a28; --w-ink2:#4a463f; --w-ink3:#655e51; --w-line:#e3dac7; --w-line2:#ece5d4;
+  --w-btn:#2b2a28; --w-btnfg:#fff; --w-ring:#3f5fd1; --w-ok:#4f7a4a; --w-warn:#a8651d; --w-alert:#b94a3e;
+  --w-sh1:0 1px 1.5px rgba(60,45,20,.22),0 4px 10px rgba(60,45,20,.07);
+  --w-sh2:0 1px 2px rgba(60,45,20,.26),0 10px 22px rgba(60,45,20,.12);
+  --w-tex:1;
+}
+.win[data-theme=night]{
+  --w-win:#1d1a16; --w-side:#171410; --w-surface:#2d2923; --w-surface2:#262219; --w-sunken:#1a1713;
+  --w-ink:#f1ead9; --w-ink2:#d9cfba; --w-ink3:#b8ad97; --w-line:#3d372e; --w-line2:#332e26;
+  --w-btn:#f1ead9; --w-btnfg:#1d1a16; --w-ring:#8da6ff; --w-ok:#8fc088; --w-warn:#e0a35a; --w-alert:#ef8274;
+  --w-sh1:0 1px 1.5px rgba(0,0,0,.5),0 4px 10px rgba(0,0,0,.25);
+  --w-sh2:0 1px 2px rgba(0,0,0,.6),0 12px 26px rgba(0,0,0,.4);
+  --w-tex:0;
+}
+body.night .win[data-follow]{--x:0}
+.win *{box-sizing:border-box}
+.win .sb{position:absolute;left:0;top:0;bottom:0;width:216px;background:var(--w-side);border-right:1px solid var(--w-line);padding:92px 12px 14px;display:flex;flex-direction:column}
+.win .pg{position:absolute;left:216px;top:0;right:0;bottom:0;padding:34px 40px 0;overflow:hidden;
+  background:linear-gradient(rgba(251,249,244,.62),rgba(251,249,244,.62)),url(../../src/art/book/page-paper.jpg) 0 0/520px,#fbf9f4}
+.win[data-theme=night] .pg{background:radial-gradient(120% 90% at 20% 0%,#25211b,#1d1a16 70%)}
+.win .wc{position:absolute;left:14px;top:12px;width:108px;height:36px;background:url(../../src/art/ui/window-controls/pill-backing.png) center/100% 100% no-repeat;z-index:3;filter:drop-shadow(0 1px 1px rgba(40,30,10,.25))}
+.win .wc i{position:absolute;top:6px;width:24px;height:24px;background:center/contain no-repeat}
+.win .wc i:nth-child(1){left:10px;background-image:url(../../src/art/ui/window-controls/button-red.png)}
+.win .wc i:nth-child(2){left:42px;background-image:url(../../src/art/ui/window-controls/button-yellow.png)}
+.win .wc i:nth-child(3){left:74px;background-image:url(../../src/art/ui/window-controls/button-green.png)}
+.win .logo{position:absolute;left:24px;top:56px;width:62px;height:26px;background:url(../../src/art/brand/logo-wordmark-ink.svg) left center/contain no-repeat}
+.win[data-theme=night] .logo{background-image:url(../../src/art/brand/logo-wordmark-white.svg)}
+
+/* sidebar */
+.sb .grp{font:600 10.5px/1 var(--sys);letter-spacing:.09em;text-transform:uppercase;color:var(--w-ink3);padding:0 12px;margin:18px 0 6px}
+.sb .it{position:relative;display:flex;align-items:center;gap:11px;height:38px;padding:0 10px 0 6px;border-radius:11px;font:500 14px var(--sys);color:var(--w-ink2);transition:background .16s}
+.sb .it:hover{background:rgba(255,255,255,.5)}
+.win[data-theme=night] .sb .it:hover{background:rgba(255,255,255,.06)}
+.sb .it .ic{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.62);box-shadow:inset 0 0 0 1px rgba(60,45,20,.07);display:grid;place-items:center;flex:none}
+.win[data-theme=night] .sb .it .ic{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.sb .it .ic i{width:22px;height:22px;background:center/contain no-repeat;filter:drop-shadow(0 1px 1px rgba(40,30,10,.3))}
+.sb .it .k{margin-left:auto;font:500 11px var(--sys);color:var(--w-ink3);opacity:0;transition:opacity .15s;letter-spacing:.02em}
+.sb .it:hover .k{opacity:1}
+.sb .it[aria-current]{background:var(--w-surface);color:var(--w-ink);font-weight:650;box-shadow:var(--w-sh1)}
+.sb .it[aria-current] .k{opacity:.9}
+.sb .cnt{margin-left:auto;min-width:19px;height:19px;padding:0 6px;border-radius:99px;background:var(--w-btn);color:var(--w-btnfg);font:650 11px/19px var(--sys);text-align:center;font-variant-numeric:tabular-nums}
+.sb .it .cnt+.k{display:none}
+.sb .dot{margin-left:auto;width:8px;height:8px;border-radius:50%;background:#c9a878;box-shadow:0 0 0 3px rgba(201,168,120,.28)}
+.sb .foot{margin-top:auto;border-top:1px solid var(--w-line);padding-top:10px;display:flex;flex-direction:column;gap:2px}
+.sb .me{display:flex;align-items:center;gap:10px;padding:8px 8px 4px 8px;font:12px/1.3 var(--sys);color:var(--w-ink3)}
+.sb .me b{display:block;font:600 13px var(--sys);color:var(--w-ink)}
+.sb .me .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f6c6e3,#bfe3f7);box-shadow:inset 0 0 0 1px rgba(60,45,20,.12);flex:none}
+
+/* page head */
+.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:10px}
+.over{font:600 11px/1 var(--sys);letter-spacing:.09em;text-transform:uppercase;color:var(--w-ink3)}
+.ph h1{margin:9px 0 0;font:700 40px/44px var(--sys);letter-spacing:-.03em}
+.lede{margin:4px 0 0;color:var(--w-ink2);font:14px/21px var(--sys);max-width:46ch}
+.ph .right{display:flex;align-items:center;gap:10px;padding-bottom:6px}
+.sl{font:600 11px/1 var(--sys);letter-spacing:.09em;text-transform:uppercase;color:var(--w-ink3);margin:0 0 10px}
+
+/* controls */
+.btn{appearance:none;border:0;cursor:pointer;border-radius:99px;padding:0 20px;height:36px;font:650 14px var(--sys);letter-spacing:.005em;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;transition:transform .12s,box-shadow .12s,background .15s,opacity .15s}
+.btn.pri{background:var(--w-btn);color:var(--w-btnfg);box-shadow:0 2px 0 rgba(0,0,0,.5),0 8px 14px rgba(0,0,0,.14)}
+.btn.pri:hover,.btn.pri.is-hover{transform:translateY(-1px);box-shadow:0 3px 0 rgba(0,0,0,.5),0 12px 18px rgba(0,0,0,.16)}
+.btn.pri:active,.btn.pri.is-down{transform:translateY(1px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
+.btn.sec{background:var(--w-surface);color:var(--w-ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--w-line),var(--w-sh1)}
+.btn.sec:hover,.btn.sec.is-hover{background:var(--w-surface2);box-shadow:inset 0 0 0 1px #cfc4ac,var(--w-sh2)}
+.btn.sec:active,.btn.sec.is-down{transform:translateY(1px);box-shadow:inset 0 0 0 1px var(--w-line)}
+.btn.quiet{background:none;color:var(--w-ink2);font-weight:600;padding:0 12px}
+.btn.quiet:hover,.btn.quiet.is-hover{background:rgba(120,100,60,.1)}
+.btn.danger{background:var(--w-surface);color:var(--w-alert);box-shadow:inset 0 0 0 1px currentColor}
+.btn.sm{height:30px;padding:0 14px;font-size:12.5px}
+.btn:disabled,.btn.is-dis{opacity:.42;cursor:default;box-shadow:none;transform:none}
+.btn.is-focus,.btn:focus-visible{outline:0;box-shadow:0 0 0 2px var(--w-win),0 0 0 4.5px var(--w-ring)}
+.btn kbd{font:500 11px var(--sys);opacity:.65;padding:1px 6px;border-radius:5px;background:rgba(255,255,255,.18)}
+.btn.sec kbd,.btn.quiet kbd{background:rgba(120,100,60,.12)}
+.chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;font:550 12px var(--sys);background:var(--w-surface);color:var(--w-ink2);box-shadow:inset 0 0 0 1px var(--w-line)}
+.chip.fill{background:var(--w-sunken);box-shadow:none}
+.chip svg{width:13px;height:13px}
+.meta{font:500 12px/16px var(--sys);color:var(--w-ink3);font-variant-numeric:tabular-nums}
+.stamp{font-family:var(--type);letter-spacing:.04em}
+.card{background:var(--w-surface);border-radius:16px;box-shadow:inset 0 0 0 1px var(--w-line),var(--w-sh1)}
+.seg2{display:inline-flex;padding:3px;border-radius:99px;background:var(--w-sunken);box-shadow:inset 0 0 0 1px var(--w-line)}
+.seg2 span{padding:0 14px;height:28px;line-height:28px;border-radius:99px;font:600 12.5px/28px var(--sys);color:var(--w-ink3)}
+.seg2 span.on{background:var(--w-surface);color:var(--w-ink);box-shadow:var(--w-sh1)}
+.seal{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 14px;font:650 10px/1 var(--sys);letter-spacing:.1em;text-transform:uppercase;background:center/100% 100% no-repeat;filter:drop-shadow(0 1px 1px rgba(40,30,10,.22));transform:rotate(-2deg);color:#3b3552;min-width:92px;padding:0 18px}
+.seal.rare{background-image:url(../../src/art/ui/seal-rare.png)}.seal.unc{background-image:url(../../src/art/ui/seal-uncommon.png);color:#5a4521}.seal.com{background-image:url(../../src/art/ui/seal-common.png);color:#555}.seal.spe{background-image:url(../../src/art/ui/seal-special.png);color:#3c4048}
+
+/* ---------- TODAY ---------- */
+.tk{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 12px;border-radius:12px;background:var(--w-surface);box-shadow:inset 0 0 0 1px var(--w-line),var(--w-sh1)}
+.tk small{display:block;font:600 10px/1 var(--sys);letter-spacing:.09em;text-transform:uppercase;color:var(--w-ink3);margin-bottom:3px}
+.tk b{font:400 17px/1 var(--type);letter-spacing:.06em;font-variant-numeric:tabular-nums;color:var(--w-ink)}
+.tk .env{width:30px;height:20px;background:url(../../src/art/today/envelope-closed.png) center/contain no-repeat}
+.choices{display:grid;grid-template-columns:1.62fr 1fr 1fr 1fr;gap:12px;height:178px}
+.ch{position:relative;border-radius:18px;background:var(--w-surface);box-shadow:inset 0 0 0 1px var(--w-line),var(--w-sh1);padding:16px 16px 14px;display:flex;flex-direction:column;transition:transform .2s var(--ease-out),box-shadow .2s}
+.ch:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px #d0c5ad,var(--w-sh2)}
+.ch .art{flex:1;min-height:0;background:center/contain no-repeat;margin:-4px 0 8px;filter:drop-shadow(0 4px 5px rgba(60,45,20,.22))}
+.ch h3{margin:0;font:650 15px/20px var(--sys);letter-spacing:-.005em}
+.ch p{margin:1px 0 0;font:12px/16px var(--sys);color:var(--w-ink3);white-space:nowrap}
+.ch .cnt2{position:absolute;right:12px;top:12px;height:22px;padding:0 9px;border-radius:99px;background:var(--w-btn);color:var(--w-btnfg);font:650 11px/22px var(--sys)}
+.ch.hero{background:linear-gradient(160deg,var(--w-surface) 0%,var(--w-surface2) 100%);flex-direction:row;align-items:stretch;gap:6px;padding:18px 18px 16px;box-shadow:inset 0 0 0 1.5px var(--w-ink),var(--w-sh2)}
+.win[data-theme=night] .ch.hero{box-shadow:inset 0 0 0 1.5px #f1ead9,var(--w-sh2)}
+.ch.hero .l{display:flex;flex-direction:column;flex:1;min-width:0}
+.ch.hero h3{font:700 20px/24px var(--sys);letter-spacing:-.02em}
+.ch.hero p{white-space:normal;font-size:12.5px;line-height:18px;margin-top:3px}
+.ch.hero .btn{margin-top:auto;align-self:flex-start}
+.ch.hero .art{flex:none;width:104px;height:auto;margin:0;transform:rotate(5deg) translateY(2px);align-self:center;aspect-ratio:1;filter:drop-shadow(0 6px 8px rgba(60,45,20,.28))}
+.band{display:grid;grid-template-columns:1.25fr 1fr;gap:12px;margin-top:26px}
+.mat{display:flex;gap:20px;padding:16px 20px 16px 16px;height:196px}
+.mat .tray{width:170px;flex:none;position:relative;display:grid;place-items:center;border-radius:12px;background:var(--w-sunken);box-shadow:inset 0 2px 5px rgba(60,45,20,.12)}
+.mat .tray i{width:140px;height:95px;background:url(../../src/art/today/material-card-holographic.png) center/contain no-repeat;transform:rotate(-3deg);filter:drop-shadow(0 4px 6px rgba(60,45,20,.28))}
+.mat .tx{flex:1;min-width:0;display:flex;flex-direction:column}
+.mat h3{margin:5px 0 0;font:700 22px/26px var(--sys);letter-spacing:-.02em;display:flex;align-items:center;gap:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}
+.stock{margin-top:auto;display:flex;gap:6px;padding-top:12px;border-top:1px solid var(--w-line2)}
+.stock div{display:flex;align-items:center;gap:7px;padding:0 10px 0 4px;height:30px;border-radius:99px;background:var(--w-sunken);font:600 12px var(--sys);color:var(--w-ink2);font-variant-numeric:tabular-nums}
+.stock img{width:22px;height:22px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px rgba(60,45,20,.15)}
+.stuck{padding:16px 18px;height:196px;display:flex;flex-direction:column}
+.stuck .hd{display:flex;align-items:baseline;justify-content:space-between}
+.stuck .hd b{font:650 14px var(--sys)}
+.empty{flex:1;margin-top:10px;border-radius:12px;border:1.5px dashed #cfc4ac;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center}
+.win[data-theme=night] .empty{border-color:#4a4337}
+.empty img{width:92px;opacity:.9;margin-bottom:2px}
+.empty b{font:600 13px var(--sys)}.empty .btn{margin-top:8px}
+
+/* ---------- BOOK ---------- */
+.mbar{display:flex;align-items:center;gap:18px;margin:16px 0 18px}
+.mbar .ttl{display:flex;align-items:center;gap:4px;font:700 22px/26px var(--sys);letter-spacing:-.02em}
+.mbar .ar{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;color:var(--w-ink3);font:600 16px var(--sys)}
+.mbar .ar:hover{background:rgba(120,100,60,.12)}
+.strip{display:flex;gap:4px;align-items:center;margin-left:auto}
+.strip i{width:8px;height:8px;flex:none;border-radius:50%;background:var(--w-line)}
+.strip i.on{background:var(--w-ink)}.strip i.today{box-shadow:0 0 0 2px var(--w-win),0 0 0 3.5px var(--w-ink);background:transparent}
+.strip i.fut{background:transparent;box-shadow:inset 0 0 0 1px var(--w-line)}
+.strip em{font:500 12px var(--sys);color:var(--w-ink3);font-style:normal;margin-left:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tile{position:relative;height:242px;border-radius:18px;background:var(--w-surface);box-shadow:inset 0 0 0 1px var(--w-line),var(--w-sh1);display:flex;flex-direction:column;overflow:hidden;transition:transform .2s var(--ease-out),box-shadow .2s}
+.tile .face{flex:1;position:relative;display:grid;place-items:center;background:url(../../src/art/book/page-dots.png) 0 0/256px,var(--w-surface2);border-bottom:1px solid var(--w-line2)}
+.win[data-theme=night] .tile .face{background:var(--w-surface2)}
+.tile .face img{max-width:132px;max-height:122px;object-fit:contain;filter:drop-shadow(0 2px 2.5px rgba(40,30,10,.35));transition:transform .25s var(--ease-spring)}
+.tile.hov{transform:translateY(-3px);box-shadow:inset 0 0 0 1px #cdbfa2,var(--w-sh2)}
+.tile.hov .face img{transform:scale(1.05) rotate(-2deg)}
+.tile .dt{position:absolute;left:10px;top:10px;font:400 11px var(--type);letter-spacing:.07em;color:var(--w-ink2);background:rgba(255,255,255,.7);padding:3px 8px;border-radius:6px;box-shadow:inset 0 0 0 1px var(--w-line)}
+.win[data-theme=night] .tile .dt{background:rgba(0,0,0,.35)}
+.tile .on{position:absolute;right:10px;top:11px;display:flex;align-items:center;gap:5px;font:600 11px var(--sys);color:var(--w-ok)}
+.tile .on::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px rgba(79,122,74,.18)}
+.tile .ft{padding:10px 14px 12px;height:62px}
+.tile .ft b{display:block;font:650 13.5px/18px var(--sys);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .acts{position:absolute;left:10px;right:10px;bottom:72px;display:flex;gap:6px;justify-content:center;opacity:0;transform:translateY(6px)}
+.tile.hov .acts{opacity:1;transform:none}
+.acts .btn{height:28px;font-size:12px;padding:0 12px;background:rgba(255,253,248,.94);color:#2b2a28;box-shadow:0 1px 2px rgba(0,0,0,.25),0 6px 12px rgba(0,0,0,.12)}
+.tile.slot{background:none;box-shadow:none;border:1.5px dashed #cfc4ac;align-items:center;justify-content:center;text-align:center;gap:4px;color:var(--w-ink3)}
+.win[data-theme=night] .tile.slot{border-color:#4a4337}
+.tile.slot .plus{width:44px;height:44px;border-radius:50%;background:var(--w-surface);box-shadow:inset 0 0 0 1px var(--w-line),var(--w-sh1);display:grid;place-items:center;font:300 26px/1 var(--sys);color:var(--w-ink)}
+.tile.slot b{font:650 13.5px var(--sys);color:var(--w-ink);margin-top:6px}
+
+/* ---------- CREATE ---------- */
+.mat-board{position:absolute;left:40px;right:40px;top:132px;bottom:30px;border-radius:20px;background:url(../../src/art/creator/cutting-mat.jpg) center/cover;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),inset 0 2px 16px rgba(0,0,0,.25),var(--w-sh1);padding:14px 18px 0}
+.win[data-theme=night] .mat-board{background-image:url(../../src/art/creator/cutting-mat-dark.jpg)}
+.steps{display:grid;grid-template-columns:1fr 22px 1fr 22px 1fr;align-items:center}
+.steps .s{display:flex;align-items:center;gap:8px;font:600 12px var(--sys);color:#f4f0e4;text-shadow:0 1px 2px rgba(10,30,20,.55);margin-bottom:8px}
+.steps .s i{width:20px;height:20px;border-radius:50%;background:#f4f0e4;color:#2b3a33;font:700 11px/20px var(--sys);font-style:normal;text-align:center;text-shadow:none}
+.panes{display:grid;grid-template-columns:1fr 22px 1fr 22px 1fr;align-items:center;height:216px}
+.panes .ar{color:#f4f0e4;text-align:center;font:600 16px var(--sys);opacity:.85}
+.pane{height:100%;border-radius:14px;background:#fffdf8;display:grid;place-items:center;overflow:hidden;position:relative;box-shadow:0 2px 6px rgba(10,30,20,.3)}
+.pane.chk{background:conic-gradient(#e9e4d8 25%,#fffdf8 0 50%,#e9e4d8 0 75%,#fffdf8 0) 0 0/18px 18px}
+.pane.st{background:#8fa282}
+.pane img{width:70%;object-fit:contain}
+.pane.o{background:#4e4b43}.pane.o img{width:100%;height:100%;object-fit:cover;filter:saturate(.7) brightness(.65) blur(.4px);transform:scale(1.4)}
+.pane.o .orig{position:absolute;width:76%;filter:none;transform:none;height:auto}
+.pane.st img{filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 0 5px #c9c3f5) drop-shadow(0 0 3px #bfe3f7) drop-shadow(0 4px 5px rgba(0,0,0,.3))}
+.dock{position:absolute;left:18px;right:18px;bottom:16px;height:218px;border-radius:16px;background:var(--w-surface);box-shadow:inset 0 0 0 1px rgba(60,45,20,.1),0 1px 2px rgba(10,30,20,.35),0 12px 24px rgba(10,30,20,.25);padding:16px 20px 14px;display:grid;grid-template-columns:1.18fr 1fr 1fr;gap:26px}
+.dock .col>.sl{margin-bottom:12px}
+.plates{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.plate{position:relative;border-radius:12px;padding:7px;background:var(--w-sunken);box-shadow:inset 0 0 0 1px var(--w-line);text-align:center}
+.plate i{display:block;height:50px;border-radius:7px;background:center/cover;box-shadow:0 1px 2px rgba(40,30,10,.3)}
+.plate b{display:block;font:600 12px/16px var(--sys);margin-top:6px}
+.plate small{display:block;font:500 11px/14px var(--sys);color:var(--w-ink3);font-variant-numeric:tabular-nums}
+.plate.sel{background:var(--w-surface);box-shadow:inset 0 0 0 2px var(--w-ink),var(--w-sh1)}
+.plate.sel::after{content:"✓";position:absolute;right:-6px;top:-6px;width:20px;height:20px;border-radius:50%;background:var(--w-btn);color:var(--w-btnfg);font:700 11px/20px var(--sys)}
+.row{display:grid;grid-template-columns:62px 1fr 34px;align-items:center;height:34px;gap:10px}
+.row label{font:550 13px var(--sys);color:var(--w-ink2)}
+.row output{font:550 12px var(--sys);color:var(--w-ink3);text-align:right;font-variant-numeric:tabular-nums}
+.rng{position:relative;height:22px}
+.rng::before{content:"";position:absolute;left:0;right:0;top:9px;height:4px;border-radius:2px;background:var(--w-line);box-shadow:inset 0 1px 1px rgba(60,45,20,.2)}
+.rng::after{content:"";position:absolute;left:0;top:9px;height:4px;border-radius:2px;width:var(--v);background:linear-gradient(90deg,#b88f4c,#d8b574)}
+.rng i{position:absolute;left:var(--v);top:0;width:22px;height:22px;margin-left:-11px;background:url(../../src/art/ui/slider-knob.png) center/contain no-repeat;filter:drop-shadow(0 1px 1.5px rgba(40,30,10,.4));z-index:1}
+.icobtn{width:34px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--w-surface);box-shadow:inset 0 0 0 1px var(--w-line),var(--w-sh1);color:var(--w-ink);font:600 14px var(--sys)}
+.icobtn.dis{opacity:.55;box-shadow:inset 0 0 0 1px var(--w-line)}
+.cta{position:absolute;right:20px;bottom:14px;display:flex;align-items:center;gap:12px}
+.cta .meta b{color:var(--w-ink);font-weight:650}
+
+/* ---------- MARKET ---------- */
+.wallet{display:flex;align-items:center;gap:8px;height:34px;padding:0 6px 0 12px;border-radius:99px;background:var(--w-surface);box-shadow:inset 0 0 0 1px var(--w-line),var(--w-sh1);font:600 13px var(--sys)}
+.wallet .sc{font:400 15px var(--type);letter-spacing:.04em;min-width:26px;text-align:center;padding:2px 10px;border-radius:99px;background:var(--w-sunken);font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:24px;border-bottom:1px solid var(--w-line);margin:14px 0 14px;position:relative}
+.tabs span{padding:8px 2px 10px;font:600 14px var(--sys);color:var(--w-ink3);position:relative}
+.tabs span.on{color:var(--w-ink)}
+.tabs span.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5px;border-radius:2px;background:var(--w-ink)}
+.mk3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.mk{border-radius:18px;background:var(--w-surface);box-shadow:inset 0 0 0 1px var(--w-line),var(--w-sh1);overflow:hidden;display:flex;flex-direction:column;height:352px}
+.mk .zone{height:132px;display:grid;place-items:center;background:var(--w-sunken);position:relative}
+.mk .zone i span{position:absolute;left:22%;right:22%;bottom:13%;text-align:center;font:600 11.5px/1 var(--hand);color:#3a342a;letter-spacing:.01em}
+.mk .zone i{position:relative;width:150px;height:102px;background:center/contain no-repeat;filter:drop-shadow(0 4px 6px rgba(60,45,20,.3));transform:rotate(-2deg)}
+.mk .bd{padding:14px 16px 0;flex:1}
+.mk .nm{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mk .nm b{font:700 17px var(--sys);letter-spacing:-.01em}
+.mk .ds{font:12.5px/18px var(--sys);color:var(--w-ink2);margin:8px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mk .ft{padding:12px 16px 14px;border-top:1px solid var(--w-line2);display:flex;flex-direction:column;gap:10px}
+.mk .st{display:flex;align-items:center;justify-content:space-between}
+.bar{height:5px;border-radius:3px;background:var(--w-line);overflow:hidden;flex:1;margin-left:12px;max-width:90px}
+.bar i{display:block;height:100%;border-radius:3px;background:var(--w-ink3);width:var(--v)}
+.mk .btn{justify-content:center;width:100%}
+.mk .need{display:flex;flex-direction:column;gap:7px}
+.mk .need .bar{max-width:none;margin:0;height:6px}
+.mk .need .bar i{background:linear-gradient(90deg,#b88f4c,#d8b574)}
+.mk .need div.t{display:flex;justify-content:space-between}
+.mk.lock .zone i{filter:grayscale(.9) drop-shadow(0 2px 3px rgba(60,45,20,.2));opacity:.55}
+.mk.lock .zone::after{content:"";position:absolute;right:14px;top:14px;width:26px;height:26px;border-radius:50%;background:var(--w-surface) center/14px no-repeat;box-shadow:inset 0 0 0 1px var(--w-line);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23655e51' stroke-width='1.6' stroke-linecap='round'%3E%3Crect x='3.5' y='7' width='9' height='6.5' rx='1.6'/%3E%3Cpath d='M5.5 7V5.5a2.5 2.5 0 015 0V7'/%3E%3C/svg%3E")}
+
+/* ---------- PACKS ---------- */
+.shelf{position:relative;margin-top:14px;height:452px}
+.packs3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+.pk{display:flex;flex-direction:column;align-items:center;gap:0}
+.pk .art{width:150px;height:200px;background:center/contain no-repeat;filter:drop-shadow(0 8px 8px rgba(60,45,20,.3));margin-bottom:36px;position:relative;z-index:2;transition:transform .3s var(--ease-spring)}
+.pk:hover .art{transform:translateY(-6px) rotate(-1.5deg)}
+.pk .lb{position:relative;z-index:3;width:100%;padding:12px 14px 12px;border-radius:16px;background:var(--w-surface);box-shadow:inset 0 0 0 1px var(--w-line),var(--w-sh1);text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center}
+.pk .lb b{font:700 16px/20px var(--sys);letter-spacing:-.01em}
+.segs{display:flex;gap:2px;margin:6px 0 2px}
+.segs i{width:7px;height:5px;border-radius:1.5px;background:var(--w-ink3)}.segs i.e{background:var(--w-line)}
+.pk .lb .btn{margin-top:8px}
+.board{position:absolute;left:-12px;right:-12px;top:184px;height:34px;background:url(../../src/art/ui/shelf-board.png) center/100% 100% no-repeat;z-index:1}
+.shelf .cap{position:absolute;left:0;right:0;bottom:0;text-align:center}
+
+/* =====================================================================================================
+   DOCS SECTIONS (type, contrast, sidebar, dark, components, motion, roadmap)
+   ===================================================================================================== */
+.panel{background:var(--d-card);border:1px solid var(--d-line);border-radius:22px;padding:26px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.lab{font:600 11px var(--sys);letter-spacing:.09em;text-transform:uppercase;color:var(--d-ink3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.lab .x{display:inline-block;height:20px;line-height:20px;padding:0 8px;border-radius:99px;background:#e7dec8;font-size:10.5px;letter-spacing:.06em}
+.lab .x.ok{background:#d7e6cf;color:#2f5a2a}.lab .x.ng{background:#f0d6d0;color:#8f2f25}
+
+.spec{padding:22px 24px;border-radius:16px;background:#faf6ec;box-shadow:inset 0 0 0 1px #e3dac7}
+.spec.dark{background:#1d1a16;color:#f1ead9;box-shadow:inset 0 0 0 1px #3d372e}
+.spec .a{font:400 10px/1 var(--type);letter-spacing:.14em;text-transform:uppercase;color:#7a7468}
+.spec .b{font:700 38px/42px var(--sys);letter-spacing:-.025em;margin:8px 0 4px;color:#2b2a28}
+.spec .c{font:400 11px/1.6 var(--type);color:#7a7468}
+.spec .d{font:14px/1.5 var(--hand);color:#4a463f;margin-top:8px}
+.spec.after .a{font:600 11px/1 var(--sys);letter-spacing:.09em;color:#655e51}
+.spec.after .b{font:700 40px/44px var(--sys);letter-spacing:-.03em}
+.spec.after .c{font:500 12px/16px var(--sys);color:#655e51;font-variant-numeric:tabular-nums}
+.spec.after .c .st{font:400 12px var(--type);letter-spacing:.04em}
+.spec.after .d{font:500 12px/16px var(--sys);color:#655e51}
+.roles{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+.roles th{font:600 11px var(--sys);letter-spacing:.08em;text-transform:uppercase;color:var(--d-ink3);text-align:left;padding:10px 12px;border-bottom:1px solid var(--d-line)}
+.roles td{padding:12px;border-bottom:1px solid #e8e0cd;vertical-align:baseline}
+.roles tr:last-child td{border-bottom:0}
+.roles code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;background:#efe8d6;padding:2px 6px;border-radius:5px;color:var(--d-ink2);white-space:nowrap}
+.voice{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.voice div{border-radius:16px;padding:18px;background:#faf6ec;box-shadow:inset 0 0 0 1px #e3dac7}
+.voice h4{margin:0 0 10px;font:600 11px var(--sys);letter-spacing:.09em;text-transform:uppercase;color:var(--d-ink3)}
+.voice .s1{font:700 26px/1.2 var(--sys);letter-spacing:-.02em}
+.voice .s2{font:400 20px/1.3 var(--type);letter-spacing:.04em}
+.voice .s3{font:600 20px/1.3 var(--hand)}
+.voice p{margin:10px 0 0;font-size:13px;color:var(--d-ink2);line-height:1.6}
+
+.ratio{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;border-radius:16px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--d-line);background:var(--d-card)}
+.ratio>div{padding:14px 16px;border-bottom:1px solid #e8e0cd;border-right:1px solid #e8e0cd;display:flex;flex-direction:column;gap:4px;justify-content:center;min-height:72px}
+.ratio>div:nth-child(4n){border-right:0}.ratio>div:nth-last-child(-n+4){border-bottom:0}
+.ratio .h{font:600 11px var(--sys);letter-spacing:.08em;text-transform:uppercase;color:var(--d-ink3);min-height:0;padding:12px 16px;background:#f1ebdb}
+.ratio .smp{font:500 12px var(--sys);padding:10px 14px}
+.ratio .v{font:700 12px var(--sys);font-variant-numeric:tabular-nums}
+.ratio .v.ng{color:#a63d33}.ratio .v.ok{color:#2f5a2a}
+.ratio small{font:11px var(--sys);color:var(--d-ink3)}
+
+.sbwrap{display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:start}
+.sbdemo{width:216px;height:700px;position:relative;border-radius:18px;overflow:hidden;box-shadow:0 1px 2px rgba(40,30,10,.3),0 18px 40px rgba(40,30,10,.18);transform:scale(1);transform-origin:top left}
+.sbdemo .win{position:absolute;inset:auto;left:0;top:0;width:1060px;height:700px}
+.sbwrap ol{margin:0;padding:0;list-style:none;counter-reset:n}
+.sbwrap li{counter-increment:n;position:relative;padding:12px 14px 12px 46px;border-bottom:1px solid #e0d7c3;font-size:14px;color:var(--d-ink2)}
+.sbwrap li:last-child{border:0}
+.sbwrap li::before{content:counter(n);position:absolute;left:8px;top:13px;width:24px;height:24px;border-radius:50%;background:#d8453a;color:#fff;font:700 12px/24px var(--sys);text-align:center}
+.sbwrap li b{color:var(--d-ink)}
+.rail{display:flex;gap:14px;align-items:flex-start;margin-top:18px}
+.railbox{width:68px;height:420px;border-radius:16px;background:#efe9dc;box-shadow:inset 0 0 0 1px #e3dac7,0 8px 20px rgba(40,30,10,.12);padding:18px 0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.railbox .ic{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.62);box-shadow:inset 0 0 0 1px rgba(60,45,20,.07);display:grid;place-items:center;position:relative}
+.railbox .ic.on{background:#fffdf8;box-shadow:0 1px 1.5px rgba(60,45,20,.22),0 4px 10px rgba(60,45,20,.07)}
+.railbox .ic i{width:26px;height:26px;background:center/contain no-repeat}
+.railbox .ic .cnt{position:absolute;right:-5px;top:-5px;min-width:17px;height:17px;border-radius:99px;background:#2b2a28;color:#fff;font:650 10px/17px var(--sys);text-align:center;padding:0 4px}
+.railbox .sp{height:1px;width:28px;background:#ddd4c2;margin:4px 0}
+
+.fixed-wrap{position:relative;width:100%;aspect-ratio:1060/700;border-radius:18px;overflow:hidden;box-shadow:0 1px 2px rgba(40,30,10,.3),0 18px 40px rgba(40,30,10,.2);--s:1}
+.dm-col{display:flex;flex-direction:column;gap:10px}
+.dm-col .lab{margin:0 4px}
+
+.board-c{border-radius:20px;padding:24px;background:#f6f1e6;box-shadow:inset 0 0 0 1px #e3dac7}
+.board-c.night{background:#1d1a16;box-shadow:inset 0 0 0 1px #3d372e}
+.cmp{position:relative;--w-win:#f6f1e6;--w-side:#efe9dc;--w-surface:#fffdf8;--w-surface2:#f8f3e7;--w-sunken:#efe8d7;--w-ink:#2b2a28;--w-ink2:#4a463f;--w-ink3:#655e51;--w-line:#e3dac7;--w-line2:#ece5d4;--w-btn:#2b2a28;--w-btnfg:#fff;--w-ring:#3f5fd1;--w-ok:#4f7a4a;--w-alert:#b94a3e;--w-warn:#a8651d;--w-sh1:0 1px 1.5px rgba(60,45,20,.22),0 4px 10px rgba(60,45,20,.07);--w-sh2:0 1px 2px rgba(60,45,20,.26),0 10px 22px rgba(60,45,20,.12);color:var(--w-ink);font:14px/1.5 var(--sys)}
+.cmp.night{--w-win:#1d1a16;--w-side:#171410;--w-surface:#2d2923;--w-surface2:#262219;--w-sunken:#1a1713;--w-ink:#f1ead9;--w-ink2:#d9cfba;--w-ink3:#b8ad97;--w-line:#3d372e;--w-line2:#332e26;--w-btn:#f1ead9;--w-btnfg:#1d1a16;--w-ring:#8da6ff;--w-ok:#8fc088;--w-alert:#ef8274;--w-warn:#e0a35a;--w-sh1:0 1px 1.5px rgba(0,0,0,.5),0 4px 10px rgba(0,0,0,.25);--w-sh2:0 1px 2px rgba(0,0,0,.6),0 12px 26px rgba(0,0,0,.4)}
+.matrix{display:grid;grid-template-columns:96px repeat(5,1fr);gap:12px 10px;align-items:center}
+.matrix .rl{font:600 11px var(--sys);letter-spacing:.06em;text-transform:uppercase;color:var(--w-ink3)}
+.matrix .cl{font:600 11px var(--sys);letter-spacing:.06em;text-transform:uppercase;color:var(--w-ink3);text-align:center}
+.matrix .btn{justify-content:center;width:100%;min-width:0;padding:0 8px}
+.misc{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:26px;padding-top:22px;border-top:1px solid var(--w-line)}
+.misc h5{margin:0 0 12px;font:600 11px var(--sys);letter-spacing:.08em;text-transform:uppercase;color:var(--w-ink3)}
+.stack{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.inp{width:100%;height:38px;border-radius:11px;background:var(--w-surface);box-shadow:inset 0 0 0 1px var(--w-line);padding:0 12px;font:14px/38px var(--sys);color:var(--w-ink)}
+.inp.f{box-shadow:inset 0 0 0 1.5px var(--w-ring),0 0 0 3px color-mix(in srgb,var(--w-ring) 25%,transparent)}
+.swt{width:46px;height:28px;border-radius:99px;background:var(--w-line);position:relative;box-shadow:inset 0 1px 2px rgba(0,0,0,.2)}
+.swt::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:url(../../src/art/ui/switch-knob.png) center/contain no-repeat,#fff;transition:transform .3s var(--ease-spring);filter:drop-shadow(0 1px 1.5px rgba(40,30,10,.4))}
+.swt.on{background:#6c8a5a}.swt.on::after{transform:translateX(18px)}
+.toast{white-space:nowrap;padding:10px 18px;border-radius:99px;background:rgba(30,28,26,.92);color:#fff;font:500 13px var(--sys);display:inline-flex;gap:10px;align-items:center}
+.toast u{color:#f6c6e3;text-decoration:none;font-weight:650}
+.bdg{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.bdg span{font:12px var(--sys);color:var(--w-ink3)}
+
+.mot{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.mo{border-radius:18px;background:var(--d-card);border:1px solid var(--d-line);padding:18px;cursor:pointer}
+.mo .stg{height:96px;border-radius:12px;background:#efe8d7;position:relative;overflow:hidden;margin-bottom:14px}
+.mo .obj{position:absolute;left:18px;top:30px;width:46px;height:46px;border-radius:12px;background:#fffdf8;box-shadow:0 1px 2px rgba(60,45,20,.3),0 6px 12px rgba(60,45,20,.12)}
+.mo.arrive .obj{background:center/70% no-repeat url(../../src/art/today/choice-gift.png),#fffdf8}
+.mo:hover .obj,.mo.play .obj{left:calc(100% - 64px)}
+.mo.arrive .obj{transition:left .56s var(--ease-spring)}
+.mo.move .obj{transition:left .62s var(--ease-paper)}
+.mo.press .obj{left:50%;margin-left:-23px;transition:transform .12s}
+.mo.press:hover .obj,.mo.press.play .obj{left:50%;transform:scale(.94) translateY(1px)}
+.mo.fade .obj{left:50%;margin-left:-23px;opacity:1;transition:opacity .12s linear}
+.mo.fade:hover .obj,.mo.fade.play .obj{left:50%;opacity:.15}
+.mo h4{margin:0 0 4px;font:650 15px var(--sys)}.mo p{margin:0;font-size:13px;color:var(--d-ink2);line-height:1.55}
+.mo code{font:11.5px ui-monospace,Menlo,monospace;color:var(--d-ink3)}
+
+.road{width:100%;border-collapse:collapse;background:var(--d-card);border-radius:20px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--d-line)}
+.road th{font:600 11px var(--sys);letter-spacing:.08em;text-transform:uppercase;color:var(--d-ink3);text-align:left;padding:14px 16px;border-bottom:1px solid var(--d-line);background:#f1ebdb}
+.road td{padding:14px 16px;border-bottom:1px solid #e8e0cd;vertical-align:top;font-size:14px}
+.road tr:last-child td{border-bottom:0}
+.road td:first-child{font:700 14px var(--type);color:var(--d-ink3);width:44px}
+.road code{font:12px ui-monospace,Menlo,monospace;background:#efe8d6;padding:2px 6px;border-radius:5px;color:var(--d-ink2)}
+.foot{padding:70px 0 100px;color:var(--d-ink3);font-size:13.5px;max-width:52em}
+.foot b{color:var(--d-ink)}
+@media (max-width:900px){
+  .principles,.three,.mot{grid-template-columns:1fr 1fr}.two,.voice,.notes{grid-template-columns:1fr}.sbwrap{grid-template-columns:1fr}
+  .misc{grid-template-columns:1fr 1fr}.matrix{grid-template-columns:70px repeat(5,1fr)}.ratio{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <b>Peta · Design Quality</b>
+    <nav>
+      <a href="#findings">全体像</a><a href="#type">文字</a><a href="#contrast">コントラスト</a><a href="#today">Today</a><a href="#book">Book</a><a href="#create">Create</a><a href="#market">Market</a><a href="#packs">Packs</a><a href="#sidebar">Sidebar</a><a href="#night">Night Desk</a><a href="#parts">部品と状態</a><a href="#motion">動き</a><a href="#road">着手順</a>
+    </nav>
+    <button class="night-toggle" id="nightBtn" aria-pressed="false" style="border:0;background:none"><span class="sw"></span>After を夜で見る</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ================================================================ HERO -->
+<div class="hero">
+  <div class="kick">Peta · One sticker a day · Design review 2026-10-04</div>
+  <h1>紙の質感は、もう<em>十分に強い</em>。次は“読みやすさ”と“迷わなさ”。</h1>
+  <p>実機のスクリーンショット(Studio 1060×700)を12画面ぶん見直しました。アートは世界観を作り終えていて、<b>いま足りないのは、その上に載る「情報の設計」</b>です——文字の役割、強弱、そろい、状態の見え方、暗い部屋。</p>
+  <p>下の各ケースは、左右に<b>ドラッグして Before(実機)↔ After(提案)</b>を比べられます。After は本物のアート素材(<code>src/art</code>)をそのまま使った HTML なので、質感はそのまま、構造だけが変わります。</p>
+
+  <div class="principles">
+    <div class="principle"><i>01</i><h3>部屋は静かに、物は主役に</h3><p>窓・余白・文字は低い声で。ステッカー、封筒、パックという“物”だけが目を引く。</p></div>
+    <div class="principle"><i>02</i><h3>1つの役割に1つの声</h3><p>見出し=システム太字、タイプライター=印字された物、手書き=ステッカーの裏。混ぜない。</p></div>
+    <div class="principle"><i>03</i><h3>状態は“見えて”から押す</h3><p>買える/足りない/持っている/まだ先。灰色のボタンで済ませず、理由を表示する。</p></div>
+    <div class="principle"><i>04</i><h3>紙の物理は、可読性の下</h3><p>傾き・影・質感は残す。ただし文字が読めない原因になったら、文字を優先する。</p></div>
+  </div>
+</div>
+
+<!-- ================================================================ FINDINGS -->
+<div class="findings" id="findings">
+  <table>
+    <thead><tr><th>#</th><th>見つけたこと</th><th>効き方</th><th>工数</th><th>場所</th></tr></thead>
+    <tbody>
+      <tr><td>01</td><td><a href="#contrast"><b>補助テキストのコントラストが AA を割っている</b></a><br><span style="color:var(--d-ink3)">muted <code>#7a7468</code> は紙の上で 4.3、サイドバー上で 4.04、紙質テクスチャ上で 3.8(基準 4.5)</span></td><td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td><span class="tag">S</span></td><td><code>base.css</code> トークン1行</td></tr>
+      <tr><td>02</td><td><a href="#type"><b>文字の“声”が3つ、同じ音量で話している</b></a><br><span style="color:var(--d-ink3)">9〜11px のタイプライター体が補足情報を担当していて、読めない。役割で分ける</span></td><td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="tag">S–M</span></td><td><code>polish.css</code> type presets</td></tr>
+      <tr><td>03</td><td><a href="#today"><b>Today の下段が崩れている</b></a><br><span style="color:var(--d-ink3)">素材カード・説明・Stuck today の3列で上端も高さも揃わず、説明が4行に折れる。選択肢4つも同じ重さ</span></td><td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="tag">M</span></td><td><code>pages.css</code> / <code>today.js</code></td></tr>
+      <tr><td>04</td><td><a href="#sidebar"><b>サイドバー: アイコンの大きさ・バッジの意味・グルーピング</b></a><br><span style="color:var(--d-ink3)">赤丸が「何か来た」か「要対応」か分からない。8項目が1列のまま</span></td><td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="tag">S</span></td><td><code>shells.css</code> / <code>shell.js</code></td></tr>
+      <tr><td>05</td><td><a href="#market"><b>Market: ボタンが全部“押せない色”</b></a><br><span style="color:var(--d-ink3)">残高0でも十分でも同じ見た目。足りない理由・在庫・Coming later の区別がない</span></td><td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="tag">M</span></td><td><code>market.js</code> / <code>pages.css</code></td></tr>
+      <tr><td>06</td><td><a href="#create"><b>Create の操作盤: ラベル・値・位置がばらばら</b></a><br><span style="color:var(--d-ink3)">値が出るスライダーと出ないスライダー、迷子の「4」、状態が分からない Undo/Redo</span></td><td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="tag">M</span></td><td><code>create.js</code> / <code>pages.css</code></td></tr>
+      <tr><td>07</td><td><a href="#book"><b>Book: “毎日ひとつ”が画面から読めない</b></a><br><span style="color:var(--d-ink3)">月タブは色が浮き、黒ピルが絵より強く、キャプションは情報ゼロ</span></td><td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="tag">M</span></td><td><code>book.js</code></td></tr>
+      <tr><td>08</td><td><a href="#night"><b>夜の部屋(Night Desk)がない</b></a><br><span style="color:var(--d-ink3)">“物は紙のまま、部屋だけ暗くする”なら、アートを作り直さずに実現できる</span></td><td><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="tag">L</span></td><td>トークン化 + <code>shells.css</code></td></tr>
+      <tr><td>09</td><td><a href="#parts"><b>ボタン/チップ/入力の“状態表”がない</b></a><br><span style="color:var(--d-ink3)">hover・pressed・focus・disabled を1枚に定義して、画面ごとの揺れを止める</span></td><td><span class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td><td><span class="tag">M</span></td><td><code>base.css</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================================================================ TYPE -->
+<section class="case" id="type">
+  <div class="case-head"><span class="n">01 · TYPE</span><h2>3つの声を、役割で分ける</h2>
+  <p>いまは <b>システム太字</b>・<b>Special Elite(タイプライター)</b>・<b>Klee One(手書き)</b> が、見出しにも補足にも混ざっています。特に <b>9〜11px のタイプライター体</b>(素材の説明、パックの残数、Stock)が読みづらい。「物に印字された文字」だけにタイプライターを残し、補足情報はシステム体に戻します。</p></div>
+
+  <div class="two">
+    <div class="panel"><div class="lab">Before <span class="x ng">実機の使い方</span></div>
+      <div class="spec"><div class="a">Material Book</div><div class="b" style="font-size:36px">Holographic</div><div class="c">1 in stock · found Oct 2<br>foil · rainbow reflection · glitter edge</div><div class="d">Stuck today — nothing yet</div></div>
+      <p style="font-size:13px;color:var(--d-ink2);margin:14px 0 0">補足情報が <b>11px / タイプライター / #7a7468</b>。字間が不均一で、数字の「1」と「l」が見分けにくい。</p></div>
+    <div class="panel"><div class="lab">After <span class="x ok">役割ごと</span></div>
+      <div class="spec after"><div class="a">MATERIAL BOOK</div><div class="b">Holographic</div><div class="c">1 in stock · found Oct 2<br>foil · rainbow reflection · glitter edge</div><div class="d">Stuck today — nothing yet</div></div>
+      <p style="font-size:13px;color:var(--d-ink2);margin:14px 0 0">補足は <b>12px / システム 500 / #655e51 / tabular-nums</b>。タイプライターは<span class="stamp" style="font-size:13px">印字された物</span>(日付スタンプ・値札・封筒の数字)だけ。</p></div>
+  </div>
+
+  <div class="voice">
+    <div><h4>System · 人が読む声</h4><div class="s1">Today · Create · Book</div><p>見出し・本文・ボタン・補足。SF Pro / ヒラギノ角ゴ。日本語と英語が並んでも段差が出ない。</p></div>
+    <div><h4>Special Elite · 物に印字された声</h4><div class="s2">OCT 3 · SAT — 06:12:44</div><p>日付スタンプ、値札、Scraps の数字、封筒の「次まで」。<b>13px以上</b>、かつ“物の上”だけ。</p></div>
+    <div><h4>Klee One · 手書きの声</h4><div class="s3">for you, from Satoshi</div><p>ステッカー裏の手書き、ギフトのメモ、付箋。UIの説明文には使わない。</p></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <div class="lab">提案する文字スケール <span class="x">Studio / 日本語・英語共通</span></div>
+    <table class="roles">
+      <thead><tr><th>役割</th><th>見本</th><th>サイズ / 行間</th><th>太さ・字間</th><th>色</th></tr></thead>
+      <tbody>
+        <tr><td>Display</td><td style="font:700 34px/1 var(--sys);letter-spacing:-.03em">Today</td><td><code>40 / 44</code></td><td><code>700 · −0.03em</code></td><td><code>ink</code></td></tr>
+        <tr><td>Title</td><td style="font:700 22px/1.2 var(--sys);letter-spacing:-.02em">Holographic</td><td><code>22 / 26</code></td><td><code>700 · −0.02em</code></td><td><code>ink</code></td></tr>
+        <tr><td>Headline</td><td style="font:650 15px/1.3 var(--sys)">Collection — Stick one you own</td><td><code>15 / 20</code></td><td><code>650 · 0</code></td><td><code>ink</code></td></tr>
+        <tr><td>Body</td><td style="font:400 14px/1.5 var(--sys);color:#4a463f">A new material arrives every day. Matte never runs out.</td><td><code>14 / 21</code></td><td><code>400 · 0</code></td><td><code>ink-2</code></td></tr>
+        <tr><td>Meta</td><td style="font:500 12px/1.3 var(--sys);color:#655e51;font-variant-numeric:tabular-nums">1 in stock · found Oct 2 · 12 of 12 left</td><td><code>12 / 16</code></td><td><code>500 · tabular-nums</code></td><td><code>ink-3 <b>#655e51</b></code></td></tr>
+        <tr><td>Overline</td><td style="font:600 11px/1 var(--sys);letter-spacing:.09em;text-transform:uppercase;color:#655e51">Sticker Book</td><td><code>11 / 14</code></td><td><code>600 · +0.09em · caps</code></td><td><code>ink-3</code></td></tr>
+        <tr><td>Stamp</td><td style="font:400 14px/1 var(--type);letter-spacing:.06em">OCT 3 · SAT</td><td><code>13–17</code></td><td><code>Special Elite · +0.06em</code></td><td><code>ink / red</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================================================================ CONTRAST -->
+<section class="case" id="contrast">
+  <div class="case-head"><span class="n">02 · CONTRAST</span><h2>いちばん小さくて、いちばん効く修正</h2>
+  <p>補助テキストの色 <b>#7a7468</b> は、紙の上で 4.3:1、サイドバーで 4.04:1、紙の繊維テクスチャを含む実効背景ではさらに下がります(WCAG AA は 12px 前後の文字に <b>4.5:1</b>)。色を少し深くするだけで、紙の温度感はそのまま通ります。</p></div>
+  <div class="ratio">
+    <div class="h">背景</div><div class="h">Before <code style="font-size:11px">#7a7468</code></div><div class="h">After <code style="font-size:11px">#655e51</code></div><div class="h">Night <code style="font-size:11px">#b8ad97</code></div>
+
+    <div class="smp"><b>ページの紙</b><small>#faf6ec / Night #25211c</small></div>
+    <div style="background:#faf6ec"><span style="font:500 12px var(--sys);color:#7a7468">1 in stock · found Oct 2</span><span class="v ng">4.30 · AA ✗</span></div>
+    <div style="background:#faf6ec"><span style="font:500 12px var(--sys);color:#655e51">1 in stock · found Oct 2</span><span class="v ok">5.94 · AA ✓</span></div>
+    <div style="background:#25211c"><span style="font:500 12px var(--sys);color:#b8ad97">1 in stock · found Oct 2</span><span class="v ok" style="color:#8fc088">7.21 · AAA ✓</span></div>
+
+    <div class="smp"><b>サイドバー</b><small>#f3efe6</small></div>
+    <div style="background:#f3efe6"><span style="font:600 10.5px var(--sys);letter-spacing:.09em;text-transform:uppercase;color:#7a7468">Collect</span><span class="v ng">4.04 · AA ✗</span></div>
+    <div style="background:#f3efe6"><span style="font:600 10.5px var(--sys);letter-spacing:.09em;text-transform:uppercase;color:#655e51">Collect</span><span class="v ok">5.59 · AA ✓</span></div>
+    <div style="background:#171410"><span style="font:600 10.5px var(--sys);letter-spacing:.09em;text-transform:uppercase;color:#b8ad97">Collect</span><span class="v ok" style="color:#8fc088">8.27 · AAA ✓</span></div>
+
+    <div class="smp"><b>紙テクスチャの濃い部分</b><small>#efe8d8 想定</small></div>
+    <div style="background:#efe8d8"><span style="font:500 12px var(--sys);color:#7a7468">12 of 12 left</span><span class="v ng">3.80 · AA ✗</span></div>
+    <div style="background:#efe8d8"><span style="font:500 12px var(--sys);color:#655e51">12 of 12 left</span><span class="v ok">5.26 · AA ✓</span></div>
+    <div style="background:#2d2923"><span style="font:500 12px var(--sys);color:#b8ad97">12 of 12 left</span><span class="v ok" style="color:#8fc088">6.51 · AA ✓</span></div>
+  </div>
+  <p style="font-size:13.5px;color:var(--d-ink3);margin:14px 4px 0">数値は WCAG の相対輝度式で計算した実測値です。赤スタンプ <code style="font:12px ui-monospace,Menlo,monospace">#b94a3e</code> は 4.73:1 で合格のため変更なし。<br>同時に、<b>フォーカスリングは現状の <code style="font:12px ui-monospace,Menlo,monospace">#5b7be8</code>(約3.6:1)でも 3:1 を満たす</b>ので維持し、ボタン上では“紙色の隙間+リング”の二重リングにして見失わないようにします(<a href="#parts">部品と状態</a>)。</p>
+</section>
+
+<!-- ================================================================ TODAY -->
+<section class="case" id="today">
+  <div class="case-head"><span class="n">03 · TODAY</span><h2>入口の画面に“主役”をつくる</h2>
+  <p>毎日開く画面なので、<b>最初の0.5秒で「何をすればいいか」</b>が伝わるべきです。いまは4つの選択肢が同じ重さで、下段は列が揃っていません。Create を主導線にして、下段は<b>2枚の同じ高さのカード</b>に整理します。</p></div>
+
+  <div class="stage" data-mode="wipe" data-pins="on" data-name="today">
+    <div class="stage-bar"><div class="seg" role="group" aria-label="表示"><button data-m="wipe" aria-pressed="true">Before ⇄ After</button><button data-m="before" aria-pressed="false">Before</button><button data-m="after" aria-pressed="false">After</button></div><div class="seg"><button data-p aria-pressed="true">注釈</button></div><span class="hint">左右にドラッグ(← → キーでも動きます)</span></div>
+    <div class="stage-view" tabindex="0" aria-label="Today: Before/After">
+      <div class="scaler">
+        <div class="win" id="win-today" data-follow>
+          <div class="wc"><i></i><i></i><i></i></div><div class="logo"></div>
+          <div class="sb" data-active="today"></div>
+          <div class="pg">
+            <div class="ph">
+              <div><div class="over">Saturday, October 3</div><h1>Today</h1></div>
+              <div class="right"><div class="tk"><span class="env"></span><div><small>Next envelope</small><b>06:12:44</b></div></div></div>
+            </div>
+            <p class="lede">A new material arrives every day. Matte never runs out.</p>
+
+            <div class="sl" style="margin-top:20px">Make a Peta</div>
+            <div class="choices">
+              <div class="ch hero"><div class="l"><h3>Create</h3><p>Turn any image into a sticker, cut out on the mat.</p><span class="btn pri sm">Choose image <kbd>⌘O</kbd></span></div><div class="art" style="background-image:url(../../src/art/today/choice-create.png)"></div></div>
+              <div class="ch"><div class="art" style="background-image:url(../../src/art/today/choice-collection.png)"></div><h3>Collection</h3><p>Stick one you own</p></div>
+              <div class="ch"><span class="cnt2">2</span><div class="art" style="background-image:url(../../src/art/today/choice-gift.png)"></div><h3>Gift</h3><p>2 waiting</p></div>
+              <div class="ch"><div class="art" style="background-image:url(../../src/art/today/choice-pack-pouch.png)"></div><h3>Pack</h3><p>Open one at random</p></div>
+            </div>
+
+            <div class="band">
+              <div class="card mat">
+                <div class="tray"><i></i></div>
+                <div class="tx">
+                  <div class="over">Today’s material</div>
+                  <h3>Holographic <span class="seal rare">Rare</span></h3>
+                  <div class="chips"><span class="chip fill">Foil</span><span class="chip fill">Rainbow reflection</span><span class="chip fill">Glitter edge</span></div>
+                  <div class="stock"><div><img src="../../src/art/materials/swatch-matte.png" alt="">Matte ∞</div><div><img src="../../src/art/materials/swatch-kraft.png" alt="">Kraft 1</div><div><img src="../../src/art/materials/swatch-holographic.png" alt="">Holo 1</div></div>
+                </div>
+              </div>
+              <div class="card stuck">
+                <div class="hd"><b>Stuck today</b><span class="meta">0 on your desktop</span></div>
+                <div class="empty"><img src="../../src/art/empty/stuck-empty.png" alt=""><b>Nothing stuck yet</b><span class="meta">Your desktop is waiting.</span><span class="btn sec sm">Make a Peta</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pins">
+          <span class="pin" data-n="1" style="left:420px;top:40px">1</span>
+          <span class="pin" data-n="2" style="left:548px;top:178px">2</span>
+          <span class="pin" data-n="3" style="left:704px;top:336px">3</span>
+          <span class="pin" data-n="4" style="left:704px;top:452px">4</span>
+          <span class="pin" data-n="5" style="left:706px;top:534px">5</span>
+          <span class="pin" data-n="6" style="left:1000px;top:470px">6</span>
+        </div>
+        <img class="before" src="design-quality/before-today.png" alt="Today の実機スクリーンショット" draggable="false">
+      </div>
+      <div class="handle"><b>⇄</b></div><span class="badge-ba b">Before · 実機</span><span class="badge-ba a">After · 提案</span>
+    </div>
+    <ol class="notes">
+      <li><b>日付の重複を整理</b>。eyebrow・ゴム印・カードの3か所に出ていた日付を、eyebrow 1か所に。右上は“次の封筒まで”の札(既存機能)だけを置く。</li>
+      <li><b>Create を2倍幅のヒーローに</b>。インクの1.5px枠と主ボタンで「毎日ここから」を示す。ほかの3つは一段静かに。</li>
+      <li><b>サブ文を1行・12px固定</b>。いまは「Stick one you already have」が2行に折れて、タイルの高さと絵の位置がばらついていた。</li>
+      <li><b>下段を2枚のカードに</b>。上端と高さ(196px)を揃え、素材カードは“トレイ”に置いて質感を残す。説明は4行の文章→3つのチップ。</li>
+      <li><b>在庫を文章から“物”に</b>。「Matte ∞ · Kraft ×1 · Holographic ×1」をスウォッチ+数字のピルに。Materials 画面と同じ記号になる。</li>
+      <li><b>空状態に次の一手</b>。空白の箱ではなく、Make a Peta への導線を置く(Create に戻らず、ここから始められる)。</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================================================================ BOOK -->
+<section class="case" id="book">
+  <div class="case-head"><span class="n">04 · BOOK</span><h2>“毎日ひとつ”が、一目で数えられる帳面に</h2>
+  <p>Peta の核は「1日1枚」の積み重ねです。ところがいまの Book は、<b>淡いピンク/水色の月タブ</b>が静かな画面から浮き、<b>黒い“on desktop”ピル</b>が絵より強く、キャプションが「Oct 1 · Sticker」と情報を持っていません。月の送りと<b>日別ストリップ</b>で積み重ねを見せ、台紙にステッカーを載せます。</p></div>
+
+  <div class="stage" data-mode="wipe" data-pins="on" data-name="book">
+    <div class="stage-bar"><div class="seg"><button data-m="wipe" aria-pressed="true">Before ⇄ After</button><button data-m="before" aria-pressed="false">Before</button><button data-m="after" aria-pressed="false">After</button></div><div class="seg"><button data-p aria-pressed="true">注釈</button></div><span class="hint">左右にドラッグ</span></div>
+    <div class="stage-view" tabindex="0" aria-label="Book: Before/After">
+      <div class="scaler">
+        <div class="win" data-follow>
+          <div class="wc"><i></i><i></i><i></i></div><div class="logo"></div>
+          <div class="sb" data-active="book"></div>
+          <div class="pg">
+            <div class="ph">
+              <div><div class="over">Sticker Book</div><h1>Book</h1></div>
+              <div class="right"><div class="seg2"><span class="on">List</span><span>Calendar</span></div></div>
+            </div>
+            <div class="mbar">
+              <div class="ttl"><span class="ar">‹</span>October 2026<span class="ar" style="opacity:.35">›</span></div>
+              <div class="strip" aria-label="Days stuck this month">
+                <i class="on"></i><i class="on"></i><i class="today"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i><i class="fut"></i>
+                <em>2 of 3 days</em>
+              </div>
+            </div>
+            <div class="grid4">
+              <div class="tile"><div class="face"><span class="dt">OCT 1</span><span class="on">On desktop</span><img src="../../src/art/samples/coffee-cup.png" alt=""></div><div class="ft"><b>Latte on a saucer</b><span class="meta">Matte · Original #001</span></div></div>
+              <div class="tile hov"><div class="face"><span class="dt">OCT 2</span><span class="on">On desktop</span><img src="../../src/art/samples/cat-skateboard.png" alt=""></div><div class="acts"><span class="btn">Flip</span><span class="btn">Peel</span><span class="btn">Gift…</span></div><div class="ft"><b>Cat on a skateboard</b><span class="meta">Matte · Original #002</span></div></div>
+              <div class="tile slot"><span class="plus">+</span><b>Today’s slot</b><span class="meta">Oct 3 · still open</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="pins">
+          <span class="pin" data-n="1" style="left:466px;top:114px">1</span>
+          <span class="pin" data-n="2" style="left:640px;top:114px">2</span>
+          <span class="pin" data-n="3" style="left:440px;top:372px">3</span>
+          <span class="pin" data-n="4" style="left:438px;top:262px">4</span>
+          <span class="pin" data-n="5" style="left:440px;top:177px">5</span>
+          <span class="pin" data-n="6" style="left:826px;top:166px">6</span>
+        </div>
+        <img class="before" src="design-quality/before-book.png" alt="Book の実機スクリーンショット" draggable="false">
+      </div>
+      <div class="handle"><b>⇄</b></div><span class="badge-ba b">Before · 実機</span><span class="badge-ba a">After · 提案</span>
+    </div>
+    <ol class="notes">
+      <li><b>月タブ → 月の送り</b>。パステル3色のタブをやめ、‹ October 2026 › で送る。色を使うのは“物”だけ、という原則に合わせる。</li>
+      <li><b>日別ストリップ</b>。1日=1点。貼った日は塗り、今日はリング、未来は輪郭。「2 of 3 days」と“毎日ひとつ”が見える。(Calendar 表示への入口にもなる)</li>
+      <li><b>キャプションに中身</b>。「Oct 1 · Sticker」→ 名前 / 素材 / ORIGINAL 番号。日付は台紙左上のスタンプへ。</li>
+      <li><b>台紙(ドット罫)に載せる</b>。透明PNGの輪郭が読め、絵がどれだけ細くても“カード”として揃う。</li>
+      <li><b>状態は小さく</b>。黒い“on desktop”ピル→緑の点+11px。絵より強い要素を作らない。</li>
+      <li><b>今日の空きスロット</b>。破線の枠で「まだ今日の1枚がない」を示し、そのまま Create / Collection へ。hover でアクション(Flip / Peel / Gift)。</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================================================================ CREATE -->
+<section class="case" id="create">
+  <div class="case-head"><span class="n">05 · CREATE</span><h2>操作盤を“格子”に載せる</h2>
+  <p>カッティングマットの世界観(真鍮のつまみ、紙の操作盤)は魅力的です。ただ中身が<b>共通の格子に乗っていません</b>:値が出るスライダーと出ないもの、Erase の下に漂う「4」、押せるのか分からない Undo/Redo、下のキャプションが低コントラスト。段階を①②③として上に出し、操作盤を3カラム×同じ行の高さに揃えます。</p></div>
+
+  <div class="stage" data-mode="wipe" data-pins="on" data-name="create">
+    <div class="stage-bar"><div class="seg"><button data-m="wipe" aria-pressed="true">Before ⇄ After</button><button data-m="before" aria-pressed="false">Before</button><button data-m="after" aria-pressed="false">After</button></div><div class="seg"><button data-p aria-pressed="true">注釈</button></div><span class="hint">左右にドラッグ</span></div>
+    <div class="stage-view" tabindex="0" aria-label="Create: Before/After">
+      <div class="scaler">
+        <div class="win" data-follow>
+          <div class="wc"><i></i><i></i><i></i></div><div class="logo"></div>
+          <div class="sb" data-active="create"></div>
+          <div class="pg">
+            <div class="ph"><div><div class="over">Cutting Mat</div><h1>Create</h1></div></div>
+          </div>
+          <div class="mat-board" style="left:256px;right:40px;top:122px;bottom:30px">
+            <div class="steps"><div class="s"><i>1</i>Original</div><span></span><div class="s"><i>2</i>Cutout · paint to fix</div><span></span><div class="s"><i>3</i>Sticker</div></div>
+            <div class="panes" style="height:196px">
+              <div class="pane o"><img src="../../src/art/samples/coffee-cup.png" alt=""><img class="orig" src="../../src/art/samples/coffee-cup.png" alt=""></div><span class="ar">→</span>
+              <div class="pane chk"><img src="../../src/art/samples/coffee-cup.png" alt=""></div><span class="ar">→</span>
+              <div class="pane st"><img src="../../src/art/samples/coffee-cup.png" alt=""></div>
+            </div>
+            <div class="dock" style="left:14px;right:14px;bottom:14px;height:204px;grid-template-columns:1.2fr 1fr 1fr;gap:22px">
+              <div class="col"><div class="sl">Material</div>
+                <div class="plates">
+                  <div class="plate"><i style="background-image:url(../../src/art/materials/swatch-matte.png)"></i><b>Matte</b><small>∞</small></div>
+                  <div class="plate"><i style="background-image:url(../../src/art/materials/swatch-kraft.png)"></i><b>Kraft</b><small>1 left</small></div>
+                  <div class="plate sel"><i style="background-image:url(../../src/art/materials/swatch-holographic.png)"></i><b>Holo</b><small>1 left</small></div>
+                </div>
+              </div>
+              <div class="col"><div class="sl">Look</div>
+                <div class="row"><label>Outline</label><div class="rng" style="--v:42%"><i></i></div><output>42</output></div>
+                <div class="row"><label>Smooth</label><div class="rng" style="--v:70%"><i></i></div><output>0.7</output></div>
+              </div>
+              <div class="col"><div class="sl">Brush</div>
+                <div style="display:flex;gap:8px;align-items:center;height:34px"><div class="seg2"><span class="on">Erase</span><span>Restore</span></div><span style="flex:1"></span><span class="icobtn dis" title="Undo ⌘Z">↶</span><span class="icobtn dis" title="Redo ⇧⌘Z">↷</span></div>
+                <div class="row" style="margin-top:2px"><label>Size</label><div class="rng" style="--v:38%"><i></i></div><output>26</output></div>
+              </div>
+              <div class="cta"><span class="meta">Uses <b>1 Holographic</b> · 1 left</span><span class="btn quiet">Cancel</span><span class="btn pri">Make this Peta <kbd>⌘↵</kbd></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="pins">
+          <span class="pin" data-n="1" style="left:380px;top:150px">1</span>
+          <span class="pin" data-n="2" style="left:500px;top:170px">2</span>
+          <span class="pin" data-n="3" style="left:612px;top:476px">3</span>
+          <span class="pin" data-n="4" style="left:966px;top:480px">4</span>
+          <span class="pin" data-n="5" style="left:290px;top:480px">5</span>
+          <span class="pin" data-n="6" style="left:540px;top:624px">6</span>
+        </div>
+        <img class="before" src="design-quality/before-create.png" alt="Create の実機スクリーンショット" draggable="false">
+      </div>
+      <div class="handle"><b>⇄</b></div><span class="badge-ba b">Before · 実機</span><span class="badge-ba a">After · 提案</span>
+    </div>
+    <ol class="notes">
+      <li><b>段階を①②③で上に</b>。マット上の白文字ラベル(影つき)にして、下の薄い灰色キャプション(コントラスト不足)を廃止。進む方向が一目で分かる。</li>
+      <li><b>3枚を同じ高さ・同じ見え方に</b>。Original に出ていた上下の白帯を消し(cover + 暗転)、カードの存在感をそろえる。</li>
+      <li><b>スライダーは「ラベル | つまみ | 値」</b>の3列グリッド。真鍮のつまみは残し、全スライダーに値を出す(Outline に値がなかった)。</li>
+      <li><b>迷子の「4」を撤去</b>。値は Size の行へ。Undo / Redo はアイコンボタン+ツールチップ(⌘Z)。無効時は薄く。</li>
+      <li><b>素材は3枚の皿</b>。名前と残数をプレートの外に。選択中は“インクのリング+チェック”(色に頼らない)。</li>
+      <li><b>コスト表示を決定ボタンの隣へ</b>。「Uses 1 Holographic · 1 left」を上端の右端からここへ。押す直前にだけ必要な情報だから。</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================================================================ MARKET -->
+<section class="case" id="market">
+  <div class="case-head"><span class="n">06 · MARKET / MATERIALS</span><h2>“押せる”を、見ただけで分かるように</h2>
+  <p>Market のカードは <b>全部が同じ薄いグレーのボタン</b>で、残高が足りないのか、準備中なのか、押せるのか区別できません。カードの構造を固定(絵 / 名前+希少度 / 説明 / 在庫+価格)して、<b>状態を3種類</b>に分けます。<small style="color:var(--d-ink3)">※ 状態を見せるため、Afterは Scraps 残高 4 で描いています(Before は残高 0)。</small></p></div>
+
+  <div class="stage" data-mode="wipe" data-pins="on" data-name="market">
+    <div class="stage-bar"><div class="seg"><button data-m="wipe" aria-pressed="true">Before ⇄ After</button><button data-m="before" aria-pressed="false">Before</button><button data-m="after" aria-pressed="false">After</button></div><div class="seg"><button data-p aria-pressed="true">注釈</button></div><span class="hint">左右にドラッグ</span></div>
+    <div class="stage-view" tabindex="0" aria-label="Market: Before/After">
+      <div class="scaler">
+        <div class="win" data-follow>
+          <div class="wc"><i></i><i></i><i></i></div><div class="logo"></div>
+          <div class="sb" data-active="market"></div>
+          <div class="pg">
+            <div class="ph">
+              <div><div class="over">Packs, materials and creators</div><h1>Market</h1></div>
+              <div class="right"><span class="btn quiet sm">Dismantle…</span><div class="wallet">Scraps <span class="sc">4</span></div></div>
+            </div>
+            <div class="tabs"><span>Packs</span><span class="on">Materials</span><span>Creators</span></div>
+            <div class="mk3">
+              <div class="mk"><div class="zone"><i style="background-image:url(../../src/art/today/material-card-kraft.png)"><span>Kraft</span></i></div>
+                <div class="bd"><div class="nm"><b>Kraft</b><span class="seal unc">Uncommon</span></div><p class="ds">Warm brown paper with a visible fibre texture and a thin white border.</p></div>
+                <div class="ft"><div class="st"><span class="meta">4 sheets in stock</span><span class="bar" style="--v:40%"><i></i></span></div><span class="btn pri">Exchange · 2 Scraps</span></div></div>
+              <div class="mk"><div class="zone"><i style="background-image:url(../../src/art/today/material-card-holographic.png)"><span>Holographic</span></i></div>
+                <div class="bd"><div class="nm"><b>Holographic</b><span class="seal rare">Rare</span></div><p class="ds">Foil with a rainbow reflection and a glitter edge that follows your cursor.</p></div>
+                <div class="ft"><div class="need"><div class="t"><span class="meta">Need <b style="color:var(--w-ink)">6 Scraps</b></span><span class="meta">You have 4</span></div><span class="bar" style="--v:66%"><i></i></span></div><span class="btn sec" style="opacity:.9">2 more to go</span></div></div>
+              <div class="mk lock"><div class="zone"><i style="background-image:url(../../src/art/today/material-card-gold.png)"><span>Gold Foil</span></i></div>
+                <div class="bd"><div class="nm"><b>Gold Foil</b><span class="seal spe">Special</span></div><p class="ds">Real leaf, warm shimmer. Not in your Material Book yet.</p></div>
+                <div class="ft"><div class="st"><span class="meta">Find it in a Pack first</span></div><span class="btn sec" style="opacity:.55">Coming later</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="pins">
+          <span class="pin" data-n="1" style="left:540px;top:130px">1</span>
+          <span class="pin" data-n="2" style="left:1010px;top:104px">2</span>
+          <span class="pin" data-n="3" style="left:494px;top:345px">3</span>
+          <span class="pin" data-n="4" style="left:500px;top:482px">4</span>
+          <span class="pin" data-n="5" style="left:508px;top:432px">5</span>
+          <span class="pin" data-n="6" style="left:1012px;top:172px">6</span>
+        </div>
+        <img class="before" src="design-quality/before-market.png" alt="Market の実機スクリーンショット" draggable="false">
+      </div>
+      <div class="handle"><b>⇄</b></div><span class="badge-ba b">Before · 実機</span><span class="badge-ba a">After · 提案</span>
+    </div>
+    <ol class="notes">
+      <li><b>下線タブ</b>。手描きの丸囲み(選択中だけ線が太く不均一)から、選択=インクの下線へ。切り替えは下線が滑る。</li>
+      <li><b>Scraps は“財布”</b>。残高を右上の固定位置に。画面の途中に浮いていた “Dismantle materials…” は静かな副ボタンとして同じ行へ。</li>
+      <li><b>カードの構造を固定</b>。絵 / 名前+希少度シール / 説明2行(clamp) / 在庫+価格。タイプライター体の説明文はシステム体に。</li>
+      <li><b>状態 A: 買える</b>。主ボタン(黒)で「Exchange · 2 Scraps」。価格がボタンの文言に入っているので迷わない。</li>
+      <li><b>状態 B: 足りない</b>。ボタンを無効にせず「あと2」を進捗バーで示す。“押せない”ではなく“あとちょっと”に変わる。</li>
+      <li><b>状態 C: まだ先</b>。Coming later は絵ごと彩度を落とし、錠前アイコン+“Pack で見つける”という次の行動を添える。</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================================================================ PACKS -->
+<section class="case" id="packs">
+  <div class="case-head"><span class="n">07 · PACKS</span><h2>棚はそのまま。ラベルだけ“読める”ものに</h2>
+  <p>パックの棚は、今回見たなかでいちばん完成度が高い画面です(紙袋のシルエット、棚板、接地影)。手を入れるのは<b>情報の部分だけ</b>——見出し右のピルに1行で詰め込まれた説明と、<b>8〜9pxのタイプライター体</b>のタグです。</p></div>
+
+  <div class="stage" data-mode="wipe" data-pins="on" data-name="packs">
+    <div class="stage-bar"><div class="seg"><button data-m="wipe" aria-pressed="true">Before ⇄ After</button><button data-m="before" aria-pressed="false">Before</button><button data-m="after" aria-pressed="false">After</button></div><div class="seg"><button data-p aria-pressed="true">注釈</button></div><span class="hint">左右にドラッグ</span></div>
+    <div class="stage-view" tabindex="0" aria-label="Packs: Before/After">
+      <div class="scaler">
+        <div class="win" data-follow>
+          <div class="wc"><i></i><i></i><i></i></div><div class="logo"></div>
+          <div class="sb" data-active="packs"></div>
+          <div class="pg">
+            <div class="ph">
+              <div><div class="over">Open one at random</div><h1>Packs</h1></div>
+              <div class="right"><div class="tk" style="padding:7px 14px"><div><small>Daily pack</small><b style="font:650 13px var(--sys);letter-spacing:0">1 left · resets in 06:12</b></div></div></div>
+            </div>
+            <p class="lede">One sticker, picked at random. The Welcome Pack opens once a day; Market packs open any time.</p>
+            <div class="shelf">
+              <div class="packs3">
+                <div class="pk"><div class="art" style="background-image:url(../../src/art/pack/pack-holographic.png)"></div><div class="lb"><b>Welcome Pack</b><span class="meta">by Peta · once a day</span><div class="segs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="meta">12 of 12 left</span><span class="btn pri sm">Open one</span></div></div>
+                <div class="pk"><div class="art" style="background-image:url(../../src/art/pack/pack-holographic.png);filter:hue-rotate(150deg) saturate(1.3) drop-shadow(0 8px 8px rgba(60,45,20,.3))"></div><div class="lb"><b>Tokyo Pack</b><span class="meta">by Peta · any time</span><div class="segs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="e"></i><i class="e"></i><i class="e"></i><i class="e"></i></div><span class="meta">8 of 12 left</span><span class="btn sec sm">Open one</span></div></div>
+                <div class="pk"><div class="art" style="background-image:url(../../src/art/pack/pack-kraft.png)"></div><div class="lb"><b>Coffee Club</b><span class="meta">by Nao · any time</span><div class="segs"><i></i><i></i><i></i><i></i><i></i><i class="e"></i></div><span class="meta">5 of 6 left</span><span class="btn sec sm">Open one</span></div></div>
+              </div>
+              <div class="board"></div>
+              <div class="cap meta">25 stickers still sealed</div>
+            </div>
+          </div>
+        </div>
+        <div class="pins">
+          <span class="pin" data-n="1" style="left:1032px;top:98px">1</span>
+          <span class="pin" data-n="2" style="left:505px;top:462px">2</span>
+          <span class="pin" data-n="3" style="left:432px;top:492px">3</span>
+          <span class="pin" data-n="4" style="left:1020px;top:366px">4</span>
+        </div>
+        <img class="before" src="design-quality/before-packs.png" alt="Packs の実機スクリーンショット" draggable="false">
+      </div>
+      <div class="handle"><b>⇄</b></div><span class="badge-ba b">Before · 実機</span><span class="badge-ba a">After · 提案</span>
+    </div>
+    <ol class="notes">
+      <li><b>見出し右のピルを整理</b>。「Welcome Pack 0 of 1 today resets at midnight · other packs open any time」の1行を、“Daily pack · 1 left · resets in 06:12”に絞り、他パックの説明は本文のリード文へ。</li>
+      <li><b>ラベルを2段に</b>。名前 15px/700 → by 12px → 残量(12個のセグメント)→ 数字。タイプライターの小文字をやめ、残量が“量”で見える。</li>
+      <li><b>主ボタンは1つ</b>。いま開けられる日替わりパックだけ黒、他は副ボタン。全部が黒だと何から開ければいいか分からない。</li>
+      <li style="grid-column:auto"><b>棚板・接地影・袋のアートは変更なし</b>。ここは触らないのが正解。hover で袋が少し浮く程度の反応だけ足す。</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================================================================ SIDEBAR -->
+<section class="case" id="sidebar">
+  <div class="case-head"><span class="n">08 · SIDEBAR</span><h2>8つの項目に“順序”と“意味”を</h2>
+  <p>サイドバーは全画面に出続ける、最も露出の多い部品です。いまは<b>アイコンのアートごとに大きさと余白が違い</b>、赤丸バッジの意味(今日の封筒?未開封のギフト?)が分かりません。グルーピング・統一タイル・数字バッジで整えます。</p></div>
+
+  <div class="panel">
+    <div class="sbwrap">
+      <div class="sbdemo"><div class="win" data-theme="light"><div class="wc"><i></i><i></i><i></i></div><div class="logo"></div><div class="sb" data-active="gifts" data-badge="1"></div></div></div>
+      <div>
+        <ol>
+          <li><b>3つのグループ</b>:Make(作る)/ Collect(集める)/ Discover(出会う)。項目が増えても迷わない。ラベルは 10.5px・caps・ink-3(AA)。</li>
+          <li><b>アイコンを“同じ大きさのタイル”に</b>。30px の淡い台座に 22px のアートを置き、封筒・ポラロイド・紙袋・歯車の面積差を吸収。アート自体は触らない。</li>
+          <li><b>バッジの文法を分ける</b>。数字(Gifts: 2)=<b>届いた数</b>はインクのピル。点(Today)=<b>新しい封筒</b>はクラフト色の点。<b>赤は“エラー・要対応”専用</b>に取っておく。</li>
+          <li><b>ショートカットを hover で表示</b>。⌘1〜⌘7(設定は ⌘,)。現在地の行では薄く常時表示。マウスでもキーボードでも同じ場所に。</li>
+          <li><b>設定とプロフィールを下端に固定</b>。「Satoshi · 9 stickers」の小さな札で、ステッカーに印字される名前(Your name on stickers)の入口にもなる。</li>
+          <li><b>現在地は“白い紙片”だけ</b>。色や線を足さず、いまの白ピル+影を維持(これは既に良い)。</li>
+        </ol>
+        <div class="rail">
+          <div class="railbox" aria-label="Collapsed rail (window < 840px)">
+            <div class="ic on"><i style="background-image:url(../../src/art/today/envelope-closed.png)"></i></div>
+            <div class="ic"><i style="background-image:url(../../src/art/today/choice-create.png)"></i></div>
+            <div class="sp"></div>
+            <div class="ic"><i style="background-image:url(../../src/art/today/choice-collection.png)"></i></div>
+            <div class="ic"><i style="background-image:url(../../src/art/today/choice-pack-pouch.png)"></i></div>
+            <div class="ic"><i style="background-image:url(../../src/art/today/choice-gift.png)"></i><span class="cnt">2</span></div>
+            <div class="ic"><i style="background-image:url(../../src/art/materials/swatch-holographic.png)"></i></div>
+          </div>
+          <div style="font-size:13.5px;color:var(--d-ink2);max-width:30em;padding-top:4px"><b style="color:var(--d-ink)">狭い窓用のアイコンレール</b><br>最小幅の 720px では本文が窮屈になるので、840px 未満はサイドバーを 68px のレールに畳む。タイル化しておけば、そのまま縮めるだけで成立します(バッジは右上の数字に)。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ NIGHT -->
+<section class="case" id="night">
+  <div class="case-head"><span class="n">09 · NIGHT DESK</span><h2>物は紙のまま、部屋だけ夜にする</h2>
+  <p>夜に開くアプリなので、真っ白な窓は眩しい。かといってステッカーや封筒のアートは暗くできません。そこで<b>「窓・サイドバー・文字」だけを暗い部屋にして、紙の物はそのまま置く</b>。机の上に紙が残っているイメージです。アートの作り直しは不要です。</p></div>
+  <div class="two">
+    <div class="dm-col"><div class="lab">Day Desk</div><div class="fixed-wrap" data-clone="win-today" data-theme="light"></div></div>
+    <div class="dm-col"><div class="lab">Night Desk</div><div class="fixed-wrap" data-clone="win-today" data-theme="night"></div></div>
+  </div>
+  <div class="three" style="margin-top:16px">
+    <div class="panel"><div class="lab">1 · 面の階層</div><div style="display:flex;gap:6px;height:56px"><span style="flex:1;border-radius:10px;background:#171410;box-shadow:inset 0 0 0 1px #3d372e"></span><span style="flex:1;border-radius:10px;background:#1d1a16;box-shadow:inset 0 0 0 1px #3d372e"></span><span style="flex:1;border-radius:10px;background:#262219;box-shadow:inset 0 0 0 1px #3d372e"></span><span style="flex:1;border-radius:10px;background:#2d2923;box-shadow:inset 0 0 0 1px #3d372e"></span></div><p style="font-size:13px;color:var(--d-ink2);margin:10px 0 0"><code style="font:12px ui-monospace,Menlo,monospace">side → win → surface2 → surface</code>。純黒を避け、茶味のある暗色(#1d1a16)。奥ほど暗く、手前ほど明るい。</p></div>
+    <div class="panel"><div class="lab">2 · 物は紙のまま</div><div style="display:flex;gap:10px;align-items:center;height:56px;background:#1d1a16;border-radius:10px;padding:0 14px;box-shadow:inset 0 0 0 1px #3d372e"><img src="../../src/art/today/choice-gift.png" height="42" alt=""><img src="../../src/art/today/material-card-holographic.png" height="38" alt=""><img src="../../src/art/samples/cat-skateboard.png" height="44" alt=""></div><p style="font-size:13px;color:var(--d-ink2);margin:10px 0 0">アートは触らず、暗い机の上に置く。影は強め(<code style="font:12px ui-monospace,Menlo,monospace">rgba(0,0,0,.5)</code>)、ステッカーの白縁がそのまま“光る”。</p></div>
+    <div class="panel"><div class="lab">3 · 主ボタンは反転</div><div style="display:flex;gap:10px;align-items:center;height:56px;background:#1d1a16;border-radius:10px;padding:0 14px;box-shadow:inset 0 0 0 1px #3d372e"><span class="btn pri" style="background:#f1ead9;color:#1d1a16;height:34px">Make this Peta</span><span class="btn sec" style="background:#2d2923;color:#f1ead9;box-shadow:inset 0 0 0 1px #3d372e;height:34px">Cancel</span></div><p style="font-size:13px;color:var(--d-ink2);margin:10px 0 0">黒ピル→生成りピル(14.5:1)。リングは <code style="font:12px ui-monospace,Menlo,monospace">#8da6ff</code> で暗所でも見失わない。</p></div>
+  </div>
+</section>
+
+<!-- ================================================================ PARTS -->
+<section class="case" id="parts">
+  <div class="case-head"><span class="n">10 · PARTS &amp; STATES</span><h2>部品の“状態表”を1枚に決める</h2>
+  <p>ボタンは黒ピル/紙ラベルの2系統まではよく整理されていますが、<b>hover・pressed・focus・disabled の定義が画面ごとに少しずつ違う</b>。以下を基準にすると、新しい画面を足すたびの揺れが止まります。昼・夜で同じ構造です。</p></div>
+
+  <div class="two">
+    <div class="board-c cmp" data-board="day">
+      <div class="lab" style="color:var(--w-ink3)">Day</div>
+      <div class="matrix">
+        <span class="rl"></span><span class="cl">Default</span><span class="cl">Hover</span><span class="cl">Pressed</span><span class="cl">Focus</span><span class="cl">Disabled</span>
+        <span class="rl">Primary</span><span class="btn pri">Open</span><span class="btn pri is-hover">Open</span><span class="btn pri is-down">Open</span><span class="btn pri is-focus">Open</span><span class="btn pri is-dis">Open</span>
+        <span class="rl">Secondary</span><span class="btn sec">Open</span><span class="btn sec is-hover">Open</span><span class="btn sec is-down">Open</span><span class="btn sec is-focus">Open</span><span class="btn sec is-dis">Open</span>
+        <span class="rl">Quiet</span><span class="btn quiet">Open</span><span class="btn quiet is-hover">Open</span><span class="btn quiet is-down" style="background:rgba(120,100,60,.18)">Open</span><span class="btn quiet is-focus">Open</span><span class="btn quiet is-dis">Open</span>
+        <span class="rl">Danger</span><span class="btn danger">Peel</span><span class="btn danger is-hover" style="background:rgba(185,74,62,.08)">Peel</span><span class="btn danger is-down" style="background:rgba(185,74,62,.16)">Peel</span><span class="btn danger is-focus">Peel</span><span class="btn danger is-dis">Peel</span>
+      </div>
+      <div class="misc">
+        <div><h5>Segmented</h5><div class="stack"><div class="seg2"><span class="on">List</span><span>Calendar</span></div><div class="seg2"><span>Desk</span><span class="on">Studio</span></div></div></div>
+        <div><h5>Input</h5><div class="stack" style="width:100%"><div class="inp">Satoshi</div><div class="inp f">Satoshi|</div></div></div>
+        <div><h5>Switch</h5><div class="stack"><div style="display:flex;gap:10px;align-items:center"><span class="swt on"></span><span class="meta">Sounds</span></div><div style="display:flex;gap:10px;align-items:center"><span class="swt"></span><span class="meta">Reduce motion</span></div></div></div>
+        <div><h5>Badges</h5><div class="bdg"><span class="seal rare">Rare</span><span class="chip">Foil</span><span class="chip fill">Matte ∞</span></div><div class="stack" style="margin-top:10px"><span class="toast">Peeled · <u>Undo</u></span></div></div>
+      </div>
+    </div>
+    <div class="board-c night cmp night" data-board="night">
+      <div class="lab" style="color:var(--w-ink3)">Night</div>
+      <div class="matrix">
+        <span class="rl"></span><span class="cl">Default</span><span class="cl">Hover</span><span class="cl">Pressed</span><span class="cl">Focus</span><span class="cl">Disabled</span>
+        <span class="rl">Primary</span><span class="btn pri">Open</span><span class="btn pri is-hover">Open</span><span class="btn pri is-down">Open</span><span class="btn pri is-focus">Open</span><span class="btn pri is-dis">Open</span>
+        <span class="rl">Secondary</span><span class="btn sec">Open</span><span class="btn sec is-hover">Open</span><span class="btn sec is-down">Open</span><span class="btn sec is-focus">Open</span><span class="btn sec is-dis">Open</span>
+        <span class="rl">Quiet</span><span class="btn quiet">Open</span><span class="btn quiet is-hover" style="background:rgba(255,255,255,.08)">Open</span><span class="btn quiet is-down" style="background:rgba(255,255,255,.14)">Open</span><span class="btn quiet is-focus">Open</span><span class="btn quiet is-dis">Open</span>
+        <span class="rl">Danger</span><span class="btn danger">Peel</span><span class="btn danger is-hover" style="background:rgba(239,130,116,.1)">Peel</span><span class="btn danger is-down" style="background:rgba(239,130,116,.18)">Peel</span><span class="btn danger is-focus">Peel</span><span class="btn danger is-dis">Peel</span>
+      </div>
+      <div class="misc">
+        <div><h5>Segmented</h5><div class="stack"><div class="seg2"><span class="on">List</span><span>Calendar</span></div><div class="seg2"><span>Desk</span><span class="on">Studio</span></div></div></div>
+        <div><h5>Input</h5><div class="stack" style="width:100%"><div class="inp">Satoshi</div><div class="inp f">Satoshi|</div></div></div>
+        <div><h5>Switch</h5><div class="stack"><div style="display:flex;gap:10px;align-items:center"><span class="swt on"></span><span class="meta">Sounds</span></div><div style="display:flex;gap:10px;align-items:center"><span class="swt"></span><span class="meta">Reduce motion</span></div></div></div>
+        <div><h5>Badges</h5><div class="bdg"><span class="seal rare">Rare</span><span class="chip">Foil</span><span class="chip fill">Matte ∞</span></div><div class="stack" style="margin-top:10px"><span class="toast">Peeled · <u>Undo</u></span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="three" style="margin-top:16px">
+    <div class="panel"><div class="lab">ルール 1</div><p style="margin:0;font-size:14px;color:var(--d-ink2)"><b style="color:var(--d-ink)">黒の主ボタンは画面に1つ</b>。紙ラベル(art)のボタンは“儀式”の場面(開封・封をする)だけに限定。通常のサブ操作は <code style="font:12px ui-monospace,Menlo,monospace">.sec</code>(面+1pxの縁)。</p></div>
+    <div class="panel"><div class="lab">ルール 2</div><p style="margin:0;font-size:14px;color:var(--d-ink2)"><b style="color:var(--d-ink)">フォーカスは二重リング</b>。内側に窓の背景色の隙間2px、外側に <code style="font:12px ui-monospace,Menlo,monospace">#3f5fd1</code>(夜 #8da6ff)2.5px。紙の上でも黒ボタンの上でも途切れない。</p></div>
+    <div class="panel"><div class="lab">ルール 3</div><p style="margin:0;font-size:14px;color:var(--d-ink2)"><b style="color:var(--d-ink)">無効にする代わりに理由を出す</b>。disabled は .42 の不透明度で“存在はするが今は使えない”。理由は隣のメタ文字で必ず説明する(Market の「あと2」など)。</p></div>
+  </div>
+</section>
+
+<!-- ================================================================ MOTION -->
+<section class="case" id="motion">
+  <div class="case-head"><span class="n">11 · MOTION</span><h2>動きの“役割”を4つに絞る</h2>
+  <p>イージングはすでに5種類そろっていて、紙の動きの質は高い。課題は<b>どの場面でどれを使うかの規則</b>です。物が<b>現れる</b>ときだけバネ、<b>動く</b>ときは紙、<b>押す</b>ときは短く、<b>Reduce motion</b> は消すのではなく1ステップ早い溶け合いに。カードにマウスを乗せると動きます。</p></div>
+  <div class="mot">
+    <div class="mo arrive"><div class="stg"><div class="obj"></div></div><h4>Arrive</h4><p>封筒・ギフト・パックなど“物”が現れる/着地する。</p><code>spring · 420–560ms</code></div>
+    <div class="mo move"><div class="stg"><div class="obj"></div></div><h4>Move</h4><p>ページ遷移、窓の移動、紙が重なる。</p><code>paper-ease · 560–640ms</code></div>
+    <div class="mo press"><div class="stg"><div class="obj"></div></div><h4>Press</h4><p>ボタン、ペタッ。押した感触だけ。</p><code>out · 120ms · scale .94</code></div>
+    <div class="mo fade"><div class="stg"><div class="obj"></div></div><h4>Reduce motion</h4><p>位置を動かさず、不透明度だけで遷移。</p><code>linear · 120ms</code></div>
+  </div>
+</section>
+
+<!-- ================================================================ ROADMAP -->
+<section class="case" id="road">
+  <div class="case-head"><span class="n">12 · ORDER OF WORK</span><h2>おすすめの着手順</h2>
+  <p>上から順に、<b>小さくて効くもの → 構造に触れるもの → 大きいもの</b>。1〜2はこの週のうちに、全画面の印象が変わります。</p></div>
+  <table class="road">
+    <thead><tr><th>#</th><th>やること</th><th>工数</th><th>触る場所</th><th>確認すること</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><b>ink-3(補助色)を #655e51 に</b>、タイプライター体の補足情報をシステム体 12px に置換</td><td><span class="tag">S</span></td><td><code>base.css</code> <code>polish.css</code></td><td>全画面でコントラスト ≥ 4.5 / 日本語の折り返し</td></tr>
+      <tr><td>2</td><td><b>サイドバー</b>: グルーピング・アイコンのタイル化・数字バッジ・ショートカット</td><td><span class="tag">S</span></td><td><code>shell.js</code> <code>shells.css</code></td><td>Desk シェルでも崩れないか / Gifts のバッジ更新</td></tr>
+      <tr><td>3</td><td><b>Market のカード構造と状態3種</b>(買える/足りない/まだ先)</td><td><span class="tag">M</span></td><td><code>market.js</code> <code>pages.css</code></td><td>Scraps 0・不足・十分の3状態をテスト</td></tr>
+      <tr><td>4</td><td><b>Today 下段を2カードに</b>、Create をヒーロー化</td><td><span class="tag">M</span></td><td><code>today.js</code> <code>pages.css</code></td><td>最小 720×520 で折り返し・高さ / 次の封筒の札との同居</td></tr>
+      <tr><td>5</td><td><b>Create の操作盤を格子に</b>(値の表示、Undo/Redo アイコン化、①②③)</td><td><span class="tag">M</span></td><td><code>create.js</code> <code>pages.css</code></td><td>ブラシ即時反応・Undo 状態の同期</td></tr>
+      <tr><td>6</td><td><b>Book: 台紙タイル+日別ストリップ</b>(月タブ廃止)</td><td><span class="tag">M</span></td><td><code>book.js</code></td><td>List/Calendar 切替・遅延読み込みとの両立</td></tr>
+      <tr><td>7</td><td><b>部品の状態表</b>を CSS トークンとして確定(focus 二重リング)</td><td><span class="tag">M</span></td><td><code>base.css</code></td><td>キーボードだけで全画面を巡回</td></tr>
+      <tr><td>8</td><td><b>Night Desk</b>(トークン化 → ダーク値 → 設定に Appearance)</td><td><span class="tag">L</span></td><td><code>base.css</code> <code>shells.css</code> + Settings</td><td>自動(システム追従)/ホロ反射の見え方</td></tr>
+    </tbody>
+  </table>
+  <div class="foot">
+    <p><b>このプレビューについて。</b> Before は <code>docs/port-spec/compare</code> にある実機(Tauri)のスクリーンショットで、Linux/WebKitGTK で撮影されたものを含むため、macOS の実表示とは字形が少し違います(提案の判断には影響しない範囲)。After は HTML/CSS の見本で、アプリ本体(<code>src/</code>)は一切変更していません。Market の残高、Today のカウントダウン値などは状態を見せるための仮の値です。色のコントラスト値は WCAG 2.x の式で実計算しています。</p>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ---------------------------------------------------------------- sidebar */
+const NAV = [
+  {id:'today', l:'Today', k:'1', i:'today/envelope-closed.png', dot:true},
+  {g:'Make'},
+  {id:'create', l:'Create', k:'2', i:'today/choice-create.png'},
+  {g:'Collect'},
+  {id:'book', l:'Book', k:'3', i:'today/choice-collection.png'},
+  {id:'packs', l:'Packs', k:'4', i:'today/choice-pack-pouch.png'},
+  {id:'gifts', l:'Gifts', k:'5', i:'today/choice-gift.png', n:2},
+  {id:'materials', l:'Materials', k:'6', i:'materials/swatch-holographic.png'},
+  {g:'Discover'},
+  {id:'market', l:'Market', k:'7', i:'ui/icon-market.png'},
+];
+function fillSidebars(root=document){
+  root.querySelectorAll('.sb').forEach(sb=>{
+    if(sb.children.length) return;
+    const act = sb.dataset.active;
+    const mk = (n)=>`<div class="it" ${n.id===act?'aria-current="page"':''}><span class="ic"><i style="background-image:url(../../src/art/${n.i})"></i></span><span>${n.l}</span>${n.n?`<span class="cnt">${n.n}</span>`:''}${n.dot&&n.id!==act&&sb.dataset.badge==null?'':''}${n.dot&&n.id==='today'&&act!=='today'?'<span class="dot" title="New envelope"></span>':''}<span class="k">⌘${n.k}</span></div>`;
+    sb.innerHTML = NAV.map(n=> n.g ? `<div class="grp">${n.g}</div>` : mk(n)).join('') +
+      `<div class="foot"><div class="it"><span class="ic"><i style="background-image:url(../../src/art/ui/icon-settings.png)"></i></span><span>Settings</span><span class="k">⌘,</span></div><div class="me"><span class="av"></span><div><b>Satoshi</b>9 stickers</div></div></div>`;
+  });
+}
+
+/* ---------------------------------------------------------------- clones for the Night section */
+document.querySelectorAll('[data-clone]').forEach(box=>{
+  const src = document.getElementById(box.dataset.clone);
+  const c = src.cloneNode(true); c.removeAttribute('id'); c.removeAttribute('data-follow');
+  c.dataset.theme = box.dataset.theme;
+  c.querySelectorAll('.sb').forEach(s=>s.innerHTML='');
+  const sc = document.createElement('div'); sc.className='scaler'; sc.append(c); box.append(sc);
+  box.dataset.fixed = '1';
+});
+fillSidebars();
+
+/* ---------------------------------------------------------------- scale every 1060x700 surface */
+const ro = new ResizeObserver(es=>es.forEach(e=>{ e.target.style.setProperty('--s', e.contentRect.width/1060); }));
+document.querySelectorAll('.stage-view,.fixed-wrap').forEach(v=>ro.observe(v));
+/* the .scaler reads --s from its parent */
+document.querySelectorAll('.stage-view,.fixed-wrap').forEach(v=>{ v.querySelector('.scaler').style.transform='scale(var(--s))'; });
+
+/* ---------------------------------------------------------------- wipe / modes / pins */
+document.querySelectorAll('.stage').forEach(st=>{
+  const view = st.querySelector('.stage-view');
+  st.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{
+    st.dataset.mode=b.dataset.m; st.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  }));
+  const pb = st.querySelector('[data-p]');
+  pb.addEventListener('click',()=>{ const on=st.dataset.pins!=='on'; st.dataset.pins=on?'on':'off'; pb.setAttribute('aria-pressed',on); });
+  let drag=false, x=50;
+  const setX = v=>{ x=Math.max(0,Math.min(100,v)); if(st.dataset.mode==='wipe') view.style.setProperty('--x',x+'%'); };
+  const fromEvt = e=>{ const r=view.getBoundingClientRect(); setX((e.clientX-r.left)/r.width*100); };
+  view.addEventListener('pointerdown',e=>{ if(st.dataset.mode!=='wipe') return; drag=true; view.setPointerCapture(e.pointerId); fromEvt(e); });
+  view.addEventListener('pointermove',e=>{ if(drag) fromEvt(e); });
+  view.addEventListener('pointerup',()=>drag=false); view.addEventListener('pointercancel',()=>drag=false);
+  view.addEventListener('keydown',e=>{ if(st.dataset.mode!=='wipe') return; if(e.key==='ArrowLeft'){setX(x-4);e.preventDefault();} if(e.key==='ArrowRight'){setX(x+4);e.preventDefault();} });
+  /* mode buttons own --x in before/after modes; wipe restores the last drag position */
+  st.addEventListener('click',e=>{ if(e.target.closest('[data-m]')){ if(st.dataset.mode==='wipe') view.style.setProperty('--x',x+'%'); else view.style.removeProperty('--x'); } });
+  /* notes <-> pins */
+  const pins=[...st.querySelectorAll('.pin')];
+  st.querySelectorAll('.notes li').forEach((li,i)=>{
+    li.addEventListener('mouseenter',()=>pins[i]&&pins[i].classList.add('hl'));
+    li.addEventListener('mouseleave',()=>pins[i]&&pins[i].classList.remove('hl'));
+  });
+  /* one nudge on first sight so people discover the wipe */
+  const io = new IntersectionObserver(es=>{ es.forEach(en=>{ if(en.isIntersecting && !view.dataset.seen){ view.dataset.seen=1;
+      if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+      const t0=performance.now(); const step=t=>{ const p=Math.min(1,(t-t0)/1300); setX(50+Math.sin(p*Math.PI*2)*22*(1-p*.4)); if(p<1&&!drag) requestAnimationFrame(step); else if(!drag) setX(50); }; requestAnimationFrame(step); io.disconnect(); } }); },{threshold:.55});
+  io.observe(view);
+});
+
+/* ---------------------------------------------------------------- night toggle (After windows follow) */
+const nb = document.getElementById('nightBtn');
+nb.addEventListener('click',()=>{
+  const on = nb.getAttribute('aria-pressed')!=='true'; nb.setAttribute('aria-pressed',on);
+  document.querySelectorAll('.win[data-follow]').forEach(w=>{ if(on) w.dataset.theme='night'; else w.removeAttribute('data-theme'); });
+});
+
+/* ---------------------------------------------------------------- motion demos: tap to replay on touch */
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',()=>{ m.classList.add('play'); setTimeout(()=>m.classList.remove('play'),1400); }));
+</script>
+</body>
+</html>
