@@ -19,7 +19,7 @@ Pages.packs = {
       stack,
       h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.empty ? "all opened" : p.left.length + " of " + p.total + " left"}`), h("small.rule", p.empty ? "" : p.daily ? (packsLeftToday() ? "once a day" : "back tomorrow") : "open any time")),
       h("span.open-cta", { "aria-hidden": off ? "true" : null, style: { visibility: off ? "hidden" : "visible" } }, "Open one"));
-    if (!off) { onPointerFollow(stack, (x, y) => { stack.style.setProperty("--sx", (1 - x) * 100 + "%"); stack.style.setProperty("--sy", (1 - y) * 100 + "%"); stack.style.setProperty("--ry", (x - .5) * 14 + "deg"); stack.style.setProperty("--rx", -(y - .5) * 10 + "deg"); }, () => { stack.style.setProperty("--ry", "0deg"); stack.style.setProperty("--rx", "0deg"); }); }
+    if (!off) { onPointerFollow(card, (x, y) => { stack.style.setProperty("--sx", (1 - x) * 100 + "%"); stack.style.setProperty("--sy", (1 - y) * 100 + "%"); stack.style.setProperty("--ry", (x - .5) * 14 + "deg"); stack.style.setProperty("--rx", -(y - .5) * 10 + "deg"); }, () => { stack.style.setProperty("--ry", "0deg"); stack.style.setProperty("--rx", "0deg"); stack.style.setProperty("--sx", "30%"); stack.style.setProperty("--sy", "30%"); }); }
     return card;
   },
 };

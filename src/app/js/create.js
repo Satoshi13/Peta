@@ -101,7 +101,7 @@ Pages.create = {
             cx.drawImage(cutImg,0,0,cutCv.width,cutCv.height);
             const dim=Stk.cv(origCv.width,origCv.height), dx=dim.getContext("2d"); dx.fillStyle="rgba(30,24,16,.5)"; dx.fillRect(0,0,dim.width,dim.height); dx.globalCompositeOperation="destination-out"; dx.drawImage(cutImg,0,0,dim.width,dim.height); origCv.getContext("2d").drawImage(dim,0,0);
             const res = {url:sticker,w:head.width,h:head.height,aspect:head.width/head.height,material:S.chosen,mask:['holographic','gold'].includes(S.chosen)?sticker:null}; CR.res=res;
-            stkHost.replaceChildren(Stk.el(res,res.aspect>=1?230:230*res.aspect)); fitSticker(); Stk.tilt(stkHost,{max:8,scale:1.02}); syncMake();
+            stkHost.replaceChildren(Stk.el(res,res.aspect>=1?230:230*res.aspect)); fitSticker(); syncMake();
           } catch(e) {
             if (mine !== seq || painting || !stkHost.isConnected) continue;
             CR.res=null; stkHost.replaceChildren(h("p.muted", "Nothing left to cut out")); syncMake(); Shell.toast(String(e));
@@ -217,6 +217,7 @@ Pages.create = {
         h("div.grp.g-look", h("label.lbl", "Look"), slider("Outline", "border", 4, 64, "", redraw), slider("Smooth", "smooth", 0, 12, "", redraw)),
         h("div.grp.g-tools", h("label.lbl", "Brush"), h("div.tools", seg, undoBtn, redoBtn), slider("Size", "brush", 1, 60, "", () => {})),
         h("div.grp.g-go", CR.note ? h("p.muted.small", CR.note) : null, h("div.go-btns", h("button.btn.paper", { on: { click: async () => { const editing=CR.editing; CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open(editing ? "book" : "create"); } } }, "Cancel"), make))));
+    Stk.tilt(stkHost, {max:8,scale:1.02,trigger:stkHost.parentElement});
     syncUndo(); syncMake(); redraw();
     return h("div.cr-wrap", mat);
   },

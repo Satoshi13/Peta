@@ -30,11 +30,10 @@ Pages.materials = {
         h("div.mc", h("div.mcard" + (lock ? ".locked" : ""), { data: { m: lock ? "matte" : m.id }, vars: { "--w": "190px" } }, h("i.art"), h("span.lab", lock ? h("b", "?") : [h("b", m.name), h("small", m.rarity)]))),
         h("div.mmeta", h("b", lock ? "Not found yet" : m.name), h("span.seal", { data: { rarity: m.rarity } }, lock ? "locked" : m.rarity),
           h("small", lock ? "Open Today's Material to find it" : m.unlimited ? "Always available" : `${S.stock[m.id]} in stock · found ${m.found}`), lock ? null : h("small.recipe", m.recipe)));
-      if (!lock) Stk.tilt($(".mcard", card), { max: 9, scale: 1.03 });
+      if (!lock) Stk.tilt($(".mcard", card), { max: 9, scale: 1.03, trigger: card });
       return card;
     }));
     root.append(grid); return root;
   },
   mark(grid) { $$(".mbook", grid).forEach((b, i) => b.setAttribute("aria-pressed", String(Object.values(MAT)[i].id === S.chosen))); },
 };
-

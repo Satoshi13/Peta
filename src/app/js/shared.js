@@ -5,7 +5,7 @@ function PageHead(title, sub, ...extra) {
 const DateStamp = () => h("span.datestamp", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" }));
 const usableMats = () => ["matte", "kraft", "holographic", "gold", "riso", "vintage"].filter((id) => !MAT[id].locked && (MAT[id].unlimited || S.stock[id] > 0));
 
-/** A tray of material cards. Picking lifts one and tapes it down; it is what the next Create is made of. */
+/** A tray of material cards. Picking marks the material for the next Create without moving the controls. */
 function MaterialTray({ w = 148, onPick, interactive = true, selected = S.chosen } = {}) {
   const tray = h("div.mtray", { role: "radiogroup", "aria-label": "Material" });
   const render = () => {
@@ -13,9 +13,9 @@ function MaterialTray({ w = 148, onPick, interactive = true, selected = S.chosen
     tray.replaceChildren(...usableMats().map((id, i) => {
       const m = MAT[id], on = id === sel;
       const c = h("button.mcard", { role: "radio", "aria-checked": String(on), data: { m: id, sel: on }, vars: { "--w": w + "px", "--r": [-3, 2, -1.5][i % 3] + "deg" }, disabled: !interactive,
-        on: { click: () => { if (S.chosen === id) return; S.chosen = id; Snd.tap(); render(); onPick && onPick(id); } } },
-        h("i.art"), h("span.lab", h("b", m.name), h("small", m.rarity)), m.unlimited ? null : h("span.cnt", "×" + S.stock[id]), on ? h("i.tape.t1") : null);
-      Stk.tilt(c, { max: 8, scale: 1 }); return c;
+      on: { click: () => { if (S.chosen === id) return; S.chosen = id; Snd.tap(); $$(".mcard", tray).forEach(b => { const selected = b.dataset.m === id; b.dataset.sel = String(selected); b.setAttribute("aria-checked", String(selected)); }); onPick && onPick(id); } } },
+        h("i.art"), h("span.lab", h("b", m.name), h("small", m.rarity)), m.unlimited ? null : h("span.cnt", "×" + S.stock[id]));
+      return c;
     }));
   };
   render(); tray.rerender = render; return tray;

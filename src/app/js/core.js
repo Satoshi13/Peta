@@ -54,6 +54,7 @@ function img(key, cls, alt = "") { const i = new Image(); i.src = A[key]; i.alt 
 /** Pointer-follow helper: calls cb(x01, y01, ev) while the pointer moves over el. */
 function onPointerFollow(el, cb, leave) {
   el.addEventListener("pointermove", (e) => {
+    if (reduced()) { leave?.(); return; }
     const r = el.getBoundingClientRect();
     cb(clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1), e);
   });

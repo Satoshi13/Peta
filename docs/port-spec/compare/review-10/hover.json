@@ -1,0 +1,138 @@
+{
+  "layouts": [
+    {
+      "shell": "studio",
+      "size": [
+        1060,
+        700
+      ],
+      "materialCard": {
+        "h": 58.34375,
+        "transform": "none",
+        "w": 86,
+        "x": 452.078125,
+        "y": 487
+      },
+      "selectionPreservesNodesAndFocus": true
+    },
+    {
+      "shell": "studio",
+      "size": [
+        720,
+        520
+      ],
+      "materialCard": {
+        "h": 58.34375,
+        "transform": "none",
+        "w": 86,
+        "x": 405,
+        "y": 200
+      },
+      "selectionPreservesNodesAndFocus": true
+    },
+    {
+      "shell": "desk",
+      "size": [
+        1060,
+        700
+      ],
+      "materialCard": {
+        "h": 58.34375,
+        "transform": "none",
+        "w": 86,
+        "x": 364.140625,
+        "y": 489
+      },
+      "selectionPreservesNodesAndFocus": true
+    },
+    {
+      "shell": "desk",
+      "size": [
+        720,
+        520
+      ],
+      "materialCard": {
+        "h": 58.34375,
+        "transform": "none",
+        "w": 86,
+        "x": 405,
+        "y": 206.5625
+      },
+      "selectionPreservesNodesAndFocus": true
+    }
+  ],
+  "controls": [
+    {
+      "page": "materials",
+      "rect": {
+        "h": 285.921875,
+        "transform": "none",
+        "w": 308,
+        "x": 44,
+        "y": 94
+      }
+    },
+    {
+      "page": "packs",
+      "rect": {
+        "h": 342,
+        "transform": "none",
+        "w": 192,
+        "x": 153,
+        "y": 66
+      }
+    },
+    {
+      "page": "gifts",
+      "rect": {
+        "h": 225.09706115722656,
+        "transform": "matrix(0.99863, -0.052336, 0.052336, 0.99863, 0, 0)",
+        "w": 250.8096466064453,
+        "x": 234.59068298339844,
+        "y": 142.8656463623047
+      }
+    },
+    {
+      "page": "market",
+      "rect": {
+        "h": 267.328125,
+        "transform": "none",
+        "w": 202.65625,
+        "x": 44,
+        "y": 103
+      }
+    },
+    {
+      "page": "create/drop",
+      "rect": {
+        "h": 260,
+        "transform": "none",
+        "w": 632,
+        "x": 44,
+        "y": 107
+      }
+    },
+    {
+      "page": "create/sample",
+      "rect": {
+        "h": 112.078125,
+        "transform": "none",
+        "w": 112.078125,
+        "x": 44,
+        "y": 180
+      }
+    }
+  ],
+  "onePreviewFollowBinding": true,
+  "repeatPositionGivesSameTilt": true,
+  "reduceMotionStopsFollow": true,
+  "stockUnchanged": true,
+  "noPrintOrOpenCommands": true,
+  "resizeCorner": {
+    "after": "none",
+    "background": "none",
+    "before": "none",
+    "body": "rgba(0, 0, 0, 0)",
+    "color": "rgba(0, 0, 0, 0)"
+  }
+}

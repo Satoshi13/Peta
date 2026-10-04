@@ -212,6 +212,54 @@ elif sys.argv[1]=='print-pause':
     ev('await Bridge.reload();return true;');assert ev('return JSON.stringify(S.stock)===window.printStock;')
     (out/'print.json').write_text(json.dumps(dict(first=first,next=next,actualMousePaste=True,noAutomaticNextSheet=True,editModeAfterPaste=True,exitEditAndBookDoNotResume=True,explicitResumeShowsSameNext=True,laterKeepsNext=True,repeatedPasteRejected=True,stockUnchanged=True),indent=2))
     print('Native print: one mouse paste pauses, next job retained, explicit Resume/Later, no duplicate spend and stock unchanged passed')
+elif sys.argv[1]=='hover':
+    from PIL import Image,ImageDraw
+    out=c.ROOT/'docs/port-spec/compare/review-10';out.mkdir(exist_ok=True)
+    ev('S.closeOutside=false;S.motion="full";S.chosen="holographic";Bridge.savePreferences();await Bridge.invoke("print_later");await Bridge.invoke("exit_edit_mode");await Bridge.window.show();await Bridge.reload();window.hoverStock=JSON.stringify(S.stock);window.hoverCalls=[];const invoke=Bridge.invoke;Bridge.invoke=(cmd,args)=>{if(["creator_finish","pack_open","gift_open","daily_stick_from_collection"].includes(cmd))window.hoverCalls.push(cmd);return invoke(cmd,args);};const add=EventTarget.prototype.addEventListener;EventTarget.prototype.addEventListener=function(type,...args){if(type==="pointermove" && this instanceof Element && this.matches(".stk-pane .frame"))this.hoverBindings=(this.hoverBindings||0)+1;return add.call(this,type,...args);};return true;')
+    def move(selector,x=.5,y=.5):
+        r=ev('const e=document.querySelector('+json.dumps(selector)+');e.scrollIntoView({block:"center",behavior:"instant"});await sleep(80);const r=e.getBoundingClientRect(),p=await Bridge.window.outerPosition();return {x:p.x+r.x+r.width*'+str(x)+',y:p.y+r.y+r.height*'+str(y)+'};')
+        subprocess.run(['xdotool','mousemove',str(round(r['x'])),str(round(r['y']))],check=True);time.sleep(.22)
+    def rect(selector):return ev('const e=document.querySelector('+json.dumps(selector)+'),r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,transform:getComputedStyle(e).transform};')
+    def stable(selector):
+        move(selector);before=rect(selector)
+        for x,y in [(.02,.02),(.98,.02),(.98,.98),(.02,.98),(.5,.5)]:
+            move(selector,x,y);assert rect(selector)==before,(selector,before,rect(selector))
+        return before
+    ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700));Shell.setShell("studio");await Shell.open("create");await crLoadSample("sBubble");return true;')
+    wait('CR.stage==="ready" && CR.res && document.querySelector(".mtray")')
+    layouts=[]
+    for shell in ['studio','desk']:
+        for width,height in [(1060,700),(720,520)]:
+            ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize('+str(width)+','+str(height)+'));Shell.setShell('+json.dumps(shell)+');return true;');wait('CR.res && document.querySelector(".mtray")')
+            card=stable('.mtray [data-m="holographic"]')
+            assert card['transform']=='none' and not ev('return Boolean(document.querySelector(".mtray .tape"));')
+            ev('window.materialNodes=Array.from(document.querySelectorAll(".mtray .mcard"));return true;')
+            for id in ['matte','holographic','kraft','matte','holographic']:
+                selector='.mtray [data-m="'+id+'"]';move(selector);subprocess.run(['xdotool','click','1'],check=True)
+                wait('S.chosen==='+json.dumps(id)+' && CR.res?.material==='+json.dumps(id))
+                assert ev('return window.materialNodes.every((e,i)=>e===document.querySelectorAll(".mtray .mcard")[i]) && document.activeElement.dataset.m==='+json.dumps(id)+' && document.querySelectorAll(".mtray [aria-checked=true]").length===1;')
+            layouts.append(dict(shell=shell,size=[width,height],materialCard=card,selectionPreservesNodesAndFocus=True))
+            move('.mtray [data-m="holographic"]',.8,.3);shot(shell+'-create-'+str(width))
+            if shell=='studio' and width==1060:
+                actual=Image.open(out/'studio-create-1060.png');r=ev('const r=document.querySelector(".g-mat").getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};');after=actual.crop((round(r['x']-12),round(r['y']-15),round(r['x']+r['w']+12),round(r['y']+r['h']+15)));after.save(out/'material-after.png');before=Image.open(out/'material-before.png');pair=Image.new('RGB',(before.width+after.width,max(before.height,after.height)+28),'#f5f0e6');pair.paste(before,(0,28));pair.paste(after,(before.width,28));d=ImageDraw.Draw(pair);d.text((12,7),'Before',fill='#2b2a28');d.text((before.width+12,7),'Actual Tauri',fill='#2b2a28');pair.save(out/'material-comparison.png')
+    assert ev('return document.querySelector(".stk-pane .frame").hoverBindings;')==1
+    move('.stk-pane .frame',.7,.3);preview=ev('return document.querySelector(".stk-host").style.transform;');move('.stk-pane .frame',.7,.3);assert ev('return document.querySelector(".stk-host").style.transform;')==preview
+    controls=[]
+    for page,selector in [('materials','.mbook:not(:disabled)'),('packs','.pack:not(:disabled)'),('gifts','.gift:not(:disabled)'),('market','.mk-tile')]:
+        ev('await Shell.go('+json.dumps(page)+');return true;');time.sleep(.7);controls.append(dict(page=page,rect=stable(selector)))
+        assert not ev('return Array.from(Shell.current.querySelectorAll(".open-cta")).some(e=>getComputedStyle(e).transform!=="none");')
+        if page=='materials':
+            ev('S.motion="reduce";Bridge.savePreferences();return true;');move(selector,.8,.2)
+            assert 'perspective' not in ev('return document.querySelector(".mbook:not(:disabled) .mcard").style.transform;')
+            ev('S.motion="full";Bridge.savePreferences();return true;')
+    ev('await Bridge.invoke("creator_cancel");crReset();await Shell.go("create");return true;');time.sleep(.7)
+    controls.extend([dict(page='create/drop',rect=stable('.drop')),dict(page='create/sample',rect=stable('.sample'))])
+    ev('S.motion="reduce";Bridge.savePreferences();return true;');move('.sample');assert ev('return getComputedStyle(document.querySelector(".sample img")).transform;')=='none'
+    corner=ev('const e=document.querySelector(".resize-h"),s=getComputedStyle(e);return {background:s.backgroundImage,color:s.backgroundColor,before:getComputedStyle(e,"::before").content,after:getComputedStyle(e,"::after").content,body:getComputedStyle(document.body).backgroundColor};')
+    assert corner['background']=='none' and corner['color']=='rgba(0, 0, 0, 0)'
+    ev('await Bridge.reload();return true;');assert ev('return JSON.stringify(S.stock)===window.hoverStock && window.hoverCalls.length===0;')
+    (out/'hover.json').write_text(json.dumps(dict(layouts=layouts,controls=controls,onePreviewFollowBinding=True,repeatPositionGivesSameTilt=True,reduceMotionStopsFollow=True,stockUnchanged=True,noPrintOrOpenCommands=True,resizeCorner=corner),indent=2))
+    print('Native hover: stable material nodes/focus/geometry, other control hit areas, one preview binding, Reduce motion and transparent resize corner passed')
 elif sys.argv[1]=='reflection':
     wait('document.querySelectorAll("#layer>.sticker").length===3',layer)
     ev('applyLayerPreferences({motion:"full",sound:false});const original=requestAnimationFrame;window.testReflectionFrames=0;window.requestAnimationFrame=fn=>{window.testReflectionFrames++;return original(fn);};return true;',layer);time.sleep(.5)
