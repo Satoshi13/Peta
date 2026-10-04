@@ -214,7 +214,7 @@ elif sys.argv[1]=='print-pause':
     print('Native print: one mouse paste pauses, next job retained, explicit Resume/Later, no duplicate spend and stock unchanged passed')
 elif sys.argv[1]=='hover':
     from PIL import Image,ImageDraw
-    out=c.ROOT/'docs/port-spec/compare/review-10';out.mkdir(exist_ok=True)
+    out=c.ROOT/'docs/port-spec/compare'/ (sys.argv[2] if len(sys.argv)>2 else 'review-10');out.mkdir(exist_ok=True)
     ev('S.closeOutside=false;S.motion="full";S.chosen="holographic";Bridge.savePreferences();await Bridge.invoke("print_later");await Bridge.invoke("exit_edit_mode");await Bridge.window.show();await Bridge.reload();window.hoverStock=JSON.stringify(S.stock);window.hoverCalls=[];const invoke=Bridge.invoke;Bridge.invoke=(cmd,args)=>{if(["creator_finish","pack_open","gift_open","daily_stick_from_collection"].includes(cmd))window.hoverCalls.push(cmd);return invoke(cmd,args);};const add=EventTarget.prototype.addEventListener;EventTarget.prototype.addEventListener=function(type,...args){if(type==="pointermove" && this instanceof Element && this.matches(".stk-pane .frame"))this.hoverBindings=(this.hoverBindings||0)+1;return add.call(this,type,...args);};return true;')
     def move(selector,x=.5,y=.5):
         r=ev('const e=document.querySelector('+json.dumps(selector)+');e.scrollIntoView({block:"center",behavior:"instant"});await sleep(80);const r=e.getBoundingClientRect(),p=await Bridge.window.outerPosition();return {x:p.x+r.x+r.width*'+str(x)+',y:p.y+r.y+r.height*'+str(y)+'};')
