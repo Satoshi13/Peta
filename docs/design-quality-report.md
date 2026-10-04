@@ -68,3 +68,11 @@ Make / Collect / DiscoverをStudioに追加し、表示順と遷移方向を一�
 幅は現行204pxを採用（216px案は本文の幅を12px削るため見送り）。ロゴtop54px・64×28px、窓操作ピルの位置・サイズはそのまま。グループの装飾Overlineのみ指示どおり10.5px、項目・プロフィールの補足は12px以上。未開封Giftは数のピル、封筒はクラフト色の点。全項目はbutton・data-page・aria-currentを保持、数の意味をaria-labelへ含めた。
 
 ショートカットは採用。tray.rsの既存アクセラレータは⌘Qだけで重複なし。純関数のテストで対応順／入力・dialog・busy・ceremony／IME／他修飾キー／⌘Zを確認。プロフィール名・アイコン変更時にもナビを更新する。アカウント認証は追加しない。
+
+## D: 開封後のToday
+
+短いリード・Make a Peta・Createヒーローと3枚の補助カード。下段は等高の素材カード／Stuck today、特徴チップ・既存スウォッチの在庫ピル。実際の素材・在庫・未開封数を表示する。右上の固定幅時計とRedeem Codeを保持。compact Choicesは変更しない。
+
+Createカード内のChoose imageはspanで主ボタンの見た目を重ね、外側のbutton.choiceを唯一の操作面とする（二重buttonはHTMLとして不正で、入れ子のホバー移動も生むため）。押す位置に関わらず現行Shell.goへ移動する。Stockは素材カード下の共通行に広げ、Holographic等の長い名前と3種類の在庫が収まるようにした。下段は内容に応じて約218px（196pxは目安）。≤1000pxの1列と≤880pxの2列Choicesを維持。
+
+実Tauri・720×520で封筒→tear→pull→Keep→.tm-card .mcardまで完了。カード下端309.6px、情報欄上端334.8px、重なりなし、終了後もwindowOpen=true。開封後の4サイズ・シェルで横はみ出し0。開封の更新処理・Rust契約は変更していない。

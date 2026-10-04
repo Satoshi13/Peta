@@ -35,13 +35,15 @@ Pages.today = {
     return root;
   },
   openedBlock() {
-    const m = MAT[S.todayMat], stock = usableMats().map((id) => `${MAT[id].name} ${MAT[id].unlimited ? "∞" : "×" + S.stock[id]}`).join("  ·  ");
+    const m = MAT[S.todayMat];
     return h("section.t-choose",
-      h("div.t-top", h("h2", "What will you stick today?"), h("p.muted", "A new material arrives every day. Make as many Petas as your materials last — plain Matte never runs out."), Choices()),
+      h("div.t-top", h("p.today-lead", "A new material arrives every day. Matte never runs out."), h("p.eyebrow.make-label", "Make a Peta"), Choices({hero:true})),
       h("div.t-bottom",
         h("div.t-mat", h("div.tm-card", MatCard(m, 138)),
-          h("div.tm-text", h("p.eyebrow", "Today's Material"), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)), h("p.muted", m.recipe), h("p.addnote", "Added to your Material Book"), h("p.stock", stock))),
-        h("div.t-stuck", h("p.eyebrow", "Stuck today"), StuckStrip())));
+          h("div.tm-text", h("div.tm-heading", h("p.eyebrow", "Today's material"), h("small.addnote", "Added to your Material Book")), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)),
+            h("div.material-features", m.recipe.split(" · ").map(text=>h("span.chip.fill", text[0].toUpperCase()+text.slice(1))))),
+          h("div.stock", usableMats().map(id=>h("span.stock-pill", MaterialSwatch(MAT[id]), MAT[id].name, " ", h("b", MAT[id].unlimited ? "∞" : "×"+S.stock[id]))))),
+        h("div.t-stuck", h("div.stuck-heading", h("b", "Stuck today"), h("small.muted", `${S.stuckToday.length} on your desktop`)), StuckStrip())));
   },
 
   /* the opening: envelope -> foil -> card, then the card settles into the tray */

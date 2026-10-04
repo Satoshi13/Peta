@@ -27,13 +27,19 @@ const CHOICES = [
   { id: "gifts", key: "chGift", label: "Gift", sub: () => { const n = S.gifts.filter((g) => !g.opened).length; return n ? `${n} waiting` : "Open one that arrived"; } },
   { id: "packs", key: "chPack", label: "Pack", sub: () => { const n = S.packs.filter(packOpenable).length; return n ? "Open one at random" : S.packs.some((p) => p.left.length) ? "Welcome Pack: back tomorrow" : "All opened"; } },
 ];
-function Choices({ compact } = {}) {
-  return h("div.choices" + (compact ? ".compact" : ""), CHOICES.map((c, i) => {
+function Choices({ compact, hero = false } = {}) {
+  return h("div.choices" + (compact ? ".compact" : hero ? ".featured" : ""), CHOICES.map((c, i) => {
     const sub = typeof c.sub === "function" ? c.sub() : c.sub, off = c.id === "packs" && !S.packs.some(packOpenable);
-    return h("button.choice", { disabled: off, style: { "--i": i }, data: { id: c.id },
+    return h("button.choice" + (hero && c.id === "create" ? ".hero" : ""), { disabled: off, style: { "--i": i }, data: { id: c.id },
       on: { click: (e) => { Snd.tap(); if (c.id === "book") S.pickMode = true; Shell.go(c.id, { origin: e.currentTarget, via: "object" }); } } },
-      h("span.choice-obj", { style: { backgroundImage: `var(--a-${c.key})` } }), h("b", c.label), compact ? null : h("small", sub));
+      hero && c.id === "create" ? h("span.choice-copy", h("b", "Create"), h("small", "Turn any image into a sticker, cut out on the mat."), h("span.btn.small.choice-cta", "Choose image")) : null,
+      h("span.choice-obj", { style: { backgroundImage: `var(--a-${c.key})` } }), hero && c.id === "create" ? null : h("b", c.label), compact || (hero && c.id === "create") ? null : h("small", hero && c.id === "book" ? "Stick one you own" : sub),
+      hero && c.id === "gifts" && S.gifts.some(g=>!g.opened) ? h("span.choice-count", String(S.gifts.filter(g=>!g.opened).length)) : null);
   }));
+}
+
+function MaterialSwatch(m) {
+  return h("i.material-swatch", {"aria-hidden":"true",data:{m:m.id},style:{backgroundImage:`var(--a-${m.sw || ({gold:"cardGold",riso:"cardRiso",vintage:"cardVintage"})[m.id] || m.card})`}});
 }
 
 /** A material card that is just something to look at (not a control). */
@@ -43,7 +49,7 @@ function MatCard(m, w = 132) {
 }
 function StuckStrip() {
   const strip = h("div.stuck-strip");
-  if (!S.stuckToday.length) return strip.append(h("p.empty-note", "Nothing stuck yet — your desktop is waiting.")), strip;
+  if (!S.stuckToday.length) return strip.append(h("div.stuck-empty", img("emptyStuck"), h("b", "Nothing stuck yet"), h("small.muted", "Your desktop is waiting."), h("button.btn.secondary.small", {on:{click:()=>Shell.go("create")}}, "Make a Peta"))), strip;
   S.stuckToday.forEach((id, i) => { const e = S.lib.find((l) => l.id === id); if (!e) return; const t = h("div.stuck-t", { style: { "--i": i } }); resOf(e, { max: 360 }).then((res) => t.append(Stk.el(res, res.aspect >= 1 ? 74 : 74 * res.aspect))); strip.append(t); });
   return strip;
 }
