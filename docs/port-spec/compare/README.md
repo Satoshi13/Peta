@@ -88,3 +88,7 @@ The owner's latest review replaces the display-wide opening and automatic window
 ## Review 04 — Create sticker ratio
 
 [Current correction: Create's finished preview preserves the PNG aspect ratio](review-04/README.md). The inherited 100% height stretched the wrapper and image; native overrides now retain the natural height and uniformly fit both frame dimensions, including after resizing. Real PNG / image / sheen ratios pass in 24 states; the rendered PNG bytes are unchanged.
+
+## Review 14 — Creator icons and material card outlines
+
+[Native captures and verification](review-14/README.md). Settings and Market's Creators can choose an owned original as the local profile icon. References survive restart, follow original edits, and clear atomically on deletion. Material cards share an outline, corner radius and label across pages using the delivered textures; artwork files and sticker manufacturing rules are unchanged.

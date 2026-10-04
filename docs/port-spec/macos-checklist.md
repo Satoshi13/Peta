@@ -167,3 +167,10 @@ Book / Market の見た目は `compare/art-03/*.jpg` と元の `golden/*.jpg` �
 - [ ] D5: 2つのデータフォルダでGift v2を送り、New friend→2通目で✓。同名別鍵は警告・受領可能。v1はUnsigned。from／edition／PNGを変えたものは拒否。
 - [ ] D6: Studio／Deskの最小窓でMake a Pack…の選択・詳細・一括Rare・保存／取消。4枚のファイルを別フォルダで受領し、確認後に棚へ、Rareの開封演出、Receivedの裏面、ORIGINALなし、素材在庫不変。Reduce motionでも操作可能。
 - [ ] D7: 同Packの更新版は新しいkeyだけ増え、開封済みを保持。同版／Peta名／上限超えは拒否。新しいファイルが確認中に来ても、別ファイルを誤って同意した扱いにしない。VoiceOverのフォーカストラップ・Escape／Cancel・名前／指紋の読み上げ。
+
+## 17. Creatorアイコンと素材カードの共通形状（2026-10-04）
+
+- [ ] C1: Settings／Market → CreatorsのChange icon…から、自分のオリジナルだけを選択。Save／Use initial／Cancel／Esc、矢印キーとVoiceOverの選択状態。素材・番号・来歴は消費／変更しない。
+- [ ] C2: 再起動後もアイコンが残る。オリジナルの再編集で表示が更新され、選んだオリジナルを削除すると頭文字へ戻る。Gift／Packは選べない。作者名や配布済みファイルは影響を受けない。
+- [ ] C3: Studio／Deskの1060×700／720×520でアイコン選択欄と保存／取消が収まり、スクロール可能でフォーカスがダイアログ内へ留まる。画像は縦横比を保ち、穴や端を切らない。
+- [ ] C4: Today／Create／Materials／Market／素材開封で外形・角丸・ラベルの位置が素材によらず揃う。Retinaでも縁が欠けず、ホロ反射も同じ外形内。低い窓でヒント／Keepと重ならない。素材の選択やホバーで操作面が揺れない。

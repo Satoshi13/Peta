@@ -1,0 +1,190 @@
+[
+  {
+    "restart": {
+      "displayName": "Satoshi",
+      "iconStickerId": "PETA-PORT-0011"
+    }
+  },
+  {
+    "self": "SSatoshiYour creator profileChange icon…"
+  },
+  {
+    "radios": 9
+  },
+  {
+    "focused": "PETA-PORT-0012",
+    "selected": "PETA-PORT-0012"
+  },
+  true,
+  {
+    "cancelKept": {
+      "displayName": "Satoshi",
+      "iconStickerId": "PETA-PORT-0011"
+    }
+  },
+  {
+    "page": "materials"
+  },
+  {
+    "page": "market"
+  },
+  [
+    {
+      "height": "89.578125px",
+      "label": 34.690765380859375,
+      "material": "kraft",
+      "radius": "5.632px",
+      "width": "148.34375px"
+    },
+    {
+      "height": "89.578125px",
+      "label": 34.690765380859375,
+      "material": "holographic",
+      "radius": "5.632px",
+      "width": "148.34375px"
+    },
+    {
+      "height": "89.578125px",
+      "label": 34.690765380859375,
+      "material": "gold",
+      "radius": "5.632px",
+      "width": "148.34375px"
+    },
+    {
+      "height": "89.578125px",
+      "label": 34.6907958984375,
+      "material": "riso",
+      "radius": "5.632px",
+      "width": "148.34375px"
+    },
+    {
+      "height": "89.578125px",
+      "label": 34.6907958984375,
+      "material": "vintage",
+      "radius": "5.632px",
+      "width": "148.34375px"
+    }
+  ],
+  true,
+  {
+    "clientWidth": 580,
+    "dialog": {
+      "bottom": 449.6875,
+      "height": 379.390625,
+      "left": 70,
+      "right": 650,
+      "top": 70.296875,
+      "width": 580,
+      "x": 70,
+      "y": 70.296875
+    },
+    "gridHeight": 218,
+    "gridScrollHeight": 354,
+    "h": 520,
+    "scrollWidth": 580,
+    "shell": "studio",
+    "w": 720
+  },
+  true,
+  true,
+  {
+    "clientWidth": 580,
+    "dialog": {
+      "bottom": 449.6875,
+      "height": 379.390625,
+      "left": 70,
+      "right": 650,
+      "top": 70.296875,
+      "width": 580,
+      "x": 70,
+      "y": 70.296875
+    },
+    "gridHeight": 218,
+    "gridScrollHeight": 354,
+    "h": 520,
+    "scrollWidth": 580,
+    "shell": "desk",
+    "w": 720
+  },
+  true,
+  true,
+  true,
+  {
+    "cleared": {
+      "displayName": "Satoshi",
+      "iconStickerId": null
+    }
+  },
+  {
+    "deleted": {
+      "displayName": "Satoshi",
+      "iconStickerId": null
+    },
+    "stickerStillInBook": false
+  },
+  {
+    "restored": {
+      "displayName": "Satoshi",
+      "iconStickerId": "PETA-PORT-0011"
+    }
+  },
+  {
+    "materialReveal720": {
+      "card": {
+        "bottom": 208.875,
+        "height": 102.1875,
+        "left": 213.484375,
+        "right": 364.09375,
+        "top": 106.6875,
+        "width": 150.609375,
+        "x": 213.484375,
+        "y": 106.6875
+      },
+      "hint": {
+        "bottom": 76.796875,
+        "height": 30,
+        "left": 0,
+        "right": 720,
+        "top": 46.796875,
+        "width": 720,
+        "x": 0,
+        "y": 46.796875
+      },
+      "info": {
+        "bottom": 499.78125,
+        "height": 148,
+        "left": 21.5,
+        "right": 698.296875,
+        "top": 351.78125,
+        "width": 676.796875,
+        "x": 21.5,
+        "y": 351.78125
+      }
+    }
+  },
+  {
+    "create720": {
+      "stage": "ready",
+      "tray": [
+        {
+          "height": "43.78125px",
+          "label": true,
+          "material": "matte",
+          "width": "72.5px"
+        },
+        {
+          "height": "43.78125px",
+          "label": true,
+          "material": "kraft",
+          "width": "72.5px"
+        },
+        {
+          "height": "43.78125px",
+          "label": true,
+          "material": "holographic",
+          "width": "72.5px"
+        }
+      ]
+    }
+  }
+]
