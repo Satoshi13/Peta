@@ -1,0 +1,33 @@
+{
+  "maximizeRestore": true,
+  "maximized": {
+    "height": 900,
+    "width": 1440
+  },
+  "minimizeResume": true,
+  "redClose": true,
+  "escapeClose": true,
+  "dragStrip": true,
+  "nativeResize": true,
+  "minimum": {
+    "height": 520,
+    "width": 720
+  },
+  "outsideClose": true,
+  "preferences": {
+    "main": {
+      "motion": "reduce",
+      "sound": false,
+      "stored": {
+        "closeOutside": false,
+        "motion": "reduce",
+        "shell": "desk",
+        "sound": false
+      }
+    },
+    "layer": {
+      "motion": "reduce",
+      "sound": false
+    }
+  }
+}

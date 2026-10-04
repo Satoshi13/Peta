@@ -62,3 +62,34 @@ pub fn activate_app() {
         }
     }
 }
+
+// NSEvent and NSWindow both return logical screen points, including on Retina displays.
+use super::coordinates::{Point, Size, Frame};
+use objc2::encode::{Encode, Encoding};
+unsafe impl Encode for Point { const ENCODING: Encoding = Encoding::Struct("CGPoint", &[Encoding::Double, Encoding::Double]); }
+unsafe impl Encode for Size { const ENCODING: Encoding = Encoding::Struct("CGSize", &[Encoding::Double, Encoding::Double]); }
+unsafe impl Encode for Frame { const ENCODING: Encoding = Encoding::Struct("CGRect", &[Point::ENCODING, Size::ENCODING]); }
+
+/// Main thread only. Coordinates are relative to the main display's bottom-left origin.
+pub fn cursor_position() -> Option<Point> {
+    let point: Point = unsafe { msg_send![objc2::class!(NSEvent), mouseLocation] };
+    (point.x.is_finite() && point.y.is_finite()).then_some(point)
+}
+
+pub fn layer_frame(window: &WebviewWindow) -> Option<Frame> {
+    let ns_window = window.ns_window().ok()? as *mut AnyObject;
+    if ns_window.is_null() { return None; }
+    Some(unsafe { msg_send![ns_window, frame] })
+}
+
+/// Main thread only. The default performer ignores feedback on unsupported devices.
+pub fn haptic(kind: &str) {
+    let Some(manager) = objc2::runtime::AnyClass::get(c"NSHapticFeedbackManager") else { return };
+    unsafe {
+        let performer: *mut AnyObject = msg_send![manager, defaultPerformer];
+        if !performer.is_null() {
+            let pattern: isize = if kind == "paste" { 2 } else { 0 };
+            let _: () = msg_send![performer, performFeedbackPattern: pattern, performanceTime: 0isize];
+        }
+    }
+}

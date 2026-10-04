@@ -1,3 +1,5 @@
+mod app_window;
+mod port_capture;
 mod arrival;
 mod collection;
 mod creator;
@@ -96,6 +98,12 @@ fn exit_edit_mode(app: AppHandle) {
     layers::set_edit_mode(&app, false);
 }
 
+#[tauri::command]
+fn haptic_tap(app: AppHandle, kind: String) -> Result<(), String> {
+    if !["paste", "peel", "seal"].contains(&kind.as_str()) { return Err("unknown haptic".into()); }
+    app.run_on_main_thread(move || platform::haptic(&kind)).map_err(|e| e.to_string())
+}
+
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -104,7 +112,12 @@ pub fn run() {
         .manage(Today::default())
         .manage(Creator::default())
         .invoke_handler(tauri::generate_handler![
+            port_capture::port_capture_report,
+            port_capture::port_capture_tray,
+            haptic_tap,
             layer_info,
+            layers::set_reflection_active,
+            layers::reflection_status,
             layer_placements,
             save_placement,
             peel_sticker,
@@ -116,35 +129,44 @@ pub fn run() {
             today::daily_create,
             today::collection_unused,
             today::daily_stick_from_collection,
+            creator::creator_begin_path,
+            creator::creator_begin_bytes,
             creator::creator_info,
             creator::creator_original,
             creator::creator_render,
             creator::creator_stroke,
             creator::creator_clear_edits,
             creator::creator_finish,
+            creator::creator_edit_original,
+            creator::creator_save_original,
             creator::creator_undo,
             creator::creator_redo,
             creator::creator_cancel,
+            arrival::arrival_status,
             arrival::arrival_open,
             gifts::gift_send,
             gifts::gift_receive_file,
             gifts::gift_inbox,
             gifts::gift_open,
+            packs::pack_install_demo,
             packs::pack_status,
             packs::pack_open,
+            print::print_resume,
             print::print_pending,
             print::print_paste,
             print::print_later,
             collection::book_index,
             collection::book_page,
             collection::sticker_back,
+            collection::sticker_delete_original,
             collection::material_book,
             collection::profile_get,
             collection::profile_set
         ])
         .on_window_event(|window, event| {
+            if matches!(event, tauri::WindowEvent::Destroyed) { layers::forget_reflection(window.app_handle(), window.label()); }
             // closing the Cutting Mat with the window button is a cancel: nothing was spent
-            if window.label() == creator::CREATOR_LABEL && matches!(event, tauri::WindowEvent::Destroyed) {
+            if window.label() == app_window::APP_LABEL && matches!(event, tauri::WindowEvent::Destroyed) {
                 creator::clear(window.app_handle());
             }
         })
@@ -157,14 +179,18 @@ pub fn run() {
             tray::build(app.handle())?;
             layers::sync(app.handle())?;
             layers::spawn_monitor_watcher(app.handle().clone());
+            layers::spawn_reflection_watcher(app.handle().clone());
             today::roll_day(app.handle()); // draws today's material; sets the menu indicator
             today::spawn_day_watcher(app.handle().clone());
+            arrival::spawn_hit_watcher(app.handle().clone());
+            port_capture::start(app.handle());
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("error while building Peta");
 
-    app.run(|_app, event| {
+    app.run(|app, event| {
+        if matches!(event, tauri::RunEvent::Exit) { layers::stop_reflection(app); }
         // Layers are destroyed/recreated on display changes; that must not quit the app.
         // Only an explicit `app.exit(..)` (tray -> Quit) carries an exit code.
         if let tauri::RunEvent::ExitRequested { api, code, .. } = event {

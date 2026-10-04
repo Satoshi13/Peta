@@ -13,6 +13,7 @@ const el = (tag, cls, text) => {
 export function renderBackCard(back) {
   const card = el("div", "back-card");
   card.dataset.kind = back.kind;
+  card.dataset.mat = back.material?.id || "matte";
   card.dataset.art = "back-paper"; // art hook: paper texture (back/paper-cream.jpg, back/paper-kraft.jpg)
   const face = el("div", "face");
   card.append(face);

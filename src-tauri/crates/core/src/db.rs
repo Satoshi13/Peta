@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-const SCHEMA_VERSION: i64 = 6;
+const SCHEMA_VERSION: i64 = 7;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -140,6 +140,36 @@ CREATE TABLE gifts_received (
 );
 ";
 
+/// Unlimited creation needs an independent durable print queue and complete Book history.
+/// Carry forward all unpasted v6 confirmations, including previous days. Welcome's ledger is
+/// inferred from its own opened items, never from a Create/Gift/other-pack daily record.
+const MIGRATION_V7: &str = "
+CREATE TABLE print_queue (
+    seq INTEGER PRIMARY KEY AUTOINCREMENT,
+    sticker_id TEXT NOT NULL UNIQUE REFERENCES stickers(id) ON DELETE CASCADE,
+    queued_at TEXT NOT NULL
+);
+CREATE TABLE sticker_events (
+    date TEXT NOT NULL,
+    sticker_id TEXT NOT NULL REFERENCES stickers(id) ON DELETE CASCADE,
+    source_type TEXT NOT NULL,
+    PRIMARY KEY(date, sticker_id)
+);
+CREATE TABLE welcome_openings (
+    date TEXT PRIMARY KEY,
+    item_id INTEGER NOT NULL
+);
+INSERT OR IGNORE INTO print_queue(sticker_id, queued_at)
+    SELECT sticker_id, confirmed_at FROM daily_records
+    WHERE sticker_id IS NOT NULL AND confirmed_at IS NOT NULL AND used_at IS NULL
+    ORDER BY confirmed_at;
+INSERT OR IGNORE INTO sticker_events(date, sticker_id, source_type)
+    SELECT date, sticker_id, COALESCE(source_type, 'created') FROM daily_records WHERE sticker_id IS NOT NULL;
+INSERT OR IGNORE INTO welcome_openings(date, item_id)
+    SELECT COALESCE((SELECT d.date FROM daily_records d WHERE d.sticker_id=i.sticker_id LIMIT 1), date(i.opened_at, 'localtime'), date('now', 'localtime')), i.id
+    FROM pack_items i WHERE i.pack_id='welcome' AND i.opened_at IS NOT NULL;
+";
+
 /// A gift waiting in the Inbox (or already opened).
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -245,6 +275,12 @@ impl Database {
             tx.pragma_update(None, "user_version", 6)?;
             tx.commit()?;
         }
+        if version < 7 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V7)?;
+            tx.pragma_update(None, "user_version", 7)?;
+            tx.commit()?;
+        }
         Ok(())
     }
 
@@ -258,6 +294,18 @@ impl Database {
 
     pub fn sticker_count(&self) -> Result<i64> {
         Ok(self.conn.query_row("SELECT COUNT(*) FROM stickers", [], |r| r.get(0))?)
+    }
+
+    pub fn update_original_assets(&mut self, id: &str, rendered: &str, mask: &str, aspect: f64) -> Result<()> {
+        let n = self.conn.execute("UPDATE stickers SET rendered_asset_path=?2, mask_asset_path=?3, aspect=?4 WHERE id=?1 AND source_type='created'", params![id, rendered, mask, aspect])?;
+        if n != 1 { return Err(Error::Invalid("only your original stickers can be edited".into())); }
+        Ok(())
+    }
+
+    pub fn delete_original(&mut self, id: &str) -> Result<()> {
+        let n = self.conn.execute("DELETE FROM stickers WHERE id=?1 AND source_type='created'", [id])?;
+        if n != 1 { return Err(Error::Invalid("only your original stickers can be deleted".into())); }
+        Ok(())
     }
 
     /// Insert a sticker. Stickers the user made (`Created`) get the next `ORIGINAL` number.
@@ -399,9 +447,13 @@ impl Database {
     /// stickers carried over from Phase 0).
     pub fn book_rows(&self) -> Result<Vec<BookRow>> {
         let mut stmt = self.conn.prepare(
-            "SELECT d.date, s.id, s.original_number, s.material_id, COALESCE(d.source_type, s.source_type), s.aspect, s.created_at,
+            "WITH history AS (
+                 SELECT date, sticker_id, source_type FROM sticker_events
+                 UNION SELECT date, sticker_id, source_type FROM daily_records WHERE sticker_id IS NOT NULL
+             )
+             SELECT d.date, s.id, s.original_number, s.material_id, COALESCE(d.source_type, s.source_type), s.aspect, s.created_at,
                     COALESCE(p.is_on_desktop, 0)
-             FROM daily_records d
+             FROM history d
              JOIN stickers s ON s.id = d.sticker_id
              LEFT JOIN placements p ON p.sticker_id = s.id
              UNION ALL
@@ -409,7 +461,7 @@ impl Database {
                     COALESCE(p.is_on_desktop, 0)
              FROM stickers s
              LEFT JOIN placements p ON p.sticker_id = s.id
-             WHERE s.id NOT IN (SELECT sticker_id FROM daily_records WHERE sticker_id IS NOT NULL)",
+             WHERE s.id NOT IN (SELECT sticker_id FROM history)",
         )?;
         let rows = stmt
             .query_map([], |r| {
@@ -751,10 +803,46 @@ impl Database {
     }
 
     pub fn daily_set_confirmed(&mut self, date: &str, sticker_id: &str, source: SourceType, ts: &str) -> Result<()> {
-        self.conn.execute(
-            "UPDATE daily_records SET sticker_id = ?2, source_type = ?3, confirmed_at = ?4 WHERE date = ?1",
-            params![date, sticker_id, source.as_str(), ts],
-        )?;
+        let tx=self.conn.transaction()?;
+        tx.execute("INSERT OR IGNORE INTO print_queue(sticker_id,queued_at) VALUES (?1,?2)",params![sticker_id,ts])?;
+        tx.execute("INSERT INTO sticker_events(date,sticker_id,source_type) VALUES (?1,?2,?3) ON CONFLICT(date,sticker_id) DO UPDATE SET source_type=excluded.source_type",params![date,sticker_id,source.as_str()])?;
+        tx.execute("UPDATE daily_records SET sticker_id=?2,source_type=?3,confirmed_at=?4,used_at=NULL WHERE date=?1",params![date,sticker_id,source.as_str(),ts])?;
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn next_print(&self) -> Result<Option<String>> {
+        Ok(self.conn.query_row("SELECT sticker_id FROM print_queue ORDER BY seq LIMIT 1",[],|r|r.get(0)).optional()?)
+    }
+
+    /// Finish only the queue's current head; late or repeated drops cannot spend another print.
+    pub fn finish_print(&mut self, sticker_id: &str) -> Result<()> {
+        if self.next_print()?.as_deref()!=Some(sticker_id) { return Err(Error::Invalid("nothing is waiting to be pasted".into())); }
+        let tx=self.conn.transaction()?;
+        tx.execute("DELETE FROM print_queue WHERE sticker_id=?1",[sticker_id])?;
+        tx.execute("UPDATE daily_records SET used_at=?2 WHERE sticker_id=?1 AND used_at IS NULL",params![sticker_id,now()])?;
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn welcome_available(&self, date: &str) -> Result<bool> {
+        Ok(!self.conn.query_row("SELECT EXISTS(SELECT 1 FROM welcome_openings WHERE date=?1)",[date],|r|r.get::<_,bool>(0))?)
+    }
+
+    pub fn pack_item_available(&self, item_id: i64) -> Result<bool> {
+        Ok(self.conn.query_row("SELECT EXISTS(SELECT 1 FROM pack_items WHERE id=?1 AND opened_at IS NULL)",[item_id],|r|r.get(0))?)
+    }
+
+    /// Item ownership and Welcome's daily quota change together, under the same transaction.
+    pub fn pack_open_on(&mut self, item_id: i64, sticker_id: &str, date: &str) -> Result<()> {
+        let pack_id:String=self.conn.query_row("SELECT pack_id FROM pack_items WHERE id=?1",[item_id],|r|r.get(0))?;
+        if pack_id=="welcome" && !self.welcome_available(date)? { return Err(Error::Invalid("welcome_already_opened_today".into())); }
+        let tx=self.conn.transaction()?;
+        if tx.execute("UPDATE pack_items SET opened_at=?1,sticker_id=?2 WHERE id=?3 AND opened_at IS NULL",params![now(),sticker_id,item_id])?==0 {
+            return Err(Error::Invalid("that pack item was already opened".into()));
+        }
+        if pack_id=="welcome" { tx.execute("INSERT INTO welcome_openings(date,item_id) VALUES (?1,?2)",params![date,item_id])?; }
+        tx.commit()?;
         Ok(())
     }
 
@@ -987,4 +1075,74 @@ mod tests {
         assert_eq!(db.create_sticker(new("B", SourceType::Created)).unwrap().original_number, Some(2));
         let _ = std::fs::remove_dir_all(dir);
     }
+    #[test]
+    fn v6_migration_keeps_previous_day_prints_history_and_welcome_allowance() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6] { conn.execute_batch(migration).unwrap(); }
+        conn.pragma_update(None,"user_version",6).unwrap();
+        conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect) VALUES ('old','2026-10-01T12:00:00Z','o','r','pack',1.0)",[]).unwrap();
+        conn.execute("INSERT INTO daily_records(date,material_id,sticker_id,source_type,confirmed_at) VALUES ('2026-10-01','kraft','old','pack','2026-10-01T12:00:00Z')",[]).unwrap();
+        conn.execute("INSERT INTO packs VALUES ('welcome','Welcome Pack','Peta','2026-10-01T12:00:00Z')",[]).unwrap();
+        conn.execute("INSERT INTO pack_items(pack_id,item_key,opened_at,sticker_id) VALUES ('welcome','cat-skateboard','2026-10-01T12:00:00Z','old')",[]).unwrap();
+        conn.execute("INSERT INTO material_stock(material_id,count) VALUES ('kraft',3)",[]).unwrap();
+        let db=Database::init(conn).unwrap();
+        assert_eq!(db.material_count("kraft").unwrap(),3);
+        assert_eq!(db.next_print().unwrap().as_deref(),Some("old"));
+        assert!(!db.welcome_available("2026-10-01").unwrap());
+        assert!(db.welcome_available("2026-10-02").unwrap());
+        assert_eq!(db.book_rows().unwrap().len(),1);
+        assert_eq!(db.daily_get("2026-10-01").unwrap().unwrap().material_id,"kraft");
+    }
+
+    #[test]
+    fn unlimited_confirmations_keep_fifo_prints_and_all_book_rows_across_restart() {
+        let path=std::env::temp_dir().join(format!("peta-queue-{}.db",crate::ids::new_sticker_id()));
+        {
+            let mut db=Database::open(&path).unwrap();
+            for id in ["A","B","C"] {
+                db.create_sticker(NewSticker{id:id.into(),creator_id:None,creator_name:None,original_asset_path:"o".into(),rendered_asset_path:"r".into(),mask_asset_path:None,material_id:Some("matte".into()),source_type:SourceType::Created,aspect:1.0}).unwrap();
+                crate::daily::confirm(&mut db,"2026-10-01",id,SourceType::Created,0.0).unwrap();
+            }
+            assert_eq!(db.book_rows().unwrap().len(),3);
+            assert_eq!(db.next_print().unwrap().as_deref(),Some("A"));
+            assert!(db.finish_print("B").is_err(),"a late drop must not spend another print");
+            db.finish_print("A").unwrap();
+            assert!(db.finish_print("A").is_err(),"a repeated paste is rejected");
+        }
+        {
+            let mut db=Database::open(&path).unwrap();
+            crate::daily::ensure_today(&mut db,"2026-10-02",0.2).unwrap();
+            assert_eq!(db.next_print().unwrap().as_deref(),Some("B"));
+            db.finish_print("B").unwrap();
+            assert_eq!(db.next_print().unwrap().as_deref(),Some("C"));
+            db.finish_print("C").unwrap();
+            assert!(db.next_print().unwrap().is_none());
+            assert_eq!(db.book_rows().unwrap().len(),3);
+        }
+        let _=std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn welcome_once_per_day_is_independent_of_create_gift_and_market_packs() {
+        let mut db=Database::open_in_memory().unwrap();
+        crate::pack::ensure_welcome_pack(&mut db).unwrap();
+        db.pack_install("market","Coffee Club","Nao",&["coffee-cup","film-camera"]).unwrap();
+        db.create_sticker(NewSticker{id:"A".into(),creator_id:None,creator_name:None,original_asset_path:"o".into(),rendered_asset_path:"r".into(),mask_asset_path:None,material_id:Some("matte".into()),source_type:SourceType::Created,aspect:1.0}).unwrap();
+        for source in [SourceType::Created,SourceType::Gift] { crate::daily::confirm(&mut db,"2026-10-01","A",source,0.0).unwrap(); }
+        assert!(db.welcome_available("2026-10-01").unwrap());
+        let (first,_)=db.pack_pick("welcome",0.0).unwrap().unwrap();
+        db.pack_open_on(first,"A","2026-10-01").unwrap();
+        let (second,_)=db.pack_pick("welcome",0.0).unwrap().unwrap();
+        assert!(db.pack_open_on(second,"A","2026-10-01").is_err());
+        assert!(db.pack_item_available(second).unwrap(),"a refused opening must leave the item sealed");
+        for _ in 0..2 {
+            let (id,_)=db.pack_pick("market",0.0).unwrap().unwrap();
+            db.pack_open_on(id,"A","2026-10-01").unwrap();
+        }
+        assert!(db.pack_pick("market",0.0).unwrap().is_none());
+        assert!(!db.welcome_available("2026-10-01").unwrap());
+        assert!(db.welcome_available("2026-10-02").unwrap());
+        db.pack_open_on(second,"A","2026-10-02").unwrap();
+    }
+
 }

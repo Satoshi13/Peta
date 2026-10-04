@@ -1,0 +1,115 @@
+{
+  "todayPlusUsesExistingToday": true,
+  "finitePulseSettles": true,
+  "reducedMotionNoPulse": true,
+  "minimumDetails": [
+    {
+      "clientWidth": 720,
+      "detail": true,
+      "grid": {
+        "bottom": 512,
+        "height": 407,
+        "left": 36,
+        "right": 684,
+        "top": 105,
+        "width": 648,
+        "x": 36,
+        "y": 105
+      },
+      "mode": "list",
+      "root": {
+        "bottom": 460,
+        "height": 460,
+        "left": 0,
+        "right": 720,
+        "top": 0,
+        "width": 720,
+        "x": 0,
+        "y": 0
+      },
+      "scrollWidth": 720,
+      "shell": "studio"
+    },
+    {
+      "clientWidth": 720,
+      "detail": true,
+      "grid": {
+        "bottom": 586,
+        "height": 481,
+        "left": 36,
+        "right": 684,
+        "top": 105,
+        "width": 648,
+        "x": 36,
+        "y": 105
+      },
+      "mode": "calendar",
+      "root": {
+        "bottom": 460,
+        "height": 460,
+        "left": 0,
+        "right": 720,
+        "top": 0,
+        "width": 720,
+        "x": 0,
+        "y": 0
+      },
+      "scrollWidth": 720,
+      "shell": "studio"
+    },
+    {
+      "clientWidth": 662,
+      "detail": true,
+      "grid": {
+        "bottom": 736,
+        "height": 603,
+        "left": 84,
+        "right": 666,
+        "top": 133,
+        "width": 582,
+        "x": 84,
+        "y": 133
+      },
+      "mode": "list",
+      "root": {
+        "bottom": 442,
+        "height": 414,
+        "left": 40,
+        "right": 702,
+        "top": 28,
+        "width": 662,
+        "x": 40,
+        "y": 28
+      },
+      "scrollWidth": 662,
+      "shell": "desk"
+    },
+    {
+      "clientWidth": 662,
+      "detail": true,
+      "grid": {
+        "bottom": 614,
+        "height": 481,
+        "left": 84,
+        "right": 666,
+        "top": 133,
+        "width": 582,
+        "x": 84,
+        "y": 133
+      },
+      "mode": "calendar",
+      "root": {
+        "bottom": 442,
+        "height": 414,
+        "left": 40,
+        "right": 702,
+        "top": 28,
+        "width": 662,
+        "x": 40,
+        "y": 28
+      },
+      "scrollWidth": 662,
+      "shell": "desk"
+    }
+  ]
+}

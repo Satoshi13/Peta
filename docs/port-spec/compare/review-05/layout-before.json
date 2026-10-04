@@ -1,0 +1,266 @@
+[
+  {
+    "buttons": [
+      {
+        "font": "550 12.5px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "0px",
+        "rect": {
+          "bottom": 449,
+          "height": 29,
+          "left": 824.5625,
+          "right": 917.421875,
+          "top": 420,
+          "width": 92.859375,
+          "x": 824.5625,
+          "y": 420
+        },
+        "text": "Turn over"
+      },
+      {
+        "font": "650 14px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "999px",
+        "rect": {
+          "bottom": 495,
+          "height": 36,
+          "left": 734,
+          "right": 1008,
+          "top": 459,
+          "width": 274,
+          "x": 734,
+          "y": 459
+        },
+        "text": "Stick on the desktop"
+      },
+      {
+        "font": "550 12.5px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "0px",
+        "rect": {
+          "bottom": 532,
+          "height": 29,
+          "left": 734,
+          "right": 1008,
+          "top": 503,
+          "width": 274,
+          "x": 734,
+          "y": 503
+        },
+        "text": "Gift\u2026"
+      }
+    ],
+    "clickableSticker": false,
+    "detail": {
+      "bottom": 702,
+      "height": 533,
+      "left": 718,
+      "right": 1024,
+      "top": 169,
+      "width": 306,
+      "x": 718,
+      "y": 169
+    },
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "turnRow": true
+  },
+  {
+    "buttons": [
+      {
+        "font": "550 12.5px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "0px",
+        "rect": {
+          "bottom": 280,
+          "height": 29,
+          "left": 313.5625,
+          "right": 406.421875,
+          "top": 251,
+          "width": 92.859375,
+          "x": 313.5625,
+          "y": 251
+        },
+        "text": "Turn over"
+      },
+      {
+        "font": "650 14px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "999px",
+        "rect": {
+          "bottom": 326,
+          "height": 36,
+          "left": 52,
+          "right": 668,
+          "top": 290,
+          "width": 616,
+          "x": 52,
+          "y": 290
+        },
+        "text": "Stick on the desktop"
+      },
+      {
+        "font": "550 12.5px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "0px",
+        "rect": {
+          "bottom": 363,
+          "height": 29,
+          "left": 52,
+          "right": 668,
+          "top": 334,
+          "width": 616,
+          "x": 52,
+          "y": 334
+        },
+        "text": "Gift\u2026"
+      }
+    ],
+    "clickableSticker": false,
+    "detail": {
+      "bottom": 533,
+      "height": 533,
+      "left": 36,
+      "right": 684,
+      "top": 0,
+      "width": 648,
+      "x": 36,
+      "y": 0
+    },
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "turnRow": true
+  },
+  {
+    "buttons": [
+      {
+        "font": "550 12.5px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "0px",
+        "rect": {
+          "bottom": 481,
+          "height": 29,
+          "left": 798.5625,
+          "right": 891.421875,
+          "top": 452,
+          "width": 92.859375,
+          "x": 798.5625,
+          "y": 452
+        },
+        "text": "Turn over"
+      },
+      {
+        "font": "650 14px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "999px",
+        "rect": {
+          "bottom": 527,
+          "height": 36,
+          "left": 708,
+          "right": 982,
+          "top": 491,
+          "width": 274,
+          "x": 708,
+          "y": 491
+        },
+        "text": "Stick on the desktop"
+      },
+      {
+        "font": "550 12.5px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "0px",
+        "rect": {
+          "bottom": 564,
+          "height": 29,
+          "left": 708,
+          "right": 982,
+          "top": 535,
+          "width": 274,
+          "x": 708,
+          "y": 535
+        },
+        "text": "Gift\u2026"
+      }
+    ],
+    "clickableSticker": false,
+    "detail": {
+      "bottom": 734,
+      "height": 533,
+      "left": 692,
+      "right": 998,
+      "top": 201,
+      "width": 306,
+      "x": 692,
+      "y": 201
+    },
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "turnRow": true
+  },
+  {
+    "buttons": [
+      {
+        "font": "550 12.5px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "0px",
+        "rect": {
+          "bottom": 308,
+          "height": 29,
+          "left": 328.5625,
+          "right": 421.421875,
+          "top": 279,
+          "width": 92.859375,
+          "x": 328.5625,
+          "y": 279
+        },
+        "text": "Turn over"
+      },
+      {
+        "font": "650 14px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "999px",
+        "rect": {
+          "bottom": 354,
+          "height": 36,
+          "left": 100,
+          "right": 650,
+          "top": 318,
+          "width": 550,
+          "x": 100,
+          "y": 318
+        },
+        "text": "Stick on the desktop"
+      },
+      {
+        "font": "550 12.5px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "radius": "0px",
+        "rect": {
+          "bottom": 391,
+          "height": 29,
+          "left": 100,
+          "right": 650,
+          "top": 362,
+          "width": 550,
+          "x": 100,
+          "y": 362
+        },
+        "text": "Gift\u2026"
+      }
+    ],
+    "clickableSticker": false,
+    "detail": {
+      "bottom": 561,
+      "height": 533,
+      "left": 84,
+      "right": 666,
+      "top": 28,
+      "width": 582,
+      "x": 84,
+      "y": 28
+    },
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "turnRow": true
+  }
+]

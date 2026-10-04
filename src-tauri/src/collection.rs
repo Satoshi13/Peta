@@ -6,26 +6,10 @@ use peta_core::{
     book, materials, BookEntry, Material, MonthIndex, StickerBack,
 };
 use serde::Serialize;
-use tauri::{AppHandle, Manager, State, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, State};
 
-use crate::{platform, store::Store};
+use crate::{store::Store};
 
-pub const COLLECTION_LABEL: &str = "collection";
-
-pub fn open_window(app: &AppHandle) -> tauri::Result<()> {
-    platform::activate_app();
-    if let Some(w) = app.get_webview_window(COLLECTION_LABEL) {
-        w.show()?;
-        return w.set_focus();
-    }
-    WebviewWindowBuilder::new(app, COLLECTION_LABEL, WebviewUrl::App("collection.html".into()))
-        .title("Sticker Book")
-        .inner_size(1040.0, 740.0)
-        .min_inner_size(820.0, 560.0)
-        .center()
-        .build()?;
-    Ok(())
-}
 
 /// Months that have a page, newest first.
 #[tauri::command]
@@ -37,10 +21,28 @@ pub fn book_index(store: State<Store>) -> Result<Vec<MonthIndex>, String> {
 
 /// One month's page, oldest first.
 #[tauri::command]
-pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookEntry>, String> {
+pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookItem>, String> {
     let lib = store.lock();
     let entries = book::entries_local(lib.db()).map_err(|e| e.to_string())?;
-    Ok(book::page(&entries, year, month))
+    book::page(&entries, year, month).into_iter().map(|entry| {
+        let sticker = lib.db().sticker(&entry.sticker_id).map_err(|e| e.to_string())?;
+        let can_manage = sticker.as_ref().is_some_and(|s| s.source_type == peta_core::SourceType::Created);
+        let created_at = sticker.map(|s| s.created_at);
+        Ok(BookItem { entry, can_manage, created_at })
+    }).collect()
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool, created_at: Option<String> }
+
+#[tauri::command]
+pub fn sticker_delete_original(app: AppHandle, store: State<Store>, sticker_id: String) -> Result<(), String> {
+    store.lock().delete_original(&sticker_id).map_err(|e| e.to_string())?;
+    let _ = app.emit("sticker-updated", &sticker_id);
+    if crate::print::pending(&app)?.is_none() { crate::layers::set_print(&app, false); }
+    crate::today::announce(&app);
+    Ok(())
 }
 
 /// What is printed on the back of a sticker (ORIGINAL / Received, who, when, which material, history).

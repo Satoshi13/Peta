@@ -1,0 +1,193 @@
+/* =====================================================================================================
+   Polish pass: Codex's paper art replaces the CSS stand-ins; type presets; a window you can actually grab.
+   Loaded last on purpose. Everything here only overrides presentation.
+   ===================================================================================================== *//* ---------- type presets (toolbar "Type") ---------- */
+
+
+:root { --display: var(--sys); --dw: 700; --di: normal; --dls: -.02em; }/* Aa Std = the base. System sans everywhere, with a few typewriter / hand-lettered accents so it still smells of paper. */
+
+body[data-type="current"] { --type: "Special Elite", "Courier Prime", "Courier New", monospace; }
+body[data-type="current"] .eyebrow, body[data-type="current"] .quota small, body[data-type="current"] .rule-cap, body[data-type="current"] .pack small, body[data-type="current"] .mmeta small { font-family: var(--type); letter-spacing: .05em; }
+body[data-type="current"] .back-card { font-family: var(--hand); }
+body .ph h1, body h2, body h3, body .reveal-info .big, body .rv-info h2, body .month-title, body .mk-hero-text h2, body .mmeta b, body .detail h3, body .pack-tag b, body .mk-detail h3, body .cr-t b {
+  font-family: var(--display); font-weight: var(--dw); font-style: var(--di); letter-spacing: var(--dls); }
+[data-shell="desk"] .page { background: var(--a-pagePaper) 0 0 / 520px, #faf6ec; }
+body[data-shell="studio"] { --studio-paper: linear-gradient(rgba(251, 249, 244, .55), rgba(251, 249, 244, .55)), var(--a-pagePaper) 0 0 / 520px, #fbf9f4; }
+body { }
+.back-card, .backing { }/* ---------- seals, labels and buttons from Codex ---------- */
+
+
+.seal { display: inline-flex; align-items: center; justify-content: center; min-width: 92px; height: 31px; padding: 0 20px; border-radius: 0; box-shadow: none; transform: rotate(-2deg); font: 600 10px/1 var(--sys); letter-spacing: .1em; color: #4a4030;
+  background: var(--seal, var(--a-sealCommon)) center / 100% 100% no-repeat; filter: drop-shadow(0 1px 1px rgba(40, 30, 10, .22)); }
+.seal[data-rarity="common"] { --seal: var(--a-sealCommon); } .seal[data-rarity="uncommon"] { --seal: var(--a-sealUncommon); color: #5a4521; } .seal[data-rarity="rare"] { --seal: var(--a-sealRare); color: #3b3552; }
+.seal[data-rarity="special"] { --seal: var(--a-sealSpecial); color: #3c4048; } .seal[data-rarity="archive"] { --seal: var(--a-sealArchive); color: #4b3b1c; }
+.rv-info .seal { height: 34px; }/* Important buttons (Open, Get, Make this Peta, Stick…) stay as black pills with white text. Only the quiet ones (.paper) are paper labels. */
+
+
+.btn { background: var(--ink); color: #fff; border-radius: 999px; box-shadow: 0 2px 0 rgba(0, 0, 0, .55), 0 8px 14px rgba(0, 0, 0, .14); padding: 10px 26px; font-weight: 650; }
+.btn:hover:not(:disabled) { transform: translateY(-1px); } .btn:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 0 rgba(0, 0, 0, .55); }
+.btn.stamp { background: #b94a3e; box-shadow: 0 2px 0 #7e2d25, 0 8px 14px rgba(120, 40, 30, .22); }
+.btn.small { padding: 6px 15px; font-size: 12.5px; } .btn:disabled { opacity: .38; box-shadow: none; }
+.btn.paper { position: relative; isolation: isolate; background: none; color: var(--ink); box-shadow: none; border-radius: 0; font-weight: 550; padding: 10px 26px; }
+.btn.paper.small { padding: 7px 18px; }
+.btn.paper::before { content: ""; position: absolute; inset: -3px -4px; z-index: -1; background: var(--a-btnLabel) center / 100% 100% no-repeat; filter: drop-shadow(0 2px 1.5px rgba(40, 30, 10, .28)); transition: transform .12s; }
+.btn.paper:hover:not(:disabled), .btn.paper:active:not(:disabled) { transform: none; box-shadow: none; }
+.btn.paper:hover:not(:disabled)::before { transform: translateY(-1px); } .btn.paper:active:not(:disabled)::before { background-image: var(--a-btnLabelDown); transform: translateY(1px); filter: drop-shadow(0 1px 1px rgba(40, 30, 10, .25)); }
+.btn.paper:disabled::before { filter: grayscale(.6) drop-shadow(0 1px 1px rgba(40, 30, 10, .2)); }
+.cer .btn.paper::before { display: none; } .cer .btn.paper { border-radius: 999px; padding: 10px 24px; background: rgba(255, 253, 249, .14); color: #f5efe2; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3); }
+.cer[data-kind="gift"] .btn.paper, .cer[data-kind="seal"] .btn.paper { background: rgba(255, 253, 249, .6); color: var(--ink); box-shadow: inset 0 0 0 1px rgba(60, 45, 20, .25); }
+.cer .btn:not(.paper) { color: #fff; }
+.go-btns .btn, .row-btns .btn { margin-left: 4px; }
+
+.datestamp { min-width: 122px; padding: 11px 20px; border: 0; border-radius: 0; text-align: center; color: #99463a; opacity: .92; background: var(--a-dateStamp) center / 100% 100% no-repeat; transform: rotate(-3deg); }
+.mtray { border: 30px solid transparent; border-image: var(--a-trayBox) 80 fill / 30px stretch; background: none; box-shadow: none; padding: 0 4px; margin: 4px -18px 0; min-height: 0; }
+.mtray .mcard { transform: rotate(var(--r, 0deg)) translateY(4px); } .mtray .mcard[data-sel="true"] { transform: rotate(var(--r, 0deg)) translateY(-10px) scale(1.06); }
+.cr-controls .mtray { border-width: 22px; border-image-width: 22px; margin: 0 -10px; padding: 0; }
+.mcard.locked .art { background-image: var(--a-cardLocked); filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .25)); opacity: 1; } .mcard.locked .lab b { opacity: .45; }/* ---------- a window you can grab: no title bar; a rim and a corner ---------- */
+
+
+.lights-zone, .lights { display: none !important; }
+.drag-strip { height: 22px; }
+.resize-h { position: absolute; right: 2px; bottom: 2px; width: 30px; height: 30px; z-index: 44; cursor: nwse-resize; touch-action: none; opacity: .5; transition: opacity .15s;
+  background: linear-gradient(135deg, transparent 52%, rgba(60, 45, 20, .5) 52% 56%, transparent 56% 66%, rgba(60, 45, 20, .5) 66% 70%, transparent 70% 80%, rgba(60, 45, 20, .5) 80% 84%, transparent 84%); }
+.resize-h:hover { opacity: 1; }
+[data-shell="desk"] .resize-h { background-image: linear-gradient(135deg, transparent 52%, rgba(255, 255, 255, .65) 52% 56%, transparent 56% 66%, rgba(255, 255, 255, .65) 66% 70%, transparent 70% 80%, rgba(255, 255, 255, .65) 80% 84%, transparent 84%); }
+[data-shell="desk"] .close-tag { top: -26px; right: 76px; width: 58px; height: 72px; padding: 36px 0 0; clip-path: none; background: var(--a-tagKraft) center / contain no-repeat; font: 600 11px var(--hand); color: #2b2a28; filter: drop-shadow(1px 2px 2px rgba(15, 30, 20, .4)); }
+[data-shell="desk"] .close-tag::before { display: none; }/* ---------- month tabs: little paper flags ---------- */
+
+
+.months { gap: 2px; margin: 0 0 16px; padding-top: 6px; }
+.month { --tab: var(--a-flagCream); height: 38px; padding: 0 16px 0 24px; border: 0; border-radius: 0; box-shadow: none; background: var(--tab) center / 100% 100% no-repeat; color: #3a3226; font: 600 13px var(--sys); filter: drop-shadow(1px 2px 1.4px rgba(40, 25, 5, .28)); transition: transform .25s var(--ease-spring), filter .2s; }
+.month:nth-child(5n + 2) { --tab: var(--a-flagPink); } .month:nth-child(5n + 3) { --tab: var(--a-flagSky); } .month:nth-child(5n + 4) { --tab: var(--a-flagMint); } .month:nth-child(5n) { --tab: var(--a-flagLemon); }
+.month small { margin-left: 5px; opacity: .6; } .month:hover { background: var(--tab) center / 100% 100% no-repeat; transform: translateY(-3px); }
+.month[aria-current="true"] { background: var(--tab) center / 100% 100% no-repeat; transform: translateY(-6px); filter: drop-shadow(2px 4px 3px rgba(40, 25, 5, .34)); box-shadow: none; }
+.month[aria-current="true"]::after { display: none; }/* ---------- the pack shelf: a board with a front edge, not a gradient bar ---------- */
+
+
+.ledge { height: 46px; bottom: -34px; border-radius: 0; background: none; box-shadow: none; border-style: solid; border-width: 0 60px; border-image: var(--a-shelfBoard) 0 120 fill / 0 60px / 0 stretch; filter: drop-shadow(0 8px 8px rgba(60, 40, 10, .28)); }
+.ledge::before, .ledge::after { display: none; }
+.pack::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: 74px; height: 12px; background: var(--a-shelfShadow) center / 100% 100% no-repeat; z-index: -1; }
+.pack { padding-bottom: 6px; }/* ---------- Create: the controls are a card clipped onto the mat ---------- */
+
+
+.cr-controls { position: relative; padding: 16px 18px 14px; border-radius: 6px; background: var(--a-pagePaper) 0 0 / 460px, #faf6ec; box-shadow: 0 1px 1px rgba(20, 40, 25, .3), 0 10px 22px rgba(20, 40, 25, .22); }
+.cr-controls::before { content: ""; position: absolute; left: 14px; top: -22px; width: 44px; height: 44px; background: var(--a-paperClip) center / contain no-repeat; transform: rotate(-12deg); filter: drop-shadow(1px 2px 1.5px rgba(0, 0, 0, .3)); pointer-events: none; z-index: 3; }
+.seg { padding: 3px; border-radius: 6px; background: rgba(120, 100, 60, .14); } .seg button { border-radius: 4px; } .seg button[aria-pressed="true"] { background: #fffdf9; box-shadow: 0 1px 2px rgba(60, 45, 20, .28); }
+input[type="range"]::-webkit-slider-runnable-track { height: 5px; border-radius: 3px; background: repeating-linear-gradient(90deg, rgba(60, 45, 20, .35) 0 1px, transparent 1px 8px), #e3dac6; }/* ---------- Market: pinned to a board ---------- */
+
+
+.mk-hero { padding: 22px 26px; border-radius: 8px; background: var(--a-coverBoard) 0 0 / 420px, #c4a171; box-shadow: inset 0 0 0 3px rgba(90, 60, 25, .25), inset 0 2px 8px rgba(60, 40, 10, .3), var(--sh2); }
+.mk-hero-text { position: relative; padding: 24px 28px 22px; background: var(--a-indexCard) center / 100% 100% no-repeat; filter: drop-shadow(1px 3px 3px rgba(60, 40, 10, .35)); transform: rotate(.6deg); }
+.mk-hero-text::before { content: ""; position: absolute; right: 18px; top: -16px; width: 70px; height: 70px; background: var(--a-paperClip) center / contain no-repeat; transform: rotate(14deg); }/* ---------- back of a sticker follows its material ---------- */
+
+
+.back-card, .backing { --bk-ink: #2b2a28; }
+.back-card[data-mat="kraft"], .backing[data-mat="kraft"] { background: linear-gradient(rgba(205, 172, 126, .22), rgba(205, 172, 126, .22)), var(--a-paperKraft) 0 0 / 420px, #cdac7e; }
+.back-card[data-mat="matte"], .backing[data-mat="matte"] { background: linear-gradient(rgba(250, 246, 236, .35), rgba(250, 246, 236, .35)), var(--a-pagePaper) 0 0 / 420px, #f4ecdd; }
+.back-card[data-mat="holographic"], .backing[data-mat="holographic"] { background: radial-gradient(circle, rgba(255, 255, 255, .55) 1px, transparent 1.4px) 0 0 / 5px 5px, linear-gradient(125deg, #dfe4ec, #f6f7fa 22%, #cdd5e0 44%, #f4eef6 60%, #d6e7f3 78%, #e9eef2); }
+.back-card[data-mat="gold"], .backing[data-mat="gold"] { background: radial-gradient(circle, rgba(255, 250, 220, .6) 1px, transparent 1.4px) 0 0 / 5px 5px, linear-gradient(125deg, #e9d28a, #f8ebb8 24%, #d6b45a 46%, #f4e2a0 64%, #cfa84a 82%, #e8d083); }
+.back-card[data-mat="riso"], .backing[data-mat="riso"] { background: radial-gradient(circle, rgba(222, 92, 130, .22) 1.3px, transparent 1.8px) 0 0 / 7px 7px, linear-gradient(#f6e0e4, #f1d3d9); }
+.back-card[data-mat="vintage"], .backing[data-mat="vintage"] { background: radial-gradient(circle, rgba(120, 90, 50, .28) .8px, transparent 1.2px) 3px 4px / 9px 11px, radial-gradient(circle at 50% 50%, #ecdcbb, #dcc79b); box-shadow: inset 0 0 22px rgba(120, 85, 40, .35), 0 1px 2px rgba(0, 0, 0, .28), 0 8px 18px rgba(0, 0, 0, .18); }
+.back-card[data-mat="holographic"]::after, .back-card[data-mat="gold"]::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; mix-blend-mode: soft-light;
+  background: linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0) 36%, rgba(255, 255, 255, .9) 48%, rgba(180, 225, 255, .55) 53%, transparent 68%); background-size: 260% 260%; background-position: var(--sx, 30%) var(--sy, 30%); }
+.back-card .band { position: absolute; left: 0; right: 0; bottom: 18cqw; height: 6.5cqw; display: flex; align-items: center; padding-left: 9cqw; font: 600 3.4cqw var(--sys); letter-spacing: .12em; text-transform: uppercase; color: rgba(43, 42, 40, .75); background: rgba(255, 255, 255, .28); }/* Market hero: keep the pinned card above the sticker fan */
+
+
+.fan { left: 108px; } .fan-s { left: calc(var(--i) * 34px); } .fan-s .stk { width: 78px !important; }
+.mk-hero { grid-template-columns: minmax(230px, 300px) 1fr; } .mk-hero-text { z-index: 3; margin-left: 10px; }
+[data-shell="desk"] .page::before { left: 22%; }
+.mk-hero-text .btn { margin-top: 8px; }
+.mk-hero-text { padding-left: 44px; padding-right: 36px; }/* ---------- layout hygiene (found by the overflow audit) ---------- */
+
+
+.mcard .lab { white-space: nowrap; } .mcard .lab b { font-size: calc(var(--w) * .08); } .mcard .lab small { font-size: calc(var(--w) * .06); }
+.mk-hero-text { padding-top: 40px; }
+.btn { white-space: nowrap; } .btn.paper { padding-inline: 26px; }
+.ph { flex-wrap: wrap; row-gap: 10px; } .ph > div:first-child { min-width: max-content; } .ph .quota { white-space: normal; max-width: 100%; flex-wrap: wrap; }
+.page-in { container-type: size; }
+.sample-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
+@container (max-width: 700px) { .cr-empty { grid-template-columns: 1fr; gap: 20px; min-height: 0; } .drop { min-height: 260px; } }/* the grab pill sits in the top 30px; page content starts below it in every shell */
+
+.page-in { padding-top: 38px; }
+.stk-host { grid-template: minmax(0, 1fr) / minmax(0, 1fr); width: 100%; height: 100%; box-sizing: border-box; }
+.stk-host .stk { width: 100%; height: 100%; max-width: none; max-height: none; min-width: 0; min-height: 0; object-fit: contain; }
+.cr-controls::before { left: auto; right: 26px; }
+.cr-controls .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; } .cr-controls .tools .btn.paper.small { padding: 6px 14px; }
+.shelf { padding-bottom: 16px; }
+.bk, .mk { min-height: 620px; }/* the sticky detail card must fit inside its row, or the page can't scroll to its bottom */ 
+.cr-controls { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1.2fr); } .cr-controls > * { min-width: 0; }
+@container (max-width: 760px) { .cr-controls { grid-template-columns: minmax(0, 1fr); } }/* =====================================================================================================
+   Pass 3 — Codex's finished parts replace the CSS stand-ins: window top band + hand-made ✕, resize corner,
+   control parts, per-material back papers, material cards, market tags. Desk / Studio are the two window styles.
+   ===================================================================================================== *//* ---------- window chrome: no bar, no band. A little paper pill with three paper dots (close / minimise / fill) in the top-left corner; the top edge itself is the drag strip ---------- */
+
+
+
+
+.drag-strip { height: 28px; }
+.wctl { position: absolute; left: 12px; top: 10px; width: 108px; height: 36px; z-index: 46; }
+[data-shell="desk"] .wctl { left: 4px; top: 8px; }
+.wctl .wc-back { position: absolute; inset: 0; background: var(--a-wcBacking) center / 100% 100% no-repeat; pointer-events: none; }
+.wctl .wc { position: absolute; top: 6px; width: 24px; height: 24px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent center / 100% 100% no-repeat; cursor: pointer; transition: filter .12s, transform .12s; }
+.wctl .wc-red { left: 10px; background-image: var(--a-wcRed); } .wctl .wc-yellow { left: 42px; background-image: var(--a-wcYellow); } .wctl .wc-green { left: 74px; background-image: var(--a-wcGreen); }
+.wctl .wc:hover { filter: brightness(1.04); } .wctl .wc:active { transform: translateY(.5px); filter: brightness(.97); } .wctl .wc:focus-visible { outline: 2px solid #586b8b; outline-offset: 1px; }
+[data-shell="desk"] .page::before { display: none; }
+.resize-h, [data-shell="desk"] .resize-h { width: 34px; height: 34px; right: 1px; bottom: 1px; opacity: .85; background: var(--a-resizeCorner) center / contain no-repeat; } .resize-h:hover { opacity: 1; }/* ---------- Desk · Create: no sheet of paper under the mat — the window IS the cutting mat ---------- */
+
+
+[data-shell="desk"] .page[data-page="create"] { background: none; box-shadow: none; }
+[data-shell="desk"] .page[data-page="create"] .cr-mat { background: none; box-shadow: none; padding: 6px 4px 0; }
+[data-shell="desk"] .page[data-page="create"] .ph h1 { color: #fbf9f4; text-shadow: 0 1px 3px rgba(20, 40, 25, .55); }
+[data-shell="desk"] .page[data-page="create"] .ph .eyebrow, [data-shell="desk"] .page[data-page="create"] .ph .muted, [data-shell="desk"] .page[data-page="create"] .cr-samples .eyebrow { color: rgba(251, 249, 244, .82); text-shadow: 0 1px 2px rgba(20, 40, 25, .5); }
+[data-shell="desk"] .page[data-page="create"] .ph .uses, [data-shell="desk"] .page[data-page="create"] .ph small, [data-shell="desk"] .page[data-page="create"] .ph p { color: rgba(251, 249, 244, .9); }/* ---------- Desk · Book: the notebook (cover board, spiral, dotted page) is part of the page itself, so it arrives and leaves with it ---------- */
+
+
+[data-shell="desk"] .page[data-page="book"] { inset: 14px 6px 14px 40px; isolation: isolate; background: none; box-shadow: none; }
+[data-shell="desk"] .page[data-page="book"] .page-in { border-radius: 0 12px 12px 0;
+  background: radial-gradient(circle, rgba(150, 128, 90, .22) 1px, transparent 1.3px) 7px 9px / 22px 22px, linear-gradient(rgba(250, 246, 236, .62), rgba(250, 246, 236, .62)), var(--a-paperCream) 0 0 / 520px, #faf6ec;
+  box-shadow: inset 14px 0 20px -12px rgba(70, 45, 10, .35), 3px 3px 0 -1px #f1ead9, 3px 3px 0 0 rgba(90, 65, 25, .22), 6px 6px 0 -2px #e8dfca, 6px 6px 0 -1px rgba(90, 65, 25, .18); }
+[data-shell="desk"] .page[data-page="book"]::before { display: block; content: ""; position: absolute; inset: -14px -14px -14px -36px; z-index: -1; left: -36px; top: -14px; width: auto; aspect-ratio: auto; transform: none; border-radius: 16px 20px 20px 16px; background: #c4a171 var(--a-coverBoard) 0 0 / 420px;
+  box-shadow: 0 0 0 1px rgba(80, 55, 20, .4), inset 0 0 0 1px rgba(255, 255, 255, .2), 0 14px 26px rgba(14, 20, 12, .4); pointer-events: none; }
+[data-shell="desk"] .page[data-page="book"]::after { content: ""; position: absolute; left: -33px; top: -2px; bottom: -2px; width: 54px; z-index: 12; pointer-events: none; filter: drop-shadow(2px 1px 1.5px rgba(40, 25, 5, .35));
+  background: var(--a-spiralCoil) center top / 54px auto repeat-y, var(--a-spiralHoles) center top / 54px auto repeat-y; }/* ---------- control parts ---------- */
+
+
+input[type="range"] { height: 26px; }
+input[type="range"]::-webkit-slider-runnable-track { height: 20px; border-radius: 0; background: var(--a-sliderTrack) center / 100% 100% no-repeat; }
+input[type="range"]::-webkit-slider-thumb { width: 26px; height: 26px; margin-top: -3px; border: 0; border-radius: 0; background: var(--a-sliderKnob) center / contain no-repeat; box-shadow: none; filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .4)); }
+input[type="range"]::-moz-range-track { height: 20px; border-radius: 0; background: var(--a-sliderTrack) center / 100% 100% no-repeat; }
+input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border: 0; border-radius: 0; background: var(--a-sliderKnob) center / contain no-repeat; box-shadow: none; }
+.switch { width: 58px; height: 31px; border-radius: 0; background: var(--a-switchOff) center / 100% 100% no-repeat; box-shadow: none; } .switch[aria-checked="true"] { background-color: transparent; background-image: var(--a-switchOn); }
+.switch i { left: 3px; top: 2px; width: 27px; height: 27px; border-radius: 0; background: var(--a-switchKnob) center / contain no-repeat; box-shadow: none; filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .4)); } .switch[aria-checked="true"] i { transform: translateX(25px); }
+.seg { padding: 5px 7px; border-radius: 0; background: var(--a-segTrack) center / 100% 100% no-repeat; box-shadow: none; gap: 2px; }
+.seg button { border-radius: 0; padding: 5px 15px; } .seg button[aria-pressed="true"] { background: var(--a-segChip) center / 100% 100% no-repeat; box-shadow: none; filter: drop-shadow(0 1px 1px rgba(40, 30, 10, .25)); }
+.setcard { border-style: solid; border-width: 22px; border-image: var(--a-panelPaper) 70 fill / 22px / 0 stretch; border-radius: 0; background: none; box-shadow: none; filter: drop-shadow(0 6px 10px rgba(60, 45, 20, .2)); }
+.setcard .setrow { padding: 14px 8px; } .setcard .setrow + .setrow { border-top-color: rgba(120, 100, 60, .18); }/* ---------- back papers follow the material ---------- */
+
+
+.back-card[data-mat="kraft"], .backing[data-mat="kraft"] { background: var(--a-backKraft) center / cover, #cdac7e; }
+.back-card[data-mat="matte"], .backing[data-mat="matte"] { background: var(--a-backMatte) center / cover, #f4ecdd; }
+.back-card[data-mat="holographic"], .backing[data-mat="holographic"] { background: var(--a-backHolo) center / cover, #dfe4ec; }
+.back-card[data-mat="gold"], .backing[data-mat="gold"] { background: var(--a-backGold) center / cover, #e9d28a; }
+.back-card[data-mat="riso"], .backing[data-mat="riso"] { background: var(--a-backRiso) center / cover, #f6e0e4; }
+.back-card[data-mat="vintage"], .backing[data-mat="vintage"] { background: var(--a-backVintage) center / cover, #ecdcbb; box-shadow: none; }/* ---------- material cards ---------- */
+
+
+.mcard[data-m="gold"] .art { background-image: var(--a-cardGold); filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.mcard[data-m="riso"] .art { background-image: var(--a-cardRiso); filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.mcard[data-m="vintage"] .art { background-image: var(--a-cardVintage); filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }/* ---------- market: price tags, "owned" stamp, a real pinboard ---------- */
+
+
+.price { padding: 9px 16px 8px 30px; min-width: 72px; text-align: center; border-radius: 0; background: var(--a-priceTag) center / 100% 100% no-repeat; color: #2b2a28; font-weight: 700; filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.price.free { background-image: var(--a-priceFree); }
+.price.own { padding: 10px 18px; background: var(--a-stampOwned) center / 100% 100% no-repeat; color: #243f7a; letter-spacing: .04em; filter: none; }
+[data-shell="desk"] .close-tag { display: none; }
+.cr-controls { border-style: solid; border-width: 24px 26px; border-image: var(--a-panelPaper) 70 fill / 24px 26px / 0 stretch; border-radius: 0; background: none; box-shadow: none; padding: 0; filter: drop-shadow(0 8px 12px rgba(20, 40, 25, .28)); }
+.cr-controls::before { top: -44px; right: 34px; }
+.switch[aria-checked="true"] { background: var(--a-switchOn) center / 100% 100% no-repeat; }
+.mcard .lab { top: 60%; } .mcard .lab small { line-height: 1; }/* Studio: the sidebar logo sits below the window controls */
+
+
+[data-shell="studio"] .nav { padding-top: 94px; } [data-shell="studio"] .nav::before { top: 54px; }/* no scrollbars inside the window — scrolling still works */
+
+#win * { scrollbar-width: none; } #win *::-webkit-scrollbar { display: none; width: 0; height: 0; }

@@ -20,3 +20,9 @@ pub fn apply_layer_mode(window: &WebviewWindow, mode: LayerMode) -> Result<(), S
 }
 
 pub fn activate_app() {}
+
+
+pub fn cursor_position() -> Option<super::coordinates::Point> { None }
+pub fn layer_frame(_window: &WebviewWindow) -> Option<super::coordinates::Frame> { None }
+
+pub fn haptic(_kind: &str) {}

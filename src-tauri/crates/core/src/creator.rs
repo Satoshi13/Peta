@@ -50,6 +50,7 @@ pub fn load_segmenter(dirs: &[PathBuf], bundled_u2netp: &[u8]) -> Result<Segment
 }
 
 /// The photo, downscaled, plus the (edge-snapped) subject probability.
+#[derive(Clone)]
 pub struct Analysis {
     pub work: RgbaImage,
     pub matte: Vec<f32>,
@@ -105,6 +106,43 @@ pub struct Session {
     redo: Vec<Vec<Piece>>,
     pub original: Vec<u8>,
     pub original_ext: &'static str,
+}
+
+/// Reopen a user's original without losing its saved cutout or settings. Undo starts at this saved state.
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub struct EditorState {
+    version: u8,
+    width: usize,
+    height: usize,
+    matte: Vec<f32>,
+    edits: Vec<u8>,
+    had_alpha: bool,
+    pub outline: f32,
+    pub smooth: f32,
+    pub strength: f32,
+}
+
+impl EditorState {
+    pub fn capture(session: &Session, outline: f32, smooth: f32, strength: f32) -> Self {
+        Self { version: 1, width: session.analysis.w, height: session.analysis.h,
+            matte: session.analysis.matte.clone(), edits: session.edits.data.clone(), had_alpha: session.analysis.had_alpha,
+            outline, smooth, strength }
+    }
+    pub fn restore(&self, session: &mut Session) -> Result<()> {
+        let pixels = session.analysis.w * session.analysis.h;
+        if self.version != 1 || (self.width, self.height) != session.size() || self.matte.len() != pixels || self.edits.len() != pixels
+            || self.matte.iter().any(|v| !v.is_finite() || !(0.0..=1.0).contains(v)) || self.edits.iter().any(|v| *v > 2)
+            || !self.outline.is_finite() || !(4.0..=64.0).contains(&self.outline)
+            || !self.smooth.is_finite() || !(0.0..=1.0).contains(&self.smooth)
+            || !self.strength.is_finite() || !(0.0..=1.0).contains(&self.strength) {
+            return Err(Error::Invalid("saved editor state does not match the original image".into()));
+        }
+        session.analysis.matte = self.matte.clone(); session.analysis.had_alpha = self.had_alpha;
+        session.edits.data = self.edits.clone(); session.base = session.edits.clone();
+        session.history.clear(); session.redo.clear();
+        session.preview = session.analysis.downscaled(PREVIEW_DOWNSCALE);
+        Ok(())
+    }
 }
 
 fn png_fast(img: &RgbaImage) -> Result<Vec<u8>> {
@@ -213,6 +251,19 @@ impl Session {
         (self.analysis.w, self.analysis.h)
     }
 
+    /// Old originals have a finished mask but no editor snapshot. Preserve that cutout as the baseline.
+    pub fn restore_mask(&mut self, bytes: &[u8]) -> Result<()> {
+        let mask = image::load_from_memory(bytes)?.to_luma8();
+        if (mask.width() as usize, mask.height() as usize) != self.size() {
+            return Err(Error::Invalid("saved cutout mask does not match the original image".into()));
+        }
+        self.analysis.matte = mask.pixels().map(|p| p.0[0] as f32 / 255.0).collect();
+        self.analysis.had_alpha = true; self.preview = self.analysis.downscaled(PREVIEW_DOWNSCALE);
+        self.edits = Edits::new(self.analysis.w, self.analysis.h); self.base = self.edits.clone();
+        self.history.clear(); self.redo.clear();
+        Ok(())
+    }
+
     /// The Cutting Mat's left pane.
     pub fn original_jpeg(&self) -> Result<Vec<u8>> {
         let rgb = image::DynamicImage::ImageRgba8(self.analysis.work.clone()).to_rgb8();
@@ -279,6 +330,13 @@ impl Session {
         self.base = self.edits.clone();
         self.history.clear();
         self.redo.clear();
+    }
+
+    /// Owned render inputs let native preview workers release the editing-session lock.
+    /// Do not copy the original upload or undo history for a preview.
+    pub fn render_inputs(&self, preview: bool) -> (Analysis, Edits) {
+        if preview { (self.preview.clone(), self.edits.downscaled(PREVIEW_DOWNSCALE)) }
+        else { (self.analysis.clone(), self.edits.clone()) }
     }
 
     /// Full-resolution render: what gets stuck on the desktop.
@@ -576,6 +634,25 @@ mod tests {
         assert!((1.7..2.3).contains(&ratio), "ratio {ratio}");
         assert!((full.aspect() - preview.aspect()).abs() < 0.05);
         assert!((full.coverage - preview.coverage).abs() < 0.03);
+    }
+
+    #[test]
+    fn render_inputs_keep_full_and_preview_pixels_and_do_not_follow_new_edits() {
+        let mut session = flat_session();
+        session.stroke(&[(45.0, 40.0), (60.0, 40.0)], 3.0, false, true);
+        let params = params("matte");
+        let (full, edits) = session.render_inputs(false);
+        let (preview, preview_edits) = session.render_inputs(true);
+        let expected = session.render(&params).unwrap();
+        let expected_preview = session.render_preview(&params).unwrap();
+        session.stroke(&[(55.0, 55.0)], 8.0, false, true);
+        let snapshot = render(&full, Some(&edits), &params).unwrap();
+        let snapshot_preview = render(&preview, Some(&preview_edits), &params).unwrap();
+        assert_eq!(snapshot.sticker_png, expected.sticker_png);
+        assert_eq!(snapshot.cutout_png, expected.cutout_png);
+        assert_eq!(snapshot_preview.sticker_png, expected_preview.sticker_png);
+        assert_eq!(snapshot_preview.cutout_png, expected_preview.cutout_png);
+        assert_ne!(snapshot.sticker_png, session.render(&params).unwrap().sticker_png);
     }
 
     #[test]

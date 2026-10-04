@@ -31,7 +31,7 @@ function synchronize() {
     setText(reveal.querySelector(".art-material-name"), name);
     setText(reveal.querySelector(".art-material-rarity"), rarity);
   }
-  document.querySelectorAll(".chip").forEach((chip) => {
+  document.querySelectorAll(".chip, .mcard, #material-list li").forEach((chip) => {
     chip.dataset.artMaterial = materialKind(chip.dataset.materialId, chip.textContent);
   });
   if (started === null || finishTimer !== null) return;

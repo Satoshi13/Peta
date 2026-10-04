@@ -1,0 +1,34 @@
+[
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "studio",
+    "issues": []
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "desk",
+    "issues": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "studio",
+    "issues": []
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "desk",
+    "issues": []
+  }
+]

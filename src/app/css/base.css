@@ -1,0 +1,84 @@
+/* ===== tokens ===== */
+:root {
+  --ink: #2b2a28; --ink2: #4a463f; --muted: #7a7468; --cream: #f5f0e6; --paper: #faf6ec; --soft: #fbf9f4; --kraft: #c9a878; --line: #ddd4c2; --red: #d8453a;
+  --holo: linear-gradient(105deg, #f6c6e3, #c9c3f5, #bfe3f7, #c8f2dc, #f7f0be);
+  --holo-soft: linear-gradient(105deg, #f9d6ea, #d9d5f8, #cfeaf9, #d8f7e8, #faf5cf);
+  --hand: "Klee One", "Noteworthy", "Bradley Hand", cursive;
+  --sys: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --sh1: 0 1px 1.5px rgba(60, 45, 20, .28), 0 4px 10px rgba(60, 45, 20, .08);
+  --sh2: 0 1px 2px rgba(60, 45, 20, .3), 0 10px 22px rgba(60, 45, 20, .14);
+  --sh3: 0 2px 4px rgba(60, 45, 20, .25), 0 24px 44px rgba(60, 45, 20, .24);
+  --win-w: min(1060px, calc(100vw - 150px)); --win-h: min(700px, calc(100vh - 118px));
+  --ease-out: cubic-bezier(.2, .8, .2, 1); --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #7f9bb6; color: var(--ink); font: 14px/1.5 var(--sys); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+[hidden] { display: none !important; }
+img { -webkit-user-drag: none; user-select: none; } input { user-select: text; -webkit-user-select: text; }
+.hand { font-family: var(--hand); }
+:focus-visible { outline: 2px solid #5b7be8; outline-offset: 3px; border-radius: 6px; }
+.tray-btn { position: relative; border: 0; background: none; padding: 2px 6px; border-radius: 6px; display: grid; place-items: center; height: 22px; }
+.tray-btn:hover, .tray-btn[aria-expanded="true"] { background: rgba(0, 0, 0, .12); }
+.desk-stk { position: absolute; cursor: grab; touch-action: none; transform: translate(-50%, -50%) rotate(var(--rot, 0deg)); }
+.desk-stk:active { cursor: grabbing; }
+.desk-stk .flipper { position: relative; transform-style: preserve-3d; transition: transform .5s var(--ease-out); }
+.desk-stk .stk { transition: transform .15s ease-out, filter .15s; }
+.desk-stk:hover .stk { transform: scale(1.03); }
+.desk-stk.lifted .stk { transform: scale(1.06); filter: drop-shadow(0 12px 12px rgba(0, 0, 0, .3)); }
+.desk-stk .back-card { position: absolute; inset: 0; }
+
+#toast { position: fixed; z-index: 450; left: 50%; top: 44px; transform: translate(-50%, -16px); padding: 9px 18px; border-radius: 999px; background: rgba(30, 28, 26, .9); color: #fff; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .25s, transform .35s var(--ease-spring); max-width: 90vw; }
+#toast.on { opacity: 1; transform: translate(-50%, 0); }/* ===== shared components ===== */
+
+
+.btn { appearance: none; border: 0; border-radius: 999px; padding: 10px 24px; background: var(--ink); color: #fff; font: 600 14px var(--sys); letter-spacing: .01em;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, .55), 0 8px 14px rgba(0, 0, 0, .14); transition: transform .12s, box-shadow .12s, opacity .15s; }
+.btn:hover:not(:disabled) { transform: translateY(-1px); } .btn:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 0 rgba(0, 0, 0, .55); }
+.btn:disabled { opacity: .38; cursor: default; box-shadow: none; }
+.btn.paper { background: #fffdf9; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line), var(--sh1); font-weight: 500; }
+.btn.small { padding: 6px 14px; font-size: 12.5px; }
+.btn.stamp { background: #b94a3e; box-shadow: 0 2px 0 #7e2d25, 0 8px 14px rgba(120, 40, 30, .22); }
+.link { border: 0; background: none; color: var(--muted); padding: 4px 2px; text-decoration: underline; text-decoration-color: rgba(0, 0, 0, .2); text-underline-offset: 3px; }
+.link:hover { color: var(--ink); }
+
+.seal { display: inline-block; padding: 3px 12px 4px; border-radius: 4px; font: 600 10.5px/1.2 var(--sys); letter-spacing: .09em; text-transform: uppercase; transform: rotate(-2.5deg);
+  box-shadow: 0 1px 1.5px rgba(40, 30, 10, .25); background: #fbf9f4; color: #6b665c; white-space: nowrap; }
+.seal[data-rarity="common"] { box-shadow: inset 0 0 0 1px #d6cfbf; }
+.seal[data-rarity="uncommon"] { background: #e1d2b0; color: #5d4a25; }
+.seal[data-rarity="rare"] { background: var(--holo); color: #3b3552; }
+.seal[data-rarity="special"] { background: linear-gradient(120deg, #d8dce2, #f4f6f9, #9aa1ab, #e8ebef); color: #3c4048; }
+.seal[data-rarity="archive"] { background: #d8c9a6; color: #4b3b1c; box-shadow: inset 0 0 0 1.5px #a58c57; }
+
+.tape { position: absolute; width: 110px; aspect-ratio: 480 / 140; background: var(--a-tape2) center / contain no-repeat; pointer-events: none; z-index: 3; }
+.tape.t1 { background-image: var(--a-tape1); } .tape.t3 { background-image: var(--a-tape3); } .tape.t4 { background-image: var(--a-tape4); }
+
+.stk { position: relative; display: block; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, .35)); }
+.stk img { width: 100%; height: 100%; display: block; pointer-events: none; }
+.stk .sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  background: linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0) 36%, rgba(255, 255, 255, .85) 48%, rgba(180, 225, 255, .55) 53%, transparent 68%); background-size: 260% 260%; background-position: var(--sx, 30%) var(--sy, 30%); }/* material card (the object you pick) */
+
+
+.mcard { --w: 150px; position: relative; display: block; width: var(--w); aspect-ratio: 560 / 380; padding: 0; border: 0; background: none; text-align: center; }
+.mcard .art { position: absolute; inset: 0; background: center / contain no-repeat; filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.mcard[data-m="matte"] .art { background-image: var(--a-cardMatte); } .mcard[data-m="kraft"] .art { background-image: var(--a-cardKraft); } .mcard[data-m="holographic"] .art { background-image: var(--a-cardHolo); }
+.mcard .lab { position: absolute; left: 12%; right: 12%; top: 58%; height: 21%; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; color: #2b2a28; }
+.mcard .lab b { font: 600 calc(var(--w) * .094) / 1.1 var(--hand); } .mcard .lab small { font-size: calc(var(--w) * .066); color: #6b665c; text-transform: capitalize; }
+.mcard .cnt { position: absolute; right: -2px; top: -8px; min-width: 24px; height: 24px; padding: 0 6px; display: grid; place-items: center; border-radius: 999px; background: var(--ink); color: #fff; font: 600 11px var(--sys); box-shadow: 0 1px 2px rgba(0, 0, 0, .3); z-index: 2; }
+.mcard.locked .art { filter: grayscale(1) brightness(1.04) contrast(.7) drop-shadow(0 1px 1.5px rgba(40, 30, 10, .2)); opacity: .5; }
+.mcard.locked .lab b { font-size: calc(var(--w) * .2); opacity: .5; }/* page-flip / generic surfaces used by every shell */
+
+
+.scrollbar-thin { scrollbar-width: thin; scrollbar-color: rgba(120, 100, 60, .35) transparent; }
+#overlay { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+#overlay > * { pointer-events: auto; }
+
+@media (max-width: 880px) { :root { --win-w: calc(100vw - 20px); } }
+@media (max-width: 1250px) { }
+@keyframes attn { 0%, 100% { box-shadow: 0 0 0 0 rgba(241, 238, 232, .55); } 50% { box-shadow: 0 0 0 7px rgba(241, 238, 232, 0); } }/* materials that come from the Market (no card art of their own yet: tinted versions of the existing cards) */
+
+
+.mcard[data-m="gold"] .art { background-image: var(--a-cardKraft); filter: sepia(.4) saturate(2.1) hue-rotate(-6deg) brightness(1.2) drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.mcard[data-m="riso"] .art { background-image: var(--a-cardMatte); filter: sepia(1) saturate(3.4) hue-rotate(312deg) brightness(1.04) drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.mcard[data-m="vintage"] .art { background-image: var(--a-cardKraft); filter: sepia(.85) brightness(.9) contrast(.92) drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); }
+.stk[data-material="gold"] .sheen { background: linear-gradient(115deg, transparent 20%, rgba(255, 244, 200, 0) 36%, rgba(255, 244, 200, .95) 48%, rgba(255, 214, 120, .6) 53%, transparent 68%); background-size: 260% 260%; background-position: var(--sx, 30%) var(--sy, 30%); }

@@ -1,0 +1,23 @@
+{
+  "nativeSaveDialog": true,
+  "nativeOpenDialog": true,
+  "sealedInbox": true,
+  "finishedPngUnchanged": true,
+  "header": {
+    "giftId": "GIFT-VE89D15SXTF2",
+    "from": "Satoshi",
+    "note": null,
+    "sentAt": "2026-10-03T14:50:38.739909363+00:00",
+    "edition": 4,
+    "origin": {
+      "stickerId": "PETA-PORT-0011",
+      "creatorName": "Satoshi",
+      "createdAt": "2026-10-01T12:00:00Z",
+      "materialId": "matte",
+      "aspect": 1.1810841983852365
+    },
+    "pngLen": 890846,
+    "maskLen": 0
+  },
+  "fileBytes": 891153
+}

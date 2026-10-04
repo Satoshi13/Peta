@@ -1,0 +1,101 @@
+{
+  "cancelLoading": "idle",
+  "mouseAndKeyboardFlip": true,
+  "legacyEditCancelUnchanged": true,
+  "sameOriginalSaved": {
+    "id": "PETA-BTFN-RZ5Y",
+    "before": {
+      "sticker": [
+        "PETA-BTFN-RZ5Y",
+        "2026-10-03T23:01:07.870630216+00:00",
+        1,
+        "holographic",
+        "stickers/PETA-BTFN-RZ5Y/original.png"
+      ],
+      "placement": [
+        "PETA-BTFN-RZ5Y",
+        "screen",
+        0.62,
+        0.45,
+        0.1,
+        3.0,
+        "2026-10-03T23:01:09.747567002+00:00",
+        1,
+        14
+      ],
+      "count": 9,
+      "stock": 0,
+      "nextNumber": [
+        "2"
+      ],
+      "queue": [
+        [
+          "PETA-BTFN-RZ5Y"
+        ]
+      ]
+    },
+    "after": {
+      "sticker": [
+        "PETA-BTFN-RZ5Y",
+        "2026-10-03T23:01:07.870630216+00:00",
+        1,
+        "holographic",
+        "stickers/PETA-BTFN-RZ5Y/original.png"
+      ],
+      "placement": [
+        "PETA-BTFN-RZ5Y",
+        "screen",
+        0.62,
+        0.45,
+        0.1,
+        3.0,
+        "2026-10-03T23:01:09.747567002+00:00",
+        1,
+        14
+      ],
+      "count": 9,
+      "stock": 0,
+      "nextNumber": [
+        "2"
+      ],
+      "queue": [
+        [
+          "PETA-BTFN-RZ5Y"
+        ]
+      ]
+    },
+    "originalPng": "58fb3d49e9268a4e2b82e849bb680fafee8a299edd8b7a3f6105c7ca2571abbb",
+    "editedPng": "2181f409b2009e5436e7b10fe185e5f2258d31ae96ed0817c21e9ab7338a59c4",
+    "desktopHashes": [
+      "9f4bad3cb5a6c6c20110b2a489a29b9ee402c0412103d1a59e768c29a3674e6c",
+      "4d710d87c5454ab42c923a297507209c73bf14756ce35cc15eb5556cf6941298",
+      "2181f409b2009e5436e7b10fe185e5f2258d31ae96ed0817c21e9ab7338a59c4"
+    ],
+    "printHash": "2181f409b2009e5436e7b10fe185e5f2258d31ae96ed0817c21e9ab7338a59c4",
+    "undoRedo": true
+  },
+  "savedCutoutReopensExactly": true,
+  "deleteCancelUnchanged": true,
+  "deleteClearsBookDesktopQueue": {
+    "state": {
+      "sticker": null,
+      "placement": null,
+      "count": 8,
+      "stock": 0,
+      "nextNumber": [
+        "2"
+      ],
+      "queue": []
+    },
+    "layer": {
+      "images": [
+        "9f4bad3cb5a6c6c20110b2a489a29b9ee402c0412103d1a59e768c29a3674e6c",
+        "4d710d87c5454ab42c923a297507209c73bf14756ce35cc15eb5556cf6941298"
+      ],
+      "printStage": false
+    }
+  },
+  "creator_edit_originalReceivedRejected": "only your original stickers can be edited",
+  "sticker_delete_originalReceivedRejected": "only your original stickers can be deleted",
+  "rejectedDeletionKeepsEntryAndEnablesButton": true
+}

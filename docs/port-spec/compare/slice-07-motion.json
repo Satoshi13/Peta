@@ -1,0 +1,29 @@
+{
+  "nativeFifoPasteTwoWithRetractionBeforeNextFeed": true,
+  "placedReprintReturnKeepsOriginal": true,
+  "placedReprintPasteMovesOriginal": true,
+  "original": {
+    "displayId": "screen",
+    "isOnDesktop": true,
+    "materialId": "matte",
+    "placedAt": "2026-10-03T17:27:18.579521732+00:00",
+    "relativeScale": 0.1284722222222222,
+    "relativeX": 0.6944443384806315,
+    "relativeY": 0.666657977634006,
+    "rotation": 1,
+    "stickerId": "PETA-95MQ-Y0DM",
+    "z": 39
+  },
+  "updated": {
+    "displayId": "screen",
+    "isOnDesktop": true,
+    "materialId": "matte",
+    "placedAt": "2026-10-03T17:27:18.579521732+00:00",
+    "relativeScale": 0.1284722222222222,
+    "relativeX": 0.7499995549519857,
+    "relativeY": 0.7333316887749566,
+    "rotation": -1,
+    "stickerId": "PETA-95MQ-Y0DM",
+    "z": 43
+  }
+}

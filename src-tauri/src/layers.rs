@@ -4,7 +4,7 @@
 //! Strategy: whenever the monitor set changes (resolution, arrangement, hot-plug) every layer is
 //! destroyed and rebuilt. It's cheap and avoids stale-geometry bugs; stickers reload from the store.
 
-use std::{collections::HashMap, sync::Mutex, thread, time::Duration};
+use std::{collections::{HashMap, HashSet}, sync::{Mutex, Condvar}, thread, time::{Duration, Instant}};
 
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, Monitor, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
@@ -33,10 +33,17 @@ struct State {
     present_display_ids: Vec<String>,
     primary_display_id: String,
     signature: String,
+    reflection: HashSet<String>,
+    reflection_last: HashMap<String, CursorReflect>,
+    reflection_cursor: Option<platform::coordinates::Point>,
+    reflection_moved: bool,
+    reflection_pending: bool,
+    reflection_stop: bool,
+    cursor_reads: u64,
 }
 
 #[derive(Default)]
-pub struct Layers(Mutex<State>);
+pub struct Layers(Mutex<State>, Condvar);
 
 impl Layers {
     pub fn info(&self, label: &str) -> Option<LayerInfo> {
@@ -62,6 +69,8 @@ impl Layers {
     pub fn primary_display_id(&self) -> String {
         self.0.lock().unwrap().primary_display_id.clone()
     }
+    pub fn interactive(&self)->bool { let state=self.0.lock().unwrap(); state.edit_mode||state.print }
+
 }
 
 /// Stable-ish display ids. macOS reports localized names ("Built-in Retina Display");
@@ -106,6 +115,8 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
         let old: Vec<String> = st.by_label.keys().cloned().collect();
         st.generation += 1;
         st.by_label.clear();
+        st.reflection.clear(); st.reflection_last.clear(); st.reflection_cursor = None; st.reflection_moved = false;
+        layers.1.notify_all();
         st.present_display_ids = ids.clone();
         st.primary_display_id = ids[primary_idx].clone();
         st.signature = signature(&monitors);
@@ -229,4 +240,102 @@ pub fn spawn_monitor_watcher(app: AppHandle) {
             });
         }
     });
+}
+
+
+#[derive(Clone, Copy, Serialize, PartialEq)]
+struct CursorReflect { x: f64, y: f64, inside: bool }
+
+#[tauri::command]
+pub fn set_reflection_active(window: WebviewWindow, layers: tauri::State<Layers>, active: bool) -> Result<(), String> {
+    let mut st = layers.0.lock().unwrap();
+    if !st.by_label.contains_key(window.label()) { return Err("unknown layer".into()); }
+    let changed = if active { st.reflection.insert(window.label().into()) } else {
+        st.reflection_last.remove(window.label()); st.reflection.remove(window.label())
+    };
+    if st.reflection.is_empty() { st.reflection_cursor = None; st.reflection_moved = false; }
+    if changed {
+        #[cfg(debug_assertions)]
+        eprintln!("[peta] reflection layers={} cursor_reads={}", st.reflection.len(), st.cursor_reads);
+        layers.1.notify_all();
+    }
+    Ok(())
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReflectionStatus { active_layers: usize, timer_running: bool, cursor_reads: u64 }
+#[tauri::command]
+pub fn reflection_status(layers: tauri::State<Layers>) -> ReflectionStatus {
+    let st = layers.0.lock().unwrap();
+    ReflectionStatus { active_layers: st.reflection.len(), timer_running: cfg!(target_os = "macos") && !st.reflection.is_empty() && !st.reflection_stop, cursor_reads: st.cursor_reads }
+}
+
+/// One worker sleeps without a timeout while no layer needs reflection; reads stay on the main thread.
+pub fn spawn_reflection_watcher(app: AppHandle) {
+    if !cfg!(target_os = "macos") { return; }
+    thread::spawn(move || loop {
+        let layers = app.state::<Layers>();
+        let mut st = layers.0.lock().unwrap();
+        while (st.reflection.is_empty() || st.reflection_pending) && !st.reflection_stop {
+            st = layers.1.wait(st).unwrap();
+        }
+        if st.reflection_stop { return; }
+        st.reflection_pending = true; drop(st);
+        let handle = app.clone();
+        if app.run_on_main_thread(move || {
+            let layers = handle.state::<Layers>();
+            let mut st = layers.0.lock().unwrap();
+            if !st.reflection.is_empty() && !st.reflection_stop {
+                st.cursor_reads += 1;
+                if let Some(cursor) = platform::cursor_position() {
+                    if st.reflection_cursor.is_some_and(|old| old != cursor) { st.reflection_moved = true; }
+                    st.reflection_cursor = Some(cursor);
+                    if st.reflection_moved {
+                        for label in st.reflection.clone() {
+                            if let Some(w) = handle.get_webview_window(&label) {
+                                if let Some(frame) = platform::layer_frame(&w) {
+                                    let (point, inside) = platform::coordinates::cursor_to_layer(cursor, frame);
+                                    let event = CursorReflect { x: point.x, y: point.y, inside };
+                                    if st.reflection_last.get(&label) != Some(&event) {
+                                        st.reflection_last.insert(label, event); let _ = w.emit("cursor-reflect", event);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    st.reflection_cursor = None; st.reflection_moved = false;
+                    let event = CursorReflect { x: 0.0, y: 0.0, inside: false };
+                    for label in st.reflection.clone() {
+                        if st.reflection_last.get(&label) != Some(&event) {
+                            st.reflection_last.insert(label.clone(), event);
+                            if let Some(w) = handle.get_webview_window(&label) { let _ = w.emit("cursor-reflect", event); }
+                        }
+                    }
+                }
+            }
+            st.reflection_pending = false; layers.1.notify_all();
+        }).is_err() { return; }
+        let deadline = Instant::now() + Duration::from_millis(33);
+        let mut st = layers.0.lock().unwrap();
+        while !st.reflection_stop && !st.reflection.is_empty() {
+            let Some(remaining) = deadline.checked_duration_since(Instant::now()) else { break };
+            st = layers.1.wait_timeout(st, remaining).unwrap().0;
+        }
+        if st.reflection_stop { return; }
+    });
+}
+
+pub fn stop_reflection(app: &AppHandle) {
+    let layers = app.state::<Layers>(); let mut st = layers.0.lock().unwrap();
+    st.reflection_stop = true; st.reflection.clear(); layers.1.notify_all();
+}
+
+
+pub fn forget_reflection(app: &AppHandle, label: &str) {
+    let layers = app.state::<Layers>(); let mut st = layers.0.lock().unwrap();
+    st.reflection.remove(label); st.reflection_last.remove(label);
+    if st.reflection.is_empty() { st.reflection_cursor = None; st.reflection_moved = false; }
+    layers.1.notify_all();
 }

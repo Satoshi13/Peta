@@ -1,0 +1,55 @@
+{
+  "deskNavCentres": [
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60,
+    60
+  ],
+  "book": {
+    "bindingFixed": true,
+    "contentClearsBinding": true,
+    "oldDoubleHolesRemoved": true
+  },
+  "giftQuotaRemoved": true,
+  "cornerAndPill": {
+    "cornerBackground": "none",
+    "pillWidth": 96
+  },
+  "seal": {
+    "border": "0px",
+    "boxShadow": "none",
+    "minWidth": "0px"
+  },
+  "market": {
+    "buttonInsidePaper": true,
+    "unrotated": true
+  },
+  "sharedSegmentStyle": {
+    "borderRadius": "10px",
+    "padding": "3px",
+    "selectedBackground": "url(\"tauri://localhost/art/book/page-paper.jpg\")",
+    "selectedRadius": "7px"
+  },
+  "zoom": {
+    "background": "linear-gradient(45deg, rgb(232, 229, 223) 25%, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0) 75%, rgb(232, 229, 223) 75%), linear-gradient(45deg, rgb(232, 229, 223) 25%, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0) 75%, rgb(232, 229, 223) 75%)",
+    "canvasTransform": "matrix(3.483369, 0, 0, 3.483369, 0, -0.990114)",
+    "frameTransform": "none",
+    "rendererUnchanged": true,
+    "scale": 3.4833692475813676,
+    "scroll": 0
+  },
+  "zoomedBrush": {
+    "canUndo": true,
+    "changed": true,
+    "coordinateError": 0.38665825710592966
+  },
+  "zoomedUndo": true,
+  "zoomedRedo": true,
+  "zoomedRestore": true,
+  "nativeResetWithoutStroke": true,
+  "minimumWindowZoomCoordinates": true
+}

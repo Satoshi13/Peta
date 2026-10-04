@@ -1,0 +1,203 @@
+/* Native window geometry and owner-requested corrections over the copied prototype CSS. */
+:root { --win-w: 100vw; --win-h: 100vh; }
+html, body { background: transparent; user-select: none; -webkit-user-select: none; }
+input { user-select: text; -webkit-user-select: text; }
+#win-layer, body[data-shell] #win-layer { position: fixed; inset: 0; padding: 0; }
+.win { width: 100%; height: 100%; --win-w: 100vw; --win-h: 100vh; }
+.drag-strip { height: 28px; }
+
+/* Delivered notes/book art replaces the paper stand-ins below; original files stay untouched. */
+/* Prototype viewport units refer to the display around the 1060×700 shell. Preserve that
+   reference for page objects; using the smaller native webview would shorten the Cutting Mat. */
+.panes { height: clamp(190px, calc(var(--desktop-height) * .31), 290px); }
+.choice-obj { width: clamp(84px, calc(var(--desktop-width) * .11), 124px); }
+
+/* Ceremonies stay within this window, including the shell's transparent rounded corners. */
+.cer { overflow: hidden; border-radius: 18px; }
+[data-shell="desk"] .cer { border-radius: 20px; }
+
+/* The Settings switch applies to CSS animations as well as the prototype's Web Animations helper. */
+html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+
+/* Owner review 01: correct the shared parts and native layout, without altering artwork. */
+/* Rarity art contains transparent gutters; the old common inset border outlined those gutters. */
+.seal, .seal[data-rarity] {
+  min-width: 0; width: fit-content; height: 28px; padding: 0 12px;
+  background-image: var(--seal, var(--a-sealCommon)); background-color: transparent;
+  background-position: center; background-repeat: no-repeat; background-size: 152% 116%;
+  box-shadow: none; border: 0;
+  filter: drop-shadow(0 1px 1px rgba(40, 30, 10, .18));
+}
+.rv-info .seal { height: 30px; }
+
+/* Keep the supplied paper dots, with a shorter backing and even centres. */
+.wctl { width: 96px; }
+.wctl .wc-red { left: 8px; }
+.wctl .wc-yellow { left: 36px; }
+.wctl .wc-green { left: 64px; }
+/* The corner remains a native resize target, without the folded-paper decoration. */
+.resize-h, [data-shell="desk"] .resize-h { background: none; opacity: 1; }
+
+/* Owner review 02: a pen circle makes the active choice readable on every paper surface. */
+.seg { display: inline-flex; align-items: stretch; flex: none; gap: 4px; padding: 3px; border: 0; border-radius: 10px; background: none; box-shadow: none; }
+.seg button {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 56px; min-height: 32px; padding: 6px 15px; margin: 0;
+  border: 0; border-radius: 7px; background: transparent;
+  color: var(--ink2); font: 500 12.5px/1.2 var(--sys); filter: none; box-shadow: none;
+}
+.seg button:hover { background: rgba(255, 253, 249, .4); }
+.seg button::after {
+  content: ""; position: absolute; inset: 1px 2px; pointer-events: none;
+  border: 2px solid #514937; border-radius: 49% 51% 47% 53% / 54% 46% 53% 47%;
+  transform: rotate(-3deg); opacity: 0;
+}
+.seg button[aria-pressed="true"] { color: var(--ink); font-weight: 700; background: transparent; box-shadow: none; filter: none; }
+.seg button[aria-pressed="true"]::after { opacity: 1; }
+.seg button:focus-visible { outline: 2px solid #527d93; outline-offset: 2px; }
+
+/* Layout the card around its visible paper, rather than its transparent image bounds. */
+.mk-hero { grid-template-columns: minmax(200px, .8fr) minmax(0, 1.1fr); gap: 24px; padding: 24px; border-radius: 12px; }
+.mk-hero-art { min-width: 0; height: 218px; }
+.mk-hero-art .mk-pouch { position: absolute; left: 6px; top: 40px; width: 104px; margin: 0; }
+.mk-hero .fan { inset: 0; }
+.mk-hero .fan-s:nth-child(1) { left: 128px; top: 18px; transform: rotate(-8deg); }
+.mk-hero .fan-s:nth-child(2) { left: 126px; top: 112px; transform: rotate(6deg); }
+.mk-hero .fan-s:nth-child(3) { left: 220px; top: 54px; transform: rotate(10deg); }
+.mk-hero .fan-s .stk { width: var(--fan-width) !important; }
+.mk-hero-text {
+  min-width: 0; margin: 0; padding: 24px;
+  background-size: 120% 140%; transform: none;
+}
+.mk-hero-text::before { right: 14px; top: -24px; width: 54px; height: 54px; }
+.mk-hero-text h2 { font-size: 28px; }
+.mk-hero-text .btn { margin-top: 12px; }
+@container (max-width: 640px) {
+  .mk-hero { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 20px; }
+  .mk-hero-art { height: 218px; max-width: 320px; width: 100%; justify-self: center; }
+}
+
+/* Selected Desk navigation stays on the same centre line as its neighbours. */
+[data-shell="desk"] .nav-item { transform: none; }
+[data-shell="desk"] .nav-item[aria-current="page"] { transform: none; }
+[data-shell="desk"] .nav-item[aria-current="page"]::after { display: none; }
+[data-shell="desk"] .nav-item .ni-label { font-family: var(--sys); }
+
+/* A cover, a fixed binding and a separate scrolling sheet. Each coil attaches to one hole. */
+.book-binding { display: none; }
+.book-paper-parts { display: none; }
+[data-shell="desk"] .page[data-page="book"] { inset: 14px 10px 18px 32px; }
+[data-shell="desk"] .page[data-page="book"]::before { inset: -8px -8px -8px -20px; border-radius: 14px; }
+[data-shell="desk"] .page[data-page="book"]::after { display: none; }
+[data-shell="desk"] .page[data-page="book"] .page-in {
+  padding-left: 44px; border-radius: 4px 10px 10px 4px;
+  background: var(--a-pageDots) 7px 9px / 506px 506px repeat,
+    linear-gradient(rgba(250, 246, 236, .62), rgba(250, 246, 236, .62)), var(--a-pagePaper) 0 0 / 520px, #faf6ec;
+  box-shadow: none;
+}
+[data-shell="desk"] .book-binding {
+  display: block;
+  position: absolute; left: -24px; top: 12px; bottom: 12px; width: 54px;
+  overflow: hidden; z-index: 12; pointer-events: none;
+}
+.binding-band {
+  position: relative; display: block; width: 54px;
+}
+.binding-middle {
+  position: absolute; display: block; inset: 27px 0;
+  background: var(--a-spiralBinding) left -27px / 54px 421.875px repeat-y;
+}
+.binding-band::before, .binding-band::after {
+  content: ""; position: absolute; left: 0; width: 54px; height: 27px; pointer-events: none;
+  background: center / 54px 27px no-repeat;
+}
+.binding-band::before { top: 0; background-image: var(--a-spiralCapTop); }
+.binding-band::after { bottom: 0; background-image: var(--a-spiralCapBottom); }
+[data-shell="desk"] .page[data-page="book"]::before {
+  border: 0; border-image: none; background-clip: border-box;
+}
+[data-shell="desk"] .book-paper-parts { display: block; position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.book-paper-parts i { position: absolute; display: block; pointer-events: none; background: center / 100% 100% no-repeat; }
+.book-paper-parts .page-gutter { left: 0; top: 0; bottom: 0; width: 8px; background-image: var(--a-pageGutter); background-position: left top; background-size: 160px 100%; }
+.book-paper-parts .page-edge-right { right: -5px; top: 0; bottom: 0; width: 8px; background-image: var(--a-pageEdgeRight); }
+.book-paper-parts .page-edge-bottom { left: 0; right: 0; bottom: -5px; height: 8px; background-image: var(--a-pageEdgeBottom); }
+.book-paper-parts .page-corner { right: 0; bottom: 0; width: 28px; height: 28px; background-image: var(--a-pageCorner); }
+
+/* The shared sticky details keep their prototype width, padding and scrolling behaviour.
+   CSS sizing trims only the supplied transparent gutters; the PNG itself is unchanged. */
+.detail { border-radius: 0; background: var(--a-noteStickyYellow) center / 121% 129% no-repeat; box-shadow: none; filter: drop-shadow(0 4px 8px rgba(60, 45, 20, .2)); }
+.book-flip { width: 100%; border: 0; background: none; cursor: pointer; margin-bottom: 12px; }
+.book-flip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 14px; }
+.book-actions { display: grid; gap: 8px; margin-bottom: 12px; }
+.book-action-row { display: flex; gap: 8px; }
+.book-action-row > * { flex: 1; min-width: 0; }
+.detail .book-action { width: 100%; height: 40px; padding: 0 12px; border: 1px solid transparent; border-radius: 10px; font: 600 14px/1.2 var(--sys); }
+.detail .book-action.secondary { background: #fffdf9; color: var(--ink); border-color: var(--line); box-shadow: 0 1px 2px rgba(60, 45, 20, .15); }
+.detail .book-action.danger { background: transparent; color: #934238; border-color: rgba(147, 66, 56, .24); box-shadow: none; }
+.book-delete { display: grid; gap: 8px; margin-bottom: 12px; }
+.book-delete p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.edit-material { display: flex; align-items: center; gap: 12px; min-height: 98px; }
+
+/* All shelf objects use the same bag, label and action rows, even when opening is unavailable. */
+.shelf { display: grid; grid-template-columns: repeat(auto-fit, 192px); align-items: stretch; justify-content: center; }
+.shelf .pack { display: grid; grid-template-rows: 224px minmax(68px, auto) 24px; justify-items: center; align-items: center; gap: 10px; width: 192px; }
+.shelf .pack .pack-tag { width: 100%; min-height: 68px; align-self: stretch; justify-content: center; }
+
+/* Create fits the sticker to both frame dimensions; its image and sheen retain the PNG ratio. */
+.stk-host .stk { height: auto; max-width: 100%; max-height: none; }
+.stk-host .stk img { height: auto; }
+/* Only the cutout canvas moves; the transparency checker and brush cursor stay in the frame. */
+.frame.checker canvas { transform-origin: 50% 50%; }
+.preview-reset {
+  position: absolute; top: 8px; right: 8px; z-index: 3;
+  border: 1px solid rgba(60, 45, 20, .18); border-radius: 7px; padding: 4px 8px;
+  background: rgba(255, 253, 249, .94); color: var(--ink); font: 600 11px/1.4 var(--sys);
+  cursor: pointer; box-shadow: 0 1px 2px rgba(60, 45, 20, .12);
+}
+
+/* The opened daily envelope leaves a small, quiet paper ticket. */
+.envelope-ticket { align-self:center; display:flex; gap:5px; justify-content:center; width:fit-content; max-width:100%; margin:18px auto 0; padding:9px 17px; border:1px dashed #b4ab9b; border-radius:3px; color:var(--muted); background:var(--paper); box-shadow:0 2px 4px #493c2420; font-size:12px; }
+.envelope-clock { color:var(--ink); font-family:var(--type); font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+/* Book keeps the existing paper and detail actions; the content can be a list or a ledger. */
+.bookpage .ph { align-items:center; flex-wrap:wrap; }
+.book-view { flex:none; }
+.book-count { margin:0; }
+.bookpage .pick-banner { margin-bottom:16px; }
+.bookpage .tile-stk { width:100%; will-change:auto; }
+.bookpage .tile-stk .stk { max-width:100%; }
+.calendar-ledger { width:100%; padding:16px 12px 12px; border:1px solid var(--line); border-radius:5px; background:rgba(255,253,249,.52); box-shadow:0 2px 5px #604c2010; }
+.calendar-heading { display:grid; grid-template-columns:30px minmax(0,1fr) 30px; gap:8px; align-items:center; margin-bottom:16px; }
+.calendar-heading h2 { margin:0; font-size:22px; text-align:center; }
+.calendar-heading p { margin:3px 0 0; text-align:center; font-size:12px; }
+.calendar-nav { width:30px; height:34px; border:1px solid var(--line); border-radius:7px; background:var(--paper); font-size:24px; line-height:1; }
+.calendar-nav:disabled { opacity:.3; cursor:default; }
+.calendar-weekdays, .calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; }
+.calendar-weekdays { margin-bottom:7px; font-size:11px; color:var(--muted); text-align:center; }
+.calendar-day { position:relative; min-width:0; min-height:92px; padding:6px; border:1px solid #b4a78a33; border-radius:4px; background:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
+.calendar-date { align-self:flex-start; font:16px/1 var(--hand); }
+.calendar-day.stuck { background:#fffdf955; transition:background .15s; }
+.calendar-day.stuck[aria-pressed="true"] { box-shadow:inset 0 0 0 1.5px var(--ink); }
+.calendar-day.stuck:hover { background:#fffdf9; }
+.calendar-sticker { width:100%; height:62px; display:grid; place-items:center; transform:rotate(var(--rot)); transition:transform .2s var(--ease-out); }
+.calendar-sticker .stk { width:min(84px,85%,calc(54px * var(--aspect))) !important; }
+.calendar-day.stuck:hover .calendar-sticker { transform:translateY(-3px) rotate(var(--rot)); }
+.calendar-multiple { position:absolute; right:4px; top:4px; font:11px/1.3 var(--type); color:var(--muted); }
+.calendar-rest { color:#a59a88; font:11px/1.5 var(--hand); }
+.calendar-day.future { border-color:transparent; justify-content:flex-start; color:#b4aa98; }
+.calendar-add { display:grid; place-items:center; width:34px; height:34px; border:1px dashed #8c9c90; border-radius:50%; color:#6c8679; font:24px/1 var(--hand); animation:calendar-pulse 1.4s ease-out 1; }
+@keyframes calendar-pulse { 50% { transform:scale(1.1); opacity:.6; } }
+.calendar-complete { grid-column:2; justify-self:center; padding:3px 9px; border:2px solid #918da0; border-radius:3px; background:var(--holo-soft); color:var(--ink2); font:12px/1.4 var(--type); transform:rotate(-4deg); white-space:nowrap; }
+.calendar-complete.press { animation:calendar-press .4s var(--ease-spring) 1; }
+@keyframes calendar-press { from { opacity:0; transform:rotate(-12deg) scale(1.5); } }
+.book-day-choices { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
+.book-day-choices button { display:grid; place-items:center; width:46px; height:46px; padding:3px; border:1px solid var(--line); border-radius:6px; background:var(--paper); }
+.book-day-choices button[aria-pressed="true"] { border-color:var(--ink); }
+@media(max-width:800px) { .calendar-ledger { padding:12px 6px 8px; } .calendar-day { min-height:72px; padding:4px; } .calendar-sticker { height:42px; } .calendar-sticker .stk { width:min(84px,85%,calc(36px * var(--aspect))) !important; } .calendar-heading h2 { font-size:19px; } }
+@media(prefers-reduced-motion:reduce) { .calendar-add, .calendar-complete.press { animation:none; } .calendar-sticker { transition:none; } .calendar-day.stuck:hover .calendar-sticker { transform:rotate(var(--rot)); } }
+:root[data-motion="reduce"] .calendar-add, :root[data-motion="reduce"] .calendar-complete.press { animation:none; }
+:root[data-motion="reduce"] .calendar-sticker { transition:none; }
+:root[data-motion="reduce"] .calendar-day.stuck:hover .calendar-sticker { transform:rotate(var(--rot)); }
+
+.calendar-month-title { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; }
+.bookpage .bk-main { width:100%; }

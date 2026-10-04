@@ -1,8 +1,8 @@
 //! Print → Grab → Paste (spec §26-29). Making a Peta does not stick it: it is *printed* at an abstract slot at
 //! the top of the primary display and waits there until the player grabs it and sticks it down. Until then
-//! the day's slot is CONFIRMED (not USED), which survives quitting the app: the Peta is there again next launch.
+//! the durable FIFO queue retains every pending sticker, across local midnight and app restarts.
 
-use peta_core::{daily, default_scale, ids::random_unit};
+use peta_core::{default_scale, ids::random_unit};
 use serde::Serialize;
 use tauri::{AppHandle, Manager, State};
 
@@ -20,12 +20,10 @@ pub struct PendingPrint {
 
 /// The Peta waiting at the print slot, if any (read from the library, so it survives a restart).
 pub fn pending(app: &AppHandle) -> Result<Option<PendingPrint>, String> {
-    let date = app.state::<today::Today>().date();
     let store = app.state::<Store>();
-    let mut lib = store.lock();
-    let record = daily::ensure_today(lib.db_mut(), &date, random_unit()).map_err(|e| e.to_string())?;
-    let Some(id) = record.waiting_sticker() else { return Ok(None) };
-    let Some(sticker) = lib.db().sticker(id).map_err(|e| e.to_string())? else { return Ok(None) };
+    let lib = store.lock();
+    let Some(id) = lib.db().next_print().map_err(|e|e.to_string())? else { return Ok(None) };
+    let Some(sticker) = lib.db().sticker(&id).map_err(|e| e.to_string())? else { return Ok(None) };
     Ok(Some(PendingPrint {
         relative_scale: default_scale(sticker.aspect),
         aspect: sticker.aspect,
@@ -51,14 +49,12 @@ pub fn print_pending(app: AppHandle) -> Result<Option<PendingPrint>, String> {
     pending(&app)
 }
 
-/// Let go: stick it where the pointer is (centre as fractions of the primary display), spend the slot and enter Edit Mode.
+/// Let go: stick it where the pointer is (centre as fractions of the primary display), finish this queued print and enter Edit Mode.
 #[tauri::command]
-pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, sticker_id: String, x: f64, y: f64) -> Result<(), String> {
-    let date = app.state::<today::Today>().date();
+pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, sticker_id: String, x: f64, y: f64, relative_scale: Option<f64>) -> Result<(), String> {
     {
         let mut lib = store.lock();
-        let record = daily::ensure_today(lib.db_mut(), &date, random_unit()).map_err(|e| e.to_string())?;
-        if record.waiting_sticker() != Some(sticker_id.as_str()) {
+        if lib.db().next_print().map_err(|e|e.to_string())?.as_deref()!=Some(sticker_id.as_str()) {
             return Err("nothing is waiting to be pasted".into());
         }
         let sticker = lib
@@ -66,10 +62,15 @@ pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, s
             .sticker(&sticker_id)
             .map_err(|e| e.to_string())?
             .ok_or_else(|| format!("unknown sticker {sticker_id}"))?;
-        lib.stick_new(&sticker, &layers.primary_display_id(), x, y).map_err(|e| e.to_string())?;
-        daily::mark_used(lib.db_mut(), &date).map_err(|e| e.to_string())?;
+        let mut placement=lib.stick_new(&sticker, &layers.primary_display_id(), x, y).map_err(|e| e.to_string())?;
+        if let Some(scale)=relative_scale.filter(|v|v.is_finite()&&*v>0.0) {
+            placement.relative_scale=scale.clamp(0.01,1.0);
+            placement.rotation=((random_unit()*14.0)-7.0).round();
+            lib.db_mut().place(placement).map_err(|e|e.to_string())?;
+        }
+        lib.db_mut().finish_print(&sticker_id).map_err(|e|e.to_string())?;
     }
-    layers::set_print(&app, false);
+    sync(&app);
     // Straight into Edit Mode: the new sticker can be resized, turned and moved right away instead of being stuck
     // before you have had a chance to adjust it. Esc / Done leaves it.
     layers::set_edit_mode(&app, true);
@@ -82,3 +83,7 @@ pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, s
 pub fn print_later(app: AppHandle) {
     layers::set_print(&app, false);
 }
+
+/// Resume after a ceremony, or from the tray. The pending print remains in Rust storage.
+#[tauri::command]
+pub fn print_resume(app: AppHandle) { begin(&app); }

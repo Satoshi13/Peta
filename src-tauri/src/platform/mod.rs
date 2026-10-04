@@ -3,12 +3,12 @@
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "macos")]
-pub use macos::{activate_app, apply_layer_mode};
+pub use macos::{activate_app, apply_layer_mode, cursor_position, layer_frame, haptic};
 
 #[cfg(not(target_os = "macos"))]
 mod windows;
 #[cfg(not(target_os = "macos"))]
-pub use windows::{activate_app, apply_layer_mode};
+pub use windows::{activate_app, apply_layer_mode, cursor_position, layer_frame, haptic};
 
 /// How a desktop layer window should behave.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -18,3 +18,5 @@ pub enum LayerMode {
     /// Layer is raised above desktop icons and receives mouse events.
     Editing,
 }
+
+pub mod coordinates;

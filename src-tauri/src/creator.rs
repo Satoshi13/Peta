@@ -4,11 +4,11 @@
 
 use std::{
     path::PathBuf,
-    sync::{Arc, Mutex, OnceLock},
+    sync::{atomic::{AtomicU64, Ordering}, Arc, Mutex, OnceLock},
 };
 
 use peta_core::{
-    creator::{self, Params, Session, DEFAULT_SMOOTH, DEFAULT_STRENGTH},
+    creator::{self, EditorState, Params, Session, DEFAULT_SMOOTH, DEFAULT_STRENGTH},
     daily,
     ids::random_unit,
     materials,
@@ -16,11 +16,10 @@ use peta_core::{
     Material, SourceType,
 };
 use serde::Serialize;
-use tauri::{ipc::Response, AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
+use tauri::{ipc::Response, AppHandle, Emitter, Manager, State};
 
-use crate::{platform, print, store::Store, today};
+use crate::{print, store::Store, today};
 
-pub const CREATOR_LABEL: &str = "creator";
 
 /// u2netp, 4.5 MB: bundled so cutting out works offline from the first launch.
 const BUNDLED_MODEL: &[u8] = include_bytes!("../models/u2netp.onnx");
@@ -49,17 +48,20 @@ enum Phase {
 struct Active {
     session: Session,
     target: Target,
+    editing_id: Option<String>,
+    settings: Option<(f32, f32, f32)>,
 }
 
 pub struct Creator {
     phase: Mutex<Phase>,
     active: Mutex<Option<Active>>,
     segmenter: OnceLock<Result<Arc<Segmenter>, String>>,
+    generation: AtomicU64,
 }
 
 impl Default for Creator {
     fn default() -> Self {
-        Creator { phase: Mutex::new(Phase::Idle), active: Mutex::new(None), segmenter: OnceLock::new() }
+        Creator { phase: Mutex::new(Phase::Idle), active: Mutex::new(None), segmenter: OnceLock::new(), generation: AtomicU64::new(0) }
     }
 }
 
@@ -93,10 +95,8 @@ impl Creator {
 /// background and the window is told when it is done. Fails with `already_used_today` if today's Peta
 /// is already made (and this one would count).
 pub fn begin(app: &AppHandle, bytes: Vec<u8>, target: Target) -> Result<(), String> {
-    if target.counts_for_today && !today::status(app)?.can_create {
-        return Err(today::ALREADY_USED.into());
-    }
     let creator = app.state::<Creator>();
+    let generation = creator.generation.fetch_add(1, Ordering::SeqCst) + 1;
     *creator.active.lock().unwrap() = None;
     creator.set_phase(app, Phase::Loading);
     open_window(app).map_err(|e| e.to_string())?;
@@ -107,9 +107,11 @@ pub fn begin(app: &AppHandle, bytes: Vec<u8>, target: Target) -> Result<(), Stri
         let outcome = creator
             .segmenter(&app2)
             .and_then(|seg| Session::new(&bytes, Some(seg.as_ref())).map_err(|e| e.to_string()));
+        let mut active = creator.active.lock().unwrap();
+        if creator.generation.load(Ordering::SeqCst) != generation { return; }
         match outcome {
             Ok(session) => {
-                *creator.active.lock().unwrap() = Some(Active { session, target });
+                *active = Some(Active { session, target, editing_id: None, settings: None });
                 creator.set_phase(&app2, Phase::Ready);
             }
             Err(error) => creator.set_phase(&app2, Phase::Failed { error }),
@@ -119,23 +121,13 @@ pub fn begin(app: &AppHandle, bytes: Vec<u8>, target: Target) -> Result<(), Stri
 }
 
 fn open_window(app: &AppHandle) -> tauri::Result<()> {
-    platform::activate_app();
-    if let Some(w) = app.get_webview_window(CREATOR_LABEL) {
-        w.show()?;
-        return w.set_focus();
-    }
-    WebviewWindowBuilder::new(app, CREATOR_LABEL, WebviewUrl::App("creator.html".into()))
-        .title("Cutting Mat")
-        .inner_size(1120.0, 760.0)
-        .min_inner_size(860.0, 620.0)
-        .center()
-        .build()?;
-    Ok(())
+    crate::app_window::open(app, "create")
 }
 
 /// The window was closed (or cancelled): forget the session. Nothing was spent.
 pub fn clear(app: &AppHandle) {
     let creator = app.state::<Creator>();
+    creator.generation.fetch_add(1, Ordering::SeqCst);
     *creator.active.lock().unwrap() = None;
     *creator.phase.lock().unwrap() = Phase::Idle;
 }
@@ -155,6 +147,8 @@ pub struct CreatorInfo {
     default_material: String,
     default_strength: f32,
     default_smooth: f32,
+    default_outline: f32,
+    editing_sticker_id: Option<String>,
 }
 
 #[tauri::command]
@@ -172,7 +166,7 @@ pub fn creator_info(app: AppHandle, creator: State<Creator>, store: State<Store>
         .unwrap_or_default()
         .iter()
         .filter_map(|id| lib.db().material_with_stock(id).ok().flatten())
-        .filter(Material::available)
+        .filter(|m| m.available() || active.as_ref().is_some_and(|a| a.editing_id.is_some() && a.target.material_hint.as_deref() == Some(m.id.as_str())))
         .collect();
     let (counts, hint) = active
         .as_ref()
@@ -195,8 +189,10 @@ pub fn creator_info(app: AppHandle, creator: State<Creator>, store: State<Store>
         counts_for_today: counts,
         materials: unlocked,
         default_material,
-        default_strength: DEFAULT_STRENGTH,
-        default_smooth: DEFAULT_SMOOTH,
+        default_strength: active.as_ref().and_then(|a| a.settings).map(|s| s.2).unwrap_or(DEFAULT_STRENGTH),
+        default_smooth: active.as_ref().and_then(|a| a.settings).map(|s| s.1).unwrap_or(DEFAULT_SMOOTH),
+        default_outline: active.as_ref().and_then(|a| a.settings).map(|s| s.0).unwrap_or(20.0),
+        editing_sticker_id: active.as_ref().and_then(|a| a.editing_id.clone()),
     }
 }
 
@@ -208,9 +204,11 @@ pub fn creator_original(creator: State<Creator>) -> Result<Response, String> {
     a.session.original_jpeg().map(Response::new).map_err(|e| e.to_string())
 }
 
-fn params_for(material_id: &str, strength: f32, smooth: f32) -> Params {
+fn params_for(material_id: &str, strength: f32, smooth: f32, outline: Option<f32>) -> Params {
     let material = materials::get(material_id).or_else(|| materials::get(materials::DEFAULT_MATERIAL)).expect("default material exists");
-    Params { strength, smooth, recipe: material.recipe }
+    let mut recipe = material.recipe;
+    if let (Some(width), Some(border)) = (outline, recipe.border.as_mut()) { border.width = width.clamp(4.0, 64.0) as f64 / 520.0; }
+    Params { strength, smooth, recipe }
 }
 
 /// Wire format: 4-byte big-endian JSON length, JSON `{ stickerLen, cutoutLen, width, height, coverage }`,
@@ -231,13 +229,17 @@ fn pack(r: &creator::Rendered) -> Vec<u8> {
 
 /// Re-render with the current settings. `preview` = half size, fast (live feedback).
 #[tauri::command]
-pub async fn creator_render(app: AppHandle, material_id: String, strength: f32, smooth: f32, preview: bool) -> Result<Response, String> {
+pub async fn creator_render(app: AppHandle, material_id: String, strength: f32, smooth: f32, preview: bool, outline: Option<f32>) -> Result<Response, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let creator = app.state::<Creator>();
-        let active = creator.active.lock().unwrap();
-        let a = active.as_ref().ok_or("no image is open")?;
-        let params = params_for(&material_id, strength, smooth);
-        let rendered = if preview { a.session.render_preview(&params) } else { a.session.render(&params) };
+        // Copy only the render inputs; release the session lock before the expensive work.
+        // Painting / undo can continue while a stale preview finishes in the background.
+        let (analysis, edits) = {
+            let active = creator.active.lock().unwrap();
+            active.as_ref().ok_or("no image is open")?.session.render_inputs(preview)
+        };
+        let params = params_for(&material_id, strength, smooth, outline);
+        let rendered = peta_core::creator::render(&analysis, Some(&edits), &params);
         rendered.map(|r| Response::new(pack(&r))).map_err(|e| e.to_string())
     })
     .await
@@ -248,13 +250,16 @@ pub async fn creator_render(app: AppHandle, material_id: String, strength: f32, 
 ///
 /// `new_stroke` starts a new undo step; the pieces that follow it (a stroke is streamed while it is painted) belong to it.
 #[tauri::command]
-pub fn creator_stroke(creator: State<Creator>, points: Vec<(f32, f32)>, radius: f32, restore: bool, new_stroke: bool) -> Result<History, String> {
-    let mut active = creator.active.lock().unwrap();
-    let a = active.as_mut().ok_or("no image is open")?;
-    let (w, h) = a.session.size();
-    let px: Vec<(f32, f32)> = points.iter().map(|(x, y)| (x * w as f32, y * h as f32)).collect();
-    a.session.stroke(&px, radius * w as f32, restore, new_stroke);
-    Ok(History::of(&a.session))
+pub async fn creator_stroke(app: AppHandle, points: Vec<(f32, f32)>, radius: f32, restore: bool, new_stroke: bool) -> Result<History, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let creator = app.state::<Creator>();
+        let mut active = creator.active.lock().unwrap();
+        let a = active.as_mut().ok_or("no image is open")?;
+        let (w, h) = a.session.size();
+        let px: Vec<(f32, f32)> = points.iter().map(|(x, y)| (x * w as f32, y * h as f32)).collect();
+        a.session.stroke(&px, radius * w as f32, restore, new_stroke);
+        Ok(History::of(&a.session))
+    }).await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -297,27 +302,26 @@ impl History {
     }
 }
 
-/// "Make this Peta": render at full size, keep it in the library, stick it down, spend today's slot.
+/// "Make this Peta": render at full size, keep it in the library, consume one material (except Matte), and enqueue it for printing.
 #[tauri::command]
-pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32) -> Result<(), String> {
+pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: Option<f32>) -> Result<(), String> {
     let app2 = app.clone();
-    tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth))
+    tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth, outline))
         .await
         .map_err(|e| e.to_string())??;
-    if let Some(w) = app.get_webview_window(CREATOR_LABEL) {
-        let _ = w.destroy();
-    }
     clear(&app);
     Ok(())
 }
 
-fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32) -> Result<(), String> {
+fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outline: Option<f32>) -> Result<(), String> {
     let creator = app.state::<Creator>();
-    let (rendered, original, ext, target) = {
+    let (rendered, original, ext, target, editor) = {
         let active = creator.active.lock().unwrap();
         let a = active.as_ref().ok_or("no image is open")?;
-        let rendered = a.session.render(&params_for(material_id, strength, smooth)).map_err(|e| e.to_string())?;
-        (rendered, a.session.original.clone(), a.session.original_ext, a.target.clone())
+        if a.editing_id.is_some() { return Err("save changes to the original instead of making a new sticker".into()); }
+        let rendered = a.session.render(&params_for(material_id, strength, smooth, outline)).map_err(|e| e.to_string())?;
+        let editor = EditorState::capture(&a.session, outline.unwrap_or(20.0).clamp(4.0, 64.0), smooth, strength);
+        (rendered, a.session.original.clone(), a.session.original_ext, a.target.clone(), editor)
     };
     let material = materials::get(material_id).map(|m| m.id).unwrap_or_else(|| materials::DEFAULT_MATERIAL.to_owned());
 
@@ -325,23 +329,17 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32) -> Res
     let store = app.state::<Store>();
     {
         let mut lib = store.lock();
-        if target.counts_for_today {
-            let record = daily::ensure_today(lib.db_mut(), &date, random_unit()).map_err(|e| e.to_string())?;
-            if !record.slot(false).can_add_new() {
-                return Err(today::ALREADY_USED.into()); // spent elsewhere while the Cutting Mat was open
-            }
-        }
         if target.counts_for_today && !lib.db().has_material(&material).map_err(|e| e.to_string())? {
             return Err(peta_core::Error::MaterialUnavailable.to_string()); // used up elsewhere while the Cutting Mat was open
         }
-        let sticker = lib.add_made(&rendered, &original, ext, None, &material).map_err(|e| e.to_string())?;
+        let sticker = lib.add_made_with_editor(&rendered, &original, ext, &material, &editor).map_err(|e| e.to_string())?;
         if !target.counts_for_today {
             // developer tools: no daily rule, no print — straight onto the desktop
             lib.stick_new(&sticker, &target.display_id, target.x, target.y).map_err(|e| e.to_string())?;
         } else {
             // the material is used up by making a sticker with it (plain paper never is)
             lib.db_mut().consume_material(&material).map_err(|e| e.to_string())?;
-            // Confirmed = point of no return. It is Used once it is pasted (print.rs): the Peta is printed first.
+            // Keep every creation in the durable queue and Book; no daily sticker quota.
             daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Created, random_unit()).map_err(|e| e.to_string())?;
         }
     }
@@ -352,11 +350,76 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32) -> Res
     Ok(())
 }
 
+/// Reopen the original source and saved cutout, keeping its identity and material.
+#[tauri::command]
+pub async fn creator_edit_original(app: AppHandle, sticker_id: String) -> Result<(), String> {
+    let (sticker, bytes, mask, editor) = app.state::<Store>().lock().original_for_edit(&sticker_id).map_err(|e| e.to_string())?;
+    let creator = app.state::<Creator>();
+    let generation = creator.generation.fetch_add(1, Ordering::SeqCst) + 1;
+    *creator.active.lock().unwrap() = None; creator.set_phase(&app, Phase::Loading);
+    open_window(&app).map_err(|e| e.to_string())?;
+    let app2 = app.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let creator = app2.state::<Creator>();
+        let outcome = (|| -> Result<Active, String> {
+            let seg = creator.segmenter(&app2)?;
+            let mut session = Session::new(&bytes, Some(seg.as_ref())).map_err(|e| e.to_string())?;
+            let settings = if let Some(editor) = editor {
+                editor.restore(&mut session).map_err(|e| e.to_string())?;
+                (editor.outline, editor.smooth, editor.strength)
+            } else {
+                if let Some(mask) = mask { session.restore_mask(&mask).map_err(|e| e.to_string())?; }
+                (20.0, 0.0, DEFAULT_STRENGTH)
+            };
+            Ok(Active { session, target: Target { display_id: String::new(), x: 0.5, y: 0.5, counts_for_today: false,
+                material_hint: Some(sticker.material_id.unwrap_or_else(|| "matte".into())) }, editing_id: Some(sticker_id), settings: Some(settings) })
+        })();
+        let mut slot = creator.active.lock().unwrap();
+        if creator.generation.load(Ordering::SeqCst) != generation { return; }
+        match outcome {
+            Ok(active) => { *slot = Some(active); creator.set_phase(&app2, Phase::Ready); }
+            Err(error) => creator.set_phase(&app2, Phase::Failed { error }),
+        }
+    });
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn creator_save_original(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: f32) -> Result<String, String> {
+    if !strength.is_finite() || !(0.0..=1.0).contains(&strength) || !smooth.is_finite() || !(0.0..=1.0).contains(&smooth) || !outline.is_finite() || !(4.0..=64.0).contains(&outline) {
+        return Err("invalid cutout settings".into());
+    }
+    let app2 = app.clone();
+    let id = tauri::async_runtime::spawn_blocking(move || -> Result<String, String> {
+        let creator = app2.state::<Creator>();
+        let (id, rendered, editor) = {
+            let active = creator.active.lock().unwrap(); let a = active.as_ref().ok_or("no image is open")?;
+            let id = a.editing_id.clone().ok_or("no original is being edited")?;
+            if a.target.material_hint.as_deref() != Some(material_id.as_str()) { return Err("keep the original material when editing".into()); }
+            let rendered = a.session.render(&params_for(&material_id, strength, smooth, Some(outline))).map_err(|e| e.to_string())?;
+            let editor = EditorState::capture(&a.session, outline.clamp(4.0, 64.0), smooth, strength);
+            (id, rendered, editor)
+        };
+        app2.state::<Store>().lock().update_original(&id, &rendered, &editor).map_err(|e| e.to_string())?;
+        Ok(id)
+    }).await.map_err(|e| e.to_string())??;
+    clear(&app); let _ = app.emit("sticker-updated", &id); today::announce(&app);
+    Ok(id)
+}
+
 /// Cancel: close the window, keep everything as it was.
 #[tauri::command]
 pub fn creator_cancel(app: AppHandle) {
-    if let Some(w) = app.get_webview_window(CREATOR_LABEL) {
-        let _ = w.destroy();
-    }
     clear(&app);
+}
+
+#[tauri::command]
+pub fn creator_begin_bytes(app: AppHandle, layers: State<crate::layers::Layers>, bytes: Vec<u8>, material_id: String) -> Result<(), String> {
+    begin(&app, bytes, Target { display_id: layers.primary_display_id(), x: 0.5, y: 0.5, counts_for_today: true, material_hint: Some(material_id) })
+}
+
+#[tauri::command]
+pub fn creator_begin_path(app: AppHandle, layers: State<crate::layers::Layers>, path: String, material_id: String) -> Result<(), String> {
+    let bytes=std::fs::read(path).map_err(|e|e.to_string())?;
+    begin(&app,bytes,Target {display_id:layers.primary_display_id(),x:0.5,y:0.5,counts_for_today:true,material_hint:Some(material_id)})
 }

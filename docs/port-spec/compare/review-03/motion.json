@@ -1,0 +1,962 @@
+[
+  {
+    "kind": "pack",
+    "key": "studio-1060",
+    "physicalTearAndPull": true,
+    "outsideClickPreferenceEnabled": true,
+    "pouchFit": [
+      {
+        "height": 700,
+        "rect": {
+          "bottom": 524.890625,
+          "height": 367.359375,
+          "left": 392,
+          "right": 667.515625,
+          "top": 157.53125,
+          "width": 275.515625,
+          "x": 392,
+          "y": 157.53125
+        },
+        "selector": ".pouch",
+        "width": 1060
+      }
+    ],
+    "revealFit": [
+      {
+        "height": 700,
+        "rect": {
+          "bottom": 425.71875,
+          "height": 192.171875,
+          "left": 415,
+          "right": 644.59375,
+          "top": 233.546875,
+          "width": 229.59375,
+          "x": 415,
+          "y": 233.546875
+        },
+        "selector": ".rv-holder",
+        "width": 1060
+      },
+      {
+        "height": 700,
+        "rect": {
+          "bottom": 651,
+          "height": 148,
+          "left": 150,
+          "right": 910,
+          "top": 503,
+          "width": 760,
+          "x": 150,
+          "y": 503
+        },
+        "selector": ".rv-info",
+        "width": 1060
+      },
+      {
+        "height": 700,
+        "rect": {
+          "bottom": 651,
+          "height": 36,
+          "left": 431.640625,
+          "right": 532.953125,
+          "top": 615,
+          "width": 101.3125,
+          "x": 431.640625,
+          "y": 615
+        },
+        "selector": ".rv-info .keep",
+        "width": 1060
+      },
+      {
+        "height": 700,
+        "rect": {
+          "bottom": 651,
+          "height": 36,
+          "left": 544.953125,
+          "right": 628.359375,
+          "top": 615,
+          "width": 83.40625,
+          "x": 544.953125,
+          "y": 615
+        },
+        "selector": ".rv-info .btn.paper",
+        "width": 1060
+      }
+    ],
+    "phases": [
+      {
+        "phase": "pouch",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 700,
+            "width": 1060
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "torn",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 700,
+            "width": 1060
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "reveal",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 700,
+            "width": 1060
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "finished-keep",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "size": {
+            "height": 700,
+            "width": 1060
+          },
+          "visible": true
+        }
+      }
+    ]
+  },
+  {
+    "kind": "pack",
+    "key": "desk-1060",
+    "physicalTearAndPull": true,
+    "outsideClickPreferenceEnabled": true,
+    "pouchFit": [
+      {
+        "height": 700,
+        "rect": {
+          "bottom": 524.890625,
+          "height": 367.359375,
+          "left": 392,
+          "right": 667.515625,
+          "top": 157.53125,
+          "width": 275.515625,
+          "x": 392,
+          "y": 157.53125
+        },
+        "selector": ".pouch",
+        "width": 1060
+      }
+    ],
+    "revealFit": [
+      {
+        "height": 700,
+        "rect": {
+          "bottom": 426.765625,
+          "height": 194.21875,
+          "left": 415,
+          "right": 644.59375,
+          "top": 232.546875,
+          "width": 229.59375,
+          "x": 415,
+          "y": 232.546875
+        },
+        "selector": ".rv-holder",
+        "width": 1060
+      },
+      {
+        "height": 700,
+        "rect": {
+          "bottom": 651,
+          "height": 148,
+          "left": 150,
+          "right": 910,
+          "top": 503,
+          "width": 760,
+          "x": 150,
+          "y": 503
+        },
+        "selector": ".rv-info",
+        "width": 1060
+      },
+      {
+        "height": 700,
+        "rect": {
+          "bottom": 651,
+          "height": 36,
+          "left": 431.640625,
+          "right": 532.953125,
+          "top": 615,
+          "width": 101.3125,
+          "x": 431.640625,
+          "y": 615
+        },
+        "selector": ".rv-info .keep",
+        "width": 1060
+      },
+      {
+        "height": 700,
+        "rect": {
+          "bottom": 651,
+          "height": 36,
+          "left": 544.953125,
+          "right": 628.359375,
+          "top": 615,
+          "width": 83.40625,
+          "x": 544.953125,
+          "y": 615
+        },
+        "selector": ".rv-info .btn.paper",
+        "width": 1060
+      }
+    ],
+    "phases": [
+      {
+        "phase": "pouch",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 700,
+            "width": 1060
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "torn",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 700,
+            "width": 1060
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "reveal",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 700,
+            "width": 1060
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "finished-later",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "size": {
+            "height": 700,
+            "width": 1060
+          },
+          "visible": true
+        }
+      }
+    ]
+  },
+  {
+    "kind": "pack",
+    "key": "studio-720",
+    "physicalTearAndPull": true,
+    "outsideClickPreferenceEnabled": true,
+    "pouchFit": [
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 389.640625,
+          "height": 272.625,
+          "left": 257.890625,
+          "right": 462.359375,
+          "top": 117.015625,
+          "width": 204.46875,
+          "x": 257.890625,
+          "y": 117.015625
+        },
+        "selector": ".pouch",
+        "width": 720
+      }
+    ],
+    "revealFit": [
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 321.390625,
+          "height": 152.390625,
+          "left": 274.890625,
+          "right": 445.28125,
+          "top": 169,
+          "width": 170.390625,
+          "x": 274.890625,
+          "y": 169
+        },
+        "selector": ".rv-holder",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 148,
+          "left": 21.5,
+          "right": 698.296875,
+          "top": 335.78125,
+          "width": 676.796875,
+          "x": 21.5,
+          "y": 335.78125
+        },
+        "selector": ".rv-info",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 36,
+          "left": 261.53125,
+          "right": 362.84375,
+          "top": 447.78125,
+          "width": 101.3125,
+          "x": 261.53125,
+          "y": 447.78125
+        },
+        "selector": ".rv-info .keep",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 36,
+          "left": 374.84375,
+          "right": 458.25,
+          "top": 447.78125,
+          "width": 83.40625,
+          "x": 374.84375,
+          "y": 447.78125
+        },
+        "selector": ".rv-info .btn.paper",
+        "width": 720
+      }
+    ],
+    "phases": [
+      {
+        "phase": "pouch",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "torn",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "reveal",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "finished-keep",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      }
+    ]
+  },
+  {
+    "kind": "pack",
+    "key": "desk-720",
+    "physicalTearAndPull": true,
+    "outsideClickPreferenceEnabled": true,
+    "pouchFit": [
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 389.640625,
+          "height": 272.625,
+          "left": 257.890625,
+          "right": 462.359375,
+          "top": 117.015625,
+          "width": 204.46875,
+          "x": 257.890625,
+          "y": 117.015625
+        },
+        "selector": ".pouch",
+        "width": 720
+      }
+    ],
+    "revealFit": [
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 330.390625,
+          "height": 170.390625,
+          "left": 278.890625,
+          "right": 440.734375,
+          "top": 160,
+          "width": 161.84375,
+          "x": 278.890625,
+          "y": 160
+        },
+        "selector": ".rv-holder",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 148,
+          "left": 21.5,
+          "right": 698.296875,
+          "top": 335.78125,
+          "width": 676.796875,
+          "x": 21.5,
+          "y": 335.78125
+        },
+        "selector": ".rv-info",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 36,
+          "left": 261.53125,
+          "right": 362.84375,
+          "top": 447.78125,
+          "width": 101.3125,
+          "x": 261.53125,
+          "y": 447.78125
+        },
+        "selector": ".rv-info .keep",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 36,
+          "left": 374.84375,
+          "right": 458.25,
+          "top": 447.78125,
+          "width": 83.40625,
+          "x": 374.84375,
+          "y": 447.78125
+        },
+        "selector": ".rv-info .btn.paper",
+        "width": 720
+      }
+    ],
+    "phases": [
+      {
+        "phase": "pouch",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "torn",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "reveal",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "finished-later",
+        "geometry": {
+          "page": "packs",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      }
+    ]
+  },
+  {
+    "kind": "material",
+    "key": "studio-720",
+    "physicalTearAndPull": true,
+    "tiltKeepsRevealPosition": true,
+    "revealFit": [
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 323.2344665527344,
+          "height": 176.15980529785156,
+          "left": 233.5156707763672,
+          "right": 486.29254150390625,
+          "top": 147.0746612548828,
+          "width": 252.77687072753903,
+          "x": 233.5156707763672,
+          "y": 147.0746612548828
+        },
+        "selector": ".mcard.big",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 148,
+          "left": 21.5,
+          "right": 698.296875,
+          "top": 335.78125,
+          "width": 676.796875,
+          "x": 21.5,
+          "y": 335.78125
+        },
+        "selector": ".rv-info",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 36,
+          "left": 309.671875,
+          "right": 410.109375,
+          "top": 447.78125,
+          "width": 100.4375,
+          "x": 309.671875,
+          "y": 447.78125
+        },
+        "selector": ".rv-info .keep",
+        "width": 720
+      }
+    ],
+    "phases": [
+      {
+        "phase": "material-pouch",
+        "geometry": {
+          "page": "today",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "material-reveal",
+        "geometry": {
+          "page": "today",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "material-kept",
+        "geometry": {
+          "page": "today",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      }
+    ]
+  },
+  {
+    "kind": "gift",
+    "key": "studio-720",
+    "envFit": [
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 409.46875,
+          "height": 226.3125,
+          "left": 199.890625,
+          "right": 519.390625,
+          "top": 183.15625,
+          "width": 319.5,
+          "x": 199.890625,
+          "y": 183.15625
+        },
+        "selector": ".env-wrap",
+        "width": 720
+      }
+    ],
+    "revealFit": [
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 303.640625,
+          "height": 117.640625,
+          "left": 274.890625,
+          "right": 445.28125,
+          "top": 186,
+          "width": 170.390625,
+          "x": 274.890625,
+          "y": 186
+        },
+        "selector": ".rv-holder",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 148,
+          "left": 21.5,
+          "right": 698.296875,
+          "top": 335.78125,
+          "width": 676.796875,
+          "x": 21.5,
+          "y": 335.78125
+        },
+        "selector": ".rv-info",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 36,
+          "left": 261.53125,
+          "right": 362.84375,
+          "top": 447.78125,
+          "width": 101.3125,
+          "x": 261.53125,
+          "y": 447.78125
+        },
+        "selector": ".rv-info .keep",
+        "width": 720
+      }
+    ],
+    "phases": [
+      {
+        "phase": "gift-envelope",
+        "geometry": {
+          "page": "gifts",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "gift-reveal",
+        "geometry": {
+          "page": "gifts",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "gift-finished",
+        "geometry": {
+          "page": "gifts",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      }
+    ]
+  },
+  {
+    "kind": "gift",
+    "key": "desk-720",
+    "envFit": [
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 409.46875,
+          "height": 226.3125,
+          "left": 199.890625,
+          "right": 519.390625,
+          "top": 183.15625,
+          "width": 319.5,
+          "x": 199.890625,
+          "y": 183.15625
+        },
+        "selector": ".env-wrap",
+        "width": 720
+      }
+    ],
+    "revealFit": [
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 315.09375,
+          "height": 140.09375,
+          "left": 274.890625,
+          "right": 445.28125,
+          "top": 175,
+          "width": 170.390625,
+          "x": 274.890625,
+          "y": 175
+        },
+        "selector": ".rv-holder",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 148,
+          "left": 21.5,
+          "right": 698.296875,
+          "top": 335.78125,
+          "width": 676.796875,
+          "x": 21.5,
+          "y": 335.78125
+        },
+        "selector": ".rv-info",
+        "width": 720
+      },
+      {
+        "height": 520,
+        "rect": {
+          "bottom": 483.78125,
+          "height": 36,
+          "left": 261.53125,
+          "right": 362.84375,
+          "top": 447.78125,
+          "width": 101.3125,
+          "x": 261.53125,
+          "y": 447.78125
+        },
+        "selector": ".rv-info .keep",
+        "width": 720
+      }
+    ],
+    "phases": [
+      {
+        "phase": "gift-envelope",
+        "geometry": {
+          "page": "gifts",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "gift-reveal",
+        "geometry": {
+          "page": "gifts",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "scene": "ceremony",
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      },
+      {
+        "phase": "gift-finished",
+        "geometry": {
+          "page": "gifts",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      }
+    ]
+  },
+  {
+    "kind": "create",
+    "phases": [
+      {
+        "phase": "created",
+        "geometry": {
+          "page": "create",
+          "pos": {
+            "x": 190,
+            "y": 100
+          },
+          "size": {
+            "height": 520,
+            "width": 720
+          },
+          "visible": true
+        }
+      }
+    ],
+    "emptyEditorReady": true
+  },
+  {
+    "manualOutsideClickStillCloses": true
+  }
+]

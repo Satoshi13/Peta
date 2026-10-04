@@ -1,0 +1,23 @@
+{
+  "successTags": [
+    {
+      "art": "peta-tag-en",
+      "x": "999.999786px",
+      "y": "599.711044px"
+    },
+    {
+      "art": "peta-tag-round",
+      "x": "999.999908px",
+      "y": "600.087654px"
+    },
+    {
+      "art": "peta-tag-stamp",
+      "x": "1079.999359px",
+      "y": "659.9216px"
+    }
+  ],
+  "successfulFifoPastes": 2,
+  "returnToSheetShowsNoTag": true,
+  "reprintPasteShowsOneTag": true,
+  "noImmediateRepeat": true
+}

@@ -8,7 +8,7 @@ use serde::Serialize;
 use tauri::{AppHandle, Manager, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt;
 
-use crate::{print, store::Store, today};
+use crate::{store::Store, today};
 
 const EXT: &str = "peta";
 
@@ -78,39 +78,18 @@ pub fn unopened_count(app: &AppHandle) -> usize {
     app.state::<Store>().lock().db().gifts_received().map(|g| g.iter().filter(|g| g.opened_at.is_none()).count()).unwrap_or(0)
 }
 
-/// Break the seal: the gift becomes today's Peta (like opening a pack), printed at the slot to be stuck down.
+/// Break the seal: keep this gift in the Book and print queue. No daily limit or material cost.
 #[tauri::command]
 pub async fn gift_open(app: AppHandle, gift_id: String) -> Result<String, String> {
-    if !today::status(&app)?.can_create {
-        return Err(today::ALREADY_USED.into());
-    }
     let date = app.state::<today::Today>().date();
     let sticker_id = {
         let store = app.state::<Store>();
         let mut lib = store.lock();
-        let record = daily::ensure_today(lib.db_mut(), &date, random_unit()).map_err(|e| e.to_string())?;
-        if !record.slot(false).can_add_new() {
-            return Err(today::ALREADY_USED.into());
-        }
         let sticker = gift::open_gift(&mut lib, &gift_id).map_err(|e| e.to_string())?;
         daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Gift, random_unit()).map_err(|e| e.to_string())?;
         sticker.id
     };
     today::announce(&app);
-    print::begin(&app);
+    // The ceremony hands it to the print layer after the main window closes.
     Ok(sticker_id)
-}
-
-/// Menu bar "Open Gift…": receive a file, then show the Inbox (Today's Peta).
-pub fn menu_open_gift(app: &AppHandle) {
-    let app2 = app.clone();
-    tauri::async_runtime::spawn(async move {
-        match gift_receive_file(app2.clone()).await {
-            Ok(Some(_)) => {
-                let _ = today::open_window(&app2);
-            }
-            Ok(None) => {}
-            Err(e) => eprintln!("[peta] could not receive the gift: {e}"),
-        }
-    });
 }
