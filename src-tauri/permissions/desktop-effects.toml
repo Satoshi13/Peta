@@ -1,4 +1,9 @@
 [[permission]]
+identifier = "allow-profile-icon"
+description = "Choose a local creator icon from owned original stickers"
+commands.allow = ["profile_set_icon"]
+
+[[permission]]
 identifier = "allow-set-reflection-active"
 description = "Enable cursor reflection for the calling desktop layer."
 commands.allow = ["set_reflection_active"]

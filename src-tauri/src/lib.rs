@@ -170,6 +170,7 @@ pub fn run() {
             collection::scrap_status,
             collection::scrap_trade,
             collection::profile_get,
+            collection::profile_set_icon,
             collection::profile_set
         ])
         .on_window_event(|window, event| {

@@ -92,12 +92,23 @@ pub fn scrap_trade(app: AppHandle, store: State<Store>, trade: peta_core::scraps
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
     pub display_name: String,
+    pub icon_sticker_id: Option<String>,
 }
 
 #[tauri::command]
 pub fn profile_get(store: State<Store>) -> Result<Profile, String> {
-    let display_name = store.lock().db().display_name().map_err(|e| e.to_string())?;
-    Ok(Profile { display_name })
+    let lib = store.lock();
+    let display_name = lib.db().display_name().map_err(|e| e.to_string())?;
+    let icon_sticker_id = lib.db().profile_icon().map_err(|e| e.to_string())?;
+    Ok(Profile { display_name, icon_sticker_id })
+}
+
+#[tauri::command]
+pub fn profile_set_icon(app: AppHandle, store: State<Store>, sticker_id: Option<String>) -> Result<Profile, String> {
+    store.lock().db_mut().set_profile_icon(sticker_id.as_deref()).map_err(|e| e.to_string())?;
+    let profile = profile_get(store)?;
+    let _ = app.emit("profile-changed", &profile);
+    Ok(profile)
 }
 
 /// The name printed on the back of stickers you make from now on. Empty = back to the OS user name.

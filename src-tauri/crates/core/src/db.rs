@@ -331,8 +331,11 @@ impl Database {
     }
 
     pub fn delete_original(&mut self, id: &str) -> Result<()> {
-        let n = self.conn.execute("DELETE FROM stickers WHERE id=?1 AND source_type='created'", [id])?;
+        let tx = self.conn.transaction()?;
+        let n = tx.execute("DELETE FROM stickers WHERE id=?1 AND source_type='created'", [id])?;
         if n != 1 { return Err(Error::Invalid("only your original stickers can be deleted".into())); }
+        tx.execute("DELETE FROM meta WHERE key='profile.icon_sticker_id' AND value=?1", [id])?;
+        tx.commit()?;
         Ok(())
     }
 
@@ -453,6 +456,29 @@ impl Database {
                 [name],
             )?;
         }
+        Ok(())
+    }
+
+    /// A local creator icon references a finished original, never a Gift or Pack copy.
+    pub fn profile_icon(&self) -> Result<Option<String>> {
+        Ok(self.conn.query_row(
+            "SELECT s.id FROM meta m JOIN stickers s ON s.id=m.value
+             WHERE m.key='profile.icon_sticker_id' AND s.source_type='created'",
+            [], |r| r.get(0),
+        ).optional()?)
+    }
+
+    pub fn set_profile_icon(&mut self, id: Option<&str>) -> Result<()> {
+        let tx = self.conn.transaction()?;
+        if let Some(id) = id {
+            let original = tx.query_row("SELECT 1 FROM stickers WHERE id=?1 AND source_type='created'", [id], |_| Ok(())).optional()?.is_some();
+            if !original { return Err(Error::Invalid("Choose an original sticker from your Book.".into())); }
+            tx.execute("INSERT INTO meta VALUES ('profile.icon_sticker_id',?1)
+                ON CONFLICT(key) DO UPDATE SET value=excluded.value", [id])?;
+        } else {
+            tx.execute("DELETE FROM meta WHERE key='profile.icon_sticker_id'", [])?;
+        }
+        tx.commit()?;
         Ok(())
     }
 
@@ -959,6 +985,43 @@ mod tests {
         assert_eq!(db.create_sticker(new("C", SourceType::Gift)).unwrap().original_number, None);
         assert_eq!(db.create_sticker(new("D", SourceType::Created)).unwrap().original_number, Some(3));
         assert_eq!(db.sticker_count().unwrap(), 4);
+    }
+
+    #[test]
+    fn creator_icon_persists_and_only_accepts_owned_originals() {
+        let path = std::env::temp_dir().join(format!("peta-profile-{}.db", crate::ids::new_sticker_id()));
+        {
+            let mut db = Database::open(&path).unwrap();
+            for (id, source) in [("mine",SourceType::Created),("gift",SourceType::Gift),("pack",SourceType::Pack)] {
+                db.create_sticker(new(id,source)).unwrap();
+            }
+            assert!(db.profile_icon().unwrap().is_none());
+            db.set_profile_icon(Some("mine")).unwrap();
+            for id in ["gift","pack","missing",""] {
+                assert!(db.set_profile_icon(Some(id)).is_err());
+                assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
+            }
+            db.update_original_assets("mine","new-render","new-mask",1.5).unwrap();
+            assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
+            assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),8);
+        }
+        let mut db = Database::open(&path).unwrap();
+        assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
+        db.set_profile_icon(None).unwrap();assert!(db.profile_icon().unwrap().is_none());
+        db.set_profile_icon(Some("mine")).unwrap();db.delete_original("mine").unwrap();
+        assert!(db.profile_icon().unwrap().is_none());
+        drop(db);let _=std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn deleting_a_creator_icon_is_atomic_and_stale_references_are_hidden() {
+        let mut db = Database::open_in_memory().unwrap();
+        db.create_sticker(new("mine",SourceType::Created)).unwrap();db.set_profile_icon(Some("mine")).unwrap();
+        db.conn.execute_batch("CREATE TRIGGER fail_icon_cleanup BEFORE DELETE ON meta WHEN OLD.key='profile.icon_sticker_id' BEGIN SELECT RAISE(ABORT,'test'); END;").unwrap();
+        assert!(db.delete_original("mine").is_err());
+        assert!(db.sticker("mine").unwrap().is_some());assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
+        db.conn.execute_batch("DROP TRIGGER fail_icon_cleanup; UPDATE meta SET value='missing' WHERE key='profile.icon_sticker_id';").unwrap();
+        assert!(db.profile_icon().unwrap().is_none());
     }
 
     #[test]

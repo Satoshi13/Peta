@@ -17,6 +17,7 @@
     "core:window:allow-set-position",
     "allow-existing-app-commands",
     "allow-haptic-tap",
+    "allow-profile-icon",
     "allow-scrap-trades",
     "allow-signed-distribution"
   ]
