@@ -22,7 +22,7 @@ Pages.settings = {
 /* A local profile uses the same finished original as the Book; no copied asset or account. */
 const CreatorIcon = {
   image(id = S.iconStickerId, lazy = false) {
-    const icon=h("span.creator-icon", h("span.hand", Array.from(S.name.trim())[0]?.toUpperCase() || "P"));
+    const icon=h("span.creator-icon", h("span", Array.from(S.name.trim())[0]?.toUpperCase() || "P"));
     icon._load=()=>{if(!id)return;Bridge.asset(id).then(url=>{
       if(!icon.isConnected)return;
       const picture=h("img",{src:url,alt:"",draggable:false,on:{error:()=>picture.remove(),load:()=>icon.querySelector("span")?.remove()}});

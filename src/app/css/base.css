@@ -1,6 +1,9 @@
 /* ===== tokens ===== */
 :root {
-  --ink: #2b2a28; --ink2: #4a463f; --muted: #7a7468; --cream: #f5f0e6; --paper: #faf6ec; --soft: #fbf9f4; --kraft: #c9a878; --line: #ddd4c2; --red: #d8453a;
+  --ink: #2b2a28; --ink2: #4a463f; --muted: #655e51; --cream: #f5f0e6; --paper: #faf6ec; --soft: #fbf9f4; --kraft: #c9a878; --line: #ddd4c2; --red: #d8453a;
+  --w-win:#f6f1e6; --w-side:#efe9dc; --w-surface:#fffdf8; --w-surface2:#f8f3e7; --w-sunken:#efe8d7;
+  --w-line:#e3dac7; --w-line2:#ece5d4; --w-btn:#2b2a28; --w-btnfg:#ffffff; --w-ok:#456a40; --w-ink:var(--ink);
+  --meta:500 12px/16px var(--sys); --overline:600 11px/14px var(--sys);
   --holo: linear-gradient(105deg, #f6c6e3, #c9c3f5, #bfe3f7, #c8f2dc, #f7f0be);
   --holo-soft: linear-gradient(105deg, #f9d6ea, #d9d5f8, #cfeaf9, #d8f7e8, #faf5cf);
   --hand: "Klee One", "Noteworthy", "Bradley Hand", cursive;

@@ -7,7 +7,8 @@
 :root { --display: var(--sys); --dw: 700; --di: normal; --dls: -.02em; }/* Aa Std = the base. System sans everywhere, with a few typewriter / hand-lettered accents so it still smells of paper. */
 
 body[data-type="current"] { --type: "Special Elite", "Courier Prime", "Courier New", monospace; }
-body[data-type="current"] .eyebrow, body[data-type="current"] .quota small, body[data-type="current"] .rule-cap, body[data-type="current"] .pack small, body[data-type="current"] .mmeta small { font-family: var(--type); letter-spacing: .05em; }
+body[data-type="current"] .eyebrow, body[data-type="current"] .rule-cap { font:var(--overline); letter-spacing:.09em; }
+body[data-type="current"] .quota small, body[data-type="current"] .pack small, body[data-type="current"] .mmeta small { font:var(--meta); letter-spacing:0; }
 body[data-type="current"] .back-card { font-family: var(--hand); }
 body .ph h1, body h2, body h3, body .reveal-info .big, body .rv-info h2, body .month-title, body .mk-hero-text h2, body .mmeta b, body .detail h3, body .pack-tag b, body .mk-detail h3, body .cr-t b {
   font-family: var(--display); font-weight: var(--dw); font-style: var(--di); letter-spacing: var(--dls); }

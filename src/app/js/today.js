@@ -29,7 +29,7 @@ Pages.today = {
       const scene = EnvelopeScene();
       const open = () => Pages.today.openEnvelope(root);
       scene.addEventListener("click", open); scene.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && open());
-      root.append(h("section.t-arrived", scene, h("p.lead.hand", S.extraEnvelope ? "An extra envelope from Peta." : "Today's Material has arrived."), h("button.btn.open", { on: { click: open } }, "Open")));
+      root.append(h("section.t-arrived", scene, h("p.lead", S.extraEnvelope ? "An extra envelope from Peta." : "Today's Material has arrived."), h("button.btn.open", { on: { click: open } }, "Open")));
     } else root.append(Pages.today.openedBlock());
     root.append(h("button.link", {on:{click:()=>Distribution.redeem()}}, "Redeem Code…"));
     return root;
@@ -40,7 +40,7 @@ Pages.today = {
       h("div.t-top", h("h2", "What will you stick today?"), h("p.muted", "A new material arrives every day. Make as many Petas as your materials last — plain Matte never runs out."), Choices()),
       h("div.t-bottom",
         h("div.t-mat", h("div.tm-card", MatCard(m, 138)),
-          h("div.tm-text", h("p.eyebrow", "Today's Material"), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)), h("p.muted", m.recipe), h("p.addnote.hand", "Added to your Material Book"), h("p.stock", stock))),
+          h("div.tm-text", h("p.eyebrow", "Today's Material"), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)), h("p.muted", m.recipe), h("p.addnote", "Added to your Material Book"), h("p.stock", stock))),
         h("div.t-stuck", h("p.eyebrow", "Stuck today"), StuckStrip())));
   },
 

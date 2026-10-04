@@ -8,7 +8,7 @@ Pages.gifts = {
     root.append(waiting.length
       ? h("div.inbox", waiting.map((g, i) => h("div", h("button.gift", { disabled: locked, style: { "--i": i, "--r": [-3, 2.5, -1.5][i % 3] + "deg" }, on: { click: () => { Snd.tap(); Cer.openGift(g); } } },
           img("arrGift", "g-env"), h("span.g-from.hand", h("small", "From"), g.from + (["known","official"].includes(g.signatureStatus) ? " ✓" : "")), locked ? null : h("span.open-cta", "Open")), h("p.muted.small", {style:{maxWidth:"240px",textAlign:"center"}}, Distribution.trust(g)))))
-      : h("div.empty", h("p.hand", "Nothing has arrived yet."), h("p.muted", "When a friend sends you a .peta file, it lands here.")));
+      : h("div.empty", h("p", "Nothing has arrived yet."), h("p.muted", "When a friend sends you a .peta file, it lands here.")));
     root.append(h("div.gift-actions", h("button.btn.paper", { on: { click: () => this.receiveFile() } }, "Open Peta file…"), h("button.link", {on:{click:()=>Distribution.redeem()}}, "Redeem Code…"), got.length ? h("span.muted.small", `${got.length} already opened and kept in your Book`) : null));
     if(S.events.length) root.append(h("section", h("h2", "From Peta ✓"), S.events.map(e=>h("article",h("b",e.title),h("p.muted.small",e.result),e.message ? h("p.small",e.message) : null))));
     return root;
@@ -43,7 +43,7 @@ Pages.materials = {
     root.append(grid); return root;
   },
   stock(m) {
-    return h("span.material-stock", h("strong", m.unlimited ? "∞" : String(S.stock[m.id] || 0)), h("span", m.unlimited ? "Always available" : "sheets in stock"));
+    return h("span.material-stock", h("strong", m.unlimited ? "∞" : String(S.stock[m.id] || 0)), h("span", m.unlimited ? "Always available" : (S.stock[m.id] === 1 ? "sheet in stock" : "sheets in stock")));
   },
   preview() {
     const m = MAT[this.selected]; if(!m || m.locked) return null;

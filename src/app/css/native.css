@@ -289,3 +289,32 @@ html[data-motion="reduce"] .mbook .mcard { transform:rotate(-2deg) !important; }
 .material-stock { display:inline-flex; align-items:baseline; justify-content:center; gap:8px; margin:8px 0; color:var(--ink2); font:500 12px/16px var(--sys); font-variant-numeric:tabular-nums; }
 .material-stock strong { font:700 24px/28px var(--sys); color:var(--ink); }
 .material-preview .material-stock { justify-content:flex-start; }
+
+/* Human-readable UI uses system text; stamps and handwriting belong to paper objects. */
+[data-shell="studio"] .ph h1 { font:700 40px/44px var(--sys); letter-spacing:-.03em; }
+h2 { font:700 22px/26px var(--sys); letter-spacing:-.02em; }
+h3 { font:650 15px/20px var(--sys); }
+.eyebrow, .rule-cap, .cr-controls .lbl { font:var(--overline); letter-spacing:.09em; text-transform:uppercase; }
+small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text .stock, .choice small, .book-count, .tile small, .calendar-multiple, .calendar-rest, .calendar-weekdays, .slider output { font:var(--meta); font-variant-numeric:tabular-nums; }
+.lede, .t-top > .muted { font:400 14px/21px var(--sys); color:var(--ink2); }
+.lead, .empty-note, .addnote, .cr-cutting p { font-family:var(--sys); }
+.empty-note { font:400 14px/21px var(--sys); color:var(--muted); }
+.datestamp, .envelope-clock, .calendar-complete { font:400 13px/1.4 var(--type); letter-spacing:.04em; }
+.scraps-count { font:var(--meta); }
+.scraps-count b, .scrap-summary b { font-family:var(--type); font-size:16px; }
+.scrap-summary input { font:500 16px/20px var(--sys); }
+.seal { font-size:11px; }
+.mcard .lab b { font-size:max(11px,calc(var(--w) * .08)); }
+.mcard .lab small { font:400 max(11px,calc(var(--w) * .06))/1 var(--sys); }
+.cr-controls .mtray .mcard .lab b, .cr-controls .mtray .mcard .lab small { font-size:11px; }
+.g-from small, .ev-note small { font:var(--meta); opacity:1; }
+.pk-tab b { font-size:11px; }
+.preview-reset { font-size:12px; }
+.back-card .label { font-size:max(12px,3.6cqw); opacity:1; color:#655e51; }
+.back-card .value { font-size:max(12px,6.6cqw); }
+.back-card .value + .value { font-size:max(12px,5.6cqw); }
+.back-card .code { font-size:max(11px,2.6cqw); opacity:1; color:#655e51; }
+.creator-icon > span { font:700 32px/1 var(--sys); }
+.setrow .creator-icon-change .creator-icon > span { font-size:22px; }
+.pack-tag b.hand { font-family:var(--hand); }
+.cer-hint, .calendar-add, .peek-s.sealed b { font-family:var(--sys); }

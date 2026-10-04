@@ -43,7 +43,7 @@ function MatCard(m, w = 132) {
 }
 function StuckStrip() {
   const strip = h("div.stuck-strip");
-  if (!S.stuckToday.length) return strip.append(h("p.hand.empty-note", "Nothing stuck yet — your desktop is waiting.")), strip;
+  if (!S.stuckToday.length) return strip.append(h("p.empty-note", "Nothing stuck yet — your desktop is waiting.")), strip;
   S.stuckToday.forEach((id, i) => { const e = S.lib.find((l) => l.id === id); if (!e) return; const t = h("div.stuck-t", { style: { "--i": i } }); resOf(e, { max: 360 }).then((res) => t.append(Stk.el(res, res.aspect >= 1 ? 74 : 74 * res.aspect))); strip.append(t); });
   return strip;
 }

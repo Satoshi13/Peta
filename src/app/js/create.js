@@ -40,7 +40,7 @@ Pages.create = {
     const ready = CR.stage === "ready";
     root.append(PageHead(CR.editing ? "Edit sticker" : "Create", ready ? "Cutting Mat" : "Make a Peta", ready ? h("span.muted.small.uses", usesText()) : null));
     if (CR.stage === "empty") root.append(this.empty());
-    else if (CR.stage === "cutting") root.append(h("div.cr-cutting", h("div.cut-anim"), h("p.hand", "Cutting…"), h("p.muted", "Taking the background away")));
+    else if (CR.stage === "cutting") root.append(h("div.cr-cutting", h("div.cut-anim"), h("p", "Cutting…"), h("p.muted", "Taking the background away")));
     else root.append(this.mat());
     return root;
   },
