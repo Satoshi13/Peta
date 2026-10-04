@@ -6,7 +6,7 @@ edition = "2021"
 rust-version = "1.77"
 
 [workspace]
-members = ["crates/core"]
+members = ["crates/core", "crates/peta-pass"]
 
 [lib]
 name = "peta_lib"

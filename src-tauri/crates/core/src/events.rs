@@ -221,3 +221,5 @@ pub fn inbox(db:&crate::Database)->Result<Vec<Receipt>> {
     let rows=stmt.query_map([],|r|r.get::<_,String>(0))?.collect::<std::result::Result<Vec<_>,_>>()?;
     rows.iter().map(|s|serde_json::from_str(s).map_err(|_|invalid("An event receipt is damaged."))).collect()
 }
+
+pub fn validate_date(value:&str)->Result<()> {DateTime::parse_from_rfc3339(value).map_err(|_|invalid("Invalid event date."))?;Ok(())}

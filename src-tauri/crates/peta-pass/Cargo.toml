@@ -1,0 +1,11 @@
+[package]
+name = "peta-pass"
+version = "0.0.1"
+edition = "2021"
+description = "Offline signed distributions for Peta owners."
+
+[dependencies]
+peta-core = { path = "../core" }
+clap = { version = "4", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"

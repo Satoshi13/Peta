@@ -39,3 +39,11 @@ Redeem Code…はToday／Gifts／トレイから開く、小さいネイティ�
 bundle.fileAssociationsへ.petaを追加した。macOSのRunEvent::Openedは起動後のStoreで受け取るので、実行中とダブルクリック起動の両経路を処理する。Linuxでは起動引数を処理する。macOSの実際の関連付け／未起動・起動中／Finder／トレイは実機で要確認。
 
 Step 3結果: cargo test --workspace成功（Tauriのファイル読込上限1件、core 102件＋統合5件）、npm test 31件成功。関連付けは設定／イベントハンドラー実装までで、Finderからの実起動はmacOS環境がないため未確認。全Step後に実Tauriの取り込みUIを検証する。
+
+## Step 4 — peta-pass
+
+coreと同じフレーム／署名／コードを使うCLIをworkspaceに追加した。keygen／pubkey／event／grant-pack／verify、--keyまたはPETA_SIGNING_KEY（パス）、コード出力、画像付きステッカー配布を提供する。CLIは鍵ファイルの内容を出力しない。verifyは受領／DB更新をしない。未同梱の公開鍵を明示する検証オプションは「同梱の公式信頼ではない」と出力で区別する。
+
+`docs/distribution-howto.md`に、オーナーが自分で実行するkeygen、公開鍵差し替え、鍵の保護、ファイル／コード配布、範囲／限界を記載した。本物の公式秘密鍵は作っていない。CLI自動テストは毎回test-only.keyを/tmpへ生成し、検証後に削除する。
+
+Step 4結果: cargo test --workspace成功（CLI roundtrip 1件、Tauri 1件、core 102件＋統合5件）、npm test 31件成功。CLIの新規鍵／再生成拒否／公開鍵／ファイル＋コード／明示公開鍵verify／改ざん拒否／秘密鍵を出力しないことを一時テスト鍵で確認した。
