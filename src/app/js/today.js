@@ -45,22 +45,14 @@ Pages.today = {
         h("div.t-stuck", h("div.stuck-heading", h("b", "Stuck today"), h("small.muted", `${S.stuckToday.length} on your desktop`)), StuckStrip())));
   },
 
-  /* the opening: envelope -> foil -> card, then the card settles into the tray */
+  /* One envelope releases the actual material card; Keep settles it into Today. */
   async openEnvelope(root) {
     if (root._opening) return; root._opening = true;
-    const scene = $(".env-scene", root), lead = $(".lead", root), btn = $(".btn.open", root); let m;
+    const btn = $(".btn.open", root); let m;
     btn.disabled = true; Bridge.busy = true;
     try { const daily = await Bridge.invoke("daily_open_material"); await Bridge.reload(); m = MAT[daily.material.id]; }
     catch(e) { Bridge.busy = false; btn.disabled = false; root._opening = false; Shell.toast(String(e)); return; }
-    Snd.crinkle(6, .3);
-    const flap = $(".flap", scene), card = $(".card", scene);
-    await anim(scene, [{ transform: "scale(1)" }, { transform: "scale(1.04)" }], { duration: 200, easing: EASE.out });
-    Snd.crack(); anim(flap, [{ transform: "rotateX(0)" }, { transform: "rotateX(-172deg)" }], { duration: 480, easing: EASE.out, delay: 0 });
-    await anim(card, [{ transform: "translateY(0)" }, { transform: "translateY(-42%)" }], { duration: 480, easing: EASE.out, delay: 200 });
-    anim(lead, [{ opacity: 1 }, { opacity: 0 }], { duration: 240 }); anim(btn, [{ opacity: 1 }, { opacity: 0 }], { duration: 240 });
-    await anim(scene, [{ transform: "scale(1.04) translateY(0)", opacity: 1 }, { transform: "scale(.96) translateY(26px)", opacity: 0 }], { duration: 360, easing: EASE.inOut });
     S.dayState = "opened"; Shell.renderNav(); Desktop.hideArrival();
-    // The card is in a wrapper of its own material (foil, kraft or paper): tear it, pull the card out.
     const stageEl = $(".t-arrived", root);
     const res = await Cer.openMaterial(m);
     const block = Pages.today.openedBlock(); block.style.opacity = 0; stageEl.replaceWith(block);

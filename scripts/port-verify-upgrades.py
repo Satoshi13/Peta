@@ -3,7 +3,7 @@ import importlib,json,os,sys,time,subprocess
 from pathlib import Path
 c=importlib.import_module('port-capture');out=c.ROOT/'docs/port-spec/compare/upgrade-2026-10-04'
 assert Path(os.environ['XDG_DATA_HOME']).resolve().is_relative_to(Path('/tmp'))
-def ev(s,label=None):return c.evaluate(s,timeout=90,label=label)
+def ev(s,label=None):return c.evaluate(s,timeout=90,label=label or "peta-app")
 def wait(s,label=None):
     start=time.monotonic()
     while not ev('return Boolean('+s+');',label):
@@ -25,7 +25,7 @@ def shot(name,golden=None):
         pair=Image.new('RGB',(2120,732),'#f5f0e6');pair.paste(ref,(0,32));pair.paste(actual,(1060,32));d=ImageDraw.Draw(pair);d.text((12,8),'Golden (unchanged)',fill='#2b2a28');d.text((1072,8),'Actual Tauri: all-period List / view switch',fill='#2b2a28');pair.save(out/(name+'-golden.jpg'),quality=90)
 if sys.argv[1]=='peel':
     from PIL import Image, ImageDraw
-    out=c.ROOT/'docs/port-spec/compare/review-06';out.mkdir(exist_ok=True)
+    out=c.ROOT/'docs/port-spec/compare/review-16';out.mkdir(exist_ok=True)
     wid=subprocess.check_output(['xdotool','search','--name','^Peta Layer$'],text=True).split()[0]
     def mouse(*args):subprocess.run(['xdotool',*map(str,args)],check=True)
     def le(s):return ev(s,layer)
@@ -46,17 +46,17 @@ if sys.argv[1]=='peel':
     for i in range(1,11):mouse('mousemove',round(x+(900-x)*i/10),round(y+(280-y)*i/10));time.sleep(.025)
     mouse('mouseup','1');wait('(await window.__TAURI__.core.invoke("layer_info")).editMode',layer)
     wait('!document.querySelector(".print-sheet")',layer)
-    le('window.peelHaptics=[];const tap=Haptic.tap.bind(Haptic);Haptic.tap=kind=>{if(Haptic.on)window.peelHaptics.push(kind);tap(kind);};applyLayerPreferences({motion:"full",sound:false,haptics:true});window.peelErrors=[];window.addEventListener("error",e=>window.peelErrors.push(e.message));window.peelFrames=0;const raf=requestAnimationFrame;window.requestAnimationFrame=fn=>{window.peelFrames++;return raf(fn);};return true;')
+    le('window.peelHaptics=[];window.peelTap ||= Haptic.tap.bind(Haptic); const tap=window.peelTap;Haptic.tap=kind=>{if(Haptic.on)window.peelHaptics.push(kind);tap(kind);};applyLayerPreferences({motion:"full",sound:false,haptics:true});window.peelErrors=[];window.addEventListener("error",e=>window.peelErrors.push(e.message));window.peelFrames=0;window.peelNativeRaf ||= requestAnimationFrame; const raf=window.peelNativeRaf;window.requestAnimationFrame=fn=>{window.peelFrames++;return raf(fn);};return true;')
     baseline=positions();ev('await Bridge.reload();return true;');stock=ev('return S.stock;')
-    x,y=begin('PETA-PORT-0011');mouse('mousemove',x+60,y);wait('document.querySelectorAll(".peel-strip").length===12',layer)
-    attached=le('const n=document.querySelector(".peeling");window.peelMutations=0;window.peelObserver=new MutationObserver(records=>window.peelMutations+=records.length);window.peelObserver.observe(n,{subtree:true,attributes:true,attributeFilter:["style"]});return {transform:n.style.transform,clip:n.querySelector(".body").style.clipPath,back:getComputedStyle(n.querySelector(".peel-back")).backgroundImage};')
+    x,y=begin('PETA-PORT-0011');mouse('mousemove',x+60,y);wait('document.querySelector(".peel-curl canvas[data-backing=loaded]")',layer)
+    attached=le('const n=document.querySelector(".peeling");window.peelMutations=0;window.peelObserver=new MutationObserver(records=>window.peelMutations+=records.length);window.peelObserver.observe(n,{subtree:true,attributes:true,attributeFilter:["style"]});return {transform:n.style.transform,clip:n.querySelector(".body").style.clipPath,back:n.querySelector(".peel-curl canvas").dataset.material};')
     time.sleep(.4);assert le('return window.peelMutations;')==0
     frame().save(out/'peel-after.png');release();le('window.peelObserver.disconnect();return true;')
     assert positions()==baseline and le('return window.peelHaptics.length;')==0
     records=[]
     for id,dx,dy in [('PETA-PORT-0010',-35,30),('PETA-PORT-0012',0,-55)]:
-        x,y=begin(id);mouse('mousemove',x+dx,y+dy);wait('document.querySelectorAll(".peel-strip").length===12',layer)
-        records.append(le('const n=document.querySelector(".peeling");return {material:n.dataset.material,clip:n.querySelector(".body").style.clipPath,paper:getComputedStyle(n.querySelector(".peel-back")).backgroundImage};'))
+        x,y=begin(id);mouse('mousemove',x+dx,y+dy);wait('document.querySelector(".peel-curl canvas[data-backing=loaded]")',layer)
+        records.append(le('const n=document.querySelector(".peeling");return {material:n.dataset.material,clip:n.querySelector(".body").style.clipPath,paper:n.querySelector(".peel-curl canvas").dataset.material};'))
         release();assert positions()==baseline
     x,y=begin('PETA-PORT-0012');mouse('mousemove',x+100,y);wait('document.querySelector(".peel-ready")',layer)
     le('document.querySelector("#layer").dispatchEvent(new PointerEvent("pointercancel",{pointerId:1,clientX:1079,clientY:450}));return true;');release();assert positions()==baseline
@@ -70,7 +70,7 @@ if sys.argv[1]=='peel':
     ev('await Bridge.reload();return true;');assert ev('return S.lib.some(e=>e.id==="PETA-PORT-0011" && !e.onDesktop);')
     movie.extend([frame()]*4);movie[0].save(out/'peel-motion.gif',save_all=True,append_images=movie[1:],duration=100,loop=0)
     before=Image.open('/tmp/peta-peel-before.png').crop((100,360,530,760)).convert('RGB');after=Image.open(out/'peel-after.png')
-    pair=Image.new('RGB',(860,428),'#f5f0e6');pair.paste(before,(0,28));pair.paste(after,(430,28));draw=ImageDraw.Draw(pair);draw.text((10,7),'Before: rigid hinge',fill='#2b2a28');draw.text((440,7),'Actual Tauri: curled paper / same pull',fill='#2b2a28');pair.save(out/'peel-comparison.png')
+    pair=Image.new('RGB',(860,428),'#f5f0e6');pair.paste(before,(0,28));pair.paste(after,(430,28));draw=ImageDraw.Draw(pair);draw.text((10,7),'Before: reversed 12-strip curl',fill='#2b2a28');draw.text((440,7),'Actual Tauri: continuous curl / same pull',fill='#2b2a28');pair.save(out/'peel-comparison.png')
     le('applyLayerPreferences({motion:"reduce",sound:false,haptics:true});return true;')
     x,y=begin('PETA-PORT-0010');mouse('mousemove',x+20,y);time.sleep(.15)
     assert le('return !document.querySelector(".peel-curl") && document.querySelector(".peeling .body").style.clipPath==="";');release()
@@ -89,7 +89,7 @@ if sys.argv[1]=='peel':
     frames=le('return window.peelFrames;');time.sleep(.5);assert le('return window.peelFrames;')==frames
     assert le('return window.peelHaptics;')==['peel','peel'] and not le('return window.peelErrors;')
     ev('await Bridge.reload();return true;');assert ev('return S.stock;')==stock
-    (out/'peel.json').write_text(json.dumps(dict(actualNativeMousePrintPaste=True,attached=attached,stationaryCurlDoesNotUpdate=True,partialReturnKeepsPlacement=True,materialPapers=records,pointerCancelDoesNotPeel=True,successfulPeelOnce=True,peeledStickerRemainsInBook=True,reduceMotionNoCurl=True,reducedSuccessOnce=True,reduceDuringPullClearsCurl=True,escapeDuringPullReturnsPaper=True,idleRafStops=True,stockUnchanged=True,errors=[]),indent=2))
+    (out/'peel.json').write_text(json.dumps(dict(actualNativeMousePrintPaste=True,attached=attached,stationaryCurlDoesNotUpdate=True,continuousCanvasSurface=True,trailingEdgeFollowsPull=True,partialReturnKeepsPlacement=True,materialPapers=records,pointerCancelDoesNotPeel=True,successfulPeelOnce=True,peeledStickerRemainsInBook=True,reduceMotionNoCurl=True,reducedSuccessOnce=True,reduceDuringPullClearsCurl=True,escapeDuringPullReturnsPaper=True,idleRafStops=True,stockUnchanged=True,errors=[]),indent=2))
     print('Native peel: mouse curl/return/commit, three materials, interruptions, Reduce motion, one-shot haptics and idle cleanup passed')
 elif sys.argv[1]=='market-owned':
     from PIL import Image, ImageDraw

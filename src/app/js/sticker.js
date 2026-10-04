@@ -92,10 +92,12 @@ const Stk = (() => {
   function tilt(target, { max = 12, scale = 1.04, baseTransform = "", trigger = target } = {}) {
     const sticker = () => target.matches(".stk") ? target : target.querySelector(".stk") || target;
     const reset = () => { target.style.transform = baseTransform; const stk = sticker(); stk.style.setProperty("--sx", "30%"); stk.style.setProperty("--sy", "30%"); };
-    onPointerFollow(trigger, (x, y) => {
-      target.style.transform = `${baseTransform} perspective(700px) rotateY(${(x - 0.5) * max * 2}deg) rotateX(${-(y - 0.5) * max * 2}deg) scale(${scale})`;
+    const moves = trigger !== target;
+    target.dataset.follow = "true";
+    onPointerFollow(trigger, (x, y, e, amount) => {
+      if (moves) target.style.transform = `${baseTransform} perspective(700px) rotateY(${(x - 0.5) * Math.min(max, 5) * 2 * amount}deg) rotateX(${-(y - 0.5) * Math.min(max, 5) * 2 * amount}deg) scale(${1 + (Math.min(scale,1.015)-1)*amount})`;
       const stk = sticker();
-      stk.style.setProperty("--sx", `${(1 - x) * 100}%`); stk.style.setProperty("--sy", `${(1 - y) * 100}%`);
+      stk.style.setProperty("--sx", `${lerp(30,(1-x)*100,amount)}%`); stk.style.setProperty("--sy", `${lerp(30,(1-y)*100,amount)}%`);
     }, reset);
     return reset;
   }

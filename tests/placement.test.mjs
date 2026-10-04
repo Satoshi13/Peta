@@ -73,21 +73,21 @@ test("pivotResult: drag the rim outward and around => bigger and rotated at once
   near(out.w, 200); near(out.rotation, 100);
 });
 
-test("peelPose: pulling right hinges on the left edge, axis is vertical", () => {
+test("peelPose: pulling right leaves the right edge attached, axis is vertical", () => {
   const p = peelPose(60, 0, 0, 200, 100);
-  near(p.ox, 0); near(p.oy, 50); near(p.ax, 0); near(p.ay, 1);
+  near(p.ox, 200); near(p.oy, 50); near(p.ax, 0); near(p.ay, 1);
   assert.ok(p.angle > 0 && p.progress > 0);
 });
 
-test("peelPose: pulling down hinges on the top edge", () => {
+test("peelPose: pulling down leaves the bottom edge attached", () => {
   const p = peelPose(0, 40, 0, 200, 100);
-  near(p.ox, 100); near(p.oy, 0); near(p.ax, -1); near(p.ay, 0);
+  near(p.ox, 100); near(p.oy, 100); near(p.ax, -1); near(p.ay, 0);
 });
 
 test("peelPose follows the sticker's rotation and caps the angle", () => {
-  // sticker rotated 90deg cw: a screen-space pull downward is local +x => hinge on local left
+  // sticker rotated 90deg cw: a screen-space pull downward is local +x => local right stays attached
   const p = peelPose(0, 40, 90, 200, 100);
-  near(p.dlx, 1); near(p.dly, 0, 1e-9); near(p.ox, 0);
+  near(p.dlx, 1); near(p.dly, 0, 1e-9); near(p.ox, 200);
   assert.equal(peelPose(1e6, 0, 0, 200, 100).angle, PEEL_MAX_ANGLE);
   assert.equal(peelPose(0, 0, 0, 200, 100).progress, 0);
 });
@@ -95,6 +95,16 @@ test("peelPose follows the sticker's rotation and caps the angle", () => {
 const area = points => Math.abs(points.reduce((sum, [x, y], i) => {
   const next = points[(i + 1) % points.length]; return sum + x * next[1] - y * next[0];
 }, 0)) / 2;
+
+test("the trailing edge folds towards the pull, in both axes and rotated stickers", () => {
+  for (const rotation of [0,37,90,-65]) for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+    const pose=peelPose(dx*60,dy*60,rotation,200,150), curl=peelCurl(pose,200,150);
+    near(curl.dlx,-pose.dlx); near(curl.dly,-pose.dly);
+    for (const band of curl.strips) assert.ok(band.x*pose.dlx+band.y*pose.dly >= -1e-9);
+    const center=curl.front.reduce(([x,y],[px,py])=>[x+px/curl.front.length,y+py/curl.front.length],[0,0]);
+    assert.ok((center[0]-100)*pose.dlx+(center[1]-75)*pose.dly>0);
+  }
+});
 
 test("curl keeps the attached part flat and covers the original silhouette without losing paper", () => {
   for (const [dx, dy] of [[60, 0], [0, -60], [-45, 60], [45, -60]]) {

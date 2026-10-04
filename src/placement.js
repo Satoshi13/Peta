@@ -80,7 +80,7 @@ export function pivotResult(start, px, py, layerW) {
   };
 }
 
-// ---- Peel (Option + drag away): the grabbed side lifts, the far edge is the hinge ----
+// ---- Peel (Option + drag away): the trailing edge folds towards the hand ----
 
 export const PEEL_DISTANCE = 0.45; // pull length (as a fraction of the longer side) for progress = 1
 export const PEEL_COMMIT = 0.8;    // released beyond this => the sticker comes off
@@ -88,8 +88,8 @@ export const PEEL_MAX_ANGLE = 75;
 
 /**
  * Pose of a half-lifted sticker for a screen-space pull vector (dx, dy).
- * Returns the hinge origin (px, inside the sticker's own box), the in-plane rotation axis and the
- * lift angle in degrees. CSS: `transform-origin: ox oy; transform: perspective(P) rotate3d(ax, ay, 0, -angle)`.
+ * Returns the pull in sticker-local coordinates, the leading attached edge and the lift angle.
+ * peelCurl maps the trailing paper to a curve; the sticker's placement stays unchanged.
  */
 export function peelPose(dx, dy, rotationDeg, w, h) {
   const len = Math.hypot(dx, dy);
@@ -104,14 +104,14 @@ export function peelPose(dx, dy, rotationDeg, w, h) {
     progress,
     angle: Math.min(PEEL_MAX_ANGLE, progress * 55),
     ax: -dly, ay: dlx,
-    ox: w / 2 - dlx * reach, oy: h / 2 - dly * reach,
+    ox: w / 2 + dlx * reach, oy: h / 2 + dly * reach,
     dlx, dly,
   };
 }
 
-/** A paper curl along the pull: the attached part stays flat, narrow strips follow an arc. */
+/** Peel from the trailing edge and fold towards the hand; the attached leading edge stays flat. */
 export function peelCurl(pose, w, h) {
-  const { dlx, dly } = pose, progress = clamp(pose.progress, 0, 1);
+  const dlx = -pose.dlx, dly = -pose.dly, progress = clamp(pose.progress, 0, 1);
   const reach = (Math.abs(dlx) * w + Math.abs(dly) * h) / 2;
   const length = reach * 2 * progress, seam = reach - length;
   const projection = ([x, y]) => (x - w / 2) * dlx + (y - h / 2) * dly;
@@ -132,18 +132,18 @@ export function peelCurl(pose, w, h) {
   };
   const front = clip(-Infinity, seam), lifted = clip(seam, Infinity), strips = [];
   if (length > 1e-6) {
-    const bend = Math.min(200, progress * 260) * Math.PI / 180, radius = length / bend, count = 12;
+    const bend = Math.min(200, progress * 260) * Math.PI / 180, radius = length / bend, count = 64;
     for (let i = 0; i < count; i++) {
       const q = (i + .5) * length / count, angle = q / radius, origin = seam + q;
       const shift = radius * Math.sin(angle) - q;
       strips.push({
         clip: clip(seam + i * length / count, seam + (i + 1) * length / count),
-        paintClip: clip(seam + i * length / count - .45, seam + (i + 1) * length / count + .45),
+        paintClip: clip(seam + i * length / count - .6, seam + (i + 1) * length / count + .6),
         ox: w / 2 + dlx * origin, oy: h / 2 + dly * origin,
         x: dlx * shift, y: dly * shift, z: radius * (1 - Math.cos(angle)),
         angle: angle * 180 / Math.PI, shade: .06 + .24 * (1 - Math.abs(Math.cos(angle))),
       });
     }
   }
-  return { front, lifted, strips, length };
+  return { front, lifted, strips, length, dlx, dly };
 }

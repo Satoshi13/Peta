@@ -1,0 +1,208 @@
+{
+  "opening": {
+    "calls": 1,
+    "stock": {
+      "holographic": 1,
+      "kraft": 1,
+      "matte": 0
+    },
+    "noSecondWrapper": true,
+    "hint": "Tilt it to catch the light.",
+    "separated": true,
+    "realMousePull": true,
+    "provenance": "Actual Today receipt and mouse pull, before final window-exit cleanup; later replay does not grant material."
+  },
+  "keep": {
+    "calls": 1,
+    "stock": {
+      "holographic": 1,
+      "kraft": 1,
+      "matte": 0
+    },
+    "page": "today",
+    "ceremonies": 0
+  },
+  "layout": [
+    {
+      "aspect": 1.4736842105263157,
+      "h": 520,
+      "separated": true,
+      "w": 720,
+      "shell": "studio"
+    },
+    {
+      "aspect": 1.473748848633712,
+      "h": 700,
+      "separated": true,
+      "w": 1060,
+      "shell": "studio"
+    },
+    {
+      "aspect": 1.4736842105263157,
+      "h": 520,
+      "separated": true,
+      "w": 720,
+      "shell": "studio"
+    },
+    {
+      "aspect": 1.4736842105263157,
+      "h": 520,
+      "separated": true,
+      "w": 720,
+      "shell": "desk"
+    },
+    {
+      "aspect": 1.473748848633712,
+      "h": 700,
+      "separated": true,
+      "w": 1060,
+      "shell": "desk"
+    },
+    {
+      "aspect": 1.4736842105263157,
+      "h": 520,
+      "separated": true,
+      "w": 720,
+      "shell": "desk"
+    }
+  ],
+  "hover": [
+    {
+      "frame": 0,
+      "h": 288.921875,
+      "hovered": true,
+      "w": 316,
+      "x": 36,
+      "y": 171,
+      "idle": true,
+      "shell": "studio",
+      "page": "materials"
+    },
+    {
+      "frame": 0,
+      "h": 342,
+      "hovered": true,
+      "w": 192,
+      "x": 153,
+      "y": 118,
+      "idle": true,
+      "shell": "studio",
+      "page": "packs"
+    },
+    {
+      "frame": 0,
+      "h": 262.328125,
+      "hovered": true,
+      "w": 208,
+      "x": 36,
+      "y": 198,
+      "idle": true,
+      "shell": "studio",
+      "page": "market"
+    },
+    {
+      "frame": 0,
+      "h": 112.078125,
+      "hovered": true,
+      "w": 112.078125,
+      "x": 36,
+      "y": 348,
+      "idle": true,
+      "shell": "studio",
+      "page": "create"
+    },
+    {
+      "frame": 0,
+      "h": 242,
+      "hovered": true,
+      "w": 151.5,
+      "x": 36,
+      "y": 148,
+      "idle": true,
+      "shell": "studio",
+      "page": "book"
+    },
+    {
+      "frame": 0,
+      "h": 178,
+      "hovered": true,
+      "w": 318,
+      "x": 36,
+      "y": 179,
+      "idle": true,
+      "shell": "studio",
+      "page": "today"
+    },
+    {
+      "frame": 0,
+      "h": 288.921875,
+      "hovered": true,
+      "w": 308,
+      "x": 44,
+      "y": 171,
+      "idle": true,
+      "shell": "desk",
+      "page": "materials"
+    },
+    {
+      "frame": 0,
+      "h": 342,
+      "hovered": true,
+      "w": 192,
+      "x": 153,
+      "y": 118,
+      "idle": true,
+      "shell": "desk",
+      "page": "packs"
+    },
+    {
+      "frame": 0,
+      "h": 262.328125,
+      "hovered": true,
+      "w": 202.65625,
+      "x": 44,
+      "y": 198,
+      "idle": true,
+      "shell": "desk",
+      "page": "market"
+    },
+    {
+      "frame": 0,
+      "h": 112.078125,
+      "hovered": true,
+      "w": 112.078125,
+      "x": 44,
+      "y": 348,
+      "idle": true,
+      "shell": "desk",
+      "page": "create"
+    },
+    {
+      "frame": 0,
+      "h": 242,
+      "hovered": true,
+      "w": 184.65625,
+      "x": 84,
+      "y": 166,
+      "idle": true,
+      "shell": "desk",
+      "page": "book"
+    },
+    {
+      "frame": 0,
+      "h": 178,
+      "hovered": true,
+      "w": 310,
+      "x": 44,
+      "y": 183,
+      "idle": true,
+      "shell": "desk",
+      "page": "today"
+    }
+  ],
+  "idle": {
+    "animations": 0,
+    "followers": 0,
+    "frames": 0
+  }
+}

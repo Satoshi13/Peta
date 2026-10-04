@@ -44,8 +44,7 @@ const Cer = (() => {
     sleeve.remove();
     holder.style.opacity = 1; holder.getAnimations().forEach((a) => a.cancel());
     // alive: tilt + sheen
-    const tilter = h("div.rv-tilt", stk); holder.append(tilter); Stk.tilt(tilter, { max: 14, scale: 1.05 });
-    anim(tilter, [{ transform: "translateY(0)" }, { transform: "translateY(-7px)" }, { transform: "translateY(0)" }], { duration: 4200, iterations: Infinity, easing: "ease-in-out", composite: "add" });
+    const tilter = h("div.rv-tilt", stk); holder.append(tilter); Stk.tilt(tilter, { max:5, scale:1.015, trigger:holder });
     cer.hint("Tilt it to catch the light.");
     // who/what is it
     const info = h("div.rv-info", h("p.eyebrow", source), h("h2", titleOf(entry)),
@@ -86,7 +85,7 @@ const Cer = (() => {
     };
     setProg(0);
     // the foil / paper catches the light wherever the pointer is on the stage
-    stage.addEventListener("pointermove", (e) => { const r = pouch.getBoundingClientRect(); pouch.style.setProperty("--sx", (1 - clamp((e.clientX - r.left) / r.width, 0, 1)) * 100 + "%"); pouch.style.setProperty("--sy", (1 - clamp((e.clientY - r.top) / r.height, 0, 1)) * 100 + "%"); });
+    onPointerFollow(stage, (x,y,e,amount) => { pouch.style.setProperty("--sx",lerp(30,(1-x)*100,amount)+"%"); pouch.style.setProperty("--sy",lerp(30,(1-y)*100,amount)+"%"); }, () => { pouch.style.setProperty("--sx","30%"); pouch.style.setProperty("--sy","30%"); });
     let lastSnd = 0;
     drag(pouch, {
       down: (e) => { if (rig.done) return false; const r = pouch.getBoundingClientRect(); if ((e.clientY - r.top) / r.height > .42) return false; pouch.classList.add("pulling"); },
@@ -126,66 +125,85 @@ const Cer = (() => {
     return rig;
   }
 
-  /* ------------------------------------------------------------------ TODAY'S MATERIAL: the card comes out of its own wrapper */
-  const MAT_WRAP = { holographic: { kind: "holo", hue: 0 }, kraft: { kind: "kraft", hue: 0 }, matte: { kind: "matte", hue: 0 }, gold: { kind: "holo", hue: 48 }, riso: { kind: "matte", hue: 0 }, vintage: { kind: "kraft", hue: 0 } };
-  /** Resolves when the person keeps the card: { rect, node, close } so the page can fly it into place. */
+  /* ------------------------------------------------------------------ TODAY'S MATERIAL: one envelope, one card */
+  /** Resolves when the person keeps the card; the daily receipt is committed by Today only once. */
   function openMaterial(m) {
-    return new Promise((resolve) => {
-      const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear it open.");
-      const w = MAT_WRAP[m.id] || MAT_WRAP.matte, fx = RAR_FX[m.rarity] || RAR_FX.common;
-      const card = h("div.mcard.big.in-wrap", { data: { m: m.id }, vars: { "--w": "216px" } }, h("i.art"), h("span.lab", h("b", m.name), h("small", m.rarity)));
-      const rig = buildRig(cer, stage, { kind: w.kind, hue: w.hue, content: card, onTear: async (rig) => {
-        const cardWidth = Math.min(216, rig.PW * .72);
-        card.style.cssText += `;position:absolute;left:${rig.PW * .14}px;top:${rig.cutY - cardWidth * .038}px;--w:${cardWidth}px`;
-        await anim(card, [{ transform: card.style.transform || "none" }, { transform: `translateY(${-rig.PH * .28}px) rotate(-2deg)` }], { duration: 760, easing: EASE.out });
-        fix(card, `translateY(${-rig.PH * .28}px) rotate(-2deg)`); card.classList.add("out"); cer.hint("Pull it out.");
-        rig.pullable(card, { rise: .28, need: .3, onPull: async () => {
-          cer.hint("Tilt it to catch the light."); rig.linger(); Snd.swoosh();
-          const r = card.getBoundingClientRect(), sr = stage.getBoundingClientRect();
-          const position = h("div.material-card-position", {style:{position:"absolute",left:r.left-sr.left+"px",top:r.top-sr.top+"px",width:r.width+"px",zIndex:8}});
-          stage.append(position); position.append(card);
-          card.style.cssText = `position:relative;transform:none;--w:${r.width}px;`;
-          const {width,height} = card.getBoundingClientRect();
-          let resize;
-          const info = h("div.rv-info", {style:{opacity:0,pointerEvents:"none"}}, h("p.eyebrow", "Today's Material"), h("h2", m.name), h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: m.rarity } }, m.rarity), h("span.no", m.recipe)),
-            h("div.rv-btns", h("button.btn.keep", { on: { click: async () => {
-              resize?.disconnect(); Snd.tap(); const rect = card.getBoundingClientRect(), node = card.cloneNode(true); node.classList.remove("in-wrap", "big", "out"); node.getAnimations?.().forEach((a) => a.cancel());
-              resolve({ rect, node, close: opts => cer.close(opts) });
-            } } }, "Keep it")));
-          stage.append(info);
-          const hint = $(".cer-hint", cer.root);
-          const layout = () => {
-            const st = stage.getBoundingClientRect(), hr = hint.getBoundingClientRect();
-            const fit = PetaMath.fitMaterialCard({stageWidth:stage.clientWidth,stageHeight:stage.clientHeight,cardWidth:width,cardHeight:height,hintBottom:hr.bottom-st.top,infoTop:stage.clientHeight-info.offsetHeight});
-            return {dx:fit.cx-(position.offsetLeft+width/2),dy:fit.cy-(position.offsetTop+height/2),k:fit.scale,cy:fit.cy};
-          };
-          const target = ({dx,dy,k}) => `translate(${dx}px, ${dy}px) scale(${k})`;
-          const snap = fit => {
-            const w = width * fit.k;
-            position.style.left = stage.clientWidth/2-w/2+"px"; position.style.top = fit.cy-height*fit.k/2+"px";
-            position.style.width = w+"px"; card.style.setProperty("--w",w+"px");
-            fix(position,"none"); // Render the final size crisply instead of enlarging a small GPU surface.
-          };
-          const fit = layout();
-          const glow = h("i.rv-glow", { data: { m: m.id === "gold" ? "kraft" : m.id } }), rays = h("i.rv-rays", { data: { m: m.id } }); stage.append(glow, rays);
-          glow.style.top = rays.style.top = fit.cy + "px";
-          anim(glow, [{ opacity: 0, transform: "scale(.3)" }, { opacity: 1, transform: "scale(1)" }], { duration: 900, easing: EASE.out });
-          if (m.id !== "matte") anim(rays, [{ opacity: 0, transform: "scale(.5) rotate(0)" }, { opacity: .85, transform: "scale(1) rotate(40deg)" }], { duration: 1200, easing: EASE.out });
-          anim(card, [{transform:"none"},{transform:"rotate(-3deg)",offset:.7},{transform:"rotate(-2deg)"}], {duration:820,easing:EASE.out}).then(() => fix(card,"rotate(-2deg)"));
-          await anim(position, [{ transform: "none" }, { transform: target({...fit,k:fit.k*1.08}), offset: .7 }, { transform: target(fit) }], { duration: 820, easing: EASE.out });
-          snap(fit);
-          if (fx.n) sparkBurst(stage, fx.n, { cx: .5, cy: fit.cy/stage.clientHeight, power: m.rarity === "rare" ? 1.5 : 1, colors: m.id === "kraft" ? ["#f2d9a8", "#fff", "#e8bf80"] : undefined }); Snd.chime(fx.chime, 880);
-          Stk.tilt(card, { max: 12, scale: 1.02, baseTransform: "rotate(-2deg)" });
-          resize = new ResizeObserver(() => { const fit = layout(); snap(fit); glow.style.top = rays.style.top = fit.cy+"px"; });
-          resize.observe(stage); resize.observe(info); resize.observe(hint);
-          info.style.opacity = 1; info.style.pointerEvents = "";
-          anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
-          await sleep(260); Snd.seal(); anim($(".seal", info), [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 360, easing: EASE.spring });
-        } });
-      } });
-      const cardWidth = Math.min(216, rig.PW * .72);
-      card.style.cssText = `position:absolute;left:${rig.PW * .14}px;top:${rig.cutY - cardWidth * .038}px;--w:${cardWidth}px`;
-      rig.focus(); cer.root._esc = () => {};
+    return new Promise(resolve => {
+      const cer=overlay("material"), stage=cer.stage, envelope=EnvelopeScene();
+      const fx=RAR_FX[m.rarity] || RAR_FX.common;
+      envelope.classList.add("material-envelope");
+      for (const name of ["role","tabindex","aria-label"]) envelope.removeAttribute(name);
+      const openedFlap=img("envFlap","layer flap-open"); openedFlap.style.opacity=0;
+      $(".env-float",envelope).append(openedFlap);
+      const card=h("div.mcard.big", {data:{m:m.id},role:"button",tabindex:-1,"aria-label":"Pull out "+m.name}, h("i.art"),h("span.lab",h("b",m.name),h("small",m.rarity)));
+      $(".card",envelope).replaceWith(card); stage.append(envelope);
+      const envelopeSize=new ResizeObserver(()=>card.style.setProperty("--w",envelope.clientWidth*.48+"px"));
+      envelopeSize.observe(envelope); card.style.setProperty("--w",envelope.clientWidth*.48+"px");
+      let opened=false, pulled=false;
+      const base="translateY(-92%) rotate(-2deg)";
+      const pull=async () => {
+        if (!opened || pulled) return; pulled=true; envelopeSize.disconnect();
+        for (const name of ["role","tabindex","aria-label"]) card.removeAttribute(name);
+        cer.hint("Tilt it to catch the light."); Snd.swoosh();
+        anim(envelope,[{opacity:1},{opacity:0}],{duration:280}).then(()=>envelope.remove());
+        const r = card.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+        const position = h("div.material-card-position", {style:{position:"absolute",left:r.left-sr.left+"px",top:r.top-sr.top+"px",width:r.width+"px",zIndex:8}});
+        stage.append(position); position.append(card);
+        card.style.cssText = `position:relative;transform:none;--w:${r.width}px;`;
+        const {width,height} = card.getBoundingClientRect();
+        let resize;
+        let kept=false;
+        const info = h("div.rv-info", {style:{opacity:0,pointerEvents:"none"}}, h("p.eyebrow", "Today's Material"), h("h2", m.name), h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: m.rarity } }, m.rarity), h("span.no", m.recipe)),
+          h("div.rv-btns", h("button.btn.keep", { disabled:true, on: { click: async e => {
+            if (kept) return; kept=true; e.currentTarget.disabled=true; resize?.disconnect(); Snd.tap(); const rect = card.getBoundingClientRect(), node = card.cloneNode(true); node.classList.remove("in-wrap", "big", "out"); node.getAnimations?.().forEach((a) => a.cancel());
+            resolve({ rect, node, close: opts => cer.close(opts) });
+          } } }, "Keep it")));
+        stage.append(info);
+        const hint = $(".cer-hint", cer.root);
+        const layout = () => {
+          const st = stage.getBoundingClientRect(), hr = hint.getBoundingClientRect();
+          const fit = PetaMath.fitMaterialCard({stageWidth:stage.clientWidth,stageHeight:stage.clientHeight,cardWidth:width,cardHeight:height,hintBottom:hr.bottom-st.top,infoTop:stage.clientHeight-info.offsetHeight});
+          return {dx:fit.cx-(position.offsetLeft+width/2),dy:fit.cy-(position.offsetTop+height/2),k:fit.scale,cy:fit.cy};
+        };
+        const target = ({dx,dy,k}) => `translate(${dx}px, ${dy}px) scale(${k})`;
+        const snap = fit => {
+          const w = width * fit.k;
+          position.style.left = stage.clientWidth/2-w/2+"px"; position.style.top = fit.cy-height*fit.k/2+"px";
+          position.style.width = w+"px"; card.style.setProperty("--w",w+"px");
+          fix(position,"none"); // Render the final size crisply instead of enlarging a small GPU surface.
+        };
+        const fit = layout();
+        await anim(position, [{transform:"none"},{transform:target(fit)}], {duration:520,easing:EASE.out});
+        snap(fit); fix(card,"rotate(-2deg)"); Snd.chime(fx.chime,880);
+        Stk.tilt(card, { max:4, scale:1.01, baseTransform:"rotate(-2deg)", trigger:position });
+        resize = new ResizeObserver(() => { const fit = layout(); snap(fit); });
+        resize.observe(stage); resize.observe(info); resize.observe(hint);
+        info.style.opacity = 1; info.style.pointerEvents = "";
+        anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
+        const keep=$(".keep",info); keep.disabled=false; keep.focus({preventScroll:true});
+      };
+      drag(card, {
+        down:()=> { if (!opened || pulled) return false; fix(card,base); card.style.zIndex=3; },
+        move:(dx,dy)=> {
+          if (pulled) return;
+          const up=clamp(-dy,0,envelope.clientHeight*.6);
+          card.style.transform=`translateY(calc(-92% - ${up}px)) rotate(-2deg)`;
+          if (up>envelope.clientHeight*.22) pull();
+        },
+        up:()=> { if (!pulled) anim(card,[{transform:card.style.transform},{transform:base}],{duration:240,easing:EASE.out}).then(()=>{if(!pulled)fix(card,base);}); },
+      });
+      card.addEventListener("dblclick",pull);
+      card.addEventListener("keydown",e=>{if(e.key==="Enter" || e.key===" "){e.preventDefault();pull();}});
+      const show=async () => {
+        cer.hint("Opening your envelope."); Snd.crinkle(4,.2);
+        const back=anim(openedFlap,[{opacity:0,transform:"scaleY(0)"},{opacity:0,transform:"scaleY(0)",offset:.5},{opacity:1,transform:"scaleY(-1)"}],{duration:420,easing:EASE.inOut});
+        await anim($(".flap",envelope),[{transform:"rotateX(0)"},{transform:"rotateX(-172deg)"}],{duration:420,easing:EASE.inOut});
+        await back;
+        await anim(card,[{transform:"none"},{transform:base}],{duration:360,easing:EASE.out});
+        fix(card,base); opened=true;
+        cer.hint("Pull it out."); card.tabIndex=0; card.focus({preventScroll:true});
+      };
+      show(); cer.root._esc=()=>{};
     });
   }
 

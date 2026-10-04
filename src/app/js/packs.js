@@ -19,7 +19,7 @@ Pages.packs = {
       stack,
       h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by}${p.signatureStatus ? " ✓" : ""} · ${p.empty ? "all opened" : p.daily ? p.left.length + " of " + p.total + " left" : p.left.length + " left · " + p.total + " total"}`), p.fingerprint ? h("small", `${p.fingerprint}${p.signatureStatus==="new" ? " · New friend" : p.signatureStatus==="warning" ? " · Same name, different key" : ""}`) : null, h("small.rule", p.empty ? "" : p.daily ? (packsLeftToday() ? "once a day" : "back tomorrow") : "open any time")),
       h("span.open-cta", { "aria-hidden": off ? "true" : null, style: { visibility: off ? "hidden" : "visible" } }, "Open one"));
-    if (!off) { onPointerFollow(card, (x, y) => { stack.style.setProperty("--sx", (1 - x) * 100 + "%"); stack.style.setProperty("--sy", (1 - y) * 100 + "%"); stack.style.setProperty("--ry", (x - .5) * 14 + "deg"); stack.style.setProperty("--rx", -(y - .5) * 10 + "deg"); }, () => { stack.style.setProperty("--ry", "0deg"); stack.style.setProperty("--rx", "0deg"); stack.style.setProperty("--sx", "30%"); stack.style.setProperty("--sy", "30%"); }); }
+    if (!off) { onPointerFollow(card, (x, y, e, amount) => { stack.style.setProperty("--sx", lerp(30,(1-x)*100,amount)+"%"); stack.style.setProperty("--sy", lerp(30,(1-y)*100,amount)+"%"); }, () => { stack.style.setProperty("--sx", "30%"); stack.style.setProperty("--sy", "30%"); }); }
     return card;
   },
 };

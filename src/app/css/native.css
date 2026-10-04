@@ -479,3 +479,41 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 
 .developer-tools h2 { margin-top:0; }
 .developer-tools .row-btns { flex-wrap:wrap; justify-content:flex-start; }
+[data-follow="true"] { transition:none!important; will-change:auto; }
+
+/* Stable hit areas, a single quiet response in the artwork, and no moving nested controls. */
+.btn:hover:not(:disabled), .btn:active:not(:disabled), .btn.paper:hover:not(:disabled)::before, .btn.paper:active:not(:disabled)::before { transform:none; }
+.btn { transition:background-color .18s ease,box-shadow .18s ease,filter .18s ease,opacity .18s ease; }
+.btn:hover:not(:disabled) { filter:brightness(1.08); }
+.btn:active:not(:disabled) { filter:brightness(.94); }
+.choice:not(:disabled):hover .choice-obj { transform:translateY(-3px) rotate(var(--tilt,0deg)); filter:drop-shadow(0 8px 7px rgba(60,45,20,.2)); }
+.choice-obj, .drop-obj, .sample img, .pk-stack, .stuck-t .stk { transition:transform .22s cubic-bezier(.2,.7,.3,1),filter .22s ease; }
+.drop:hover .drop-obj, .drop.over .drop-obj { transform:rotate(-4deg) translateY(-3px); }
+.sample:hover img { transform:scale(1.025); }
+.pack:not(:disabled):hover .pk-stack { transform:translateY(-3px); }
+.mk-tile:hover .pk-stack { transform:translateY(-3px); }
+.stuck-t:hover .stk { transform:translateY(-2px); }
+.env-float, .env-scene::after, .pk-wrap .mcard.in-wrap.out::before { animation:none; }
+.env-float { transition:transform .22s cubic-bezier(.2,.7,.3,1); }
+.env-scene:hover .env-float { transform:translateY(-3px); }
+html[data-motion="reduce"] :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.sample:hover img,.pack:hover .pk-stack,.mk-tile:hover .pk-stack,.stuck-t:hover .stk,.env-scene:hover .env-float) { transform:none!important; }
+@media(prefers-reduced-motion:reduce) {
+  :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.sample:hover img,.pack:hover .pk-stack,.mk-tile:hover .pk-stack,.stuck-t:hover .stk,.env-scene:hover .env-float) { transform:none!important; }
+}
+
+.cer[data-kind="material"] .cer-bg { background:var(--w-surface,var(--paper)); }
+.cer[data-kind="material"] :is(.cer-hint,.rv-info) { color:var(--ink); text-shadow:none; }
+.material-envelope { position:absolute; left:50%; top:46%; translate:-50% -50%; width:min(400px,75%,50vh); margin:0; }
+.material-envelope .env-float, .material-envelope:hover .env-float { transform:none; transition:none; }
+.material-envelope .mcard { position:absolute; left:26%; top:45%; z-index:1; cursor:grab; touch-action:none; }
+.material-envelope .mcard:active { cursor:grabbing; }
+.material-envelope .pocket { z-index:2; }
+.material-envelope .flap { z-index:4; }
+.material-envelope .flap-open { z-index:0; transform-origin:50% 12.5%; }
+.material-envelope .mcard:focus-visible { outline:2px solid #527d93; outline-offset:3px; border-radius:6px; }
+.cer[data-kind="material"] .rv-info { gap:6px; }
+.cer[data-kind="material"] .rv-meta .no { display:none; }
+.rv-rays { animation:none; }
+[data-shell] .nav-item:hover .ni-icon { transform:translateY(-1px); }
+html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
+@media(prefers-reduced-motion:reduce) { [data-shell] .nav-item:hover .ni-icon { transform:none; } }

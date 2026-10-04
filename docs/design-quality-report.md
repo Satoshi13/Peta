@@ -147,3 +147,17 @@ Studioの部屋・ナビ・平らなカード・入力・dialogを夜色へ。�
 操作: 通常版`npm run dev`／release配布`npm run build`、Developer`npm run dev:developer`／release配布`npm run build:developer`。最終確認の記録はreview-15のJSONとmacOSチェックリスト§19。Mac向け検査はLinuxでC／Objective-Cのビルド補助stubを使ったRust型検査であり、リンク・実機動作・release bundleの生成を確認したものではない。
 
 最終検査: JS39件、通常版Rust120件、Developer Rust121件、両版のmacOS向け型検査が成功。隔離した実Tauriで素材消費・購入・再試行・開封・版ごとの保存先／設定・開発者操作を確認。実機が必要なrelease bundleと透明層はmacos-checklist.md §19に追記済み。
+
+## 操作の完成度レビュー（2026-10-05）
+
+最新の依頼に合わせ、操作面を固定し、動く絵とボタンが競合しないホバーへ揃えた。素材カードを自分自身の位置から傾ける追従は反射だけに限定し、固定した親を使う場合だけ小さい傾きを共有RAFで補間する。収束・ページ離脱・窓からの離脱・フォーカス喪失・Reduce motionで停止。ボタンの位置は動かず、封筒の常時浮遊、開封後の絵の上下運動と光線の回転はなくした。
+
+剥がしは、引く方向と反対側の端から手の方向へ折り返す。12枚の独立した3D面から、1つのCanvas上の細かい曲面描画へ変更した。表裏をあらかじめ連続した陰影で描き、重なる紙片に陰影を重ねて縞を作らない。距離判定・成功時の触覚1回・途中解除／中断での復帰・Collectionへの保持は従来どおり。
+
+Todayの開封は封筒から実際の素材カードを1度引き出し、Keep itでTodayへ収める流れにした。封筒からカードが出た後に別の袋を切って再度カードを出す工程は廃止。Pack／Giftの包装と受取・日次ルール、DB v8、有限素材とDeveloperの分離、画像素材、未決事項は変更していない。
+
+動くプレビューは `docs/ui-proposals/motion-polish-preview.html`。実アプリと同じホバー、開封コード、剥がし描画を使う。プレビューのBridgeと音は無操作で、素材付与や印刷は行わない。検証結果・GIF・比較画像は `docs/port-spec/compare/review-16/` に置く。これは最新依頼による意図した動きと開封構成の変更で、旧golden／プロトタイプを変更していない。
+
+macOSのRetina／トラックパッド／透過と描画速度はLinuxの実行では確認できない。実機確認を `macos-checklist.md` §20へ追加した。Mac向け型検査はLinuxのC／Objective-C依存スタブを使うため、release bundle・リンク・実行の検証ではない。
+
+検証: npm test 44件成功。通常版／Developer版のcheck:mac成功。実Tauriで両シェルの12操作面（Today／Create／Materials／Packs／Market／Collection）に実際にホバーし、位置不変、窓から離れた後のRAF 0を確認。開封のリサイズ6条件、3素材の剥がしと復帰／確定／中断を確認した。フラップの裏側は既存画像を裏表の面として使い、カードは封筒の口から見えるところまで引き出してから操作を受け付ける。OpenとKeepの連打では素材が二重に増えない。未決事項の追加はない。

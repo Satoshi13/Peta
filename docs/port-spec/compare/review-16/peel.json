@@ -1,0 +1,34 @@
+{
+  "actualNativeMousePrintPaste": true,
+  "attached": {
+    "back": "matte",
+    "clip": "polygon(130.144124px 0px, 187.2px 0px, 187.2px 158.498438px, 141.227415px 158.498438px)",
+    "transform": "translate3d(194.4px, 478.750781px, 0px) rotate(4deg) scale(1)"
+  },
+  "stationaryCurlDoesNotUpdate": true,
+  "continuousCanvasSurface": true,
+  "trailingEdgeFollowsPull": true,
+  "partialReturnKeepsPlacement": true,
+  "materialPapers": [
+    {
+      "clip": "polygon(159.476324px 188.674016px, 0px 188.674016px, 0px 2.618304px)",
+      "material": "kraft",
+      "paper": "kraft"
+    },
+    {
+      "clip": "polygon(0px 0px, 187.2px 0px, 187.2px 60.700184px, 0px 44.322306px)",
+      "material": "holographic",
+      "paper": "holographic"
+    }
+  ],
+  "pointerCancelDoesNotPeel": true,
+  "successfulPeelOnce": true,
+  "peeledStickerRemainsInBook": true,
+  "reduceMotionNoCurl": true,
+  "reducedSuccessOnce": true,
+  "reduceDuringPullClearsCurl": true,
+  "escapeDuringPullReturnsPaper": true,
+  "idleRafStops": true,
+  "stockUnchanged": true,
+  "errors": []
+}

@@ -196,3 +196,13 @@ Book / Market の見た目は `compare/art-03/*.jpg` と元の `golden/*.jpg` �
 | [ ] R15-6 表示と透過 | Creatorsの文字、Collectionの名称、少し大きいロゴ、空Stuck todayを確認。両版の透明層と複数ディスプレイを確認 | Nightの文字が読める。テープ／Make a Peta／Today’s slotがなく、ロゴはTodayの上、Settingsとプロフィールは下端。両版がそれぞれ正しい層を管理する |
 
 共有Market・モデレーター機能は使用構成を検討するため保留。Linuxでの両版起動と型検査は確認済みだが、macOSのrelease bundle・透過層・同時起動はこの表で実機確認する。
+
+## 20. 操作の完成度レビュー（2026-10-05）
+
+- [ ] M1: Studio／Desk・Day／NightのToday／Create／Materials／Packs／Market／Collectionを高速に往復ホバー。カードの境界と内側のボタンを横切っても操作面が揺れず、絵だけが小さく動く。キーボードのフォーカスは明確で、Reduce motionでは移動しない。
+- [ ] M2: ホバー／剥がし中にポインタを止めると描画が収束してRAFが停止。ページを離れた後、窓を閉じた後もCPUがアイドルへ戻る。OSのReduce motion切替時も即座に静止へ戻る。
+- [ ] M3: Option＋右／左／上／下／斜めの引きで、手の方向へ折り返す。Matte／Kraft／Holographic、回転した絵、Retina／非Retinaで裏紙に継ぎ目・縦縞・輪郭の角張りがない。途中解除／Esc／pointercancelで完全に戻り、確定時の触覚は1回、Collectionには残る。
+- [ ] M4: 今日の素材のOpenからカードが出るのは1回だけ。余分な袋が出ず、ドラッグ／ダブルクリック／Enter／Spaceで引き出せる。両シェル720×520でカード・ヒント・Keep itが重ならず、リサイズ後も収まる。再操作で在庫が二重に増えない。
+- [ ] M5: 開封中／引き出し後に閉じる操作が介入しても、主窓が自動で閉じない。通常版とDeveloper版の独立、Pack／Giftの開封、ホロのデスクトップ反射の取得停止を再確認。
+
+LinuxのWebKitGTKによる比較と型検査は、macOSの描画速度・トラックパッド・透過・複数画面の実機確認を代替しない。

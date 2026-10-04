@@ -51,14 +51,51 @@ async function animCommit(el, frames, o = {}) {
 
 function img(key, cls, alt = "") { const i = new Image(); i.src = A[key]; i.alt = alt; i.draggable = false; if (cls) i.className = cls; return i; }
 
-/** Pointer-follow helper: calls cb(x01, y01, ev) while the pointer moves over el. */
+/* All pointer decoration shares one clock. Settled and detached views cost no frames. */
+const pointerFollowers = new Set();
+let pointerFrame = 0, pointerTime = 0;
+function followFrame(now) {
+  pointerFrame = 0;
+  let moving = false;
+  const dt = pointerTime ? Math.min(64, now - pointerTime) : 16; pointerTime = now;
+  for (const f of pointerFollowers) {
+    if (!f.el.isConnected || reduced() || document.hidden) { f.reset(); pointerFollowers.delete(f); continue; }
+    const a = 1 - Math.exp(-dt / 65);
+    f.x = lerp(f.x, f.tx, a); f.y = lerp(f.y, f.ty, a); f.amount = lerp(f.amount, f.over ? 1 : 0, a);
+    const settled = Math.max(Math.abs(f.x-f.tx), Math.abs(f.y-f.ty), Math.abs(f.amount-(f.over ? 1 : 0))) < .001;
+    if (settled) { f.x=f.tx; f.y=f.ty; f.amount=f.over ? 1 : 0; }
+    f.cb(f.x, f.y, f.event, f.amount);
+    if (settled && !f.over) { f.reset(); pointerFollowers.delete(f); }
+    if (!settled) moving = true;
+  }
+  if (moving) pointerFrame = requestAnimationFrame(followFrame); else pointerTime = 0;
+}
+function resetPointerFollowers() {
+  for (const f of pointerFollowers) f.reset();
+  pointerFollowers.clear(); cancelAnimationFrame(pointerFrame); pointerFrame=0; pointerTime=0;
+}
+new MutationObserver(() => {
+  if (reduced()) resetPointerFollowers();
+  else for (const f of pointerFollowers) if (!f.el.isConnected) { f.reset(); pointerFollowers.delete(f); }
+}).observe(document.documentElement, {attributes:true,attributeFilter:["data-motion"],childList:true,subtree:true});
+matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", resetPointerFollowers);
+document.addEventListener("visibilitychange", resetPointerFollowers);
+window.addEventListener("blur", resetPointerFollowers);
+document.documentElement.addEventListener("pointerleave", resetPointerFollowers);
+
+/** Follow a fixed hit area; `amount` eases in and returns to rest without CSS transform transitions. */
 function onPointerFollow(el, cb, leave) {
-  el.addEventListener("pointermove", (e) => {
-    if (reduced()) { leave?.(); return; }
-    const r = el.getBoundingClientRect();
-    cb(clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1), e);
+  const f = {el, cb, x:.5, y:.5, tx:.5, ty:.5, amount:0, over:false,
+    reset:() => { f.x=f.tx=.5; f.y=f.ty=.5; f.amount=0; f.over=false; leave?.(); }};
+  const schedule = () => { pointerFollowers.add(f); if (!pointerFrame) pointerFrame=requestAnimationFrame(followFrame); };
+  el.addEventListener("pointermove", e => {
+    if (e.pointerType === "touch" || reduced()) { f.reset(); return; }
+    const r=el.getBoundingClientRect(); if (!r.width || !r.height) return;
+    f.tx=clamp((e.clientX-r.left)/r.width,0,1); f.ty=clamp((e.clientY-r.top)/r.height,0,1); f.event=e; f.over=true; schedule();
   });
-  if (leave) el.addEventListener("pointerleave", leave);
+  const exit = () => { f.over=false; f.tx=f.ty=.5; schedule(); };
+  el.addEventListener("pointerleave", exit); el.addEventListener("pointercancel", exit);
+  return () => { pointerFollowers.delete(f); f.reset(); };
 }
 
 /** Drag helper with pointer capture. handlers: down(e)->bool|void, move(dx,dy,e), up(e,moved) */

@@ -1,9 +1,10 @@
 import { renderBackCard, renderBackFallback } from "./back-card.js";
 import { initPrint } from "./print.js";
+import { createPeelSurface } from "./peel.js";
 import { REFLECTIVE_MATERIALS, staticSheen, reflectedSheen, approachSheen } from "./reflection.js";
 import {
   toPixels, fromPixels, toLocalUV, isPivotGrab, pivotResult, pointerAngle, distance, normalizeAngle,
-  peelPose, peelCurl, PEEL_COMMIT, PEEL_DISTANCE,
+  peelPose, PEEL_COMMIT, PEEL_DISTANCE,
 } from "./placement.js";
 
 const { invoke } = window.__TAURI__.core;
@@ -298,27 +299,14 @@ function showPeel(node, pose) {
     const scene = document.createElement("div"), shadow = document.createElement("div");
     scene.className = "peel-curl"; shadow.className = "peel-shadow";
     scene.setAttribute("aria-hidden", "true"); shadow.setAttribute("aria-hidden", "true");
-    node.el.append(shadow, scene); node.curl = { scene, shadow, strips: [] };
+    const surface = createPeelSurface(node.body.querySelector("img"), node.el.dataset.material, node.baseW, node.baseH);
+    scene.append(surface.canvas); node.el.append(shadow, scene); node.curl = { scene, shadow, surface };
   }
-  const curl = peelCurl(pose, node.baseW, node.baseH), { scene, shadow, strips } = node.curl;
+  const { shadow, surface } = node.curl, curl = surface.draw(pose);
   node.body.style.clipPath = peelClip(curl.front);
   shadow.style.clipPath = peelClip(curl.lifted);
   shadow.style.opacity = Math.min(.28, pose.progress * .35);
-  shadow.style.transform = `translate(${-pose.dlx * curl.length * .22}px, ${-pose.dly * curl.length * .22 + 6}px)`;
-  curl.strips.forEach((band, i) => {
-    if (!strips[i]) {
-      const strip = document.createElement("div"), back = document.createElement("div"), front = document.createElement("div");
-      strip.className = "peel-strip"; back.className = "peel-back"; front.className = "peel-front";
-      front.append(node.body.querySelector("img").cloneNode()); strip.append(back, front); scene.append(strip);
-      strips[i] = strip;
-    }
-    const strip = strips[i]; strip.hidden = false;
-    for (const face of strip.children) face.style.clipPath = peelClip(band.paintClip);
-    strip.style.transformOrigin = `${band.ox}px ${band.oy}px`;
-    strip.style.transform = `translate3d(${band.x}px, ${band.y}px, ${band.z}px) rotate3d(${pose.ax}, ${pose.ay}, 0, ${-band.angle}deg)`;
-    strip.style.setProperty("--peel-shade", band.shade);
-  });
-  strips.slice(curl.strips.length).forEach(strip => { strip.hidden = true; });
+  shadow.style.transform = `translate(${pose.dlx * curl.length * .22}px, ${pose.dly * curl.length * .22 + 6}px)`;
 }
 
 function clearPeel(node) {

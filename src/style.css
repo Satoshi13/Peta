@@ -44,20 +44,13 @@ html, body {
 
 /* Only the pulled side curls; the attached ink stays against the desktop. */
 .sticker.peeling .body { position: relative; z-index: 1; transition: none; filter: none; }
-.peel-curl, .peel-shadow, .peel-strip, .peel-front, .peel-back { position: absolute; inset: 0; pointer-events: none; }
-.peel-curl { z-index: 2; perspective: 900px; transform-style: preserve-3d; }
-.peel-strip { transform-style: preserve-3d; }
-.peel-front { backface-visibility: hidden; transform: translateZ(.2px); }
-.peel-front::after, .peel-back, .peel-shadow {
+.peel-curl, .peel-shadow { position: absolute; inset: 0; pointer-events: none; }
+.peel-curl { z-index: 2; }
+.peel-shadow {
   -webkit-mask-image: var(--mask); mask-image: var(--mask);
   -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
 }
-.peel-front::after { content: ""; position: absolute; inset: 0; background: rgba(40, 30, 20, var(--peel-shade)); }
-.peel-back { background-color: #f1ecdf; background-image: linear-gradient(rgba(40, 30, 20, var(--peel-shade)), rgba(40, 30, 20, var(--peel-shade))), var(--peel-paper, var(--a-backMatte)); background-size: 100% 100%; }
-.sticker[data-material="kraft"] { --peel-paper: var(--a-backKraft); }
-.sticker[data-material="holographic"] { --peel-paper: var(--a-backHolo); }
 .peel-shadow { z-index: 0; background: #251e17; filter: blur(7px); }
-.sticker.peel-ready .peel-back { background-color: #fff9eb; }
 
 /* An image file is being dragged over the desktop. */
 #layer.drop-target { outline: 3px dashed rgba(255, 255, 255, 0.75); outline-offset: -14px; }
