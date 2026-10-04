@@ -16,7 +16,7 @@ Pages.today = {
         Bridge.changed(); // daily_status uses the same native rollover as the 30-second watcher.
         return false;
       }
-      $(".envelope-clock", ticket).textContent = clock.text;
+      $$(".envelope-clock > span", ticket).forEach((digit, i) => { digit.textContent = clock.text[i]; });
       if (labelledMinute !== clock.minute) { ticket.setAttribute("aria-label", clock.label); labelledMinute = clock.minute; }
       return true;
     };
@@ -24,7 +24,7 @@ Pages.today = {
   },
   build() {
     const st = S.dayState, root = h("div.page-in.today", { data: { state: st } });
-    root.append(PageHead("Today", fmtDate(S.today, { weekday: "long", month: "long", day: "numeric" }), DateStamp()));
+    root.append(PageHead("Today", fmtDate(S.today, { weekday: "long", month: "long", day: "numeric" }), st === "opened" ? EnvelopeTicket() : DateStamp()));
     if (st === "arrived") {
       const scene = EnvelopeScene();
       const open = () => Pages.today.openEnvelope(root);
@@ -40,7 +40,7 @@ Pages.today = {
       h("div.t-bottom",
         h("div.t-mat", h("div.tm-card", MatCard(m, 138)),
           h("div.tm-text", h("p.eyebrow", "Today's Material"), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)), h("p.muted", m.recipe), h("p.addnote.hand", "Added to your Material Book"), h("p.stock", stock))),
-        h("div.t-stuck", h("p.eyebrow", "Stuck today"), StuckStrip())), EnvelopeTicket());
+        h("div.t-stuck", h("p.eyebrow", "Stuck today"), StuckStrip())));
   },
 
   /* the opening: envelope -> foil -> card, then the card settles into the tray */
@@ -62,6 +62,7 @@ Pages.today = {
     const stageEl = $(".t-arrived", root);
     const res = await Cer.openMaterial(m);
     const block = Pages.today.openedBlock(); block.style.opacity = 0; stageEl.replaceWith(block);
+    $(".ph-extra", root).replaceChildren(EnvelopeTicket());
     const target = $(".tm-card .mcard", block), choices = $$(".choice", block);
     await sleep(30);
     const from = res.rect, fl = res.node;

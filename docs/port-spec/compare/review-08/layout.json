@@ -1,0 +1,292 @@
+{
+  "layouts": [
+    {
+      "added": 0,
+      "height": 700,
+      "inHeader": true,
+      "noAriaLive": true,
+      "noTitleOverlap": true,
+      "scrollHeight": 700,
+      "shell": "studio",
+      "viewport": 700,
+      "visible": true,
+      "width": 1060,
+      "widths": [
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        }
+      ],
+      "withoutTicket": 700
+    },
+    {
+      "added": 0,
+      "height": 520,
+      "inHeader": true,
+      "noAriaLive": true,
+      "noTitleOverlap": true,
+      "scrollHeight": 896,
+      "shell": "studio",
+      "viewport": 460,
+      "visible": true,
+      "width": 720,
+      "widths": [
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        }
+      ],
+      "withoutTicket": 896
+    },
+    {
+      "added": 0,
+      "height": 700,
+      "inHeader": true,
+      "noAriaLive": true,
+      "noTitleOverlap": true,
+      "scrollHeight": 676,
+      "shell": "desk",
+      "viewport": 668,
+      "visible": true,
+      "width": 1060,
+      "widths": [
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        }
+      ],
+      "withoutTicket": 676
+    },
+    {
+      "added": 0,
+      "height": 520,
+      "inHeader": true,
+      "noAriaLive": true,
+      "noTitleOverlap": true,
+      "scrollHeight": 896,
+      "shell": "desk",
+      "viewport": 446,
+      "visible": true,
+      "width": 720,
+      "widths": [
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        },
+        {
+          "cells": [
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7
+          ],
+          "clock": 56,
+          "ticket": 180.703125
+        }
+      ],
+      "withoutTicket": 896
+    }
+  ],
+  "secondsAdvance": true,
+  "pageLeaveStopsTimer": true,
+  "windowCloseStopsTimer": true,
+  "resumeRestartsTimer": true
+}

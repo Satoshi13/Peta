@@ -155,6 +155,33 @@ elif sys.argv[1]=='market-owned':
     assert ev('return window.marketCalls;')==['pack_install_demo']
     (out/'market.json').write_text(json.dumps(dict(layouts=records,ownedHeroTileAndDetailNavigate=True,targetPackVisibleAndFocused=True,keyboardEnterNavigate=True,freeGetInstallsOnce=True,paidGetRemainsUnavailable=True,noPackOpened=True,countsAndStockUnchangedOnNavigation=True,reducedAndFullMotionNavigate=True),indent=2))
     print('Native Market: owned hero/tile/detail -> targeted Packs, both shells/sizes, free/paid controls and unchanged counts passed')
+elif sys.argv[1]=='countdown-layout':
+    from PIL import Image,ImageDraw
+    out=c.ROOT/'docs/port-spec/compare/review-08';out.mkdir(exist_ok=True)
+    ev('S.closeOutside=false;S.motion="reduce";Bridge.savePreferences();await Bridge.invoke("print_later");await Bridge.window.show();await Bridge.reload();return true;')
+    assert ev('return S.dayState==="opened";')
+    records=[]
+    for shell in ['studio','desk']:
+        for width,height in [(1060,700),(720,520)]:
+            ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize('+str(width)+','+str(height)+'));Shell.setShell('+json.dumps(shell)+');await Shell.open("today");await document.fonts.ready;return true;');time.sleep(.3)
+            r=ev('const p=document.querySelector(".today"),t=p.querySelector(".envelope-ticket"),clock=t.querySelector(".envelope-clock"),before=p.scrollHeight;Pages.today.suspend();t.style.display="none";const without=p.scrollHeight;t.style.display="";const widths=["00:00:00","11:11:11","88:88:88","25:59:59"].map(text=>{Array.from(clock.children).forEach((e,i)=>e.textContent=text[i]);return {ticket:t.getBoundingClientRect().width,clock:clock.getBoundingClientRect().width,cells:Array.from(clock.children,e=>e.getBoundingClientRect().width)};});Pages.today.resume();const a=t.getBoundingClientRect(),b=p.querySelector(".ph-text").getBoundingClientRect(),v=p.getBoundingClientRect();return {shell:S.shell,width:innerWidth,height:innerHeight,scrollHeight:before,withoutTicket:without,viewport:p.clientHeight,added:before-without,widths,inHeader:t.closest(".ph")!==null,visible:a.top>=v.top && a.bottom<=v.bottom && a.right<=v.right,noTitleOverlap:a.left>=b.right,noAriaLive:!t.hasAttribute("aria-live")};')
+            assert r['added']==0 and r['inHeader'] and r['visible'] and r['noTitleOverlap'] and r['noAriaLive'],r
+            assert all(w==r['widths'][0] for w in r['widths']),r
+            records.append(r)
+            shot(shell+'-'+str(width)+'-after')
+            before=Image.open(out/(shell+'-'+str(width)+'-before.png'));after=Image.open(out/(shell+'-'+str(width)+'-after.png'))
+            pair=Image.new('RGB',(width*2,height+28),'#f5f0e6');pair.paste(before,(0,28));pair.paste(after,(width,28));d=ImageDraw.Draw(pair);d.text((12,7),'Before',fill='#2b2a28');d.text((width+12,7),'Actual Tauri: header ticket / fixed digits',fill='#2b2a28');pair.save(out/(shell+'-'+str(width)+'-comparison.jpg'),quality=90)
+            if width==1060:
+                ref=Image.open(c.ROOT/'docs/port-spec/golden'/(shell+'-05-today-opened.jpg')).crop((190,79,1250,779))
+                pair.paste(ref,(0,28));d.text((12,7),'Golden (unchanged)',fill='#2b2a28');pair.save(out/(shell+'-golden.jpg'),quality=90)
+    first=ev('return document.querySelector(".envelope-clock").textContent;');time.sleep(2.1)
+    assert ev('return document.querySelector(".envelope-clock").textContent;')!=first
+    ev('await Shell.go("settings");return true;');assert ev('return Pages.today.timer===null;')
+    ev('await Shell.go("today");return true;');assert ev('return Pages.today.timer!==null;')
+    ev('await Shell.close();return true;');assert ev('return Pages.today.timer===null;')
+    ev('await Bridge.window.show();await Shell.open("today");return true;');wait('Pages.today.timer!==null')
+    (out/'layout.json').write_text(json.dumps(dict(layouts=records,secondsAdvance=True,pageLeaveStopsTimer=True,windowCloseStopsTimer=True,resumeRestartsTimer=True),indent=2))
+    print('Native countdown layout: no added scroll, fixed ticket/cells, both shells/sizes, ticking and timer lifetime passed')
 elif sys.argv[1]=='reflection':
     wait('document.querySelectorAll("#layer>.sticker").length===3',layer)
     ev('applyLayerPreferences({motion:"full",sound:false});const original=requestAnimationFrame;window.testReflectionFrames=0;window.requestAnimationFrame=fn=>{window.testReflectionFrames++;return original(fn);};return true;',layer);time.sleep(.5)

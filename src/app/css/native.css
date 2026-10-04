@@ -158,8 +158,8 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 }
 
 /* The opened daily envelope leaves a small, quiet paper ticket. */
-.envelope-ticket { align-self:center; display:flex; gap:5px; justify-content:center; width:fit-content; max-width:100%; margin:18px auto 0; padding:9px 17px; border:1px dashed #b4ab9b; border-radius:3px; color:var(--muted); background:var(--paper); box-shadow:0 2px 4px #493c2420; font-size:12px; }
-.envelope-clock { color:var(--ink); font-family:var(--type); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.envelope-ticket { display:flex; align-items:center; gap:5px; flex:none; margin:0; padding:9px 12px; border:1px dashed #b4ab9b; border-radius:3px; color:var(--muted); background:var(--paper); box-shadow:0 2px 4px #493c2420; font-size:12px; white-space:nowrap; }
+.envelope-clock { display:inline-grid; grid-template-columns:repeat(8,1ch); text-align:center; color:var(--ink); font-family:var(--type); font-variant-numeric:tabular-nums; }
 
 /* Book keeps the existing paper and detail actions; the content can be a list or a ledger. */
 .bookpage .ph { align-items:center; flex-wrap:wrap; }

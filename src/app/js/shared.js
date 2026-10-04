@@ -63,5 +63,5 @@ function RevealScene(m) {
 
 
 function EnvelopeTicket() {
-  return h("p.envelope-ticket", { role: "timer", "aria-label": "Next envelope" }, h("span", "Next envelope in "), h("span.envelope-clock", "00:00:00"));
+  return h("p.envelope-ticket", { role: "timer", "aria-label": "Next envelope" }, h("span", "Next envelope in "), h("span.envelope-clock", Array.from("00:00:00", digit => h("span", digit))));
 }

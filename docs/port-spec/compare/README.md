@@ -1,6 +1,6 @@
 # Native port comparisons
 
-[最新: Market購入済みラベルとPacksへの移動](review-07/README.md)。[Option剥がしの紙カール・巻戻し・Reduce motion](review-06/README.md)。[ホロ・触覚・カウントダウン・Book・素材の検証記録](upgrade-2026-10-04/README.md)。
+[最新: カウントダウン札の配置と固定幅](review-08/README.md)。[Market購入済みラベルとPacksへの移動](review-07/README.md)。[Option剥がしの紙カール・巻戻し・Reduce motion](review-06/README.md)。[ホロ・触覚・カウントダウン・Book・素材の検証記録](upgrade-2026-10-04/README.md)。
 
 [前回: Book click-to-flip, consistent actions and original cutout editing/deletion](review-05/README.md). Original-only editing was explicitly requested as cutout/outline re-editing; title naming remains undecided.
 
