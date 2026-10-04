@@ -219,3 +219,39 @@ html[data-motion="reduce"] .mbook .mcard { transform:rotate(-2deg) !important; }
 
 .calendar-month-title { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; }
 .bookpage .bk-main { width:100%; }
+
+/* Scraps stays a quiet paper label; confirmation controls never move under the pointer. */
+.scraps-count { display:inline-flex; align-items:baseline; gap:10px; padding:9px 13px; border-radius:7px; background:rgba(255,253,249,.85); box-shadow:0 1px 3px rgba(60,45,20,.14); color:var(--muted); font:12px/1 var(--type); white-space:nowrap; }
+.scraps-count b { min-width:3ch; text-align:right; color:var(--ink); font-size:15px; }
+.material-entry { display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:0; }
+.material-entry .mbook { width:100%; flex:1; }
+.material-tools { min-height:34px; display:flex; justify-content:center; align-items:center; }
+.scrap-action, .scrap-action:hover:not(:disabled), .scrap-action:active:not(:disabled) { transform:none; }
+.mk-item { display:flex; flex-direction:column; align-items:center; min-width:0; gap:6px; }
+.mk-item .mk-tile { width:100%; }
+.mk-hero-actions { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px; }
+.mk-mats > .scrap-action { margin-bottom:16px; }
+.scrap-trade, .material-preview { position:relative; margin:0 0 20px; padding:20px; border-radius:14px; background:rgba(255,253,249,.82); box-shadow:0 1px 3px rgba(60,45,20,.12); scroll-margin-top:56px; }
+.scrap-trade h2, .material-preview h2 { margin:0; font:650 21px/1.3 var(--sys); letter-spacing:-.01em; }
+.scrap-trade-head { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.scrap-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; align-items:start; }
+.scrap-summary.has-cost { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.scrap-summary > * { display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted); }
+.scrap-summary b { color:var(--ink); font:16px/1.3 var(--type); }
+.scrap-summary input { width:90px; max-width:100%; padding:7px 10px; border:1px solid var(--line); border-radius:7px; background:#fffdf9; color:var(--ink); font:16px/1 var(--type); }
+.scrap-error { color:#934238; font-size:13px; }
+.scrap-error:empty { display:none; }
+.scrap-actions { display:flex; justify-content:flex-end; gap:8px; }
+.scrap-actions .btn { min-width:108px; height:40px; padding:0 14px; border-radius:10px; }
+.material-preview { display:grid; grid-template-columns:minmax(0,240px) minmax(0,1fr); align-items:center; gap:24px; }
+.material-preview > .mcard { width:100%; }
+.material-preview > .x { position:absolute; right:10px; top:10px; }
+@media (max-width:880px) {
+  [data-shell="studio"] .materialspage .ph, [data-shell="studio"] .marketpage .ph { padding-top:12px; }
+}
+@container (max-width:560px) {
+  .scrap-trade, .material-preview { padding:16px; }
+  .material-preview { grid-template-columns:minmax(0,160px) minmax(0,1fr); gap:16px; }
+  .scrap-summary { gap:10px; }
+  .scrap-summary b { font-size:14px; }
+}

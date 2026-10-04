@@ -149,3 +149,11 @@ Book / Market の見た目は `compare/art-03/*.jpg` と元の `golden/*.jpg` �
 - [ ] H1: 両シェル・1060×700／720×520で素材カードの端にカーソルを置いても位置が揺れず、テープの線なし。クリック／Tab・Spaceで選択が変わり、薄い台座・チェックと在庫が見え、太い黒枠なし。切替でフォーカスが消えず、素材を消費しない。
 - [ ] H2: Materials・Packs・Gift・画像ドロップ・見本で操作面が移動しない。PacksのOpen oneとGiftのOpenが別々に上下しない。Createで素材／輪郭を何度変えても、プレビューの追従速度や回数が増えない。
 - [ ] H3: Reduce motionでカードの追従と装飾の移動が止まる。静止中に更新なし。右下は透明なリサイズ領域で、画像・飾り線なし。丸い角の外側には背後の壁紙が見え、余計な赤い部品が重なっていない。
+
+## 15. Scrapsの分解・引換と素材プレビュー（2026-10-04）
+
+- [ ] S1: Studio／Deskの1060×700／720×520でMarket・Materials右上に同じScraps残高。素材カードのクリックはプレビューのみで、Createの選択は変わらず、黒い選択枠・Create will use通知なし。プレビュー・確認欄が窓ボタンと重ならず、ホバーで親と操作ボタンが動かない。
+- [ ] S2: Kraft／Holographicを数量指定して分解。受取1／3 Scrapsと残る素材を確認。Cancel／Escは消費せず、在庫0でも発見履歴とプレビューは残る。Matte・ステッカー・Giftは分解不可。
+- [ ] S3: MarketでKraft／Holographicを2／6 Scrapsで1枚ずつ引換。数量・受取枚数・合計消費・引換後残高が一致。不足・不正数量・連打で二重に消費しない。エラー後のRetryは同じ取引を確認する。
+- [ ] S4: 空のTokyo／Coffee／Houseplantsだけ16／12／10 Scrapsで8／6／5枚補充。Packsで累計総数と残数が一致し、On your shelfは棚へ移動する。中身のある袋・Welcome・有料Packは補充不可。Gold／Riso／Vintageと現金決済は未提供。
+- [ ] S5: Quitして再起動後も残高・素材在庫・補充した袋・開封履歴が残る。Welcomeの日次制限・Market／Giftの開封・印刷待ちの順序が維持される。VoiceOver／Tabで残高・数量・確定／取消／プレビューを操作でき、Reduce motionで追従しない。

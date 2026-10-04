@@ -65,3 +65,67 @@ function RevealScene(m) {
 function EnvelopeTicket() {
   return h("p.envelope-ticket", { role: "timer", "aria-label": "Next envelope" }, h("span", "Next envelope in "), h("span.envelope-clock", Array.from("00:00:00", digit => h("span", digit))));
 }
+
+/* A single confirmation flow for unused sheets and the local Market. Prices come from Rust. */
+const Scraps = {
+  selection: null, inFlight: false,
+  material(id) { return S.scraps.materials.find(m => m.id === id); },
+  pack(id) { return S.scraps.packs.find(p => p.id === id); },
+  badge() { return h("span.scraps-count", {"aria-label":`${S.scraps.balance.toLocaleString("en-US")} Scraps`}, h("span", "Scraps"), h("b", S.scraps.balance.toLocaleString("en-US"))); },
+  button(kind, id, label, disabled = false) {
+    return h("button.btn.paper.small.scrap-action", { disabled:disabled || this.inFlight, data:{scrapKind:kind,scrapItem:id}, on:{click:() => {
+      if(this.inFlight) return;
+      this.selection = {kind,itemId:id,quantity:1,request:null,error:""}; Snd.tap(); Shell.refresh();
+      const form = $(".scrap-trade"); if(form) { form.closest(".page-in").scrollTop = 0; (form.querySelector("input") || form).focus({preventScroll:true}); }
+    }} }, label);
+  },
+  finish() {
+    const selected = this.selection; this.selection = null; Shell.refresh();
+    const trigger = selected && $(`[data-scrap-kind="${selected.kind}"][data-scrap-item="${selected.itemId}"]:not(:disabled)`);
+    (trigger || $(`#nav [data-page="${S.page}"]`))?.focus({preventScroll:true});
+  },
+  form() {
+    const sel = this.selection;
+    if(!sel || (sel.kind === "dismantle" ? S.page !== "materials" : S.page !== "market")) return null;
+    const dismantle = sel.kind === "dismantle", pack = sel.kind === "pack", rate = pack ? this.pack(sel.itemId) : this.material(sel.itemId);
+    if(!rate) return null;
+    const name = pack ? MARKET_PACKS.find(p=>p.id===sel.itemId).title : MAT[sel.itemId].name;
+    const price = dismantle ? rate.dismantle : rate.exchange;
+    const max = pack ? (S.scraps.balance >= price && S.packs.some(p=>p.id===sel.itemId && !p.left.length) ? 1 : 0) : Math.min(1000, dismantle ? S.stock[sel.itemId] : Math.floor(S.scraps.balance/price));
+    const count = h("input", {type:"number",min:1,max:Math.max(1,max),step:1,value:sel.quantity,required:true,disabled:this.inFlight || !!sel.error,"aria-label":"Number of sheets"});
+    const receive = h("b"), cost = h("b"), remaining = h("b"), stock = h("p.muted.small"), error = h("p.scrap-error", {role:"status"}, sel.error);
+    const submit = h("button.btn.scrap-action", {type:"submit"}, dismantle ? "Dismantle" : "Exchange");
+    const cancel = h("button.btn.paper.scrap-action", {type:"button",disabled:this.inFlight,on:{click:()=>this.finish()}}, "Cancel");
+    const update = () => {
+      const q = Number(count.value), retry = !!sel.error && sel.request?.trade.quantity === q;
+      const valid = retry || (count.value !== "" && Number.isInteger(q) && q >= 1 && q <= max);
+      sel.quantity = q; submit.disabled = !valid || this.inFlight;
+      submit.textContent = retry ? "Retry" : dismantle ? "Dismantle" : "Exchange"; cancel.textContent = retry ? "Close" : "Cancel";
+      receive.textContent = valid ? dismantle ? `${q*price} ${q*price===1 ? "Scrap" : "Scraps"}` : pack ? `${rate.stickers} stickers` : `${q} ${q===1 ? "sheet" : "sheets"}` : "—";
+      cost.textContent = valid ? `${q*price} Scraps` : "—";
+      remaining.textContent = valid ? ((retry ? sel.balanceBefore : S.scraps.balance) + (dismantle ? 1 : -1)*q*price).toLocaleString("en-US") : "—";
+      stock.textContent = retry ? "Retry checks the same request without spending twice." : pack ? "Adds to the same bag. Opened stickers stay in your Book." : valid ? `${S.stock[sel.itemId] + (dismantle ? -q : q)} ${name} sheets left after ${dismantle ? "dismantling" : "exchange"}.` : `Choose ${max ? `1–${max} sheets` : "a different material or collect more Scraps"}.`;
+    };
+    count.addEventListener("input", update); update();
+    const form = h("form.scrap-trade", {tabindex:-1,"aria-label":dismantle ? "Confirm material dismantling" : "Confirm exchange", on:{
+      keydown:ev => { if(ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); if(!this.inFlight) this.finish(); } },
+      submit:async ev => {
+        ev.preventDefault(); if(submit.disabled || this.inFlight) return;
+        const trade = {kind:sel.kind,itemId:sel.itemId,quantity:sel.quantity};
+        if(!sel.request || JSON.stringify(sel.request.trade)!==JSON.stringify(trade)) {
+          sel.request = {trade,requestId:Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,"0")).join("")}; sel.balanceBefore = S.scraps.balance;
+        }
+        this.inFlight = true; Bridge.busy = true; count.disabled = true; submit.disabled = true; cancel.disabled = true; sel.error = ""; error.textContent = "";
+        try {
+          const receipt = await Bridge.invoke("scrap_trade", sel.request); await Bridge.reload();
+          this.inFlight = false; this.finish(); Snd.chime(2,740); Shell.toast(dismantle ? `${receipt.delta} ${receipt.delta===1 ? "Scrap" : "Scraps"} saved.` : pack ? `${name} refilled.` : `${name} sheets added.`);
+        } catch(e) { sel.error = String(e); error.textContent = sel.error; }
+        finally { this.inFlight = false; Bridge.busy = false; count.disabled = !!sel.error; cancel.disabled = false; update(); }
+      }
+    }}, h("div.scrap-trade-head", h("h2", `${dismantle ? "Dismantle" : pack ? "Refill" : "Exchange for"} ${name}`), h("small.muted", `${price} ${price===1 ? "Scrap" : "Scraps"} ${pack ? "per refill" : "per sheet"}`)),
+      h("div.scrap-summary" + (dismantle ? "" : ".has-cost"), pack ? h("div", h("span.muted.small", "Pack"), h("b", "1 refill")) : h("label", "Sheets", count),
+        h("div", h("span.muted.small", "Receive"), receive), dismantle ? null : h("div", h("span.muted.small", "Spend"), cost), h("div", h("span.muted.small", "Scraps after"), remaining)), stock, error,
+      h("div.scrap-actions", cancel, submit));
+    return form;
+  },
+};

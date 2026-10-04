@@ -20,20 +20,33 @@ Pages.gifts = {
 };
 
 Pages.materials = {
+  selected: null,
   build() {
     const root = h("div.page-in.materialspage");
-    root.append(PageHead("Materials", "Material Book"));
-    root.append(h("p.muted.lede", "Open Today's Material to add to your book. A material is a way of making stickers. Each one is used up when you make a sticker with it — except plain paper, which never runs out."));
+    root.append(PageHead("Materials", "Material Book", Scraps.badge()));
+    root.append(h("p.muted.lede", "Preview the materials you've found, or save unused sheets as Scraps. Plain Matte is always available and cannot be dismantled."));
+    const panel = Scraps.form() || this.preview(); if(panel) root.append(panel);
     const grid = h("div.mgrid", Object.values(MAT).map((m, i) => {
-      const lock = !!m.locked, on = !lock && S.chosen === m.id;
-      const card = h("button.mbook", { "aria-pressed": String(on), disabled: lock, style: { "--i": i }, on: { click: () => { if (lock) return; S.chosen = m.id; Snd.tap(); Shell.toast(`Create will use ${m.name}.`); this.mark(grid); } } },
+      const lock = !!m.locked;
+      const card = h("button.mbook", { "aria-label":`Preview ${m.name}`, "aria-expanded":String(!lock && this.selected===m.id), disabled: lock, data:{material:m.id}, style: { "--i": i }, on: { click: () => {
+        if(Scraps.inFlight) return;
+        this.selected=m.id; Scraps.selection=null; Snd.tap(); Shell.refresh();
+        $(".materialspage").scrollTop = 0; $(".material-preview .x")?.focus({preventScroll:true});
+      } } },
         h("div.mc", h("div.mcard" + (lock ? ".locked" : ""), { data: { m: lock ? "matte" : m.id }, vars: { "--w": "190px" } }, h("i.art"), h("span.lab", lock ? h("b", "?") : [h("b", m.name), h("small", m.rarity)]))),
         h("div.mmeta", h("b", lock ? "Not found yet" : m.name), h("span.seal", { data: { rarity: m.rarity } }, lock ? "locked" : m.rarity),
           h("small", lock ? "Open Today's Material to find it" : m.unlimited ? "Always available" : `${S.stock[m.id]} in stock · found ${m.found}`), lock ? null : h("small.recipe", m.recipe)));
       if (!lock) Stk.tilt($(".mcard", card), { max: 9, scale: 1.03, trigger: card });
-      return card;
+      const rate = Scraps.material(m.id);
+      return h("div.material-entry", card, h("div.material-tools", !lock && rate ? Scraps.button("dismantle", m.id, "Dismantle…", !(S.stock[m.id] > 0)) : null));
     }));
     root.append(grid); return root;
   },
-  mark(grid) { $$(".mbook", grid).forEach((b, i) => b.setAttribute("aria-pressed", String(Object.values(MAT)[i].id === S.chosen))); },
+  preview() {
+    const m = MAT[this.selected]; if(!m || m.locked) return null;
+    return h("section.material-preview", {"aria-label":`${m.name} preview`}, MatCard(m,240),
+      h("div", h("h2",m.name), h("p",m.recipe), h("p.muted.small",m.unlimited ? "Always available" : `${S.stock[m.id]} sheets in stock · found ${m.found}`),
+        Scraps.material(m.id) ? Scraps.button("dismantle",m.id,"Dismantle…",!(S.stock[m.id]>0)) : null),
+      h("button.x", {"aria-label":"Close material preview",on:{click:()=>{const id=this.selected;this.selected=null;Shell.refresh();$(`[data-material="${id}"]`)?.focus({preventScroll:true});}}}, "✕"));
+  },
 };

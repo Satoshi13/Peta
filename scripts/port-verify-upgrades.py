@@ -260,6 +260,115 @@ elif sys.argv[1]=='hover':
     ev('await Bridge.reload();return true;');assert ev('return JSON.stringify(S.stock)===window.hoverStock && window.hoverCalls.length===0;')
     (out/'hover.json').write_text(json.dumps(dict(layouts=layouts,controls=controls,onePreviewFollowBinding=True,repeatPositionGivesSameTilt=True,reduceMotionStopsFollow=True,stockUnchanged=True,noPrintOrOpenCommands=True,resizeCorner=corner),indent=2))
     print('Native hover: stable material nodes/focus/geometry, other control hit areas, one preview binding, Reduce motion and transparent resize corner passed')
+elif sys.argv[1]=='scraps':
+    from PIL import Image,ImageDraw
+    out=c.ROOT/'docs/port-spec/compare/review-13';out.mkdir(exist_ok=True)
+    source=(c.ROOT/'docs/ui-proposals/app/tools/audit.mjs').read_text();scanner=source[source.index('const scan ='):source.index('\n{\n  const b =')]
+    audits=[]
+    def audit(name):
+        issues=ev(scanner+'return scan();');known=[];actual=[]
+        for issue in issues:
+            if issue[0]=='spillX' and 'button.btn.paper' in issue[1] and int(issue[2].split('>')[0])-int(issue[2].split('>')[1])==4:known.append(issue)
+            else:actual.append(issue)
+        audits.append(dict(state=name,issues=actual,knownPaperArt=known));assert not actual,(name,actual)
+    def click(selector):
+        point=ev('const e=document.querySelector('+json.dumps(selector)+');if(!e || e.disabled)throw new Error('+json.dumps('Control unavailable: '+selector)+');e.scrollIntoView({block:"nearest",behavior:"instant"});await sleep(80);const r=e.getBoundingClientRect(),p=await Bridge.window.outerPosition();return [p.x+r.x+r.width/2,p.y+r.y+r.height/2];')
+        subprocess.run(['xdotool','mousemove',str(round(point[0])),str(round(point[1])),'click','1'],check=True);time.sleep(.25)
+    def take(name):
+        ev(r'const urls=new Set(Array.from(document.querySelectorAll(".page *")).flatMap(e=>["", "::before", "::after"].flatMap(p=>Array.from(getComputedStyle(e,p||null).backgroundImage.matchAll(/url\("([^"]+)"\)/g),m=>m[1]))));await Promise.all(Array.from(urls,url=>Stk.load(url)));await document.fonts.ready;await sleep(300);return true;')
+        shot(name)
+    def panel_safe():
+        r=ev('const p=document.querySelector(".scrap-trade,.material-preview").getBoundingClientRect(),c=document.querySelector(".wctl").getBoundingClientRect();return {left:p.left,top:p.top,controlsRight:c.right,controlsBottom:c.bottom};')
+        assert r['left']>=r['controlsRight'] or r['top']>=r['controlsBottom']+6,r
+    def qty(n):ev('const e=document.querySelector(".scrap-trade input");e.value='+json.dumps(str(n))+';e.dispatchEvent(new Event("input",{bubbles:true}));return true;')
+    def snapshot():return ev('return {balance:S.scraps.balance,kraft:S.stock.kraft,holographic:S.stock.holographic,tokyo:S.packs.find(p=>p.id==="tokyo"),pending:S.pending,chosen:S.chosen};')
+    def badge():
+        value=ev('const a=document.querySelector(".scraps-count").getBoundingClientRect(),b=document.querySelector(".ph-text").getBoundingClientRect(),v=document.querySelector(".page-in");return {right:a.right,left:a.left,titleRight:b.right,pageRight:v.getBoundingClientRect().right,overlapsChrome:(()=>{const t=document.querySelector(".ph-text").getBoundingClientRect(),c=document.querySelector(".wctl").getBoundingClientRect();return t.left<c.right && t.top<c.bottom;})(),overflow:v.scrollWidth>v.clientWidth,label:document.querySelector(".scraps-count").getAttribute("aria-label")};')
+        assert value['left']>value['titleRight'] and value['right']<=value['pageRight'] and not value['overflow'] and not value['overlapsChrome'],value
+        return value
+    ev('S.closeOutside=false;S.sound=false;S.motion="reduce";S.chosen="kraft";Bridge.savePreferences();await Bridge.invoke("print_later");await Bridge.invoke("exit_edit_mode");await Bridge.window.show();await Bridge.reload();return true;')
+    initial=snapshot();assert initial['balance']==0 and initial['kraft']==4 and initial['holographic']==8 and len(initial['tokyo']['left'])==0,initial
+    layouts=[]
+    for shell in ['studio','desk']:
+        for w,h in [(1060,700),(720,520)]:
+            ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize('+str(w)+','+str(h)+'));Shell.setShell('+json.dumps(shell)+');Pages.materials.selected=null;Scraps.selection=null;await Shell.open("materials");return true;');time.sleep(.2)
+            head=badge();assert not ev('return !!document.querySelector(".materialspage .mbook[aria-pressed]");')
+            audit(shell+'-materials-'+str(w));take(shell+'-materials-'+str(w))
+            click('[data-material="holographic"]');assert ev('return !!document.querySelector(".material-preview") && S.chosen==="kraft" && !document.querySelector("#toast").textContent.startsWith("Create will use");')
+            panel_safe();audit(shell+'-preview-'+str(w))
+            if w==720:take(shell+'-preview-'+str(w))
+            click('.material-preview [data-scrap-kind="dismantle"]');qty(2)
+            assert ev('return document.querySelector(".scrap-summary").textContent.includes("6 Scraps") && document.querySelector(".scrap-trade-head small").textContent.includes("per sheet");')
+            panel_safe();audit(shell+'-dismantle-'+str(w))
+            if w==720:take(shell+'-dismantle-'+str(w))
+            for invalid in [0,1.5,9]:qty(invalid);assert ev('return document.querySelector(".scrap-trade [type=submit]").disabled;')
+            ev('document.querySelector(".scrap-trade input").dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true,cancelable:true}));return true;')
+            assert ev('return !document.querySelector(".scrap-trade") && S.windowOpen;')
+            ev('MK.tab="materials";await Shell.go("market",{instant:true});return true;');headMarket=badge()
+            assert ev('return document.querySelectorAll(".mk-mats [data-scrap-kind=material]:disabled").length===2 && document.querySelectorAll(".mk-mats .btn:disabled").length===5;')
+            audit(shell+'-market-'+str(w));take(shell+'-market-'+str(w))
+            layouts.append(dict(shell=shell,size=[w,h],materialsHeader=head,marketHeader=headMarket))
+    assert snapshot()==initial
+    ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700));Shell.setShell("studio");Pages.materials.selected=null;await Shell.open("materials");window.scrapCalls=[];const original=Bridge.invoke;Bridge.invoke=async(cmd,args)=>{if(cmd==="scrap_trade")window.scrapCalls.push(args);const result=await original(cmd,args);if(cmd==="scrap_trade" && window.failAfterScrapCommit){window.failAfterScrapCommit=false;throw new Error("Connection interrupted after commit.");}return result;};return true;')
+    click('[data-scrap-item="holographic"]');qty(8);take('studio-dismantle-1060')
+    ev('window.failAfterScrapCommit=true;const b=document.querySelector(".scrap-trade [type=submit]");b.click();b.click();return true;');wait('!Scraps.inFlight && document.querySelector(".scrap-error")?.textContent.includes("Connection interrupted")')
+    assert snapshot()["holographic"]==0 and snapshot()["balance"]==24
+    click('.scrap-trade [type="submit"]');wait('!Scraps.inFlight && !document.querySelector(".scrap-trade")')
+    assert snapshot()['holographic']==0 and ev('return window.scrapCalls.length===2 && window.scrapCalls[0].requestId===window.scrapCalls[1].requestId;')
+    ev('MK.tab="materials";await Shell.go("market",{instant:true});return true;')
+    click('[data-scrap-kind="material"][data-scrap-item="kraft"]');qty(2);take('studio-exchange-1060');audit('exchange-1060');assert ev('return document.querySelector(".scrap-summary").textContent.includes("Spend4 Scraps");')
+    for shell in ['studio','desk']:
+        for w,h in [(1060,700),(720,520)]:
+            ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize('+str(w)+','+str(h)+'));Shell.setShell('+json.dumps(shell)+');document.querySelector(".page-in").scrollTop=0;return true;');panel_safe();audit(shell+'-exchange-confirm-'+str(w))
+            if w==720:take(shell+'-exchange-'+str(w))
+    ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700));Shell.setShell("studio");return true;')
+    ev('window.failAfterScrapCommit=true;document.querySelector(".scrap-trade [type=submit]").click();return true;');wait('!Scraps.inFlight && document.querySelector(".scrap-error")?.textContent.includes("Connection interrupted")')
+    click('.scrap-trade [type="submit"]');wait('!Scraps.inFlight && !document.querySelector(".scrap-trade") && S.scraps.balance===20')
+    assert snapshot()['kraft']==6 and ev('return window.scrapCalls[2].requestId===window.scrapCalls[3].requestId;')
+    click('[data-scrap-kind="material"][data-scrap-item="holographic"]');click('.scrap-trade [type="submit"]');wait('!Scraps.inFlight && S.scraps.balance===14')
+    ev('MK.tab="packs";Shell.refresh();return true;');assert ev('return document.querySelector("[data-scrap-kind=pack][data-scrap-item=tokyo]").disabled;')
+    ev('await Shell.go("materials",{instant:true});return true;');click('[data-scrap-item="kraft"]');qty(5);click('.scrap-trade [type="submit"]');wait('!Scraps.inFlight && S.scraps.balance===19')
+    ev('MK.tab="packs";await Shell.go("market",{instant:true});return true;');click('[data-scrap-kind="pack"][data-scrap-item="tokyo"]');audit('pack-confirm');take('studio-refill-1060')
+    for shell in ['studio','desk']:
+        for w,h in [(1060,700),(720,520)]:
+            ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize('+str(w)+','+str(h)+'));Shell.setShell('+json.dumps(shell)+');document.querySelector(".page-in").scrollTop=0;return true;');panel_safe();audit(shell+'-refill-confirm-'+str(w))
+            if w==720:take(shell+'-refill-'+str(w))
+    ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize(1060,700));Shell.setShell("studio");return true;')
+    click('.scrap-trade .paper');assert snapshot()['balance']==19 and len(snapshot()['tokyo']['left'])==0
+    click('[data-scrap-kind="pack"][data-scrap-item="tokyo"]');click('.scrap-trade [type="submit"]');wait('!Scraps.inFlight && S.scraps.balance===3')
+    assert len(snapshot()['tokyo']['left'])==8 and snapshot()['tokyo']['total']==16
+    assert not ev('return !!document.querySelector("[data-scrap-kind=pack][data-scrap-item=tokyo]");')
+    click('.mk-hero-actions > button');wait('S.page==="packs"');assert snapshot()['balance']==3
+    assert '8 left · 16 total' in ev('return document.querySelector("[data-pack=tokyo] .pack-tag").textContent;')
+    assert snapshot()['pending']==initial['pending']
+    final=snapshot();assert (final['balance'],final['kraft'],final['holographic'])==(3,1,1),final
+    for shell in ['studio','desk']:
+        for w,h in [(1060,700),(720,520)]:
+            ev('await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize('+str(w)+','+str(h)+'));Shell.setShell('+json.dumps(shell)+');await Shell.open("materials");return true;');badge();audit(shell+'-materials-after-'+str(w))
+            if w==1060:take(shell+'-materials-after')
+            ev('MK.tab="materials";await Shell.go("market",{instant:true});return true;');badge();audit(shell+'-market-after-'+str(w))
+            assert ev('return document.querySelector("[data-scrap-item=holographic]").disabled && !document.querySelector("[data-scrap-item=kraft]").disabled;')
+            if w==1060:take(shell+'-market-after')
+            ev('await Shell.go("packs",{instant:true});return true;');audit(shell+'-packs-after-'+str(w))
+    for shell in ['studio','desk']:
+        for page,number in [('materials','19'),('market','17')]:
+            actual=Image.open(out/(shell+'-'+page+'-after.png'));ref=Image.open(c.ROOT/'docs/port-spec/golden'/(shell+'-'+number+'-'+page+'.jpg')).crop((190,79,1250,779)) if page=='materials' else Image.open(c.ROOT/'docs/port-spec/golden'/(shell+'-17-market-materials.jpg')).crop((190,79,1250,779))
+            pair=Image.new('RGB',(2120,732),'#f5f0e6');pair.paste(ref,(0,32));pair.paste(actual,(1060,32));d=ImageDraw.Draw(pair);d.text((12,8),'Golden (unchanged)',fill='#2b2a28');d.text((1072,8),'Actual Tauri: Scraps / preview and dismantle only',fill='#2b2a28');pair.save(out/(shell+'-'+page+'-golden.jpg'),quality=90)
+    (out/'scraps.json').write_text(json.dumps(dict(initial=initial,final=final,layouts=layouts,audits=audits,calls=ev('return window.scrapCalls;'),cancelAndInvalidQuantitiesDoNotTrade=True,retryAfterLostResponseUsesSameId=True,previewDoesNotSelectCreateMaterial=True,printQueueUnchanged=True),indent=2)+'\n')
+    print('Native Scraps: preview only, cancellation, invalid quantity, dismantle, material exchanges, refill, response-loss retry and layouts passed')
+elif sys.argv[1]=='scraps-restart':
+    import sqlite3
+    out=c.ROOT/'docs/port-spec/compare/review-13'
+    record=json.loads((out/'scraps.json').read_text())
+    ev('S.closeOutside=false;await Bridge.reload();await Bridge.window.show();await Shell.open("materials");return true;')
+    replay=ev('return await Bridge.invoke("scrap_trade",'+json.dumps(record['calls'][-1])+');')
+    current=ev('await Bridge.reload();return {balance:S.scraps.balance,kraft:S.stock.kraft,holographic:S.stock.holographic,tokyo:S.packs.find(p=>p.id==="tokyo"),pending:S.pending};')
+    expected={k:record['final'][k] for k in current}
+    assert current==expected and replay['balance']==3,(current,expected,replay)
+    conn=sqlite3.connect(Path(os.environ['XDG_DATA_HOME'])/'app.peta.desktop/peta.db');version=conn.execute('PRAGMA user_version').fetchone()[0];conn.close();assert version==7
+    record['nativeRestart']={'state':current,'refillReceiptReplayedWithoutRefillingAgain':True,'databaseVersion':version}
+    (out/'scraps.json').write_text(json.dumps(record,indent=2)+'\n')
+    print('Native Scraps restart: balance, stock, refill history and same-id receipt survive; DB v7 unchanged')
 elif sys.argv[1]=='reflection':
     wait('document.querySelectorAll("#layer>.sticker").length===3',layer)
     ev('applyLayerPreferences({motion:"full",sound:false});const original=requestAnimationFrame;window.testReflectionFrames=0;window.requestAnimationFrame=fn=>{window.testReflectionFrames++;return original(fn);};return true;',layer);time.sleep(.5)

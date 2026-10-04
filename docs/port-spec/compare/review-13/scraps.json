@@ -1,0 +1,1262 @@
+{
+  "initial": {
+    "balance": 0,
+    "chosen": "kraft",
+    "holographic": 8,
+    "kraft": 4,
+    "pending": null,
+    "tokyo": {
+      "by": "Peta",
+      "daily": false,
+      "hue": 200,
+      "id": "tokyo",
+      "kind": "holo",
+      "left": [],
+      "title": "Tokyo Pack",
+      "total": 8
+    }
+  },
+  "final": {
+    "balance": 3,
+    "chosen": "kraft",
+    "holographic": 1,
+    "kraft": 1,
+    "pending": null,
+    "tokyo": {
+      "by": "Peta",
+      "daily": false,
+      "hue": 200,
+      "id": "tokyo",
+      "kind": "holo",
+      "left": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "title": "Tokyo Pack",
+      "total": 16
+    }
+  },
+  "layouts": [
+    {
+      "shell": "studio",
+      "size": [
+        1060,
+        700
+      ],
+      "materialsHeader": {
+        "label": "0 Scraps",
+        "left": 920,
+        "overflow": false,
+        "overlapsChrome": false,
+        "pageRight": 1060,
+        "right": 1024,
+        "titleRight": 400.296875
+      },
+      "marketHeader": {
+        "label": "0 Scraps",
+        "left": 920,
+        "overflow": false,
+        "overlapsChrome": false,
+        "pageRight": 1060,
+        "right": 1024,
+        "titleRight": 429.921875
+      }
+    },
+    {
+      "shell": "studio",
+      "size": [
+        720,
+        520
+      ],
+      "materialsHeader": {
+        "label": "0 Scraps",
+        "left": 580,
+        "overflow": false,
+        "overlapsChrome": false,
+        "pageRight": 720,
+        "right": 684,
+        "titleRight": 180.109375
+      },
+      "marketHeader": {
+        "label": "0 Scraps",
+        "left": 580,
+        "overflow": false,
+        "overlapsChrome": false,
+        "pageRight": 720,
+        "right": 684,
+        "titleRight": 225.921875
+      }
+    },
+    {
+      "shell": "desk",
+      "size": [
+        1060,
+        700
+      ],
+      "materialsHeader": {
+        "label": "0 Scraps",
+        "left": 904,
+        "overflow": false,
+        "overlapsChrome": false,
+        "pageRight": 1044,
+        "right": 1008,
+        "titleRight": 316.890625
+      },
+      "marketHeader": {
+        "label": "0 Scraps",
+        "left": 904,
+        "overflow": false,
+        "overlapsChrome": false,
+        "pageRight": 1044,
+        "right": 1008,
+        "titleRight": 337.921875
+      }
+    },
+    {
+      "shell": "desk",
+      "size": [
+        720,
+        520
+      ],
+      "materialsHeader": {
+        "label": "0 Scraps",
+        "left": 572,
+        "overflow": false,
+        "overlapsChrome": false,
+        "pageRight": 712,
+        "right": 676,
+        "titleRight": 188.109375
+      },
+      "marketHeader": {
+        "label": "0 Scraps",
+        "left": 572,
+        "overflow": false,
+        "overlapsChrome": false,
+        "pageRight": 712,
+        "right": 676,
+        "titleRight": 233.921875
+      }
+    }
+  ],
+  "audits": [
+    {
+      "state": "studio-materials-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "studio-preview-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "studio-dismantle-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "studio-market-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "studio-materials-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "studio-preview-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "studio-dismantle-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "studio-market-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "desk-materials-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "desk-preview-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "desk-dismantle-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "desk-market-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "desk-materials-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "desk-preview-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "desk-dismantle-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "desk-market-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "exchange-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "studio-exchange-confirm-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "studio-exchange-confirm-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "desk-exchange-confirm-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "desk-exchange-confirm-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "pack-confirm",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "146>142",
+          "Refill \u2014 16 Scraps"
+        ]
+      ]
+    },
+    {
+      "state": "studio-refill-confirm-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "146>142",
+          "Refill \u2014 16 Scraps"
+        ]
+      ]
+    },
+    {
+      "state": "studio-refill-confirm-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "146>142",
+          "Refill \u2014 16 Scraps"
+        ]
+      ]
+    },
+    {
+      "state": "desk-refill-confirm-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "146>142",
+          "Refill \u2014 16 Scraps"
+        ]
+      ]
+    },
+    {
+      "state": "desk-refill-confirm-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.scrap-action",
+          "112>108",
+          "Cancel"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "146>142",
+          "Refill \u2014 16 Scraps"
+        ]
+      ]
+    },
+    {
+      "state": "studio-materials-after-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "studio-market-after-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "studio-packs-after-1060",
+      "issues": [],
+      "knownPaperArt": []
+    },
+    {
+      "state": "studio-materials-after-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "studio-market-after-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "studio-packs-after-720",
+      "issues": [],
+      "knownPaperArt": []
+    },
+    {
+      "state": "desk-materials-after-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "desk-market-after-1060",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "desk-packs-after-1060",
+      "issues": [],
+      "knownPaperArt": []
+    },
+    {
+      "state": "desk-materials-after-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "111>107",
+          "Dismantle\u2026"
+        ]
+      ]
+    },
+    {
+      "state": "desk-market-after-720",
+      "issues": [],
+      "knownPaperArt": [
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Dismantle materials\u2026"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "170>166",
+          "Exchange \u2014 2 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "171>167",
+          "Exchange \u2014 6 Scraps"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ],
+        [
+          "spillX",
+          "button.btn.paper.small",
+          "118>114",
+          "Coming later"
+        ]
+      ]
+    },
+    {
+      "state": "desk-packs-after-720",
+      "issues": [],
+      "knownPaperArt": []
+    }
+  ],
+  "calls": [
+    {
+      "requestId": "7e8d97650419d2cd98665094b2eba383",
+      "trade": {
+        "itemId": "holographic",
+        "kind": "dismantle",
+        "quantity": 8
+      }
+    },
+    {
+      "requestId": "7e8d97650419d2cd98665094b2eba383",
+      "trade": {
+        "itemId": "holographic",
+        "kind": "dismantle",
+        "quantity": 8
+      }
+    },
+    {
+      "requestId": "f65fbc39e21f721ce68ae12edbf7d3f5",
+      "trade": {
+        "itemId": "kraft",
+        "kind": "material",
+        "quantity": 2
+      }
+    },
+    {
+      "requestId": "f65fbc39e21f721ce68ae12edbf7d3f5",
+      "trade": {
+        "itemId": "kraft",
+        "kind": "material",
+        "quantity": 2
+      }
+    },
+    {
+      "requestId": "6c1adb920a3f3f239b3f1a09f8a90b57",
+      "trade": {
+        "itemId": "holographic",
+        "kind": "material",
+        "quantity": 1
+      }
+    },
+    {
+      "requestId": "933c395e2911ae017222e9ab6430dc44",
+      "trade": {
+        "itemId": "kraft",
+        "kind": "dismantle",
+        "quantity": 5
+      }
+    },
+    {
+      "requestId": "54631ad5367cc555291d1d56afcd57fa",
+      "trade": {
+        "itemId": "tokyo",
+        "kind": "pack",
+        "quantity": 1
+      }
+    }
+  ],
+  "cancelAndInvalidQuantitiesDoNotTrade": true,
+  "retryAfterLostResponseUsesSameId": true,
+  "previewDoesNotSelectCreateMaterial": true,
+  "printQueueUnchanged": true,
+  "nativeRestart": {
+    "state": {
+      "balance": 3,
+      "holographic": 1,
+      "kraft": 1,
+      "pending": null,
+      "tokyo": {
+        "by": "Peta",
+        "daily": false,
+        "hue": 200,
+        "id": "tokyo",
+        "kind": "holo",
+        "left": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "title": "Tokyo Pack",
+        "total": 16
+      }
+    },
+    "refillReceiptReplayedWithoutRefillingAgain": true,
+    "databaseVersion": 7
+  }
+}
