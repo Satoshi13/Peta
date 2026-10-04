@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   toPixels, fromPixels, resizedWidth, pointerAngle, rotatedAngle, normalizeAngle, MIN_SCALE, MAX_SCALE,
-  toLocalUV, grabRadius, isPivotGrab, pivotResult, peelPose, PEEL_MAX_ANGLE,
+  toLocalUV, grabRadius, isPivotGrab, pivotResult, peelPose, peelCurl, PEEL_MAX_ANGLE, PEEL_COMMIT,
 } from "../src/placement.js";
 
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} !~ ${b}`);
@@ -90,4 +90,40 @@ test("peelPose follows the sticker's rotation and caps the angle", () => {
   near(p.dlx, 1); near(p.dly, 0, 1e-9); near(p.ox, 0);
   assert.equal(peelPose(1e6, 0, 0, 200, 100).angle, PEEL_MAX_ANGLE);
   assert.equal(peelPose(0, 0, 0, 200, 100).progress, 0);
+});
+
+const area = points => Math.abs(points.reduce((sum, [x, y], i) => {
+  const next = points[(i + 1) % points.length]; return sum + x * next[1] - y * next[0];
+}, 0)) / 2;
+
+test("curl keeps the attached part flat and covers the original silhouette without losing paper", () => {
+  for (const [dx, dy] of [[60, 0], [0, -60], [-45, 60], [45, -60]]) {
+    const curl = peelCurl(peelPose(dx, dy, 37, 240, 160), 240, 160);
+    assert.ok(area(curl.front) > 0 && area(curl.front) < 240 * 160);
+    near(area(curl.front) + curl.strips.reduce((sum, band) => sum + area(band.clip), 0), 240 * 160);
+    for (const band of curl.strips) for (const [x, y] of band.clip) {
+      assert.ok(x >= -1e-9 && x <= 240 + 1e-9 && y >= -1e-9 && y <= 160 + 1e-9);
+    }
+  }
+});
+
+test("curl reveals the underside before the unchanged release threshold, in every pull direction", () => {
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [.6, -.8]]) {
+    const pose = peelPose(dx * 90 * PEEL_COMMIT, dy * 90 * PEEL_COMMIT, 0, 200, 150);
+    const curl = peelCurl(pose, 200, 150);
+    assert.ok(curl.strips.some(band => band.angle > 90));
+    assert.ok(curl.strips.every(band => band.z >= 0));
+    assert.ok(area(curl.front) > 0); // A releasing finger completes the last attached part.
+    const middle = curl.strips[5];
+    near(middle.x * dy - middle.y * dx, 0);
+  }
+});
+
+test("curl begins flat, ends fully released and stays finite for extreme/zero pulls", () => {
+  const flat = peelCurl(peelPose(0, 0, 0, 200, 100), 200, 100);
+  assert.equal(flat.strips.length, 0); near(area(flat.front), 20000);
+  const full = peelCurl(peelPose(1e9, -1e9, -65, 200, 100), 200, 100);
+  near(area(full.front), 0); near(full.strips.reduce((sum, band) => sum + area(band.clip), 0), 20000);
+  assert.ok(full.strips.every(band => [band.ox, band.oy, band.x, band.y, band.z, band.angle, band.shade].every(Number.isFinite)));
+  assert.equal(peelCurl({dlx:1,dly:0,progress:1}, 0, 0).strips.length, 0);
 });

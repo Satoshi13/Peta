@@ -1,6 +1,6 @@
 # Native port comparisons
 
-[ネイティブ機能追加の検証記録](upgrade-2026-10-04/README.md)。
+[最新: Option剥がしの紙カール・巻戻し・Reduce motion](review-06/README.md)。[ホロ・触覚・カウントダウン・Book・素材の検証記録](upgrade-2026-10-04/README.md)。
 
 [前回: Book click-to-flip, consistent actions and original cutout editing/deletion](review-05/README.md). Original-only editing was explicitly requested as cutout/outline re-editing; title naming remains undecided.
 

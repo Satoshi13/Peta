@@ -1,0 +1,32 @@
+{
+  "actualNativeMousePrintPaste": true,
+  "attached": {
+    "back": "linear-gradient(rgba(40, 30, 20, 0.063), rgba(40, 30, 20, 0.063)), url(\"tauri://localhost/art/back/back-matte.jpg\")",
+    "clip": "polygon(0px 0px, 45.972585px 0px, 57.055876px 158.498438px, 0px 158.498438px)",
+    "transform": "translate3d(194.4px, 478.750781px, 0px) rotate(4deg) scale(1)"
+  },
+  "stationaryCurlDoesNotUpdate": true,
+  "partialReturnKeepsPlacement": true,
+  "materialPapers": [
+    {
+      "clip": "polygon(16.596333px 0px, 187.2px 0px, 187.2px 172.994711px)",
+      "material": "kraft",
+      "paper": "linear-gradient(rgba(40, 30, 20, 0.063), rgba(40, 30, 20, 0.063)), url(\"tauri://localhost/art/back/back-kraft.jpg\")"
+    },
+    {
+      "clip": "polygon(187.2px 114.176132px, 187.2px 158.498438px, 0px 158.498438px, 0px 97.798254px)",
+      "material": "holographic",
+      "paper": "linear-gradient(rgba(40, 30, 20, 0.063), rgba(40, 30, 20, 0.063)), url(\"tauri://localhost/art/back/back-holographic.jpg\")"
+    }
+  ],
+  "pointerCancelDoesNotPeel": true,
+  "successfulPeelOnce": true,
+  "peeledStickerRemainsInBook": true,
+  "reduceMotionNoCurl": true,
+  "reducedSuccessOnce": true,
+  "reduceDuringPullClearsCurl": true,
+  "escapeDuringPullReturnsPaper": true,
+  "idleRafStops": true,
+  "stockUnchanged": true,
+  "errors": []
+}

@@ -108,3 +108,42 @@ export function peelPose(dx, dy, rotationDeg, w, h) {
     dlx, dly,
   };
 }
+
+/** A paper curl along the pull: the attached part stays flat, narrow strips follow an arc. */
+export function peelCurl(pose, w, h) {
+  const { dlx, dly } = pose, progress = clamp(pose.progress, 0, 1);
+  const reach = (Math.abs(dlx) * w + Math.abs(dly) * h) / 2;
+  const length = reach * 2 * progress, seam = reach - length;
+  const projection = ([x, y]) => (x - w / 2) * dlx + (y - h / 2) * dly;
+  const clip = (lo, hi) => {
+    let points = [[0, 0], [w, 0], [w, h], [0, h]];
+    for (const [limit, sign] of [[lo, 1], [hi, -1]]) {
+      if (!Number.isFinite(limit)) continue;
+      const out = [];
+      for (let i = 0; i < points.length; i++) {
+        const a = points[i], b = points[(i + 1) % points.length];
+        const qa = (projection(a) - limit) * sign, qb = (projection(b) - limit) * sign;
+        if (qa >= 0) out.push(a);
+        if ((qa >= 0) !== (qb >= 0)) { const t = qa / (qa - qb); out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); }
+      }
+      points = out;
+    }
+    return points;
+  };
+  const front = clip(-Infinity, seam), lifted = clip(seam, Infinity), strips = [];
+  if (length > 1e-6) {
+    const bend = Math.min(200, progress * 260) * Math.PI / 180, radius = length / bend, count = 12;
+    for (let i = 0; i < count; i++) {
+      const q = (i + .5) * length / count, angle = q / radius, origin = seam + q;
+      const shift = radius * Math.sin(angle) - q;
+      strips.push({
+        clip: clip(seam + i * length / count, seam + (i + 1) * length / count),
+        paintClip: clip(seam + i * length / count - .45, seam + (i + 1) * length / count + .45),
+        ox: w / 2 + dlx * origin, oy: h / 2 + dly * origin,
+        x: dlx * shift, y: dly * shift, z: radius * (1 - Math.cos(angle)),
+        angle: angle * 180 / Math.PI, shade: .06 + .24 * (1 - Math.abs(Math.cos(angle))),
+      });
+    }
+  }
+  return { front, lifted, strips, length };
+}

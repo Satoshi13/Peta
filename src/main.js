@@ -3,7 +3,7 @@ import { initPrint } from "./print.js";
 import { REFLECTIVE_MATERIALS, staticSheen, reflectedSheen, approachSheen } from "./reflection.js";
 import {
   toPixels, fromPixels, toLocalUV, isPivotGrab, pivotResult, pointerAngle, distance, normalizeAngle,
-  peelPose, PEEL_COMMIT, PEEL_DISTANCE,
+  peelPose, peelCurl, PEEL_COMMIT, PEEL_DISTANCE,
 } from "./placement.js";
 
 const { invoke } = window.__TAURI__.core;
@@ -132,7 +132,13 @@ function cursorReflect(cursor) {
   for(const node of nodes.values()) if(REFLECTIVE_MATERIALS.has(node.el.dataset.material)) setSheen(node,boxOf(node));
 }
 function reflectionPreferences() {
-  if(reduced()) { cancelAnimationFrame(reflectionRaf); reflectionRaf=0; reflectionCursor=null; }
+  if(reduced()) {
+    cancelAnimationFrame(reflectionRaf); reflectionRaf=0; reflectionCursor=null;
+    for (const node of nodes.values()) if (node.curl && !node.peeled) {
+      clearPeel(node); node.live = drag?.node === node;
+      if (node.live) node.el.classList.add("peeling");
+    }
+  }
   nodes.forEach(n=>{if(REFLECTIVE_MATERIALS.has(n.el.dataset.material)) setSheen(n,boxOf(n));});
   syncReflection();
 }
@@ -188,7 +194,7 @@ function hits(node, x, y) {
 }
 
 function pick(x, y) {
-  for (let i = stack.length - 1; i >= 0; i--) if (hits(stack[i], x, y)) return stack[i];
+  for (let i = stack.length - 1; i >= 0; i--) if (!stack[i].peeled && hits(stack[i], x, y)) return stack[i];
   return null;
 }
 
@@ -273,35 +279,57 @@ function settle(node, { save = true, haptic = false } = {}) {
   node.live = false;
   node.el.classList.remove("lifted");
   render(node); // commit the final size (single re-raster)
-  node.body.animate(
+  if (!reduced()) node.body.animate(
     [{ transform: "scale(1.14)" }, { transform: "scale(.96)", offset: .45 }, { transform: "scale(1.02)", offset: .75 }, { transform: "scale(1)" }],
     { duration: 340, easing: "ease-out" },
   );
   if (save) persist(node, haptic);
 }
 
-// ---- peel: Option + drag away. The grabbed side lifts around the far edge (a hinge). Pull far
-// enough and let go and it comes off; let go early and it presses back down. ----
+// ---- peel: Option + drag away. Paper rolls back from the pulled edge, revealing its underside.
+// Pull far enough and release to take it off; release early to roll it flat again. ----
 
-const PERSPECTIVE = 900;
-
-function peelTransform(pose, angle = pose.angle) {
-  return `perspective(${PERSPECTIVE}px) rotate3d(${pose.ax}, ${pose.ay}, 0, ${-angle}deg)`;
-}
+const peelClip = points => `polygon(${(points.length ? points : [[0, 0], [0, 0], [0, 0]]).map(([x, y]) => `${x}px ${y}px`).join(",")})`;
 
 function showPeel(node, pose) {
-  node.body.style.transformOrigin = `${pose.ox}px ${pose.oy}px`;
-  node.body.style.transform = peelTransform(pose);
   node.el.classList.toggle("peel-ready", pose.progress >= PEEL_COMMIT);
+  if (reduced()) return;
+  if (!node.curl) {
+    const scene = document.createElement("div"), shadow = document.createElement("div");
+    scene.className = "peel-curl"; shadow.className = "peel-shadow";
+    scene.setAttribute("aria-hidden", "true"); shadow.setAttribute("aria-hidden", "true");
+    node.el.append(shadow, scene); node.curl = { scene, shadow, strips: [] };
+  }
+  const curl = peelCurl(pose, node.baseW, node.baseH), { scene, shadow, strips } = node.curl;
+  node.body.style.clipPath = peelClip(curl.front);
+  shadow.style.clipPath = peelClip(curl.lifted);
+  shadow.style.opacity = Math.min(.28, pose.progress * .35);
+  shadow.style.transform = `translate(${-pose.dlx * curl.length * .22}px, ${-pose.dly * curl.length * .22 + 6}px)`;
+  curl.strips.forEach((band, i) => {
+    if (!strips[i]) {
+      const strip = document.createElement("div"), back = document.createElement("div"), front = document.createElement("div");
+      strip.className = "peel-strip"; back.className = "peel-back"; front.className = "peel-front";
+      front.append(node.body.querySelector("img").cloneNode()); strip.append(back, front); scene.append(strip);
+      strips[i] = strip;
+    }
+    const strip = strips[i]; strip.hidden = false;
+    for (const face of strip.children) face.style.clipPath = peelClip(band.paintClip);
+    strip.style.transformOrigin = `${band.ox}px ${band.oy}px`;
+    strip.style.transform = `translate3d(${band.x}px, ${band.y}px, ${band.z}px) rotate3d(${pose.ax}, ${pose.ay}, 0, ${-band.angle}deg)`;
+    strip.style.setProperty("--peel-shade", band.shade);
+  });
+  strips.slice(curl.strips.length).forEach(strip => { strip.hidden = true; });
 }
 
 function clearPeel(node) {
-  node.body.style.transform = "";
-  node.body.style.transformOrigin = "";
+  cancelAnimationFrame(node.peelRaf); node.peelRaf = 0;
+  node.curl?.scene.remove(); node.curl?.shadow.remove(); node.curl = null;
+  node.body.style.clipPath = "";
   node.el.classList.remove("peeling", "peel-ready");
 }
 
 function removeNode(node) {
+  clearPeel(node);
   nodes.delete(node.placement.stickerId);
   const i = stack.indexOf(node);
   if (i >= 0) stack.splice(i, 1);
@@ -309,15 +337,28 @@ function removeNode(node) {
   syncReflection();
 }
 
-/** The sticker comes away: keeps turning up and off along the pull, fades, then it's gone for good. */
-function peelOff(node, pose, from) {
-  node.peeled = true;
-  const away = `${peelTransform(pose, 115)} translate3d(${pose.dlx * 160}px, ${pose.dly * 160}px, 90px)`;
-  const anim = node.body.animate(
-    [{ transform: from, opacity: 1 }, { transform: away, opacity: 0 }],
-    { duration: 300, easing: "cubic-bezier(.5, 0, .9, .6)", fill: "forwards" },
-  );
-  anim.onfinish = async () => {
+function animatePeel(node, pose, to, away, done) {
+  cancelAnimationFrame(node.peelRaf);
+  if (reduced()) { done(); return; }
+  const start = performance.now(), duration = away ? 360 : 240;
+  const tick = now => {
+    const t = Math.min(1, (now - start) / duration), ease = 1 - Math.pow(1 - t, 3);
+    if (reduced() || t === 1) { node.peelRaf = 0; done(); return; }
+    showPeel(node, { ...pose, progress: pose.progress + (to - pose.progress) * ease });
+    if (away && node.curl) {
+      node.curl.scene.style.transform = `translate(${pose.dlx * t * 60}px, ${pose.dly * t * 60 - t * 18}px) rotate(${pose.dlx * t * 5}deg)`;
+      node.curl.scene.style.opacity = 1 - Math.max(0, (t - .4) / .6);
+      node.curl.shadow.style.opacity *= 1 - t;
+    }
+    node.peelRaf = requestAnimationFrame(tick);
+  };
+  node.peelRaf = requestAnimationFrame(tick);
+}
+
+/** Finish the roll before it leaves; only a successful native peel triggers the haptic. */
+function peelOff(node, pose, start = pose.progress) {
+  node.peeled = true; syncReflection();
+  animatePeel(node, { ...pose, progress: start }, 1, true, async () => {
     removeNode(node);
     try {
       await invoke("peel_sticker", { stickerId: node.placement.stickerId });
@@ -325,18 +366,15 @@ function peelOff(node, pose, from) {
     } catch (err) {
       console.error("peel_sticker failed", err);
     }
-  };
+  });
 }
 
 /** Not pulled far enough: it sticks back down. */
-function pressBack(node, from) {
-  node.body.animate(
-    [{ transform: from }, { transform: "none" }],
-    { duration: 220, easing: "cubic-bezier(.3, 1.5, .5, 1)" },
-  ).onfinish = () => {
+function pressBack(node, pose) {
+  animatePeel(node, pose, 0, false, () => {
     clearPeel(node);
-    settle(node, { save: false });
-  };
+    node.live = false; render(node);
+  });
 }
 
 async function persist(node, haptic = false) {
@@ -392,7 +430,7 @@ layer.addEventListener("pointerdown", (e) => {
     },
   };
   if (mode === "peel") {
-    node.live = true;
+    clearPeel(node); node.live = true;
     node.el.classList.add("peeling");
   } else {
     lift(node);
@@ -450,9 +488,8 @@ function endDrag(e) {
   layer.classList.remove("dragging");
   stopMeter();
   if (mode === "peel") {
-    const from = node.body.style.transform || "none";
-    if (pose && pose.progress >= PEEL_COMMIT) peelOff(node, pose, from);
-    else pressBack(node, from);
+    if (e.type !== "pointercancel" && pose && pose.progress >= PEEL_COMMIT) peelOff(node, pose);
+    else pressBack(node, pose);
   } else {
     settle(node, { haptic: Math.hypot(e.clientX - dragStart.x, e.clientY - dragStart.y) > .5 });
   }
@@ -518,9 +555,8 @@ function peelUnderPointer() {
   const box = boxOf(node);
   const pose = peelPose(0, -PEEL_DISTANCE * Math.max(box.w, box.h), box.rotation, box.w, box.h);
   node.live = true;
-  node.el.classList.add("peeling");
-  node.body.style.transformOrigin = `${pose.ox}px ${pose.oy}px`;
-  peelOff(node, pose, "none");
+  clearPeel(node); node.el.classList.add("peeling");
+  peelOff(node, pose, 0);
 }
 
 // ---- edit mode + boot ----
@@ -531,6 +567,7 @@ function setEditMode(on) {
   hint.hidden = !on;
   if (!on) {
     layer.dataset.cursor = "";
+    if (drag?.mode === "peel") { cancelAnimationFrame(drag.raf); clearPeel(drag.node); drag.node.live = false; stopMeter(); }
     drag = null;
     gest = null;
     stack.forEach((n) => { if (n.flipped || n.flipping) unflipNow(n); }); // stuck face-up again
