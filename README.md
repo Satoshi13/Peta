@@ -49,6 +49,8 @@ npm run dev        # = tauri dev
 
 ### 素材と開封のルール
 
+Marketの購入済みパックは、Featuredのボタン・一覧の`On your shelf`・詳細の同ボタンからPacksへ移動し、該当する袋を表示します。表示はチェック付きの小さな紙色ラベル。棚への移動だけではパックを開封せず、残数や素材を消費しません。Reduce motionでは移動後のスクロールも即時にします。
+
 - 今日の素材はローカル日付ごとに1つ抽選し、初回はHolographic。以降の重みはMatte / Kraft / Holographic = 50 / 32 / 18。
 - 封筒を開けると素材を獲得。Matteは無制限、Kraft / Holographicは作成時に選んだものを1つ消費します。素材帳の発見記録は残ります。
 - CreateとBookからの再印刷に1日1枚の上限はありません。Welcome Packは1日1回、Market Pack / Giftは回数制限なしで素材を消費しません。

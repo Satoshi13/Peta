@@ -15,7 +15,7 @@ Pages.packs = {
   pack(p, i, locked) {
     const off = p.empty || !packOpenable(p), n = Math.min(3, p.left.length || 1);
     const stack = h("div.pk-stack", Array.from({ length: n }, (_, k) => h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": k, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, k === n - 1 && (p.kind || "holo") === "holo" ? h("i.sheen") : null)));
-    const card = h("button.pack", { disabled: off, "aria-label": `${p.title}, ${p.left.length} left`, data: { empty: p.empty }, style: { "--i": i }, on: { click: () => { Snd.tap(); Cer.openPack(p); } } },
+    const card = h("button.pack", { disabled: off, "aria-label": `${p.title}, ${p.left.length} left`, data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: () => { Snd.tap(); Cer.openPack(p); } } },
       stack,
       h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.empty ? "all opened" : p.left.length + " of " + p.total + " left"}`), h("small.rule", p.empty ? "" : p.daily ? (packsLeftToday() ? "once a day" : "back tomorrow") : "open any time")),
       h("span.open-cta", { "aria-hidden": off ? "true" : null, style: { visibility: off ? "hidden" : "visible" } }, "Open one"));

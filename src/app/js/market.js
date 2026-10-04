@@ -17,7 +17,13 @@ const Market = {
   pouch(p) { const foil = (p.kind || "holo") === "holo"; return h("div.pk-stack.mk-pouch", h("i.pk-img" + (foil && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, foil ? h("i.sheen") : null)); },
   own(id) { return !!S.owned[id]; },
   async get(pack) {
-    if (this.own(pack.id)) return;
+    if (this.own(pack.id)) {
+      Snd.tap(); await Shell.go("packs");
+      const bag = Array.from(Shell.current.querySelectorAll(".pack")).find(p => p.dataset.pack === pack.id);
+      bag?.scrollIntoView({block:"nearest",behavior:reduced() ? "instant" : "smooth"});
+      if (bag && !bag.disabled) bag.focus({preventScroll:true});
+      return;
+    }
     // TODO(owner): paid packs need a purchase backend; do not simulate a payment.
     if (pack.price !== "Free") { Shell.toast("Purchases are not available yet."); return; }
     try { await Bridge.invoke("pack_install_demo", {packId:pack.id}); await Bridge.reload(); Snd.chime(3,784); Shell.toast(`${pack.title} is on your Packs shelf.`); Shell.refresh(); }
@@ -39,12 +45,15 @@ Pages.market = {
   },
   packs(paint, sel) {
     const feat = MARKET_PACKS[0];
-    const cell = (p, i) => h("button.mk-tile", { "aria-pressed": String(MK.sel === p.id), style: { "--i": i }, on: { click: () => { MK.sel = MK.sel === p.id ? null : p.id; Snd.tap(); paint(); } } },
-      Market.pouch(p), h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.count} stickers`)), h("span.price" + (Market.own(p.id) ? ".own" : p.price === "Free" ? ".free" : ""), Market.own(p.id) ? "On your shelf" : p.price));
+    const cell = (p, i) => {
+      const own = Market.own(p.id);
+      return h("button.mk-tile", { "aria-pressed": own ? null : String(MK.sel === p.id), "aria-label": own ? `${p.title} — view on your Packs shelf` : null, style: { "--i": i }, on: { click: () => { if (own) { Market.get(p); return; } MK.sel = MK.sel === p.id ? null : p.id; Snd.tap(); paint(); } } },
+        Market.pouch(p), h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.count} stickers`)), h("span.price" + (own ? ".own" : p.price === "Free" ? ".free" : ""), own ? "On your shelf" : p.price));
+    };
     const main = h("div.mk-main",
       h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat), h("div.fan", feat.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
         h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", feat.title), h("p.muted", `by ${feat.by} · ${feat.count} stickers`), h("p", feat.blurb),
-          h("button.btn", { on: { click: () => { Market.get(feat); paint(); } } }, Market.own(feat.id) ? "On your shelf" : "Get — Free"))),
+          h("button.btn", { on: { click: () => Market.get(feat) } }, Market.own(feat.id) ? "On your shelf" : "Get — Free"))),
       h("p.eyebrow.mk-h", "New and popular"), h("div.mk-grid", MARKET_PACKS.slice(1).map(cell)));
     return h("div.mk" + (sel ? ".has-detail" : ""), main, sel ? this.detail(sel, paint) : null);
   },
@@ -54,7 +63,7 @@ Pages.market = {
       h("div.mk-d-art", Market.pouch(p)), h("h3", p.title), h("p.muted", `by ${p.by} · ${p.count} stickers`), h("p", p.blurb),
       h("p.eyebrow", { style: { marginTop: "10px" } }, "A peek inside"),
       h("div.peek", p.keys.slice(0, p.count).map((k, i) => { const c = h("div.peek-s" + (i < 3 ? "" : ".sealed")); if (i < 3) Stk.make(A[k], { border: 10, material: "matte", max: 240 }).then((r) => c.append(Stk.el(r, r.aspect >= 1 ? 62 : 62 * r.aspect))); else c.append(h("b", "?")); return c; })),
-      h("button.btn", { disabled: own, style: { width: "100%", marginTop: "12px" }, on: { click: () => { Market.get(p); paint(); } } }, own ? "On your shelf" : p.price === "Free" ? "Get — Free" : `Get — ${p.price}`),
+      h("button.btn", { style: { width: "100%", marginTop: "12px" }, on: { click: () => Market.get(p) } }, own ? "On your shelf" : p.price === "Free" ? "Get — Free" : `Get — ${p.price}`),
       h("p.muted.small", { style: { marginTop: "8px" } }, "Open it any time, as often as you like. What's inside stays a surprise until you tear it."));
   },
   materials(paint) {

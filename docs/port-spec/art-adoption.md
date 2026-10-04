@@ -1,5 +1,7 @@
 # 納品素材の採用状況
 
+最新の変更: review-07で `ui/stamp-owned.png` の使用を終了。購入済みの青い文字と囲みを、オーナー依頼によりチェック付きのCSS紙色ラベルへ置換した。素材自体・prototypeは維持し、旧polish.cssの参照はnative.cssで上書きするため、現在の採用には数えない。下記の点数はそれぞれ記載された棚卸し時点の記録。
+
 棚卸し基準: `claude/relaxed-dijkstra-ocnjzu` の `b82a86c`。スライス1〜8と review-01 / review-02 を含む。対象は `src/art/` の PNG / JPG / SVG **232点**。フォント・プレビュー HTML / JS / CSS・manifest 自体は素材数に含めない。
 
 `app.html` と `index.html` から実際に開かれる画面・レイヤー、Rust のトレイ / アプリアイコンを確認した。P への登録、`--a-*` の注入、manifest の usedBy、`src/art/preview.html`、起動されない旧ウィンドウだけの参照は採用と数えない。上書きされる CSS / 存在しない DOM も除いた。

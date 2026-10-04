@@ -91,6 +91,70 @@ if sys.argv[1]=='peel':
     ev('await Bridge.reload();return true;');assert ev('return S.stock;')==stock
     (out/'peel.json').write_text(json.dumps(dict(actualNativeMousePrintPaste=True,attached=attached,stationaryCurlDoesNotUpdate=True,partialReturnKeepsPlacement=True,materialPapers=records,pointerCancelDoesNotPeel=True,successfulPeelOnce=True,peeledStickerRemainsInBook=True,reduceMotionNoCurl=True,reducedSuccessOnce=True,reduceDuringPullClearsCurl=True,escapeDuringPullReturnsPaper=True,idleRafStops=True,stockUnchanged=True,errors=[]),indent=2))
     print('Native peel: mouse curl/return/commit, three materials, interruptions, Reduce motion, one-shot haptics and idle cleanup passed')
+elif sys.argv[1]=='market-owned':
+    from PIL import Image, ImageDraw
+    out=c.ROOT/'docs/port-spec/compare/review-07';out.mkdir(exist_ok=True)
+    def click(expression):
+        p=ev('const e=('+expression+');e.scrollIntoView({block:"nearest",behavior:"instant"});await new Promise(requestAnimationFrame);await sleep(80);const r=e.getBoundingClientRect(),w=await Bridge.window.outerPosition();return {x:w.x+r.x+r.width/2,y:w.y+r.y+r.height/2};')
+        subprocess.run(['xdotool','mousemove',str(round(p['x'])),str(round(p['y'])),'click','1'],check=True)
+    def capture(name):
+        width=ev('return innerWidth;')
+        windows=subprocess.check_output(['xdotool','search','--name','^Peta$'],text=True).split()
+        wid=next(w for w in windows if 'WIDTH='+str(width) in subprocess.check_output(['xdotool','getwindowgeometry','--shell',w],text=True))
+        subprocess.run(['xdotool','windowactivate','--sync',wid],check=True);time.sleep(.2)
+        rect=ev('const p=await Bridge.window.outerPosition();return {x:p.x,y:p.y,w:innerWidth,h:innerHeight};')
+        subprocess.run(['import','-window','root','/tmp/peta-market-review07-root.png'],check=True)
+        actual=Image.open('/tmp/peta-market-review07-root.png').crop((rect['x'],rect['y'],rect['x']+rect['w'],rect['y']+rect['h'])).convert('RGB')
+        actual.save(out/(name+'.png'));return actual
+    def market(shell='studio',width=1060,height=700):
+        ev('S.closeOutside=false;MK.tab="packs";MK.sel=null;await Bridge.window.setSize(new window.__TAURI__.dpi.LogicalSize('+str(width)+','+str(height)+'));Shell.setShell('+json.dumps(shell)+');await Shell.open("market");await document.fonts.ready;return true;')
+        wait('document.querySelector(".fan .stk img")?.naturalWidth');wait('!document.querySelector("#toast.on")');time.sleep(.15)
+    def status():return ev('return await Bridge.invoke("pack_status");')
+    ev('S.closeOutside=false;S.motion="reduce";Bridge.savePreferences();await Bridge.invoke("exit_edit_mode");await Bridge.invoke("print_later");await Bridge.window.show();window.marketCalls=[];const invoke=Bridge.invoke;Bridge.invoke=(name,args)=>{if(name==="pack_install_demo" || name==="pack_open")window.marketCalls.push(name);return invoke(name,args);};return true;')
+    market();assert not ev('return Market.own("plants");')
+    ev('Array.from(document.querySelectorAll(".mk-tile")).find(e=>e.textContent.includes("Houseplants")).scrollIntoView({block:"center",behavior:"instant"});return true;');time.sleep(.15)
+    click('Array.from(document.querySelectorAll(".mk-tile")).find(e=>e.textContent.includes("Houseplants"))');wait('document.querySelector(".mk-detail .btn")')
+    ev('document.querySelector(".mk-detail .btn").scrollIntoView({block:"center",behavior:"instant"});return true;');time.sleep(.15)
+    click('document.querySelector(".mk-detail .btn")');wait('Market.own("plants") && document.querySelector(".mk-detail .btn").textContent==="On your shelf"')
+    baseline=status();stock=ev('return S.stock;')
+    assert not ev('return document.querySelector(".mk-detail .btn").disabled;')
+    ev('document.querySelector(".mk-detail .btn").scrollIntoView({block:"center",behavior:"instant"});return true;');time.sleep(.15)
+    click('document.querySelector(".mk-detail .btn")');wait('Shell.current.dataset.page==="packs" && document.activeElement.dataset.pack==="plants"')
+    assert status()==baseline and not ev('return Boolean(document.querySelector(".cer"));')
+    records=[]
+    for shell in ['studio','desk']:
+        for width,height in [(1060,700),(720,520)]:
+            market(shell,width,height);capture(shell+'-market-'+str(width))
+            click('document.querySelector(".mk-hero .btn")');wait('Shell.current.dataset.page==="packs" && document.activeElement.dataset.pack==="tokyo"')
+            assert status()==baseline
+            market(shell,width,height)
+            ev('Array.from(document.querySelectorAll(".mk-tile")).find(e=>e.textContent.includes("Houseplants")).scrollIntoView({block:"center",behavior:"instant"});return true;');time.sleep(.15)
+            badge=ev('const tile=Array.from(document.querySelectorAll(".mk-tile")).find(e=>e.textContent.includes("Houseplants")),b=tile.querySelector(".price.own"),s=getComputedStyle(b),tag=tile.querySelector(".pack-tag").getBoundingClientRect(),r=b.getBoundingClientRect(),page=document.querySelector(".marketpage");return {shell:S.shell,size:[innerWidth,innerHeight],label:tile.getAttribute("aria-label"),background:s.backgroundImage,color:s.color,font:s.fontFamily,spacing:s.letterSpacing,marker:getComputedStyle(b,"::before").content,overflow:page.scrollWidth-page.clientWidth,clip:{x:r.x+r.width/2-110,y:tag.top-8,bottom:r.bottom+12}};')
+            assert badge['background']=='none' and badge['spacing'] in ['normal','0px'] and badge['overflow']==0 and '✓' in badge['marker'],badge
+            actual=capture(shell+'-owned-'+str(width));records.append(badge)
+            if shell=='studio' and width==1060:
+                r=badge['clip'];after=actual.crop((round(r['x']),round(r['y']),round(r['x']+220),round(r['bottom'])));after.save(out/'badge-after.png')
+                ev('const sheet=Array.from(document.styleSheets).find(s=>s.href?.endsWith("/native.css"));window.ownedRules=Array.from(sheet.cssRules).map((r,i)=>({text:r.cssText,i})).filter(r=>r.text.startsWith(".marketpage .price.own"));window.ownedRules.slice().reverse().forEach(r=>sheet.deleteRule(r.i));return true;');time.sleep(.4)
+                r=ev('const t=Array.from(document.querySelectorAll(".mk-tile")).find(e=>e.textContent.includes("Houseplants")),tag=t.querySelector(".pack-tag").getBoundingClientRect(),b=t.querySelector(".price.own").getBoundingClientRect();return {x:b.x+b.width/2-110,y:tag.top-8,bottom:b.bottom+12};')
+                before=capture('studio-owned-before');before=before.crop((round(r['x']),round(r['y']),round(r['x']+220),round(r['bottom'])));before.save(out/'badge-before.png')
+                ev('const sheet=Array.from(document.styleSheets).find(s=>s.href?.endsWith("/native.css"));window.ownedRules.forEach(r=>sheet.insertRule(r.text,r.i));return true;');time.sleep(.15)
+                pair=Image.new('RGB',(440,max(before.height,after.height)+28),'#f5f0e6');pair.paste(before,(0,28));pair.paste(after,(220,28));draw=ImageDraw.Draw(pair);draw.text((10,7),'Before',fill='#2b2a28');draw.text((230,7),'Actual Tauri',fill='#2b2a28');pair.save(out/'badge-comparison.png')
+            click('Array.from(document.querySelectorAll(".mk-tile")).find(e=>e.textContent.includes("Houseplants")).querySelector(".price.own")')
+            wait('Shell.current.dataset.page==="packs" && document.activeElement.dataset.pack==="plants"')
+            wait('(()=>{const r=document.activeElement.getBoundingClientRect(),v=document.querySelector(".packspage").getBoundingClientRect();return r.top>=v.top-1 && r.bottom<=v.bottom+1;})()')
+            visible=ev('const r=document.activeElement.getBoundingClientRect(),v=document.querySelector(".packspage").getBoundingClientRect();return {pack:document.activeElement.dataset.pack,visible:r.top>=v.top-1 && r.bottom<=v.bottom+1,ceremony:!!document.querySelector(".cer")};')
+            assert visible['visible'] and not visible['ceremony'] and status()==baseline,visible
+    market();ev('Array.from(document.querySelectorAll(".mk-tile")).find(e=>e.textContent.includes("Pixel Dream")).scrollIntoView({block:"center",behavior:"instant"});return true;');time.sleep(.15)
+    click('Array.from(document.querySelectorAll(".mk-tile")).find(e=>e.textContent.includes("Pixel Dream"))');wait('document.querySelector(".mk-detail .btn")')
+    ev('document.querySelector(".mk-detail .btn").click();return true;');assert not ev('return Market.own("pixel");') and status()==baseline
+    ev('S.motion="full";Bridge.savePreferences();MK.sel=null;Shell.refresh();return true;');time.sleep(.6)
+    ev('document.querySelector(".mk-hero .btn").click();return true;');wait('Shell.current.dataset.page==="packs" && document.activeElement.dataset.pack==="tokyo"')
+    market();ev('const tile=Array.from(document.querySelectorAll(".mk-tile")).find(e=>e.textContent.includes("Coffee Club"));tile.scrollIntoView({block:"center",behavior:"instant"});tile.focus({preventScroll:true});return true;');time.sleep(.15)
+    subprocess.run(['xdotool','key','Return'],check=True);wait('Shell.current.dataset.page==="packs" && document.activeElement.dataset.pack==="coffee"')
+    assert status()==baseline and ev('return S.stock;')==stock
+    assert ev('return window.marketCalls;')==['pack_install_demo']
+    (out/'market.json').write_text(json.dumps(dict(layouts=records,ownedHeroTileAndDetailNavigate=True,targetPackVisibleAndFocused=True,keyboardEnterNavigate=True,freeGetInstallsOnce=True,paidGetRemainsUnavailable=True,noPackOpened=True,countsAndStockUnchangedOnNavigation=True,reducedAndFullMotionNavigate=True),indent=2))
+    print('Native Market: owned hero/tile/detail -> targeted Packs, both shells/sizes, free/paid controls and unchanged counts passed')
 elif sys.argv[1]=='reflection':
     wait('document.querySelectorAll("#layer>.sticker").length===3',layer)
     ev('applyLayerPreferences({motion:"full",sound:false});const original=requestAnimationFrame;window.testReflectionFrames=0;window.requestAnimationFrame=fn=>{window.testReflectionFrames++;return original(fn);};return true;',layer);time.sleep(.5)
