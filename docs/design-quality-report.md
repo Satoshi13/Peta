@@ -139,3 +139,11 @@ Studioの部屋・ナビ・平らなカード・入力・dialogを夜色へ。�
 ## 後続の整理（2026-10-05）
 
 明示依頼で説明ピル・素材一覧の発見日／レシピ・Stuck todayのテープとCTA・ListのToday’s slotを撤去。Bookの表示名をCollectionに統一し、ロゴを少し拡大。CreatorsのNight対象セレクターを実在する`.cr-card`へ修正した。所持数はMatteも有限で0を含め表示する。Scrapsで旧現金価格の3パックを購入できる。比較と実購入／Retry確認は[review-15](port-spec/compare/review-15/README.md)。
+
+### 配布版と開発者版
+
+`developer` featureで通常版と分離し、Peta Developerのbundle ID／保存先を固定した。実装済み素材・Scraps支払い・封筒／Welcome回数・袋の枯渇だけを解除し、分解率・抽選・署名／所有権／フォーマット検証は共通。Developerの設定とデータが通常版へ影響しないことを同時起動で確認した。Settingsに専用操作欄、プロフィール札にDeveloperの表示を置く。共有Market・モデレーターは依頼者が使用構成を検討するため保留。Gold／Riso／Vintageのレシピ、作者アカウント／Follow、ステッカー名編集は未実装のまま。アートとプロトタイプは変更していない。
+
+操作: 通常版`npm run dev`／release配布`npm run build`、Developer`npm run dev:developer`／release配布`npm run build:developer`。最終確認の記録はreview-15のJSONとmacOSチェックリスト§19。Mac向け検査はLinuxでC／Objective-Cのビルド補助stubを使ったRust型検査であり、リンク・実機動作・release bundleの生成を確認したものではない。
+
+最終検査: JS39件、通常版Rust120件、Developer Rust121件、両版のmacOS向け型検査が成功。隔離した実Tauriで素材消費・購入・再試行・開封・版ごとの保存先／設定・開発者操作を確認。実機が必要なrelease bundleと透明層はmacos-checklist.md §19に追記済み。

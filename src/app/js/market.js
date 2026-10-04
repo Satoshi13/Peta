@@ -19,12 +19,12 @@ const Market = {
   price(pack) { const rate = Scraps.pack(pack.id); return pack.price === "Free" ? "Free" : rate ? `${rate.exchange} Scraps` : "Coming later"; },
   exchange(pack) {
     const rate = Scraps.pack(pack.id);
-    return Scraps.button("pack",pack.id,rate ? `Exchange — ${rate.exchange} Scraps` : "Coming later",!rate || S.scraps.balance<rate.exchange);
+    return Scraps.button("pack",pack.id,rate ? `Exchange — ${rate.exchange} Scraps` : "Coming later",!rate || !S.developer && S.scraps.balance<rate.exchange);
   },
   refill(pack) {
     const rate = Scraps.pack(pack.id);
     if(!rate || !S.packs.some(p=>p.id===pack.id && !p.left.length)) return null;
-    return Scraps.button("pack", pack.id, `Refill — ${rate.exchange} Scraps`, S.scraps.balance < rate.exchange);
+    return Scraps.button("pack", pack.id, `Refill — ${rate.exchange} Scraps`, !S.developer && S.scraps.balance < rate.exchange);
   },
   async get(pack) {
     if (this.own(pack.id)) {
@@ -85,7 +85,7 @@ Pages.market = {
       h("div.mgrid", items.map((m, i) => h("div.mbook.mk-mat", { style: { "--i": i } },
         h("div.mc", MatCard({ ...m, id: m.id }, 176)), h("div.mmeta", h("b", m.name), h("span.seal", { data: { rarity: m.rarity } }, m.rarity), h("small.recipe", m.recipe),
           h("small", m.locked ? "Not in your book yet" : `${S.stock[m.id] || 0} sheets in stock`),
-          Scraps.material(m.id) ? Scraps.button("material", m.id, `Exchange — ${Scraps.material(m.id).exchange} Scraps`, S.scraps.balance < Scraps.material(m.id).exchange)
+          Scraps.material(m.id) ? Scraps.button("material", m.id, `Exchange — ${Scraps.material(m.id).exchange} Scraps`, !S.developer && S.scraps.balance < Scraps.material(m.id).exchange)
             : h("button.btn.paper.small.scrap-action", {disabled:true}, "Coming later"))))));
   },
   creators(paint) {

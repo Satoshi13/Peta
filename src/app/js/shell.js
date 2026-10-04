@@ -35,7 +35,7 @@ const Shell = (() => {
     });
     const name = S.name.trim() || "You";
     foot.append(h("button.nav-account", {"aria-label":`Account: ${name}. Open Settings`,on:{click:()=>go("settings")}},
-      CreatorIcon.image(), h("span", h("b", name), h("small", `${S.lib.length} sticker${S.lib.length===1 ? "" : "s"}`))));
+      CreatorIcon.image(), h("span", h("b", name), h("small", `${S.developer ? "Developer · " : ""}${S.lib.length} sticker${S.lib.length===1 ? "" : "s"}`))));
     nav.replaceChildren(top, foot);
   }
 

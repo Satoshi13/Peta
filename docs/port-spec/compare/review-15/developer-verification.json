@@ -1,0 +1,234 @@
+{
+  "initial-zero-stock": {
+    "balance": 0,
+    "developer": true,
+    "materials": [
+      {
+        "material": {
+          "count": 0,
+          "creatorId": null,
+          "id": "matte",
+          "name": "Matte",
+          "rarity": "common",
+          "recipe": {
+            "aging": null,
+            "border": {
+              "enabled": true,
+              "style": "white",
+              "width": 0.03
+            },
+            "colorTreatment": null,
+            "noise": 0.15,
+            "reflection": null,
+            "shadow": {
+              "enabled": true,
+              "strength": 0.3
+            },
+            "substrate": "paper",
+            "texture": "soft_paper",
+            "transparency": null
+          },
+          "unlimited": true,
+          "unlockedAt": "2026-10-04T18:55:32.389252568+00:00"
+        },
+        "unlocked": true
+      },
+      {
+        "material": {
+          "count": 0,
+          "creatorId": null,
+          "id": "kraft",
+          "name": "Kraft",
+          "rarity": "uncommon",
+          "recipe": {
+            "aging": 0.2,
+            "border": {
+              "enabled": true,
+              "style": "kraft",
+              "width": 0.025
+            },
+            "colorTreatment": "desaturate",
+            "noise": 0.4,
+            "reflection": null,
+            "shadow": {
+              "enabled": true,
+              "strength": 0.3
+            },
+            "substrate": "kraft_paper",
+            "texture": "kraft_fiber",
+            "transparency": null
+          },
+          "unlimited": true,
+          "unlockedAt": "2026-10-04T18:55:32.389297673+00:00"
+        },
+        "unlocked": true
+      },
+      {
+        "material": {
+          "count": 0,
+          "creatorId": null,
+          "id": "holographic",
+          "name": "Holographic",
+          "rarity": "rare",
+          "recipe": {
+            "aging": null,
+            "border": {
+              "enabled": true,
+              "style": "translucent_white",
+              "width": 0.035
+            },
+            "colorTreatment": null,
+            "noise": 0.05,
+            "reflection": {
+              "enabled": true,
+              "strength": 0.8,
+              "type": "rainbow"
+            },
+            "shadow": {
+              "enabled": true,
+              "strength": 0.4
+            },
+            "substrate": "holographic_film",
+            "texture": "fine_glitter",
+            "transparency": null
+          },
+          "unlimited": true,
+          "unlockedAt": "2026-10-04T18:55:32.389309996+00:00"
+        },
+        "unlocked": true
+      }
+    ]
+  },
+  "production-profile": {
+    "appearance": "day",
+    "developer": false,
+    "name": "Satoshi"
+  },
+  "free-exchange": {
+    "balance": 0,
+    "busy": false,
+    "left": 6
+  },
+  "dismantle": {
+    "balance": 6,
+    "delta": 6
+  },
+  "make-with-zero-stock": {
+    "after": 2,
+    "materials": [
+      {
+        "material": {
+          "count": 0,
+          "creatorId": null,
+          "id": "matte",
+          "name": "Matte",
+          "rarity": "common",
+          "recipe": {
+            "aging": null,
+            "border": {
+              "enabled": true,
+              "style": "white",
+              "width": 0.03
+            },
+            "colorTreatment": null,
+            "noise": 0.15,
+            "reflection": null,
+            "shadow": {
+              "enabled": true,
+              "strength": 0.3
+            },
+            "substrate": "paper",
+            "texture": "soft_paper",
+            "transparency": null
+          },
+          "unlimited": true,
+          "unlockedAt": "2026-10-04T18:55:32.389252568+00:00"
+        },
+        "unlocked": true
+      },
+      {
+        "material": {
+          "count": 0,
+          "creatorId": null,
+          "id": "kraft",
+          "name": "Kraft",
+          "rarity": "uncommon",
+          "recipe": {
+            "aging": 0.2,
+            "border": {
+              "enabled": true,
+              "style": "kraft",
+              "width": 0.025
+            },
+            "colorTreatment": "desaturate",
+            "noise": 0.4,
+            "reflection": null,
+            "shadow": {
+              "enabled": true,
+              "strength": 0.3
+            },
+            "substrate": "kraft_paper",
+            "texture": "kraft_fiber",
+            "transparency": null
+          },
+          "unlimited": true,
+          "unlockedAt": "2026-10-04T18:55:32.389297673+00:00"
+        },
+        "unlocked": true
+      },
+      {
+        "material": {
+          "count": 0,
+          "creatorId": null,
+          "id": "holographic",
+          "name": "Holographic",
+          "rarity": "rare",
+          "recipe": {
+            "aging": null,
+            "border": {
+              "enabled": true,
+              "style": "translucent_white",
+              "width": 0.035
+            },
+            "colorTreatment": null,
+            "noise": 0.05,
+            "reflection": {
+              "enabled": true,
+              "strength": 0.8,
+              "type": "rainbow"
+            },
+            "shadow": {
+              "enabled": true,
+              "strength": 0.4
+            },
+            "substrate": "holographic_film",
+            "texture": "fine_glitter",
+            "transparency": null
+          },
+          "unlimited": true,
+          "unlockedAt": "2026-10-04T18:55:32.389309996+00:00"
+        },
+        "unlocked": true
+      }
+    ]
+  },
+  "welcome-twice": {
+    "available": true,
+    "first": "PETA-5YXW-7M8R",
+    "second": "PETA-AYJX-QM7T"
+  },
+  "replenish": {
+    "left": 12
+  },
+  "envelope-and-next-day": {
+    "after": "2026-10-06T03:00:00.000Z",
+    "before": "2026-10-05T03:00:00.000Z"
+  },
+  "re-sync": "ok",
+  "isolation": {
+    "productionScraps": 3,
+    "developerScraps": 6,
+    "schema": 8,
+    "openedHistoryPreserved": 12
+  }
+}

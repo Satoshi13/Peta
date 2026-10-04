@@ -1,7 +1,7 @@
 /* Rust is the source of truth. S contains only the last command snapshot and UI selections. */
 const prefs = JSON.parse(localStorage.getItem('peta.preferences') || '{}');
 const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, appearance: ['day','night','auto'].includes(prefs.appearance) ? prefs.appearance : 'day', bookView: prefs.bookView === 'calendar' ? 'calendar' : 'list', motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
-  envelopeDeadline: null, name: '', iconStickerId: null, today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], events: [], packOffer:null, packs: [],
+  developer:false, envelopeDeadline: null, name: '', iconStickerId: null, today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], events: [], packOffer:null, packs: [],
   bonusEnvelopes: 0, extraEnvelope: false, pending: null, stuckToday: [], packAvailable: false, scraps: {balance:0, materials:[], packs:[]}, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
 const Bridge = (() => {
   const api = window.__TAURI__;
@@ -21,7 +21,7 @@ const Bridge = (() => {
     const [profile, daily, materials, months, inbox, packs, pending, scraps, events, packOffer] = await Promise.all([
       invoke('profile_get'), invoke('daily_status'), invoke('material_book'), invoke('book_index'), invoke('gift_inbox'), invoke('pack_status'), invoke('print_pending'), invoke('scrap_status'), invoke('event_inbox'), invoke('creator_pack_pending')
     ]);
-    S.name = profile.displayName; S.iconStickerId = profile.iconStickerId; S.today = new Date(daily.date + 'T12:00:00'); S.bonusEnvelopes = daily.bonusEnvelopes || 0; S.extraEnvelope = daily.materialOpened && S.bonusEnvelopes > 0; S.dayState = daily.materialOpened && !S.extraEnvelope ? 'opened' : 'arrived';
+    S.developer = !!profile.developer; S.name = profile.displayName; S.iconStickerId = profile.iconStickerId; S.today = new Date(daily.date + 'T12:00:00'); S.bonusEnvelopes = daily.bonusEnvelopes || 0; S.extraEnvelope = daily.materialOpened && S.bonusEnvelopes > 0; S.dayState = daily.materialOpened && !S.extraEnvelope ? 'opened' : 'arrived';
     S.todayMat = daily.material?.id || 'matte'; S.packAvailable = packs.canOpen; S.pending = pending; S.scraps = scraps; S.events = events; S.packOffer = packOffer;
     for (const { material:m, unlocked } of materials) {
       if (!MAT[m.id]) continue;

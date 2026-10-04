@@ -183,3 +183,16 @@ Book / Market の見た目は `compare/art-03/*.jpg` と元の `golden/*.jpg` �
 - [ ] Q4: Nightの全ページ・Gift dialog・開封を両シェルで巡回。アートの色は昼と同じ、紙ラベル・付箋上の文字は暗く判読可能。Studioの平らな面は暗い部屋、Deskのページは紙。Retinaでも四隅・影が尖らない。
 - [ ] Q5: ホロのカーソル反射が夜でも判読可能。デスクトップ層の色・挙動は変わらず、ホロ0枚／Reduce motionの取得停止も維持。
 - [ ] Q6: Createの段階表示／3本のスライダー値／素材名・残数・コスト・Cancel／Makeが両シェルの最小窓で縦スクロールしてすべて読める。Original再描画がブラシ中に発生せず、編集・Undo／Redo／⌘Z／拡大パンは維持。Gift差出人（長い日本語名も含む）が封筒内に収まる。
+
+## 19. 有限素材・Scraps・開発者版（2026-10-05）
+
+| 確認 | 操作 | 期待結果 |
+| --- | --- | --- |
+| [ ] R15-1 所持数 | 両シェル・Day／NightでTodayとMaterialsを最小幅で表示 | Matteも実数、0枚を表示。カードが中央にあり、説明ピル・発見日がない。分解ボタンはプレビュー内の所持数の下 |
+| [ ] R15-2 Scraps | 素材を分解してPixel Dream／Cats／Night Marketを購入し、開封後に空袋を補充 | 円価格なし、残高・取得数が正しく保存され、再試行で二重消費しない。作成済みステッカーは消費しない |
+| [ ] R15-3 Matte | Matte1枚のみでCreateを完了し、再度Createへ | 0枚になり新規作成を案内で止める。既存ステッカーの編集・再印刷は利用可能 |
+| [ ] R15-4 両版のbundle | releaseのPetaとPeta Developerを同時起動・終了・再起動 | アプリ名・トレイtooltip・bundle ID・在庫・Collection・署名鍵・設定が別。Developerを使ってもPetaの在庫や残高は変わらない |
+| [ ] R15-5 Developer | 在庫／残高0で作成・交換。Welcomeを同日複数回、空袋を繰り返し開く。Settingsの再開封・日送り・Re-syncを操作 | 製造・支払い・日次／袋残数の制限がなく、元の開封履歴と署名済み素材を残す。通常版にDeveloper操作欄はない |
+| [ ] R15-6 表示と透過 | Creatorsの文字、Collectionの名称、少し大きいロゴ、空Stuck todayを確認。両版の透明層と複数ディスプレイを確認 | Nightの文字が読める。テープ／Make a Peta／Today’s slotがなく、ロゴはTodayの上、Settingsとプロフィールは下端。両版がそれぞれ正しい層を管理する |
+
+共有Market・モデレーター機能は使用構成を検討するため保留。Linuxでの両版起動と型検査は確認済みだが、macOSのrelease bundle・透過層・同時起動はこの表で実機確認する。

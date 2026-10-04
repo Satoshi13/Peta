@@ -107,8 +107,8 @@ const Scraps = {
     const dismantle = sel.kind === "dismantle", pack = sel.kind === "pack", rate = pack ? this.pack(sel.itemId) : this.material(sel.itemId);
     if(!rate) return null;
     const name = pack ? MARKET_PACKS.find(p=>p.id===sel.itemId).title : MAT[sel.itemId].name;
-    const price = dismantle ? rate.dismantle : rate.exchange;
-    const max = pack ? (S.scraps.balance >= price && (!S.owned[sel.itemId] || S.packs.some(p=>p.id===sel.itemId && !p.left.length)) ? 1 : 0) : Math.min(1000, dismantle ? S.stock[sel.itemId] : Math.floor(S.scraps.balance/price));
+    const price = S.developer && !dismantle ? 0 : dismantle ? rate.dismantle : rate.exchange;
+    const max = S.developer ? (pack ? 1 : 1000) : pack ? (S.scraps.balance >= price && (!S.owned[sel.itemId] || S.packs.some(p=>p.id===sel.itemId && !p.left.length)) ? 1 : 0) : Math.min(1000, dismantle ? S.stock[sel.itemId] : Math.floor(S.scraps.balance/price));
     const count = h("input", {type:"number",min:1,max:Math.max(1,max),step:1,value:sel.quantity,required:true,disabled:this.inFlight || !!sel.error,"aria-label":"Number of sheets"});
     const receive = h("b"), cost = h("b"), remaining = h("b"), stock = h("p.muted.small"), error = h("p.scrap-error", {role:"status"}, sel.error);
     const submit = h("button.btn.scrap-action", {type:"submit"}, dismantle ? "Dismantle" : "Exchange");
@@ -121,7 +121,7 @@ const Scraps = {
       receive.textContent = valid ? dismantle ? `${q*price} ${q*price===1 ? "Scrap" : "Scraps"}` : pack ? `${rate.stickers} stickers` : `${q} ${q===1 ? "sheet" : "sheets"}` : "—";
       cost.textContent = valid ? `${q*price} Scraps` : "—";
       remaining.textContent = valid ? ((retry ? sel.balanceBefore : S.scraps.balance) + (dismantle ? 1 : -1)*q*price).toLocaleString("en-US") : "—";
-      stock.textContent = retry ? "Retry checks the same request without spending twice." : pack ? "Adds to the same bag. Opened stickers stay in your Collection." : valid ? `${S.stock[sel.itemId] + (dismantle ? -q : q)} ${name} sheets left after ${dismantle ? "dismantling" : "exchange"}.` : `Choose ${max ? `1–${max} sheets` : "a different material or collect more Scraps"}.`;
+      stock.textContent = S.developer ? (dismantle ? "Developer materials never run out." : "Developer stock is unlimited. No Scraps are spent.") : retry ? "Retry checks the same request without spending twice." : pack ? (S.owned[sel.itemId] ? "Adds to the same bag. Opened stickers stay in your Collection." : "Adds this pack to your Packs shelf.") : valid ? `${S.stock[sel.itemId] + (dismantle ? -q : q)} ${name} sheets left after ${dismantle ? "dismantling" : "exchange"}.` : `Choose ${max ? `1–${max} sheets` : "a different material or collect more Scraps"}.`;
     };
     count.addEventListener("input", update); update();
     const form = h("form.scrap-trade", {tabindex:-1,"aria-label":dismantle ? "Confirm material dismantling" : "Confirm exchange", on:{
@@ -135,7 +135,7 @@ const Scraps = {
         this.inFlight = true; Bridge.busy = true; count.disabled = true; submit.disabled = true; cancel.disabled = true; sel.error = ""; error.textContent = "";
         try {
           const receipt = await Bridge.invoke("scrap_trade", sel.request); await Bridge.reload();
-          this.inFlight = false; this.finish(); Snd.chime(2,740); Shell.toast(dismantle ? `${receipt.delta} ${receipt.delta===1 ? "Scrap" : "Scraps"} saved.` : pack ? `${name} is on your shelf.` : `${name} sheets added.`);
+          this.inFlight = false; this.finish(); Snd.chime(2,740); Shell.toast(S.developer ? "Developer exchange completed." : dismantle ? `${receipt.delta} ${receipt.delta===1 ? "Scrap" : "Scraps"} saved.` : pack ? `${name} is on your shelf.` : `${name} sheets added.`);
         } catch(e) { sel.error = String(e); error.textContent = sel.error; }
         finally { this.inFlight = false; Bridge.busy = false; count.disabled = !!sel.error; cancel.disabled = false; update(); }
       }

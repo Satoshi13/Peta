@@ -476,3 +476,6 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .material-preview-actions .scrap-action { margin:0; }
 .cr-card { background:var(--w-surface); color:var(--ink); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh1); }
 .cr-card .cr-t small { color:var(--muted); }
+
+.developer-tools h2 { margin-top:0; }
+.developer-tools .row-btns { flex-wrap:wrap; justify-content:flex-start; }
