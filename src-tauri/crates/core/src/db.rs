@@ -191,6 +191,8 @@ pub struct IncomingGift {
     pub note: Option<String>,
     pub sent_at: String,
     pub received_at: String,
+    pub signature_status: String,
+    pub fingerprint: Option<String>,
     pub opened_at: Option<String>,
     pub sticker_id: Option<String>,
 }
@@ -657,13 +659,13 @@ impl Database {
     /// Received gifts, unopened first, newest first.
     pub fn gifts_received(&self) -> Result<Vec<IncomingGift>> {
         let mut stmt = self.conn.prepare(
-            "SELECT gift_id, from_name, note, sent_at, received_at, opened_at, sticker_id FROM gifts_received
-             ORDER BY (opened_at IS NOT NULL), received_at DESC, gift_id",
+            "SELECT g.gift_id, g.from_name, g.note, g.sent_at, g.received_at, g.opened_at, g.sticker_id, COALESCE(s.status,'unsigned'), s.fingerprint FROM gifts_received g LEFT JOIN gift_signers s ON s.gift_id=g.gift_id
+             ORDER BY (g.opened_at IS NOT NULL), g.received_at DESC, g.gift_id",
         )?;
         let rows = stmt.query_map([], |r| {
             Ok(IncomingGift {
                 gift_id: r.get(0)?, from: r.get(1)?, note: r.get(2)?, sent_at: r.get(3)?,
-                received_at: r.get(4)?, opened_at: r.get(5)?, sticker_id: r.get(6)?,
+                received_at: r.get(4)?, opened_at: r.get(5)?, sticker_id: r.get(6)?, signature_status:r.get(7)?,fingerprint:r.get(8)?,
             })
         })?;
         Ok(rows.collect::<std::result::Result<Vec<_>, _>>()?)

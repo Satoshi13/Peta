@@ -23,3 +23,8 @@ commands.allow = ["haptic_tap"]
 identifier = "allow-scrap-trades"
 description = "Read Scraps and confirm local material dismantling and exchanges in the main app."
 commands.allow = ["scrap_status", "scrap_trade"]
+
+[[permission]]
+identifier = "allow-signed-distribution"
+description = "Redeem a signed official code and read local distribution receipts."
+commands.allow = ["redeem_code", "event_inbox"]

@@ -31,6 +31,7 @@ Pages.today = {
       scene.addEventListener("click", open); scene.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && open());
       root.append(h("section.t-arrived", scene, h("p.lead.hand", S.extraEnvelope ? "An extra envelope from Peta." : "Today's Material has arrived."), h("button.btn.open", { on: { click: open } }, "Open")));
     } else root.append(Pages.today.openedBlock());
+    root.append(h("button.link", {on:{click:()=>Distribution.redeem()}}, "Redeem Code…"));
     return root;
   },
   openedBlock() {

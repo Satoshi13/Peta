@@ -17,7 +17,7 @@ pub struct Event {
     pub payload:serde_json::Value,pub signer:Signer,#[serde(default)] pub attachments:Vec<Attachment>,
 }
 pub struct Verified {pub header:Event,pub attachments:Vec<(Attachment,Vec<u8>,Vec<u8>)>,pub bytes:Vec<u8>}
-#[derive(Clone,Serialize)]
+#[derive(Clone,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
 pub struct Receipt {pub event_id:String,pub kind:String,pub title:String,pub message:String,pub result:String}
 pub fn invalid(text:&str)->Error {Error::Invalid(text.into())}
@@ -108,6 +108,7 @@ pub fn apply_event(lib:&mut Library,verified:&Verified,source:&str,time:DateTime
             }
         },_=>unreachable!(),
     }
+    tx.execute("INSERT INTO meta(key,value) VALUES (?1,?2)",params![format!("event.receipt.{}",e.event_id),serde_json::to_string(&Receipt{event_id:e.event_id.clone(),kind:e.kind.clone(),title:e.title.clone(),message:e.message.clone(),result:result.clone()}).map_err(|e|invalid(&e.to_string()))?])?;
     tx.execute("INSERT INTO applied_events VALUES (?1,?2,?3,?4)",params![e.event_id,e.kind,now(),source])?;tx.commit()?;
     Ok(Receipt{event_id:e.event_id.clone(),kind:e.kind.clone(),title:e.title.clone(),message:e.message.clone(),result})
 }
@@ -212,4 +213,11 @@ pub fn from_code(value:&str)->Result<Verified> {from_code_with(value,sign::resol
         assert!(from_code_with(&code,|_|Ok(sign::generate().unwrap().verifying_key())).is_err());
         let mut changed=code.into_bytes();changed[10]=if changed[10]==b'2'{b'3'}else{b'2'};assert!(from_code_with(std::str::from_utf8(&changed).unwrap(),|_|Ok(key.verifying_key())).is_err());
     }
+}
+
+pub fn current_time()->DateTime<Utc>{Utc::now()}
+pub fn inbox(db:&crate::Database)->Result<Vec<Receipt>> {
+    let mut stmt=db.conn.prepare("SELECT m.value FROM applied_events e JOIN meta m ON m.key='event.receipt.'||e.event_id WHERE e.kind!='grant_sticker' ORDER BY e.applied_at DESC,e.event_id")?;
+    let rows=stmt.query_map([],|r|r.get::<_,String>(0))?.collect::<std::result::Result<Vec<_>,_>>()?;
+    rows.iter().map(|s|serde_json::from_str(s).map_err(|_|invalid("An event receipt is damaged."))).collect()
 }

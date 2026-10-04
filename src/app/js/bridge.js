@@ -1,7 +1,7 @@
 /* Rust is the source of truth. S contains only the last command snapshot and UI selections. */
 const prefs = JSON.parse(localStorage.getItem('peta.preferences') || '{}');
 const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, bookView: prefs.bookView === 'calendar' ? 'calendar' : 'list', motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
-  envelopeDeadline: null, name: '', today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], packs: [],
+  envelopeDeadline: null, name: '', today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], events: [], packs: [],
   bonusEnvelopes: 0, extraEnvelope: false, pending: null, stuckToday: [], packAvailable: false, scraps: {balance:0, materials:[], packs:[]}, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
 const Bridge = (() => {
   const api = window.__TAURI__;
@@ -17,11 +17,11 @@ const Bridge = (() => {
     api.event.emit('preferences-changed', p);
   };
   async function reload() {
-    const [profile, daily, materials, months, inbox, packs, pending, scraps] = await Promise.all([
-      invoke('profile_get'), invoke('daily_status'), invoke('material_book'), invoke('book_index'), invoke('gift_inbox'), invoke('pack_status'), invoke('print_pending'), invoke('scrap_status')
+    const [profile, daily, materials, months, inbox, packs, pending, scraps, events] = await Promise.all([
+      invoke('profile_get'), invoke('daily_status'), invoke('material_book'), invoke('book_index'), invoke('gift_inbox'), invoke('pack_status'), invoke('print_pending'), invoke('scrap_status'), invoke('event_inbox')
     ]);
     S.name = profile.displayName; S.today = new Date(daily.date + 'T12:00:00'); S.bonusEnvelopes = daily.bonusEnvelopes || 0; S.extraEnvelope = daily.materialOpened && S.bonusEnvelopes > 0; S.dayState = daily.materialOpened && !S.extraEnvelope ? 'opened' : 'arrived';
-    S.todayMat = daily.material?.id || 'matte'; S.packAvailable = packs.canOpen; S.pending = pending; S.scraps = scraps;
+    S.todayMat = daily.material?.id || 'matte'; S.packAvailable = packs.canOpen; S.pending = pending; S.scraps = scraps; S.events = events;
     for (const { material:m, unlocked } of materials) {
       if (!MAT[m.id]) continue;
       Object.assign(MAT[m.id], { name:m.name, rarity:m.rarity, locked:!unlocked, unlimited:m.unlimited, found:m.unlockedAt ? fmtDate(new Date(m.unlockedAt)) : '', });
@@ -32,7 +32,7 @@ const Bridge = (() => {
     S.lib = pages.flat().map(e => ({ id:e.stickerId, date:new Date(e.date+'T12:00:00'), createdAt:e.createdAt, no:e.originalNumber, material:e.materialId || 'matte', kind:(['gift','pack'].includes(e.sourceType) || (e.sourceType==='collection' && e.originalNumber==null)) ? 'received' : 'original', aspect:e.aspect, onDesktop:e.onDesktop, canManage:e.canManage, title:'Sticker' }));
     S.desk = S.lib.filter(e=>e.onDesktop).map(e=>({id:e.id}));
     S.stuckToday = S.lib.filter(e=>e.onDesktop && fmtDate(e.date)===fmtDate(S.today)).map(e=>e.id);
-    S.gifts = inbox.map(g=>({id:g.giftId, from:g.from, note:g.note || '', opened:!!g.openedAt, material:g.materialId || 'matte', edition:g.edition}));
+    S.gifts = inbox.map(g=>({id:g.giftId, from:g.from, note:g.note || '', opened:!!g.openedAt, material:g.materialId || 'matte', edition:g.edition, signatureStatus:g.signatureStatus, fingerprint:g.fingerprint}));
     S.owned = Object.fromEntries(packs.packs.map(p=>[p.id,true]));
     S.packs = packs.packs.map(p=>({id:p.id, title:p.title, by:p.by, total:p.total, left:Array(p.remaining).fill(null), daily:p.id==='welcome', kind:({coffee:'kraft',plants:'kraft',cats:'matte'})[p.id] || 'holo', hue:({tokyo:200,pixel:120,night:245})[p.id] || 0})).sort((a,b)=>(({'welcome':0,'tokyo':1,'coffee':2})[a.id]??3)-(({'welcome':0,'tokyo':1,'coffee':2})[b.id]??3));
   }

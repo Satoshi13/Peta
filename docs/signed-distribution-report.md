@@ -29,3 +29,13 @@ V8はv1〜v7のSQLを変更せず、applied_events／revoked_events／friends、
 署名の限界とrevokeの範囲はevents.rsのモジュールコメントとコード形式コメントにも記載した。配布後に元に戻す処理・通信・時刻改ざん対策は入れていない。
 
 Step 2結果: cargo test --workspace成功（core 102件＋統合5件、Tauriの全テスト対象ビルド）、npm test 31件成功。V7→V8のデータ保持、適用中断の巻戻し、二重受領／revoke、期限、数量／素材上限、コード正規化、署名を画像より先に検証する経路を確認した。
+
+## Step 3 — ファイル取り込み／コード入力／関連付け
+
+Open Peta file…をトレイとGiftsへ追加し、MAGICでGiftと公式イベントを分岐する。読込は24MB＋1の時点で止め、巨大ファイルを先に拒否する。公式イベントは検証→適用→announce。結果をInboxのFrom Peta ✓に保存し、ステッカー配布は封をしたGiftとして表示する。Gift v1にはUnsignedを付ける。友達のNew friend／確認済み／同名別鍵の表示枠も用意し、Step 5で実データを接続する。
+
+Redeem Code…はToday／Gifts／トレイから開く、小さいネイティブHTML dialog。フォーカストラップ、取消／Escape、送信中の二重操作防止、読みやすい結果／エラーを付けた。受領済み記録はイベント適用と同じ取引で保存。CSS・画像は変更していない。
+
+bundle.fileAssociationsへ.petaを追加した。macOSのRunEvent::Openedは起動後のStoreで受け取るので、実行中とダブルクリック起動の両経路を処理する。Linuxでは起動引数を処理する。macOSの実際の関連付け／未起動・起動中／Finder／トレイは実機で要確認。
+
+Step 3結果: cargo test --workspace成功（Tauriのファイル読込上限1件、core 102件＋統合5件）、npm test 31件成功。関連付けは設定／イベントハンドラー実装までで、Finderからの実起動はmacOS環境がないため未確認。全Step後に実Tauriの取り込みUIを検証する。
