@@ -152,3 +152,5 @@ Gift はアカウント・サーバー・送受信が必要で、実装が一気
 | 生成の原本 | Git に入れない(`assets-src/art/` を除外)。ただし Stage 0 の原本(約38MB)は履歴に残っている | 2026-10-02 |
 | 素材の種別の判定 | art.js は画面の名前ではなく **素材ID(`data-material-id`)**で決める。アートの無い素材(将来の Gold Foil 等)は当面 matte のカードで代用 | 2026-10-02 |
 | アプリ・トレイのアイコン | `brand/app-icon-1024.png` → `src-tauri/icons/`(icns/ico 含む)、`tray-template@2x.png` → `tray.png`(macOS のテンプレート画像) | 2026-10-02 |
+
+| 静的カタログの方針(Cloudflare) | Marketに公式が審査した作者パックの一覧を出す。サーバープログラム・アカウントは作らず、Cloudflare Pages(カタログJSON)とR2(パック実体)に静的に置く。カタログは公式鍵で署名、パックは作者の端末鍵で署名(既存のPETAPACK)し、アプリが両方を検証。掲載は公式が追加、お金は扱わず当面は無料のみ(O2は未決のまま)。ドメインはCloudflare DNSで管理(移管は必須でない)。**方針のみで実装は未着手**。詳細は `docs/static-catalog-plan.md` | 2026-10-05 |
