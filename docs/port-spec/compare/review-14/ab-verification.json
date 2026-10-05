@@ -1,0 +1,226 @@
+[
+  {
+    "shell": "studio",
+    "page": "materials",
+    "dismantleInGrid": 0,
+    "height": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [
+      "∞Always available",
+      "1sheet in stock",
+      "0sheets in stock"
+    ],
+    "width": 1060
+  },
+  {
+    "shell": "studio",
+    "page": "today",
+    "dismantleInGrid": 0,
+    "height": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 1060
+  },
+  {
+    "shell": "studio",
+    "page": "book",
+    "dismantleInGrid": 0,
+    "height": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 1060
+  },
+  {
+    "shell": "studio",
+    "page": "settings",
+    "dismantleInGrid": 0,
+    "height": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 1060
+  },
+  {
+    "shell": "studio",
+    "page": "materials",
+    "dismantleInGrid": 0,
+    "height": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [
+      "∞Always available",
+      "1sheet in stock",
+      "0sheets in stock"
+    ],
+    "width": 720
+  },
+  {
+    "shell": "studio",
+    "page": "today",
+    "dismantleInGrid": 0,
+    "height": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 720
+  },
+  {
+    "shell": "studio",
+    "page": "book",
+    "dismantleInGrid": 0,
+    "height": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 720
+  },
+  {
+    "shell": "studio",
+    "page": "settings",
+    "dismantleInGrid": 0,
+    "height": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 720
+  },
+  {
+    "shell": "desk",
+    "page": "materials",
+    "dismantleInGrid": 0,
+    "height": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [
+      "∞Always available",
+      "1sheet in stock",
+      "0sheets in stock"
+    ],
+    "width": 1060
+  },
+  {
+    "shell": "desk",
+    "page": "today",
+    "dismantleInGrid": 0,
+    "height": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 1060
+  },
+  {
+    "shell": "desk",
+    "page": "book",
+    "dismantleInGrid": 0,
+    "height": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 1060
+  },
+  {
+    "shell": "desk",
+    "page": "settings",
+    "dismantleInGrid": 0,
+    "height": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 1060
+  },
+  {
+    "shell": "desk",
+    "page": "materials",
+    "dismantleInGrid": 0,
+    "height": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [
+      "∞Always available",
+      "1sheet in stock",
+      "0sheets in stock"
+    ],
+    "width": 720
+  },
+  {
+    "shell": "desk",
+    "page": "today",
+    "dismantleInGrid": 0,
+    "height": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 720
+  },
+  {
+    "shell": "desk",
+    "page": "book",
+    "dismantleInGrid": 0,
+    "height": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 720
+  },
+  {
+    "shell": "desk",
+    "page": "settings",
+    "dismantleInGrid": 0,
+    "height": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "stock": [],
+    "width": 720
+  }
+]

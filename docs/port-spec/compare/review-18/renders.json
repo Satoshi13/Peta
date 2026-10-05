@@ -1,0 +1,106 @@
+[
+  {
+    "material": "matte",
+    "head": {
+      "coverage": 0.6450604200363159,
+      "cutoutLen": 238501,
+      "height": 428,
+      "stickerLen": 344962,
+      "width": 501
+    },
+    "phase": "ready",
+    "pngSha256": "5358703f0f65a746455401b679eaf058c81e6dcc08f207937f626002cfb5a9d4",
+    "preview": "render-matte.webp"
+  },
+  {
+    "material": "gold",
+    "head": {
+      "coverage": 0.6450604200363159,
+      "cutoutLen": 238501,
+      "height": 428,
+      "stickerLen": 275187,
+      "width": 501
+    },
+    "phase": "ready",
+    "pngSha256": "e848b4d6588b185271a6d37f4c5836b552df7157ebeddf6ffb5ee85f5fa30edc",
+    "preview": "render-gold.webp"
+  },
+  {
+    "material": "riso",
+    "head": {
+      "coverage": 0.6450604200363159,
+      "cutoutLen": 238501,
+      "height": 428,
+      "stickerLen": 423101,
+      "width": 501
+    },
+    "phase": "ready",
+    "pngSha256": "f443efcf58446a4a54d4227697fce9fa84b5c7db3980cbdf8bb7e7beaf80efc7",
+    "preview": "render-riso.webp"
+  },
+  {
+    "material": "vintage",
+    "head": {
+      "coverage": 0.6450604200363159,
+      "cutoutLen": 238501,
+      "height": 428,
+      "stickerLen": 262788,
+      "width": 501
+    },
+    "phase": "ready",
+    "pngSha256": "58bb0b53c9f8ff1284587cae447867f4259804fdf333e4782a4aceb8dfd8715f",
+    "preview": "render-vintage.webp"
+  },
+  {
+    "material": "clear",
+    "head": {
+      "coverage": 0.6450604200363159,
+      "cutoutLen": 238501,
+      "height": 428,
+      "stickerLen": 248995,
+      "width": 501
+    },
+    "phase": "ready",
+    "pngSha256": "db1a8838b45d93ede888a2b81036f75099420160b52f4dfd29ea853a575f3e62",
+    "preview": "render-clear.webp"
+  },
+  {
+    "material": "pixel",
+    "head": {
+      "coverage": 0.6450604200363159,
+      "cutoutLen": 238501,
+      "height": 428,
+      "stickerLen": 49595,
+      "width": 501
+    },
+    "phase": "ready",
+    "pngSha256": "fd0f65bd16ed781d754ede084539baba3b0067e48ae630b8e460bccaaec0ef61",
+    "preview": "render-pixel.webp"
+  },
+  {
+    "material": "washi",
+    "head": {
+      "coverage": 0.6450604200363159,
+      "cutoutLen": 238501,
+      "height": 428,
+      "stickerLen": 275465,
+      "width": 501
+    },
+    "phase": "ready",
+    "pngSha256": "c611464a45bb05a367a8da0f119e2b292fff364380e7e58894dcdc91a7e38286",
+    "preview": "render-washi.webp"
+  },
+  {
+    "material": "sakura",
+    "head": {
+      "coverage": 0.6450604200363159,
+      "cutoutLen": 238501,
+      "height": 428,
+      "stickerLen": 251048,
+      "width": 501
+    },
+    "phase": "ready",
+    "pngSha256": "0154e1a84b000e32de7f12fcaed092c71139edf96e458c1c1bf013cc3db5d45f",
+    "preview": "render-sakura.webp"
+  }
+]

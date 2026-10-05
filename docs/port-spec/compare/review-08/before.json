@@ -1,0 +1,38 @@
+[
+  {
+    "added": 73,
+    "before": 773,
+    "height": 700,
+    "shell": "studio",
+    "viewport": 700,
+    "width": 1060,
+    "without": 700
+  },
+  {
+    "added": 78,
+    "before": 974,
+    "height": 520,
+    "shell": "studio",
+    "viewport": 460,
+    "width": 720,
+    "without": 896
+  },
+  {
+    "added": 78,
+    "before": 754,
+    "height": 700,
+    "shell": "desk",
+    "viewport": 668,
+    "width": 1060,
+    "without": 676
+  },
+  {
+    "added": 78,
+    "before": 974,
+    "height": 520,
+    "shell": "desk",
+    "viewport": 446,
+    "width": 720,
+    "without": 896
+  }
+]

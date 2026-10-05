@@ -1,0 +1,182 @@
+{
+  "before": {
+    "frames": 0,
+    "nodes": [
+      {
+        "material": "kraft",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(511.2px, 553.662992px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "matte",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(194.4px, 478.750781px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "holographic",
+        "sa": "120deg",
+        "sx": "68%",
+        "sy": "50%",
+        "transform": "translate3d(885.6px, 370.750781px, 0px) rotate(-5deg) scale(1)"
+      }
+    ],
+    "status": {
+      "activeLayers": 1,
+      "cursorReads": 0,
+      "timerRunning": false
+    }
+  },
+  "after": {
+    "frames": 11,
+    "nodes": [
+      {
+        "material": "kraft",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(511.2px, 553.662992px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "matte",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(194.4px, 478.750781px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "holographic",
+        "sa": "107.71473961340698deg",
+        "sx": "47.56007255525421%",
+        "sy": "41.86308620830184%",
+        "transform": "translate3d(885.6px, 370.750781px, 0px) rotate(-5deg) scale(1)"
+      }
+    ],
+    "status": {
+      "activeLayers": 1,
+      "cursorReads": 0,
+      "timerRunning": false
+    }
+  },
+  "outside": {
+    "frames": 23,
+    "nodes": [
+      {
+        "material": "kraft",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(511.2px, 553.662992px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "matte",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(194.4px, 478.750781px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "holographic",
+        "sa": "120deg",
+        "sx": "68%",
+        "sy": "50%",
+        "transform": "translate3d(885.6px, 370.750781px, 0px) rotate(-5deg) scale(1)"
+      }
+    ],
+    "status": {
+      "activeLayers": 1,
+      "cursorReads": 0,
+      "timerRunning": false
+    }
+  },
+  "controls": {
+    "frames": 32,
+    "nodes": [
+      {
+        "material": "kraft",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(511.2px, 553.662992px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "matte",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(194.4px, 478.750781px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "holographic",
+        "sa": "132.3323076923077deg",
+        "sx": "72.54290598290598%",
+        "sy": "34.205128205128204%",
+        "transform": "translate3d(885.6px, 370.750781px, 0px) rotate(-5deg) scale(1)"
+      }
+    ],
+    "status": {
+      "activeLayers": 1,
+      "cursorReads": 0,
+      "timerRunning": false
+    }
+  },
+  "reduced": {
+    "frames": 32,
+    "nodes": [
+      {
+        "material": "kraft",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(511.2px, 553.662992px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "matte",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(194.4px, 478.750781px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "holographic",
+        "sa": "120deg",
+        "sx": "68%",
+        "sy": "50%",
+        "transform": "translate3d(885.6px, 370.750781px, 0px) rotate(-5deg) scale(1)"
+      }
+    ],
+    "status": {
+      "activeLayers": 0,
+      "cursorReads": 0,
+      "timerRunning": false
+    }
+  },
+  "noHolo": {
+    "frames": 33,
+    "nodes": [
+      {
+        "material": "kraft",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(511.2px, 553.662992px, 0px) rotate(4deg) scale(1)"
+      },
+      {
+        "material": "matte",
+        "sa": "",
+        "sx": "",
+        "sy": "",
+        "transform": "translate3d(194.4px, 478.750781px, 0px) rotate(4deg) scale(1)"
+      }
+    ],
+    "status": {
+      "activeLayers": 0,
+      "cursorReads": 0,
+      "timerRunning": false
+    }
+  },
+  "globalMacCursor": "not executable on Linux"
+}

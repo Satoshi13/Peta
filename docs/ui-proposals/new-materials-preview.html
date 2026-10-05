@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Peta — New materials</title>
+<link rel="stylesheet" href="../../src/fonts/fonts.css"><link rel="stylesheet" href="../../src/app/css/base.css"><link rel="stylesheet" href="../../src/app/css/pages.css"><link rel="stylesheet" href="../../src/app/css/polish.css"><link rel="stylesheet" href="../../src/app/css/native.css"><link rel="stylesheet" href="../../src/material-surfaces.css">
+<style>
+body { margin:0; background:#f7f4ed; color:#302d28; }
+main { max-width:1180px; margin:auto; padding:30px; }
+header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px; }
+h1 { font:650 26px/1.2 var(--sys); margin:0 0 6px; }
+p { color:#716b60; font:14px/1.5 var(--sys); margin:0; }
+.grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+.finish { padding:18px; border-radius:16px; background:#fffdf9; box-shadow:inset 0 0 0 1px #e8e2d7; }
+.finish .mcard { margin:0 auto 10px; }
+.print { height:190px; display:grid; place-items:center; border-radius:10px; background:#f2f0e9; }
+.print img { max-width:95%; max-height:180px; object-fit:contain; }
+.finish h2 { font:650 17px/1.2 var(--sys); margin:14px 0 5px; }
+.finish small { display:block; font:12px/1.5 var(--sys); color:#716b60; }
+footer { margin-top:20px; }
+@media(max-width:850px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:460px) { main { padding:16px; } .grid { grid-template-columns:1fr; } }
+</style></head><body><main><header><div><h1>New materials</h1><p>The same cutout, printed on eight different surfaces.</p></div><p>Actual Rust renderer · Matte shown for comparison</p></header><div class="grid" id="grid"></div><footer><p>Static native manufacturing results. Clear keeps white ink opaque and lets the unprinted film show through. Gold shares the desktop reflection band with Holographic. Sakura is a spring edition.</p></footer></main>
+<script src="../../src/app/js/assets.js"></script><script>
+Object.entries(A).forEach(([key,value])=>document.documentElement.style.setProperty('--a-'+key,`url("${new URL("../../src/"+value,location.href).href}")`));
+const materials=[['matte','Matte','Common','Soft paper · white border'],['gold','Gold Foil','Special','Warm gold leaf · moving reflection'],['riso','Riso','Uncommon','Two-colour ink · slight registration offset'],['vintage','Vintage','Archive','Aged paper · faded ink'],['clear','Clear','Rare','Frosted film · opaque white ink'],['pixel','Pixel','Uncommon','Pastel dither · softly pixelated ink'],['washi','Washi','Uncommon','Plant fibres · soft ink'],['sakura','Sakura','Archive','Pink paper · pressed petals']];
+for(const [id,name,rarity,description] of materials) {
+ const cell=document.createElement('section');cell.className='finish';
+ cell.innerHTML=`<div class="mcard" data-m="${id}" style="--w:190px"><i class="art"></i><span class="lab"><b>${name}</b><small>${rarity}</small></span></div><div class="print"><img src="../port-spec/compare/review-18/render-${id}.webp" alt="${name} printed cat"></div><h2>${name}</h2><small>${description}</small>`;
+ document.querySelector('#grid').append(cell);
+}
+</script></body></html>

@@ -1,0 +1,17 @@
+/* Native transparent desktop, using the prototype's unchanged print/back/tag declarations. */
+html, body { background: transparent; }
+/* Delivered tag art replaces the CSS pill/foil/stamp. Keep round art square and unwarped. */
+img.peta-tag, img.peta-tag.v-round, img.peta-tag.v-holo, img.peta-tag.v-stamp {
+  display: block; height: auto; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none;
+}
+img.peta-tag.v-round { width: 96px; height: 96px; object-fit: contain; }
+img.peta-tag.v-holo { width: 124px; height: 50px; object-fit: contain; }
+img.peta-tag.v-stamp { width: 112px; height: 52px; object-fit: contain; }
+.sticker .back-card .face { box-sizing: border-box; }
+
+#arrival { position: absolute; right: 26px; bottom: 90px; z-index: 40; width: 190px; cursor: pointer; filter: drop-shadow(0 12px 14px rgba(20, 20, 30, .35)); transform-origin: 50% 100%; }
+#arrival img { width: 100%; display: block; }
+#arrival .arr-note { position: absolute; left: -6px; top: -8px; padding: 3px 10px; border-radius: 999px; background: var(--ink); color: #fff; font: 600 11px var(--sys); }
+#arrival:hover { transform: translateY(-4px) rotate(-1deg); transition: transform .2s var(--ease-out); }
+
+html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }

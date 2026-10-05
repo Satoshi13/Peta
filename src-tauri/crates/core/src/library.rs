@@ -38,6 +38,8 @@ impl Library {
         Ok(Library { db: Database::open(&dir.join("peta.db"))?, assets_dir: dir.join("assets") })
     }
 
+    pub fn root(&self) -> &Path { self.assets_dir.parent().expect("library root") }
+
     pub fn db(&self) -> &Database {
         &self.db
     }
@@ -92,7 +94,51 @@ impl Library {
         material_id: &str,
     ) -> Result<Sticker> {
         let by = self.db.display_name()?;
-        self.add_rendered(rendered, original, original_ext, creator_id, Some(by), material_id, SourceType::Created)
+        self.add_rendered(rendered, original, original_ext, creator_id, Some(by), material_id, SourceType::Created, None)
+    }
+
+    pub fn add_made_with_editor(&mut self, rendered: &crate::creator::Rendered, original: &[u8], original_ext: &str,
+        material_id: &str, editor: &crate::creator::EditorState) -> Result<Sticker> {
+        let by = self.db.display_name()?;
+        self.add_rendered(rendered, original, original_ext, None, Some(by), material_id, SourceType::Created, Some(editor))
+    }
+
+    pub fn original_for_edit(&self, id: &str) -> Result<(Sticker, Vec<u8>, Option<Vec<u8>>, Option<crate::creator::EditorState>)> {
+        let sticker = self.db.sticker(id)?.ok_or_else(|| Error::Invalid("sticker not found".into()))?;
+        if sticker.source_type != SourceType::Created { return Err(Error::Invalid("only your original stickers can be edited".into())); }
+        let original = self.read_asset(&sticker.original_asset_path)?;
+        let mask = sticker.mask_asset_path.as_ref().map(|p| self.read_asset(p)).transpose()?;
+        let path = Path::new(&sticker.rendered_asset_path).parent().unwrap().join("editor.json");
+        let editor = match self.read_asset(path.to_str().unwrap()) {
+            Ok(bytes) => Some(serde_json::from_slice(&bytes).map_err(|e| Error::Invalid(format!("could not read saved editor: {e}")))?),
+            Err(Error::Io(e)) if e.kind() == std::io::ErrorKind::NotFound => None,
+            Err(e) => return Err(e),
+        };
+        Ok((sticker, original, mask, editor))
+    }
+
+    /// Write immutable revision files first, then switch the database pointer. Failed writes preserve the old sticker.
+    pub fn update_original(&mut self, id: &str, rendered: &crate::creator::Rendered, editor: &crate::creator::EditorState) -> Result<()> {
+        let (sticker, _, _, _) = self.original_for_edit(id)?;
+        let dir = format!("stickers/{}/revisions/{}", sticker.id, new_sticker_id());
+        let png = format!("{dir}/rendered.png"); let mask = format!("{dir}/mask.png");
+        let result = (|| {
+            self.write_asset(&png, &rendered.sticker_png)?; self.write_asset(&mask, &rendered.mask_png)?;
+            self.write_asset(&format!("{dir}/editor.json"), &serde_json::to_vec(editor).map_err(|e| Error::Invalid(e.to_string()))?)?;
+            self.db.update_original_assets(id, &png, &mask, rendered.aspect())
+        })();
+        if result.is_err() { let _ = fs::remove_dir_all(self.assets_dir.join(dir)); }
+        result
+    }
+
+    pub fn delete_original(&mut self, id: &str) -> Result<()> {
+        let sticker = self.db.sticker(id)?.ok_or_else(|| Error::Invalid("sticker not found".into()))?;
+        self.db.delete_original(id)?;
+        // Cleanup cannot turn a successful database deletion into a reported failure.
+        if sticker.id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+            let _ = fs::remove_dir_all(self.assets_dir.join("stickers").join(sticker.id));
+        }
+        Ok(())
     }
 
     /// Store a sticker that came out of a pack: its maker is the pack's author, and the back says which pack.
@@ -105,9 +151,16 @@ impl Library {
         pack_by: &str,
         material_id: &str,
     ) -> Result<Sticker> {
-        let sticker = self.add_rendered(rendered, original, original_ext, None, Some(pack_by.to_owned()), material_id, SourceType::Pack)?;
+        let sticker = self.add_rendered(rendered, original, original_ext, None, Some(pack_by.to_owned()), material_id, SourceType::Pack, None)?;
         self.db.add_provenance(&sticker.id, crate::models::ProvenanceKind::PackOpened, Some(pack_title), &now())?;
         self.db.sticker(&sticker.id)?.ok_or_else(|| Error::Invalid("sticker vanished".into()))
+    }
+
+    /// A creator pack contains a finished copy, never an original photo or ORIGINAL number.
+    pub fn add_finished_from_pack(&mut self,png:&[u8],mask:&[u8],title:&str,author:&str,material:&str)->Result<Sticker> {
+        let image=image::load_from_memory_with_format(png,image::ImageFormat::Png)?;
+        let rendered=crate::creator::Rendered{sticker_png:png.to_vec(),width:image.width(),height:image.height(),cutout_png:Vec::new(),mask_png:mask.to_vec(),coverage:1.0};
+        self.add_from_pack(&rendered,png,"png",title,author,material)
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -120,6 +173,7 @@ impl Library {
         creator_name: Option<String>,
         material_id: &str,
         source_type: SourceType,
+        editor: Option<&crate::creator::EditorState>,
     ) -> Result<Sticker> {
         let id = loop {
             let id = new_sticker_id();
@@ -133,6 +187,9 @@ impl Library {
         self.write_asset(&original_rel, original)?;
         self.write_asset(&rendered_rel, &rendered.sticker_png)?;
         self.write_asset(&mask_rel, &rendered.mask_png)?;
+        if let Some(editor) = editor {
+            self.write_asset(&format!("stickers/{id}/editor.json"), &serde_json::to_vec(editor).map_err(|e| Error::Invalid(e.to_string()))?)?;
+        }
         let created = self.db.create_sticker(NewSticker {
             id: id.clone(),
             creator_id: creator_id.map(str::to_owned),
@@ -175,7 +232,7 @@ impl Library {
         Ok(fs::read(self.assets_dir.join(rel))?)
     }
 
-    pub(crate) fn read_asset(&self, rel: &str) -> Result<Vec<u8>> {
+    pub fn read_asset(&self, rel: &str) -> Result<Vec<u8>> {
         Ok(fs::read(self.assets_dir.join(rel))?)
     }
 

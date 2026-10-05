@@ -1,0 +1,23 @@
+{
+  "first": {
+    "aspect": 1.4458161865569272,
+    "materialId": "matte",
+    "relativeScale": 0.18,
+    "stickerId": "PETA-BFYN-B0SM"
+  },
+  "next": {
+    "aspect": 1.4483734087694484,
+    "materialId": "kraft",
+    "relativeScale": 0.18,
+    "stickerId": "PETA-AQ0K-P1KV"
+  },
+  "actualMousePaste": true,
+  "noAutomaticNextSheet": true,
+  "editModeAfterPaste": true,
+  "exitEditAndBookDoNotResume": true,
+  "explicitResumeShowsSameNext": true,
+  "laterKeepsNext": true,
+  "repeatedPasteRejected": true,
+  "stockUnchanged": true,
+  "restartKeepsSameNext": true
+}

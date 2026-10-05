@@ -1,0 +1,534 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "state": "detail",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Stick on desktop",
+        "width": 274
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Gift\u2026",
+        "width": 133
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Edit",
+        "width": 133
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Delete\u2026",
+        "width": 274
+      }
+    ]
+  },
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "state": "delete",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Cancel",
+        "width": 133
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Delete",
+        "width": 133
+      }
+    ]
+  },
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "state": "gift",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Cancel",
+        "width": 121
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Seal & save\u2026",
+        "width": 121
+      }
+    ]
+  },
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "state": "editor",
+    "issues": [],
+    "knownPaperArtwork": [
+      [
+        "spillX",
+        "button.btn.paper.small",
+        "64>60",
+        "Undo"
+      ],
+      [
+        "spillX",
+        "button.btn.paper.small",
+        "63>59",
+        "Redo"
+      ],
+      [
+        "spillX",
+        "button.btn.paper",
+        "102>98",
+        "Cancel"
+      ]
+    ],
+    "buttons": []
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "state": "detail",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Stick on desktop",
+        "width": 274
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Gift\u2026",
+        "width": 133
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Edit",
+        "width": 133
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Delete\u2026",
+        "width": 274
+      }
+    ]
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "state": "delete",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Cancel",
+        "width": 133
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Delete",
+        "width": 133
+      }
+    ]
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "state": "gift",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Cancel",
+        "width": 121
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Seal & save\u2026",
+        "width": 121
+      }
+    ]
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "state": "editor",
+    "issues": [],
+    "knownPaperArtwork": [
+      [
+        "spillX",
+        "button.btn.paper.small",
+        "64>60",
+        "Undo"
+      ],
+      [
+        "spillX",
+        "button.btn.paper.small",
+        "63>59",
+        "Redo"
+      ],
+      [
+        "spillX",
+        "button.btn.paper",
+        "102>98",
+        "Cancel"
+      ]
+    ],
+    "buttons": []
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "state": "detail",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Stick on desktop",
+        "width": 616
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Gift\u2026",
+        "width": 304
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Edit",
+        "width": 304
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Delete\u2026",
+        "width": 616
+      }
+    ]
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "state": "delete",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Cancel",
+        "width": 304
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Delete",
+        "width": 304
+      }
+    ]
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "state": "gift",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Cancel",
+        "width": 292
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Seal & save\u2026",
+        "width": 292
+      }
+    ]
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "state": "editor",
+    "issues": [],
+    "knownPaperArtwork": [
+      [
+        "spillX",
+        "button.btn.paper.small",
+        "64>60",
+        "Undo"
+      ],
+      [
+        "spillX",
+        "button.btn.paper.small",
+        "63>59",
+        "Redo"
+      ],
+      [
+        "spillX",
+        "button.btn.paper",
+        "102>98",
+        "Cancel"
+      ]
+    ],
+    "buttons": [],
+    "saveVisibleAfterScroll": {
+      "save": {
+        "bottom": 459.984375,
+        "height": 36,
+        "left": 492.4375,
+        "right": 638,
+        "top": 423.984375,
+        "width": 145.5625,
+        "x": 492.4375,
+        "y": 423.984375
+      },
+      "viewport": {
+        "bottom": 460,
+        "height": 460,
+        "left": 0,
+        "right": 720,
+        "top": 0,
+        "width": 720,
+        "x": 0,
+        "y": 0
+      }
+    }
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "state": "detail",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Stick on desktop",
+        "width": 550
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Gift\u2026",
+        "width": 271
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Edit",
+        "width": 271
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Delete\u2026",
+        "width": 550
+      }
+    ]
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "state": "delete",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Cancel",
+        "width": 271
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Delete",
+        "width": 271
+      }
+    ]
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "state": "gift",
+    "issues": [],
+    "knownPaperArtwork": [],
+    "buttons": [
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Cancel",
+        "width": 259
+      },
+      {
+        "font": "600 14px / 16.799999px -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+        "height": 40,
+        "radius": "10px",
+        "text": "Seal & save\u2026",
+        "width": 259
+      }
+    ]
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "state": "editor",
+    "issues": [],
+    "knownPaperArtwork": [
+      [
+        "spillX",
+        "button.btn.paper.small",
+        "64>60",
+        "Undo"
+      ],
+      [
+        "spillX",
+        "button.btn.paper.small",
+        "63>59",
+        "Redo"
+      ],
+      [
+        "spillX",
+        "button.btn.paper",
+        "102>98",
+        "Cancel"
+      ]
+    ],
+    "buttons": [],
+    "saveVisibleAfterScroll": {
+      "save": {
+        "bottom": 459.984375,
+        "height": 36,
+        "left": 500.4375,
+        "right": 646,
+        "top": 423.984375,
+        "width": 145.5625,
+        "x": 500.4375,
+        "y": 423.984375
+      },
+      "viewport": {
+        "bottom": 460,
+        "height": 446,
+        "left": 8,
+        "right": 712,
+        "top": 14,
+        "width": 704,
+        "x": 8,
+        "y": 14
+      }
+    }
+  }
+]

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="../../src/">
+<title>Peta · Motion preview</title>
+<link rel="stylesheet" href="fonts/fonts.css"><link rel="stylesheet" href="app/css/base.css"><link rel="stylesheet" href="app/css/pages.css"><link rel="stylesheet" href="app/css/pack.css"><link rel="stylesheet" href="app/css/polish.css"><link rel="stylesheet" href="app/css/native.css">
+<style>
+html,body{height:auto;min-height:100%;overflow:auto;clip-path:none;background:#f6f3ed;color:#2b2926}
+body{padding:40px;box-sizing:border-box;max-width:1100px;margin:auto;font:14px/1.5 var(--sys)}
+header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:24px}h1{font-size:30px;margin:0}header p{color:#706a60}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.demo{border-radius:20px;background:#fffdf8;padding:26px;box-shadow:0 1px 4px #392d2014}
+.demo p{color:#706a60;margin:4px 0 18px}.sample-card{min-height:145px;display:grid;place-items:center}.sample-card .mcard{margin:auto}
+.peel-mat{height:270px;border-radius:14px;background:#70938a;display:grid;place-items:center;touch-action:none;overflow:hidden;position:relative}
+.peel-demo{position:relative;width:190px;aspect-ratio:1;cursor:grab}.peel-demo>img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
+.peel-demo:active{cursor:grabbing}.peel-curl{position:absolute;inset:0;pointer-events:none}
+.replay-row{display:flex;gap:10px;margin-top:14px;align-items:center}.demo .btn{font-size:13px}.envelope-demo{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.envelope-demo p{margin-bottom:0}.cer{border-radius:20px}.cer-stage{height:min(700px,82vh)}.close-preview{position:absolute;right:22px;top:22px;z-index:10}
+@media(max-width:720px){body{padding:20px}.demo-grid{grid-template-columns:1fr}.envelope-demo{grid-column:auto;flex-direction:column;align-items:flex-start}header{align-items:flex-start;flex-direction:column}}
+</style></head><body>
+<header><div><h1>Peta · Motion preview</h1><p>Quiet responses. Paper that follows your hand. One clear reveal.</p></div><label><input type="checkbox" id="reduce"> Reduce motion</label></header>
+<main class="demo-grid">
+<section class="demo"><h2>Stable hover</h2><p>Move across the card, its label, and the button. The hit area stays in place.</p><div class="sample-card" id="hover"></div><button class="btn paper" style="margin-top:18px">Preview material</button></section>
+<section class="demo"><h2>Peel towards your hand</h2><p>Drag in any direction. Release early to lay it back down.</p><div class="peel-mat"><div class="peel-demo" id="peel"><img alt="Blue flower sticker" src="art/samples/blue-flower.png"></div></div><div class="replay-row"><button class="btn paper" id="reset">Replay peel</button><small id="peel-state">Ready to peel</small></div></section>
+<section class="demo envelope-demo"><div><h2>One envelope. One material card.</h2><p>Pull out the blank card to discover your material, then keep it.</p></div><button class="btn" id="open">Open envelope</button></section>
+</main><div id="overlay"></div>
+<script src="app/js/assets.js"></script><script src="app/js/core.js"></script><script src="app/js/sticker.js"></script><script src="app/js/catalog.js"></script>
+<script>const Pages={}, S={chosen:'holographic',stock:{matte:3,kraft:2,holographic:1}};const Bridge={enterCeremony(){},leaveCeremony(){}};const Snd=new Proxy({}, {get:()=>()=>{}});</script>
+<script src="app/js/shared.js"></script><script src="app/js/ceremony.js"></script>
+<script type="module">
+import * as PetaMath from './ui-math.js'; import {peelPose,PEEL_COMMIT} from './placement.js'; import {createPeelSurface} from './peel.js';
+window.PetaMath=PetaMath; for(const key in A) document.documentElement.style.setProperty('--a-'+key,`url("${new URL(A[key],document.baseURI).href}")`);
+const hit=document.querySelector('#hover'), card=h('div.mcard.big',{data:{m:'holographic'},vars:{'--w':'200px'}},h('i.art'),h('span.lab',h('b','Holographic'),h('small','Rare')));hit.append(card);Stk.tilt(card,{max:4,scale:1.01,trigger:hit});
+document.querySelector('#reduce').onchange=e=>{document.documentElement.dataset.motion=e.target.checked?'reduce':'full';reset();};
+document.querySelector('#open').onclick=async()=>{const result=await Cer.openMaterial(MAT.holographic);await result.close();};
+const peel=document.querySelector('#peel'), image=peel.querySelector('img'), state=document.querySelector('#peel-state');
+await image.decode(); const surface=createPeelSurface(image,'matte',190,190), scene=document.createElement('div');scene.className='peel-curl';scene.append(surface.canvas);peel.append(scene);
+let pose=null,frame=0;
+const draw=p=>{pose=p;if(reduced())return; const curl=surface.draw(p); image.style.clipPath=`polygon(${curl.front.map(([x,y])=>x+'px '+y+'px').join(',')})`;};
+function reset(){cancelAnimationFrame(frame);image.style.opacity=1;image.style.clipPath='';scene.style.opacity=0;pose=null;state.textContent='Ready to peel';}
+drag(peel,{down:()=>{cancelAnimationFrame(frame);scene.style.opacity=1;},move:(dx,dy)=>{draw(peelPose(dx,dy,0,190,190));state.textContent=pose.progress>=PEEL_COMMIT?'Release to peel off':'Release to lay it down';},up:()=>{
+ if(!pose)return;const start=performance.now(),from=pose,off=pose.progress>=PEEL_COMMIT;
+ if(reduced()){if(off){image.style.opacity=0;state.textContent='Peeled off';}else reset();return;}
+ const tick=now=>{const t=Math.min(1,(now-start)/300),ease=1-Math.pow(1-t,3);draw({...from,progress:from.progress+((off?1:0)-from.progress)*ease});if(off)scene.style.opacity=1-t;if(t<1)frame=requestAnimationFrame(tick);else if(off){image.style.clipPath='inset(100%)';state.textContent='Peeled off';}else reset();};frame=requestAnimationFrame(tick);
+}});document.querySelector('#reset').onclick=()=>{image.style.opacity=1;reset();};reset();
+</script></body></html>

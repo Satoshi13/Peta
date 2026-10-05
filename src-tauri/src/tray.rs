@@ -1,54 +1,33 @@
 //! Menu bar / system tray entry point (spec §52-53). Only what exists so far is listed.
 
-use std::thread;
-
 use tauri::{
     image::Image,
-    menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu},
+    menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem},
     tray::TrayIconBuilder,
-    AppHandle, Emitter, Manager, Wry,
+    AppHandle, Manager, Wry,
 };
-use tauri_plugin_dialog::DialogExt;
-
-use crate::{collection, layers, platform, store::Store, today};
+use crate::{layers, today};
 
 /// Kept in app state so Esc / the Done button can un-check the menu item.
 pub struct EditItem(pub CheckMenuItem<Wry>);
 /// Kept in app state so the label can show the arrival indicator.
 pub struct TodayItem(pub MenuItem<Wry>);
+pub struct PrintItem(pub MenuItem<Wry>);
+/// Retain the actual tray menu for development-only native capture.
+pub struct TrayMenu(pub Menu<Wry>);
 
 pub fn build(app: &AppHandle) -> tauri::Result<()> {
-    let today_item = MenuItem::with_id(app, "today", "Today's Peta", true, None::<&str>)?;
-    let collection = MenuItem::with_id(app, "collection", "Collection", true, None::<&str>)?;
-    let open_gift = MenuItem::with_id(app, "open_gift", "Open Gift…", true, None::<&str>)?;
-    let edit = CheckMenuItem::with_id(app, "edit", "Edit Stickers", true, false, None::<&str>)?;
-    let resync = MenuItem::with_id(app, "resync", "Re-sync Displays", true, None::<&str>)?;
+    let today_item = MenuItem::with_id(app, "today", "Open Peta", true, None::<&str>)?;
+    let resume_print = MenuItem::with_id(app, "resume_print", "Resume printing", false, None::<&str>)?;
+    let edit = CheckMenuItem::with_id(app, "edit", "Edit stickers", true, false, None::<&str>)?;
+    let open_file=MenuItem::with_id(app,"open_file","Open Peta file…",true,None::<&str>)?;
+    let redeem=MenuItem::with_id(app,"redeem","Redeem Code…",true,None::<&str>)?;
+    let settings = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit Peta", true, Some("CmdOrCtrl+Q"))?;
-    let sep1 = PredefinedMenuItem::separator(app)?;
-    let sep2 = PredefinedMenuItem::separator(app)?;
-
-    // Developer tools exist only in debug builds. They bypass or bend the daily rule on purpose.
-    let dev: Option<Submenu<Wry>> = if cfg!(debug_assertions) {
-        let add_image = MenuItem::with_id(app, "dev_add_image", "Cut Out Image… (ignores daily rule)", true, None::<&str>)?;
-        let add_sample = MenuItem::with_id(app, "dev_add_sample", "Add Sample Cat (ignores daily rule)", true, None::<&str>)?;
-        let next_day = MenuItem::with_id(app, "dev_next_day", "Next Day (+1 day)", true, None::<&str>)?;
-        let reset_today = MenuItem::with_id(app, "dev_reset_today", "Reset Today", true, None::<&str>)?;
-        Some(Submenu::with_items(
-            app,
-            "Developer",
-            true,
-            &[&add_image, &add_sample, &PredefinedMenuItem::separator(app)?, &next_day, &reset_today],
-        )?)
-    } else {
-        None
-    };
-
-    let mut items: Vec<&dyn tauri::menu::IsMenuItem<Wry>> = vec![&today_item, &collection, &open_gift, &edit, &sep1];
-    if let Some(dev) = dev.as_ref() {
-        items.push(dev);
-    }
-    items.extend_from_slice(&[&resync, &sep2, &quit]);
-    let menu = Menu::with_items(app, &items)?;
+    let sep = PredefinedMenuItem::separator(app)?;
+    let menu = Menu::with_items(app, &[&today_item, &resume_print, &edit, &sep, &open_file, &redeem, &settings, &quit])?;
+    app.manage(PrintItem(resume_print));
+    app.manage(TrayMenu(menu.clone()));
 
     app.manage(EditItem(edit.clone()));
     app.manage(TodayItem(today_item));
@@ -56,56 +35,17 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
     TrayIconBuilder::with_id("peta")
         .icon(Image::from_bytes(include_bytes!("../icons/tray.png"))?)
         .icon_as_template(true) // macOS: adapts to light/dark menu bar
-        .tooltip("Peta")
+        .tooltip(if cfg!(feature="developer") { "Peta Developer" } else { "Peta" })
         .menu(&menu)
         .show_menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id().as_ref() {
-            "today" => {
-                // a Peta is waiting at the print slot (put aside earlier): bring it back instead
-                if matches!(crate::print::pending(app), Ok(Some(_))) {
-                    crate::print::begin(app);
-                } else if let Err(e) = today::open_window(app) {
-                    eprintln!("[peta] could not open Today: {e}");
-                }
-            }
-            "open_gift" => crate::gifts::menu_open_gift(app),
-            "collection" => {
-                if let Err(e) = collection::open_window(app) {
-                    eprintln!("[peta] could not open the Sticker Book: {e}");
-                }
-            }
-            // A CheckMenuItem toggles itself on click; read the new state.
+            "today" => { let _ = today::open_window(app); }
+            "open_file" => {let app=app.clone();tauri::async_runtime::spawn(async move {match crate::gifts::gift_receive_file(app.clone()).await {Ok(Some(result))=>{let _=crate::app_window::open(&app,"gifts");use tauri::Emitter;let _=app.emit("distribution-result",result);},Ok(None)=>{},Err(e)=>{use tauri_plugin_dialog::DialogExt;app.dialog().message(e).title("Peta").show(|_|{});}}});}
+            "redeem" => {let _=crate::app_window::open(app,"redeem");}
+            "resume_print" => crate::print::begin(app),
+            "settings" => { let _ = crate::app_window::open(app, "settings"); }
+            // The checkbox toggles itself; read its new state.
             "edit" => layers::set_edit_mode(app, edit.is_checked().unwrap_or(false)),
-            "resync" => {
-                if let Err(e) = layers::sync(app) {
-                    eprintln!("[peta] re-sync failed: {e}");
-                }
-            }
-            "dev_add_image" => {
-                platform::activate_app(); // Accessory app: otherwise the dialog opens behind other windows
-                let app = app.clone();
-                app.clone()
-                    .dialog()
-                    .file()
-                    .add_filter("Images", &["png", "jpg", "jpeg", "webp"])
-                    .pick_file(move |picked| {
-                        if let Some(path) = picked.and_then(|f| f.into_path().ok()) {
-                            today::dev_open_image(&app, &path);
-                        }
-                    });
-            }
-            "dev_add_sample" => {
-                let app = app.clone();
-                thread::spawn(move || {
-                    let primary = app.state::<layers::Layers>().primary_display_id();
-                    if let Err(e) = app.state::<Store>().add_sample(&primary) {
-                        eprintln!("[peta] add sample failed: {e}");
-                    }
-                    let _ = app.emit("placements-changed", ());
-                });
-            }
-            "dev_next_day" => today::dev_next_day(app),
-            "dev_reset_today" => today::dev_reset_today(app),
             "quit" => app.exit(0),
             _ => {}
         })
@@ -123,9 +63,13 @@ pub fn sync_edit_checkbox(app: &AppHandle, on: bool) {
 pub fn refresh_today(app: &AppHandle) {
     let Some(item) = app.try_state::<TodayItem>() else { return };
     let label = match today::status(app) {
-        Ok(s) if !s.material_opened => "Today's Peta  ●",
-        Ok(s) if matches!(s.slot, peta_core::SlotState::Confirmed | peta_core::SlotState::Used) => "Today's Peta  ✓",
-        _ => "Today's Peta",
+        Ok(s) if s.material_opened && s.bonus_envelopes>0 => "An extra envelope from Peta.",
+        Ok(s) if !s.material_opened => "Open Peta  ●",
+        Ok(s) if matches!(s.slot, peta_core::SlotState::Confirmed | peta_core::SlotState::Used) => "Open Peta  ✓",
+        _ => "Open Peta",
     };
     let _ = item.0.set_text(label);
+    if let Some(print) = app.try_state::<PrintItem>() {
+        let _ = print.0.set_enabled(matches!(crate::print::pending(app), Ok(Some(_))));
+    }
 }

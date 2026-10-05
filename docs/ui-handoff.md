@@ -192,3 +192,17 @@ AVAILABLE -> SELECTING -> CONFIRMED -> USED
 - 持ち上げ(`.lifted`)→ 離すと沈む(WAAPI の `scale 1.04 → 0.98 → 1.0`、240ms)= 仕様 §29。
 - 剥がし(`.peeling` / `.peel-ready`)。**Option+ドラッグの調整は別途まとめて直す予定**。
 - 編集バー(`#edit-hint`)は仮の見た目。
+
+## Today 画面の「Paper Desk」(2026-10-03)
+
+見た目だけの更新。id と `data-*` の契約は変わらない。画像は既存素材の流用で、専用パーツは [codex-ui-parts-prompt.md](codex-ui-parts-prompt.md) で発注する。
+
+| フック | 場所 | 今の見た目 → 差し替える画像 |
+|---|---|---|
+| `.mcard` / `.mcard-art` / `.mcard-count` | `#material-picker`(トレイ `.tray`)。素材カード。選択中は `aria-checked="true"` でマステを貼って持ち上がる | `today/material-card-*.png` → 専用の `ui/material-tray.png` など |
+| `.seal[data-rarity]` | Material Book の各行。レアリティのシール(CSS の色) | `ui/seal-*.png` |
+| `.book`(`data-art="material-book"`) | Material Book のノート。綴じは `art/book/spiral-rings.png` | 新しい `book/spiral-binding.png` と `notebook-page.png` |
+| `#date` | 日付のゴム印(CSS の枠) | `ui/date-stamp.png` |
+| `#stage-choose[data-locked="true"]` | 今日の1枚を貼り終えた後も4択を表示(押せない)。新規作成は1日1枚のまま | – |
+
+素材ピッカーの `.mcard` / Book の行 `li` には `data-material-id` が付き、`src/art/art.js` が `data-art-material`(matte / kraft / holographic)を付ける。Cutting Mat の素材チップ(`.chip`)は今回は変更していない。

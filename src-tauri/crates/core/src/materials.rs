@@ -18,9 +18,9 @@ impl Rarity {
     /// Rarity is about how hard it is to get — never about power (spec §20).
     pub fn draw_weight(self) -> f64 {
         match self {
-            Rarity::Common => 60.0,
-            Rarity::Uncommon => 30.0,
-            Rarity::Rare => 10.0,
+            Rarity::Common => 50.0,
+            Rarity::Uncommon => 32.0,
+            Rarity::Rare => 18.0,
             Rarity::Special | Rarity::Archive => 0.0,
         }
     }
@@ -77,7 +77,7 @@ pub struct Material {
     /// How many you hold (filled in from stock; 0 in the bare catalog). Materials are used up.
     #[serde(default)]
     pub count: i64,
-    /// Plain paper never runs out.
+    /// True only for an edition with unlimited manufacturing.
     #[serde(default)]
     pub unlimited: bool,
 }
@@ -89,22 +89,19 @@ impl Material {
     }
 }
 
-/// Always unlocked from the first launch, so there is something to make a sticker with on day one.
+/// Plain paper is known from the first launch; making one still requires a sheet.
 pub const DEFAULT_MATERIAL: &str = "matte";
 /// The very first Today's Material is always this one (the Alpha story, spec §88).
 pub const FIRST_DRAW_MATERIAL: &str = "holographic";
 
-/// Plain paper is the one material that never runs out, so there is always something to make a sticker with.
-/// Every other material is used up when a sticker is made with it.
-pub fn is_unlimited(id: &str) -> bool {
-    id == DEFAULT_MATERIAL
-}
+/// All manufacturing materials consume stock in the distribution edition.
+pub fn is_unlimited(_id: &str) -> bool { false }
 
 fn border(width: f64, style: &str) -> Option<Border> {
     Some(Border { enabled: true, width, style: style.into() })
 }
 
-/// The MVP materials (spec §18). More come with later phases / creators.
+/// Manufacturing recipes. Daily supply remains separate from the full catalog.
 pub fn catalog() -> Vec<Material> {
     let base = |id: &str, name: &str, rarity: Rarity, recipe: MaterialRecipe| Material {
         id: id.into(),
@@ -115,6 +112,12 @@ pub fn catalog() -> Vec<Material> {
         unlocked_at: None,
         count: 0,
         unlimited: is_unlimited(id),
+    };
+    let finish = |substrate: &str, style: &str, texture: &str, treatment: Option<&str>, transparency: Option<f64>, reflective: bool, aging: Option<f64>| MaterialRecipe {
+        substrate: substrate.into(), border: border(0.03, style), texture: Some(texture.into()),
+        color_treatment: treatment.map(str::to_owned), transparency,
+        reflection: reflective.then(|| Reflection { enabled: true, kind: "gold".into(), strength: 0.65 }),
+        noise: Some(0.15), aging, shadow: Some(Shadow { enabled: true, strength: 0.3 }),
     };
     vec![
         base(
@@ -165,6 +168,13 @@ pub fn catalog() -> Vec<Material> {
                 shadow: Some(Shadow { enabled: true, strength: 0.4 }),
             },
         ),
+        base("gold", "Gold Foil", Rarity::Special, finish("gold_foil", "gold", "gold_leaf", None, None, true, None)),
+        base("riso", "Riso", Rarity::Uncommon, finish("riso_paper", "cream", "riso_grain", Some("two_colour"), None, false, None)),
+        base("vintage", "Vintage", Rarity::Archive, finish("vintage_paper", "aged", "speckle", Some("faded"), None, false, Some(0.45))),
+        base("clear", "Clear", Rarity::Rare, finish("clear_film", "frosted", "fine_frost", None, Some(0.28), false, None)),
+        base("pixel", "Pixel", Rarity::Uncommon, finish("pixel_paper", "cream", "pastel_dither", Some("pixel_print"), None, false, None)),
+        base("washi", "Washi", Rarity::Uncommon, finish("washi_paper", "deckled", "plant_fibre", Some("soft_ink"), None, false, None)),
+        base("sakura", "Sakura", Rarity::Archive, finish("sakura_paper", "pink", "pressed_petals", Some("soft_ink"), None, false, None)),
     ]
 }
 
@@ -178,7 +188,7 @@ pub fn draw(roll: f64, first_ever: bool) -> String {
     if first_ever {
         return FIRST_DRAW_MATERIAL.into();
     }
-    let all = catalog();
+    let all: Vec<_> = catalog().into_iter().filter(|m| ["matte", "kraft", "holographic"].contains(&m.id.as_str())).collect();
     let weight_of = |m: &Material| {
         let same = all.iter().filter(|o| o.rarity == m.rarity).count() as f64;
         m.rarity.draw_weight() / same
@@ -200,9 +210,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn catalog_has_the_three_mvp_materials() {
+    fn catalog_has_ten_distinct_manufacturing_recipes() {
         let ids: Vec<_> = catalog().into_iter().map(|m| m.id).collect();
-        assert_eq!(ids, ["matte", "kraft", "holographic"]);
+        assert_eq!(ids, ["matte", "kraft", "holographic", "gold", "riso", "vintage", "clear", "pixel", "washi", "sakura"]);
+        let substrates: std::collections::HashSet<_> = catalog().into_iter().map(|m| m.recipe.substrate).collect();
+        assert_eq!(substrates.len(), ids.len());
+        assert!(get("gold").unwrap().recipe.reflection.unwrap().enabled);
+        assert_eq!(get("sakura").unwrap().rarity.draw_weight(), 0.0);
         assert!(get("holographic").unwrap().recipe.reflection.unwrap().enabled);
         assert!(get("nope").is_none());
     }
@@ -216,12 +230,12 @@ mod tests {
 
     #[test]
     fn draw_follows_rarity_weights() {
-        // weights: matte 60, kraft 30, holographic 10 (of 100)
+        // Prototype weights: matte 50, kraft 32, holographic 18.
         assert_eq!(draw(0.0, false), "matte");
-        assert_eq!(draw(0.59, false), "matte");
-        assert_eq!(draw(0.61, false), "kraft");
-        assert_eq!(draw(0.89, false), "kraft");
-        assert_eq!(draw(0.91, false), "holographic");
+        assert_eq!(draw(0.49, false), "matte");
+        assert_eq!(draw(0.51, false), "kraft");
+        assert_eq!(draw(0.81, false), "kraft");
+        assert_eq!(draw(0.83, false), "holographic");
         assert_eq!(draw(1.0, false), "holographic"); // clamped
     }
 
@@ -231,8 +245,8 @@ mod tests {
         for i in 0..1000 {
             *counts.entry(draw(i as f64 / 1000.0, false)).or_insert(0) += 1;
         }
-        assert_eq!(counts["matte"], 600);
-        assert_eq!(counts["kraft"], 300);
-        assert_eq!(counts["holographic"], 100);
+        assert_eq!(counts["matte"], 500);
+        assert_eq!(counts["kraft"], 320);
+        assert_eq!(counts["holographic"], 180);
     }
 }

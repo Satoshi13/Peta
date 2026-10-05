@@ -1,0 +1,12 @@
+{
+  "cuttingEngine": "Rust creator session",
+  "erase": true,
+  "outlineDefault": 20,
+  "outlineRange": [
+    4,
+    64
+  ],
+  "redo": true,
+  "restore": true,
+  "undo": true
+}

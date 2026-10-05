@@ -1,0 +1,408 @@
+{
+  "actualTodayOpeningAndKeep": {
+    "button": {
+      "bottom": 651,
+      "height": 36,
+      "left": 479.78125,
+      "right": 580.21875,
+      "top": 615,
+      "width": 100.4375,
+      "x": 479.78125,
+      "y": 615
+    },
+    "card": {
+      "bottom": 425.0324401855469,
+      "height": 213.90835571289065,
+      "left": 376.5316162109375,
+      "right": 683.453125,
+      "top": 211.12408447265625,
+      "width": 306.9215087890625,
+      "x": 376.5316162109375,
+      "y": 211.12408447265625
+    },
+    "hint": {
+      "bottom": 93,
+      "height": 30,
+      "left": 0,
+      "right": 1060,
+      "top": 63,
+      "width": 1060,
+      "x": 0,
+      "y": 63
+    },
+    "info": {
+      "bottom": 651,
+      "height": 148,
+      "left": 150,
+      "right": 910,
+      "top": 503,
+      "width": 760,
+      "x": 150,
+      "y": 503
+    },
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "text": "Tilt it to catch the light."
+  },
+  "layouts": [
+    {
+      "button": {
+        "bottom": 651,
+        "height": 36,
+        "left": 479.78125,
+        "right": 580.21875,
+        "top": 615,
+        "width": 100.4375,
+        "x": 479.78125,
+        "y": 615
+      },
+      "card": {
+        "bottom": 425.0324401855469,
+        "height": 213.90835571289065,
+        "left": 376.5316162109375,
+        "right": 683.453125,
+        "top": 211.12408447265625,
+        "width": 306.9215087890625,
+        "x": 376.5316162109375,
+        "y": 211.12408447265625
+      },
+      "hint": {
+        "bottom": 93,
+        "height": 30,
+        "left": 0,
+        "right": 1060,
+        "top": 63,
+        "width": 1060,
+        "x": 0,
+        "y": 63
+      },
+      "info": {
+        "bottom": 651,
+        "height": 148,
+        "left": 150,
+        "right": 910,
+        "top": 503,
+        "width": 760,
+        "x": 150,
+        "y": 503
+      },
+      "shell": "studio",
+      "size": [
+        1060,
+        700
+      ],
+      "text": "Tilt it to catch the light."
+    },
+    {
+      "afterResize": true,
+      "button": {
+        "bottom": 483.78125,
+        "height": 36,
+        "left": 309.671875,
+        "right": 410.109375,
+        "top": 447.78125,
+        "width": 100.4375,
+        "x": 309.671875,
+        "y": 447.78125
+      },
+      "card": {
+        "bottom": 310.5522689819336,
+        "height": 208.91693115234375,
+        "left": 210.1011199951172,
+        "right": 509.86106872558594,
+        "top": 101.63533782958984,
+        "width": 299.75994873046875,
+        "x": 210.1011199951172,
+        "y": 101.63533782958984
+      },
+      "hint": {
+        "bottom": 76.796875,
+        "height": 30,
+        "left": 0,
+        "right": 720,
+        "top": 46.796875,
+        "width": 720,
+        "x": 0,
+        "y": 46.796875
+      },
+      "info": {
+        "bottom": 483.78125,
+        "height": 148,
+        "left": 21.5,
+        "right": 698.296875,
+        "top": 335.78125,
+        "width": 676.796875,
+        "x": 21.5,
+        "y": 335.78125
+      },
+      "shell": "studio",
+      "size": [
+        720,
+        520
+      ],
+      "text": "Tilt it to catch the light."
+    },
+    {
+      "button": {
+        "bottom": 483.78125,
+        "height": 36,
+        "left": 309.671875,
+        "right": 410.109375,
+        "top": 447.78125,
+        "width": 100.4375,
+        "x": 309.671875,
+        "y": 447.78125
+      },
+      "card": {
+        "bottom": 310.5522689819336,
+        "height": 208.91693115234375,
+        "left": 210.1011199951172,
+        "right": 509.86106872558594,
+        "top": 101.63533782958984,
+        "width": 299.75994873046875,
+        "x": 210.1011199951172,
+        "y": 101.63533782958984
+      },
+      "hint": {
+        "bottom": 76.796875,
+        "height": 30,
+        "left": 0,
+        "right": 720,
+        "top": 46.796875,
+        "width": 720,
+        "x": 0,
+        "y": 46.796875
+      },
+      "info": {
+        "bottom": 483.78125,
+        "height": 148,
+        "left": 21.5,
+        "right": 698.296875,
+        "top": 335.78125,
+        "width": 676.796875,
+        "x": 21.5,
+        "y": 335.78125
+      },
+      "shell": "studio",
+      "size": [
+        720,
+        520
+      ],
+      "text": "Tilt it to catch the light."
+    },
+    {
+      "button": {
+        "bottom": 651,
+        "height": 36,
+        "left": 479.78125,
+        "right": 580.21875,
+        "top": 615,
+        "width": 100.4375,
+        "x": 479.78125,
+        "y": 615
+      },
+      "card": {
+        "bottom": 425.0324401855469,
+        "height": 213.90835571289065,
+        "left": 376.5316162109375,
+        "right": 683.453125,
+        "top": 211.12408447265625,
+        "width": 306.9215087890625,
+        "x": 376.5316162109375,
+        "y": 211.12408447265625
+      },
+      "hint": {
+        "bottom": 93,
+        "height": 30,
+        "left": 0,
+        "right": 1060,
+        "top": 63,
+        "width": 1060,
+        "x": 0,
+        "y": 63
+      },
+      "info": {
+        "bottom": 651,
+        "height": 148,
+        "left": 150,
+        "right": 910,
+        "top": 503,
+        "width": 760,
+        "x": 150,
+        "y": 503
+      },
+      "shell": "desk",
+      "size": [
+        1060,
+        700
+      ],
+      "text": "Tilt it to catch the light."
+    },
+    {
+      "afterResize": true,
+      "button": {
+        "bottom": 483.78125,
+        "height": 36,
+        "left": 309.671875,
+        "right": 410.109375,
+        "top": 447.78125,
+        "width": 100.4375,
+        "x": 309.671875,
+        "y": 447.78125
+      },
+      "card": {
+        "bottom": 310.5522689819336,
+        "height": 208.91693115234375,
+        "left": 210.1011199951172,
+        "right": 509.86106872558594,
+        "top": 101.63533782958984,
+        "width": 299.75994873046875,
+        "x": 210.1011199951172,
+        "y": 101.63533782958984
+      },
+      "hint": {
+        "bottom": 76.796875,
+        "height": 30,
+        "left": 0,
+        "right": 720,
+        "top": 46.796875,
+        "width": 720,
+        "x": 0,
+        "y": 46.796875
+      },
+      "info": {
+        "bottom": 483.78125,
+        "height": 148,
+        "left": 21.5,
+        "right": 698.296875,
+        "top": 335.78125,
+        "width": 676.796875,
+        "x": 21.5,
+        "y": 335.78125
+      },
+      "shell": "desk",
+      "size": [
+        720,
+        520
+      ],
+      "text": "Tilt it to catch the light."
+    },
+    {
+      "button": {
+        "bottom": 483.78125,
+        "height": 36,
+        "left": 309.671875,
+        "right": 410.109375,
+        "top": 447.78125,
+        "width": 100.4375,
+        "x": 309.671875,
+        "y": 447.78125
+      },
+      "card": {
+        "bottom": 310.5522689819336,
+        "height": 208.91693115234375,
+        "left": 210.1011199951172,
+        "right": 509.86106872558594,
+        "top": 101.63533782958984,
+        "width": 299.75994873046875,
+        "x": 210.1011199951172,
+        "y": 101.63533782958984
+      },
+      "hint": {
+        "bottom": 76.796875,
+        "height": 30,
+        "left": 0,
+        "right": 720,
+        "top": 46.796875,
+        "width": 720,
+        "x": 0,
+        "y": 46.796875
+      },
+      "info": {
+        "bottom": 483.78125,
+        "height": 148,
+        "left": 21.5,
+        "right": 698.296875,
+        "top": 335.78125,
+        "width": 676.796875,
+        "x": 21.5,
+        "y": 335.78125
+      },
+      "shell": "desk",
+      "size": [
+        720,
+        520
+      ],
+      "text": "Tilt it to catch the light."
+    }
+  ],
+  "immediateMaterialHint": true,
+  "immediatePackHint": "Tilt it to catch the light.",
+  "immediateGiftHint": "Tilt it to catch the light.",
+  "resizeKeepsBounds": true,
+  "noNewStockFromComponentReplay": true,
+  "reducedAnimations": [
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    },
+    {
+      "duration": 1,
+      "iterations": 1
+    }
+  ],
+  "noReducedTearRaf": true,
+  "resizeObserverDisposed": true,
+  "replayStockUnchanged": true
+}

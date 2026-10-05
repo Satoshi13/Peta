@@ -1,0 +1,17 @@
+{
+  "brushMin": "8",
+  "brushValue": 26,
+  "counts": {
+    "creator_render": 4,
+    "creator_stroke": 4
+  },
+  "firstFeedbackMs": 962,
+  "frameCount": 82,
+  "history": {
+    "canRedo": false,
+    "canUndo": true
+  },
+  "maxFrameGapMs": 463.9999999990687,
+  "maxPending": 4,
+  "settledAfterPointerUpMs": 1403
+}

@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-const SCHEMA_VERSION: i64 = 6;
+pub const SCHEMA_VERSION: i64 = 8;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -112,6 +112,9 @@ pub struct PackSummary {
     pub by: String,
     pub total: i64,
     pub remaining: i64,
+    pub pouch: Option<String>,
+    pub signature_status: Option<String>,
+    pub fingerprint: Option<String>,
 }
 
 /// Gifts (spec §34-36): copies of a sticker sent to someone, and gifts received. A gift is a file; where it travels
@@ -140,6 +143,48 @@ CREATE TABLE gifts_received (
 );
 ";
 
+/// Unlimited creation needs an independent durable print queue and complete Book history.
+/// Carry forward all unpasted v6 confirmations, including previous days. Welcome's ledger is
+/// inferred from its own opened items, never from a Create/Gift/other-pack daily record.
+const MIGRATION_V7: &str = "
+CREATE TABLE print_queue (
+    seq INTEGER PRIMARY KEY AUTOINCREMENT,
+    sticker_id TEXT NOT NULL UNIQUE REFERENCES stickers(id) ON DELETE CASCADE,
+    queued_at TEXT NOT NULL
+);
+CREATE TABLE sticker_events (
+    date TEXT NOT NULL,
+    sticker_id TEXT NOT NULL REFERENCES stickers(id) ON DELETE CASCADE,
+    source_type TEXT NOT NULL,
+    PRIMARY KEY(date, sticker_id)
+);
+CREATE TABLE welcome_openings (
+    date TEXT PRIMARY KEY,
+    item_id INTEGER NOT NULL
+);
+INSERT OR IGNORE INTO print_queue(sticker_id, queued_at)
+    SELECT sticker_id, confirmed_at FROM daily_records
+    WHERE sticker_id IS NOT NULL AND confirmed_at IS NOT NULL AND used_at IS NULL
+    ORDER BY confirmed_at;
+INSERT OR IGNORE INTO sticker_events(date, sticker_id, source_type)
+    SELECT date, sticker_id, COALESCE(source_type, 'created') FROM daily_records WHERE sticker_id IS NOT NULL;
+INSERT OR IGNORE INTO welcome_openings(date, item_id)
+    SELECT COALESCE((SELECT d.date FROM daily_records d WHERE d.sticker_id=i.sticker_id LIMIT 1), date(i.opened_at, 'localtime'), date('now', 'localtime')), i.id
+    FROM pack_items i WHERE i.pack_id='welcome' AND i.opened_at IS NOT NULL;
+";
+
+// All signed-distribution storage is additive in V8, including the later Gift/creator steps.
+const MIGRATION_V8: &str = "
+CREATE TABLE applied_events (event_id TEXT PRIMARY KEY, kind TEXT NOT NULL, applied_at TEXT NOT NULL, source TEXT NOT NULL);
+CREATE TABLE revoked_events (event_id TEXT PRIMARY KEY, revoked_at TEXT NOT NULL);
+CREATE TABLE friends (public_key TEXT PRIMARY KEY, name TEXT NOT NULL, first_seen_at TEXT NOT NULL);
+INSERT INTO meta(key,value) VALUES ('bonus_envelopes','0');
+CREATE TABLE gift_signers (gift_id TEXT PRIMARY KEY REFERENCES gifts_received(gift_id), status TEXT NOT NULL, fingerprint TEXT, public_key TEXT);
+CREATE TABLE pack_distributions (pack_id TEXT PRIMARY KEY REFERENCES packs(id), external_id TEXT NOT NULL, version INTEGER NOT NULL, public_key TEXT, fingerprint TEXT, status TEXT NOT NULL, pouch TEXT NOT NULL);
+CREATE TABLE signed_pack_items (item_id INTEGER PRIMARY KEY REFERENCES pack_items(id), png_path TEXT NOT NULL, mask_path TEXT, material_id TEXT NOT NULL, aspect REAL NOT NULL, name TEXT NOT NULL, rarity TEXT NOT NULL, finished INTEGER NOT NULL);
+CREATE TABLE packs_made (pack_id TEXT PRIMARY KEY, title TEXT NOT NULL, version INTEGER NOT NULL, made_at TEXT NOT NULL);
+";
+
 /// A gift waiting in the Inbox (or already opened).
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -149,12 +194,15 @@ pub struct IncomingGift {
     pub note: Option<String>,
     pub sent_at: String,
     pub received_at: String,
+    pub signature_status: String,
+    pub fingerprint: Option<String>,
     pub opened_at: Option<String>,
     pub sticker_id: Option<String>,
 }
 
 pub struct Database {
-    conn: Connection,
+    pub(crate) conn: Connection,
+    pub(crate) unrestricted: bool,
 }
 
 /// A raw Sticker Book row (see `Database::book_rows`).
@@ -193,10 +241,39 @@ impl Database {
         Self::init(Connection::open_in_memory()?)
     }
 
+    /// Enabled only by a separately built developer app, never by preferences or a command argument.
+    #[cfg(feature="developer")]
+    pub fn enable_developer(&mut self) -> Result<()> {
+        for m in materials::catalog() { self.unlock_material(&m.id)?; }
+        self.unrestricted = true;
+        Ok(())
+    }
+
+    /// Copy a depleted developer pack's original items, retaining every opened row and signed metadata.
+    pub fn replenish_developer_packs(&mut self) -> Result<()> {
+        if !self.unrestricted { return Ok(()); }
+        let empty: Vec<_> = self.packs()?.into_iter().filter(|p| p.remaining==0).collect();
+        let tx = self.conn.transaction()?;
+        for p in empty {
+            let originals: Vec<(i64,String)> = {
+                let mut stmt = tx.prepare("SELECT MIN(id), item_key FROM pack_items WHERE pack_id=?1 GROUP BY item_key ORDER BY MIN(id)")?;
+                let rows = stmt.query_map([&p.id], |r| Ok((r.get(0)?,r.get(1)?)))?;
+                rows.collect::<std::result::Result<_,_>>()?
+            };
+            for (old,key) in originals {
+                tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES(?1,?2)",params![p.id,key])?;
+                let new = tx.last_insert_rowid();
+                tx.execute("INSERT INTO signed_pack_items SELECT ?1,png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?2",params![new,old])?;
+            }
+        }
+        tx.commit()?;
+        Ok(())
+    }
+
     fn init(conn: Connection) -> Result<Self> {
         conn.pragma_update(None, "foreign_keys", true)?;
         let _: String = conn.query_row("PRAGMA journal_mode = WAL", [], |r| r.get(0))?;
-        let mut db = Database { conn };
+        let mut db = Database { conn, unrestricted: false };
         db.migrate()?;
         db.unlock_material(materials::DEFAULT_MATERIAL)?; // idempotent
         Ok(db)
@@ -245,7 +322,24 @@ impl Database {
             tx.pragma_update(None, "user_version", 6)?;
             tx.commit()?;
         }
+        if version < 7 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V7)?;
+            tx.pragma_update(None, "user_version", 7)?;
+            tx.commit()?;
+        }
+        if version < 8 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V8)?;
+            tx.pragma_update(None, "user_version", 8)?;
+            tx.commit()?;
+        }
         Ok(())
+    }
+
+    pub fn bonus_envelopes(&self) -> Result<i64> {
+        let value:String=self.conn.query_row("SELECT value FROM meta WHERE key='bonus_envelopes'",[],|r|r.get(0))?;
+        value.parse().map_err(|_|Error::Invalid("Extra envelope count is damaged.".into()))
     }
 
     pub fn sticker_id_exists(&self, id: &str) -> Result<bool> {
@@ -258,6 +352,21 @@ impl Database {
 
     pub fn sticker_count(&self) -> Result<i64> {
         Ok(self.conn.query_row("SELECT COUNT(*) FROM stickers", [], |r| r.get(0))?)
+    }
+
+    pub fn update_original_assets(&mut self, id: &str, rendered: &str, mask: &str, aspect: f64) -> Result<()> {
+        let n = self.conn.execute("UPDATE stickers SET rendered_asset_path=?2, mask_asset_path=?3, aspect=?4 WHERE id=?1 AND source_type='created'", params![id, rendered, mask, aspect])?;
+        if n != 1 { return Err(Error::Invalid("only your original stickers can be edited".into())); }
+        Ok(())
+    }
+
+    pub fn delete_original(&mut self, id: &str) -> Result<()> {
+        let tx = self.conn.transaction()?;
+        let n = tx.execute("DELETE FROM stickers WHERE id=?1 AND source_type='created'", [id])?;
+        if n != 1 { return Err(Error::Invalid("only your original stickers can be deleted".into())); }
+        tx.execute("DELETE FROM meta WHERE key='profile.icon_sticker_id' AND value=?1", [id])?;
+        tx.commit()?;
+        Ok(())
     }
 
     /// Insert a sticker. Stickers the user made (`Created`) get the next `ORIGINAL` number.
@@ -380,6 +489,29 @@ impl Database {
         Ok(())
     }
 
+    /// A local creator icon references a finished original, never a Gift or Pack copy.
+    pub fn profile_icon(&self) -> Result<Option<String>> {
+        Ok(self.conn.query_row(
+            "SELECT s.id FROM meta m JOIN stickers s ON s.id=m.value
+             WHERE m.key='profile.icon_sticker_id' AND s.source_type='created'",
+            [], |r| r.get(0),
+        ).optional()?)
+    }
+
+    pub fn set_profile_icon(&mut self, id: Option<&str>) -> Result<()> {
+        let tx = self.conn.transaction()?;
+        if let Some(id) = id {
+            let original = tx.query_row("SELECT 1 FROM stickers WHERE id=?1 AND source_type='created'", [id], |_| Ok(())).optional()?.is_some();
+            if !original { return Err(Error::Invalid("Choose an original sticker from your Book.".into())); }
+            tx.execute("INSERT INTO meta VALUES ('profile.icon_sticker_id',?1)
+                ON CONFLICT(key) DO UPDATE SET value=excluded.value", [id])?;
+        } else {
+            tx.execute("DELETE FROM meta WHERE key='profile.icon_sticker_id'", [])?;
+        }
+        tx.commit()?;
+        Ok(())
+    }
+
     /// Append an entry to a sticker's provenance (gifts and packs will use this).
     pub fn add_provenance(&mut self, sticker_id: &str, kind: ProvenanceKind, user: Option<&str>, timestamp: &str) -> Result<()> {
         let seq: i64 = self.conn.query_row(
@@ -399,9 +531,13 @@ impl Database {
     /// stickers carried over from Phase 0).
     pub fn book_rows(&self) -> Result<Vec<BookRow>> {
         let mut stmt = self.conn.prepare(
-            "SELECT d.date, s.id, s.original_number, s.material_id, COALESCE(d.source_type, s.source_type), s.aspect, s.created_at,
+            "WITH history AS (
+                 SELECT date, sticker_id, source_type FROM sticker_events
+                 UNION SELECT date, sticker_id, source_type FROM daily_records WHERE sticker_id IS NOT NULL
+             )
+             SELECT d.date, s.id, s.original_number, s.material_id, COALESCE(d.source_type, s.source_type), s.aspect, s.created_at,
                     COALESCE(p.is_on_desktop, 0)
-             FROM daily_records d
+             FROM history d
              JOIN stickers s ON s.id = d.sticker_id
              LEFT JOIN placements p ON p.sticker_id = s.id
              UNION ALL
@@ -409,7 +545,7 @@ impl Database {
                     COALESCE(p.is_on_desktop, 0)
              FROM stickers s
              LEFT JOIN placements p ON p.sticker_id = s.id
-             WHERE s.id NOT IN (SELECT sticker_id FROM daily_records WHERE sticker_id IS NOT NULL)",
+             WHERE s.id NOT IN (SELECT sticker_id FROM history)",
         )?;
         let rows = stmt
             .query_map([], |r| {
@@ -582,13 +718,13 @@ impl Database {
     /// Received gifts, unopened first, newest first.
     pub fn gifts_received(&self) -> Result<Vec<IncomingGift>> {
         let mut stmt = self.conn.prepare(
-            "SELECT gift_id, from_name, note, sent_at, received_at, opened_at, sticker_id FROM gifts_received
-             ORDER BY (opened_at IS NOT NULL), received_at DESC, gift_id",
+            "SELECT g.gift_id, g.from_name, g.note, g.sent_at, g.received_at, g.opened_at, g.sticker_id, COALESCE(s.status,'unsigned'), s.fingerprint FROM gifts_received g LEFT JOIN gift_signers s ON s.gift_id=g.gift_id
+             ORDER BY (g.opened_at IS NOT NULL), g.received_at DESC, g.gift_id",
         )?;
         let rows = stmt.query_map([], |r| {
             Ok(IncomingGift {
                 gift_id: r.get(0)?, from: r.get(1)?, note: r.get(2)?, sent_at: r.get(3)?,
-                received_at: r.get(4)?, opened_at: r.get(5)?, sticker_id: r.get(6)?,
+                received_at: r.get(4)?, opened_at: r.get(5)?, sticker_id: r.get(6)?, signature_status:r.get(7)?,fingerprint:r.get(8)?,
             })
         })?;
         Ok(rows.collect::<std::result::Result<Vec<_>, _>>()?)
@@ -626,12 +762,12 @@ impl Database {
 
     pub fn packs(&self) -> Result<Vec<PackSummary>> {
         let mut stmt = self.conn.prepare(
-            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0)
-             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id
+            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint
+             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id LEFT JOIN pack_distributions d ON d.pack_id=p.id
              GROUP BY p.id ORDER BY p.created_at, p.id",
         )?;
         let rows = stmt.query_map([], |r| {
-            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)? })
+            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)? })
         })?;
         Ok(rows.collect::<std::result::Result<Vec<_>, _>>()?)
     }
@@ -660,9 +796,17 @@ impl Database {
         Ok(())
     }
 
-    // ---- material stock (materials are used up; plain paper is the exception) ----
+    // ---- material stock (each creation uses one sheet) ----
 
-    /// How many of a material you hold. (Plain paper is unlimited regardless of this number.)
+    pub fn scrap_status(&self) -> Result<crate::scraps::Status> {
+        crate::scraps::status(&self.conn)
+    }
+
+    pub fn scrap_trade(&mut self, request: &crate::scraps::Trade, request_id: &str) -> Result<crate::scraps::Receipt> {
+        crate::scraps::trade(&mut self.conn, request, request_id, self.unrestricted)
+    }
+
+    /// How many unused sheets of a material you hold.
     pub fn material_count(&self, material_id: &str) -> Result<i64> {
         Ok(self
             .conn
@@ -685,17 +829,18 @@ impl Database {
         let Some(mut m) = materials::get(id) else { return Ok(None) };
         m.unlocked_at = self.material_unlocked_at(id)?;
         m.count = self.material_count(id)?;
+        m.unlimited = self.unrestricted;
         Ok(Some(m))
     }
 
     /// Can a sticker be made with this material right now?
     pub fn has_material(&self, material_id: &str) -> Result<bool> {
-        Ok(materials::is_unlimited(material_id) || self.material_count(material_id)? >= 1)
+        Ok(materials::get(material_id).is_some() && (self.unrestricted || self.material_count(material_id)? >= 1))
     }
 
-    /// Use one up. Fails with `MaterialUnavailable` if none is left. Plain paper is never used up.
+    /// Use one up. Fails with `MaterialUnavailable` if none is left.
     pub fn consume_material(&mut self, material_id: &str) -> Result<()> {
-        if materials::is_unlimited(material_id) {
+        if self.unrestricted && materials::get(material_id).is_some() {
             return Ok(());
         }
         let n = self.conn.execute(
@@ -751,10 +896,46 @@ impl Database {
     }
 
     pub fn daily_set_confirmed(&mut self, date: &str, sticker_id: &str, source: SourceType, ts: &str) -> Result<()> {
-        self.conn.execute(
-            "UPDATE daily_records SET sticker_id = ?2, source_type = ?3, confirmed_at = ?4 WHERE date = ?1",
-            params![date, sticker_id, source.as_str(), ts],
-        )?;
+        let tx=self.conn.transaction()?;
+        tx.execute("INSERT OR IGNORE INTO print_queue(sticker_id,queued_at) VALUES (?1,?2)",params![sticker_id,ts])?;
+        tx.execute("INSERT INTO sticker_events(date,sticker_id,source_type) VALUES (?1,?2,?3) ON CONFLICT(date,sticker_id) DO UPDATE SET source_type=excluded.source_type",params![date,sticker_id,source.as_str()])?;
+        tx.execute("UPDATE daily_records SET sticker_id=?2,source_type=?3,confirmed_at=?4,used_at=NULL WHERE date=?1",params![date,sticker_id,source.as_str(),ts])?;
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn next_print(&self) -> Result<Option<String>> {
+        Ok(self.conn.query_row("SELECT sticker_id FROM print_queue ORDER BY seq LIMIT 1",[],|r|r.get(0)).optional()?)
+    }
+
+    /// Finish only the queue's current head; late or repeated drops cannot spend another print.
+    pub fn finish_print(&mut self, sticker_id: &str) -> Result<()> {
+        if self.next_print()?.as_deref()!=Some(sticker_id) { return Err(Error::Invalid("nothing is waiting to be pasted".into())); }
+        let tx=self.conn.transaction()?;
+        tx.execute("DELETE FROM print_queue WHERE sticker_id=?1",[sticker_id])?;
+        tx.execute("UPDATE daily_records SET used_at=?2 WHERE sticker_id=?1 AND used_at IS NULL",params![sticker_id,now()])?;
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn welcome_available(&self, date: &str) -> Result<bool> {
+        Ok(self.unrestricted || !self.conn.query_row("SELECT EXISTS(SELECT 1 FROM welcome_openings WHERE date=?1)",[date],|r|r.get::<_,bool>(0))?)
+    }
+
+    pub fn pack_item_available(&self, item_id: i64) -> Result<bool> {
+        Ok(self.conn.query_row("SELECT EXISTS(SELECT 1 FROM pack_items WHERE id=?1 AND opened_at IS NULL)",[item_id],|r|r.get(0))?)
+    }
+
+    /// Item ownership and Welcome's daily quota change together, under the same transaction.
+    pub fn pack_open_on(&mut self, item_id: i64, sticker_id: &str, date: &str) -> Result<()> {
+        let pack_id:String=self.conn.query_row("SELECT pack_id FROM pack_items WHERE id=?1",[item_id],|r|r.get(0))?;
+        if pack_id=="welcome" && !self.welcome_available(date)? { return Err(Error::Invalid("welcome_already_opened_today".into())); }
+        let tx=self.conn.transaction()?;
+        if tx.execute("UPDATE pack_items SET opened_at=?1,sticker_id=?2 WHERE id=?3 AND opened_at IS NULL",params![now(),sticker_id,item_id])?==0 {
+            return Err(Error::Invalid("that pack item was already opened".into()));
+        }
+        if pack_id=="welcome" && !self.unrestricted { tx.execute("INSERT INTO welcome_openings(date,item_id) VALUES (?1,?2)",params![date,item_id])?; }
+        tx.commit()?;
         Ok(())
     }
 
@@ -827,6 +1008,52 @@ mod tests {
         }
     }
 
+    #[cfg(feature="developer")]
+    #[test]
+    fn developer_stock_and_pack_openings_are_unlimited_but_history_is_preserved() {
+        let mut db=Database::open_in_memory().unwrap();
+        assert!(!db.has_material("matte").unwrap());
+        db.enable_developer().unwrap();
+        for material in materials::catalog() {
+            let id=material.id.as_str();
+            for _ in 0..4 { db.consume_material(id).unwrap(); }
+            assert_eq!(db.material_count(id).unwrap(),0);
+            assert!(db.material_with_stock(id).unwrap().unwrap().available());
+        }
+        assert!(!db.has_material("unknown").unwrap());
+        assert!(db.consume_material("unknown").is_err());
+        db.pack_install("welcome","Welcome Pack","Peta",&["cat-skateboard"]).unwrap();
+        for id in ["one","two"] {
+            db.create_sticker(new(id,SourceType::Pack)).unwrap();
+            db.replenish_developer_packs().unwrap();
+            let (item,_) = db.pack_pick("welcome",0.0).unwrap().unwrap();
+            db.pack_open_on(item,id,"2026-10-05").unwrap();
+            assert!(db.welcome_available("2026-10-05").unwrap());
+        }
+        assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_items WHERE opened_at IS NOT NULL",[],|r|r.get::<_,i64>(0)).unwrap(),2);
+        db.pack_install("signed-test","Signed","Friend",&["item"]).unwrap();
+        let (old,_) = db.pack_pick("signed-test",0.0).unwrap().unwrap();
+        db.conn.execute("INSERT INTO signed_pack_items VALUES(?1,'render.png','mask.png','holographic',1.5,'Cutout','rare',1)",[old]).unwrap();
+        db.pack_mark_opened(old,"one").unwrap();
+        db.replenish_developer_packs().unwrap();
+        let (fresh,_) = db.pack_pick("signed-test",0.0).unwrap().unwrap();
+        assert_ne!(old,fresh);
+        let copy = crate::pack::stored_item(&db,fresh).unwrap().unwrap();
+        assert_eq!((copy.material_id.as_str(),copy.png_path.as_str(),copy.mask_path.as_deref(),copy.finished),("holographic","render.png",Some("mask.png"),true));
+        crate::daily::open_material(&mut db,"2026-10-05",0.0).unwrap();
+        crate::daily::open_material(&mut db,"2026-10-05",0.0).unwrap();
+        assert_eq!(db.material_count("matte").unwrap(),1);
+        let scraps=crate::scraps::Trade {kind:crate::scraps::Kind::Dismantle,item_id:"holographic".into(),quantity:3};
+        assert_eq!(db.scrap_trade(&scraps,"developer-scraps").unwrap().balance,9);
+        assert_eq!(db.material_count("holographic").unwrap(),1);
+        let req=crate::scraps::Trade {kind:crate::scraps::Kind::Pack,item_id:"pixel".into(),quantity:1};
+        let receipt=db.scrap_trade(&req,"developer-pack").unwrap();
+        assert_eq!((receipt.delta,receipt.balance),(0,9));
+        assert_eq!(db.scrap_trade(&req,"developer-pack").unwrap(),receipt);
+        assert_eq!(db.packs().unwrap().iter().find(|p|p.id=="pixel").unwrap().remaining,6);
+        assert!(db.scrap_trade(&crate::scraps::Trade{quantity:0,..req},"invalid").is_err());
+    }
+
     #[test]
     fn original_numbers_are_sequential_and_only_for_created() {
         let mut db = Database::open_in_memory().unwrap();
@@ -835,6 +1062,43 @@ mod tests {
         assert_eq!(db.create_sticker(new("C", SourceType::Gift)).unwrap().original_number, None);
         assert_eq!(db.create_sticker(new("D", SourceType::Created)).unwrap().original_number, Some(3));
         assert_eq!(db.sticker_count().unwrap(), 4);
+    }
+
+    #[test]
+    fn creator_icon_persists_and_only_accepts_owned_originals() {
+        let path = std::env::temp_dir().join(format!("peta-profile-{}.db", crate::ids::new_sticker_id()));
+        {
+            let mut db = Database::open(&path).unwrap();
+            for (id, source) in [("mine",SourceType::Created),("gift",SourceType::Gift),("pack",SourceType::Pack)] {
+                db.create_sticker(new(id,source)).unwrap();
+            }
+            assert!(db.profile_icon().unwrap().is_none());
+            db.set_profile_icon(Some("mine")).unwrap();
+            for id in ["gift","pack","missing",""] {
+                assert!(db.set_profile_icon(Some(id)).is_err());
+                assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
+            }
+            db.update_original_assets("mine","new-render","new-mask",1.5).unwrap();
+            assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
+            assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),8);
+        }
+        let mut db = Database::open(&path).unwrap();
+        assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
+        db.set_profile_icon(None).unwrap();assert!(db.profile_icon().unwrap().is_none());
+        db.set_profile_icon(Some("mine")).unwrap();db.delete_original("mine").unwrap();
+        assert!(db.profile_icon().unwrap().is_none());
+        drop(db);let _=std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn deleting_a_creator_icon_is_atomic_and_stale_references_are_hidden() {
+        let mut db = Database::open_in_memory().unwrap();
+        db.create_sticker(new("mine",SourceType::Created)).unwrap();db.set_profile_icon(Some("mine")).unwrap();
+        db.conn.execute_batch("CREATE TRIGGER fail_icon_cleanup BEFORE DELETE ON meta WHEN OLD.key='profile.icon_sticker_id' BEGIN SELECT RAISE(ABORT,'test'); END;").unwrap();
+        assert!(db.delete_original("mine").is_err());
+        assert!(db.sticker("mine").unwrap().is_some());assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
+        db.conn.execute_batch("DROP TRIGGER fail_icon_cleanup; UPDATE meta SET value='missing' WHERE key='profile.icon_sticker_id';").unwrap();
+        assert!(db.profile_icon().unwrap().is_none());
     }
 
     #[test]
@@ -967,8 +1231,8 @@ mod tests {
         let db = Database::open(&path).unwrap();
         assert_eq!(db.material_count("holographic").unwrap(), 1);
         assert_eq!(db.material_count("kraft").unwrap(), 1);
-        assert_eq!(db.material_count("matte").unwrap(), 0, "plain paper needs no stock");
-        assert!(db.has_material("matte").unwrap());
+        assert_eq!(db.material_count("matte").unwrap(), 0, "no sheets have been granted");
+        assert!(!db.has_material("matte").unwrap());
         let _ = std::fs::remove_dir_all(dir);
     }
 
@@ -987,4 +1251,92 @@ mod tests {
         assert_eq!(db.create_sticker(new("B", SourceType::Created)).unwrap().original_number, Some(2));
         let _ = std::fs::remove_dir_all(dir);
     }
+    #[test]
+    fn v7_to_v8_preserves_stickers_stock_packs_gifts_and_meta() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7] {conn.execute_batch(migration).unwrap();}
+        conn.pragma_update(None,"user_version",7).unwrap();
+        conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect) VALUES ('old','x','o','r','created',1)",[]).unwrap();
+        conn.execute("INSERT INTO packs VALUES ('welcome','Welcome Pack','Peta','x')",[]).unwrap();
+        conn.execute("INSERT INTO pack_items(pack_id,item_key) VALUES ('welcome','cat')",[]).unwrap();
+        conn.execute("INSERT INTO gifts_received(gift_id,from_name,sent_at,received_at,package) VALUES ('GIFT-old','Nao','x','x','old.peta')",[]).unwrap();
+        conn.execute("INSERT INTO material_stock VALUES ('kraft',4)",[]).unwrap();
+        conn.execute("INSERT INTO meta VALUES ('scraps.balance','9')",[]).unwrap();
+        let db=Database::init(conn).unwrap();
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),8);
+        assert!(db.sticker("old").unwrap().is_some());assert_eq!(db.material_count("kraft").unwrap(),4);
+        assert_eq!(db.packs().unwrap()[0].remaining,1);assert_eq!(db.gifts_received().unwrap()[0].from,"Nao");
+        assert_eq!(db.scrap_status().unwrap().balance,9);assert_eq!(db.bonus_envelopes().unwrap(),0);
+    }
+
+    #[test]
+    fn v6_migration_keeps_previous_day_prints_history_and_welcome_allowance() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6] { conn.execute_batch(migration).unwrap(); }
+        conn.pragma_update(None,"user_version",6).unwrap();
+        conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect) VALUES ('old','2026-10-01T12:00:00Z','o','r','pack',1.0)",[]).unwrap();
+        conn.execute("INSERT INTO daily_records(date,material_id,sticker_id,source_type,confirmed_at) VALUES ('2026-10-01','kraft','old','pack','2026-10-01T12:00:00Z')",[]).unwrap();
+        conn.execute("INSERT INTO packs VALUES ('welcome','Welcome Pack','Peta','2026-10-01T12:00:00Z')",[]).unwrap();
+        conn.execute("INSERT INTO pack_items(pack_id,item_key,opened_at,sticker_id) VALUES ('welcome','cat-skateboard','2026-10-01T12:00:00Z','old')",[]).unwrap();
+        conn.execute("INSERT INTO material_stock(material_id,count) VALUES ('kraft',3)",[]).unwrap();
+        let db=Database::init(conn).unwrap();
+        assert_eq!(db.material_count("kraft").unwrap(),3);
+        assert_eq!(db.next_print().unwrap().as_deref(),Some("old"));
+        assert!(!db.welcome_available("2026-10-01").unwrap());
+        assert!(db.welcome_available("2026-10-02").unwrap());
+        assert_eq!(db.book_rows().unwrap().len(),1);
+        assert_eq!(db.daily_get("2026-10-01").unwrap().unwrap().material_id,"kraft");
+    }
+
+    #[test]
+    fn unlimited_confirmations_keep_fifo_prints_and_all_book_rows_across_restart() {
+        let path=std::env::temp_dir().join(format!("peta-queue-{}.db",crate::ids::new_sticker_id()));
+        {
+            let mut db=Database::open(&path).unwrap();
+            for id in ["A","B","C"] {
+                db.create_sticker(NewSticker{id:id.into(),creator_id:None,creator_name:None,original_asset_path:"o".into(),rendered_asset_path:"r".into(),mask_asset_path:None,material_id:Some("matte".into()),source_type:SourceType::Created,aspect:1.0}).unwrap();
+                crate::daily::confirm(&mut db,"2026-10-01",id,SourceType::Created,0.0).unwrap();
+            }
+            assert_eq!(db.book_rows().unwrap().len(),3);
+            assert_eq!(db.next_print().unwrap().as_deref(),Some("A"));
+            assert!(db.finish_print("B").is_err(),"a late drop must not spend another print");
+            db.finish_print("A").unwrap();
+            assert!(db.finish_print("A").is_err(),"a repeated paste is rejected");
+        }
+        {
+            let mut db=Database::open(&path).unwrap();
+            crate::daily::ensure_today(&mut db,"2026-10-02",0.2).unwrap();
+            assert_eq!(db.next_print().unwrap().as_deref(),Some("B"));
+            db.finish_print("B").unwrap();
+            assert_eq!(db.next_print().unwrap().as_deref(),Some("C"));
+            db.finish_print("C").unwrap();
+            assert!(db.next_print().unwrap().is_none());
+            assert_eq!(db.book_rows().unwrap().len(),3);
+        }
+        let _=std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn welcome_once_per_day_is_independent_of_create_gift_and_market_packs() {
+        let mut db=Database::open_in_memory().unwrap();
+        crate::pack::ensure_welcome_pack(&mut db).unwrap();
+        db.pack_install("market","Coffee Club","Nao",&["coffee-cup","film-camera"]).unwrap();
+        db.create_sticker(NewSticker{id:"A".into(),creator_id:None,creator_name:None,original_asset_path:"o".into(),rendered_asset_path:"r".into(),mask_asset_path:None,material_id:Some("matte".into()),source_type:SourceType::Created,aspect:1.0}).unwrap();
+        for source in [SourceType::Created,SourceType::Gift] { crate::daily::confirm(&mut db,"2026-10-01","A",source,0.0).unwrap(); }
+        assert!(db.welcome_available("2026-10-01").unwrap());
+        let (first,_)=db.pack_pick("welcome",0.0).unwrap().unwrap();
+        db.pack_open_on(first,"A","2026-10-01").unwrap();
+        let (second,_)=db.pack_pick("welcome",0.0).unwrap().unwrap();
+        assert!(db.pack_open_on(second,"A","2026-10-01").is_err());
+        assert!(db.pack_item_available(second).unwrap(),"a refused opening must leave the item sealed");
+        for _ in 0..2 {
+            let (id,_)=db.pack_pick("market",0.0).unwrap().unwrap();
+            db.pack_open_on(id,"A","2026-10-01").unwrap();
+        }
+        assert!(db.pack_pick("market",0.0).unwrap().is_none());
+        assert!(!db.welcome_available("2026-10-01").unwrap());
+        assert!(db.welcome_available("2026-10-02").unwrap());
+        db.pack_open_on(second,"A","2026-10-02").unwrap();
+    }
+
 }

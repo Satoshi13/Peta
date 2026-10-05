@@ -13,6 +13,28 @@ pub const WELCOME_PACK_ID: &str = "welcome";
 pub const WELCOME_PACK_TITLE: &str = "Welcome Pack";
 pub const PACK_AUTHOR: &str = "Peta";
 
+pub struct MarketPack {
+    pub id: &'static str,
+    pub title: &'static str,
+    pub by: &'static str,
+    pub keys: &'static [&'static str],
+    pub free: bool,
+}
+
+/// Local catalog packs; purchases and empty-bag refills use the same shipped pictures.
+pub fn market_pack(id: &str) -> Option<MarketPack> {
+    let (id, title, by, keys): (_, _, _, &[&str]) = match id {
+        "tokyo" => ("tokyo", "Tokyo Pack", "Peta", &["film-camera","coffee-cup","polaroid-mountain","cassette-tape","retro-computer","peta-bubble","good-day","fried-egg"]),
+        "coffee" => ("coffee", "Coffee Club", "Nao", &["coffee-cup","fried-egg","good-day","film-camera","potted-plant","cat-skateboard"]),
+        "plants" => ("plants", "Houseplants", "Mika", &["potted-plant","blue-flower","fried-egg","polaroid-mountain","coffee-cup"]),
+        "pixel" => ("pixel", "Pixel Dream", "Ryo", &["retro-computer","cassette-tape","peta-bubble","purple-scribble","film-camera","good-day"]),
+        "cats" => ("cats", "Cats", "Yuki", &["cat-skateboard","purple-scribble","coffee-cup","potted-plant","peta-bubble"]),
+        "night" => ("night", "Night Market", "Ren", &["fried-egg","cassette-tape","good-day","polaroid-mountain","film-camera","peta-bubble"]),
+        _ => return None,
+    };
+    Some(MarketPack { id, title, by, keys, free: matches!(id,"tokyo"|"coffee"|"plants") })
+}
+
 /// The Welcome Pack's items: file names (without extension) of the sample stickers shipped under `art/samples/`.
 pub const WELCOME_ITEMS: [&str; 12] = [
     "cat-skateboard", "fried-egg", "good-day", "blue-flower", "polaroid-mountain", "retro-computer",
@@ -110,4 +132,18 @@ mod tests {
         assert_eq!(back.created_by, "Peta");
         let _ = std::fs::remove_dir_all(dir);
     }
+}
+
+/// Signed item metadata lives outside the shipped catalog. Paths are generated locally after verification.
+#[derive(Clone, serde::Serialize)]
+#[serde(rename_all="camelCase")]
+pub struct StoredItem {pub png_path:String,pub mask_path:Option<String>,pub material_id:String,pub aspect:f64,pub name:String,pub rarity:String,pub finished:bool}
+pub fn stored_item(db:&Database,id:i64)->Result<Option<StoredItem>> {
+    use rusqlite::OptionalExtension;
+    Ok(db.conn.query_row("SELECT png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?1",[id],|r|Ok(StoredItem{png_path:r.get(0)?,mask_path:r.get(1)?,material_id:r.get(2)?,aspect:r.get(3)?,name:r.get(4)?,rarity:r.get(5)?,finished:r.get(6)?})).optional()?)
+}
+
+pub fn item_name(db:&Database,sticker_id:&str)->Result<Option<String>> {
+    use rusqlite::OptionalExtension;
+    Ok(db.conn.query_row("SELECT s.name FROM signed_pack_items s JOIN pack_items i ON i.id=s.item_id WHERE i.sticker_id=?1 LIMIT 1",[sticker_id],|r|r.get(0)).optional()?)
 }

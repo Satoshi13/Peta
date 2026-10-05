@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Peta · UI proposals (preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  /* Preview-only page. Assets come from ../../src/art (the real runtime art). Nothing here touches the app. */
+  :root {
+    --bg: #f6f3ee; --fg: #1d1d1f; --muted: #76726b; --card: #fffdf9; --line: #e2ddd3;
+    --cream: #f5f0e6; --kraft: #c9a878; --ink: #2b2a28;
+    --holo: linear-gradient(105deg, #f6c6e3, #c9c3f5, #bfe3f7, #c8f2dc, #f7f0be);
+    --hand: "Klee One", "Noteworthy", "Bradley Hand", cursive;
+    --sys: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Hiragino Sans", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e7e1d5; color: var(--ink); font: 14px/1.55 var(--sys); }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 40px 28px 80px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 56px 0 4px; }
+  h2 small { font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 8px; }
+  .lede { color: var(--muted); max-width: 760px; margin: 0 0 22px; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 26px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 10px; }
+  .tag { font: 600 11px/1 var(--sys); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .cap { font-size: 12.5px; color: #5d584f; max-width: 52ch; }
+  .cap b { color: var(--ink); }
+  .win { border-radius: 14px; overflow: hidden; box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 10px 28px rgba(60,45,20,.16), 0 1px 3px rgba(60,45,20,.18); background: var(--bg); }
+  .win-bar { height: 30px; display: flex; align-items: center; gap: 7px; padding: 0 12px; background: #ece7dd; border-bottom: 1px solid #ddd6c8; }
+  .win-bar i { width: 11px; height: 11px; border-radius: 50%; background: #d8d1c2; display: block; }
+  .win-bar span { margin-left: 8px; font-size: 12px; color: var(--muted); }
+  .win-body { padding: 24px 26px 28px; }
+  .win.dark { --bg: #1c1b19; --fg: #f1eee8; --muted: #9a958b; --card: #262421; --line: #38352f; color: #f1eee8; }
+  .win.dark .win-bar { background: #2a2825; border-color: #38352f; }
+
+  /* ---------- section heading used by the current UI ---------- */
+  .h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+
+  /* =================  CURRENT (reproduced from the screenshots)  ================= */
+  .cur-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; }
+  .cur-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-size: 14px; }
+  .cur-chip::before { content: ""; width: 24px; height: 24px; background: center/contain no-repeat; }
+  .cur-chip[data-m="matte"]::before { background-image: url("../../src/art/materials/swatch-matte.png"); }
+  .cur-chip[data-m="kraft"]::before { background-image: url("../../src/art/materials/swatch-kraft.png"); }
+  .cur-chip[data-m="holographic"]::before { background-image: url("../../src/art/materials/swatch-holographic.png"); }
+  .cur-chip.on { border-color: #1d1d1f; box-shadow: inset 0 0 0 1px #1d1d1f; }
+  .cur-list { list-style: none; margin: 0; padding: 0; }
+  .cur-list li { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .cur-badge { padding: 2px 11px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; }
+  .cur-badge.rare { background: linear-gradient(100deg, #f9c7e0, #c7e3f9, #d5f9c7); border-color: transparent; }
+  .cur-badge.uncommon { background: #e9dcc3; border-color: transparent; }
+
+  /* =================  A · MATERIAL CARDS  ================= */
+  .A .tray { display: flex; justify-content: center; gap: 4px; padding: 26px 10px 14px; margin: 0 -4px 30px; border-radius: 18px;
+    background: linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,0) 38%), #ebe4d4; box-shadow: inset 0 2px 5px rgba(80,60,20,.16); }
+  .A .mcard { position: relative; width: 31%; border: 0; background: none; padding: 0; cursor: pointer; transition: transform .18s ease-out, filter .18s; filter: saturate(.85) brightness(.97); transform: rotate(var(--r, 0deg)) translateY(8px); }
+  .A .mcard:nth-child(1) { --r: -3deg; } .A .mcard:nth-child(2) { --r: 2deg; } .A .mcard:nth-child(3) { --r: -1.5deg; }
+  .A .mcard img { width: 100%; display: block; filter: drop-shadow(0 1px 1.5px rgba(40,30,10,.3)); }
+  .A .mcard .nm { position: absolute; left: 12%; right: 12%; top: 58%; height: 21%; display: flex; flex-direction: column; justify-content: center; align-items: center; font: 600 14px/1.1 var(--hand); color: var(--ink); }
+  .A .mcard .nm small { font: 400 10px var(--sys); color: #6b665c; margin-top: 2px; }
+  .A .mcard .cnt { position: absolute; right: 4px; top: 2px; min-width: 24px; height: 24px; padding: 0 6px; display: grid; place-items: center; border-radius: 999px; background: var(--ink); color: #fff; font: 600 11px var(--sys); box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+  .A .mcard.on { transform: rotate(var(--r, 0deg)) translateY(-8px) scale(1.06); filter: none; z-index: 2; }
+  .A .mcard.on img { filter: drop-shadow(0 8px 8px rgba(40,30,10,.28)); }
+  .A .mcard.on::before { content: ""; position: absolute; left: 50%; top: -12px; width: 62%; height: 20%; transform: translateX(-50%) rotate(-3deg); background: url("../../src/art/creator/tape-1.png") center/contain no-repeat; z-index: 3; }
+  .A .book { background: linear-gradient(rgba(251,248,240,.62), rgba(251,248,240,.62)), url("../../src/art/back/paper-cream.jpg") 0 0/auto, #fffdf9; background-size: auto, 420px; border-radius: 6px 14px 14px 6px; padding: 8px 18px 8px 54px; position: relative; box-shadow: 0 1px 2px rgba(60,45,20,.2), 0 8px 18px rgba(60,45,20,.1); }
+  .A .book::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 38px; background: url("../../src/art/book/spiral-rings.png") center top/40px auto repeat-y; }
+  .A .book h3 { font: 600 11px var(--sys); letter-spacing: .14em; text-transform: uppercase; color: #8a8374; margin: 14px 0 4px; }
+  .A .item { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1.5px dashed #d9d0bd; }
+  .A .item:last-child { border: 0; }
+  .A .item img { width: 40px; height: 40px; filter: drop-shadow(0 1px 1px rgba(40,30,10,.25)); }
+  .A .item .n { font: 600 17px/1.1 var(--hand); }
+  .A .item .n small { display: block; font: 400 11px var(--sys); color: #8a8374; margin-top: 3px; }
+  .seal { display: inline-block; padding: 3px 12px 4px; border-radius: 4px; font: 600 11px/1.2 var(--sys); letter-spacing: .08em; text-transform: uppercase; transform: rotate(-2.5deg); box-shadow: 0 1px 1.5px rgba(40,30,10,.25); }
+  .seal.rare { background: var(--holo); color: #3b3552; }
+  .seal.uncommon { background: #e1d2b0; color: #5d4a25; }
+  .seal.common { background: #fbf9f4; color: #6b665c; box-shadow: inset 0 0 0 1px #d6cfbf; }
+  .seal.special { background: linear-gradient(120deg, #d8dce2, #f4f6f9, #9aa1ab, #e8ebef); color: #3c4048; }
+  .stamp-x { font: 700 12px var(--sys); background: var(--ink); color: #fff; border-radius: 999px; padding: 1px 8px; margin-left: 8px; vertical-align: 2px; }
+
+  /* =================  B · TAGS & TAPE  ================= */
+  .B .tags { display: flex; justify-content: center; gap: 14px; margin-bottom: 30px; padding-top: 8px; }
+  .B .tg { position: relative; width: 112px; height: 132px; border: 0; padding: 30px 8px 0; cursor: pointer; text-align: center; font: 600 15px/1.2 var(--hand); color: var(--ink);
+    background: linear-gradient(rgba(251,248,240,.62), rgba(251,248,240,.62)), url("../../src/art/back/paper-cream.jpg") 0 0/auto, #fbf8f0; background-size: auto, 380px; clip-path: polygon(14% 0, 86% 0, 100% 16%, 100% 100%, 0 100%, 0 16%); transition: transform .16s ease-out; transform-origin: 50% 0; transform: rotate(var(--r)); filter: drop-shadow(0 2px 2px rgba(40,30,10,.25)); }
+  .B .tg:nth-child(1) { --r: -2.5deg; } .B .tg:nth-child(2) { --r: 1.5deg; } .B .tg:nth-child(3) { --r: -1deg; }
+  .B .tg[data-m="kraft"] { background-color: #d9bd8c; background-image: url("../../src/art/back/paper-kraft.jpg"); }
+  .B .tg::before { content: ""; position: absolute; left: 50%; top: 11px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #e7e1d5; box-shadow: inset 0 1px 2px rgba(0,0,0,.35); }
+  .B .tg .sw { display: block; width: 52px; height: 52px; margin: 6px auto 4px; background: center/contain no-repeat; }
+  .B .tg small { display: block; font: 400 10.5px var(--sys); color: #7a7466; margin-top: 2px; }
+  .B .tg.on { transform: rotate(0deg) translateY(4px) scale(1.07); }
+  .B .tg.on::after { content: ""; position: absolute; left: 50%; bottom: -9px; width: 26px; height: 4px; margin-left: -13px; border-radius: 2px; background: var(--holo); box-shadow: 0 0 0 1px rgba(60,45,20,.15); }
+  .B .strip { position: relative; margin: 0 0 10px; padding: 10px 14px 10px 18px; display: flex; align-items: center; gap: 12px; background: linear-gradient(rgba(251,248,240,.62), rgba(251,248,240,.62)), url("../../src/art/back/paper-cream.jpg") 0 0/auto, #fbf8f0; background-size: auto, 380px; border-radius: 3px; box-shadow: 0 1px 2px rgba(60,45,20,.22); transform: rotate(var(--r, 0deg)); }
+  .B .strip:nth-of-type(odd) { --r: -.6deg; } .B .strip:nth-of-type(even) { --r: .5deg; }
+  .B .strip .sw { width: 38px; height: 38px; background: center/contain no-repeat; flex: none; }
+  .B .strip .n { flex: 1; font: 600 17px var(--hand); line-height: 1.15; }
+  .B .strip .n small { display: block; font: 400 11px var(--sys); color: #8a8374; margin-top: 2px; }
+  .B .strip .wt { position: absolute; right: -6px; top: -9px; width: 92px; height: 27px; background: center/contain no-repeat; transform: rotate(4deg); }
+  .B .strip .wt span { position: absolute; inset: 0; display: grid; place-items: center; font: 600 10px var(--sys); letter-spacing: .1em; text-transform: uppercase; color: #5d584f; }
+  .B .strip .x { font: 600 13px var(--sys); color: #6b665c; border: 1.5px solid #cdc4b0; border-radius: 999px; padding: 1px 9px; }
+
+  /* =================  C · REFINED (closest to today)  ================= */
+  .C .seg { display: flex; padding: 4px; margin-bottom: 26px; border-radius: 16px; background: #ece6da; box-shadow: inset 0 1px 3px rgba(60,45,20,.16); gap: 4px; }
+  .C .opt { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px 9px; border: 0; background: transparent; border-radius: 12px; cursor: pointer; font: 500 13px var(--sys); color: #5d584f; position: relative; transition: background .15s, box-shadow .15s; }
+  .C .opt .sw { width: 34px; height: 34px; background: center/contain no-repeat; filter: drop-shadow(0 1px 1px rgba(40,30,10,.22)); }
+  .C .opt small { color: #8a8374; font-size: 11px; }
+  .C .opt.on { background: #fffdf9; color: var(--ink); box-shadow: 0 1px 2px rgba(60,45,20,.22), 0 4px 10px rgba(60,45,20,.1); }
+  .C .opt.on small { color: var(--ink); }
+  .C .opt.on::after { content: ""; position: absolute; left: 50%; bottom: -3px; width: 18px; height: 3px; margin-left: -9px; border-radius: 2px; background: var(--holo); }
+  .C .shelf { background: var(--card); border-radius: 16px; box-shadow: 0 0 0 1px var(--line), 0 6px 16px rgba(60,45,20,.07); overflow: hidden; }
+  .C .shelf-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center; padding: 12px 16px; }
+  .C .shelf-row + .shelf-row { border-top: 1px solid var(--line); }
+  .C .shelf-row .sw { width: 32px; height: 32px; background: center/contain no-repeat; }
+  .C .shelf-row .n { font-weight: 600; line-height: 1.2; }
+  .C .shelf-row .n small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border-radius: 999px; font: 600 11px/1.3 var(--sys); letter-spacing: .04em; }
+  .pill.rare { background: var(--holo); color: #3b3552; box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); }
+  .pill.uncommon { background: #eadfc6; color: #5d4a25; }
+  .pill.common { background: transparent; color: #6b665c; box-shadow: inset 0 0 0 1px #d6cfbf; }
+  .pill.rare::before { content: "✦"; font-size: 9px; }
+
+  [data-sw="matte"] { background-image: url("../../src/art/materials/swatch-matte.png") !important; }
+  [data-sw="kraft"] { background-image: url("../../src/art/materials/swatch-kraft.png") !important; }
+  [data-sw="holographic"] { background-image: url("../../src/art/materials/swatch-holographic.png") !important; }
+
+  /* =================  Whole-screen mockups  ================= */
+  .scr { width: 100%; }
+  .scr header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .scr header img { height: 40px; margin-left: -8px; align-self: center; }
+  .scr h1 { font-size: 26px; }
+  .scr .date { color: var(--muted); }
+  .choices4 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+  .ch { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 6px; font-size: 14px; }
+  .ch img { width: 96px; height: 96px; object-fit: contain; transition: transform .15s; }
+  .ch small { color: var(--muted); font-size: 12px; }
+  .ch.off { opacity: .45; }
+
+  /* 1 · Paper Desk */
+  .S1 .win-body { background: linear-gradient(rgba(251,248,240,.62), rgba(251,248,240,.62)), url("../../src/art/back/paper-cream.jpg") 0 0/auto, var(--cream); background-size: auto, 460px; padding-top: 22px; }
+  .S1 .datestamp { margin-left: auto; font: 600 11px var(--sys); letter-spacing: .12em; text-transform: uppercase; color: #8a4a3f; border: 1.5px solid #c98a7f; border-radius: 4px; padding: 3px 9px; transform: rotate(-3deg); opacity: .85; }
+  .S1 .lead { font: 600 21px/1.3 var(--hand); text-align: center; margin: 12px 0 14px; }
+  .S1 .label-tape { display: inline-block; position: relative; padding: 4px 22px; margin: 22px 0 10px; font: 600 11px var(--sys); letter-spacing: .14em; text-transform: uppercase; color: #5d584f; background: url("../../src/art/creator/tape-2.png") center/100% 100% no-repeat; transform: rotate(-1.5deg); }
+  .S1 .choices4 .ch:nth-child(1) img { transform: rotate(-3deg); } .S1 .choices4 .ch:nth-child(2) img { transform: rotate(2deg); }
+  .S1 .choices4 .ch:nth-child(3) img { transform: rotate(-1.5deg); } .S1 .choices4 .ch:nth-child(4) img { transform: rotate(3deg); }
+  .S1 .primary { display: block; margin: 0 auto; padding: 10px 34px; border: 0; border-radius: 999px; background: var(--ink); color: #fff; font: 600 14px var(--sys); box-shadow: 0 2px 0 #000, 0 6px 12px rgba(0,0,0,.2); }
+  .S1 .minibook { display: flex; gap: 10px; }
+  .S1 .minibook .it { position: relative; flex: 1; padding: 10px 6px 8px; text-align: center; background: #fbf8f0; border-radius: 3px; box-shadow: 0 1px 2px rgba(60,45,20,.25); font: 600 14px/1.15 var(--hand); }
+  .S1 .minibook .it:nth-child(1) { transform: rotate(-1.5deg); } .S1 .minibook .it:nth-child(2) { transform: rotate(1deg); } .S1 .minibook .it:nth-child(3) { transform: rotate(-.5deg); }
+  .S1 .minibook .sw { display: block; width: 40px; height: 40px; margin: 0 auto 4px; background: center/contain no-repeat; }
+  .S1 .minibook small { display: block; font: 400 10.5px var(--sys); color: #8a8374; margin-top: 4px; }
+
+  /* 2 · Sticker Sheet */
+  .S2 .win-body { background: #cfd6cf; padding: 20px; }
+  .S2 .sheet { position: relative; padding: 22px 20px 24px; border-radius: 10px; background: linear-gradient(rgba(251,248,240,.62), rgba(251,248,240,.62)), url("../../src/art/back/paper-cream.jpg") 0 0/auto, #fbf9f4; background-size: auto, 460px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.12), 0 14px 26px rgba(40,50,40,.22); }
+  .S2 .sheet::before { content: ""; position: absolute; inset: 8px; border: 1.5px dashed rgba(60,50,30,.18); border-radius: 6px; pointer-events: none; }
+  .S2 .corner { position: absolute; right: 0; bottom: 0; width: 56px; height: 56px; background: linear-gradient(135deg, transparent 50%, #e6dfd0 50%, #cfc6b3); border-top-left-radius: 14px; box-shadow: -3px -3px 6px rgba(60,45,20,.12); }
+  .S2 .die { display: inline-block; padding: 8px; background: #fff; border-radius: 22px; box-shadow: 0 1px 2px rgba(40,30,10,.35); }
+  .S2 .die img { display: block; width: 84px; height: 84px; object-fit: contain; }
+  .S2 .choices4 { gap: 14px 6px; }
+  .S2 .ch .die { transition: transform .15s; }
+  .S2 .ch:nth-child(1) .die { transform: rotate(-4deg); } .S2 .ch:nth-child(2) .die { transform: rotate(3deg); } .S2 .ch:nth-child(3) .die { transform: rotate(2deg); } .S2 .ch:nth-child(4) .die { transform: rotate(-3deg); }
+  .S2 .ch b { margin-top: 6px; font: 600 15px var(--hand); }
+  .S2 .strip5 { display: flex; gap: 8px; align-items: center; }
+  .S2 .chipst { position: relative; width: 62px; height: 62px; padding: 5px; background: #fff; border-radius: 18px; box-shadow: 0 1px 2px rgba(40,30,10,.3); }
+  .S2 .chipst .sw { width: 100%; height: 100%; background: center/contain no-repeat; }
+  .S2 .chipst em { position: absolute; right: -5px; bottom: -5px; font: 700 10.5px/1 var(--sys); font-style: normal; background: var(--ink); color: #fff; border-radius: 999px; padding: 3px 6px; }
+  .S2 .chipst.rare::after { content: "✦"; position: absolute; left: -4px; top: -6px; font-size: 14px; color: #b39ddb; }
+  .S2 .peel { margin-left: auto; font: 600 12px var(--sys); color: #6b665c; }
+
+  /* 3 · Notebook page */
+  .S3 .win-body { background: #ebe3d3; padding: 18px 18px 22px 0; }
+  .S3 .page { position: relative; display: flex; border-radius: 6px 16px 16px 6px; background: #faf6ec url("../../src/art/book/page-right.jpg") left top/cover; box-shadow: 0 1px 2px rgba(60,45,20,.2), 0 10px 22px rgba(60,45,20,.14); }
+  .S3 .spiral { width: 40px; flex: none; background: url("../../src/art/book/spiral-rings.png") center top/44px auto repeat-y; margin-left: -8px; }
+  .S3 .pg { flex: 1; padding: 18px 20px 22px 6px; }
+  .S3 .pg h1 { font: 700 34px/1 var(--hand); }
+  .S3 .pg .date { font: 500 14px var(--hand); }
+  .S3 .polaroid { position: relative; background: #fff; padding: 8px 8px 22px; box-shadow: 0 1px 2px rgba(40,30,10,.3); }
+  .S3 .polaroid img { width: 80px; height: 80px; object-fit: contain; display: block; background: #f4efe3; }
+  .S3 .choices4 .ch { padding: 4px; }
+  .S3 .choices4 .ch:nth-child(1) .polaroid { transform: rotate(-3deg); } .S3 .choices4 .ch:nth-child(2) .polaroid { transform: rotate(2deg); }
+  .S3 .choices4 .ch:nth-child(3) .polaroid { transform: rotate(1.5deg); } .S3 .choices4 .ch:nth-child(4) .polaroid { transform: rotate(-2deg); }
+  .S3 .polaroid::before { content: ""; position: absolute; left: 50%; top: -9px; width: 54px; height: 16px; margin-left: -27px; background: url("../../src/art/creator/tape-4.png") center/100% 100% no-repeat; transform: rotate(-3deg); }
+  .S3 .cap-h { font: 500 14px var(--hand); margin-top: 8px; }
+  .S3 .pocket { position: relative; margin-top: 26px; height: 150px; }
+  .S3 .pocket .card { position: absolute; bottom: 38px; width: 88px; transform-origin: 50% 100%; filter: drop-shadow(0 1px 1.5px rgba(40,30,10,.3)); }
+  .S3 .pocket .card img { width: 100%; display: block; }
+  .S3 .pocket .card:nth-child(1) { left: 6%; transform: rotate(-9deg); } .S3 .pocket .card:nth-child(2) { left: 31%; transform: rotate(-2deg) translateY(-8px); } .S3 .pocket .card:nth-child(3) { left: 56%; transform: rotate(6deg); }
+  .S3 .pocket .front { position: absolute; left: 0; right: 0; bottom: 0; height: 58px; border-radius: 4px 4px 14px 14px; background: #e3cfa6 url("../../src/art/back/paper-kraft.jpg") 0 0/380px; box-shadow: 0 -1px 2px rgba(60,45,20,.25), 0 2px 5px rgba(60,45,20,.2); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font: 600 14px var(--hand); }
+  .S3 .pocket .front::before { content: ""; position: absolute; left: 14px; right: 14px; top: 8px; height: 0; border-top: 1.5px dashed rgba(90,65,25,.35); }
+  .S3 .pocket .front span:last-child { font: 400 11px var(--sys); color: #6b5530; }
+  .note { margin-top: 10px; font-size: 12.5px; color: #5d584f; }
+
+  /* Codex list */
+  .asset-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 14px; }
+  .asset { background: #f4efe4; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(60,45,20,.15); font-size: 13px; }
+  .asset b { display: block; margin-bottom: 2px; }
+  .asset span { color: #6b665c; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; font-size: 12.5px; }
+  .legend em { font-style: normal; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Peta · UI 更新案プレビュー</h1>
+<p class="lede">アプリ本体は触っていません。画像は既存の <code>src/art/</code> のアートをそのまま使っています(新しく描き起こしたものはゼロ)。まず「素材ピッカー+Material Book」の3案、その後「画面全体」の3方向、最後に Codex に頼める追加アートの一覧です。</p>
+
+<!-- ============================================================ -->
+<h2>0. 今の状態 <small>(スクリーンショットの再現)</small></h2>
+<div class="row">
+  <div class="win" style="max-width:520px"><div class="win-bar"><i></i><i></i><i></i><span>Today (current)</span></div>
+    <div class="win-body">
+      <div class="cur-chips">
+        <span class="cur-chip" data-m="holographic">Holographic ×1</span>
+        <span class="cur-chip" data-m="kraft">Kraft ×1</span>
+        <span class="cur-chip on" data-m="matte">Matte</span>
+      </div>
+      <div class="h3">Material Book</div>
+      <ul class="cur-list">
+        <li><span>Holographic ×1</span><span class="cur-badge rare">Rare</span></li>
+        <li><span>Kraft ×1</span><span class="cur-badge uncommon">Uncommon</span></li>
+        <li><span>Matte</span><span class="cur-badge">Common</span></li>
+      </ul>
+    </div></div>
+  <div class="cap" style="padding-top:8px">
+    <p><b>なぜ安っぽく見えるか</b></p>
+    <p>・パックや封筒は「紙の実物」なのに、この部分だけ <b>Webフォームの部品</b>(ピル型のチップ、罫線リスト)。<br>
+    ・素材の主役である<b>質感</b>(ホログラム・クラフト)が、24pxの小さな丸と文字の裏に隠れている。<br>
+    ・レアリティが小さなバッジで、「出た!」感が無い。<br>
+    ・選択状態が黒い枠線だけ。物としての手応え(持ち上がる・貼られる)が無い。</p>
+    <p>→ 下の3案は、すべて「<b>素材=手に取れる紙もの</b>」として扱い直しています。</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2>1. 素材ピッカー + Material Book <small>3案(ライトで表示。Aはダークも)</small></h2>
+<p class="lede">それぞれ「上=今から使う素材を選ぶ(Today / Cutting Mat)」「下=Material Book(持っている素材の一覧)」のセットです。</p>
+
+<div class="row">
+
+  <!-- A -->
+  <div class="col A">
+    <div class="tag">案 A · Material Cards(おすすめ)</div>
+    <div class="win"><div class="win-bar"><i></i><i></i><i></i><span>Today</span></div>
+      <div class="win-body">
+        <div class="tray">
+          <button class="mcard"><img src="../../src/art/today/material-card-holographic.png" alt=""><span class="nm">Holographic<small>Rare</small></span><span class="cnt">×1</span></button>
+          <button class="mcard"><img src="../../src/art/today/material-card-kraft.png" alt=""><span class="nm">Kraft<small>Uncommon</small></span><span class="cnt">×1</span></button>
+          <button class="mcard on"><img src="../../src/art/today/material-card-matte.png" alt=""><span class="nm">Matte<small>Common</small></span></button>
+        </div>
+        <div class="book">
+          <h3>Material Book</h3>
+          <div class="item"><img src="../../src/art/materials/swatch-holographic.png" alt=""><div class="n">Holographic<small>×1 · found Oct 2</small></div><span class="seal rare">Rare</span></div>
+          <div class="item"><img src="../../src/art/materials/swatch-kraft.png" alt=""><div class="n">Kraft<small>×1 · found Sep 28</small></div><span class="seal uncommon">Uncommon</span></div>
+          <div class="item"><img src="../../src/art/materials/swatch-matte.png" alt=""><div class="n">Matte<small>Always available</small></div><span class="seal common">Common</span></div>
+        </div>
+      </div></div>
+    <p class="cap"><b>封筒から出てきた素材カードをそのままピッカーに。</b>トレイ(へこんだ台)に3枚が並び、選んだ1枚だけマスキングテープで貼られて持ち上がる。個数は黒い丸の ×1。Material Book は「スパイラルのメモ帳」風で、レアリティは<b>シール</b>(Rare はホログラム、Uncommon はクラフト、Common は白)。Sticker Book と同じ紙・スパイラルを使うので統一感が出ます。</p>
+  </div>
+
+  <!-- A dark -->
+  <div class="col A">
+    <div class="tag">案 A · ダークモード</div>
+    <div class="win dark"><div class="win-bar"><i></i><i></i><i></i><span>Today</span></div>
+      <div class="win-body">
+        <div class="tray" style="background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,0) 40%), #2a2824; box-shadow: inset 0 2px 6px rgba(0,0,0,.5)">
+          <button class="mcard"><img src="../../src/art/today/material-card-holographic.png" alt=""><span class="nm">Holographic<small>Rare</small></span><span class="cnt" style="background:#f1eee8;color:#1c1b19">×1</span></button>
+          <button class="mcard"><img src="../../src/art/today/material-card-kraft.png" alt=""><span class="nm">Kraft<small>Uncommon</small></span><span class="cnt" style="background:#f1eee8;color:#1c1b19">×1</span></button>
+          <button class="mcard on"><img src="../../src/art/today/material-card-matte.png" alt=""><span class="nm">Matte<small>Common</small></span></button>
+        </div>
+        <div class="book" style="background-color:#2a2824;background-blend-mode:multiply;color:#f1eee8">
+          <h3 style="color:#9a958b">Material Book</h3>
+          <div class="item" style="border-color:#3c3830"><img src="../../src/art/materials/swatch-holographic.png" alt=""><div class="n">Holographic<small style="color:#9a958b">×1 · found Oct 2</small></div><span class="seal rare">Rare</span></div>
+          <div class="item" style="border-color:#3c3830"><img src="../../src/art/materials/swatch-kraft.png" alt=""><div class="n">Kraft<small style="color:#9a958b">×1 · found Sep 28</small></div><span class="seal uncommon">Uncommon</span></div>
+          <div class="item"><img src="../../src/art/materials/swatch-matte.png" alt=""><div class="n">Matte<small style="color:#9a958b">Always available</small></div><span class="seal common" style="background:#34312b;color:#cfc9bb;box-shadow:none">Common</span></div>
+        </div>
+      </div></div>
+    <p class="cap">ダークでも素材カード自体は紙のまま光る。トレイと帳面だけ暗くする想定(既存の Cutting Mat の dark 方針と同じ)。</p>
+  </div>
+
+  <!-- B -->
+  <div class="col B">
+    <div class="tag">案 B · Tags &amp; Tape</div>
+    <div class="win"><div class="win-bar"><i></i><i></i><i></i><span>Today</span></div>
+      <div class="win-body">
+        <div class="tags">
+          <button class="tg" data-m="holographic"><span class="sw" data-sw="holographic"></span>Holographic<small>×1</small></button>
+          <button class="tg" data-m="kraft"><span class="sw" data-sw="kraft"></span>Kraft<small>×1</small></button>
+          <button class="tg on" data-m="matte"><span class="sw" data-sw="matte"></span>Matte<small>always</small></button>
+        </div>
+        <div class="h3" style="font-family:var(--hand);letter-spacing:.04em;text-transform:none;font-size:15px">Material Book</div>
+        <div class="strip"><span class="sw" data-sw="holographic"></span><div class="n">Holographic<small>×1 · found Oct 2</small></div><span class="wt" style="background-image:url('../../src/art/creator/tape-1.png')"><span>Rare</span></span></div>
+        <div class="strip"><span class="sw" data-sw="kraft"></span><div class="n">Kraft<small>×1 · found Sep 28</small></div><span class="wt" style="background-image:url('../../src/art/creator/tape-3.png')"><span>Uncommon</span></span></div>
+        <div class="strip"><span class="sw" data-sw="matte"></span><div class="n">Matte<small>Always available</small></div><span class="wt" style="background-image:url('../../src/art/creator/tape-4.png')"><span>Common</span></span></div>
+      </div></div>
+    <p class="cap"><b>荷札(ホール付きタグ)+マスキングテープ。</b>素材は荷札、選ぶとタグが真っ直ぐ立つ。Book の行は紙の短冊で、レアリティは<b>貼られたテープ</b>(Rare=ホログラムテープ、Uncommon=ストライプ、Common=ドット)。既存の tape-1〜4 をそのまま使用。文房具屋っぽさが最も強い案。</p>
+  </div>
+
+  <!-- C -->
+  <div class="col C">
+    <div class="tag">案 C · Refined(今に一番近い)</div>
+    <div class="win"><div class="win-bar"><i></i><i></i><i></i><span>Today</span></div>
+      <div class="win-body">
+        <div class="seg">
+          <button class="opt"><span class="sw" data-sw="holographic"></span>Holographic<small>×1</small></button>
+          <button class="opt"><span class="sw" data-sw="kraft"></span>Kraft<small>×1</small></button>
+          <button class="opt on"><span class="sw" data-sw="matte"></span>Matte<small>Always</small></button>
+        </div>
+        <div class="h3">Material Book</div>
+        <div class="shelf">
+          <div class="shelf-row"><span class="sw" data-sw="holographic"></span><div class="n">Holographic<small>×1 in stock</small></div><span class="pill rare">Rare</span></div>
+          <div class="shelf-row"><span class="sw" data-sw="kraft"></span><div class="n">Kraft<small>×1 in stock</small></div><span class="pill uncommon">Uncommon</span></div>
+          <div class="shelf-row"><span class="sw" data-sw="matte"></span><div class="n">Matte<small>Always available</small></div><span class="pill common">Common</span></div>
+        </div>
+      </div></div>
+    <p class="cap"><b>構造は今のまま、質感だけ上げる案。</b>チップ → 大きめスワッチ付きのセグメント(選択中は紙が浮く+下にホログラムの細線)。リスト → 角丸のシェルフ、スワッチを32pxに拡大、レアリティのピルは Rare にだけ ✦ とホログラム。手書き風フォントは使わない(§86 に完全準拠)ので、最も安全で、実装も CSS だけで小さく済みます。</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2>2. 画面全体の方向性 <small>3案(Today 画面・開封後の選択ステージ)</small></h2>
+<p class="lede">上の素材UIを組み込んだ形で、Today 全体のトーンを3方向で見ています。どれも「ダッシュボード/ゲームUIにしない」「手書きフォントは小さな見出し・ラベルだけ」のルールは守っています(ただし S3 は見出しが手書きで、ここだけ仕様の境界線上なので要判断)。</p>
+
+<div class="row">
+
+  <!-- S1 -->
+  <div class="col S1">
+    <div class="tag">方向 1 · Paper Desk(今の延長)</div>
+    <div class="win scr"><div class="win-bar"><i></i><i></i><i></i><span>Today</span></div>
+      <div class="win-body">
+        <header><img src="../../src/art/brand/logo-wordmark-ink.svg" alt="Peta"><h1>Today</h1><span class="datestamp">Oct 2 · Fri</span></header>
+        <p class="lead">今日はどのPetaにする?</p>
+        <div class="choices4">
+          <div class="ch"><img src="../../src/art/today/choice-create.png" alt="">New<small>today's material</small></div>
+          <div class="ch off"><img src="../../src/art/today/choice-collection.png" alt="">From Collection<small>stick one you own</small></div>
+          <div class="ch off"><img src="../../src/art/today/choice-gift.png" alt="">Gift<small>from a friend</small></div>
+          <div class="ch"><img src="../../src/art/today/choice-pack-pouch.png" alt="">Open a Pack<small>1 sticker</small></div>
+        </div>
+        <span class="label-tape">Material Book</span>
+        <div class="minibook">
+          <div class="it"><span class="sw" data-sw="holographic"></span>Holographic<small>Rare · ×1</small></div>
+          <div class="it"><span class="sw" data-sw="kraft"></span>Kraft<small>Uncommon · ×1</small></div>
+          <div class="it"><span class="sw" data-sw="matte"></span>Matte<small>Common</small></div>
+        </div>
+      </div></div>
+    <p class="cap">全体に<b>紙テクスチャの下地</b>、日付は<b>ゴム印</b>、セクション見出しは<b>マスキングテープのラベル</b>、選択肢の絵を少しずつ傾ける。レイアウトは現状とほぼ同じなので<b>実装コスト最小</b>。「今のも結構好き」を壊さない案。</p>
+  </div>
+
+  <!-- S2 -->
+  <div class="col S2">
+    <div class="tag">方向 2 · Sticker Sheet(台紙から剥がす)</div>
+    <div class="win scr"><div class="win-bar"><i></i><i></i><i></i><span>Today</span></div>
+      <div class="win-body">
+        <div class="sheet">
+          <header><img src="../../src/art/brand/logo-wordmark-ink.svg" alt="Peta"><span class="date" style="margin-left:auto;font:600 12px var(--sys)">Oct 2 · Fri</span></header>
+          <div class="choices4" style="margin-top:12px">
+            <div class="ch"><span class="die"><img src="../../src/art/today/choice-create.png" alt=""></span><b>New</b><small>today's material</small></div>
+            <div class="ch off"><span class="die"><img src="../../src/art/today/choice-collection.png" alt=""></span><b>Collection</b><small>stick one you own</small></div>
+            <div class="ch off"><span class="die"><img src="../../src/art/today/choice-gift.png" alt=""></span><b>Gift</b><small>from a friend</small></div>
+            <div class="ch"><span class="die"><img src="../../src/art/today/choice-pack-pouch.png" alt=""></span><b>Pack</b><small>1 sticker</small></div>
+          </div>
+          <div class="h3" style="margin:22px 0 10px">Material Book</div>
+          <div class="strip5">
+            <div class="chipst rare"><div class="sw" data-sw="holographic"></div><em>×1</em></div>
+            <div class="chipst"><div class="sw" data-sw="kraft"></div><em>×1</em></div>
+            <div class="chipst"><div class="sw" data-sw="matte"></div></div>
+            <span class="peel">tap to see details →</span>
+          </div>
+          <div class="corner"></div>
+        </div>
+      </div></div>
+    <p class="cap">ウィンドウ全体を<b>ステッカーの台紙</b>に見立てる。選択肢はすべて白フチのダイカット・ステッカーで、<b>押す=剥がす</b>というアプリの核の動作とUIが一致。Material Book は縦リストをやめて<b>小さなステッカー列</b>(詳細はタップで)にし、画面が一気に軽くなる。右下に台紙のめくれ。</p>
+  </div>
+
+  <!-- S3 -->
+  <div class="col S3">
+    <div class="tag">方向 3 · Notebook(Sticker Book と地続き)</div>
+    <div class="win scr"><div class="win-bar"><i></i><i></i><i></i><span>Today</span></div>
+      <div class="win-body">
+        <div class="page"><div class="spiral"></div>
+          <div class="pg">
+            <h1>Today</h1><div class="date">October 2 · Fri</div>
+            <div class="choices4" style="margin-top:14px">
+              <div class="ch"><div class="polaroid"><img src="../../src/art/today/choice-create.png" alt=""></div><div class="cap-h">New</div></div>
+              <div class="ch off"><div class="polaroid"><img src="../../src/art/today/choice-collection.png" alt=""></div><div class="cap-h">Collection</div></div>
+              <div class="ch off"><div class="polaroid"><img src="../../src/art/today/choice-gift.png" alt=""></div><div class="cap-h">Gift</div></div>
+              <div class="ch"><div class="polaroid"><img src="../../src/art/today/choice-pack-pouch.png" alt=""></div><div class="cap-h">Pack</div></div>
+            </div>
+            <div class="pocket">
+              <div class="card"><img src="../../src/art/today/material-card-holographic.png" alt=""></div>
+              <div class="card"><img src="../../src/art/today/material-card-kraft.png" alt=""></div>
+              <div class="card"><img src="../../src/art/today/material-card-matte.png" alt=""></div>
+              <div class="front"><span>Material Book</span><span>3 kinds · tap to open</span></div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    <p class="cap">Today を<b>ノートの1ページ</b>に。選択肢はテープで貼ったポラロイド、Material Book は<b>ポケットから素材カードが覗く</b>見せ方。Sticker Book(スパイラル+ドット方眼)と同じ部品なので、アプリ全体が1冊の手帳に見える。一番世界観が強いが、<b>手書き見出し(「Today」)が仕様 §86 の外側</b>なので、採用するなら見出しだけ system フォントに戻す手もあります。</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2>3. Codex に頼めそうなアート <small>(今あるものだけでも上の案は成立。足すともっと良くなるもの)</small></h2>
+<p class="lede">好きだと言っていた「パックのデザイン」と同じ筆致で追加できそうなものです。<code>docs/codex-art-prompt.md</code> の STYLE LOCK を流用できます。</p>
+<div class="asset-grid">
+  <div class="asset"><b>レアリティ・シール一式</b><span>common / uncommon / rare / special / archive の5枚。Rare=ホログラム、Special=シルバー箔、Archive=古い紙の消印。文字はコードが重ねる。→ 案A/Bの Rare 表示が一気に本物になる。</span></div>
+  <div class="asset"><b>素材カードに「選択中」用の台紙・トレイ</b><span>へこんだ木/紙のトレイ、カード用の透明スリーブ(グラシン)。選択=スリーブから半分出る、にもできる。</span></div>
+  <div class="asset"><b>未獲得素材のシルエット</b><span>Material Book の「???」用に、紙にエンボスだけ残ったようなカード。獲得すると中身が入る演出もできる。</span></div>
+  <div class="asset"><b>素材別パック</b><span>今の pouch(ホログラム袋)の色違い:Kraft=紙袋、Matte=クリーム封筒、Holographic=銀。レアリティで袋が変わると「開ける前から期待」が生まれる。</span></div>
+  <div class="asset"><b>紙の小物パーツ</b><span>ホール付き荷札(案B)、ポケット前板(方向3)、ゴム印の日付枠、色違いのマステを5〜6種。</span></div>
+  <div class="asset"><b>ボタン用の紙パーツ</b><span>Open / Make this Peta を押せる「ラベルシール」風ボタン(通常/押下の2枚)。いまの黒いピルだけが画面で唯一"UI部品"として浮いている。</span></div>
+</div>
+
+<h2>4. 選び方の目安</h2>
+<div class="legend">
+  <span><em>実装が軽い順:</em> C &lt; B &lt; A(ほぼ CSS+既存画像。新規アート不要)</span>
+  <span><em>世界観が強い順:</em> 方向3 &gt; 方向2 &gt; 方向1</span>
+  <span><em>仕様リスク:</em> 方向3 の手書き見出しだけ要確認</span>
+</div>
+<p class="note">組み合わせ例:「素材UI = A」+「全体 = 方向1」を最初の一歩にして、反応を見ながら方向2/3へ寄せる。</p>
+
+</div>
+</body>
+</html>

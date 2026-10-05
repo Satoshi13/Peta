@@ -1,0 +1,88 @@
+{
+  "layouts": [
+    {
+      "background": "none",
+      "clip": {
+        "bottom": 481.328125,
+        "x": 820.5,
+        "y": 377.9393005371094
+      },
+      "color": "rgb(122, 116, 104)",
+      "font": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+      "label": "Houseplants \u2014 view on your Packs shelf",
+      "marker": "\"\u2713\"",
+      "overflow": 0,
+      "shell": "studio",
+      "size": [
+        1060,
+        700
+      ],
+      "spacing": "normal"
+    },
+    {
+      "background": "none",
+      "clip": {
+        "bottom": 421.65625,
+        "x": 30,
+        "y": 318.2674255371094
+      },
+      "color": "rgb(122, 116, 104)",
+      "font": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+      "label": "Houseplants \u2014 view on your Packs shelf",
+      "marker": "\"\u2713\"",
+      "overflow": 0,
+      "shell": "studio",
+      "size": [
+        720,
+        520
+      ],
+      "spacing": "normal"
+    },
+    {
+      "background": "none",
+      "clip": {
+        "bottom": 481.328125,
+        "x": 795,
+        "y": 377.9393005371094
+      },
+      "color": "rgb(122, 116, 104)",
+      "font": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+      "label": "Houseplants \u2014 view on your Packs shelf",
+      "marker": "\"\u2713\"",
+      "overflow": 0,
+      "shell": "desk",
+      "size": [
+        1060,
+        700
+      ],
+      "spacing": "normal"
+    },
+    {
+      "background": "none",
+      "clip": {
+        "bottom": 421.65625,
+        "x": 35.328125,
+        "y": 318.2674255371094
+      },
+      "color": "rgb(122, 116, 104)",
+      "font": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", \"Hiragino Sans\", \"Noto Sans JP\", sans-serif",
+      "label": "Houseplants \u2014 view on your Packs shelf",
+      "marker": "\"\u2713\"",
+      "overflow": 0,
+      "shell": "desk",
+      "size": [
+        720,
+        520
+      ],
+      "spacing": "normal"
+    }
+  ],
+  "ownedHeroTileAndDetailNavigate": true,
+  "targetPackVisibleAndFocused": true,
+  "keyboardEnterNavigate": true,
+  "freeGetInstallsOnce": true,
+  "paidGetRemainsUnavailable": true,
+  "noPackOpened": true,
+  "countsAndStockUnchangedOnNavigation": true,
+  "reducedAndFullMotionNavigate": true
+}

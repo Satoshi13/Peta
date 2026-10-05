@@ -1,4 +1,7 @@
 /* Peta art layer. Existing ids/data-art hooks and business logic stay intact. */
+/* Open / Make this Peta: a stretchable paper label, with live button text. */
+html body button.primary { border: 0; border-image: url("ui/button-label.png") 80 fill / 12px stretch; border-radius: 0; background: none; color: #2b2a28; box-shadow: none; }
+html body button.primary:not(:disabled):active { border-image-source: url("ui/button-label-pressed.png"); box-shadow: none; transform: none; }
 html body .art-slot { border: 0; padding: 0; background-color: transparent; }
 html body .art-slot::before, html body .art-slot::after, html body main#mat::before { content: none; display: none; }
 .peta-wordmark { width: 106px; height: 46px; object-fit: contain; margin-left: -12px; }

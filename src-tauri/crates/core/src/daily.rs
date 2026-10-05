@@ -1,13 +1,6 @@
-//! The Daily Slot (spec §11-15): one new Peta per day.
-//!
-//!   AVAILABLE -> SELECTING -> CONFIRMED -> USED
-//!
-//! Only CONFIRMED is the point of no return. Looking at the material, picking an image or
-//! previewing never consumes the slot. SELECTING is a UI state (the Today screen is open) and
-//! is not stored; AVAILABLE / CONFIRMED / USED are derived from the stored timestamps.
-//!
-//! Dates are plain local `YYYY-MM-DD` strings; every function takes `today` explicitly so the
-//! clock can be injected (tests, and the developer "next day" switch).
+//! One material envelope per local day. Sticker creation is unlimited subject to material stock.
+//! Legacy DailyRecord/SlotState fields remain for storage/API compatibility; pending prints and
+//! Welcome's separate daily allowance live in the database's v7 tables.
 
 use serde::{Deserialize, Serialize};
 
@@ -42,7 +35,7 @@ pub enum SlotState {
 impl SlotState {
     /// Can today's new Peta still be chosen?
     pub fn can_add_new(self) -> bool {
-        matches!(self, SlotState::Available | SlotState::Selecting)
+        true // Creation is limited by material stock, never by another sticker made today.
     }
 }
 
@@ -89,21 +82,24 @@ pub fn ensure_today(db: &mut Database, today: &str, roll: f64) -> Result<DailyRe
 /// opening again the same day adds nothing.
 pub fn open_material(db: &mut Database, today: &str, roll: f64) -> Result<(DailyRecord, bool)> {
     let record = ensure_today(db, today, roll)?;
-    if record.material_opened_at.is_some() {
-        return Ok((record, false));
+    let bonus=record.material_opened_at.is_some();
+    if bonus && !db.unrestricted && db.bonus_envelopes()?==0 {return Ok((record,false));}
+    let material=if bonus {materials::draw(roll,false)} else {record.material_id.clone()};
+    let tx=db.conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    if bonus && !db.unrestricted {
+        let changed=tx.execute("UPDATE meta SET value=CAST(value AS INTEGER)-1 WHERE key='bonus_envelopes' AND CAST(value AS INTEGER)>0",[])?;
+        if changed==0 {return Err(Error::Invalid("No extra envelopes remain.".into()));}
     }
-    db.daily_set_opened(today, &now())?;
-    let newly = db.unlock_material(&record.material_id)?;
-    db.add_material(&record.material_id, 1)?;
-    Ok((db.daily_get(today)?.expect("just updated"), newly))
+    tx.execute("UPDATE daily_records SET material_id=?1,material_opened_at=?2 WHERE date=?3",rusqlite::params![material,now(),today])?;
+    let newly=tx.execute("INSERT OR IGNORE INTO material_unlocks VALUES (?1,?2)",rusqlite::params![material,now()])?>0;
+    tx.execute("INSERT INTO material_stock VALUES (?1,1) ON CONFLICT(material_id) DO UPDATE SET count=count+1",[&material])?;
+    tx.commit()?;
+    Ok((db.daily_get(today)?.expect("just updated"),newly))
 }
 
-/// "Today's Peta, confirmed." The point of no return. Fails with `AlreadyUsedToday` on the second try.
+/// Keep this sticker in the durable print queue and Book history. No daily sticker quota.
 pub fn confirm(db: &mut Database, today: &str, sticker_id: &str, source: SourceType, roll: f64) -> Result<DailyRecord> {
-    let record = ensure_today(db, today, roll)?;
-    if !record.slot(false).can_add_new() {
-        return Err(Error::AlreadyUsedToday);
-    }
+    ensure_today(db, today, roll)?;
     db.daily_set_confirmed(today, sticker_id, source, &now())?;
     Ok(db.daily_get(today)?.expect("just updated"))
 }
@@ -113,6 +109,7 @@ pub fn mark_used(db: &mut Database, today: &str) -> Result<DailyRecord> {
     let record = db.daily_get(today)?.ok_or_else(|| Error::Invalid("no daily record for today".into()))?;
     match record.slot(false) {
         SlotState::Confirmed => {
+            if let Some(id)=record.sticker_id.as_deref() { db.finish_print(id)?; }
             db.daily_set_used(today, &now())?;
             Ok(db.daily_get(today)?.expect("just updated"))
         }
@@ -196,9 +193,9 @@ mod tests {
     }
 
     #[test]
-    fn opening_adds_one_to_stock_once_a_day_and_matte_is_unlimited() {
+    fn opening_adds_one_to_stock_once_a_day() {
         let mut db = Database::open_in_memory().unwrap();
-        assert!(db.has_material("matte").unwrap(), "plain paper always available");
+        assert!(!db.has_material("matte").unwrap(), "plain paper requires stock too");
         assert!(!db.has_material("holographic").unwrap());
         open_material(&mut db, "2026-10-01", 0.5).unwrap(); // first draw: holographic
         open_material(&mut db, "2026-10-01", 0.5).unwrap(); // same day again: nothing more
@@ -212,6 +209,19 @@ mod tests {
     }
 
     #[test]
+    fn extra_envelopes_are_consumed_after_daily_open_and_survive_midnight() {
+        let mut db=Database::open_in_memory().unwrap();
+        db.conn.execute("UPDATE meta SET value='2' WHERE key='bonus_envelopes'",[]).unwrap();
+        assert_eq!(open_material(&mut db,"2026-10-01",0.0).unwrap().0.material_id,"holographic");
+        assert_eq!(db.bonus_envelopes().unwrap(),2);
+        assert_eq!(open_material(&mut db,"2026-10-01",0.7).unwrap().0.material_id,"kraft");assert_eq!(db.bonus_envelopes().unwrap(),1);
+        ensure_today(&mut db,"2026-10-02",0.0).unwrap();assert_eq!(db.bonus_envelopes().unwrap(),1);
+        open_material(&mut db,"2026-10-02",0.0).unwrap();assert_eq!(db.bonus_envelopes().unwrap(),1);
+        open_material(&mut db,"2026-10-02",0.95).unwrap();assert_eq!(db.bonus_envelopes().unwrap(),0);
+        let stock=db.material_count("holographic").unwrap();open_material(&mut db,"2026-10-02",0.95).unwrap();assert_eq!(db.material_count("holographic").unwrap(),stock);
+    }
+
+    #[test]
     fn using_a_material_consumes_it_but_the_book_keeps_it() {
         let mut db = Database::open_in_memory().unwrap();
         open_material(&mut db, "2026-10-01", 0.5).unwrap(); // holographic x1
@@ -221,11 +231,12 @@ mod tests {
         assert!(!db.has_material("holographic").unwrap());
         // still in the Material Book
         assert!(db.unlocked_material_ids().unwrap().contains(&"holographic".to_string()));
-        // plain paper: never runs out
-        for _ in 0..5 {
-            db.consume_material("matte").unwrap();
-        }
-        assert!(db.has_material("matte").unwrap());
+        open_material(&mut db, "2026-10-02", 0.0).unwrap();
+        assert_eq!(db.material_count("matte").unwrap(), 1);
+        db.consume_material("matte").unwrap();
+        assert_eq!(db.material_count("matte").unwrap(), 0);
+        assert!(matches!(db.consume_material("matte"), Err(Error::MaterialUnavailable)));
+        assert!(!db.has_material("matte").unwrap());
     }
 
     #[test]
@@ -241,24 +252,16 @@ mod tests {
     }
 
     #[test]
-    fn only_one_new_peta_per_day() {
-        let mut db = db_with_sticker("A");
-        let r = confirm(&mut db, "2026-10-01", "A", SourceType::Created, 0.0).unwrap();
-        assert_eq!(r.slot(false), SlotState::Confirmed);
-        assert!(!r.slot(true).can_add_new()); // confirmed beats "selecting"
-        assert!(matches!(
-            confirm(&mut db, "2026-10-01", "A", SourceType::Collection, 0.0),
-            Err(Error::AlreadyUsedToday)
-        ));
-        assert_eq!(mark_used(&mut db, "2026-10-01").unwrap().slot(false), SlotState::Used);
-        assert!(matches!(
-            confirm(&mut db, "2026-10-01", "A", SourceType::Created, 0.0),
-            Err(Error::AlreadyUsedToday)
-        ));
-        // marking used twice is harmless
-        assert_eq!(mark_used(&mut db, "2026-10-01").unwrap().slot(false), SlotState::Used);
-        // the next day it works again
-        assert!(confirm(&mut db, "2026-10-02", "A", SourceType::Collection, 0.7).is_ok());
+    fn many_new_petas_per_day_and_reprints_are_allowed() {
+        let mut db=db_with_sticker("A");
+        for _ in 0..3 {
+            let r=confirm(&mut db,"2026-10-01","A",SourceType::Created,0.0).unwrap();
+            assert!(r.slot(false).can_add_new());
+            assert_eq!(db.next_print().unwrap().as_deref(),Some("A"));
+            mark_used(&mut db,"2026-10-01").unwrap();
+            assert!(db.next_print().unwrap().is_none());
+        }
+        confirm(&mut db,"2026-10-01","A",SourceType::Collection,0.0).unwrap();
     }
 
     #[test]

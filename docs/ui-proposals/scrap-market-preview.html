@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Peta Scraps Preview</title>
+<link rel="stylesheet" href="../../src/fonts/fonts.css" />
+<style>
+:root {
+  --ink: #2b2a28; --ink2: #4a463f; --muted: #7a7468; --cream: #f5f0e6; --line: #ddd4c2; --red: #d8453a;
+  --hand: "Klee One", "Noteworthy", cursive; --type: "Special Elite", "Courier New", monospace;
+  --sys: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --sh2: 0 1px 2px rgba(60,45,20,.3), 0 10px 22px rgba(60,45,20,.14); --sh3: 0 2px 4px rgba(60,45,20,.25), 0 24px 44px rgba(60,45,20,.24);
+  --E: cubic-bezier(.2,.8,.2,1);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cream) url("../../src/art/book/page-paper.jpg") 0 0 / 520px; color: var(--ink); font: 15px/1.7 var(--sys); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+img { -webkit-user-drag: none; user-select: none; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+.eyebrow { font: 12px/1 var(--type); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.hero { padding: 40px 0 8px; } .hero h1 { font-size: clamp(26px, 4.4vw, 40px); line-height: 1.2; margin: 10px 0 10px; }
+.hero p { max-width: 740px; color: var(--ink2); margin: 0 0 8px; }
+.note { background: rgba(255,253,249,.84); border-radius: 14px; padding: 14px 16px; box-shadow: var(--sh2); font-size: 13.5px; }
+.note h4 { margin: 0 0 4px; font: 12px var(--type); letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
+.note ul { margin: 0; padding-left: 1.1em; } .note li { margin: 3px 0; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin: 14px 0 0; }
+.bar { position: sticky; top: 0; z-index: 40; background: rgba(245,240,230,.92); backdrop-filter: blur(14px); box-shadow: 0 1px 0 var(--line); padding: 10px 0; margin-top: 16px; }
+@media (max-width: 700px) { .bar { position: static; } }
+.bar .row { display: flex; gap: 8px 16px; align-items: center; flex-wrap: wrap; } .bar .row + .row { margin-top: 8px; }
+.seg { display: inline-flex; background: rgba(0,0,0,.07); border-radius: 999px; padding: 3px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 5px 13px; border-radius: 999px; font-size: 13px; white-space: nowrap; } .seg button[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); font-weight: 600; }
+.lab { font: 11px var(--type); letter-spacing: .1em; color: var(--muted); text-transform: uppercase; margin-right: 4px; }
+.btn { border: 0; border-radius: 999px; padding: 8px 18px; background: var(--ink); color: #fff; font-weight: 600; box-shadow: 0 2px 0 rgba(0,0,0,.4), 0 8px 16px rgba(0,0,0,.2); } .btn:active { transform: translateY(1px); }
+.btn.quiet { background: rgba(255,255,255,.88); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.day { font: 600 14px var(--type); letter-spacing: .06em; background: #fff; border-radius: 999px; padding: 6px 14px; box-shadow: inset 0 0 0 1px var(--line); }
+
+.fit { position: relative; width: 100%; overflow: hidden; border-radius: 18px; box-shadow: var(--sh3); margin: 14px 0 0; background: #e9e0cd; }
+.stage { position: absolute; left: 0; top: 0; width: 960px; height: 560px; transform-origin: 0 0; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: manipulation; font-family: var(--sys); }
+.stage .bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(255,250,238,.5), rgba(120,96,60,.26) 100%), url("../../src/art/book/page-paper.jpg") 0 0 / 420px, #d9cdb4; }
+.stage .world { position: absolute; inset: 0; }
+.stage canvas.fx { position: absolute; left: 0; top: 0; width: 960px; height: 560px; pointer-events: none; z-index: 60; }
+.hintp { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 80; font: 600 15px/1 var(--hand); color: #fff; background: rgba(43,42,40,.8); padding: 9px 18px; border-radius: 999px; pointer-events: none; transition: opacity .3s; white-space: nowrap; } .hintp:empty { opacity: 0; }
+.abs { position: absolute; }
+.scene { position: absolute; inset: 0; transition: opacity .45s, transform .45s var(--E); } .scene.off { opacity: 0; pointer-events: none; transform: translateY(14px); }
+
+/* stock tray */
+.tray { position: absolute; left: 16px; top: 52px; width: 316px; padding: 48px 12px 12px; border-radius: 16px; background: rgba(247,241,226,.86) url("../../src/art/book/page-paper.jpg") 0 0 / 300px; box-shadow: var(--sh2); }
+.tray h3, .shelfh h3 { position: absolute; left: 14px; top: 10px; margin: 0; font: 600 17px var(--hand); color: #4a463f; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 10px; }
+.scard { position: relative; border: 0; background: none; padding: 0; text-align: center; border-radius: 10px; transition: transform .2s var(--E); } .scard:hover { transform: translateY(-3px) rotate(-1deg); }
+.scard img.c { width: 100%; display: block; filter: drop-shadow(0 1px 1px rgba(40,30,10,.35)); }
+.scard[data-sel="true"] img.c { filter: drop-shadow(0 0 0 #000) drop-shadow(0 0 5px rgba(216,69,58,.65)); }
+.scard[data-n="0"] { opacity: .38; } .scard[data-n="0"]:hover { transform: none; }
+.scard .nm { position: absolute; left: 7%; right: 7%; bottom: 9%; font: 600 11px/1.1 var(--type); color: #4a463f; letter-spacing: .04em; }
+.scard .cnt { position: absolute; right: -4px; top: -6px; min-width: 28px; padding: 3px 7px; border-radius: 999px; background: var(--ink); color: #fff; font: 600 12px var(--type); box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.scard .yield { position: absolute; left: -2px; top: -6px; font: 600 11px var(--type); padding: 2px 7px; border-radius: 5px; background: #f1e3b8; color: #5a4a22; box-shadow: 0 1px 2px rgba(0,0,0,.25); transform: rotate(-4deg); }
+.scard.pulse img.c { animation: pulse .8s var(--E); } @keyframes pulse { 30% { transform: scale(1.1); } }
+
+/* mat */
+.mat { position: absolute; left: 350px; top: 52px; width: 330px; height: 400px; border-radius: 16px; background: rgba(247,241,226,.78) url("../../src/art/book/page-paper.jpg") 0 0 / 300px; box-shadow: var(--sh2); overflow: hidden; }
+.mat::before { content: ""; position: absolute; inset: 14px; border-radius: 12px; border: 2px dashed rgba(120,100,60,.35); }
+.mat .ph { position: absolute; left: 0; right: 0; top: 46%; text-align: center; font: 600 15px var(--hand); color: #8a7e68; }
+.mcard { position: absolute; background-size: 100% 100%; filter: drop-shadow(0 3px 3px rgba(20,30,20,.4)); }
+.tile { position: absolute; background-repeat: no-repeat; filter: drop-shadow(0 2px 2px rgba(20,30,20,.4)); z-index: 7; }
+.acts { position: absolute; left: 350px; top: 462px; width: 330px; display: flex; gap: 10px; justify-content: center; align-items: center; }
+.yieldtag { font: 600 13px var(--type); background: #f1e3b8; color: #5a4a22; border-radius: 6px; padding: 4px 9px; }
+
+/* jar */
+.jarw { position: absolute; left: 0; top: 0; width: 260px; height: 372px; transform-origin: 0 0; transition: transform .7s var(--E); }
+.jarw .shadow { position: absolute; left: 24px; top: 330px; width: 220px; height: 36px; border-radius: 50%; background: radial-gradient(ellipse, rgba(50,36,16,.42), transparent 70%); filter: blur(4px); }
+.jarw svg, .jarw canvas { position: absolute; left: 0; top: 0; width: 260px; height: 360px; }
+.jarw .lid { position: absolute; left: 196px; top: 318px; width: 78px; height: 36px; border-radius: 8px; transform: rotate(14deg); background: linear-gradient(#d8bb88, #b8915b); box-shadow: 0 2px 2px rgba(50,36,16,.4), inset 0 2px 0 rgba(255,255,255,.35); }
+.jarw .lid::after { content: ""; position: absolute; left: 6px; right: 6px; top: 12px; height: 12px; background: repeating-linear-gradient(90deg, rgba(90,60,20,.35) 0 2px, transparent 2px 7px); }
+.jtag { position: absolute; left: 58px; top: 150px; transform-origin: 0 0; padding: 6px 16px 6px 22px; background: #d6b88a url("../../src/art/book/page-paper.jpg") 0 0 / 200px; background-blend-mode: multiply; border-radius: 4px 10px 10px 4px; font: 600 18px/1 var(--type); color: #3a2f1c; transform: rotate(-4deg) scale(1.39); box-shadow: 0 1px 2px rgba(40,30,10,.4); }
+.jtag::before { content: ""; position: absolute; left: 7px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #3a2f1c33; box-shadow: inset 0 1px 1px rgba(0,0,0,.3); }
+.jtag small { display: block; font: 10px var(--type); letter-spacing: .1em; color: #6a5a3a; margin-top: 2px; }
+
+/* market */
+.shelfh { position: absolute; left: 306px; top: 36px; width: 640px; }
+.packs { position: absolute; left: 306px; top: 56px; width: 640px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.ptile { position: relative; border: 0; background: none; padding: 0 0 8px; text-align: center; transition: transform .25s var(--E); }
+.ptile:hover { transform: translateY(-4px); } .ptile[data-sel="true"] { transform: translateY(-8px); }
+.ptile .pi { width: 118px; height: 157px; margin: 0 auto; display: block; filter: drop-shadow(0 4px 3px rgba(40,30,10,.35)); }
+.ptile[data-sel="true"] .pi { filter: drop-shadow(0 0 0 #000) drop-shadow(0 0 6px rgba(216,69,58,.55)) drop-shadow(0 4px 3px rgba(40,30,10,.3)); }
+.ptile .pn { display: block; font: 600 15px/1.2 var(--hand); margin-top: 4px; } .ptile .ps { display: block; font: 11px var(--type); color: #6a6354; }
+.price { position: absolute; right: 6px; top: 100px; width: 74px; height: 38px; background: url("../../src/art/ui/price-tag-paid.png") center / 100% 100% no-repeat; font: 700 15px/36px var(--type); padding-left: 16px; color: #3a2f1c; transform: rotate(6deg); }
+.price.no { filter: grayscale(.7) opacity(.7); }
+.own { position: absolute; left: 8px; top: 62px; font: 700 12px/1 var(--type); letter-spacing: .1em; color: var(--red); border: 2.5px solid var(--red); border-radius: 5px; padding: 5px 8px; background: rgba(255,250,240,.75); transform: rotate(-8deg); }
+.limited { position: absolute; left: 4px; top: 8px; width: 86px; transform: rotate(-6deg); }
+.detail { position: absolute; left: 306px; top: 340px; width: 640px; height: 170px; border-radius: 12px; padding: 14px 18px; background: #f7f1e2 url("../../src/art/book/page-paper.jpg") 0 0 / 300px; box-shadow: var(--sh2); display: flex; gap: 18px; align-items: center; }
+.detail .peek { display: flex; gap: 8px; } .detail .peek i { width: 62px; height: 62px; background-size: contain; background-position: center; background-repeat: no-repeat; filter: drop-shadow(0 1px 1px rgba(40,30,10,.3)); } .detail .peek i.q { background: rgba(0,0,0,.06); border-radius: 8px; font: 600 22px/62px var(--hand); color: #9a8f78; text-align: center; font-style: normal; filter: none; }
+.detail h4 { margin: 0; font: 600 21px var(--hand); } .detail small { color: #6a6354; font: 12px var(--type); display: block; margin: 2px 0 6px; }
+.detail .col { flex: 1; min-width: 0; } .detail .need { font: 600 13px var(--hand); color: #8a4a3a; margin-top: 6px; min-height: 18px; }
+.mine { position: absolute; left: 306px; top: 8px; display: flex; gap: 6px; align-items: center; font: 600 13px var(--hand); color: #4a463f; }
+.mine img { height: 30px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.3)); }
+.mine a { color: var(--red); font: 12px var(--type); }
+
+.modal { position: absolute; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(30,24,12,.38); }
+.modal .card { width: 400px; padding: 26px 28px; border-radius: 12px; background: #f7f1e2 url("../../src/art/book/page-paper.jpg") 0 0 / 300px; box-shadow: var(--sh3); text-align: center; }
+.modal h4 { margin: 0 0 6px; font: 600 22px var(--hand); } .modal p { margin: 0 0 16px; color: #4a463f; font-size: 14px; }
+.modal .row { display: flex; gap: 10px; justify-content: center; }
+
+/* page sections */
+.info { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0 0; } @media (max-width: 820px) { .info { grid-template-columns: 1fr; } }
+section.blk { padding: 34px 0 6px; } section.blk h2 { font-size: clamp(21px, 3vw, 27px); margin: 6px 0 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: rgba(255,253,249,.88); border-radius: 14px; overflow: hidden; box-shadow: var(--sh2); }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; } th { font: 11px var(--type); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: rgba(0,0,0,.03); }
+.simgrid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 14px; } @media (max-width: 820px) { .simgrid { grid-template-columns: 1fr; } }
+.sim label { display: block; font-size: 13px; margin: 8px 0 2px; } .sim input[type=range] { width: 100%; accent-color: var(--ink); }
+.big { font: 600 30px var(--type); } .kv { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; } .kv div { background: #fff; border-radius: 10px; padding: 8px 12px; box-shadow: inset 0 0 0 1px var(--line); } .kv small { display: block; font: 11px var(--type); color: var(--muted); }
+footer { padding: 36px 0 70px; color: var(--muted); font-size: 12.5px; }
+.toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px); background: var(--ink); color: #fff; padding: 8px 18px; border-radius: 999px; font-size: 13px; opacity: 0; transition: .25s; z-index: 99; pointer-events: none; } .toast.on { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Peta · Scraps · preview only</div>
+    <h1>素材を Scraps にして、瓶にためて、パックと交換する</h1>
+    <p>毎日届く素材を<b>分解して共通通貨「Scraps(切れ端)」</b>にして、<b>瓶</b>にためます。たまった Scraps で Market のパックと交換する、までの一連の流れを触れるようにしました。アプリ本体は変更していません(この HTML だけの試作です)。</p>
+    <div class="cols">
+      <div class="note"><h4>やってみる順番</h4><ul><li>① 分解:左の素材カードを選び「Make scraps」</li><li>② Market:瓶がたまったら、パックを選んで交換</li><li>足りなければ上の「+1日 / +7日」で時間を進める</li></ul></div>
+      <div class="note"><h4>ルール(この案)</h4><ul><li>Matte は分解できない(0)</li><li>Uncommon = <b>10</b>、Rare = <b>30</b> Scraps</li><li>パック: 20 / 30 / 50 / 60(限定)</li><li>Scraps は貯める専用(購入・譲渡なし)</li></ul></div>
+    </div>
+  </header>
+</div>
+
+<div class="bar"><div class="wrap">
+  <div class="row">
+    <span class="seg" id="segScene"></span>
+    <span class="day" id="dayLab">Day 1</span>
+    <button class="btn quiet" id="d1">＋1日</button>
+    <button class="btn quiet" id="d7">＋7日</button>
+    <button class="btn quiet" id="reset">リセット</button>
+  </div>
+  <div class="row">
+    <span><span class="lab">抽選の確率</span><span class="seg" id="segW"></span></span>
+    <span><span class="lab">音</span><span class="seg" id="segSnd"></span></span>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <div class="fit" id="fit">
+    <div class="stage" id="stage">
+      <div class="bg"></div>
+      <div class="world" id="world"></div>
+      <canvas class="fx" id="fx" width="1920" height="1120"></canvas>
+      <div class="hintp" id="hint"></div>
+    </div>
+  </div>
+  <div class="info" id="info"></div>
+
+  <section class="blk">
+    <div class="eyebrow">Pace</div>
+    <h2>どのくらいのペースで貯まる?</h2>
+    <p style="max-width:740px;color:var(--ink2)">毎日の素材を全部分解した場合の 30 日分を、いまの抽選の確率で試せます。スライダーで「Create(ステッカー作り)に使う割合」を変えると、交換に回せる量がどう変わるか分かります。</p>
+    <div class="simgrid">
+      <div class="note sim">
+        <h4>条件</h4>
+        <label>Create に使う割合: <b id="pv">30%</b></label><input id="pr" type="range" min="0" max="100" value="30" />
+        <div class="kv" id="expect"></div>
+        <p style="margin:10px 0 0"><button class="btn" id="runSim">30日を試す</button></p>
+      </div>
+      <div class="note"><h4>30 日間の累積(分解に回した分)</h4><svg id="chart" viewBox="0 0 560 230" style="width:100%;height:auto"></svg><div id="simOut" style="font-size:13px;margin-top:4px"></div></div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="eyebrow">Rates</div>
+    <h2>交換の比率(案)</h2>
+    <div class="simgrid">
+      <table><thead><tr><th>分解する素材</th><th>Scraps</th></tr></thead><tbody>
+        <tr><td>Matte</td><td>0(分解不可)</td></tr><tr><td>Uncommon(Kraft / Riso / Vintage など)</td><td>10</td></tr><tr><td>Rare(Holographic / Gold など)</td><td>30</td></tr><tr><td>Special / Archive(限定)</td><td>分解不可</td></tr></tbody></table>
+      <table><thead><tr><th>パック</th><th>値段</th><th>貯まる日数(中央値)</th></tr></thead><tbody>
+        <tr><td>小さい(5〜6枚)</td><td>20</td><td>約 4 日</td></tr><tr><td>標準(8枚)</td><td>30</td><td>約 5 日</td></tr><tr><td>大きい(12枚)</td><td>50</td><td>約 8 日</td></tr><tr><td>季節・限定</td><td>60</td><td>約 10 日</td></tr></tbody></table>
+    </div>
+    <p class="eyebrow" style="margin-top:12px">日数は「毎日の素材を全部分解」+ README の 60/30/10 の場合(20,000 回のシミュレーション)</p>
+  </section>
+
+  <footer>Peta · docs/ui-proposals/scrap-market-preview.html — 実装なしのプレビュー。瓶は仮の CSS/SVG(本番は Codex 制作の絵に差し替え)。パックの中身の絵は <code>src/art/samples/</code> の見本で代用しています。</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const ART = "../../src/art/";
+const $ = (s, r = document) => r.querySelector(s);
+const el = (cls, style, html) => { const d = document.createElement("div"); if (cls) d.className = cls; if (style) Object.assign(d.style, style); if (html != null) d.innerHTML = html; return d; };
+const imgEl = (src, cls, style) => { const i = new Image(); i.src = ART + src; i.draggable = false; if (cls) i.className = cls; if (style) Object.assign(i.style, style); return i; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), rnd = (a, b) => a + Math.random() * (b - a), pick = (a) => a[Math.floor(Math.random() * a.length)];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const E = { out: "cubic-bezier(.2,.8,.2,1)", spring: "cubic-bezier(.34,1.56,.64,1)", in: "cubic-bezier(.5,0,.9,.4)" };
+const stage = $("#stage"), world = $("#world"), fit = $("#fit");
+let K = 1;
+function fitStage() { K = fit.clientWidth / 960; stage.style.transform = `scale(${K})`; fit.style.height = 560 * K + "px"; }
+addEventListener("resize", fitStage);
+const toast = (t) => { const e = $("#toast"); e.textContent = t; e.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove("on"), 2200); };
+const hint = (t) => { $("#hint").textContent = t || ""; };
+
+/* ── sound ── */
+const Snd = { on: true, c: null,
+  ctx() { if (!this.on) return null; if (!this.c) { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; this.c = new A(); } if (this.c.state === "suspended") this.c.resume(); return this.c; },
+  noise(dur = .05, f = 3000, g = .1, type = "bandpass") { const c = this.ctx(); if (!c) return; const n = (c.sampleRate * dur) | 0, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n); const s = c.createBufferSource(); s.buffer = b; const fl = c.createBiquadFilter(); fl.type = type; fl.frequency.value = f; const gn = c.createGain(); gn.gain.value = g; s.connect(fl); fl.connect(gn); gn.connect(c.destination); s.start(); },
+  tone(freq, dur = .25, g = .1, type = "sine", at = 0) { const c = this.ctx(); if (!c) return; const o = c.createOscillator(), gn = c.createGain(), t = c.currentTime + at; o.type = type; o.frequency.setValueAtTime(freq, t); gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(g, t + .01); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(gn); gn.connect(c.destination); o.start(t); o.stop(t + dur + .05); },
+  snip() { this.noise(.03, 5200, .14, "highpass"); }, clink() { this.tone(rnd(1900, 2600), .09, .035, "triangle"); },
+  chime() { [660, 880, 1175].forEach((f, i) => this.tone(f, .6, .08, "triangle", i * .08)); }, thud() { this.tone(130, .14, .2); this.noise(.05, 400, .08, "lowpass"); }, no() { this.tone(180, .16, .12, "square"); },
+};
+
+/* ── particles ── */
+const sparkImg = new Image(); sparkImg.src = ART + "today/sparkles-sheet.png";
+const FX = { g: null, ps: [], raf: 0, last: 0, init() { this.g = $("#fx").getContext("2d"); },
+  add(p) { this.ps.push(p); if (!this.raf) { this.last = performance.now(); this.raf = requestAnimationFrame((t) => this.loop(t)); } },
+  loop(t) { const dt = Math.min(.05, (t - this.last) / 1000); this.last = t; const g = this.g; g.clearRect(0, 0, 1920, 1120);
+    this.ps = this.ps.filter((p) => (p.age += dt) < p.life);
+    for (const p of this.ps) { p.vy += (p.g || 0) * dt; p.x += p.vx * dt; p.y += p.vy * dt; const k = p.age / p.life;
+      g.save(); g.globalAlpha = clamp(Math.sin(Math.PI * Math.min(1, k * 1.1)) * (.7 + .3 * Math.sin(p.age * 20 + p.tw)), 0, 1); g.translate(p.x * 2, p.y * 2); g.rotate(p.rot + p.age);
+      const s = p.size * 2 * (.6 + .4 * Math.sin(Math.PI * k)); if (sparkImg.complete) g.drawImage(sparkImg, p.frame * 256, 0, 256, 256, -s / 2, -s / 2, s, s); g.restore(); }
+    if (this.ps.length) this.raf = requestAnimationFrame((tt) => this.loop(tt)); else { this.raf = 0; g.clearRect(0, 0, 1920, 1120); } },
+  spark(x, y, o = {}) { this.add({ x, y, vx: o.vx ?? rnd(-40, 40), vy: o.vy ?? rnd(-70, -10), g: o.g ?? 30, rot: rnd(-.5, .5), age: 0, life: o.life ?? rnd(.7, 1.3), size: o.size ?? rnd(14, 30), frame: (Math.random() * 4) | 0, tw: rnd(0, 6) }); },
+};
+
+/* ── data ── */
+const MATS = {
+  matte:       { name: "Matte",       rar: "common",   scraps: 0,  card: "today/material-card-matte.png",       inf: true },
+  kraft:       { name: "Kraft",       rar: "uncommon", scraps: 10, card: "today/material-card-kraft.png" },
+  riso:        { name: "Riso",        rar: "uncommon", scraps: 10, card: "today/material-card-riso.png" },
+  vintage:     { name: "Vintage",     rar: "uncommon", scraps: 10, card: "today/material-card-vintage.png" },
+  holographic: { name: "Holographic", rar: "rare",     scraps: 30, card: "today/material-card-holographic.png" },
+  gold:        { name: "Gold Foil",   rar: "rare",     scraps: 30, card: "today/material-card-gold.png" },
+};
+const ORDER = ["kraft", "riso", "vintage", "holographic", "gold", "matte"];
+Object.values(MATS).forEach((m) => { m.img = new Image(); m.img.src = ART + m.card; });
+const SAMPLES = { "potted-plant": "Little Plant", "blue-flower": "Blue Flower", "fried-egg": "Fried Egg", "coffee-cup": "Coffee", "film-camera": "Film Camera", "cassette-tape": "Cassette", "good-day": "GOOD DAY", "polaroid-mountain": "Polaroid", "retro-computer": "Retro PC", "cat-skateboard": "Skate Cat", "peta-bubble": "Peta", "purple-scribble": "Purple Line" };
+const PACKS = [
+  { id: "plants", name: "Houseplants", by: "Mika", count: 5, price: 20, img: "pack/pack-matte.png", keys: ["potted-plant", "blue-flower", "fried-egg"] },
+  { id: "time", name: "Time of Day", by: "Peta", count: 8, price: 30, img: "pack/pack-pouch-closed.png", keys: ["coffee-cup", "polaroid-mountain", "cat-skateboard"] },
+  { id: "desk", name: "Desk Pack", by: "Peta", count: 12, price: 50, img: "pack/pack-kraft.png", keys: ["film-camera", "cassette-tape", "retro-computer"] },
+  { id: "sakura", name: "Sakura Night", by: "Ren", count: 6, price: 60, img: "pack/pack-holographic.png", keys: ["blue-flower", "peta-bubble", "good-day"], limited: true },
+];
+const W = { readme: [60, 30, 10], code: [50, 32, 18] };
+let wmode = "readme";
+const St = { day: 1, stock: { kraft: 2, riso: 1, vintage: 1, holographic: 1, gold: 1 }, owned: [], sel: null, selPack: null, busy: false };
+const initial = () => ({ day: 1, stock: { kraft: 2, riso: 1, vintage: 1, holographic: 1, gold: 1 }, owned: [], sel: null, selPack: null, busy: false });
+
+/* ── jar ── */
+const Jar = {
+  W: 260, H: 360, x0: 34, x1: 226, floor: 312, col: 4, h: [], settled: [], falling: [], raf: 0, last: 0, cv: null, g: null, interior: null, mouth: { x: 130, y: 54 },
+  init(container) {
+    this.cv = document.createElement("canvas"); this.cv.width = 520; this.cv.height = 720; this.g = this.cv.getContext("2d");
+    this.interior = new Path2D("M84 56 L176 56 L176 76 C176 94 222 96 226 126 L226 300 Q226 314 212 314 L48 314 Q34 314 34 300 L34 126 C38 96 84 94 84 76 Z");
+    this.h = new Array(Math.ceil((this.x1 - this.x0) / this.col)).fill(0);
+    const outer = "M78 50 L182 50 L182 74 C182 90 232 92 232 126 L232 304 Q232 322 214 322 L46 322 Q28 322 28 304 L28 126 C28 92 78 90 78 74 Z";
+    const back = document.createElementNS("http://www.w3.org/2000/svg", "svg"); back.setAttribute("viewBox", "0 0 260 360");
+    back.innerHTML = `<path d="${outer}" fill="rgba(235,244,246,.34)"/>`;
+    const front = document.createElementNS("http://www.w3.org/2000/svg", "svg"); front.setAttribute("viewBox", "0 0 260 360"); front.style.pointerEvents = "none";
+    front.innerHTML = `<path d="${outer}" fill="none" stroke="rgba(110,125,135,.55)" stroke-width="3.5"/><rect x="74" y="43" width="112" height="11" rx="4" fill="rgba(235,244,246,.55)" stroke="rgba(110,125,135,.55)" stroke-width="2.5"/>
+      <path d="M44 120 Q40 200 44 296" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="9" stroke-linecap="round"/><path d="M58 126 Q55 150 56 170" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M214 140 Q218 210 214 290" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="5" stroke-linecap="round"/><path d="M40 312 Q130 322 220 312" fill="none" stroke="rgba(110,125,135,.3)" stroke-width="5" stroke-linecap="round"/>`;
+    container.append(el("shadow"), back, this.cv, front);
+    this.cv.style.cssText = "position:absolute;left:0;top:0;width:260px;height:360px";
+  },
+  count() { return this.settled.length + this.falling.length; },
+  hAt(x, w) { let m = 0; const a = Math.max(0, Math.floor((x - w / 2 - this.x0) / this.col)), b = Math.min(this.h.length - 1, Math.floor((x + w / 2 - this.x0) / this.col)); for (let i = a; i <= b; i++) m = Math.max(m, this.h[i]); return m; },
+  add(key, x, y) {
+    const m = MATS[key], w = rnd(26, 38), hh = rnd(17, 25), iw = m.img.naturalWidth || 560;
+    this.falling.push({ key, x: x ?? this.mouth.x + rnd(-16, 16), y: y ?? this.mouth.y, vx: rnd(-18, 18), vy: rnd(0, 60), rot: rnd(-1, 1), vr: rnd(-4, 4), w, hh, kind: (Math.random() * 3) | 0, sx: rnd(30, iw - 120), sy: rnd(24, 200) });
+    this.run();
+  },
+  spend(n) { const keys = []; while (n-- > 0) { let p = this.falling.pop(); if (!p) { p = this.settled.pop(); if (!p) break; p.prev.forEach(([i, v]) => { this.h[i] = v; }); } keys.push(p.key); } this.draw(); return keys; },
+  run() { if (!this.raf) { this.last = performance.now(); this.raf = requestAnimationFrame((t) => this.loop(t)); } },
+  loop(t) {
+    const dt = Math.min(.04, (t - this.last) / 1000); this.last = t;
+    for (const p of [...this.falling]) {
+      p.vy += 1500 * dt; p.y += p.vy * dt; p.x += p.vx * dt; p.rot += p.vr * dt; p.x = clamp(p.x, this.x0 + p.w / 2, this.x1 - p.w / 2);
+      const top = this.floor - this.hAt(p.x, p.w);
+      if (p.y + p.hh / 2 >= top) {
+        const l = this.hAt(p.x - 22, p.w), r = this.hAt(p.x + 22, p.w), c = this.hAt(p.x, p.w);
+        if (Math.min(l, r) < c - 9) p.x = clamp(p.x + (l < r ? -24 : 24) * rnd(.6, 1.2), this.x0 + p.w / 2, this.x1 - p.w / 2);
+        const rest = this.hAt(p.x, p.w); p.y = this.floor - rest - p.hh / 2; p.rot = rnd(-.9, .9);
+        const a = Math.max(0, Math.floor((p.x - p.w / 2 - this.x0) / this.col)), b = Math.min(this.h.length - 1, Math.floor((p.x + p.w / 2 - this.x0) / this.col)); p.prev = [];
+        for (let i = a; i <= b; i++) { p.prev.push([i, this.h[i]]); this.h[i] = Math.max(this.h[i], rest) + 11; }
+        this.falling.splice(this.falling.indexOf(p), 1); this.settled.push(p); if (Math.random() < .35) Snd.clink();
+      }
+    }
+    this.draw();
+    if (this.falling.length) this.raf = requestAnimationFrame((tt) => this.loop(tt)); else this.raf = 0;
+  },
+  shape(g, p) {
+    const w = p.w, h = p.hh; g.beginPath();
+    if (p.kind === 0) { if (g.roundRect) g.roundRect(-w / 2, -h / 2, w, h, Math.min(w, h) * .42); else g.rect(-w / 2, -h / 2, w, h); }
+    else if (p.kind === 1) { const A = [-w / 2, h / 2], B = [w / 2, h / 2], C = [0, -h / 2], mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], ab = mid(A, B), bc = mid(B, C), ca = mid(C, A); g.moveTo(...ab); g.quadraticCurveTo(...B, ...bc); g.quadraticCurveTo(...C, ...ca); g.quadraticCurveTo(...A, ...ab); g.closePath(); }
+    else { g.ellipse(0, 0, w / 2, h / 2.2, .25, 0, 6.283); }
+  },
+  draw() {
+    const g = this.g; g.setTransform(2, 0, 0, 2, 0, 0); g.clearRect(0, 0, 260, 360); g.save(); g.clip(this.interior);
+    for (const p of [...this.settled, ...this.falling]) {
+      const m = MATS[p.key]; g.save(); g.translate(p.x, p.y); g.rotate(p.rot); this.shape(g, p);
+      g.shadowColor = "rgba(40,30,10,.38)"; g.shadowBlur = 3; g.shadowOffsetY = 1.5; g.fillStyle = "#ddd"; g.fill(); g.shadowColor = "transparent";
+      g.save(); this.shape(g, p); g.clip(); if (m.img.complete && m.img.naturalWidth) g.drawImage(m.img, p.sx, p.sy, 110, 76, -p.w / 2 - 2, -p.hh / 2 - 2, p.w + 4, p.hh + 4);
+      g.fillStyle = "rgba(255,255,255,.22)"; g.fillRect(-p.w / 2, -p.hh / 2, p.w, p.hh * .4); g.restore();
+      this.shape(g, p); g.strokeStyle = "rgba(60,45,20,.45)"; g.lineWidth = 1.1; g.stroke(); g.restore();
+    }
+    g.restore();
+  },
+};
+
+/* ── scene plumbing ── */
+let scene = "A", jarEl, tagNum, tagEl, shown = 0;
+const sceneA = el("scene"), sceneB = el("scene off");
+const JS = 0.72, JPOS = { A: { x: 742, y: 200 }, B: { x: 38, y: 268 } };
+function placeJar() { const t = JPOS[scene]; jarEl.style.transform = `translate(${t.x}px,${t.y}px) scale(${JS})`; }
+function jarStage() { const t = JPOS[scene]; return { x: t.x + Jar.mouth.x * JS, y: t.y + Jar.mouth.y * JS }; }
+function setCount(n) { const from = shown; shown = n; const t0 = performance.now(); (function step(t) { const k = clamp((t - t0) / 400, 0, 1); tagNum.textContent = Math.round(from + (n - from) * k); if (k < 1) requestAnimationFrame(step); })(t0); }
+function dayLab() { $("#dayLab").textContent = "Day " + St.day; }
+
+/* ── scene A: dismantle ── */
+let matCard = null, cutBtn, yieldTag, matEl, tray;
+function renderStock() {
+  const grid = tray.querySelector(".grid"); grid.innerHTML = "";
+  for (const k of ORDER) {
+    const m = MATS[k], n = m.inf ? Infinity : (St.stock[k] || 0);
+    const b = document.createElement("button"); b.className = "scard"; b.dataset.n = m.inf ? 1 : n; b.dataset.sel = String(St.sel === k);
+    b.append(imgEl(m.card, "c"), el("nm", null, m.name), el("cnt", null, m.inf ? "∞" : "×" + n), el("yield", null, m.scraps ? "+" + m.scraps : "—"));
+    b.onclick = () => { if (!St.busy) selectMat(k); }; b.ondblclick = () => { if (!St.busy) { selectMat(k); cut(); } };
+    grid.append(b);
+  }
+}
+function selectMat(k) {
+  St.sel = k; const m = MATS[k];
+  if (matCard) matCard.remove();
+  matCard = el("mcard", { left: "25px", top: "100px", width: "280px", height: "190px", backgroundImage: `url(${ART}${m.card})` });
+  matEl.append(matCard); matCard.animate([{ transform: "scale(.85) translateY(10px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 320, easing: E.spring });
+  $(".ph", matEl).style.opacity = 0; renderStock(); updateCut(); Snd.tone(900, .08, .04, "triangle");
+}
+function updateCut() {
+  const k = St.sel, m = k && MATS[k], n = m ? (m.inf ? Infinity : St.stock[k] || 0) : 0;
+  cutBtn.disabled = !m || (!m.inf && n < 1) || St.busy; yieldTag.textContent = !m ? "—" : m.scraps ? `+${m.scraps} Scraps` : "0 Scraps";
+  hint(!m ? "左から素材を選ぶ" : m.scraps === 0 ? "Matte は無地の紙。Scraps にはならない" : n < 1 ? "この素材はもう無い(＋1日で増やせる)" : "「Make scraps」を押す");
+}
+function confirmRare(m) {
+  return new Promise((res) => {
+    const md = el("modal"); md.innerHTML = `<div class="card"><h4>${m.name} を Scraps にします</h4><p>${m.scraps} Scraps になります。<br>もとには戻せません(素材帳の「見つけた記録」は残ります)。</p><div class="row"></div></div>`;
+    const keep = document.createElement("button"); keep.className = "btn quiet"; keep.textContent = "Keep it"; keep.onclick = () => { md.remove(); res(false); };
+    const go = document.createElement("button"); go.className = "btn"; go.textContent = "Make scraps"; go.onclick = () => { md.remove(); res(true); };
+    md.querySelector(".row").append(keep, go); stage.append(md);
+  });
+}
+async function cut() {
+  const k = St.sel; if (!k || St.busy) return; const m = MATS[k];
+  if (m.scraps === 0) { Snd.no(); matCard && matCard.animate([{ transform: "translateX(0)" }, { transform: "translateX(-9px)" }, { transform: "translateX(8px)" }, { transform: "translateX(-5px)" }, { transform: "none" }], { duration: 380 }); toast("Matte は無地の紙です。Scraps にはなりません。"); return; }
+  if ((St.stock[k] || 0) < 1) return;
+  if (m.rar === "rare" && !(await confirmRare(m))) return;
+  St.busy = true; St.stock[k]--; renderStock(); updateCut(); hint("");
+  const n = m.scraps, cx = 350 + 25 + 140, cy = 52 + 100 + 95;
+  /* the card squashes and pops */
+  await matCard.animate([{ transform: "none" }, { transform: "scale(1.05,.88)" }, { transform: "scale(.92,1.08)" }, { transform: "scale(1.03)" }], { duration: 360, easing: E.out }).finished;
+  Snd.thud(); matCard.animate([{ transform: "scale(1.03)", opacity: 1 }, { transform: "scale(.3) rotate(14deg)", opacity: 0 }], { duration: 260, fill: "forwards", easing: E.in });
+  for (let i = 0; i < 8; i++) FX.spark(cx + rnd(-90, 90), cy + rnd(-60, 60), { vy: rnd(-90, -20), size: rnd(14, 30) });
+  const target = jarStage();
+  await Promise.all(Array.from({ length: n }, async (_, i) => {
+    const w = rnd(22, 32), h = rnd(16, 24), r = () => rnd(28, 50) + "%", sx = cx + rnd(-100, 100), sy = cy + rnd(-60, 60);
+    const b = el("tile", { left: sx - w / 2 + "px", top: sy - h / 2 + "px", width: w + "px", height: h + "px", borderRadius: `${r()} ${r()} ${r()} ${r()}`, backgroundImage: `url(${ART}${m.card})`, backgroundSize: "170px 115px", backgroundPosition: `${-rnd(6, 110)}px ${-rnd(6, 60)}px`, border: "1px solid rgba(60,45,20,.45)", boxShadow: "0 2px 3px rgba(40,30,10,.35)", opacity: 0 }); world.append(b);
+    await sleep(i * (n === 30 ? 26 : 50));
+    const dx = target.x + rnd(-14, 14) - sx, dy = target.y - 4 - sy, rot = rnd(-260, 260), ux = rnd(-50, 50), uy = -rnd(50, 110);
+    const a = b.animate([{ transform: "scale(.2)", opacity: 0 }, { transform: `translate(${ux}px,${uy}px) rotate(${rot / 3}deg) scale(1.15)`, opacity: 1, offset: .28, easing: "ease-out" }, { transform: `translate(${dx * .6 + ux * .3}px,${Math.min(dy, 0) - 70}px) rotate(${rot / 1.6}deg) scale(1)`, offset: .62, easing: "ease-in-out" }, { transform: `translate(${dx}px,${dy}px) rotate(${rot}deg) scale(.55)`, opacity: 1 }], { duration: 1000, fill: "forwards" });
+    await a.finished; b.remove(); Jar.add(k, Jar.mouth.x + rnd(-36, 36), Jar.mouth.y - 8); setCount(Jar.count());
+    if (m.rar === "rare" && Math.random() < .5) FX.spark(target.x + rnd(-30, 30), target.y + rnd(-6, 50), { size: rnd(14, 28) });
+  }));
+  if (m.rar === "rare") { for (let i = 0; i < 12; i++) setTimeout(() => FX.spark(target.x + rnd(-50, 50), target.y + rnd(0, 120), { vy: rnd(-90, -20), size: rnd(16, 32) }), i * 60); }
+  Snd.chime(); toast(`+${n} Scraps  (${m.name})`);
+  St.busy = false; matCard.remove(); matCard = null; $(".ph", matEl).style.opacity = 1; if ((St.stock[k] || 0) < 1) St.sel = null; else { selectMat(k); } renderStock(); updateCut();
+}
+
+/* ── scene B: market ── */
+let shelfEl, detailEl, mineEl;
+function renderMarket() {
+  shelfEl.innerHTML = "";
+  PACKS.forEach((p) => {
+    const own = St.owned.includes(p.id), afford = Jar.count() >= p.price;
+    const b = document.createElement("button"); b.className = "ptile"; b.dataset.sel = String(St.selPack === p.id); b.dataset.id = p.id;
+    b.append(imgEl(p.img, "pi"), el("pn", null, p.name), el("ps", null, `by ${p.by} · ${p.count} stickers`), el("price" + (afford || own ? "" : " no"), null, own ? "✓" : p.price));
+    if (own) b.append(el("own", null, "ON YOUR SHELF")); if (p.limited) b.append(imgEl("ui/seal-archive.png", "limited"));
+    b.onclick = () => { St.selPack = p.id; renderMarket(); Snd.tone(900, .08, .04, "triangle"); };
+    shelfEl.append(b);
+  });
+  const p = PACKS.find((x) => x.id === St.selPack);
+  detailEl.innerHTML = "";
+  if (!p) { detailEl.append(el("col", null, `<h4>パックを選んでください</h4><small>どのパックを買うかは選べる。<b>中身は開けるまで分からない。</b></small><div class="need">瓶に ${Jar.count()} Scraps</div>`)); }
+  else {
+    const own = St.owned.includes(p.id), have = Jar.count(), ok = have >= p.price;
+    const col = el("col"); col.innerHTML = `<h4>${p.name}${p.limited ? " · 限定" : ""}</h4><small>by ${p.by} · ${p.count} stickers · 何度でも開けられる</small>`;
+    const peek = el("peek"); p.keys.forEach((k) => peek.append(el("", { width: "62px", height: "62px" }, `<i style="background-image:url(${ART}samples/${k}.png);display:block;width:62px;height:62px;background-size:contain;background-position:center;background-repeat:no-repeat;filter:drop-shadow(0 1px 1px rgba(40,30,10,.3))"></i>`)));
+    peek.append(el("", null, `<i class="q" style="display:block;width:62px">?</i>`)); col.append(peek);
+    const btn = document.createElement("button"); btn.className = "btn"; btn.style.marginTop = "10px"; btn.disabled = own || !ok || St.busy; btn.textContent = own ? "On your shelf" : `Trade ${p.price} Scraps`; btn.onclick = () => trade(p);
+    col.append(btn, el("need", null, own ? "" : ok ? "" : `あと ${p.price - have} Scraps ・素材を分解するか、＋1日で次の素材を待つ`));
+    detailEl.append(col);
+  }
+  mineEl.innerHTML = `<span>On your shelf:</span>` + (St.owned.length ? St.owned.map((id) => { const p = PACKS.find((x) => x.id === id); return `<img src="${ART}${p.img}" title="${p.name}">`; }).join("") + `<a href="pack-opening-preview.html" target="_blank">Open →</a>` : `<span style="color:#9a8f78">(まだ無い)</span>`);
+  hint(p && !St.owned.includes(p.id) && Jar.count() < p.price ? "" : "");
+}
+async function trade(p) {
+  if (St.busy || Jar.count() < p.price || St.owned.includes(p.id)) return;
+  St.busy = true; const tile = $(`.ptile[data-id="${p.id}"] .pi`, shelfEl), tr = tile.getBoundingClientRect(), sb = stage.getBoundingClientRect();
+  const tx = (tr.left - sb.left + tr.width / 2) / K, ty = (tr.top - sb.top + tr.height / 2) / K, from = jarStage();
+  const keys = Jar.spend(p.price); setCount(Jar.count()); Snd.thud();
+  const n = Math.min(keys.length, 20);
+  await Promise.all(Array.from({ length: n }, async (_, i) => {
+    await sleep(i * 40); const key = keys[i % keys.length] || "kraft", m = MATS[key];
+    const c = el("tile", { left: from.x - 8 + rnd(-14, 14) + "px", top: from.y + "px", width: "16px", height: "11px", backgroundImage: `url(${ART}${m.card})`, backgroundSize: "160px 108px", backgroundPosition: `${-rnd(10, 130)}px ${-rnd(10, 80)}px`, zIndex: 9 }); world.append(c);
+    const a = c.animate([{ transform: "none" }, { transform: `translate(${(tx - from.x) * .5}px,${(ty - from.y) * .3 - 90}px) rotate(160deg)`, offset: .5, easing: "ease-out" }, { transform: `translate(${tx - from.x}px,${ty - from.y}px) rotate(320deg) scale(.5)`, opacity: .6 }], { duration: 650, fill: "forwards", easing: "ease-in" });
+    await a.finished; c.remove(); if (i % 3 === 0) Snd.clink();
+  }));
+  tile.animate([{ transform: "scale(1)" }, { transform: "scale(1.14,.9) translateY(4px)" }, { transform: "scale(.96,1.06) translateY(-12px)" }, { transform: "none" }], { duration: 520, easing: E.out });
+  for (let i = 0; i < 10; i++) FX.spark(tx + rnd(-50, 50), ty + rnd(-60, 40), { size: rnd(14, 28) });
+  Snd.chime(); St.owned.push(p.id); toast(`${p.name} が棚に届きました。`); St.busy = false; renderMarket();
+}
+
+/* ── build ── */
+function build() {
+  FX.init(); fitStage();
+  /* A */
+  tray = el("tray"); tray.append(el("", null, "<h3>My materials</h3>"), el("grid")); sceneA.append(tray);
+  matEl = el("mat"); matEl.append(el("ph", null, "切る素材をここへ")); sceneA.append(matEl);
+  const acts = el("acts"); cutBtn = document.createElement("button"); cutBtn.className = "btn"; cutBtn.textContent = "Make scraps"; cutBtn.onclick = cut; yieldTag = el("yieldtag", null, "—"); acts.append(yieldTag, cutBtn); sceneA.append(acts);
+  /* B */
+  const head = el("shelfh", null, "<h3>Market</h3>"); sceneB.append(head);
+  mineEl = el("mine"); mineEl.style.top = "6px"; sceneB.append(mineEl);
+  shelfEl = el("packs"); shelfEl.style.top = "62px"; sceneB.append(shelfEl); detailEl = el("detail"); sceneB.append(detailEl);
+  head.style.display = "none";
+  world.append(sceneA, sceneB);
+  /* jar (shared) */
+  jarEl = el("jarw"); Jar.init(jarEl); tagEl = el("jtag"); tagNum = document.createElement("span"); tagNum.textContent = "0"; tagEl.append(tagNum, el("", null, "<small>SCRAPS</small>")); jarEl.append(el("lid"), tagEl); world.append(jarEl);
+  placeJar(); renderStock(); updateCut(); renderMarket(); dayLab();
+  selectMat("kraft");
+}
+
+/* ── controls ── */
+function segs() {
+  const mk = (id, items, get, set) => { const root = $(id); items.forEach(([v, t]) => { const b = document.createElement("button"); b.textContent = t; b.setAttribute("aria-pressed", get() === v); b.onclick = () => { set(v); [...root.children].forEach((x, i) => x.setAttribute("aria-pressed", items[i][0] === v)); }; root.append(b); }); };
+  mk("#segScene", [["A", "① 分解 → 瓶"], ["B", "② Market で交換"]], () => scene, (v) => go(v));
+  mk("#segW", [["readme", "README 60/30/10"], ["code", "コード 50/32/18"]], () => wmode, (v) => { wmode = v; sim.expect(); });
+  mk("#segSnd", [[true, "ON"], [false, "OFF"]], () => Snd.on, (v) => { Snd.on = v; });
+}
+function go(s) {
+  if (St.busy) return; scene = s; sceneA.classList.toggle("off", s !== "A"); sceneB.classList.toggle("off", s !== "B"); placeJar();
+  [...$("#segScene").children].forEach((x, i) => x.setAttribute("aria-pressed", (i === 0) === (s === "A")));
+  if (s === "B") renderMarket(); else { renderStock(); updateCut(); }
+  hint(s === "B" ? "パックを選んで「Trade」" : "");
+}
+function rollDay() {
+  const w = W[wmode], r = Math.random() * 100; const k = r < w[0] ? "matte" : r < w[0] + w[1] ? pick(["kraft", "riso", "vintage"]) : pick(["holographic", "gold"]);
+  St.day++; dayLab();
+  if (k !== "matte") St.stock[k] = (St.stock[k] || 0) + 1;
+  return k;
+}
+function advance(n) {
+  if (St.busy) return; const got = []; for (let i = 0; i < n; i++) got.push(rollDay());
+  const sum = {}; got.forEach((k) => { sum[k] = (sum[k] || 0) + 1; });
+  toast(n === 1 ? `Day ${St.day}: ${MATS[got[0]].name}${got[0] === "matte" ? "(無地の紙・分解不可)" : " が届きました"}` : `+${n}日: ` + Object.entries(sum).map(([k, v]) => `${MATS[k].name}×${v}`).join(" "));
+  renderStock(); updateCut(); Snd.tone(780, .16, .06, "triangle");
+  document.querySelectorAll(".scard").forEach((b, i) => { const k = ORDER[i]; if (got.includes(k)) { b.classList.add("pulse"); setTimeout(() => b.classList.remove("pulse"), 900); } });
+}
+function reset() { Jar.settled.length = 0; Jar.falling.length = 0; Jar.h.fill(0); Jar.draw(); Object.assign(St, initial()); setCount(0); shown = 0; tagNum.textContent = "0"; matCard && matCard.remove(); matCard = null; $(".ph", matEl).style.opacity = 1; dayLab(); renderStock(); updateCut(); renderMarket(); selectMat("kraft"); }
+$("#d1").onclick = () => advance(1); $("#d7").onclick = () => advance(7); $("#reset").onclick = reset;
+
+/* ── pace simulator ── */
+const sim = {
+  expect() {
+    const w = W[wmode], t = w.reduce((a, b) => a + b, 0), per = (w[1] * 10 + w[2] * 30) / t, p = +$("#pr").value / 100, month = per * 30 * (1 - p);
+    $("#expect").innerHTML = `<div><small>毎日の期待値</small><span class="big">${per.toFixed(1)}</span> Scraps</div><div><small>30日(全部分解)</small><span class="big">${Math.round(per * 30)}</span></div><div><small>30日(Create ${Math.round(p * 100)}%)</small><span class="big">${Math.round(month)}</span></div><div><small>標準パック</small><span class="big">${(month / 30).toFixed(1)}</span> 個/月</div>`;
+  },
+  run() {
+    const w = W[wmode], t = w.reduce((a, b) => a + b, 0), p = +$("#pr").value / 100; let cum = 0; const pts = [[0, 0]], types = [];
+    for (let d = 1; d <= 30; d++) { const r = Math.random() * t; let v = 0, ty = "matte"; if (r >= w[0] && r < w[0] + w[1]) { v = 10; ty = "unc"; } else if (r >= w[0] + w[1]) { v = 30; ty = "rare"; } if (v && Math.random() < p) { v = 0; ty += "*"; } cum += v; pts.push([d, cum]); types.push(ty); }
+    const max = Math.max(70, cum + 10), X = (d) => 36 + (d / 30) * 510, Y = (v) => 205 - (v / max) * 185; let s = `<rect x="36" y="20" width="510" height="185" fill="#fffdf6" stroke="#ddd4c2"/>`;
+    [[20, "20"], [30, "30"], [50, "50"], [60, "60"]].forEach(([v, l]) => { if (v <= max) s += `<line x1="36" x2="546" y1="${Y(v)}" y2="${Y(v)}" stroke="#d8453a" stroke-dasharray="4 4" opacity=".5"/><text x="548" y="${Y(v) + 4}" font-size="10" fill="#d8453a" font-family="Special Elite">${l}</text>`; });
+    s += `<polyline points="${pts.map(([d, v]) => X(d) + "," + Y(v)).join(" ")}" fill="none" stroke="#2b2a28" stroke-width="2.4" stroke-linejoin="round"/>`;
+    types.forEach((ty, i) => { const c = ty.startsWith("rare") ? "#e0b84a" : ty.startsWith("unc") ? "#b08a5b" : "#c8c0ae"; s += `<circle cx="${X(i + 1)}" cy="222" r="${ty.startsWith("rare") ? 5 : ty.startsWith("unc") ? 4 : 2.4}" fill="${c}" ${ty.endsWith("*") ? 'stroke="#d8453a" stroke-width="1.5"' : ""}/>`; });
+    s += `<text x="36" y="14" font-size="10" fill="#7a7468" font-family="Special Elite">Scraps (30 days)</text>`; $("#chart").innerHTML = s;
+    const packs = [20, 30, 50, 60].map((c) => { const d = pts.find(([, v]) => v >= c); return d ? `${c}: Day ${d[0]}` : `${c}: 届かず`; }).join(" ・ ");
+    $("#simOut").innerHTML = `30日で <b>${cum}</b> Scraps。パックに届いた日 → ${packs}<br><small style="color:#7a7468">下の点: ●大=Rare ●中=Uncommon ●小=Matte ・赤い縁=Createに使った分</small>`;
+  },
+};
+$("#pr").oninput = () => { $("#pv").textContent = $("#pr").value + "%"; sim.expect(); }; $("#runSim").onclick = () => sim.run();
+
+/* ── info ── */
+$("#info").innerHTML = `<div class="note"><h4>① 分解 → 瓶</h4><ul><li>素材カードを選び「Make scraps」。カードが<b>ぽんっとはじけて</b>、素材の色をしたデフォルメの切れ端になり、瓶へ飛んでいく</li><li>切れ端は、その素材の色・絵柄(Kraft は茶色、Holographic は虹色)</li><li>Rare は確認ダイアログつき(戻せないため)。Matte は Scraps にならない</li><li>瓶の中身で貯まった量を見せる。数字は小さな札だけ</li></ul></div>
+<div class="note"><h4>② Market で交換</h4><ul><li>棚から<b>パックを選んで</b>(中身はランダム)、Scraps を払う</li><li>払った分の切れ端が、瓶からパックへ飛ぶ</li><li>足りない時は「あと N」と表示し、分解へ戻れる</li><li>買ったパックは棚に並び、<a href="pack-opening-preview.html" target="_blank">開封の演出</a>へつながる</li></ul></div>`;
+
+segs(); build(); sim.expect();
+document.fonts && document.fonts.ready.then(fitStage);
+</script>
+</body>
+</html>

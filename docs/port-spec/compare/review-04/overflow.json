@@ -1,0 +1,154 @@
+[
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "studio",
+    "page": "create",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "64>60",
+          "Undo"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "63>59",
+          "Redo"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "102>98",
+          "Cancel"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      1060,
+      700
+    ],
+    "shell": "desk",
+    "page": "create",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "64>60",
+          "Undo"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "63>59",
+          "Redo"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "102>98",
+          "Cancel"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "studio",
+    "page": "create",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "64>60",
+          "Undo"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "63>59",
+          "Redo"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "102>98",
+          "Cancel"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  },
+  {
+    "size": [
+      720,
+      520
+    ],
+    "shell": "desk",
+    "page": "create",
+    "issues": [],
+    "knownFalsePositives": [
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "64>60",
+          "Undo"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper.small",
+          "63>59",
+          "Redo"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      },
+      {
+        "issue": [
+          "spillX",
+          "button.btn.paper",
+          "102>98",
+          "Cancel"
+        ],
+        "reason": "WebKit includes ::before paper art inset -3px -4px in scrollWidth"
+      }
+    ]
+  }
+]

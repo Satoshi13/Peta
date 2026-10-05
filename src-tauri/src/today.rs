@@ -1,8 +1,7 @@
-//! Today: the Daily Slot as the app sees it (spec §11-15).
-//! Rules live in `peta_core::daily`; this module owns the clock, the Today window and the events.
+//! Today: one material envelope per local day, with unlimited sticker creation.
+//! Rules live in `peta_core::daily`; this module owns the clock, the one-window Today route and the events.
 
 use std::{
-    path::PathBuf,
     sync::{
         atomic::{AtomicI64, Ordering},
         Mutex,
@@ -17,26 +16,29 @@ use peta_core::{
     Database, Material, SlotState, SourceType,
 };
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt;
 
-use crate::{creator, layers::Layers, platform, store::Store, tray};
+use crate::{creator, layers::Layers, store::Store, tray};
 
-pub const TODAY_LABEL: &str = "today";
-/// Error string the UI recognises: today's new Peta has already been confirmed.
-pub const ALREADY_USED: &str = "already_used_today";
-
+pub const TODAY_LABEL: &str = crate::app_window::APP_LABEL;
 /// Where a Peta made through the Today screen lands until the Print -> Grab -> Paste flow exists (Phase 4).
 pub const DEFAULT_SPOT: (f64, f64) = (0.5, 0.45);
 
 #[derive(Default)]
 pub struct Today {
-    /// Developer "next day" switch. Always 0 in release builds.
+    /// Developer edition day offset. Distribution always starts at 0.
     day_offset: AtomicI64,
     last_seen: Mutex<String>,
 }
 
 impl Today {
+    pub fn next_day(&self) -> Result<(), String> {
+        if !cfg!(feature="developer") { return Err("Developer edition required.".into()); }
+        self.day_offset.fetch_add(1, Ordering::SeqCst);
+        Ok(())
+    }
+
     /// Local date, `YYYY-MM-DD`. The slot resets when this changes (spec §13).
     pub fn date(&self) -> String {
         daily::local_today(self.day_offset.load(Ordering::SeqCst))
@@ -49,6 +51,7 @@ pub struct DailyStatus {
     pub date: String,
     /// Today's material is a surprise until the envelope is opened.
     pub material_opened: bool,
+    pub bonus_envelopes: i64,
     pub material: Option<Material>,
     pub slot: SlotState,
     pub can_create: bool,
@@ -86,9 +89,10 @@ fn build_status(app: &AppHandle, record: &DailyRecord, db: &Database) -> DailySt
     DailyStatus {
         date: record.date.clone(),
         material_opened: opened,
+        bonus_envelopes: db.bonus_envelopes().unwrap_or(0),
         material: if opened { material_view(db, &record.material_id) } else { None },
         slot,
-        can_create: slot.can_add_new(),
+        can_create: peta_core::materials::catalog().iter().any(|m| db.has_material(&m.id).unwrap_or(false)),
         sticker_id: record.sticker_id.clone(),
         unlocked,
     }
@@ -114,40 +118,23 @@ pub fn announce(app: &AppHandle) {
 // ---- opening the Today screen ----
 
 pub fn open_window(app: &AppHandle) -> tauri::Result<()> {
-    platform::activate_app(); // we're an Accessory app; bring the window to the front
-    if let Some(w) = app.get_webview_window(TODAY_LABEL) {
-        w.show()?;
-        return w.set_focus();
-    }
-    WebviewWindowBuilder::new(app, TODAY_LABEL, WebviewUrl::App("today.html".into()))
-        .title("Today's Peta")
-        .inner_size(560.0, 720.0)
-        .min_inner_size(460.0, 520.0)
-        .center()
-        .build()?;
-    Ok(())
+    crate::app_window::open(app, "today")
 }
 
 // ---- the actions ----
 
 /// Use a sticker from the collection (peeled off, or never stuck) as today's Peta.
-pub fn stick_from_collection(app: &AppHandle, sticker_id: &str, display_id: &str) -> Result<(), String> {
+pub fn stick_from_collection(app: &AppHandle, sticker_id: &str, _display_id: &str) -> Result<(), String> {
     let date = app.state::<Today>().date();
     let store = app.state::<Store>();
     {
         let mut lib = store.lock();
-        let record = daily::ensure_today(lib.db_mut(), &date, random_unit()).map_err(|e| e.to_string())?;
-        if !record.slot(false).can_add_new() {
-            return Err(ALREADY_USED.into());
-        }
-        let sticker = lib
+        let _sticker = lib
             .db()
             .sticker(sticker_id)
             .map_err(|e| e.to_string())?
             .ok_or_else(|| format!("unknown sticker {sticker_id}"))?;
-        lib.stick_new(&sticker, display_id, DEFAULT_SPOT.0, DEFAULT_SPOT.1).map_err(|e| e.to_string())?;
         daily::confirm(lib.db_mut(), &date, sticker_id, SourceType::Collection, random_unit()).map_err(|e| e.to_string())?;
-        daily::mark_used(lib.db_mut(), &date).map_err(|e| e.to_string())?;
     }
     announce(app);
     Ok(())
@@ -157,6 +144,9 @@ pub fn stick_from_collection(app: &AppHandle, sticker_id: &str, display_id: &str
 
 #[tauri::command]
 pub fn daily_status(app: AppHandle) -> Result<DailyStatus, String> {
+    let today = app.state::<Today>();
+    let changed = *today.last_seen.lock().unwrap() != today.date();
+    if changed { roll_day(&app); }
     status(&app)
 }
 
@@ -180,9 +170,6 @@ pub async fn daily_create(
     layers: State<'_, Layers>,
     material_id: Option<String>,
 ) -> Result<DailyStatus, String> {
-    if !status(&app)?.can_create {
-        return Err(ALREADY_USED.into());
-    }
     let picked = app
         .dialog()
         .file()
@@ -256,32 +243,20 @@ pub fn spawn_day_watcher(app: AppHandle) {
     });
 }
 
-// ---- developer switches (debug builds only show these in the menu) ----
-
-pub fn dev_next_day(app: &AppHandle) {
-    app.state::<Today>().day_offset.fetch_add(1, Ordering::SeqCst);
-    roll_day(app);
-}
-
-/// Forget today's record (its sticker stays) so the slot, the draw and the envelope start over.
-pub fn dev_reset_today(app: &AppHandle) {
-    let date = app.state::<Today>().date();
-    if let Err(e) = app.state::<Store>().lock().db_mut().daily_delete(&date) {
-        eprintln!("[peta] reset today failed: {e}");
-    }
-    roll_day(app);
-}
-
-/// Developer: cut out an image on the Cutting Mat without touching today's slot.
-pub fn dev_open_image(app: &AppHandle, path: &PathBuf) {
-    let primary = app.state::<Layers>().primary_display_id();
-    match std::fs::read(path) {
-        Ok(bytes) => {
-            let target = creator::Target { display_id: primary, x: DEFAULT_SPOT.0, y: DEFAULT_SPOT.1, counts_for_today: false, material_hint: None };
-            if let Err(e) = creator::begin(app, bytes, target) {
-                eprintln!("[peta] could not open the Cutting Mat: {e}");
-            }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn advancing_the_day_is_available_only_in_the_developer_edition() {
+        let today=Today::default();
+        let before=today.date();
+        let result=today.next_day();
+        if cfg!(feature="developer") {
+            result.unwrap();
+            assert_eq!(today.date(),daily::local_today(1));
+        } else {
+            assert!(result.is_err());
+            assert_eq!(today.date(),before);
         }
-        Err(e) => eprintln!("[peta] could not read {}: {e}", path.display()),
     }
 }

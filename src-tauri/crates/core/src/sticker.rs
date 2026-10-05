@@ -105,12 +105,20 @@ enum Substrate {
     Paper,
     Kraft,
     Holographic,
+    Gold, Riso, Vintage, Clear, Pixel, Washi, Sakura,
 }
 
 fn substrate_of(recipe: &MaterialRecipe) -> Substrate {
     match recipe.substrate.as_str() {
         "kraft_paper" => Substrate::Kraft,
         "holographic_film" => Substrate::Holographic,
+        "gold_foil" => Substrate::Gold,
+        "riso_paper" => Substrate::Riso,
+        "vintage_paper" => Substrate::Vintage,
+        "clear_film" => Substrate::Clear,
+        "pixel_paper" => Substrate::Pixel,
+        "washi_paper" => Substrate::Washi,
+        "sakura_paper" => Substrate::Sakura,
         _ => Substrate::Paper,
     }
 }
@@ -129,6 +137,7 @@ pub fn render_sticker(rgb: &RgbaImage, subject: &[f32], sil: &Silhouette, recipe
     let sheen = recipe.reflection.as_ref().filter(|r| r.enabled).map(|r| r.strength as f32).unwrap_or(0.0);
     let border_px = (w.max(h) as f32 * 0.03).max(1.0); // only used to scale textures
 
+    let scale = 600.0 / w.max(h) as f32;
     let mut out = RgbaImage::new(w as u32, h as u32);
     for y in 0..h {
         for x in 0..w {
@@ -140,12 +149,31 @@ pub fn render_sticker(rgb: &RgbaImage, subject: &[f32], sil: &Silhouette, recipe
             }
             let (fx, fy) = (x as f32, y as f32);
             let m = smoothstep(0.30, 0.95, subject[i]); // trim the faint rim so no old background shows
-            let photo = colors[i];
+            let mut photo = colors[i];
+            if kind == Substrate::Pixel {
+                let cell = (w.max(h) as f32 / 75.0).max(1.0);
+                let px = (((fx / cell).floor() + 0.5) * cell).min((w-1) as f32) as usize;
+                let py = (((fy / cell).floor() + 0.5) * cell).min((h-1) as f32) as usize;
+                if subject[py*w+px] > 0.8 { photo = colors[py*w+px]; }
+            }
+            let (tx, ty) = (fx*scale, fy*scale);
 
             let (border, subject_col, rim) = match kind {
                 Substrate::Paper => paper(fx, fy, photo, noise),
                 Substrate::Kraft => kraft(fx, fy, photo, noise),
                 Substrate::Holographic => holographic(fx, fy, photo, noise, sheen, sil.subject_dist[i], border_px),
+                Substrate::Gold => gold(tx, ty, photo),
+                Substrate::Riso => {
+                    let shift = (w.max(h) as f32 / 240.0).round().max(1.0) as usize;
+                    let j = y*w+(x+shift).min(w-1);
+                    let offset = if subject[j] > 0.8 { colors[j] } else { photo };
+                    riso(tx, ty, photo, offset)
+                },
+                Substrate::Vintage => vintage(tx, ty, photo),
+                Substrate::Clear => ([0.82,0.88,0.91], photo, 0.02),
+                Substrate::Pixel => pixel(tx, ty, photo),
+                Substrate::Washi => washi(tx, ty, photo),
+                Substrate::Sakura => sakura(tx, ty, photo),
             };
             let mut col = mix(border, subject_col, m);
             // die-cut edge: the outermost couple of pixels catch a little shade
@@ -153,7 +181,14 @@ pub fn render_sticker(rgb: &RgbaImage, subject: &[f32], sil: &Silhouette, recipe
             col = [col[0] * (1.0 - edge * rim), col[1] * (1.0 - edge * rim), col[2] * (1.0 - edge * rim)];
 
             let px = |v: f32| (v.clamp(0.0, 1.0) * 255.0).round() as u8;
-            out.put_pixel(x as u32, y as u32, Rgba([px(col[0]), px(col[1]), px(col[2]), px(cover)]));
+            let alpha = if kind == Substrate::Clear {
+                // White ink keeps the image opaque; the unprinted film remains translucent.
+                cover * lerp(recipe.transparency.unwrap_or(0.28) as f32, 1.0, m)
+            } else if kind == Substrate::Washi {
+                let fibre = value_noise(tx*0.18, ty*0.18, SEED+211);
+                cover * lerp(0.76+fibre*0.24, 1.0, smoothstep(0.0,2.0,sil.inside_dist[i]*scale))
+            } else { cover };
+            out.put_pixel(x as u32, y as u32, Rgba([px(col[0]), px(col[1]), px(col[2]), px(alpha)]));
         }
     }
     out
@@ -224,6 +259,54 @@ fn holographic(x: f32, y: f32, photo: Rgb, noise: f32, sheen: f32, dist_to_subje
         1.0 - (1.0 - vivid[2]) * (1.0 - rainbow[2] * k) + sparkle * 0.08,
     ];
     (border, subject, 0.04)
+}
+
+fn gold(x: f32, y: f32, photo: Rgb) -> (Rgb, Rgb, f32) {
+    let leaf = fbm(x*0.035,y*0.035,SEED+101,3);
+    let band = ((x*0.7+y*0.3)*0.013).sin()*0.05;
+    let foil = mix([0.69,0.49,0.20],[0.98,0.85,0.47],(0.5+leaf*0.6+band).clamp(0.0,1.0));
+    (foil,mix(photo,[photo[0],photo[1]*0.98,photo[2]*0.92],0.35),0.04)
+}
+
+fn riso(x: f32, y: f32, photo: Rgb, offset: Rgb) -> (Rgb, Rgb, f32) {
+    let grain = (hash(x as i32,y as i32,SEED+121)-0.5)*0.09;
+    let paper = [0.965+grain*0.4,0.94+grain*0.4,0.87+grain*0.4];
+    let coral = (1.0-photo[1])*0.74;
+    let blue = (1.0-luma(offset))*0.8;
+    let ink = mix(mix(paper,[0.83,0.35,0.37],coral),[0.23,0.39,0.54],blue);
+    (paper,[ink[0]+grain,ink[1]+grain,ink[2]+grain],0.06)
+}
+
+fn vintage(x: f32, y: f32, photo: Rgb) -> (Rgb, Rgb, f32) {
+    let cloud = fbm(x*0.018,y*0.018,SEED+141,3)*0.07;
+    let fleck = if hash(x as i32,y as i32,SEED+142)>0.987 { 0.12 } else { 0.0 };
+    let paper = [0.91+cloud-fleck,0.84+cloud-fleck,0.68+cloud-fleck];
+    let faded = mix([luma(photo);3],photo,0.58);
+    (paper,mix(faded,paper,0.16),0.10)
+}
+
+fn pixel(x: f32, y: f32, photo: Rgb) -> (Rgb, Rgb, f32) {
+    let index = ((x/8.0).floor() as i32+2*(y/8.0).floor() as i32).rem_euclid(4);
+    let pastel = [[0.96,0.94,0.90],[0.75,0.83,0.90],[0.96,0.78,0.89],[0.97,0.94,0.75]][index as usize];
+    let quantized = photo.map(|v| (v*7.0).round()/7.0);
+    (mix([0.96,0.94,0.90],pastel,0.38),mix(quantized,[0.97,0.95,0.90],0.08),0.05)
+}
+
+fn washi(x: f32, y: f32, photo: Rgb) -> (Rgb, Rgb, f32) {
+    let fibres = fbm(x*0.026+y*0.014,y*0.66-x*0.05,SEED+161,3)*0.07;
+    let clouds = fbm(x*0.017,y*0.017,SEED+162,2)*0.055;
+    let paper = [0.955+fibres+clouds,0.914+fibres+clouds,0.863+fibres+clouds];
+    (paper,mix(photo,paper,0.11),0.05)
+}
+
+fn sakura(x: f32, y: f32, photo: Rgb) -> (Rgb, Rgb, f32) {
+    let cloud = fbm(x*0.02,y*0.02,SEED+181,3)*0.035;
+    let (cx,cy) = ((x/200.0).floor() as i32,(y/200.0).floor() as i32);
+    let u = x.rem_euclid(200.0)-35.0-hash(cx,cy,SEED+182)*120.0;
+    let v = y.rem_euclid(200.0)-35.0-hash(cx,cy,SEED+183)*120.0;
+    let petal = 1.0-smoothstep(0.8,1.0,((u+v*0.5)/10.0).powi(2)+(v/17.0).powi(2));
+    let paper = mix([0.973+cloud,0.890+cloud,0.902+cloud],[0.914,0.718,0.753],petal*0.6);
+    (paper,mix(photo,paper,0.10),0.05)
 }
 
 #[cfg(test)]
@@ -328,6 +411,32 @@ mod tests {
         let (b, _) = render("holographic");
         assert_eq!(a.as_raw(), b.as_raw());
         assert_ne!(render("kraft").0.as_raw(), render("matte").0.as_raw());
+    }
+
+    #[test]
+    fn every_new_finish_is_deterministic_and_distinct_without_changing_canvas_shape() {
+        let matte=render("matte").0;
+        let mut finishes=std::collections::HashSet::new();
+        for id in ["gold","riso","vintage","clear","pixel","washi","sakura"] {
+            let (a,sil)=render(id);let b=render(id).0;
+            assert_eq!(a.dimensions(),matte.dimensions());
+            assert_eq!(a.as_raw(),b.as_raw(),"{id}");
+            assert_ne!(a.as_raw(),matte.as_raw(),"{id}");
+            assert!(finishes.insert(a.as_raw().clone()),"{id}: duplicated finish");
+            for (i,p) in a.pixels().enumerate() {
+                if sil[i]==0.0 { assert_eq!(p.0,[0,0,0,0],"{id}: background"); }
+            }
+            assert_eq!(a.get_pixel(100,100).0[3],255,"{id}: subject stays opaque");
+        }
+    }
+
+    #[test]
+    fn clear_has_translucent_unprinted_film_and_opaque_white_ink() {
+        let (clear,sil)=render("clear");
+        let alpha=clear.get_pixel(147,100).0[3];
+        assert!(alpha>40 && alpha<100,"film alpha {alpha}");
+        assert!(sil[100*200+147]>0.99);
+        assert_eq!(clear.get_pixel(100,100).0[3],255);
     }
 
     #[test]

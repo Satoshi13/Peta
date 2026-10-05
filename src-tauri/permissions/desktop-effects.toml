@@ -1,0 +1,40 @@
+[[permission]]
+identifier = "allow-profile-icon"
+description = "Choose a local creator icon from owned original stickers"
+commands.allow = ["profile_set_icon"]
+
+[[permission]]
+identifier = "allow-set-reflection-active"
+description = "Enable cursor reflection for the calling desktop layer."
+commands.allow = ["set_reflection_active"]
+
+[[permission]]
+identifier = "allow-reflection-status"
+description = "Read reflection activity and cursor sampling counters."
+commands.allow = ["reflection_status"]
+
+# Adding an app permission manifest requires granting the existing native IPC too.
+[[permission]]
+identifier = "allow-existing-app-commands"
+description = "Preserve native commands available before desktop effect permissions were added."
+commands.allow = ["port_capture_report", "port_capture_tray", "layer_info", "layer_placements", "save_placement", "peel_sticker", "sticker_asset", "import_dropped", "exit_edit_mode", "daily_status", "daily_open_material", "daily_create", "collection_unused", "daily_stick_from_collection", "creator_begin_path", "creator_begin_bytes", "creator_info", "creator_original", "creator_render", "creator_stroke", "creator_clear_edits", "creator_finish", "creator_edit_original", "creator_save_original", "creator_undo", "creator_redo", "creator_cancel", "arrival_status", "arrival_open", "gift_send", "gift_receive_file", "gift_inbox", "gift_open", "pack_install_demo", "pack_status", "pack_open", "print_resume", "print_pending", "print_paste", "print_later", "book_index", "book_page", "sticker_back", "sticker_delete_original", "material_book", "profile_get", "profile_set"]
+
+[[permission]]
+identifier = "allow-haptic-tap"
+description = "Play optional tactile feedback for a completed paper gesture."
+commands.allow = ["haptic_tap"]
+
+[[permission]]
+identifier = "allow-scrap-trades"
+description = "Read Scraps and confirm local material dismantling and exchanges in the main app."
+commands.allow = ["scrap_status", "scrap_trade"]
+
+[[permission]]
+identifier = "allow-signed-distribution"
+description = "Redeem a signed official code and read local distribution receipts."
+commands.allow = ["redeem_code", "event_inbox", "creator_pack_accept", "creator_pack_pending", "creator_pack_decline", "creator_pack_save"]
+
+[[permission]]
+identifier = "allow-developer-tools"
+description = "Developer tools are rejected by the distribution edition in Rust."
+commands.allow = ["developer_next_day", "developer_sync_displays"]

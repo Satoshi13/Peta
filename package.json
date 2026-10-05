@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "tauri dev",
-    "build": "tauri build --debug",
-    "test": "node --test tests/placement.test.mjs",
-    "check:mac": "cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin"
+    "build": "tauri build",
+    "test": "node --test tests/*.test.mjs",
+    "check:mac": "cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin",
+    "dev:developer": "tauri dev --features developer --config src-tauri/tauri.developer.conf.json",
+    "build:developer": "tauri build --features developer --config src-tauri/tauri.developer.conf.json",
+    "check:mac:developer": "cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin --features developer"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"

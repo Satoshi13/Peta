@@ -5,7 +5,7 @@ html, body {
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
-  font: 13px -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font: 14px/1.5 var(--sys);
 }
 
 /* No tint / frame / handles in edit mode: the stickers themselves respond (cursor, lift, settle). */
@@ -20,13 +20,13 @@ html, body {
 }
 .sticker .body {
   width: 100%; height: 100%;
-  transition: transform 120ms ease-out;
   /* soft contact shadow, like a sticker lying on the desktop */
   filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35));
 }
 .sticker img { width: 100%; height: 100%; display: block; -webkit-user-drag: none; }
-/* Picked up: slightly larger. The (expensive) shadow filter is dropped while it's in the hand. */
-.sticker.lifted .body { transform: scale(1.04); filter: none; }
+/* Original desktop lift; print grab uses the reference's separate 160ms scale animation. */
+.sticker.lifted .body { transform: scale(1.06); filter: drop-shadow(0 12px 12px rgba(0, 0, 0, .3)); }
+.sticker.print-grab .body { transform: scale(1.08); filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, .35)); }
 
 /* Turned over: the back card (see back-card.css) takes the sticker's place. */
 .sticker .card { display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
@@ -34,19 +34,25 @@ html, body {
 .sticker.flipped .body { display: none; }
 
 /* Holographic foil: a soft reflection band, clipped to the sticker's own shape. */
-.sticker[data-material="holographic"] .body { position: relative; }
-.sticker[data-material="holographic"] .body::after {
+.sticker:is([data-material="holographic"],[data-material="gold"]) .body { position: relative; }
+.sticker:is([data-material="holographic"],[data-material="gold"]) .body::after {
   content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light;
   -webkit-mask-image: var(--mask); mask-image: var(--mask); -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
   background: linear-gradient(var(--sa, 115deg), transparent 20%, rgba(255, 255, 255, 0) 36%, rgba(255, 255, 255, 0.85) 48%, rgba(180, 225, 255, 0.55) 53%, transparent 68%);
   background-size: 260% 260%; background-position: var(--sx, 30%) var(--sy, 30%);
 }
 
-/* Peeling: the sticker is half off the surface; no transition, no shadow filter. */
-.sticker.peeling .body { transition: none; filter: none; }
-/* the lifted sticker hovers over the surface: its (projected) shape casts a soft shadow */
-.sticker.peeling { filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.32)); }
-.sticker.peel-ready .body { filter: brightness(1.06); } /* "let go now and it comes off" */
+.sticker[data-material="gold"] .body::after { background-image:linear-gradient(var(--sa,115deg),transparent 25%,rgba(255,250,216,.8) 48%,rgba(255,232,168,.5) 54%,transparent 68%); }
+
+/* Only the pulled side curls; the attached ink stays against the desktop. */
+.sticker.peeling .body { position: relative; z-index: 1; transition: none; filter: none; }
+.peel-curl, .peel-shadow { position: absolute; inset: 0; pointer-events: none; }
+.peel-curl { z-index: 2; }
+.peel-shadow {
+  -webkit-mask-image: var(--mask); mask-image: var(--mask);
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+}
+.peel-shadow { z-index: 0; background: #251e17; filter: blur(7px); }
 
 /* An image file is being dragged over the desktop. */
 #layer.drop-target { outline: 3px dashed rgba(255, 255, 255, 0.75); outline-offset: -14px; }
@@ -73,26 +79,3 @@ html, body {
   font: inherit; color: #1c1c1e; background: #fff; border: 0; border-radius: 999px; padding: 3px 12px; cursor: pointer;
 }
 #edit-hint small { opacity: 0.55; margin-right: 4px; }
-
-/* ---- Print: the Peta comes out of an abstract slot at the top of the screen, on its backing sheet ---- */
-#print-hint {
-  position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 12px;
-  padding: 6px 8px 6px 14px; border-radius: 999px;
-  background: rgba(30, 30, 34, 0.9); color: #fff; white-space: nowrap;
-}
-#print-hint[hidden] { display: none; }
-#print-hint .tips { opacity: 0.7; }
-#print-hint button { font: inherit; color: #1c1c1e; background: #fff; border: 0; border-radius: 999px; padding: 3px 12px; cursor: pointer; }
-#print-hint small { opacity: 0.55; margin-right: 4px; }
-
-/* the stage clips the sheet at the slot, so it really comes out of it */
-.print-stage { position: fixed; left: 0; right: 0; top: 44px; bottom: 0; overflow: hidden; pointer-events: none; display: flex; justify-content: center; align-items: flex-start; padding-top: 14px; }
-.print-sheet { pointer-events: auto; cursor: grab; position: relative; }
-.print-sheet img { display: block; -webkit-user-drag: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)); }
-.print-slot {
-  position: fixed; top: 38px; left: 50%; width: min(520px, 54vw); height: 8px; border-radius: 4px; pointer-events: none;
-  transform: translateX(-50%);
-  background: linear-gradient(#2c2b2a, #1b1a19); box-shadow: 0 2px 0 rgba(255, 255, 255, 0.25);
-}
-.print-slot-glow { position: absolute; left: 6%; right: 6%; top: 6px; height: 14px; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 244, 220, 0.85), transparent); }

@@ -1,0 +1,120 @@
+{
+  "creators-studio-1060": {
+    "h": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "w": 1060
+  },
+  "preview-studio-1060": {
+    "h": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "w": 1060
+  },
+  "creators-studio-720": {
+    "h": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "w": 720
+  },
+  "preview-studio-720": {
+    "h": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "w": 720
+  },
+  "creators-desk-1060": {
+    "h": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "w": 1060
+  },
+  "preview-desk-1060": {
+    "h": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "w": 1060
+  },
+  "creators-desk-720": {
+    "h": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "w": 720
+  },
+  "preview-desk-720": {
+    "h": 520,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "w": 720
+  },
+  "dismantle": {
+    "balance": 15,
+    "busy": false,
+    "stock": 0
+  },
+  "no-stock": {
+    "h": 700,
+    "overflow": false,
+    "pos": {
+      "x": 190,
+      "y": 100
+    },
+    "w": 1060
+  },
+  "purchase": {
+    "balance": 3,
+    "busy": false,
+    "pack": {
+      "by": "Ryo",
+      "daily": false,
+      "fingerprint": null,
+      "hue": 120,
+      "id": "pixel",
+      "kind": "holo",
+      "left": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "signatureStatus": null,
+      "title": "Pixel Dream",
+      "total": 6
+    }
+  },
+  "retry": {
+    "balance": 3,
+    "left": 6
+  },
+  "open-paid-pack": {
+    "id": "PETA-ABD6-DH2Q",
+    "left": 5
+  },
+  "production-developer-guard": "checked in final edition build"
+}

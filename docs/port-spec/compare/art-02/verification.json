@@ -1,0 +1,51 @@
+{
+  "nativeWindow": "layer-1-0",
+  "tags": [
+    {
+      "art": "peta-tag-en",
+      "background": "none",
+      "border": "0px",
+      "duration": 1300,
+      "height": 60,
+      "naturalWidth": 480,
+      "opacity": "1",
+      "src": "tauri://localhost/art/fx/peta-tag-en.png",
+      "width": 120
+    },
+    {
+      "art": "peta-tag-round",
+      "background": "none",
+      "border": "0px",
+      "duration": 1300,
+      "height": 96,
+      "naturalWidth": 360,
+      "opacity": "1",
+      "src": "tauri://localhost/art/fx/peta-tag-round.png",
+      "width": 96
+    },
+    {
+      "art": "peta-tag-holo",
+      "background": "none",
+      "border": "0px",
+      "duration": 1300,
+      "height": 50,
+      "naturalWidth": 480,
+      "opacity": "1",
+      "src": "tauri://localhost/art/fx/peta-tag-holo.png",
+      "width": 124
+    },
+    {
+      "art": "peta-tag-stamp",
+      "background": "none",
+      "border": "0px",
+      "duration": 1300,
+      "height": 52,
+      "naturalWidth": 480,
+      "opacity": "1",
+      "src": "tauri://localhost/art/fx/peta-tag-stamp.png",
+      "width": 112
+    }
+  ],
+  "fourSlotsAndNoImmediateRepeatTest": "node --test tests/peta-tags.test.mjs",
+  "note": "Native Tauri desktop layer; variants selected and paused for visual capture only. No persisted placement changes."
+}

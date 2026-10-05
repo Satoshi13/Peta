@@ -1,7 +1,15 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "layer",
-  "description": "Desktop sticker layers (one transparent window per display) and the Today window",
-  "windows": ["layer-*", "today", "creator", "collection", "arrival"],
-  "permissions": ["core:default"]
+  "description": "Transparent desktop sticker layers, including the arrival notification",
+  "windows": [
+    "layer-*"
+  ],
+  "permissions": [
+    "core:default",
+    "allow-set-reflection-active",
+    "allow-reflection-status",
+    "allow-existing-app-commands",
+    "allow-haptic-tap"
+  ]
 }

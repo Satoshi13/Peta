@@ -1,0 +1,25 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "app",
+  "description": "The one-window Studio/Desk shell",
+  "windows": [
+    "peta-app"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-hide",
+    "core:window:allow-show",
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-start-dragging",
+    "core:window:allow-start-resize-dragging",
+    "core:window:allow-set-size",
+    "core:window:allow-set-position",
+    "allow-existing-app-commands",
+    "allow-haptic-tap",
+    "allow-profile-icon",
+    "allow-scrap-trades",
+    "allow-signed-distribution",
+    "allow-developer-tools"
+  ]
+}

@@ -79,7 +79,7 @@ for file in ('src/today.html','src/creator.html'):
 paths={a['file'] for a in manifest['assets']}
 actual={str(p.relative_to(ART)) for p in ART.rglob('*') if p.suffix in ('.png','.jpg','.svg')}
 require(paths==actual,'Manifest does not cover all runtime assets')
-require(sum(e['bytes'] for e in manifest['assets'])<=25000000,'P0 exceeds 25 MB')
+require(sum(e['bytes'] for e in manifest['assets'] if e['priority']=='P0')<=25000000,'P0 exceeds 25 MB')
 tracked=subprocess.check_output(['git','ls-files','assets-src/art'],cwd=ROOT).decode().strip()
 require(not tracked,'Generated source art remains tracked')
 required=['brand/app-icon-1024.png','brand/logo-wordmark-white.png','brand/logo-wordmark-white.svg','brand/logo-wordmark-ink.svg','today/choice-pack-box.png','today/choice-pack-pouch.png','materials/swatch-matte.png','materials/swatch-kraft.png','materials/swatch-holographic.png','creator/cutting-mat.jpg','creator/tape-1.png','creator/tape-2.png','creator/tape-3.png','creator/tape-4.png']

@@ -1,3 +1,5 @@
+mod app_window;
+mod port_capture;
 mod arrival;
 mod collection;
 mod creator;
@@ -96,15 +98,50 @@ fn exit_edit_mode(app: AppHandle) {
     layers::set_edit_mode(&app, false);
 }
 
+#[tauri::command]
+fn haptic_tap(app: AppHandle, kind: String) -> Result<(), String> {
+    if !["paste", "peel", "seal"].contains(&kind.as_str()) { return Err("unknown haptic".into()); }
+    app.run_on_main_thread(move || platform::haptic(&kind)).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn developer_next_day(app: AppHandle) -> Result<(), String> {
+    app.state::<Today>().next_day()?;
+    today::roll_day(&app);
+    Ok(())
+}
+
+#[tauri::command]
+fn developer_sync_displays(app: AppHandle) -> Result<(), String> {
+    if !cfg!(feature="developer") { return Err("Developer edition required.".into()); }
+    layers::sync(&app).map_err(|e| e.to_string())
+}
+
 pub fn run() {
+    let context = tauri::generate_context!();
+    #[cfg(feature="developer")]
+    let context = {
+        let mut context = context;
+        context.config_mut().identifier = "app.peta.developer".into();
+        context.config_mut().product_name = Some("Peta Developer".into());
+        context
+    };
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(Store::default())
         .manage(Layers::default())
         .manage(Today::default())
         .manage(Creator::default())
+        .manage(gifts::PendingPack::default())
         .invoke_handler(tauri::generate_handler![
+            port_capture::port_capture_report,
+            port_capture::port_capture_tray,
+            haptic_tap,
+            developer_next_day,
+            developer_sync_displays,
             layer_info,
+            layers::set_reflection_active,
+            layers::reflection_status,
             layer_placements,
             save_placement,
             peel_sticker,
@@ -116,35 +153,53 @@ pub fn run() {
             today::daily_create,
             today::collection_unused,
             today::daily_stick_from_collection,
+            creator::creator_begin_path,
+            creator::creator_begin_bytes,
             creator::creator_info,
             creator::creator_original,
             creator::creator_render,
             creator::creator_stroke,
             creator::creator_clear_edits,
             creator::creator_finish,
+            creator::creator_edit_original,
+            creator::creator_save_original,
             creator::creator_undo,
             creator::creator_redo,
             creator::creator_cancel,
+            arrival::arrival_status,
             arrival::arrival_open,
             gifts::gift_send,
             gifts::gift_receive_file,
             gifts::gift_inbox,
+            gifts::redeem_code,
+            gifts::creator_pack_accept,
+            gifts::creator_pack_pending,
+            gifts::creator_pack_decline,
+            gifts::creator_pack_save,
+            gifts::event_inbox,
             gifts::gift_open,
+            packs::pack_install_demo,
             packs::pack_status,
             packs::pack_open,
+            print::print_resume,
             print::print_pending,
             print::print_paste,
             print::print_later,
             collection::book_index,
             collection::book_page,
             collection::sticker_back,
+            collection::sticker_delete_original,
             collection::material_book,
+            collection::scrap_status,
+            collection::scrap_trade,
             collection::profile_get,
+            collection::profile_set_icon,
             collection::profile_set
         ])
         .on_window_event(|window, event| {
+            if matches!(event, tauri::WindowEvent::Destroyed) { layers::forget_reflection(window.app_handle(), window.label()); }
             // closing the Cutting Mat with the window button is a cancel: nothing was spent
-            if window.label() == creator::CREATOR_LABEL && matches!(event, tauri::WindowEvent::Destroyed) {
+            if window.label() == app_window::APP_LABEL && matches!(event, tauri::WindowEvent::Destroyed) {
                 creator::clear(window.app_handle());
             }
         })
@@ -157,14 +212,26 @@ pub fn run() {
             tray::build(app.handle())?;
             layers::sync(app.handle())?;
             layers::spawn_monitor_watcher(app.handle().clone());
+            layers::spawn_reflection_watcher(app.handle().clone());
             today::roll_day(app.handle()); // draws today's material; sets the menu indicator
             today::spawn_day_watcher(app.handle().clone());
+            arrival::spawn_hit_watcher(app.handle().clone());
+            port_capture::start(app.handle());
             Ok(())
         })
-        .build(tauri::generate_context!())
+        .build(context)
         .expect("error while building Peta");
 
-    app.run(|_app, event| {
+    app.run(|app, event| {
+        #[cfg(any(target_os="macos",target_os="ios"))]
+        if let tauri::RunEvent::Opened {urls}=&event {
+            for url in urls {if let Ok(path)=url.to_file_path(){gifts::open_external(app,&path);}}
+        }
+        #[cfg(not(any(target_os="macos",target_os="ios")))]
+        if matches!(event,tauri::RunEvent::Ready) {
+            for path in std::env::args_os().skip(1).map(std::path::PathBuf::from).filter(|p|p.extension().is_some_and(|e|e=="peta")){gifts::open_external(app,&path);}
+        }
+        if matches!(event, tauri::RunEvent::Exit) { layers::stop_reflection(app); }
         // Layers are destroyed/recreated on display changes; that must not quit the app.
         // Only an explicit `app.exit(..)` (tray -> Quit) carries an exit code.
         if let tauri::RunEvent::ExitRequested { api, code, .. } = event {

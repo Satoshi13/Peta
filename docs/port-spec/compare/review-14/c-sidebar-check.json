@@ -1,0 +1,47 @@
+{
+  "footer": {
+    "bottom": 506,
+    "height": 101,
+    "left": 12,
+    "right": 192,
+    "top": 405,
+    "width": 180,
+    "x": 12,
+    "y": 405
+  },
+  "gifts": "Gifts, 2 unopened",
+  "logoLeft": "22px",
+  "logoTop": "54px",
+  "nav": {
+    "bottom": 520,
+    "height": 520,
+    "left": 0,
+    "right": 204,
+    "top": 0,
+    "width": 204,
+    "x": 0,
+    "y": 0
+  },
+  "order": [
+    "today",
+    "create",
+    "book",
+    "packs",
+    "gifts",
+    "materials",
+    "market",
+    "settings"
+  ],
+  "top": {
+    "bottom": 403,
+    "height": 309,
+    "left": 12,
+    "right": 192,
+    "top": 94,
+    "width": 180,
+    "x": 12,
+    "y": 94
+  },
+  "shortcut": true,
+  "inputGuard": true
+}
