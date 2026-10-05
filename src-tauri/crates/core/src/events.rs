@@ -118,7 +118,7 @@ pub fn apply_event(lib:&mut Library,verified:&Verified,source:&str,time:DateTime
 // 64-byte signature alone needs 103 Base32 characters; a complete grouped code is longer
 // than the suggested 130-character target. No authenticated ID, date or payload is omitted.
 const ALPHABET:&[u8;32]=b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-const CODE_MATERIALS:&[&str]=&["kraft","holographic","gold","riso","vintage"];
+const CODE_MATERIALS:&[&str]=&["kraft","holographic","gold","riso","vintage","clear","pixel","washi","sakura"];
 fn base32(bytes:&[u8])->String {
     let mut out=String::new();let mut bits=0u32;let mut n=0;
     for b in bytes {bits=(bits<<8)|*b as u32;n+=8;while n>=5{n-=5;out.push(ALPHABET[((bits>>n)&31) as usize] as char);}}
@@ -208,6 +208,24 @@ pub fn from_code(value:&str)->Result<Verified> {from_code_with(value,sign::resol
         let (id,_)=lib.db().pack_pick("official:fall",0.0).unwrap().unwrap();assert_eq!(crate::pack::stored_item(lib.db(),id).unwrap().unwrap().rarity,"rare");
         e.event_id="sticker".into();e.kind="grant_sticker".into();e.payload=serde_json::json!({});let verified=decode_with(&encode(&e,&png,&key).unwrap(),|_|Ok(key.verifying_key())).unwrap();apply_event(&mut lib,&verified,"file",time()).unwrap();assert_eq!(lib.db().gifts_received().unwrap()[0].from,"Peta");
         let mut damaged=bytes;let n=damaged.len();damaged[n-65]^=1;assert!(matches!(decode_with(&damaged,|_|Ok(key.verifying_key())),Err(Error::Invalid(e)) if e.contains("invalid_signature")));
+    }
+
+    #[test] fn new_material_codes_append_ids_and_share_one_receipt_with_signed_files() {
+        assert_eq!(&CODE_MATERIALS[..5], &["kraft","holographic","gold","riso","vintage"]);
+        let key=sign::generate().unwrap();let mut lib=lib();
+        for id in ["gold","riso","vintage","clear","pixel","washi","sakura"] {
+            let e=event(&format!("new-{id}"),"grant_material",serde_json::json!({"materialId":id,"count":2}));
+            let code=as_code(&e,&key).unwrap();let v=from_code_with(&code,|_|Ok(key.verifying_key())).unwrap();
+            assert_eq!(v.header.payload,e.payload);
+            apply_event(&mut lib,&v,"code",time()).unwrap();
+            assert_eq!(lib.db().material_count(id).unwrap(),2);
+            assert!(lib.db().material_unlocked_at(id).unwrap().is_some());
+            let file=decode_with(&encode(&e,&[],&key).unwrap(),|_|Ok(key.verifying_key())).unwrap();
+            assert!(apply_event(&mut lib,&file,"file",time()).is_err());
+            lib.db_mut().consume_material(id).unwrap();lib.db_mut().consume_material(id).unwrap();
+            assert!(!lib.db().has_material(id).unwrap());
+            assert!(lib.db_mut().consume_material(id).is_err());
+        }
     }
 
     #[test] fn codes_normalize_verify_and_share_file_receipt_id() {

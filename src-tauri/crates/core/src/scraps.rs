@@ -8,15 +8,22 @@ const MAX_SAFE_COUNT: i64 = 9_007_199_254_740_991;
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct MaterialRate { pub id: &'static str, pub dismantle: i64, pub exchange: i64 }
+pub struct MaterialRate { pub id: &'static str, pub dismantle: i64, pub exchange: Option<i64> }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PackRate { pub id: &'static str, pub exchange: i64, pub stickers: usize }
 
-const MATERIALS: [MaterialRate; 3] = [
-    MaterialRate { id:"matte", dismantle:1, exchange:1 },
-    MaterialRate { id:"kraft", dismantle:1, exchange:2 },
-    MaterialRate { id:"holographic", dismantle:3, exchange:6 },
+const MATERIALS: [MaterialRate; 10] = [
+    MaterialRate { id:"matte", dismantle:1, exchange:Some(1) },
+    MaterialRate { id:"kraft", dismantle:1, exchange:Some(2) },
+    MaterialRate { id:"holographic", dismantle:3, exchange:Some(6) },
+    MaterialRate { id:"gold", dismantle:6, exchange:Some(12) },
+    MaterialRate { id:"riso", dismantle:1, exchange:Some(2) },
+    MaterialRate { id:"vintage", dismantle:4, exchange:Some(8) },
+    MaterialRate { id:"clear", dismantle:3, exchange:Some(6) },
+    MaterialRate { id:"pixel", dismantle:1, exchange:Some(2) },
+    MaterialRate { id:"washi", dismantle:1, exchange:Some(2) },
+    MaterialRate { id:"sakura", dismantle:4, exchange:None },
 ];
 const PACKS: [(&str, i64); 6] = [("tokyo",16),("coffee",12),("plants",10),("pixel",12),("cats",10),("night",12)];
 
@@ -59,7 +66,7 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
     let rate = MATERIALS.iter().find(|m| m.id==request.item_id);
     let delta = match request.kind {
         Kind::Dismantle => rate.ok_or_else(|| invalid("This material cannot be dismantled."))?.dismantle * request.quantity,
-        Kind::Material => -rate.ok_or_else(|| invalid("This material is not available to exchange."))?.exchange * request.quantity,
+        Kind::Material => -rate.and_then(|m| m.exchange).ok_or_else(|| invalid("This material is not available to exchange."))? * request.quantity,
         Kind::Pack => {
             if request.quantity!=1 { return Err(invalid("Exchange for one pack at a time.")); }
             -PACKS.iter().find(|(id,_)| *id==request.item_id).ok_or_else(|| invalid("This pack is not available to exchange."))?.1
@@ -134,6 +141,30 @@ mod tests {
         assert_eq!(db.scrap_status().unwrap().balance,51);
     }
     #[test]
+    fn new_material_exchanges_are_atomic_finite_and_cannot_mint_scraps() {
+        let mut db=funded();
+        for m in &MATERIALS[3..] {
+            if let Some(cost)=m.exchange {
+                let before=db.scrap_status().unwrap().balance;
+                let req=request(Kind::Material,m.id,1);
+                let receipt=db.scrap_trade(&req,&format!("get-{}",m.id)).unwrap();
+                assert_eq!(db.scrap_trade(&req,&format!("get-{}",m.id)).unwrap(),receipt);
+                assert_eq!(db.material_count(m.id).unwrap(),1);
+                assert!(db.material_unlocked_at(m.id).unwrap().is_some());
+                db.scrap_trade(&request(Kind::Dismantle,m.id,1),&format!("dismantle-{}",m.id)).unwrap();
+                assert_eq!(db.material_count(m.id).unwrap(),0);
+                assert_eq!(db.scrap_status().unwrap().balance,before-cost+m.dismantle);
+                assert!(cost>m.dismantle);
+            }
+        }
+        let before=db.scrap_status().unwrap().balance;
+        assert!(db.scrap_trade(&request(Kind::Material,"sakura",1),"seasonal").is_err());
+        assert_eq!(db.scrap_status().unwrap().balance,before);
+        db.unlock_material("sakura").unwrap();db.add_material("sakura",1).unwrap();
+        assert_eq!(db.scrap_trade(&request(Kind::Dismantle,"sakura",1),"gifted-sakura").unwrap().balance,before+4);
+    }
+
+    #[test]
     fn retries_return_the_saved_receipt_without_spending_again_and_changed_requests_are_rejected() {
         let mut db=funded();let req=request(Kind::Material,"kraft",2);
         let receipt=db.scrap_trade(&req,"same-id").unwrap();
@@ -146,7 +177,7 @@ mod tests {
     fn invalid_quantities_products_ids_and_insufficient_balance_do_not_mutate_stock() {
         let mut db=Database::open_in_memory().unwrap();
         for q in [0,-1,1001,i64::MAX] { assert!(db.scrap_trade(&request(Kind::Material,"kraft",q),"bad-q").is_err()); }
-        for id in ["gold","riso","vintage","unknown"] { assert!(db.scrap_trade(&request(Kind::Material,id,1),"bad-material").is_err()); }
+        for id in ["sakura","unknown"] { assert!(db.scrap_trade(&request(Kind::Material,id,1),"bad-material").is_err()); }
         for id in ["welcome","unknown"] { assert!(db.scrap_trade(&request(Kind::Pack,id,1),"bad-pack").is_err()); }
         for id in ["","../bad","id with spaces"] { assert!(db.scrap_trade(&request(Kind::Material,"kraft",1),id).is_err()); }
         assert!(db.scrap_trade(&request(Kind::Material,"kraft",1),"no-funds").is_err());

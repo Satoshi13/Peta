@@ -567,6 +567,23 @@ mod tests {
     }
 
     #[test]
+    fn new_finishes_pass_through_both_creator_sizes_without_stretching_or_losing_the_cutout() {
+        let s=flat_session();
+        let base=s.render(&params("matte")).unwrap();
+        for id in ["gold","riso","vintage","clear","pixel","washi","sakura"] {
+            let full=s.render(&params(id)).unwrap();
+            let preview=s.render_preview(&params(id)).unwrap();
+            assert_eq!((full.width,full.height),(base.width,base.height),"{id}");
+            let a=decode_png(&full.sticker_png).unwrap();
+            let b=decode_png(&preview.sticker_png).unwrap();
+            assert!(a.width()>a.height() && b.width()>b.height(),"{id}: landscape remains landscape");
+            assert_eq!(full.cutout_png,base.cutout_png,"{id}: only the finish changes");
+            assert_eq!(a.get_pixel(0,0).0[3],0,"{id}: no rectangular background");
+            assert!(b.pixels().any(|p| p.0[3]==255),"{id}: image remains opaque");
+        }
+    }
+
+    #[test]
     fn undo_takes_back_one_whole_stroke_even_when_it_arrived_in_pieces() {
         let mut s = flat_session();
         let params = params("matte");

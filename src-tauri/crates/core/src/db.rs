@@ -1014,12 +1014,13 @@ mod tests {
         let mut db=Database::open_in_memory().unwrap();
         assert!(!db.has_material("matte").unwrap());
         db.enable_developer().unwrap();
-        for id in ["matte","kraft","holographic"] {
+        for material in materials::catalog() {
+            let id=material.id.as_str();
             for _ in 0..4 { db.consume_material(id).unwrap(); }
             assert_eq!(db.material_count(id).unwrap(),0);
             assert!(db.material_with_stock(id).unwrap().unwrap().available());
         }
-        assert!(!db.has_material("gold").unwrap());
+        assert!(!db.has_material("unknown").unwrap());
         assert!(db.consume_material("unknown").is_err());
         db.pack_install("welcome","Welcome Pack","Peta",&["cat-skateboard"]).unwrap();
         for id in ["one","two"] {
