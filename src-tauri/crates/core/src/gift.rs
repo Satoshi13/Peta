@@ -28,6 +28,8 @@ const MAX_HEADER: usize = 64 * 1024;
 #[serde(rename_all = "camelCase")]
 pub struct Origin {
     pub sticker_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
     pub creator_name: Option<String>,
     /// When the original was made.
     pub created_at: String,
@@ -68,6 +70,7 @@ pub fn build_gift(lib: &mut Library, sticker_id: &str, to: &str, note: Option<&s
         edition,
         origin: Origin {
             sticker_id: sticker.id.clone(),
+            name: sticker.name.clone(),
             creator_name: sticker.creator_name.clone(),
             created_at: sticker.created_at.clone(),
             material_id: sticker.material_id.clone(),
@@ -112,7 +115,7 @@ pub fn decode_gift(bytes: &[u8]) -> Result<Decoded<'_>> {
     if json_len == 0 || json_len > MAX_HEADER || bytes.len() < 13 + json_len {
         return Err(bad("damaged header"));
     }
-    let header: GiftHeader = serde_json::from_slice(&bytes[13..13 + json_len]).map_err(|_| bad("damaged header"))?;
+    let mut header: GiftHeader = serde_json::from_slice(&bytes[13..13 + json_len]).map_err(|_| bad("damaged header"))?;
     if header.png_len == 0 || header.png_len > MAX_PNG || header.mask_len > MAX_PNG {
         return Err(bad("unreasonable size"));
     }
@@ -123,6 +126,8 @@ pub fn decode_gift(bytes: &[u8]) -> Result<Decoded<'_>> {
     if !header.gift_id.starts_with("GIFT-") || header.gift_id.len() > 40 || header.from.len() > 200 {
         return Err(bad("damaged header"));
     }
+    header.origin.name = crate::models::normalize_sticker_name(header.origin.name.as_deref().unwrap_or(""))
+        .map_err(|_| bad("invalid sticker name"))?;
     let (png, mask) = body.split_at(header.png_len);
     image::load_from_memory_with_format(png, image::ImageFormat::Png).map_err(|_| bad("the picture is damaged"))?;
     Ok(Decoded { header, png, mask })
@@ -165,6 +170,7 @@ pub fn open_gift(lib: &mut Library, gift_id: &str) -> Result<Sticker> {
         Some(rel)
     };
     let created = lib.db_mut().create_sticker(NewSticker {
+        name: h.origin.name.clone(),
         id: id.clone(),
         creator_id: None,
         creator_name: h.origin.creator_name.clone(),
@@ -219,6 +225,53 @@ mod tests {
         let rendered = pack::render_pack_sticker(&disc_png()).unwrap();
         let s = lib.add_made(&rendered, &disc_png(), "png", None, "holographic").unwrap();
         (lib, s)
+    }
+
+    fn replace_header(file: &[u8], header: &serde_json::Value) -> Vec<u8> {
+        let old_len = u32::from_be_bytes(file[9..13].try_into().unwrap()) as usize;
+        let json = serde_json::to_vec(header).unwrap();
+        let mut bytes = file[..9].to_vec();
+        bytes.extend_from_slice(&(json.len() as u32).to_be_bytes());
+        bytes.extend_from_slice(&json);
+        bytes.extend_from_slice(&file[13 + old_len..]);
+        bytes
+    }
+
+    #[test]
+    fn gifts_freeze_the_author_name_on_both_the_original_and_received_copy() {
+        let (mut mine, sticker) = sender_with_sticker();
+        mine.db_mut().set_sticker_name(&sticker.id, "猫 🐈").unwrap();
+        assert!(mine.db().book_rows().unwrap()[0].can_rename);
+        let (gift_id, file) = build_gift(&mut mine, &sticker.id, "Nao", None).unwrap();
+        assert!(!mine.db().book_rows().unwrap()[0].can_rename);
+        assert!(mine.db_mut().set_sticker_name(&sticker.id, "New name").is_err());
+        let mut theirs = lib();
+        receive_gift(&mut theirs, &file).unwrap();
+        let copy = open_gift(&mut theirs, &gift_id).unwrap();
+        assert_eq!(copy.name.as_deref(), Some("猫 🐈"));
+        assert!(!theirs.db().book_rows().unwrap()[0].can_rename);
+        assert!(theirs.db_mut().set_sticker_name(&copy.id, "My cat").is_err());
+        assert_eq!(mine.db().sticker(&sticker.id).unwrap().unwrap().name.as_deref(), Some("猫 🐈"));
+        assert_eq!(theirs.db().sticker(&copy.id).unwrap().unwrap().creator_name, sticker.creator_name);
+    }
+
+    #[test]
+    fn old_gift_files_without_names_open_and_invalid_names_are_rejected() {
+        let (mut mine, sticker) = sender_with_sticker();
+        let (gift_id, file) = build_gift(&mut mine, &sticker.id, "Nao", None).unwrap();
+        let mut header = serde_json::to_value(decode_gift(&file).unwrap().header).unwrap();
+        header["origin"].as_object_mut().unwrap().remove("name");
+        let legacy = replace_header(&file, &header);
+        let mut theirs = lib();
+        receive_gift(&mut theirs, &legacy).unwrap();
+        assert_eq!(open_gift(&mut theirs, &gift_id).unwrap().name, None);
+        header["origin"]["name"] = serde_json::json!("x".repeat(81));
+        let invalid = replace_header(&file, &header);
+        let mut fresh = lib();
+        assert!(receive_gift(&mut fresh, &invalid).is_err());
+        assert!(fresh.db().gifts_received().unwrap().is_empty());
+        // Older readers ignore additive JSON fields and still see the original version-1 envelope.
+        assert_eq!(file[8], 1);
     }
 
     #[test]

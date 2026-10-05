@@ -61,6 +61,7 @@ pub struct DailyStatus {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StickerSummary {
+    pub name: Option<String>,
     pub id: String,
     pub original_number: Option<i64>,
     pub created_at: String,
@@ -215,6 +216,7 @@ pub fn collection_unused(store: State<Store>) -> Result<Vec<StickerSummary>, Str
     Ok(stickers
         .into_iter()
         .map(|s| StickerSummary {
+            name: s.name,
             id: s.id,
             original_number: s.original_number,
             created_at: s.created_at,

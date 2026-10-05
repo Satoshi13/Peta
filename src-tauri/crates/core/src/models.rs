@@ -75,6 +75,9 @@ pub struct Sticker {
     /// e.g. `PETA-A6F4-8Q21`
     pub id: String,
     pub creator_id: Option<String>,
+    /// Author title, frozen on first gift and immutable on received copies.
+    #[serde(default)]
+    pub name: Option<String>,
     /// The name printed on the back ("Created by …"), frozen at creation. `None` on stickers made before it existed.
     pub creator_name: Option<String>,
     pub created_at: String,
@@ -97,6 +100,7 @@ pub struct Sticker {
 #[derive(Clone, Debug)]
 pub struct NewSticker {
     pub id: String,
+    pub name: Option<String>,
     pub creator_id: Option<String>,
     pub creator_name: Option<String>,
     pub original_asset_path: String,
@@ -130,4 +134,13 @@ pub struct Placement {
 
 fn yes() -> bool {
     true
+}
+
+/// Trim titles and validate in Unicode scalar values, including names from gift files.
+pub fn normalize_sticker_name(name: &str) -> crate::Result<Option<String>> {
+    let name = name.trim();
+    if name.chars().count() > 80 || name.chars().any(|c| c.is_control() || c == '\u{2028}' || c == '\u{2029}') {
+        return Err(crate::Error::Invalid("sticker name must be at most 80 characters without line breaks".into()));
+    }
+    Ok((!name.is_empty()).then(|| name.to_owned()))
 }

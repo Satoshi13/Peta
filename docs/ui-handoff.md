@@ -192,3 +192,20 @@ AVAILABLE -> SELECTING -> CONFIRMED -> USED
 - 持ち上げ(`.lifted`)→ 離すと沈む(WAAPI の `scale 1.04 → 0.98 → 1.0`、240ms)= 仕様 §29。
 - 剥がし(`.peeling` / `.peel-ready`)。**Option+ドラッグの調整は別途まとめて直す予定**。
 - 編集バー(`#edit-hint`)は仮の見た目。
+
+## 2026-10-06: 命名と貼付先
+
+Collection詳細に **Sticker name** と **Home display** を追加。
+
+| コマンド | 入力 | 出力/動作 |
+|---|---|---|
+| `sticker_rename` | `{ stickerId, name }` | 更新後のSticker。作者の原本だけ、最初のGift作成まで変更可能。空欄で名前を解除。80 Unicode文字まで。Gift/Pack/配布済み原本は保存側でも拒否 |
+| `display_choices` | — | `[{ id, name, isPrimary }]`。接続中の画面 |
+| `sticker_placement` | `{ stickerId }` | 保存されたPlacementかnull。未接続の元画面IDも含む |
+| `sticker_set_display` | `{ stickerId, displayId }` | 保存先だけを変更。今日の枠は消費しない。切断済みの変更先は拒否 |
+
+BookEntryに `name: string|null` と `canRename: boolean`、Stickerと `collection_unused` の各項目に `name` を追加。名前は `textContent` で表示する。`canRename=false` は読み取り専用、保存ボタンを隠す。未保存の名前があるときはGiftを作らず保存を促し、Gift作成後は原本の入力も固定する。
+
+`stickers-changed` は命名の再読込、`displays-changed` は画面選択肢の更新、貼付先変更は既存の `placements-changed` を通知する。Giftの `origin.name` は省略可能な追加フィールドで、ファイル形式のversionは1を維持。
+
+ブラウザ検証: `python3 scripts/check-collection.py` (Python PlaywrightとChromiumが必要)。Tauriの実コマンドを使うMac実機の抜き差し確認は [display-identity.md](display-identity.md) を参照。

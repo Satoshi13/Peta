@@ -66,6 +66,7 @@ impl Library {
         self.write_asset(&rendered_rel, &processed.png)?;
 
         let created = self.db.create_sticker(NewSticker {
+            name: None,
             id: id.clone(),
             creator_id: creator_id.map(str::to_owned),
             creator_name: Some(self.db.display_name()?),
@@ -134,6 +135,7 @@ impl Library {
         self.write_asset(&rendered_rel, &rendered.sticker_png)?;
         self.write_asset(&mask_rel, &rendered.mask_png)?;
         let created = self.db.create_sticker(NewSticker {
+            name: None,
             id: id.clone(),
             creator_id: creator_id.map(str::to_owned),
             creator_name,

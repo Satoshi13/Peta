@@ -45,12 +45,15 @@ fn layer_placements(window: WebviewWindow, layers: State<Layers>, store: State<S
         .collect()
 }
 
-/// Called when a drag / resize / rotate ends. The sticker now belongs to the display it was edited on,
+/// Called when a drag / resize / rotate ends. Disconnected home displays are preserved,
 /// and goes on top of the others.
 #[tauri::command]
 fn save_placement(window: WebviewWindow, layers: State<Layers>, store: State<Store>, mut placement: Placement) -> Result<(), String> {
     let info = layers.info(window.label()).ok_or("unknown layer")?;
-    placement.display_id = info.display_id;
+    let saved = store.lock().db().placement(&placement.sticker_id).map_err(|e| e.to_string())?;
+    // Editing a temporarily displaced sticker must not forget its disconnected home display.
+    placement.display_id = peta_core::display::edited_home(saved.as_ref().map(|p| p.display_id.as_str()),
+        &info.display_id, &layers.displays().into_iter().map(|d| d.id).collect::<Vec<_>>());
     store.lock().db_mut().place(placement).map(|_| ()).map_err(|e| e.to_string())
 }
 
@@ -140,7 +143,11 @@ pub fn run() {
             collection::sticker_back,
             collection::material_book,
             collection::profile_get,
-            collection::profile_set
+            collection::profile_set,
+            collection::sticker_rename,
+            collection::display_choices,
+            collection::sticker_placement,
+            collection::sticker_set_display
         ])
         .on_window_event(|window, event| {
             // closing the Cutting Mat with the window button is a cancel: nothing was spent

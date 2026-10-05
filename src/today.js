@@ -128,7 +128,8 @@ async function showCollection() {
     b.className = "tile";
     b.innerHTML = `<img alt=""><small></small>`;
     b.firstChild.src = await thumbUrl(s.id);
-    b.lastChild.textContent = s.originalNumber != null ? `ORIGINAL #${String(s.originalNumber).padStart(4, "0")}` : s.id;
+    b.firstChild.alt = s.name ?? "";
+    b.lastChild.textContent = s.name ?? (s.originalNumber != null ? `ORIGINAL #${String(s.originalNumber).padStart(4, "0")}` : s.id);
     b.addEventListener("click", () => act(async () => {
       const next = await invoke("daily_stick_from_collection", { stickerId: s.id });
       view = "main";

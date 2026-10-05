@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-const SCHEMA_VERSION: i64 = 6;
+const SCHEMA_VERSION: i64 = 7;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -140,6 +140,17 @@ CREATE TABLE gifts_received (
 );
 ";
 
+const MIGRATION_V7: &str = "
+ALTER TABLE stickers ADD COLUMN name TEXT;
+CREATE TABLE display_aliases (
+    legacy_id TEXT PRIMARY KEY,
+    stable_id TEXT NOT NULL
+);
+CREATE TABLE legacy_display_ambiguities (
+    legacy_id TEXT PRIMARY KEY
+);
+";
+
 /// A gift waiting in the Inbox (or already opened).
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -160,6 +171,8 @@ pub struct Database {
 /// A raw Sticker Book row (see `Database::book_rows`).
 #[derive(Clone, Debug)]
 pub struct BookRow {
+    pub name: Option<String>,
+    pub can_rename: bool,
     pub daily_date: Option<String>,
     pub sticker_id: String,
     pub original_number: Option<i64>,
@@ -245,6 +258,57 @@ impl Database {
             tx.pragma_update(None, "user_version", 6)?;
             tx.commit()?;
         }
+        if version < 7 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V7)?;
+            tx.pragma_update(None, "user_version", 7)?;
+            tx.commit()?;
+        }
+        Ok(())
+    }
+
+    /// Only the author can name an original before its first gift; received copies are immutable.
+    pub fn set_sticker_name(&mut self, id: &str, name: &str) -> Result<Sticker> {
+        let name = crate::models::normalize_sticker_name(name)?;
+        let changed = self.conn.execute(
+            "UPDATE stickers SET name = ?2 WHERE id = ?1 AND source_type = 'created'
+             AND NOT EXISTS (SELECT 1 FROM gifts_sent WHERE sticker_id = ?1)", params![id, name])?;
+        if changed == 0 {
+            return Err(Error::Invalid("only an original's author can name it, before its first gift".into()));
+        }
+        self.sticker(id)?.ok_or_else(|| Error::Invalid("sticker vanished after rename".into()))
+    }
+
+    /// Once duplicate legacy names are observed, never infer their former physical identity.
+    pub fn mark_ambiguous_display_name(&mut self, legacy_id: &str) -> Result<()> {
+        self.conn.execute("INSERT OR IGNORE INTO legacy_display_ambiguities (legacy_id) VALUES (?1)", [legacy_id])?;
+        Ok(())
+    }
+
+    /// Bind an unambiguous old name once. Update every placement, including peeled stickers,
+    /// without changing coordinates, timestamps or stacking order.
+    pub fn migrate_display_alias(&mut self, legacy_id: &str, stable_id: &str) -> Result<()> {
+        let tx = self.conn.transaction()?;
+        let legacy_ids: Vec<String> = {
+            let mut stmt = tx.prepare("SELECT DISTINCT display_id FROM placements")?;
+            let rows = stmt.query_map([], |r| r.get(0))?.collect::<std::result::Result<_, _>>()?;
+            rows
+        };
+        // A disconnected twin may have used a suffixed ID. The current snapshot alone is insufficient.
+        if legacy_ids.iter().any(|id| id.strip_prefix(&format!("{legacy_id}#"))
+            .is_some_and(|suffix| suffix.parse::<u32>().is_ok_and(|n| n >= 2))) {
+            tx.execute("INSERT OR IGNORE INTO legacy_display_ambiguities (legacy_id) VALUES (?1)", [legacy_id])?;
+            tx.commit()?;
+            return Ok(());
+        }
+        let ambiguous: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM legacy_display_ambiguities WHERE legacy_id = ?1)", [legacy_id], |r| r.get(0))?;
+        if ambiguous { return Ok(()); }
+        tx.execute("INSERT OR IGNORE INTO display_aliases (legacy_id, stable_id) VALUES (?1, ?2)", params![legacy_id, stable_id])?;
+        tx.execute(
+            "UPDATE placements SET display_id = (SELECT stable_id FROM display_aliases WHERE legacy_id = ?1)
+             WHERE display_id = ?1", [legacy_id],
+        )?;
+        tx.commit()?;
         Ok(())
     }
 
@@ -260,8 +324,21 @@ impl Database {
         Ok(self.conn.query_row("SELECT COUNT(*) FROM stickers", [], |r| r.get(0))?)
     }
 
+    pub fn placement(&self, sticker_id: &str) -> Result<Option<Placement>> {
+        Self::read_placement(&self.conn, sticker_id)
+    }
+
+    /// Explicitly change a home display without consuming today's slot or changing geometry/order.
+    pub fn reassign_display(&mut self, sticker_id: &str, display_id: &str) -> Result<()> {
+        if self.conn.execute("UPDATE placements SET display_id = ?2 WHERE sticker_id = ?1", params![sticker_id, display_id])? == 0 {
+            return Err(Error::Invalid("that sticker has no saved placement yet".into()));
+        }
+        Ok(())
+    }
+
     /// Insert a sticker. Stickers the user made (`Created`) get the next `ORIGINAL` number.
     pub fn create_sticker(&mut self, new: NewSticker) -> Result<Sticker> {
+        let name = crate::models::normalize_sticker_name(new.name.as_deref().unwrap_or(""))?;
         let created_at = now();
         let tx = self.conn.transaction()?;
 
@@ -285,8 +362,8 @@ impl Database {
 
         tx.execute(
             "INSERT INTO stickers (id, creator_id, created_at, original_asset_path, rendered_asset_path,
-                                   mask_asset_path, material_id, original_number, source_type, aspect, creator_name)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?10, ?6, ?7, ?8, ?9, ?11)",
+                                   mask_asset_path, material_id, original_number, source_type, aspect, creator_name, name)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?10, ?6, ?7, ?8, ?9, ?11, ?12)",
             params![
                 new.id,
                 new.creator_id,
@@ -299,6 +376,7 @@ impl Database {
                 new.aspect,
                 new.mask_asset_path,
                 new.creator_name,
+                name,
             ],
         )?;
         tx.execute(
@@ -314,7 +392,7 @@ impl Database {
             .conn
             .query_row(
                 "SELECT id, creator_id, created_at, original_asset_path, rendered_asset_path, mask_asset_path,
-                        material_id, original_number, edition_number, source_type, parent_sticker_id, aspect, creator_name
+                        material_id, original_number, edition_number, source_type, parent_sticker_id, aspect, creator_name, name
                  FROM stickers WHERE id = ?1",
                 [id],
                 |r| {
@@ -332,6 +410,7 @@ impl Database {
                         parent_sticker_id: r.get(10)?,
                         aspect: r.get(11)?,
                         creator_name: r.get(12)?,
+                        name: r.get(13)?,
                         provenance: Vec::new(),
                     })
                 },
@@ -400,13 +479,15 @@ impl Database {
     pub fn book_rows(&self) -> Result<Vec<BookRow>> {
         let mut stmt = self.conn.prepare(
             "SELECT d.date, s.id, s.original_number, s.material_id, COALESCE(d.source_type, s.source_type), s.aspect, s.created_at,
-                    COALESCE(p.is_on_desktop, 0)
+                    COALESCE(p.is_on_desktop, 0), s.name,
+                    s.source_type = 'created' AND NOT EXISTS (SELECT 1 FROM gifts_sent g WHERE g.sticker_id = s.id)
              FROM daily_records d
              JOIN stickers s ON s.id = d.sticker_id
              LEFT JOIN placements p ON p.sticker_id = s.id
              UNION ALL
              SELECT NULL, s.id, s.original_number, s.material_id, s.source_type, s.aspect, s.created_at,
-                    COALESCE(p.is_on_desktop, 0)
+                    COALESCE(p.is_on_desktop, 0), s.name,
+                    s.source_type = 'created' AND NOT EXISTS (SELECT 1 FROM gifts_sent g WHERE g.sticker_id = s.id)
              FROM stickers s
              LEFT JOIN placements p ON p.sticker_id = s.id
              WHERE s.id NOT IN (SELECT sticker_id FROM daily_records WHERE sticker_id IS NOT NULL)",
@@ -414,6 +495,8 @@ impl Database {
         let rows = stmt
             .query_map([], |r| {
                 Ok(BookRow {
+                    name: r.get(8)?,
+                    can_rename: r.get::<_, i64>(9)? != 0,
                     daily_date: r.get(0)?,
                     sticker_id: r.get(1)?,
                     original_number: r.get(2)?,
@@ -801,6 +884,7 @@ mod tests {
 
     fn new(id: &str, source: SourceType) -> NewSticker {
         NewSticker {
+            name: None,
             id: id.into(),
             creator_id: Some("me".into()),
             creator_name: Some("Satoshi".into()),
@@ -825,6 +909,89 @@ mod tests {
             is_on_desktop: true,
             z: 0,
         }
+    }
+
+    #[test]
+    fn names_survive_reopening_and_renames_preserve_creator_and_daily_history() {
+        let path = std::env::temp_dir().join(format!("peta-names-{}.db", crate::ids::new_sticker_id()));
+        let id = "NAMED";
+        {
+            let mut db = Database::open(&path).unwrap();
+            db.create_sticker(new(id, SourceType::Created)).unwrap();
+            assert_eq!(db.sticker(id).unwrap().unwrap().name, None);
+            let before = db.sticker(id).unwrap().unwrap();
+            let renamed = db.set_sticker_name(id, "  猫 🐈  ").unwrap();
+            assert_eq!(renamed.name.as_deref(), Some("猫 🐈"));
+            assert_eq!(renamed.creator_name, before.creator_name);
+            assert_eq!(renamed.provenance, before.provenance);
+            assert_eq!(renamed.created_at, before.created_at);
+            assert_eq!(db.book_rows().unwrap()[0].name.as_deref(), Some("猫 🐈"));
+            assert_eq!(db.set_sticker_name(id, &"🐈".repeat(80)).unwrap().name.unwrap().chars().count(), 80);
+            db.set_sticker_name(id, "猫 🐈").unwrap();
+            assert!(db.set_sticker_name(id, &"猫".repeat(81)).is_err());
+            assert!(db.set_sticker_name(id, "bad\nname").is_err());
+            assert!(db.set_sticker_name(id, "bad\u{2028}name").is_err());
+            assert!(db.set_sticker_name("missing", "Name").is_err());
+            assert_eq!(db.daily_count().unwrap(), 0);
+        }
+        let mut db = Database::open(&path).unwrap();
+        assert_eq!(db.sticker(id).unwrap().unwrap().name.as_deref(), Some("猫 🐈"));
+        assert_eq!(db.set_sticker_name(id, " ").unwrap().name, None);
+        drop(db);
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn upgrades_v6_without_changing_existing_stickers_or_placements() {
+        let conn = Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1, MIGRATION_V2, MIGRATION_V3, MIGRATION_V4, MIGRATION_V5, MIGRATION_V6] {
+            conn.execute_batch(migration).unwrap();
+        }
+        conn.execute("INSERT INTO stickers (id, created_at, original_asset_path, rendered_asset_path, source_type, aspect) VALUES ('OLD', '2026-10-01', 'o', 'r', 'created', 1)", []).unwrap();
+        conn.execute("INSERT INTO placements (sticker_id, display_id, relative_x, relative_y, relative_scale, rotation, placed_at, z) VALUES ('OLD', 'External', 0.25, 0.75, 0.2, 45, '2026-10-02', 9)", []).unwrap();
+        conn.pragma_update(None, "user_version", 6).unwrap();
+        let db = Database::init(conn).unwrap();
+        assert_eq!(db.sticker("OLD").unwrap().unwrap().name, None);
+        let placement = db.placement("OLD").unwrap().unwrap();
+        assert_eq!((placement.display_id.as_str(), placement.relative_x, placement.relative_y, placement.rotation, placement.z), ("External", 0.25, 0.75, 45.0, 9));
+        assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0)).unwrap(), 7);
+    }
+
+    #[test]
+    fn display_migration_is_permanent_and_changes_only_the_id() {
+        let mut db = Database::open_in_memory().unwrap();
+        db.create_sticker(new("A", SourceType::Created)).unwrap();
+        let before = db.place(placement("A")).unwrap();
+        db.peel("A").unwrap();
+        let before = Placement { is_on_desktop: false, ..before };
+        db.migrate_display_alias("d1", "macos:A").unwrap();
+        let migrated = db.placement("A").unwrap().unwrap();
+        assert_eq!(migrated, Placement { display_id: "macos:A".into(), ..before });
+        db.migrate_display_alias("d1", "macos:B").unwrap();
+        assert_eq!(db.placement("A").unwrap().unwrap().display_id, "macos:A");
+        db.reassign_display("A", "macos:B").unwrap();
+        assert_eq!(db.placement("A").unwrap().unwrap(), Placement { display_id: "macos:B".into(), ..migrated });
+        assert!(db.reassign_display("missing", "macos:A").is_err());
+    }
+
+    #[test]
+    fn a_disconnected_identical_monitor_prevents_guessing_legacy_aliases() {
+        let mut db = Database::open_in_memory().unwrap();
+        for (id, display) in [("A", "External"), ("B", "External#2")] {
+            db.create_sticker(new(id, SourceType::Created)).unwrap();
+            db.place(Placement { display_id: display.into(), ..placement(id) }).unwrap();
+        }
+        db.migrate_display_alias("External", "macos:B").unwrap();
+        assert_eq!(db.placement("A").unwrap().unwrap().display_id, "External");
+        assert_eq!(db.placement("B").unwrap().unwrap().display_id, "External#2");
+        db.reassign_display("B", "macos:B").unwrap();
+        db.migrate_display_alias("External", "macos:B").unwrap();
+        assert_eq!(db.placement("A").unwrap().unwrap().display_id, "External");
+        db.mark_ambiguous_display_name("d1").unwrap();
+        db.create_sticker(new("C", SourceType::Created)).unwrap();
+        db.place(placement("C")).unwrap();
+        db.migrate_display_alias("d1", "macos:C").unwrap();
+        assert_eq!(db.placement("C").unwrap().unwrap().display_id, "d1");
     }
 
     #[test]

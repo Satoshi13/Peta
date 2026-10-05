@@ -3,9 +3,11 @@
 pub mod back;
 pub mod book;
 pub mod creator;
+pub mod community;
 pub mod cutout;
 pub mod daily;
 pub mod db;
+pub mod display;
 pub mod error;
 pub mod gift;
 pub mod ids;

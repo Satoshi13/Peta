@@ -21,6 +21,8 @@ pub struct BookEntry {
     /// Local `YYYY-MM-DD`.
     pub date: String,
     pub sticker_id: String,
+    pub name: Option<String>,
+    pub can_rename: bool,
     pub original_number: Option<i64>,
     pub material_id: Option<String>,
     pub source_type: SourceType,
@@ -48,6 +50,8 @@ pub fn entries(db: &Database, ymd: &dyn Fn(&str) -> Option<String>) -> Result<Ve
                 .or_else(|| ymd(&r.created_at))
                 .unwrap_or_else(|| r.created_at.chars().take(10).collect()),
             sticker_id: r.sticker_id,
+            name: r.name,
+            can_rename: r.can_rename,
             original_number: r.original_number,
             material_id: r.material_id,
             source_type: r.source_type,
@@ -97,6 +101,7 @@ mod tests {
 
     fn make(db: &mut Database, id: &str) {
         db.create_sticker(NewSticker {
+            name: None,
             id: id.into(),
             creator_id: None,
             creator_name: None,

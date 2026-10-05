@@ -82,10 +82,10 @@ async function openMonth(year, month) {
     b.dataset.stickerId = e.stickerId;
     b.setAttribute("aria-pressed", String(selected?.stickerId === e.stickerId && selected?.date === e.date));
     const img = document.createElement("img");
-    img.alt = "";
+    img.alt = e.name ?? "";
     img.src = await thumb(e.stickerId);
     const cap = document.createElement("small");
-    cap.textContent = `${label(e)} · ${shortDate(e.date)}`;
+    cap.textContent = `${e.name ?? label(e)} · ${shortDate(e.date)}`;
     b.append(img, cap);
     if (e.onDesktop) {
       const badge = document.createElement("span");
@@ -105,8 +105,14 @@ async function select(entry) {
   faceUp = true;
   $("detail").hidden = false;
   $("msg").textContent = "";
+  $("sticker-name").value = entry.name ?? "";
+  $("sticker-name").readOnly = !entry.canRename;
+  $("sticker-name").placeholder = entry.canRename ? "Give this Peta a name" : "Unnamed sticker";
+  $("sticker-name-save").hidden = !entry.canRename;
+  $("sticker-name-status").textContent = entry.canRename ? "The name is fixed when you make a Gift." : "The sticker name is fixed by its author.";
   document.querySelectorAll(".tile").forEach((t) => t.setAttribute("aria-pressed", String(t.dataset.stickerId === entry.stickerId)));
   $("detail-img").src = await thumb(entry.stickerId);
+  $("detail-img").alt = entry.name ?? "";
   $("detail-front").hidden = false;
   $("detail-back").hidden = true;
   $("turn").textContent = "Turn over";
@@ -135,6 +141,7 @@ async function select(entry) {
     return li;
   }));
   updateActions();
+  await renderDisplay(entry.stickerId);
 }
 
 function updateActions() {
@@ -165,6 +172,75 @@ async function turnOver() {
     turning = false;
   }
 }
+
+$("sticker-name-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!selected?.canRename) return;
+  const stickerId = selected.stickerId;
+  const name = $("sticker-name").value;
+  const status = $("sticker-name-status");
+  if ([...name.trim()].length > 80 || /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/u.test(name.trim())) {
+    status.textContent = "Use up to 80 characters without line breaks.";
+    return;
+  }
+  $("sticker-name-save").disabled = true;
+  status.textContent = "Saving…";
+  try {
+    const sticker = await invoke("sticker_rename", { stickerId, name });
+    if (selected?.stickerId === stickerId) {
+      selected.name = sticker.name;
+      $("sticker-name").value = sticker.name ?? "";
+      $("detail-img").alt = sticker.name ?? "";
+      status.textContent = sticker.name ? "Saved" : "Name cleared";
+    }
+    if (current) await openMonth(current.year, current.month);
+  } catch (error) {
+    if (selected?.stickerId === stickerId) status.textContent = String(error);
+  } finally {
+    $("sticker-name-save").disabled = false;
+  }
+});
+
+async function renderDisplay(stickerId) {
+  const [displays, placement] = await Promise.all([
+    invoke("display_choices"), invoke("sticker_placement", { stickerId }),
+  ]);
+  if (selected?.stickerId !== stickerId) return;
+  $("display-form").hidden = !placement;
+  $("display-status").textContent = "";
+  if (!placement) return;
+  const select = $("sticker-display");
+  select.replaceChildren(...displays.map((display) => {
+    const option = document.createElement("option");
+    option.value = display.id;
+    option.textContent = `${display.name}${display.isPrimary ? " (main)" : ""} · ${display.id.replace(/^macos:/, "").slice(0, 8)}`;
+    return option;
+  }));
+  if (!displays.some((display) => display.id === placement.displayId)) {
+    const saved = document.createElement("option");
+    saved.value = placement.displayId;
+    saved.textContent = `Saved display (disconnected or needs assignment)`;
+    saved.disabled = true;
+    select.prepend(saved);
+    $("display-status").textContent = "Choose a display to change where this sticker belongs.";
+  }
+  select.value = placement.displayId;
+}
+
+$("display-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!selected) return;
+  const stickerId = selected.stickerId;
+  $("display-save").disabled = true;
+  try {
+    await invoke("sticker_set_display", { stickerId, displayId: $("sticker-display").value });
+    if (selected?.stickerId === stickerId) $("display-status").textContent = "Home display saved";
+  } catch (error) {
+    if (selected?.stickerId === stickerId) $("display-status").textContent = String(error);
+  } finally {
+    $("display-save").disabled = false;
+  }
+});
 
 // ---- materials ----
 
@@ -227,6 +303,11 @@ $("gift-cancel").addEventListener("click", () => { giftForm.hidden = true; });
 giftForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!selected) return;
+  if (selected.canRename && $("sticker-name").value.trim() !== (selected.name ?? "")) {
+    $("msg").textContent = "Save the sticker name before making a Gift.";
+    $("sticker-name").focus();
+    return;
+  }
   const to = $("gift-to").value.trim();
   if (!to) { $("msg").textContent = "Who is it for?"; $("gift-to").focus(); return; }
   try {
@@ -275,11 +356,20 @@ async function reload() {
   }
   if (selected) {
     const fresh = entries.find((e) => e.stickerId === selected.stickerId && e.date === selected.date);
-    if (fresh) { selected = fresh; updateActions(); } else { selected = null; $("detail").hidden = true; }
+    if (fresh) {
+      selected = fresh;
+      $("sticker-name").readOnly = !fresh.canRename;
+      $("sticker-name").placeholder = fresh.canRename ? "Give this Peta a name" : "Unnamed sticker";
+      $("sticker-name-save").hidden = !fresh.canRename;
+      if (!fresh.canRename) $("sticker-name-status").textContent = "The sticker name is fixed by its author.";
+      updateActions();
+    } else { selected = null; $("detail").hidden = true; }
   }
   if (!$("view-materials").hidden) renderMaterials();
 }
 
+await listen("displays-changed", () => { if (selected) renderDisplay(selected.stickerId); });
+await listen("stickers-changed", () => reload());
 await listen("placements-changed", () => reload());
 await listen("daily-changed", () => reload());
 nameInput.value = (await invoke("profile_get")).displayName;

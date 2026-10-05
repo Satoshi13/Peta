@@ -20,3 +20,8 @@ pub fn apply_layer_mode(window: &WebviewWindow, mode: LayerMode) -> Result<(), S
 }
 
 pub fn activate_app() {}
+
+/// Permanent identities are only implemented for macOS in this build.
+pub fn stable_display_ids(_monitors: &[tauri::Monitor]) -> Result<Option<Vec<String>>, String> {
+    Ok(None)
+}

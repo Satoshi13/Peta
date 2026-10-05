@@ -25,6 +25,8 @@ tauri-plugin-dialog = "2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
+core-foundation = "0.10"
+core-graphics = "0.25"
 
 # Image resizing / SQLite are painfully slow at opt-level 0; the app itself stays debuggable.
 [profile.dev.package."*"]

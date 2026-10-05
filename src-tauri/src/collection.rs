@@ -6,7 +6,7 @@ use peta_core::{
     book, materials, BookEntry, Material, MonthIndex, StickerBack,
 };
 use serde::Serialize;
-use tauri::{AppHandle, Manager, State, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
 
 use crate::{platform, store::Store};
 
@@ -90,4 +90,30 @@ pub fn profile_get(store: State<Store>) -> Result<Profile, String> {
 pub fn profile_set(store: State<Store>, display_name: String) -> Result<Profile, String> {
     store.lock().db_mut().set_display_name(&display_name).map_err(|e| e.to_string())?;
     profile_get(store)
+}
+
+/// Name an original before its first gift (empty clears it).
+#[tauri::command]
+pub fn sticker_rename(app: AppHandle, store: State<Store>, sticker_id: String, name: String) -> Result<peta_core::Sticker, String> {
+    let sticker = store.lock().db_mut().set_sticker_name(&sticker_id, &name).map_err(|e| e.to_string())?;
+    let _ = app.emit("stickers-changed", ());
+    Ok(sticker)
+}
+
+#[tauri::command]
+pub fn display_choices(layers: State<crate::layers::Layers>) -> Vec<crate::layers::DisplayChoice> {
+    layers.displays()
+}
+
+#[tauri::command]
+pub fn sticker_placement(store: State<Store>, sticker_id: String) -> Result<Option<peta_core::Placement>, String> {
+    store.lock().db().placement(&sticker_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn sticker_set_display(app: AppHandle, layers: State<crate::layers::Layers>, store: State<Store>, sticker_id: String, display_id: String) -> Result<(), String> {
+    if !layers.has_display(&display_id) { return Err("that display is no longer connected".into()); }
+    store.lock().db_mut().reassign_display(&sticker_id, &display_id).map_err(|e| e.to_string())?;
+    let _ = app.emit("placements-changed", ());
+    Ok(())
 }

@@ -137,6 +137,7 @@ mod tests {
 
     fn sticker(db: &mut Database, id: &str, material: Option<&str>, source: SourceType, name: Option<&str>) {
         db.create_sticker(NewSticker {
+            name: None,
             id: id.into(),
             creator_id: None,
             creator_name: name.map(str::to_owned),

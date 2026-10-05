@@ -129,6 +129,7 @@ mod tests {
     fn db_with_sticker(id: &str) -> Database {
         let mut db = Database::open_in_memory().unwrap();
         db.create_sticker(NewSticker {
+            name: None,
             id: id.into(),
             creator_id: None,
             creator_name: None,
@@ -182,6 +183,7 @@ mod tests {
         let mut db = Database::open_in_memory().unwrap();
         let sticker = db
             .create_sticker(crate::NewSticker {
+                name: None,
                 id: "PETA-WAIT-0001".into(), creator_id: None, creator_name: None,
                 original_asset_path: "o".into(), rendered_asset_path: "r".into(), mask_asset_path: None,
                 material_id: Some("matte".into()), source_type: SourceType::Created, aspect: 1.0,

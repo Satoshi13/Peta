@@ -21,6 +21,14 @@ pub struct LayerInfo {
     pub edit_mode: bool,
 }
 
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DisplayChoice {
+    pub id: String,
+    pub name: String,
+    pub is_primary: bool,
+}
+
 #[derive(Default)]
 struct State {
     generation: u32,
@@ -31,6 +39,7 @@ struct State {
     /// window label -> info
     by_label: HashMap<String, LayerInfo>,
     present_display_ids: Vec<String>,
+    displays: Vec<DisplayChoice>,
     primary_display_id: String,
     signature: String,
 }
@@ -59,33 +68,35 @@ impl Layers {
             .collect()
     }
 
+    pub fn displays(&self) -> Vec<DisplayChoice> {
+        self.0.lock().unwrap().displays.clone()
+    }
+
+    pub fn has_display(&self, display_id: &str) -> bool {
+        self.0.lock().unwrap().present_display_ids.iter().any(|id| id == display_id)
+    }
+
     pub fn primary_display_id(&self) -> String {
         self.0.lock().unwrap().primary_display_id.clone()
     }
 }
 
-/// Stable-ish display ids. macOS reports localized names ("Built-in Retina Display");
-/// duplicates (two identical externals) get a `#n` suffix in enumeration order.
-/// TODO(phase 1): switch to CGDirectDisplayID / EDID-based ids to survive renames and swaps.
-fn assign_display_ids(monitors: &[Monitor]) -> Vec<String> {
-    let mut seen: HashMap<String, u32> = HashMap::new();
-    monitors
-        .iter()
-        .map(|m| {
-            let base = m.name().cloned().unwrap_or_else(|| "display".into());
-            let n = seen.entry(base.clone()).or_insert(0);
-            *n += 1;
-            if *n == 1 { base } else { format!("{base}#{n}") }
-        })
-        .collect()
+fn display_assignment(monitors: &[Monitor]) -> Result<peta_core::display::Assignment, String> {
+    let names: Vec<_> = monitors.iter().map(|m| m.name().cloned().unwrap_or_else(|| "display".into())).collect();
+    let native = platform::stable_display_ids(monitors)?;
+    peta_core::display::assign(&names, native.as_deref()).map_err(|e| e.to_string())
 }
 
-fn signature(monitors: &[Monitor]) -> String {
-    monitors
-        .iter()
-        .map(|m| format!("{:?}|{:?}|{:?}|{}", m.name(), m.position(), m.size(), m.scale_factor()))
-        .collect::<Vec<_>>()
-        .join(";")
+fn signature(monitors: &[Monitor], ids: &[String], primary: usize) -> String {
+    format!("primary={primary};{}", monitors.iter().zip(ids)
+        .map(|(m, id)| format!("{id}|{:?}|{:?}|{:?}|{}", m.name(), m.position(), m.size(), m.scale_factor()))
+        .collect::<Vec<_>>().join(";"))
+}
+
+fn primary_index(app: &AppHandle, monitors: &[Monitor]) -> tauri::Result<usize> {
+    Ok(app.primary_monitor()?
+        .and_then(|p| monitors.iter().position(|m| m.position() == p.position() && m.size() == p.size()))
+        .unwrap_or(0))
 }
 
 /// Rebuild all layers from the current monitor set. Call on the main thread.
@@ -94,11 +105,21 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
     if monitors.is_empty() {
         return Ok(());
     }
-    let ids = assign_display_ids(&monitors);
-    let primary_idx = app
-        .primary_monitor()?
-        .and_then(|p| monitors.iter().position(|m| m.position() == p.position() && m.size() == p.size()))
-        .unwrap_or(0);
+    let assignment = display_assignment(&monitors).map_err(|e| tauri::Error::Anyhow(std::io::Error::other(e).into()))?;
+    let ids = assignment.ids;
+    let primary_idx = primary_index(app, &monitors)?;
+    {
+        let store = app.state::<Store>();
+        let mut lib = store.lock();
+        for old in assignment.ambiguous_names {
+            lib.db_mut().mark_ambiguous_display_name(&old)
+                .map_err(|e| tauri::Error::Anyhow(e.into()))?;
+        }
+        for (old, stable) in assignment.aliases {
+            lib.db_mut().migrate_display_alias(&old, &stable)
+                .map_err(|e| tauri::Error::Anyhow(e.into()))?;
+        }
+    }
 
     let layers = app.state::<Layers>();
     let (old_labels, generation, edit_mode, print) = {
@@ -107,8 +128,13 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
         st.generation += 1;
         st.by_label.clear();
         st.present_display_ids = ids.clone();
+        st.displays = monitors.iter().enumerate().map(|(i, monitor)| DisplayChoice {
+            id: ids[i].clone(),
+            name: monitor.name().cloned().unwrap_or_else(|| "Display".into()),
+            is_primary: i == primary_idx,
+        }).collect();
         st.primary_display_id = ids[primary_idx].clone();
-        st.signature = signature(&monitors);
+        st.signature = signature(&monitors, &ids, primary_idx);
         (old, st.generation, st.edit_mode, st.print)
     };
 
@@ -148,6 +174,7 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
 
         apply_mode(&window, edit_mode || (print && i == primary_idx));
     }
+    let _ = app.emit("displays-changed", ());
     Ok(())
 }
 
@@ -217,16 +244,21 @@ pub fn set_print(app: &AppHandle, on: bool) {
 pub fn spawn_monitor_watcher(app: AppHandle) {
     thread::spawn(move || loop {
         thread::sleep(Duration::from_secs(2));
-        let Ok(monitors) = app.available_monitors() else { continue };
-        let current = signature(&monitors);
-        let changed = current != app.state::<Layers>().0.lock().unwrap().signature;
-        if changed && !monitors.is_empty() {
-            let handle = app.clone();
-            let _ = app.run_on_main_thread(move || {
-                if let Err(e) = sync(&handle) {
-                    eprintln!("[peta] layer re-sync failed: {e}");
+        // CoreGraphics identities must be read along with Tauri geometry on the main thread.
+        let handle = app.clone();
+        let _ = app.run_on_main_thread(move || {
+            let result = (|| -> Result<(), String> {
+                let monitors = handle.available_monitors().map_err(|e| e.to_string())?;
+                if monitors.is_empty() { return Ok(()); }
+                let ids = display_assignment(&monitors)?.ids;
+                let primary = primary_index(&handle, &monitors).map_err(|e| e.to_string())?;
+                let current = signature(&monitors, &ids, primary);
+                if current != handle.state::<Layers>().0.lock().unwrap().signature {
+                    sync(&handle).map_err(|e| e.to_string())?;
                 }
-            });
-        }
+                Ok(())
+            })();
+            if let Err(e) = result { eprintln!("[peta] display re-sync failed: {e}"); }
+        });
     });
 }

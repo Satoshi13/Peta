@@ -7,6 +7,12 @@
 (背景除去 → フチ → Matte / Kraft / Holographic の質感)が載っています。Print/Paste の演出と Collection 画面はまだありません。
 画像生成が必要な演出は未着手で、引き継ぎ資料は [docs/ui-handoff.md](docs/ui-handoff.md) にあります。
 
+## 2026-10-06 の追加
+
+- Collection詳細でステッカー名を保存・変更できます。作者の原本のみ、最初のGift作成まで編集可能。Giftに名前を含め、作成後は原本・受取コピーとも固定します。
+- macOSではディスプレイの永続UUIDで貼付先を保存します。曖昧な旧データは詳細のHome displayから指定できます。[移行と実機確認](docs/display-identity.md)。
+- 共有Market・アカウントはバックエンド未選定。[仕様と接続境界・API草案](docs/community.md)を用意しました。ログイン・同期・実際のFollowや投稿の接続は次段階です。
+
 ## 動かし方(Mac)
 
 必要なもの: Xcode Command Line Tools、Rust(`rustup`)、Node 20+

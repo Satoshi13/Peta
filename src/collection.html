@@ -47,6 +47,22 @@
         <div id="detail-back"></div>
       </div>
       <button id="turn" type="button" class="turn">Turn over</button>
+      <form id="sticker-name-form" class="sticker-name-form">
+        <label for="sticker-name">Sticker name</label>
+        <div class="row">
+          <input id="sticker-name" type="text" autocomplete="off" placeholder="Give this Peta a name" aria-describedby="sticker-name-status" />
+          <button id="sticker-name-save" type="submit">Save</button>
+        </div>
+        <small id="sticker-name-status" class="muted" role="status"></small>
+      </form>
+      <form id="display-form" class="sticker-name-form" hidden>
+        <label for="sticker-display">Home display</label>
+        <div class="row">
+          <select id="sticker-display"></select>
+          <button id="display-save" type="submit">Move</button>
+        </div>
+        <small id="display-status" class="muted" role="status"></small>
+      </form>
       <dl id="facts"></dl>
       <h4>History</h4>
       <ul id="history" class="history"></ul>
@@ -63,7 +79,7 @@
           <button id="gift-send" type="submit" class="primary">Seal &amp; save…</button>
           <button id="gift-cancel" type="button" class="link">Cancel</button>
         </div>
-        <small class="muted">You give a copy; yours stays in your book. The file holds only the finished sticker — never your photo.</small>
+        <small class="muted">You give a copy; yours stays in your book. The file holds only the finished sticker — never your photo. The author’s sticker name is included and fixed when you make a Gift.</small>
       </form>
       <p id="msg" class="muted" role="status"></p>
     </aside>

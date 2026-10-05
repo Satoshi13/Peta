@@ -62,3 +62,41 @@ pub fn activate_app() {
         }
     }
 }
+
+/// Match Tauri monitors to CoreGraphics by logical origin (the same geometry Tao uses),
+/// then store the system's UUID rather than its transient CGDirectDisplayID.
+/// Names, enumeration order, resolution and scale are not part of the identity.
+pub fn stable_display_ids(monitors: &[tauri::Monitor]) -> Result<Option<Vec<String>>, String> {
+    use core_foundation::{base::{CFRelease, TCFType}, string::CFString};
+    use core_graphics::display::CGDisplay;
+    use std::ffi::c_void;
+
+    #[link(name = "CoreGraphics", kind = "framework")]
+    extern "C" {
+        fn CGDisplayCreateUUIDFromDisplayID(display: u32) -> *const c_void;
+    }
+    #[link(name = "CoreFoundation", kind = "framework")]
+    extern "C" {
+        fn CFUUIDCreateString(allocator: *const c_void, uuid: *const c_void) -> core_foundation::string::CFStringRef;
+    }
+
+    let active = CGDisplay::active_displays().map_err(|e| format!("reading display identities failed: {e}"))?;
+    let native: Vec<_> = active.iter().map(|&id| {
+        let bounds = CGDisplay::new(id).bounds();
+        (id, bounds.origin.x, bounds.origin.y)
+    }).collect();
+    let ids = monitors.iter().map(|monitor| {
+        let id = peta_core::display::match_native_origin(&native,
+            (monitor.position().x, monitor.position().y), monitor.scale_factor()).map_err(|e| e.to_string())?;
+        unsafe {
+            let uuid = CGDisplayCreateUUIDFromDisplayID(id);
+            if uuid.is_null() { return Err("display UUID was unavailable".into()); }
+            let raw = CFUUIDCreateString(std::ptr::null(), uuid);
+            CFRelease(uuid);
+            if raw.is_null() { return Err("display UUID could not be read".into()); }
+            let uuid = CFString::wrap_under_create_rule(raw).to_string();
+            Ok(format!("macos:{uuid}"))
+        }
+    }).collect::<Result<Vec<_>, String>>()?;
+    Ok(Some(ids))
+}
