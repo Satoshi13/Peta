@@ -25,7 +25,11 @@ const STATIONARY: usize = 1 << 4; // does not move with Space transitions (like 
 const IGNORES_CYCLE: usize = 1 << 6; // not reachable via Cmd+`
 
 /// Must be called on the main thread (the callers use `run_on_main_thread`).
+/// Reject incorrect callers before sending any AppKit messages.
 pub fn apply_layer_mode(window: &WebviewWindow, mode: LayerMode) -> Result<(), String> {
+    let _main_thread = objc2::MainThreadMarker::new()
+        .ok_or_else(|| "desktop layer mode must be applied on the main thread".to_owned())?;
+
     let level: isize = unsafe {
         match mode {
             LayerMode::Resting => CGWindowLevelForKey(DESKTOP_WINDOW_LEVEL_KEY) as isize + 10,
