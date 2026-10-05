@@ -1,6 +1,7 @@
 mod app_window;
 mod port_capture;
 mod arrival;
+mod arrival_window;
 mod collection;
 mod creator;
 mod gifts;

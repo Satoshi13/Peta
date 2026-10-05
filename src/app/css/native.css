@@ -493,18 +493,23 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .pack:not(:disabled):hover .pk-stack { transform:translateY(-3px); }
 .mk-tile:hover .pk-stack { transform:translateY(-3px); }
 .stuck-t:hover .stk { transform:translateY(-2px); }
-.env-float, .env-scene::after, .pk-wrap .mcard.in-wrap.out::before { animation:none; }
-.env-float { transition:transform .22s cubic-bezier(.2,.7,.3,1); }
-.env-scene:hover .env-float { transform:translateY(-3px); }
-html[data-motion="reduce"] :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.sample:hover img,.pack:hover .pk-stack,.mk-tile:hover .pk-stack,.stuck-t:hover .stk,.env-scene:hover .env-float) { transform:none!important; }
+.pk-wrap .mcard.in-wrap.out::before { animation:none; }
+/* Keep the floating clock constant. Hover moves its parent, never retimes the animation. */
+.env-float { animation:float 4.6s ease-in-out infinite; transition:none; }
+.env-scene::after { animation:shadow-breathe 4.6s ease-in-out infinite; }
+html[data-motion="reduce"] :is(.env-float,.env-scene::after) { animation:none!important; }
+@media(prefers-reduced-motion:reduce) { :is(.env-float,.env-scene::after) { animation:none!important; } }
+html[data-motion="reduce"] :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.sample:hover img,.pack:hover .pk-stack,.mk-tile:hover .pk-stack,.stuck-t:hover .stk,.env-scene:hover .env-lift) { transform:none!important; }
 @media(prefers-reduced-motion:reduce) {
-  :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.sample:hover img,.pack:hover .pk-stack,.mk-tile:hover .pk-stack,.stuck-t:hover .stk,.env-scene:hover .env-float) { transform:none!important; }
+  :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.sample:hover img,.pack:hover .pk-stack,.mk-tile:hover .pk-stack,.stuck-t:hover .stk,.env-scene:hover .env-lift) { transform:none!important; }
 }
 
 .cer[data-kind="material"] .cer-bg { background:var(--w-surface,var(--paper)); }
 .cer[data-kind="material"] :is(.cer-hint,.rv-info) { color:var(--ink); text-shadow:none; }
 .material-envelope { position:absolute; left:50%; top:46%; translate:-50% -50%; width:min(400px,75%,50vh); margin:0; }
-.material-envelope .env-float, .material-envelope:hover .env-float { transform:none; transition:none; transform-style:flat; isolation:isolate; }
+.material-envelope .env-lift, .material-envelope:hover .env-lift { transform:none; transition:none; }
+.material-envelope::after { animation:none; }
+.material-envelope .env-float, .material-envelope:hover .env-float { animation:none; transform:none; transition:none; transform-style:flat; isolation:isolate; }
 .material-card-slot { position:absolute; inset:0; z-index:1; pointer-events:none; clip-path:polygon(-100% -100%,200% -100%,200% 12%,90% 12%,50% 54%,10% 12%,-100% 12%); }
 .material-envelope .mcard { position:absolute; left:26%; top:45%; z-index:1; cursor:grab; touch-action:none; pointer-events:auto; }
 .material-envelope .mcard[data-concealed] .art { background:var(--a-backMatte) center / cover; }

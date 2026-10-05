@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "arrival",
+  "description": "Small envelope-only desktop notification",
+  "windows": ["arrival-notification"],
+  "permissions": ["core:default", "allow-arrival-notification"]
+}

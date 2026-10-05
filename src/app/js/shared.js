@@ -67,10 +67,10 @@ function StuckStrip() {
 
 function EnvelopeScene() {
   return h("div.env-scene", { role: "button", tabindex: 0, "aria-label": "Open today's material" },
-    h("div.env-float",
+    h("div.env-lift", h("div.env-float",
       img("envBack", "layer back"), img("envCard", "layer card"),
       h("span.layer.pocket", img("envPocket"), h("span.env-label", "Today's", h("br"), "Material")),
-      img("envFlap", "layer flap")));
+      img("envFlap", "layer flap"))));
 }
 function RevealScene(m) {
   const card = h("div.mcard.big", { data: { m: m.id }, vars: { "--w": "300px" } }, h("i.art"), h("span.lab", h("b", m.name), h("small", m.rarity)));

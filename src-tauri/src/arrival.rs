@@ -1,4 +1,4 @@
-//! Desktop arrival notification on the existing primary sticker layer; opens a page in the one main shell.
+//! Envelope-only desktop notification; opens a page in the one main shell.
 use tauri::{AppHandle,Emitter,Manager};
 use std::sync::atomic::{AtomicBool,Ordering};
 static VISIBLE:AtomicBool=AtomicBool::new(false);
@@ -17,8 +17,8 @@ pub fn arrival_open(app:AppHandle) {
     let page=if gifts::unopened_count(&app)>0 {"gifts"} else {"today"};
     if let Err(e)=crate::app_window::open(&app,page) {eprintln!("[peta] could not open arrival: {e}");}
 }
-/// Resting layers pass clicks through except while the pointer is over the notification.
-/// This uses the existing layer, not an additional Arrival content window. Print/Edit keep priority.
+/// Only the small notification window takes clicks while hovered.
+/// Sticker layers keep their own level and click-through state. Print/Edit keep priority.
 pub fn spawn_hit_watcher(app: AppHandle) {
     std::thread::spawn(move || {
         let mut hovered = String::new();
@@ -46,16 +46,23 @@ pub fn spawn_hit_watcher(app: AppHandle) {
 /// Called only inside the main-thread task. Recheck Print/Edit before touching any window,
 /// so a queued hover update cannot undo a mode change or operate on a rebuilt layer.
 fn update_hover(app: &AppHandle, hovered: &str) -> String {
-    if app.state::<Layers>().interactive() {
-        return String::new();
-    }
+    let interactive = app.state::<Layers>().interactive();
     let visible = VISIBLE.load(Ordering::Relaxed);
     let windows = app.webview_windows();
     let layer = windows.values().find(|w| {
         app.state::<Layers>().info(w.label()).is_some_and(|i| i.is_primary)
     });
-    let hit = layer.is_some_and(|w| visible && match (
-        w.cursor_position(), w.outer_position(), w.inner_size(), w.scale_factor(),
+    let notification = match crate::arrival_window::sync(app, layer, visible) {
+        Ok(Some(notification)) => notification,
+        Ok(None) => return String::new(),
+        Err(e) => {
+            eprintln!("[peta] arrival window sync failed: {e}");
+            return String::new();
+        }
+    };
+    let (window, created) = notification;
+    let hit = !interactive && visible && match (
+        window.cursor_position(), window.outer_position(), window.inner_size(), window.scale_factor(),
     ) {
         (Ok(pointer), Ok(pos), Ok(size), Ok(scale)) => {
             // Keep the shell's resize corner usable when it overlaps the envelope.
@@ -75,25 +82,17 @@ fn update_hover(app: &AppHandle, hovered: &str) -> String {
             let y = (pointer.y - pos.y as f64) / scale;
             let width = size.width as f64 / scale;
             let height = size.height as f64 / scale;
-            !over_shell && x >= width - 26.0 - 190.0 && x <= width - 26.0
-                && y >= height - 90.0 - 190.0 * 340.0 / 480.0 - 16.0 && y <= height - 90.0
+            // A fixed hit area contains every floating/hover pose and stays still at the edge.
+            !over_shell && x >= 40.0 && x <= width && y >= 20.0 && y <= height - 20.0
         }
         _ => false,
-    });
-    let now = if hit { layer.unwrap().label() } else { "" };
-    if hovered != now {
-        if let Some(old) = windows.get(hovered) {
-            set_hover_mode(old, crate::platform::LayerMode::Resting);
-        }
-        if hit {
-            set_hover_mode(layer.unwrap(), crate::platform::LayerMode::Editing);
+    };
+    let now = if hit { window.label() } else { "" };
+    if created || hovered != now {
+        if let Err(e) = window.set_ignore_cursor_events(!hit) {
+            eprintln!("[peta] arrival click-through failed: {e}");
+            return String::new();
         }
     }
     now.to_owned()
-}
-
-fn set_hover_mode(window: &tauri::WebviewWindow, mode: crate::platform::LayerMode) {
-    if let Err(e) = crate::platform::apply_layer_mode(window, mode) {
-        eprintln!("[peta] arrival hover ({mode:?}) failed on {}: {e}", window.label());
-    }
 }

@@ -1,0 +1,33 @@
+/* 250 x 220 logical native viewport, ending at the display's right edge. */
+html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+#arrival {
+  position: absolute; inset: 0; padding: 0; border: 0; background: transparent;
+  cursor: pointer; user-select: none; -webkit-user-select: none;
+}
+#arrival[hidden] { display: none; }
+.arrival-enter, .arrival-lift, .arrival-float { position: absolute; inset: 0; pointer-events: none; }
+.arrival-enter { animation: arrival-slide 700ms cubic-bezier(.2,.8,.2,1) both; }
+.arrival-lift { transition: transform 260ms cubic-bezier(.2,.8,.2,1); }
+.arrival-float { animation: arrival-float 4.6s ease-in-out infinite; }
+.arrival-paper {
+  position: absolute; left: 46px; top: 36px; width: 230px; aspect-ratio: 480 / 340;
+  background: transparent center / contain no-repeat; transform: rotate(-12deg);
+  filter: drop-shadow(0 8px 10px rgba(20, 20, 30, .3));
+}
+.arrival-label {
+  position: absolute; left: 49%; top: 50%; width: 35%; height: 28%;
+  display: grid; place-content: center; transform: rotate(-9deg);
+  color: #39342f; font: 400 13px/1.35 "Klee One", cursive; text-align: center; white-space: pre-line;
+}
+#arrival[data-kind="gift"] .arrival-label { left: 60%; top: 63%; width: 24%; height: 19%; transform: none; font-size: 11px; }
+#arrival:hover .arrival-lift, #arrival:focus-visible .arrival-lift { transform: translate(-7px, -2px); }
+#arrival:active .arrival-lift { transform: translate(-4px, 0); }
+#arrival:focus-visible .arrival-paper { outline: 2px solid #777; outline-offset: -20px; }
+@keyframes arrival-slide { from { transform: translateX(70px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes arrival-float { 0%, 100% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(-2px, -5px) rotate(-.6deg); } }
+html[data-motion="reduce"] .arrival-enter, html[data-motion="reduce"] .arrival-float { animation: none; }
+html[data-motion="reduce"] .arrival-lift { transition: none; transform: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .arrival-enter, .arrival-float { animation: none; }
+  .arrival-lift { transition: none; transform: none !important; }
+}
