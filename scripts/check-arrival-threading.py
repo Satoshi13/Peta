@@ -15,6 +15,7 @@ with tempfile.TemporaryDirectory(prefix="peta-arrival-test-") as directory:
     binary = output / ("arrival-threading.exe" if sys.platform == "win32" else "arrival-threading")
     subprocess.run([rustc, "--crate-name", "tauri_test_macros", "--crate-type", "proc-macro",
                     "tests/support/tauri-command.rs", "-o", str(macros)], cwd=root, check=True)
-    subprocess.run([rustc, "--edition=2021", "--test", "tests/arrival-threading.rs",
-                    "--extern", f"tauri_test_macros={macros}", "-o", str(binary)], cwd=root, check=True)
-    subprocess.run([str(binary)], cwd=root, check=True)
+    for features in ([], ['--cfg', 'feature="developer"']):
+        subprocess.run([rustc, "--edition=2021", "--test", "tests/arrival-threading.rs",
+                        "--extern", f"tauri_test_macros={macros}", *features, "-o", str(binary)], cwd=root, check=True)
+        subprocess.run([str(binary)], cwd=root, check=True)

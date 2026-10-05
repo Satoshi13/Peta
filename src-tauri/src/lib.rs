@@ -132,6 +132,7 @@ pub fn run() {
         .manage(Store::default())
         .manage(Layers::default())
         .manage(Today::default())
+        .manage(arrival::Arrival::default())
         .manage(Creator::default())
         .manage(gifts::PendingPack::default())
         .invoke_handler(tauri::generate_handler![
@@ -140,6 +141,7 @@ pub fn run() {
             haptic_tap,
             developer_next_day,
             developer_sync_displays,
+            arrival::developer_show_arrival,
             layer_info,
             layers::set_reflection_active,
             layers::reflection_status,
@@ -168,6 +170,7 @@ pub fn run() {
             creator::creator_redo,
             creator::creator_cancel,
             arrival::arrival_status,
+            arrival::arrival_hover_status,
             arrival::arrival_open,
             gifts::gift_send,
             gifts::gift_receive_file,

@@ -1,21 +1,63 @@
 //! Envelope-only desktop notification; opens a page in the one main shell.
 use tauri::{AppHandle,Emitter,Manager};
-use std::sync::atomic::{AtomicBool,Ordering};
+use std::{collections::HashSet, sync::{Mutex, atomic::{AtomicBool,Ordering}}};
 static VISIBLE:AtomicBool=AtomicBool::new(false);
 use crate::{gifts,today,layers::Layers};
-fn wanted(app:&AppHandle)->Option<&'static str> {
-    if gifts::unopened_count(app)>0 {Some("gift")}
-    else if matches!(today::status(app),Ok(s) if s.material_opened && s.bonus_envelopes>0) {Some("extra")}
-    else if matches!(today::status(app),Ok(s) if !s.material_opened) {Some("material")}
-    else {None}
+#[derive(Default)]
+struct NoticeState {
+    dismissed: HashSet<String>,
+    preview: bool,
+    hovered: bool,
 }
-pub fn sync(app:&AppHandle) { let kind=wanted(app); VISIBLE.store(kind.is_some(),Ordering::Relaxed); let _=app.emit("arrival-changed",kind); }
+#[derive(Default)]
+pub struct Arrival(Mutex<NoticeState>);
+
+fn pending(app: &AppHandle) -> Option<(&'static str, String)> {
+    let daily = today::status(app).ok()?;
+    let preview = app.state::<Arrival>().0.lock().unwrap().preview;
+    if let Some(token) = gifts::arrival_token(app) { return Some(("gift", token)); }
+    let kind = if daily.material_opened && daily.bonus_envelopes > 0 { "extra" }
+        else if !daily.material_opened || preview { "material" }
+        else { return None; };
+    Some((kind, format!("{}:{kind}", daily.date)))
+}
+fn wanted(app: &AppHandle) -> Option<&'static str> {
+    let (kind, key) = pending(app)?;
+    let state = app.state::<Arrival>();
+    let state = state.0.lock().unwrap();
+    (state.preview || !state.dismissed.contains(&key)).then_some(kind)
+}
+pub fn sync(app: &AppHandle) {
+    let kind = wanted(app);
+    VISIBLE.store(kind.is_some(), Ordering::Relaxed);
+    if kind.is_none() { app.state::<Arrival>().0.lock().unwrap().hovered = false; }
+    let _ = app.emit("arrival-changed", kind);
+}
 #[tauri::command]
 pub fn arrival_status(app:AppHandle)->Option<String> {wanted(&app).map(str::to_owned)}
 #[tauri::command]
-pub fn arrival_open(app:AppHandle) {
-    let page=if gifts::unopened_count(&app)>0 {"gifts"} else {"today"};
-    if let Err(e)=crate::app_window::open(&app,page) {eprintln!("[peta] could not open arrival: {e}");}
+pub fn arrival_hover_status(app: AppHandle) -> bool { app.state::<Arrival>().0.lock().unwrap().hovered }
+#[tauri::command]
+pub fn arrival_open(app: AppHandle) -> Result<(), String> {
+    let notice = pending(&app);
+    let page = if notice.as_ref().is_some_and(|(kind, _)| *kind == "gift") { "gifts" } else { "today" };
+    // Keep the notification if the shell failed to open. Dismissal never opens a material.
+    crate::app_window::open(&app, page).map_err(|e| e.to_string())?;
+    if let Some((_, key)) = notice {
+        let state = app.state::<Arrival>();
+        let mut state = state.0.lock().unwrap();
+        state.dismissed.insert(key);
+        state.preview = false;
+    }
+    sync(&app);
+    Ok(())
+}
+#[tauri::command]
+pub fn developer_show_arrival(app: AppHandle) -> Result<(), String> {
+    if !cfg!(feature = "developer") { return Err("Developer edition required.".into()); }
+    app.state::<Arrival>().0.lock().unwrap().preview = true;
+    sync(&app);
+    Ok(())
 }
 /// Only the small notification window takes clicks while hovered.
 /// Sticker layers keep their own level and click-through state. Print/Edit keep priority.
@@ -83,12 +125,14 @@ fn update_hover(app: &AppHandle, hovered: &str) -> String {
             let width = size.width as f64 / scale;
             let height = size.height as f64 / scale;
             // A fixed hit area contains every floating/hover pose and stays still at the edge.
-            !over_shell && x >= 40.0 && x <= width && y >= 20.0 && y <= height - 20.0
+            !over_shell && x >= 40.0 && x <= width && y >= 10.0 && y <= height - 10.0
         }
         _ => false,
     };
+    app.state::<Arrival>().0.lock().unwrap().hovered = hit;
     let now = if hit { window.label() } else { "" };
     if created || hovered != now {
+        let _ = window.emit("arrival-hovered", hit);
         if let Err(e) = window.set_ignore_cursor_events(!hit) {
             eprintln!("[peta] arrival click-through failed: {e}");
             return String::new();

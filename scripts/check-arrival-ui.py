@@ -10,7 +10,7 @@ from playwright.sync_api import sync_playwright
 parser=argparse.ArgumentParser(description="Check actual desktop/Today envelope UI with mocked Tauri IPC")
 parser.add_argument('--screenshot', type=Path)
 args=parser.parse_args()
-ROOT=Path(__file__).resolve().parents[1]/'src' 
+ROOT=Path(__file__).resolve().parents[1]/'src'
 class Quiet(SimpleHTTPRequestHandler):
     def log_message(self, *args): pass
 server=ThreadingHTTPServer(('127.0.0.1',0),partial(Quiet,directory=str(ROOT)))
@@ -26,8 +26,15 @@ with sync_playwright() as p:
     page.on('pageerror',lambda error: errors.append(str(error)))
     page.add_init_script('''
       localStorage.setItem('peta.preferences',JSON.stringify({sound:false}));
-      window.calls=[]; window.listeners={};
-      window.__TAURI__={core:{invoke:async name=>{calls.push(name);return name==='arrival_status'?'material':null;}},
+      window.calls=[]; window.listeners={}; window.openMode='success';
+      window.__TAURI__={core:{invoke:async name=>{
+         calls.push(name);
+         if(name==='arrival_open') {
+           if(openMode==='fail') throw Error('open failed');
+           listeners['arrival-changed']({payload:null}); return null;
+         }
+         return name==='arrival_status'?'material':name==='arrival_hover_status'?false:null;
+       }},
        event:{listen:async(name,fn)=>{listeners[name]=fn;return ()=>{};}}};
     ''')
     page.goto(base+'/arrival.html')
@@ -42,20 +49,58 @@ with sync_playwright() as p:
     page.evaluate("window.floatAnimation=document.querySelector('.arrival-float').getAnimations()[0];window.floatStart=floatAnimation.startTime")
     for i in range(30):
         page.mouse.move(150,130) if i%2 else page.mouse.move(260,230)
+        page.evaluate('(hit)=>listeners["arrival-hovered"]({payload:hit})', bool(i%2))
         page.wait_for_timeout(35)
-        assert page.evaluate("document.querySelector('.arrival-float').getAnimations()[0]===floatAnimation && floatAnimation.startTime===floatStart && floatAnimation.effect.getTiming().duration===4600")
+        assert page.evaluate("document.querySelector('.arrival-float').getAnimations()[0]===floatAnimation && floatAnimation.startTime===floatStart && floatAnimation.effect.getTiming().duration<=3200")
     assert box==page.locator('#arrival').bounding_box(), 'hover target moved'
+    # Clear hover from native state even while the WebView pointer remains over the button.
     page.mouse.move(150,130)
-    page.wait_for_timeout(300)
-    assert page.evaluate("getComputedStyle(document.querySelector('.arrival-lift')).transform")=='matrix(1, 0, 0, 1, -7, -2)'
-    page.click('#arrival',position={'x':150,'y':130})
-    page.locator('#arrival').focus()
-    page.keyboard.press('Enter');page.keyboard.press('Space')
-    assert page.evaluate("calls.filter(x=>x==='arrival_open').length")==3
+    page.evaluate("listeners['arrival-hovered']({payload:true})")
+    page.wait_for_timeout(450)
+    assert page.evaluate("getComputedStyle(document.querySelector('.arrival-lift')).transform")=='matrix(1, 0, 0, 1, 0, -7)'
+    page.evaluate("listeners['arrival-hovered']({payload:false})")
+    page.wait_for_timeout(450)
+    assert page.evaluate("getComputedStyle(document.querySelector('.arrival-lift')).transform")in ['none','matrix(1, 0, 0, 1, 0, 0)']
+    travel=page.evaluate("""() => {
+      const a=floatAnimation, duration=a.effect.getTiming().duration;
+      a.pause(); a.currentTime=0;
+      const low=new DOMMatrix(getComputedStyle(document.querySelector('.arrival-float')).transform).m42;
+      a.currentTime=duration/2;
+      const high=new DOMMatrix(getComputedStyle(document.querySelector('.arrival-float')).transform).m42;
+      a.play(); return Math.abs(high-low);
+    }""")
+    assert travel>=12, f'floating should be clearly visible: {travel}'
     for kind in ['gift','extra','material']:
         page.evaluate('(kind)=>listeners["arrival-changed"]({payload:kind})',kind)
         assert page.locator('#arrival').get_attribute('data-kind')==kind
         assert page.evaluate("document.querySelector('.arrival-float').getAnimations()[0]===floatAnimation")
+    page.evaluate("window.openMode='fail'")
+    page.click('#arrival',position={'x':150,'y':130})
+    page.wait_for_timeout(50)
+    assert page.locator('#arrival').is_visible() and page.locator('#arrival').is_enabled(), 'failed open dismissed the notice'
+    page.evaluate("window.openMode='success'")
+    for action in ['mouse','Enter','Space']:
+        page.evaluate("listeners['arrival-changed']({payload:'material'})")
+        if action=='mouse':
+            page.click('#arrival',position={'x':150,'y':130})
+        else:
+            page.locator('#arrival').focus(); page.keyboard.press(action)
+        assert page.locator('#arrival').is_disabled(), 'duplicate opens must be blocked'
+        page.wait_for_timeout(350)
+        assert page.locator('#arrival').is_hidden(), 'successful open must dismiss with an exit'
+    assert page.evaluate("calls.filter(x=>x==='arrival_open').length")==4
+    page.evaluate("listeners['arrival-changed']({payload:'material'})")
+    pose=page.evaluate("""() => {
+      const node=document.querySelector('.arrival-enter');
+      const a=node.getAnimations().find(a=>a.animationName==='arrival-slide');
+      a.pause(); a.currentTime=140;
+      const style=getComputedStyle(node); return {transform:style.transform,opacity:style.opacity};
+    }""")
+    page.locator('#arrival').evaluate('(node)=>node.click()')
+    first=page.evaluate("document.querySelector('.arrival-enter').getAnimations().find(a=>!a.animationName).effect.getKeyframes()[0]")
+    assert first['transform']==pose['transform'] and first['opacity']==pose['opacity'], 'mid-entry dismissal snapped'
+    page.wait_for_timeout(350)
+    page.evaluate("listeners['arrival-changed']({payload:'material'})")
     page.locator('#arrival').evaluate('(node)=>node.blur()');page.mouse.move(260,230);page.wait_for_timeout(300)
     page.evaluate("document.getAnimations().forEach(a=>a.pause());document.body.style.background='#eb3d4c'")
     if args.screenshot: page.screenshot(path=str(args.screenshot))
@@ -67,7 +112,7 @@ with sync_playwright() as p:
     page.emulate_media(reduced_motion='reduce')
     assert page.evaluate("getComputedStyle(document.querySelector('.arrival-float')).animationName")=='none'
     assert not errors,errors
-    print('Desktop: stable float clock across 30 hover transitions, fixed hit target, paper label, 3 click/keyboard opens, material/gift/extra, reduced motion: PASS')
+    print('Desktop: visible float travel, stable phase through 30 native hover transitions, native hover clear, failed/successful opens, one-shot exits, material/gift/extra, reduced motion: PASS')
 
     # Build the actual shared Today envelope with the real native CSS, without unrelated app APIs.
     today=browser.new_page(viewport={'width':850,'height':650})
@@ -89,17 +134,39 @@ with sync_playwright() as p:
     today.evaluate('document.fonts.ready')
     today.wait_for_function("todayAnimation.startTime !== null")
     today.evaluate("window.todayStart=todayAnimation.startTime")
-    assert today.evaluate("todayAnimation.effect.getTiming().duration")==4600
+    assert today.evaluate("todayAnimation.effect.getTiming().duration")<=3200
     target=today.locator('.env-scene').bounding_box()
     for i in range(20):
         today.mouse.move(target['x']+target['width']/2,target['y']+target['height']/2) if i%2 else today.mouse.move(5,5)
         today.wait_for_timeout(35)
         state=today.evaluate("({same:document.querySelector('.env-float').getAnimations()[0]===todayAnimation,start:todayAnimation.startTime,original:todayStart,duration:todayAnimation.effect.getTiming().duration,css:getComputedStyle(document.querySelector('.env-float')).animation,animations:document.querySelector('.env-float').getAnimations().map(a=>({name:a.animationName,current:a.currentTime,start:a.startTime}))})")
-        assert state['same'] and state['start']==state['original'] and state['duration']==4600,state
+        assert state['same'] and state['start']==state['original'] and state['duration']<=3200,state
+    travel=today.evaluate("""() => {
+      const a=todayAnimation, duration=a.effect.getTiming().duration;
+      a.pause(); a.currentTime=0;
+      const low=new DOMMatrix(getComputedStyle(document.querySelector('.env-float')).transform).m42;
+      a.currentTime=duration/2;
+      const high=new DOMMatrix(getComputedStyle(document.querySelector('.env-float')).transform).m42;
+      a.play(); return Math.abs(high-low);
+    }""")
+    assert travel>=16, f'Today floating should be clearly visible: {travel}'
     today.evaluate("document.querySelector('.env-scene').classList.add('material-envelope')")
     assert today.evaluate("getComputedStyle(document.querySelector('.env-float')).animationName")=='none', 'extraction must be still'
     today.evaluate("document.querySelector('.env-scene').classList.remove('material-envelope');document.documentElement.dataset.motion='reduce'")
     assert today.evaluate("getComputedStyle(document.querySelector('.env-float')).animationName")=='none'
-    print('Today: float restored, 20 hover transitions preserve phase, extraction remains still, reduced motion: PASS')
+    print('Today: visible float travel, 20 hover transitions preserve phase, extraction remains still, reduced motion: PASS')
+    today.evaluate("""
+      window.Pages={}; window.S={developer:true,name:'Satoshi',iconStickerId:null,shell:'studio',appearance:'day'};
+      window.devCalls=[];
+      window.Bridge={invoke:async name=>devCalls.push(name)};
+      window.Shell={close:async()=>devCalls.push('hide-main'),toast:message=>devCalls.push(message)};
+    """)
+    today.add_script_tag(url=base+'/app/js/settings.js')
+    today.evaluate('document.body.replaceChildren(Pages.settings.build())')
+    today.get_by_role('button',name='Show desktop envelope once').click()
+    assert today.evaluate('devCalls')==['developer_show_arrival','hide-main']
+    today.evaluate('S.developer=false;document.body.replaceChildren(Pages.settings.build())')
+    assert today.get_by_role('button',name='Show desktop envelope once').count()==0
+    print('Settings: developer-only one-shot notification control: PASS')
     browser.close()
 server.shutdown()

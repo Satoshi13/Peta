@@ -18,6 +18,7 @@ Pages.settings = {
     if(S.developer) root.append(h("section.setcard.developer-tools", h("h2","Peta Developer"), h("p.muted.small","Unlimited materials, exchanges, envelopes and pack openings. Data stays separate from Peta."),
       h("div.row-btns",
         h("button.btn.paper.small",{on:{click:()=>{S.extraEnvelope=true;S.dayState="arrived";Shell.go("today");}}},"Open another envelope"),
+        h("button.btn.paper.small",{on:{click:async e=>{const b=e.currentTarget;b.disabled=true;try {await Bridge.invoke("developer_show_arrival");await Shell.close();}catch(err){Shell.toast(String(err));}finally{b.disabled=false;}}}},"Show desktop envelope once"),
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_next_day");S.envelopeDeadline=null;await Bridge.reload();Shell.go("today",{force:true});}catch(e){Shell.toast(String(e));}}}},"Next Day (+1 day)"),
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_sync_displays");Shell.toast("Displays re-synced.");}catch(e){Shell.toast(String(e));}}}},"Re-sync Displays"))));
     root.append(h("p.muted.fine", "In the real app this window also hosts Cutting Mat, Collection, Packs and Gifts — what used to be four separate windows. Stickers stay on your desktop; this window comes and goes from the menu bar."));

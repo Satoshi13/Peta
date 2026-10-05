@@ -109,9 +109,13 @@ pub fn gift_inbox(store: State<Store>) -> Result<Vec<IncomingGift>, String> {
     store.lock().db().gifts_received().map_err(|e| e.to_string())
 }
 
-/// How many gifts are still sealed.
-pub fn unopened_count(app: &AppHandle) -> usize {
-    app.state::<Store>().lock().db().gifts_received().map(|g| g.iter().filter(|g| g.opened_at.is_none()).count()).unwrap_or(0)
+/// Keep a dismissed inbox notice quiet until a new gift arrives, even when seals are opened.
+pub fn arrival_token(app: &AppHandle) -> Option<String> {
+    let store = app.state::<Store>();
+    let gifts = store.lock().db().gifts_received().ok()?;
+    if !gifts.iter().any(|gift| gift.opened_at.is_none()) { return None; }
+    let newest = gifts.iter().max_by(|a, b| (&a.received_at, &a.gift_id).cmp(&(&b.received_at, &b.gift_id)))?;
+    Some(format!("gift:{}", newest.gift_id))
 }
 
 /// Break the seal: keep this gift in the Book and print queue. No daily limit or material cost.

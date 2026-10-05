@@ -9,6 +9,10 @@ pub struct AppHandle {
     queue: mpsc::Sender<Task>,
     windows: Arc<Mutex<HashMap<String, WebviewWindow>>>,
     layers: Arc<layers::Layers>,
+    arrival: Arc<arrival::Arrival>,
+    date: Arc<Mutex<String>>,
+    fail_open: Arc<AtomicBool>,
+    gift_token: Arc<Mutex<Option<String>>>,
     material_opened: Arc<AtomicBool>,
     stopped: Arc<AtomicBool>,
 }
@@ -19,7 +23,9 @@ pub trait Manager {
 }
 impl Manager for AppHandle {
     fn state<T: Send + Sync + 'static>(&self) -> Arc<T> {
-        let state: Arc<dyn std::any::Any + Send + Sync> = self.layers.clone();
+        let state: Arc<dyn std::any::Any + Send + Sync> = if std::any::TypeId::of::<T>() == std::any::TypeId::of::<arrival::Arrival>() {
+            self.arrival.clone()
+        } else { self.layers.clone() };
         state.downcast().ok().unwrap()
     }
     fn webview_windows(&self) -> HashMap<String, WebviewWindow> {
@@ -31,6 +37,7 @@ impl Manager for AppHandle {
 }
 pub trait Emitter { fn emit<T>(&self, _: &str, _: T) -> Result<(), String> { Ok(()) } }
 impl Emitter for AppHandle {}
+impl Emitter for WebviewWindow { fn emit<T>(&self, _: &str, _: T) -> Result<(), String> { self.assert_main(); Ok(()) } }
 impl AppHandle {
     pub fn run_on_main_thread(&self, task: impl FnOnce() + Send + 'static) -> Result<(), String> {
         if self.stopped.load(Ordering::Relaxed) { return Err("stopped".into()); }
@@ -123,16 +130,16 @@ mod layers {
         }
     }
 }
-mod gifts { pub fn unopened_count(_: &super::AppHandle) -> usize { 0 } }
+mod gifts { pub fn arrival_token(app: &super::AppHandle) -> Option<String> { app.gift_token.lock().unwrap().clone() } }
 mod today {
-    pub struct Status { pub material_opened: bool, pub bonus_envelopes: usize }
+    pub struct Status { pub date: String, pub material_opened: bool, pub bonus_envelopes: usize }
     pub fn status(app: &super::AppHandle) -> Result<Status, String> {
-        Ok(Status { material_opened: app.material_opened.load(super::Ordering::Relaxed), bonus_envelopes: 0 })
+        Ok(Status { date: app.date.lock().unwrap().clone(), material_opened: app.material_opened.load(super::Ordering::Relaxed), bonus_envelopes: 0 })
     }
 }
 mod app_window {
     pub const APP_LABEL: &str = "peta-app";
-    pub fn open(_: &super::AppHandle, _: &str) -> Result<(), String> { Ok(()) }
+    pub fn open(app: &super::AppHandle, _: &str) -> Result<(), String> { if app.fail_open.load(super::Ordering::Relaxed) { Err("open failed".into()) } else { Ok(()) } }
 }
 #[path = "../src-tauri/src/arrival.rs"]
 #[allow(dead_code)]
@@ -154,7 +161,8 @@ fn hover_keeps_stickers_below_icons_and_dispatches_native_operations_to_main_thr
     };
     let app = AppHandle {
         queue, windows: Arc::new(Mutex::new(HashMap::from([(layer.label.clone(), layer.clone())]))),
-        layers: Arc::new(layers::Layers::default()), material_opened: Arc::new(AtomicBool::new(false)),
+        layers: Arc::new(layers::Layers::default()), arrival: Arc::new(arrival::Arrival::default()),
+        date: Arc::new(Mutex::new("2026-10-06".into())), fail_open: Arc::new(AtomicBool::new(false)), gift_token: Arc::new(Mutex::new(None)), material_opened: Arc::new(AtomicBool::new(false)),
         stopped: Arc::new(AtomicBool::new(false)),
     };
     arrival::sync(&app);
@@ -200,12 +208,51 @@ fn hover_keeps_stickers_below_icons_and_dispatches_native_operations_to_main_thr
     tick(); passes_clicks();
     app.windows.lock().unwrap().remove(app_window::APP_LABEL);
     tick(); receives_clicks();
-    app.material_opened.store(true, Ordering::Relaxed);
+    // A failed open keeps the notice. A successful open dismisses without opening the material.
+    app.fail_open.store(true, Ordering::Relaxed);
+    assert!(arrival::arrival_open(app.clone()).is_err());
+    assert_eq!(arrival::arrival_status(app.clone()).as_deref(), Some("material"));
+    app.fail_open.store(false, Ordering::Relaxed);
+    assert!(arrival::arrival_open(app.clone()).is_ok());
+    assert!(arrival::arrival_status(app.clone()).is_none());
+    assert!(!app.material_opened.load(Ordering::Relaxed));
+    tick(); passes_clicks();
+    assert!(app.get_webview_window(arrival_window::LABEL).is_some(), "exit animation needs time to finish");
+    for _ in 0..15 { tick(); if app.get_webview_window(arrival_window::LABEL).is_none() { break; } }
+    assert!(app.get_webview_window(arrival_window::LABEL).is_none());
     arrival::sync(&app);
     tick();
-    assert!(app.get_webview_window(arrival_window::LABEL).is_none(), "hidden arrival must remove the native overlay");
+    assert!(app.get_webview_window(arrival_window::LABEL).is_none(), "same-day refresh must not resurrect a dismissed notice");
+    if cfg!(feature="developer") {
+        app.material_opened.store(true, Ordering::Relaxed);
+        assert!(arrival::developer_show_arrival(app.clone()).is_ok());
+        tick(); receives_clicks();
+        arrival::developer_show_arrival(app.clone()).unwrap();
+        tick();
+        assert_eq!(app.webview_windows().keys().filter(|label| label.as_str()==arrival_window::LABEL).count(), 1);
+        assert!(arrival::arrival_status(app.clone()).is_some());
+        assert!(arrival::arrival_open(app.clone()).is_ok());
+        assert!(arrival::arrival_status(app.clone()).is_none(), "preview is consumed once");
+        assert!(app.material_opened.load(Ordering::Relaxed), "preview must not reset today");
+    } else {
+        assert!(arrival::developer_show_arrival(app.clone()).is_err());
+        assert!(arrival::arrival_status(app.clone()).is_none());
+    }
+    app.material_opened.store(false, Ordering::Relaxed);
+    *app.date.lock().unwrap() = "2026-10-07".into();
+    arrival::sync(&app);
+    assert!(arrival::arrival_status(app.clone()).is_some(), "next day gets a new notice");
+    *app.gift_token.lock().unwrap() = Some("gift:first".into());
+    arrival::sync(&app);
+    assert_eq!(arrival::arrival_status(app.clone()).as_deref(), Some("gift"));
+    arrival::arrival_open(app.clone()).unwrap();
+    arrival::sync(&app);
+    assert!(arrival::arrival_status(app.clone()).is_none());
+    *app.gift_token.lock().unwrap() = Some("gift:new".into());
+    arrival::sync(&app);
+    assert_eq!(arrival::arrival_status(app.clone()).as_deref(), Some("gift"), "new gifts must get a fresh notice");
 
-    assert_eq!(*modes.lock().unwrap(), vec![(arrival_window::LABEL.into(), Editing)], "hover must never raise any sticker layer");
+    assert!(modes.lock().unwrap().iter().all(|(label,mode)| label == arrival_window::LABEL && *mode == Editing), "hover must never raise any sticker layer");
     assert!(clicks.lock().unwrap().iter().all(|(label, _)| label == arrival_window::LABEL), "click-through on stickers must be untouched");
     assert!(reads.lock().unwrap().iter().all(|id| *id == main), "window reads must also use the main thread");
     app.stopped.store(true, Ordering::Relaxed);

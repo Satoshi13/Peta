@@ -37,9 +37,9 @@ commands.allow = ["redeem_code", "event_inbox", "creator_pack_accept", "creator_
 [[permission]]
 identifier = "allow-developer-tools"
 description = "Developer tools are rejected by the distribution edition in Rust."
-commands.allow = ["developer_next_day", "developer_sync_displays"]
+commands.allow = ["developer_next_day", "developer_sync_displays", "developer_show_arrival"]
 
 [[permission]]
 identifier = "allow-arrival-notification"
 description = "Read and open the desktop arrival envelope"
-commands.allow = ["arrival_status", "arrival_open"]
+commands.allow = ["arrival_status", "arrival_hover_status", "arrival_open"]

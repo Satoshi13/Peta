@@ -1,4 +1,5 @@
 //! A small envelope-only window. Its native level never changes the sticker layers.
+use std::{cell::Cell, time::{Duration, Instant}};
 use tauri::{AppHandle, LogicalPosition, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 
 pub const LABEL: &str = "arrival-notification";
@@ -7,6 +8,9 @@ pub const LABEL: &str = "arrival-notification";
 const WINDOW_WIDTH: f64 = 250.0;
 const WINDOW_HEIGHT: f64 = 220.0;
 const BOTTOM: f64 = 90.0;
+thread_local! {
+    static CLOSE_AT: Cell<Option<Instant>> = const { Cell::new(None) };
+}
 
 /// Main thread only. Return the notification and whether it was just created.
 pub fn sync(app: &AppHandle, primary: Option<&WebviewWindow>, visible: bool)
@@ -14,9 +18,19 @@ pub fn sync(app: &AppHandle, primary: Option<&WebviewWindow>, visible: bool)
 {
     let existing = app.get_webview_window(LABEL);
     let Some(primary) = primary.filter(|_| visible) else {
-        if let Some(window) = existing { window.destroy().map_err(|e| e.to_string())?; }
+        if let Some(window) = existing {
+            // Allow the frontend's 280ms exit to finish; release input immediately.
+            window.set_ignore_cursor_events(true).map_err(|e| e.to_string())?;
+            let now = Instant::now();
+            let deadline = CLOSE_AT.with(|at| {
+                let deadline = at.get().unwrap_or(now + Duration::from_millis(340));
+                at.set(Some(deadline)); deadline
+            });
+            if now >= deadline { window.destroy().map_err(|e| e.to_string())?; }
+        } else { CLOSE_AT.with(|at| at.set(None)); }
         return Ok(None);
     };
+    CLOSE_AT.with(|at| at.set(None));
     let pos = primary.outer_position().map_err(|e| e.to_string())?;
     let size = primary.inner_size().map_err(|e| e.to_string())?;
     let scale = primary.scale_factor().map_err(|e| e.to_string())?;

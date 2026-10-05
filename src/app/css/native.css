@@ -495,8 +495,8 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .stuck-t:hover .stk { transform:translateY(-2px); }
 .pk-wrap .mcard.in-wrap.out::before { animation:none; }
 /* Keep the floating clock constant. Hover moves its parent, never retimes the animation. */
-.env-float { animation:float 4.6s ease-in-out infinite; transition:none; }
-.env-scene::after { animation:shadow-breathe 4.6s ease-in-out infinite; }
+.env-float { animation:float 2.8s ease-in-out infinite; transition:none; }
+.env-scene::after { animation:shadow-breathe 2.8s ease-in-out infinite; }
 html[data-motion="reduce"] :is(.env-float,.env-scene::after) { animation:none!important; }
 @media(prefers-reduced-motion:reduce) { :is(.env-float,.env-scene::after) { animation:none!important; } }
 html[data-motion="reduce"] :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.sample:hover img,.pack:hover .pk-stack,.mk-tile:hover .pk-stack,.stuck-t:hover .stk,.env-scene:hover .env-lift) { transform:none!important; }

@@ -13,13 +13,14 @@ p { margin: 0; }
 .t-arrived { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 420px; }
 .t-arrived:has(.reveal-scene) { flex-direction: row; gap: 54px; flex-wrap: wrap; }
 .env-scene { position: relative; width: min(470px, 78%); aspect-ratio: 3 / 2; perspective: 1000px; cursor: pointer; margin-top: 6px; }
-.env-scene::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: 3%; height: 8%; border-radius: 50%; background: radial-gradient(closest-side, rgba(60, 40, 10, .3), transparent); filter: blur(5px); z-index: -1; animation: shadow-breathe 4.6s ease-in-out infinite; }
-.env-lift { position:absolute; inset:0; transition:transform .26s cubic-bezier(.2,.8,.2,1); }
-.env-float { position: absolute; inset: 0; transform-style: preserve-3d; animation: float 4.6s ease-in-out infinite; }
-@keyframes float { 50% { transform: translateY(-6px) rotate(-.6deg); } } @keyframes shadow-breathe { 50% { transform: scale(.9); opacity: .7; } }
+.env-scene::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: 3%; height: 8%; border-radius: 50%; background: radial-gradient(closest-side, rgba(60, 40, 10, .3), transparent); filter: blur(5px); z-index: -1; animation: shadow-breathe 2.8s ease-in-out infinite; }
+.env-lift { position:absolute; inset:0; transition:transform .38s cubic-bezier(.22,1,.36,1); }
+.env-float { position: absolute; inset: 0; transform-style: preserve-3d; animation: float 2.8s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform:translateY(3px) rotate(.35deg); } 50% { transform:translateY(-15px) rotate(-1.1deg); } }
+@keyframes shadow-breathe { 0%,100% { transform:scale(1); opacity:.9; } 50% { transform:scale(.85); opacity:.55; } }
 .env-scene .layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .env-scene .flap { transform-origin: 50% 12.5%; backface-visibility: hidden; }
-.env-scene:hover .env-lift { transform:translateY(-3px); }
+.env-scene:hover .env-lift { transform:translateY(-6px); }
 .env-scene .pocket { display: block; } .env-scene .pocket > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
 .env-label { position: absolute; left: 50%; top: 53%; width: 33%; height: 22%; display: grid; place-content: center; text-align: center; font: 600 clamp(13px, 1.7vw, 18px)/1.25 var(--hand); color: #2b2a28; transform: rotate(-7deg); }
 .lead { margin: 6px 0 4px; font-size: 24px; text-align: center; }
