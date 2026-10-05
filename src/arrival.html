@@ -9,9 +9,8 @@
 <body>
   <!-- A small envelope in the corner of the main display: today's material has arrived (spec §35-36).
        The window is just this envelope, so the rest of the desktop is untouched. Art: arrival/arrival-material.png -->
-  <button id="envelope" type="button" aria-label="Today's Peta has arrived" data-art="arrival-envelope">
-    <img src="art/arrival/arrival-material.png" alt="" draggable="false" />
-  </button>
+  <!-- Decorative art is a CSS background: avoid WKWebView's image/Live Text analysis on hover. -->
+  <button id="envelope" type="button" aria-label="Today's Peta has arrived" data-art="arrival-envelope"></button>
   <script type="module" src="arrival.js"></script>
 </body>
 </html>

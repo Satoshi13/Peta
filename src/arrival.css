@@ -1,14 +1,16 @@
 html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; user-select: none; -webkit-user-select: none; }
 body { display: grid; place-items: center; }
 #envelope {
-  display: block; padding: 0; border: 0; background: none; cursor: pointer;
+  display: block; padding: 0; border: 0; cursor: pointer;
   width: 128px; /* the art is 480 x 340 */
+  aspect-ratio: 480 / 340;
+  background: url("art/arrival/arrival-material.png") center / contain no-repeat;
   filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.28));
   transform-origin: 50% 90%;
   animation: arrive 700ms cubic-bezier(.2, .8, .3, 1.15) both;
   transition: transform 140ms ease-out;
 }
-#envelope img { display: block; width: 100%; height: auto; -webkit-user-drag: none; }
+#envelope[data-art="arrival-gift"] { background-image: url("art/arrival/arrival-gift.png"); }
 #envelope:hover { transform: translateY(-3px) rotate(-2deg); }
 #envelope:active { transform: translateY(0) scale(0.98); }
 /* It slides in from the screen edge and settles with a small tilt, like something dropped on the desk. */

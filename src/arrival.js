@@ -4,7 +4,6 @@ const { invoke } = window.__TAURI__.core;
 // ?kind=gift: a sealed gift is waiting (cream envelope with a wax seal); otherwise today's material (kraft envelope)
 if (new URLSearchParams(location.search).get("kind") === "gift") {
   const env = document.getElementById("envelope");
-  env.querySelector("img").src = "art/arrival/arrival-gift.png";
   env.setAttribute("aria-label", "A Peta arrived.");
   env.dataset.art = "arrival-gift";
 }
