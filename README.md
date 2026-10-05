@@ -52,7 +52,7 @@ Goldのデスクトップ反射はHolographicと共通のカーソル追従を�
 
 ### 素材カードの共通形状
 
-Today・Create・Materials・Market・開封時の素材カードは、同じ縦横比・角丸・ラベル位置で表示します。既存画像の文字のない質感部分をCSSで表示し、紙・クラフト・ホロ・金箔・Riso・Vintageの色と質感を残します。画像ファイル自体は変更しません。素材別のステッカーの輪郭や製造ルールは従来どおりです。
+Today・Create・Materials・Market・開封時の素材カードは、同じ縦横比・角丸・ラベル位置で表示します。既存画像の文字のない質感部分をCSSで表示し、紙・クラフト・ホロ・金箔・Riso・Vintageの色と質感を残します。Clear／Pixel／Washi／Sakuraは同じ形状に静的なCSSの質感を表示します。画像ファイル自体は変更しません。素材別のステッカーの輪郭や製造ルールは従来どおりです。
 
 ### 操作の動き
 
@@ -127,7 +127,7 @@ Marketの購入済みパックは、Featuredのボタン・一覧の`On your she
 
 MarketとMaterialsの右上にScraps残高を表示します。Materialsのカードはクリックでプレビューを開くだけで、Createの素材を選び直しません。分解ボタンは選択後のプレビューだけに置き、一覧には素材ごとの所持枚数を大きく表示します。`Dismantle…`から数量・受取Scraps・残る素材を確認し、Marketでは受取数・合計消費Scraps・引換後残高を確認してから確定します。キャンセルや閲覧では消費しません。応答が途切れた場合のRetryは同じリクエストを確認し、既に完了していても二重消費しません。
 
-残高の初期値は0。Rustが残高・在庫・付与・リクエストごとの取引結果を1つのSQLiteトランザクションで更新し、再送で二重消費・二重付与しません。既存DB v7のmetaを使い、スキーマと既存の作成・開封・FIFOルールは変えません。現金決済・未実装のGold／Riso／Vintage取得・アカウント同期は含みません。
+残高の初期値は0。Rustが残高・在庫・付与・リクエストごとの取引結果を1つのSQLiteトランザクションで更新し、再送で二重消費・二重付与しません。既存DB v8のmetaを使い、スキーマと既存の作成・開封・FIFOルールは変えません。新素材の交換比率とSakuraの扱いは「新素材の製造と入手」を参照。現金決済・アカウント同期は含みません。
 
 ### 署名付き配布（Phase A）
 
@@ -151,7 +151,7 @@ Today の **Create**、またはデスクトップへの画像ドロップで開
 - スマホ写真の**向き(EXIF)**は自動で直します。
 - 背景除去は**同梱の u2netp(4.5MB)**を純Rust(tract)で実行します。**初回の解析に 1〜3 秒**かかります(Mac の方が速いはずです)。
   大きいモデル(silueta など)は `PETA_MODEL=silueta` で切り替えられます。細い部分に強いですが数倍遅いです → [src-tauri/models/README.md](src-tauri/models/README.md)。
-- **Holographic の光沢**はmacOSのグローバルカーソルに追従します。帯の位置・角度だけが変わり、ステッカーの傾き・影・大きさは変えません。カーソルが未移動／層の外なら従来の位置・回転による反射へ戻ります。補間は収束で停止し、ホロ0枚／Reduce motionでは33msのカーソル取得も停止します。Goldは未実装のまま、反射対象は `REFLECTIVE_MATERIALS` に集約。`reflection_status` の activeLayers / timerRunning / cursorReads とdebugログで停止を確認できます。Windows／Linuxのグローバル取得は未提供です。
+- **Holographic／Goldの光沢**はmacOSのグローバルカーソルに追従します。帯の位置・角度だけが変わり、ステッカーの傾き・影・大きさは変えません。カーソルが未移動／層の外なら従来の位置・回転による反射へ戻ります。補間は収束で停止し、反射対象0枚／Reduce motionでは33msのカーソル取得も停止します。反射対象は `REFLECTIVE_MATERIALS` に集約。`reflection_status` の activeLayers / timerRunning / cursorReads とdebugログで停止を確認できます。Windows／Linuxのグローバル取得は未提供です。
 
 ### ステッカーの裏面(裏返す)
 
@@ -273,4 +273,4 @@ npm run check:mac    # Linux等から macOS 向けRustの型検査(要 rustup ta
 
 通常版は`npm run dev`／`npm run build`。開発者版は`npm run dev:developer`／`npm run build:developer`。ビルド時のRust featureで分け、Settingsのスイッチでは切り替えません。buildは配布用releaseビルドです。
 
-Peta Developerは`app.peta.developer`、通常版は`app.peta.desktop`。アプリ名・在庫・Scraps・Collection・署名鍵・設定の保存先を分離します。開発者版は実装済み3素材を利用可能にし、素材消費・Scraps支払い・封筒／Welcome回数・袋の枯渇を解除。空袋は元の項目と署名済み素材情報を複製して補充し、開封済み履歴を残します。Settingsに封筒の再開封・Next Day・Re-sync Displaysを表示します。署名検証・所有権・ファイル仕様／サイズの検証は両版共通です。未実装の素材や共有Marketを追加する機能ではありません。モデレーターは依頼者の回答により後回しにします。
+Peta Developerは`app.peta.developer`、通常版は`app.peta.desktop`。アプリ名・在庫・Scraps・Collection・署名鍵・設定の保存先を分離します。開発者版は新素材を含む実装済み10素材を利用可能にし、素材消費・Scraps支払い・封筒／Welcome回数・袋の枯渇を解除。空袋は元の項目と署名済み素材情報を複製して補充し、開封済み履歴を残します。Settingsに封筒の再開封・Next Day・Re-sync Displaysを表示します。署名検証・所有権・ファイル仕様／サイズの検証は両版共通です。未実装の素材や共有Marketを追加する機能ではありません。モデレーターは依頼者の回答により後回しにします。

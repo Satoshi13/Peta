@@ -1,5 +1,5 @@
-// Only actual reflective materials belong here; Gold can join when its material ships.
-export const REFLECTIVE_MATERIALS = new Set(['holographic']);
+// The desktop band is active only for these manufacturing materials.
+export const REFLECTIVE_MATERIALS = new Set(['holographic','gold']);
 export function staticSheen(box, width, height) {
   return { x:box.cx/width*100, y:box.cy/height*100, angle:115-box.rotation };
 }

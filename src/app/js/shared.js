@@ -3,7 +3,7 @@ function PageHead(title, sub, ...extra) {
   return h("header.ph", h("div.ph-text", h("p.eyebrow", sub || ""), h("h1", title)), h("div.ph-extra", ...extra));
 }
 const DateStamp = () => h("span.datestamp", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" }));
-const usableMats = () => ["matte", "kraft", "holographic", "gold", "riso", "vintage"].filter((id) => !MAT[id].locked && (MAT[id].unlimited || S.stock[id] > 0));
+const usableMats = () => Object.keys(MAT).filter((id) => !MAT[id].locked && (MAT[id].unlimited || S.stock[id] > 0));
 
 /** A tray of material cards. Picking marks the material for the next Create without moving the controls. */
 function MaterialTray({ w = 148, onPick, interactive = true, selected = S.chosen } = {}) {
@@ -50,7 +50,7 @@ function Choices({ compact, hero = false } = {}) {
 }
 
 function MaterialSwatch(m) {
-  return h("i.material-swatch", {"aria-hidden":"true",data:{m:m.id},style:{backgroundImage:`var(--a-${m.sw || ({gold:"cardGold",riso:"cardRiso",vintage:"cardVintage"})[m.id] || m.card})`}});
+  return h("i.material-swatch", {"aria-hidden":"true",data:{m:m.id},style:m.sw || m.card ? {backgroundImage:`var(--a-${m.sw || m.card})`} : {}});
 }
 
 /** A material card that is just something to look at (not a control). */
@@ -105,7 +105,7 @@ const Scraps = {
     const sel = this.selection;
     if(!sel || (sel.kind === "dismantle" ? S.page !== "materials" : S.page !== "market")) return null;
     const dismantle = sel.kind === "dismantle", pack = sel.kind === "pack", rate = pack ? this.pack(sel.itemId) : this.material(sel.itemId);
-    if(!rate) return null;
+    if(!rate || (!dismantle && !pack && rate.exchange == null)) return null;
     const name = pack ? MARKET_PACKS.find(p=>p.id===sel.itemId).title : MAT[sel.itemId].name;
     const price = S.developer && !dismantle ? 0 : dismantle ? rate.dismantle : rate.exchange;
     const max = S.developer ? (pack ? 1 : 1000) : pack ? (S.scraps.balance >= price && (!S.owned[sel.itemId] || S.packs.some(p=>p.id===sel.itemId && !p.left.length)) ? 1 : 0) : Math.min(1000, dismantle ? S.stock[sel.itemId] : Math.floor(S.scraps.balance/price));

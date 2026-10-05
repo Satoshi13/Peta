@@ -207,3 +207,13 @@ Book / Market の見た目は `compare/art-03/*.jpg` と元の `golden/*.jpg` �
 - [ ] M6: 封筒が開く最初のフレームでも、カードが前面の紙を突き抜けない。引き出し前／途中解除では素材の色・名前・レア度が見えず、VoiceOverも結果を読まない。取り出し確定で初めて結果が表示され、Reduce motionでも同じ順序になる。
 
 LinuxのWebKitGTKによる比較と型検査は、macOSの描画速度・トラックパッド・透過・複数画面の実機確認を代替しない。
+
+## 21. 新素材（2026-10-05）
+
+- [ ] NM1: Gold／Riso／Vintage／Clear／Pixel／Washi／SakuraをCreate・Collection・デスクトップで確認。形状・縦横比は保持され、Clearの外側だけ透け、白インクの絵柄は読める。市松模様が画像に焼き込まれていない。
+- [ ] NM2: Goldの反射帯が各ディスプレイのカーソルへ滑らかに追従。0枚／Reduce motionで反射取得タイマー停止。傾き・影・拡大は変化しない。
+- [ ] NM3: 7種類の裏返し・Option剥がしで素材に対応した裏紙が表示され、Retinaでも継ぎ目がない。キャンセルで戻り、再編集は在庫を消費しない。
+- [ ] NM4: Market交換・分解・Createの1枚消費を確認し、再起動後も在庫とScrapsが一致。通常交換にSakuraはなく、公式署名付き配布後には製造できる。Developerは全10種類が在庫0でも製造可能。
+- [ ] NM5: Studio／Desk・Day／Nightの最小720×520で全素材のCreateピッカー／Materials／Marketを操作。ラベル・所持数・交換確認欄がはみ出さない。封筒内の新素材も引き出すまで柄・名前が見えない。
+
+Linuxでの画像・IPC確認とmacOS向け型検査は、macOS実機の反射・透過・描画を代替しない。

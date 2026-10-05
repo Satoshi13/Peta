@@ -208,3 +208,7 @@
 | `book/spiral-cap-top.png` / `spiral-cap-bottom.png` | 同 上下端 | 54×27px。中央帯の上下27pxを空け、同じ絵を二重に重ねない。セル境界の位相を保つ。 |
 
 review-03完了時: 採用済み **112点 / 未使用120点**。前項の113点から cover-edge 1点を使用終了。納品画像・prototype・golden は変更していない。修正前後と golden の比較は `compare/review-03/`。
+
+## 新素材の表示（2026-10-05）
+
+Gold／Riso／Vintageの既存material-cardとback画像を、新素材の実装済み製造レシピと対応させた。Clear／Pixel／Washi／Sakuraの専用カード・裏紙・見本チップ画像は未納品。今回は画像を生成せず、共通形状のカード・見本・裏紙へCSS／Canvasによる静止した質感を使用する。製造後のステッカーはRustによる実レシピ描画。専用画像の候補選定は公式素材制作Phase 2で別途行う。

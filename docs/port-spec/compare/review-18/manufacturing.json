@@ -1,0 +1,93 @@
+{
+  "creations": [
+    {
+      "after": 1,
+      "backMaterial": {
+        "id": "gold",
+        "name": "Gold Foil",
+        "rarity": "special"
+      },
+      "before": 2,
+      "created": "PETA-1EAM-4NW6",
+      "material": "gold",
+      "queued": true
+    },
+    {
+      "after": 1,
+      "backMaterial": {
+        "id": "riso",
+        "name": "Riso",
+        "rarity": "uncommon"
+      },
+      "before": 2,
+      "created": "PETA-F47C-5Z2C",
+      "material": "riso",
+      "queued": true
+    },
+    {
+      "after": 1,
+      "backMaterial": {
+        "id": "vintage",
+        "name": "Vintage",
+        "rarity": "archive"
+      },
+      "before": 2,
+      "created": "PETA-FMCS-WS43",
+      "material": "vintage",
+      "queued": true
+    },
+    {
+      "after": 1,
+      "backMaterial": {
+        "id": "clear",
+        "name": "Clear",
+        "rarity": "rare"
+      },
+      "before": 2,
+      "created": "PETA-1J4D-JSYJ",
+      "material": "clear",
+      "queued": true
+    },
+    {
+      "after": 1,
+      "backMaterial": {
+        "id": "pixel",
+        "name": "Pixel",
+        "rarity": "uncommon"
+      },
+      "before": 2,
+      "created": "PETA-DB98-BTZ3",
+      "material": "pixel",
+      "queued": true
+    },
+    {
+      "after": 1,
+      "backMaterial": {
+        "id": "washi",
+        "name": "Washi",
+        "rarity": "uncommon"
+      },
+      "before": 2,
+      "created": "PETA-ETGN-SYJG",
+      "material": "washi",
+      "queued": true
+    },
+    {
+      "after": 1,
+      "backMaterial": {
+        "id": "sakura",
+        "name": "Sakura",
+        "rarity": "archive"
+      },
+      "before": 2,
+      "created": "PETA-CTZH-Y5EC",
+      "material": "sakura",
+      "queued": true
+    }
+  ],
+  "reedit": {
+    "after": 1,
+    "before": 1,
+    "saved": "PETA-1EAM-4NW6"
+  }
+}

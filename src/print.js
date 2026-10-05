@@ -7,6 +7,8 @@
 // and the sound (`pata()`) are the original paper artwork / synthesized WebAudio. Peta! uses the four
 // delivered en / round / holo / stamp images, picked in layer-port.js after a successful print_paste.
 
+import { REFLECTIVE_MATERIALS } from "./reflection.js";
+
 const MIN_DRAG = 3; // px: let go closer than this to where you grabbed it and it goes back on the sheet
 
 export function pata() { Snd.peta(); Haptic.tap("paste"); }
@@ -41,7 +43,7 @@ export function initPrint(ctx) {
     slot.append(el("slot-glow"),el("slot-bar"));
     const sheet=el("print-sheet","backing-sheet"); sheet.style.width=sheetW+"px";
     const holder=el("sheet-stk"), material=pending.materialId||"matte";
-    const sticker=Stk.el({url:asset.url,w:asset.img.naturalWidth,h:asset.img.naturalHeight,material,mask:material==='holographic'?asset.url:null},stickerW),img=sticker.querySelector('img');
+    const sticker=Stk.el({url:asset.url,w:asset.img.naturalWidth,h:asset.img.naturalHeight,material,mask:REFLECTIVE_MATERIALS.has(material)?asset.url:null},stickerW),img=sticker.querySelector('img');
     holder.append(sticker); sheet.append(holder);
     stage.append(sheet); layer.append(stage,slot);
     hint.hidden=true;

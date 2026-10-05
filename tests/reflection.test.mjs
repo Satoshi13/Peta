@@ -7,7 +7,7 @@ test('reflection fallback is the original position/rotation band',()=>{
   assert.deepEqual(reflectedSheen(box,1440,900,null),staticSheen(box,1440,900));
   assert.deepEqual(reflectedSheen(box,1440,900,{x:1,y:1,inside:false}),staticSheen(box,1440,900));
   assert.deepEqual(reflectedSheen(box,1440,900,{x:720,y:450,inside:true}),staticSheen(box,1440,900));
-  assert.deepEqual([...REFLECTIVE_MATERIALS],['holographic']);
+  assert.deepEqual([...REFLECTIVE_MATERIALS],['holographic','gold']);
 });
 test('cursor direction moves only a bounded band',()=>{
   const before={...box},right=reflectedSheen(box,1440,900,{x:999999,y:450,inside:true});

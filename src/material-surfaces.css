@@ -1,0 +1,23 @@
+/* Shared static paper surfaces for cards, swatches, and printed backing. */
+:root {
+  --surface-clear:linear-gradient(128deg,transparent 34%,rgba(255,255,255,.5) 45%,transparent 56%),radial-gradient(ellipse at 28% 30%,#edf1f3,#c5d3db);
+  --surface-pixel:repeating-linear-gradient(0deg,transparent 0 7px,rgba(245,240,230,.65) 7px 14px),repeating-linear-gradient(90deg,#f5f0e6 0 7px,#cddce8 7px 14px,#f4dbe7 14px 21px,#f7f0d4 21px 28px);
+  --surface-washi:repeating-linear-gradient(163deg,transparent 0 23px,rgba(186,151,116,.12) 24px,transparent 25px 43px),repeating-linear-gradient(19deg,transparent 0 31px,rgba(186,151,116,.09) 32px,transparent 33px 61px),radial-gradient(ellipse at 30% 40%,#fbf6ec,#f3e9dc);
+  --surface-sakura:radial-gradient(ellipse 5px 9px at 21% 28%,#e9b7c0 60%,transparent 80%),radial-gradient(ellipse 8px 4px at 74% 32%,#e9b7c0 60%,transparent 80%),radial-gradient(ellipse 4px 7px at 58% 75%,#edc5ca 60%,transparent 80%),radial-gradient(ellipse at 32% 35%,#fbeef0,#f8e3e6);
+}
+:is(.mcard,.material-swatch)[data-m="clear"], :is(.back-card,.backing)[data-mat="clear"] { --surface:var(--surface-clear); }
+:is(.mcard,.material-swatch)[data-m="pixel"], :is(.back-card,.backing)[data-mat="pixel"] { --surface:var(--surface-pixel); }
+:is(.mcard,.material-swatch)[data-m="washi"], :is(.back-card,.backing)[data-mat="washi"] { --surface:var(--surface-washi); }
+:is(.mcard,.material-swatch)[data-m="sakura"], :is(.back-card,.backing)[data-mat="sakura"] { --surface:var(--surface-sakura); }
+.mcard:is([data-m="clear"],[data-m="pixel"],[data-m="washi"],[data-m="sakura"]) .art,
+.material-swatch:is([data-m="clear"],[data-m="pixel"],[data-m="washi"],[data-m="sakura"]),
+:is(.back-card,.backing):is([data-mat="clear"],[data-mat="pixel"],[data-mat="washi"],[data-mat="sakura"]) {
+  background:var(--surface); filter:none;
+}
+.mcard:is([data-m="clear"],[data-m="pixel"],[data-m="washi"],[data-m="sakura"]) .art { filter:drop-shadow(0 1px 1.5px rgba(40,30,10,.2)); }
+.mcard[data-m="gold"].big::after, .mbook .mcard[data-m="gold"]::after {
+  content:""; position:absolute; inset:12.63% 7.86% 12.37%; border-radius:var(--card-radius); pointer-events:none; mix-blend-mode:soft-light;
+  background:linear-gradient(115deg,transparent 25%,rgba(255,250,216,.8) 48%,rgba(255,232,168,.5) 54%,transparent 68%);
+  background-size:260% 260%; background-position:var(--sx,30%) var(--sy,30%);
+}
+.stk[data-material="gold"] .sheen { background-image:linear-gradient(var(--sa,115deg),transparent 25%,rgba(255,250,216,.8) 48%,rgba(255,232,168,.5) 54%,transparent 68%); }

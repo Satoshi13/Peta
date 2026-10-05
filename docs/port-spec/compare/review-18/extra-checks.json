@@ -1,0 +1,86 @@
+{
+  "peelBackings": [
+    {
+      "backing": "loaded",
+      "material": "gold"
+    },
+    {
+      "backing": "loaded",
+      "material": "riso"
+    },
+    {
+      "backing": "loaded",
+      "material": "vintage"
+    },
+    {
+      "backing": "loaded",
+      "material": "clear"
+    },
+    {
+      "backing": "loaded",
+      "material": "pixel"
+    },
+    {
+      "backing": "loaded",
+      "material": "washi"
+    },
+    {
+      "backing": "loaded",
+      "material": "sakura"
+    }
+  ],
+  "createSmall": [
+    {
+      "plates": 10,
+      "scrollWidth": 720,
+      "shell": "studio",
+      "tray": [
+        "matte",
+        "kraft",
+        "holographic",
+        "gold",
+        "riso",
+        "vintage",
+        "clear",
+        "pixel",
+        "washi",
+        "sakura"
+      ],
+      "width": 720
+    },
+    {
+      "plates": 10,
+      "scrollWidth": 704,
+      "shell": "desk",
+      "tray": [
+        "matte",
+        "kraft",
+        "holographic",
+        "gold",
+        "riso",
+        "vintage",
+        "clear",
+        "pixel",
+        "washi",
+        "sakura"
+      ],
+      "width": 704
+    }
+  ],
+  "seasonal": {
+    "buttons": 9,
+    "sakura": "Spring edition",
+    "sakuraDisabled": true
+  },
+  "cancel": {
+    "after": {
+      "balance": 100,
+      "stock": 1
+    },
+    "before": {
+      "balance": 100,
+      "stock": 1
+    },
+    "opened": true
+  }
+}

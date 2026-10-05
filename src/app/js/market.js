@@ -78,15 +78,15 @@ Pages.market = {
       h("p.muted.small", { style: { marginTop: "8px" } }, "Open it any time, as often as you like. What's inside stays a surprise until you tear it."));
   },
   materials(paint) {
-    // TODO(owner): cash purchases and future material recipes are still unavailable.
-    const items = ["matte", "kraft", "holographic", "gold", "riso", "vintage"].map((id) => MAT[id]);
+    // TODO(owner): cash purchases remain unavailable. Sakura awaits its seasonal distribution.
+    const items = Object.values(MAT);
     return h("div.mk-mats", h("p.muted.lede", "Exchange Scraps for sheets. Save unused sheets as Scraps in your Materials."),
       h("button.btn.paper.small.scrap-action", {on:{click:()=>Shell.go("materials")}}, "Dismantle materials…"),
       h("div.mgrid", items.map((m, i) => h("div.mbook.mk-mat", { style: { "--i": i } },
         h("div.mc", MatCard({ ...m, id: m.id }, 176)), h("div.mmeta", h("b", m.name), h("span.seal", { data: { rarity: m.rarity } }, m.rarity), h("small.recipe", m.recipe),
           h("small", m.locked ? "Not in your book yet" : `${S.stock[m.id] || 0} sheets in stock`),
-          Scraps.material(m.id) ? Scraps.button("material", m.id, `Exchange — ${Scraps.material(m.id).exchange} Scraps`, !S.developer && S.scraps.balance < Scraps.material(m.id).exchange)
-            : h("button.btn.paper.small.scrap-action", {disabled:true}, "Coming later"))))));
+          Scraps.material(m.id)?.exchange != null ? Scraps.button("material", m.id, `Exchange — ${Scraps.material(m.id).exchange} Scraps`, !S.developer && S.scraps.balance < Scraps.material(m.id).exchange)
+            : h("button.btn.paper.small.scrap-action", {disabled:true}, m.id === "sakura" ? "Spring edition" : "Coming later"))))));
   },
   creators(paint) {
     return h("div.mk-creators",
