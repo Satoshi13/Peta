@@ -504,8 +504,11 @@ html[data-motion="reduce"] :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.
 .cer[data-kind="material"] .cer-bg { background:var(--w-surface,var(--paper)); }
 .cer[data-kind="material"] :is(.cer-hint,.rv-info) { color:var(--ink); text-shadow:none; }
 .material-envelope { position:absolute; left:50%; top:46%; translate:-50% -50%; width:min(400px,75%,50vh); margin:0; }
-.material-envelope .env-float, .material-envelope:hover .env-float { transform:none; transition:none; }
-.material-envelope .mcard { position:absolute; left:26%; top:45%; z-index:1; cursor:grab; touch-action:none; }
+.material-envelope .env-float, .material-envelope:hover .env-float { transform:none; transition:none; transform-style:flat; isolation:isolate; }
+.material-card-slot { position:absolute; inset:0; z-index:1; pointer-events:none; clip-path:polygon(-100% -100%,200% -100%,200% 12%,90% 12%,50% 54%,10% 12%,-100% 12%); }
+.material-envelope .mcard { position:absolute; left:26%; top:45%; z-index:1; cursor:grab; touch-action:none; pointer-events:auto; }
+.material-envelope .mcard[data-concealed] .art { background:var(--a-backMatte) center / cover; }
+.material-envelope .mcard[data-concealed] .lab { visibility:hidden; }
 .material-envelope .mcard:active { cursor:grabbing; }
 .material-envelope .pocket { z-index:2; }
 .material-envelope .flap { z-index:4; }

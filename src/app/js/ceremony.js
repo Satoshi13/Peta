@@ -135,8 +135,8 @@ const Cer = (() => {
       for (const name of ["role","tabindex","aria-label"]) envelope.removeAttribute(name);
       const openedFlap=img("envFlap","layer flap-open"); openedFlap.style.opacity=0;
       $(".env-float",envelope).append(openedFlap);
-      const card=h("div.mcard.big", {data:{m:m.id},role:"button",tabindex:-1,"aria-label":"Pull out "+m.name}, h("i.art"),h("span.lab",h("b",m.name),h("small",m.rarity)));
-      $(".card",envelope).replaceWith(card); stage.append(envelope);
+      const card=h("div.mcard.big", {data:{concealed:"true"},role:"button",tabindex:-1,"aria-label":"Pull out the material card"}, h("i.art"),h("span.lab"));
+      $(".card",envelope).replaceWith(h("div.material-card-slot",card)); stage.append(envelope);
       const envelopeSize=new ResizeObserver(()=>card.style.setProperty("--w",envelope.clientWidth*.48+"px"));
       envelopeSize.observe(envelope); card.style.setProperty("--w",envelope.clientWidth*.48+"px");
       let opened=false, pulled=false;
@@ -149,6 +149,8 @@ const Cer = (() => {
         const r = card.getBoundingClientRect(), sr = stage.getBoundingClientRect();
         const position = h("div.material-card-position", {style:{position:"absolute",left:r.left-sr.left+"px",top:r.top-sr.top+"px",width:r.width+"px",zIndex:8}});
         stage.append(position); position.append(card);
+        delete card.dataset.concealed; card.dataset.m=m.id;
+        $(".lab",card).append(h("b",m.name),h("small",m.rarity));
         card.style.cssText = `position:relative;transform:none;--w:${r.width}px;`;
         const {width,height} = card.getBoundingClientRect();
         let resize;
@@ -183,7 +185,7 @@ const Cer = (() => {
         const keep=$(".keep",info); keep.disabled=false; keep.focus({preventScroll:true});
       };
       drag(card, {
-        down:()=> { if (!opened || pulled) return false; fix(card,base); card.style.zIndex=3; },
+        down:()=> { if (!opened || pulled) return false; fix(card,base); },
         move:(dx,dy)=> {
           if (pulled) return;
           const up=clamp(-dy,0,envelope.clientHeight*.6);

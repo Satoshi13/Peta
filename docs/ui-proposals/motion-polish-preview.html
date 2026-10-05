@@ -19,7 +19,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:20px;ma
 <main class="demo-grid">
 <section class="demo"><h2>Stable hover</h2><p>Move across the card, its label, and the button. The hit area stays in place.</p><div class="sample-card" id="hover"></div><button class="btn paper" style="margin-top:18px">Preview material</button></section>
 <section class="demo"><h2>Peel towards your hand</h2><p>Drag in any direction. Release early to lay it back down.</p><div class="peel-mat"><div class="peel-demo" id="peel"><img alt="Blue flower sticker" src="art/samples/blue-flower.png"></div></div><div class="replay-row"><button class="btn paper" id="reset">Replay peel</button><small id="peel-state">Ready to peel</small></div></section>
-<section class="demo envelope-demo"><div><h2>One envelope. One material card.</h2><p>Open the flap, pull the card out, then keep it. No second wrapper.</p></div><button class="btn" id="open">Open envelope</button></section>
+<section class="demo envelope-demo"><div><h2>One envelope. One material card.</h2><p>Pull out the blank card to discover your material, then keep it.</p></div><button class="btn" id="open">Open envelope</button></section>
 </main><div id="overlay"></div>
 <script src="app/js/assets.js"></script><script src="app/js/core.js"></script><script src="app/js/sticker.js"></script><script src="app/js/catalog.js"></script>
 <script>const Pages={}, S={chosen:'holographic',stock:{matte:3,kraft:2,holographic:1}};const Bridge={enterCeremony(){},leaveCeremony(){}};const Snd=new Proxy({}, {get:()=>()=>{}});</script>

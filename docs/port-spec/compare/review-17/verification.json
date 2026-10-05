@@ -1,0 +1,710 @@
+[
+  {
+    "motion": "full",
+    "shell": "studio",
+    "material": "matte",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "matte",
+      "name": "Matte",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "full",
+    "shell": "studio",
+    "material": "kraft",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "kraft",
+      "name": "Kraft",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "full",
+    "shell": "studio",
+    "material": "holographic",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "holographic",
+      "name": "Holographic",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "full",
+    "shell": "desk",
+    "material": "matte",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "matte",
+      "name": "Matte",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "full",
+    "shell": "desk",
+    "material": "kraft",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "kraft",
+      "name": "Kraft",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "full",
+    "shell": "desk",
+    "material": "holographic",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "holographic",
+      "name": "Holographic",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "reduce",
+    "shell": "studio",
+    "material": "matte",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "matte",
+      "name": "Matte",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "reduce",
+    "shell": "studio",
+    "material": "kraft",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "kraft",
+      "name": "Kraft",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "reduce",
+    "shell": "studio",
+    "material": "holographic",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "holographic",
+      "name": "Holographic",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "reduce",
+    "shell": "desk",
+    "material": "matte",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": false,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "matte",
+      "name": "Matte",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "reduce",
+    "shell": "desk",
+    "material": "kraft",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "kraft",
+      "name": "Kraft",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  },
+  {
+    "motion": "reduce",
+    "shell": "desk",
+    "material": "holographic",
+    "first": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "peek": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "partial": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(calc(-92% - 8px)) rotate(-2deg)",
+      "z": "1"
+    },
+    "cancelled": {
+      "aria": "Pull out the material card",
+      "behindPocket": true,
+      "concealed": true,
+      "flat": "flat",
+      "label": "",
+      "material": null,
+      "slotClip": "polygon(-100% -100%, 200% -100%, 200% 12%, 90% 12%, 50% 54%, 10% 12%, -100% 12%)",
+      "transform": "translateY(-92%) rotate(-2deg)",
+      "z": "1"
+    },
+    "reveal": {
+      "cards": 1,
+      "concealed": false,
+      "infos": 1,
+      "material": "holographic",
+      "name": "Holographic",
+      "names": 1,
+      "separated": true
+    },
+    "visualReplayStockUnchanged": true
+  }
+]
