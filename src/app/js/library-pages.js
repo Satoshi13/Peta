@@ -37,7 +37,7 @@ Pages.materials = {
         h("div.mc", h("div.mcard" + (lock ? ".locked" : ""), { data: { m: lock ? "matte" : m.id }, vars: { "--w": "190px" } }, h("i.art"), h("span.lab", lock ? h("b", "?") : [h("b", m.name), h("small", m.rarity)]))),
         h("div.mmeta", h("b", lock ? "Not found yet" : m.name), h("span.seal", { data: { rarity: m.rarity } }, lock ? "locked" : m.rarity),
           lock ? h("small", ["matte","kraft","holographic"].includes(m.id) ? "Open Today's Material to find it" : m.id === "sakura" ? "Spring edition · official distribution" : "Find it in Market · Materials") : this.stock(m)));
-      if (!lock) Stk.tilt($(".mcard", card), { max: 9, scale: 1.03, trigger: card });
+      if (!lock) Stk.tilt($(".mcard", card), { max: 9, scale: 1.03, baseTransform: "rotate(-2deg)", trigger: card });
       return h("div.material-entry", card);
     }));
     root.append(grid); return root;

@@ -481,7 +481,7 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 
 .developer-tools h2 { margin-top:0; }
 .developer-tools .row-btns { flex-wrap:wrap; justify-content:flex-start; }
-[data-follow="true"] { transition:none!important; will-change:auto; }
+[data-follow="true"] { transition:background-color .22s var(--ease-hover),box-shadow .22s var(--ease-hover),filter .22s var(--ease-hover),opacity .22s var(--ease-hover)!important; will-change:auto; }
 
 /* Stable hit areas, a single quiet response in the artwork, and no moving nested controls. */
 .btn:hover:not(:disabled), .btn:active:not(:disabled), .btn.paper:hover:not(:disabled)::before, .btn.paper:active:not(:disabled)::before { transform:none; }
@@ -489,7 +489,11 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .btn:hover:not(:disabled) { filter:brightness(1.08); }
 .btn:active:not(:disabled) { filter:brightness(.94); }
 .choice:not(:disabled):hover .choice-obj { transform:translateY(-3px) rotate(var(--tilt,0deg)); filter:drop-shadow(0 8px 7px rgba(60,45,20,.2)); }
-.choice-obj, .drop-obj, .sample img, .pk-stack, .stuck-t .stk { transition:transform .22s cubic-bezier(.2,.7,.3,1),filter .22s ease; }
+.choice-obj, .drop-obj, .sample img, .pk-stack, .stuck-t .stk, .mbook .mc, .tile-stk { transition:transform .22s var(--ease-hover),filter .22s var(--ease-hover); }
+:is(.mbook,.mk-mat,.mk-tile,.choice,.tile,.sample,.pack,.cr-card,.stuck-t) { transition:background-color .22s var(--ease-hover),box-shadow .22s var(--ease-hover),filter .22s var(--ease-hover); }
+.mbook:not(:disabled):hover .mc { transform:translateY(-3px); }
+html[data-motion="reduce"] .mbook:hover .mc { transform:none!important; }
+@media(prefers-reduced-motion:reduce) { .mbook:hover .mc { transform:none!important; } }
 .drop:hover .drop-obj, .drop.over .drop-obj { transform:rotate(-4deg) translateY(-3px); }
 .sample:hover img { transform:scale(1.025); }
 .pack:not(:disabled):hover .pk-stack { transform:translateY(-3px); }

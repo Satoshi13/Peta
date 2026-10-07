@@ -6,6 +6,7 @@
 
 | 項目 | 決定 | 日付 |
 |---|---|---|
+| UI修正A: カードのホバー | −2°の静止角を追従の基底に合成。固定した操作面の内側だけを持ち上げ、背景・影・filterは220msの共通イージング、JS追従transformは二重補間なし。Reduce motionは静止角を保持 | 2026-10-07 |
 | 起動時の自動印刷を停止 | 起動・日付切替では待ち行列を自動再開せず、Resume／Stickで開始。保存済みFIFO・優先順・DB・既存コマンドの引数と戻り値は維持。画面再構成は既存print-changedで実行中の状態を復元 | 2026-10-07 |
 | 新素材の表示と反射 | 既存Gold／Riso／Vintageのカード・裏紙画像を採用。Clear／Pixel／Washi／Sakuraは新画像なしの静的CSS／Canvasでカード・見本・裏紙を統一。GoldはHolographicと同じ反射対象定数に追加し、素材変更による傾き・拡大・常時アニメーションは追加しない。素材帳の未取得案内はMarket／公式配布に対応 | 2026-10-05 |
 | 新素材の製造と交換 | Gold／Riso／Vintage／Clear／Pixel／Washi／Sakuraを既存DB v8の製造・在庫へ追加。Gold 12→6、Riso／Pixel／Washi 2→1、Vintage 8→4、Clear 6→3 Scraps（交換→分解）。SakuraはArchive・春限定として通常交換なし、受取済み1枚の分解は4。日替わり3種と比率は維持。通常Createは1枚消費、Developerは全素材無制限 | 2026-10-05 |

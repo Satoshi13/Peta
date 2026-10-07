@@ -1,5 +1,6 @@
 /* ===== tokens ===== */
 :root {
+  --ease-hover: cubic-bezier(.2,.7,.3,1);
   --ink: #2b2a28; --ink2: #4a463f; --muted: #655e51; --cream: #f5f0e6; --paper: #faf6ec; --soft: #fbf9f4; --kraft: #c9a878; --line: #ddd4c2; --red: #d8453a;
   --w-win:#f6f1e6; --w-side:#efe9dc; --w-surface:#fffdf8; --w-surface2:#f8f3e7; --w-sunken:#efe8d7;
   --w-line:#e3dac7; --w-line2:#ece5d4; --w-btn:#2b2a28; --w-btnfg:#ffffff; --w-ok:#456a40; --w-ink:var(--ink);

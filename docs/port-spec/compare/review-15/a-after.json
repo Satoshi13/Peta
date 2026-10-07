@@ -1,0 +1,314 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "a",
+    "phase": "after",
+    "rest": {
+      "button": {
+        "x": 773.328125,
+        "y": 172,
+        "width": 250.671875,
+        "height": 288.921875,
+        "top": 172,
+        "right": 1024,
+        "bottom": 460.921875,
+        "left": 773.328125
+      },
+      "angle": -1.999999842926156,
+      "transform": "",
+      "sheen": "",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgba(255, 253, 249, 0.6)"
+    },
+    "hover": {
+      "button": {
+        "x": 773.328125,
+        "y": 172,
+        "width": 250.671875,
+        "height": 288.921875,
+        "top": 172,
+        "right": 1024,
+        "bottom": 460.921875,
+        "left": 773.328125
+      },
+      "angle": -2.000005823464755,
+      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.00381deg) rotateX(1.87148deg) scale(1.01495)",
+      "sheen": "59.96643077494369%",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgb(255, 253, 249)"
+    },
+    "leave": {
+      "button": {
+        "x": 773.328125,
+        "y": 172,
+        "width": 250.671875,
+        "height": 288.921875,
+        "top": 172,
+        "right": 1024,
+        "bottom": 460.921875,
+        "left": 773.328125
+      },
+      "angle": -1.999999842926156,
+      "transform": "rotate(-2deg)",
+      "sheen": "30%",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgba(255, 253, 249, 0.6)"
+    },
+    "reduce": {
+      "button": {
+        "x": 773.328125,
+        "y": 172,
+        "width": 250.671875,
+        "height": 288.921875,
+        "top": 172,
+        "right": 1024,
+        "bottom": 460.921875,
+        "left": 773.328125
+      },
+      "angle": -1.999999842926156,
+      "transform": "rotate(-2deg)",
+      "sheen": "30%",
+      "transition": "background-color 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.001s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgb(255, 253, 249)"
+    },
+    "marketAngle": -1.999999842926156
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "step": "a",
+    "phase": "after",
+    "rest": {
+      "button": {
+        "x": 36,
+        "y": 85.921875,
+        "width": 316,
+        "height": 288.921875,
+        "top": 85.921875,
+        "right": 352,
+        "bottom": 374.84375,
+        "left": 36
+      },
+      "angle": -1.999999842926156,
+      "transform": "",
+      "sheen": "",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgba(255, 253, 249, 0.6)"
+    },
+    "hover": {
+      "button": {
+        "x": 36,
+        "y": 85.921875,
+        "width": 316,
+        "height": 288.921875,
+        "top": 85.921875,
+        "right": 352,
+        "bottom": 374.84375,
+        "left": 36
+      },
+      "angle": -2.000009860157829,
+      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.82229deg) rotateX(1.87153deg) scale(1.01495)",
+      "sheen": "68.15111274413617%",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgb(255, 253, 249)"
+    },
+    "leave": {
+      "button": {
+        "x": 36,
+        "y": 85.921875,
+        "width": 316,
+        "height": 288.921875,
+        "top": 85.921875,
+        "right": 352,
+        "bottom": 374.84375,
+        "left": 36
+      },
+      "angle": -1.999999842926156,
+      "transform": "rotate(-2deg)",
+      "sheen": "30%",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgba(255, 253, 249, 0.6)"
+    },
+    "reduce": {
+      "button": {
+        "x": 36,
+        "y": 85.921875,
+        "width": 316,
+        "height": 288.921875,
+        "top": 85.921875,
+        "right": 352,
+        "bottom": 374.84375,
+        "left": 36
+      },
+      "angle": -1.999999842926156,
+      "transform": "rotate(-2deg)",
+      "sheen": "30%",
+      "transition": "background-color 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.001s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgb(255, 253, 249)"
+    },
+    "marketAngle": -1.999999842926156
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "a",
+    "phase": "after",
+    "rest": {
+      "button": {
+        "x": 732,
+        "y": 184,
+        "width": 276,
+        "height": 288.921875,
+        "top": 184,
+        "right": 1008,
+        "bottom": 472.921875,
+        "left": 732
+      },
+      "angle": -1.999999842926156,
+      "transform": "",
+      "sheen": "",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgba(255, 253, 249, 0.6)"
+    },
+    "hover": {
+      "button": {
+        "x": 732,
+        "y": 184,
+        "width": 276,
+        "height": 288.921875,
+        "top": 184,
+        "right": 1008,
+        "bottom": 472.921875,
+        "left": 732
+      },
+      "angle": -1.9999967778965886,
+      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.36695deg) rotateX(1.87146deg) scale(1.01495)",
+      "sheen": "63.597663988591506%",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgb(255, 253, 249)"
+    },
+    "leave": {
+      "button": {
+        "x": 732,
+        "y": 184,
+        "width": 276,
+        "height": 288.921875,
+        "top": 184,
+        "right": 1008,
+        "bottom": 472.921875,
+        "left": 732
+      },
+      "angle": -1.999999842926156,
+      "transform": "rotate(-2deg)",
+      "sheen": "30%",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgba(255, 253, 249, 0.6)"
+    },
+    "reduce": {
+      "button": {
+        "x": 732,
+        "y": 184,
+        "width": 276,
+        "height": 288.921875,
+        "top": 184,
+        "right": 1008,
+        "bottom": 472.921875,
+        "left": 732
+      },
+      "angle": -1.999999842926156,
+      "transform": "rotate(-2deg)",
+      "sheen": "30%",
+      "transition": "background-color 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.001s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgb(255, 253, 249)"
+    },
+    "marketAngle": -1.999999842926156
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "step": "a",
+    "phase": "after",
+    "rest": {
+      "button": {
+        "x": 44,
+        "y": 92.921875,
+        "width": 308,
+        "height": 288.921875,
+        "top": 92.921875,
+        "right": 352,
+        "bottom": 381.84375,
+        "left": 44
+      },
+      "angle": -1.999999842926156,
+      "transform": "",
+      "sheen": "",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgba(255, 253, 249, 0.6)"
+    },
+    "hover": {
+      "button": {
+        "x": 44,
+        "y": 92.921875,
+        "width": 308,
+        "height": 288.921875,
+        "top": 92.921875,
+        "right": 352,
+        "bottom": 381.84375,
+        "left": 44
+      },
+      "angle": -2.000001616721929,
+      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.74071deg) rotateX(1.87156deg) scale(1.01495)",
+      "sheen": "67.33554309132506%",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgb(255, 253, 249)"
+    },
+    "leave": {
+      "button": {
+        "x": 44,
+        "y": 92.921875,
+        "width": 308,
+        "height": 288.921875,
+        "top": 92.921875,
+        "right": 352,
+        "bottom": 381.84375,
+        "left": 44
+      },
+      "angle": -1.999999842926156,
+      "transform": "rotate(-2deg)",
+      "sheen": "30%",
+      "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgba(255, 253, 249, 0.6)"
+    },
+    "reduce": {
+      "button": {
+        "x": 44,
+        "y": 92.921875,
+        "width": 308,
+        "height": 288.921875,
+        "top": 92.921875,
+        "right": 352,
+        "bottom": 381.84375,
+        "left": 44
+      },
+      "angle": -1.999999842926156,
+      "transform": "rotate(-2deg)",
+      "sheen": "30%",
+      "transition": "background-color 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.001s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.001s cubic-bezier(0.2, 0.7, 0.3, 1)",
+      "background": "rgb(255, 253, 249)"
+    },
+    "marketAngle": -1.999999842926156
+  }
+]
