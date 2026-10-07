@@ -539,7 +539,6 @@ html[data-motion="reduce"] :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.
 .material-envelope .flap-open { z-index:0; transform-origin:50% 12.5%; }
 .material-envelope .mcard:focus-visible { outline:2px solid #527d93; outline-offset:3px; border-radius:6px; }
 .cer[data-kind="material"] .rv-info { gap:6px; }
-.cer[data-kind="material"] .rv-meta .no { display:none; }
 .rv-rays { animation:none; }
 [data-shell] .nav-item:hover .ni-icon { transform:translateY(-1px); }
 html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
@@ -764,18 +763,14 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 [data-theme="night"] [data-shell="studio"] .nav-item[aria-current="page"] { background:var(--w-surface2); color:var(--ink); box-shadow:inset 0 0 0 1px var(--w-line); }
 [data-theme="night"] [data-shell="studio"] .nav-item[aria-current="page"]:hover { background:var(--w-surface); }
 
-/* Reveal palettes stay neutral until the material or committed sticker is visible. */
-.cer { --cer-center:#71604c; --cer-edge:#211a13; --cer-frame:linear-gradient(135deg,#d8bf88,#8b6733,#eedab4); }
-.cer[data-rarity="rare"] { --cer-center:#d4c9e1; --cer-edge:#655575; --cer-frame:linear-gradient(130deg,#e9d2db,#a3c0d4,#bbb1e9,#d5b4c9); }
-.cer[data-rarity="special"], .cer[data-rarity="archive"] { --cer-center:#e5d4a5; --cer-edge:#71410b; --cer-frame:linear-gradient(130deg,#866019,#f5d885,#bd8d30,#efd07b,#8c5c14); }
+/* Sticker reveals take a palette once the committed sticker is visible. (Today's material no longer gets a frame: its light is in the .cer-exp / .cer-aura layers below.) */
+.cer { --cer-center:#71604c; --cer-edge:#211a13; }
+.cer[data-rarity="rare"] { --cer-center:#d4c9e1; --cer-edge:#655575; }
+.cer[data-rarity="special"], .cer[data-rarity="archive"] { --cer-center:#e5d4a5; --cer-edge:#71410b; }
 .cer[data-material="kraft"] { --cer-center:#d8c49c; --cer-edge:#786343; }
-.cer[data-material="holographic"] { --cer-center:#ded3e5; --cer-edge:#7a6b8a; --cer-frame:linear-gradient(130deg,#dad4b9,#d8aaba,#97bccc,#ae94d0,#d7b2c9); }
+.cer[data-material="holographic"] { --cer-center:#ded3e5; --cer-edge:#7a6b8a; }
 .cer[data-material="gold"] { --cer-center:#e6d5ae; --cer-edge:#75450d; }
-.cer .cer-rim { display:none; position:absolute; inset:12px; border-radius:20px; background:var(--cer-frame); box-shadow:inset 0 0 0 2px #ffffff38,0 4px 16px #0005; pointer-events:none; }
-.cer[data-reveal="material"] .cer-rim { display:block; }
 .cer[data-reveal] .cer-bg { background:radial-gradient(ellipse at 50% 38%,var(--cer-center),var(--cer-edge) 85%); }
-.cer[data-reveal="material"] .cer-bg { inset:26px; border-radius:6px; backdrop-filter:none; }
-.cer[data-reveal="material"] :is(.cer-hint,.rv-info) { color:#fff8e8; text-shadow:0 1px 10px #33243a25; }
 .cer:not([data-kind="gift"]):not([data-kind="seal"]) .btn:not(.paper) { background:#f5efdf; color:#2b2720; }
 .cer:not([data-kind="gift"]):not([data-kind="seal"]) .btn:not(.paper):hover { background:#e9dfc8; }
 .cer:not([data-kind="gift"]):not([data-kind="seal"]) .btn.paper:hover { background:#ffffff26; color:#f5efe2; box-shadow:inset 0 0 0 1px #ffffff66; }
@@ -799,7 +794,47 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 .cer[data-skipped="true"] .spark { visibility:hidden; }
 
 .cer[data-batch="true"] .cer-bg { background:radial-gradient(ellipse at 50% 38%,#514534,#211a13 85%); backdrop-filter:none; }
-.cer[data-reveal="material"] .rv-meta { flex-wrap:wrap; justify-content:center; }
-.cer[data-reveal="material"] .rv-meta .no { display:inline; font:12px/1.4 var(--sys); }
 
-.cer[data-material="gold"] .cer-rim { background:linear-gradient(130deg,#98671e55,#f5d88555,#8e551455),var(--a-backGold) center / cover; }
+
+/* ---- The light of a pulled rarity (Today's material and the ten-at-once sheet) ----
+   The room darkens in proportion to the rarity (.cer-exp), a pool of light sits behind the thing that was pulled (.cer-pool),
+   a band of light writes the face (.glint / .veil), and from rare upwards the window's edge glows (.cer-aura).
+   Common and uncommon have no edge and no frame: the paper just gets a little warmer. */
+@property --wp { syntax:"<percentage>"; inherits:true; initial-value:-20%; }
+@property --gl { syntax:"<percentage>"; inherits:false; initial-value:-50%; }
+.cer-exp { position:absolute; inset:0; pointer-events:none; opacity:0; background:radial-gradient(ellipse var(--r,50%) calc(var(--r,50%) * 1.05) at var(--cx,50%) var(--cy,44%), #fff 0, #fff 12%, rgb(var(--tint,120,100,80)) 100%); mix-blend-mode:multiply; border-radius:inherit; }
+.cer[data-kind="pack"] .cer-exp { background:radial-gradient(ellipse var(--r,50%) calc(var(--r,50%) * 1.05) at var(--cx,50%) var(--cy,44%), rgba(6,4,2,0) 0, rgba(6,4,2,.5) 55%, rgba(6,4,2,.92) 100%), rgba(6,4,2,.3); mix-blend-mode:normal; }
+.cer-pool { position:absolute; z-index:0; translate:-50% -50%; border-radius:50%; pointer-events:none; opacity:0; background:radial-gradient(closest-side, rgba(var(--rgb,255,240,214),.95), rgba(var(--rgb,255,240,214),.35) 55%, rgba(var(--rgb,255,240,214),0)); mix-blend-mode:screen; filter:blur(6px); }
+.cer-pool[data-aura="prism"] { background:conic-gradient(rgba(255,160,214,.9), rgba(255,226,140,.9), rgba(150,255,206,.9), rgba(140,198,255,.9), rgba(190,150,255,.9), rgba(255,160,214,.9)); -webkit-mask:radial-gradient(closest-side,#000 18%,transparent 100%); mask:radial-gradient(closest-side,#000 18%,transparent 100%); filter:blur(14px); }
+.cer[data-kind="material"] .cer-pool { mix-blend-mode:normal; }
+.cer-aura { position:absolute; inset:0; z-index:11; pointer-events:none; border-radius:inherit; opacity:0; }
+.cer-aura .line, .cer-aura .glow { position:absolute; inset:0; border-radius:inherit; overflow:hidden; padding:2px; -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask:linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); mask-composite:exclude; }
+.cer-aura .glow { padding:18px; filter:blur(14px); opacity:.8; }
+.cer-aura .spin { position:absolute; left:50%; top:50%; width:150%; aspect-ratio:1; transform:translate(-50%,-50%); background:conic-gradient(#ff7ac6,#ffc861,#7dffc0,#6fb7ff,#b48aff,#ff7ac6); animation:cer-aura-spin 7s linear infinite; will-change:transform; }
+.cer-aura[data-kind="gold"] .spin { background:conic-gradient(#fff2b8,#f2b441,#ffe28a,#d89a2a,#fff2b8); }
+.cer-aura[data-kind="sepia"] .spin { background:conic-gradient(#f3dcae,#b98a4a,#e6c58f,#8c6a35,#f3dcae); animation-duration:14s; }
+@keyframes cer-aura-spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+html[data-motion="reduce"] .cer-aura .spin { animation:none; }
+@media(prefers-reduced-motion:reduce) { .cer-aura .spin { animation:none; } }
+.cer[data-tone="dim"]:is([data-kind="material"]) :is(.cer-hint,.rv-info) { color:#f6efe0; text-shadow:0 1px 10px #0006; }
+.cer[data-kind="material"] .rv-meta { flex-wrap:wrap; justify-content:center; }
+.cer[data-kind="material"] .rv-meta .no { display:inline; font:12px/1.4 var(--sys); }
+.cer[data-tone="dim"][data-kind="material"] .rv-meta .no { color:#f6efe0b0; }
+/* the card's face is written by a band of light: .veil is the concealed back, wiped away left to right */
+.mcard .veil, .mcard .glint { position:absolute; inset:12.63% 7.86% 12.37%; border-radius:var(--card-radius); pointer-events:none; }
+.mcard .veil { background:var(--a-backMatte) center / cover; -webkit-mask:linear-gradient(100deg, transparent calc(var(--wp) - 5%), #000 calc(var(--wp) + 5%)); mask:linear-gradient(100deg, transparent calc(var(--wp) - 5%), #000 calc(var(--wp) + 5%)); }
+.mcard.reveal .veil { z-index:2; } .mcard.reveal .glint { z-index:3; }
+.mcard.shown .veil { display:none; }
+.mcard .glint { mix-blend-mode:soft-light; background:linear-gradient(108deg, transparent calc(var(--gl) - 16%), rgba(255,255,255,.9) var(--gl), transparent calc(var(--gl) + 16%)); }
+.mcard[data-m="holographic"] .glint { background:linear-gradient(108deg, transparent calc(var(--gl) - 20%), rgba(255,170,230,.55) calc(var(--gl) - 10%), rgba(255,255,255,.95) var(--gl), rgba(150,225,255,.6) calc(var(--gl) + 9%), transparent calc(var(--gl) + 20%)); }
+.mcard.reveal:not(.shown) .lab { -webkit-mask:linear-gradient(100deg, #000 calc(var(--wp) - 5%), transparent calc(var(--wp) + 5%)); mask:linear-gradient(100deg, #000 calc(var(--wp) - 5%), transparent calc(var(--wp) + 5%)); }
+.rv-info h2 .ch { display:inline-block; }
+.cer-ink { position:absolute; inset:0; width:100%; height:100%; z-index:7; pointer-events:none; overflow:visible; }
+.cer-caption { position:absolute; left:50%; z-index:9; white-space:nowrap; pointer-events:none; text-shadow:0 1px 8px rgba(40,25,10,.5); font:500 21px/1.4 var(--hand); transform:translateX(-50%) rotate(-3deg); }
+
+/* ten-at-once sheet: the tray is a light table. The rare in the wave gets the stage; its pool of light sits under the glass. */
+.pm-tray { position:relative; z-index:1; }
+.pm-slot { transition:background .3s, box-shadow .3s; }
+.pm-slot[data-stage="true"] { box-shadow:inset 0 0 0 1.5px #ffffff55,0 12px 34px #0007; background:#fff8eb18; }
+.pm-slot .glint { position:absolute; inset:4%; border-radius:12px; pointer-events:none; z-index:3; mix-blend-mode:soft-light; background:linear-gradient(108deg, transparent calc(var(--gl) - 16%), rgba(255,255,255,.95) var(--gl), transparent calc(var(--gl) + 16%)); }
+.pm-covered { transition:opacity .2s; }

@@ -6,6 +6,7 @@
 
 | 項目 | 決定 | 日付 |
 |---|---|---|
+| 開封後の光の演出(封筒・10連) | 封筒のフラップ→カードを引く動きは変えず、引いた後だけ差し替え。固定の金色の枠(`--cer-frame`)を廃止し、レア度ごとの光で見せる: 部屋が暗くなる量は common 0／uncommon 14%／rare 48%／special 70%／archive 56%(紙の上は multiply でレアは紫・金は褐色)、光の帯がカードの裏面を左→右へ消して柄を現し、rare・special・archive だけ窓の縁が光る(prism／gold／sepia、静止後は縁のみ)。special・archive は0.4〜0.6秒息を止める。archive は手書きの一言。名前は1文字ずつ現れ、封印が押され、VoiceOverへは開示後に1回だけ「Rare. Holographic.」。10連は M-B Sheet: 袋の口から弧を描いて10の定位置へ着地(rare以上は縁の色が透ける)→Turn them over で左上から波のように裏返り、rare以上の番で波が止まり、その1枚だけ部屋が暗くなって主役→戻って再開。Skip・Reduce motionは即時。抽選・pack_open の呼び出し・DB・確定済みIDの保持は不変。触覚は既存の seal（rare以上の開示で1回）。設計と全案は `docs/ui-proposals/gacha-aaa-preview.html` | 2026-10-08 |
 | ホバー・閉じる・Nightの追加修正 | 素材タイルの影は通常／hoverで同じinset＋外側2本とし、280msで補間。プレビューの閉じる操作は32pxの丸と中央16px SVGで統一。パック購入のhoverでも背景と影を保持し、brightnessフィルタを除去。StudioのNightは面色とinkを対応。Kraftの背景サンプルは白い焼き込みラベルを避ける位置へ | 2026-10-07 |
 | レア演出・まとめ開封の見せ方 | 添付に従いホロは紫・虹色の枠、金は金のテクスチャ枠と暖色の光。開封後のカードは最大400pxかつステージ半幅・文字領域に収める。まとめ開封は切る→サーバーで確定→最大5×2の伏せトレイ→Turn them over→結果とStick them／Later。rareは紫、special／archiveは金の輪郭・粒子。Skipは演出を短縮し、抽選・在庫・無料開封進捗を変えない。部分失敗では確定済みIDを保ち、画像失敗でもCollectionへ保存済みの結果を失わない | 2026-10-07 |
 | 選択の囲みと文字位置 | オーナーの追加画像に従い、Market／Collection／Settings／Erase・Restoreの共通SVGを線の経路に沿って描く（主線520ms、薄い重ね線は440msから200ms、合計640ms）。選択前後のfont-weightを500に揃え、絶対配置の装飾は文字・ボタンの寸法に影響させない。Reduce motionはアプリ設定とOS設定の両方で即時完成。既存選択処理・キー操作・保存を維持 | 2026-10-07 |

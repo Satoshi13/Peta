@@ -15,7 +15,7 @@ const Cer = (() => {
       for(const done of [...waits])done();
       const action=skipAction;skipAction=null;action?.();
     }}},"Skip ⏭");
-    root.append(h("i.cer-rim"), h("i.cer-bg"), top, stage, skip); $("#overlay").append(root);
+    root.append(h("i.cer-bg"), top, stage, skip); $("#overlay").append(root);
     anim(root, [{ opacity: 0 }, { opacity: 1 }], { duration: 420 });
     const close = ({keepScene=false} = {}) => closing ||= (async()=>{for(const done of [...waits])done();await anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 }); root.remove(); if(!keepScene) await Bridge.leaveCeremony(); document.removeEventListener("keydown", onKey);})();
     const onKey = (e) => { if (e.key === "Escape") root._esc && root._esc(); };
@@ -143,12 +143,87 @@ const Cer = (() => {
     return rig;
   }
 
+  /* ------------------------------------------------------------------ THE LIGHT OF A PULLED RARITY
+     Shared by Today's material and the ten-at-once sheet. Rarity is how light behaves, not how many sparks fly:
+     the room darkens in proportion (.cer-exp), a pool of light sits behind what was pulled (.cer-pool), a band of light writes the face,
+     and from rare upwards the window's edge glows (.cer-aura). Common and uncommon have no edge and no frame. */
+  const LIGHT_RGB = { common: "255,242,214", uncommon: "244,190,114", rare: "207,200,255", special: "255,216,119", archive: "230,197,143" };
+  const CAPTION = { uncommon: "Nice find.", rare: "Oh \u2014 a rare one.", special: "Gold. Look at that.", archive: "From the archive." };
+  function lightFor(cer) {
+    const exp = h("i.cer-exp"), aura = h("i.cer-aura", { data: { kind: "prism" } }, h("i.glow", h("i.spin")), h("i.line", h("i.spin")));
+    $(".cer-bg", cer.root).after(exp); cer.root.insertBefore(aura, $(".cer-skip", cer.root) || null);
+    const pools = [], inks = [], dark = cer.root.dataset.kind === "pack", rel = (x, y) => { const r = cer.root.getBoundingClientRect(); return [x - r.left, y - r.top]; };
+    const level = (plan) => dark ? plan.dim : Math.min(1, plan.dim / .66);
+    const api = {
+      /** darken the room around a lit spot; (x, y) are viewport pixels. */
+      async dim(plan, x, y, ms = 800) {
+        const [cx, cy] = rel(x, y); exp.style.setProperty("--cx", cx + "px"); exp.style.setProperty("--cy", cy + "px"); exp.style.setProperty("--tint", plan.tint || "120,100,80");
+        const from = getComputedStyle(exp).opacity, to = level(plan);
+        if (!dark) cer.root.dataset.tone = plan.dark ? "dim" : "";
+        await cer.motion(exp, [{ opacity: from }, { opacity: to }], { duration: ms, easing: EASE.inOut }); exp.style.opacity = to;
+      },
+      pool(plan, x, y, size) {
+        const st = cer.stage.getBoundingClientRect(), s = size * ({ common: .85, uncommon: .95, rare: 1.25, special: 1.45, archive: .8 }[plan.rarity] || 1);
+        const e = h("i.cer-pool", { data: { aura: plan.rarity === "rare" ? "prism" : "" }, style: { left: x - st.left + "px", top: y - st.top + "px", width: s + "px", height: s + "px", "--rgb": LIGHT_RGB[plan.rarity] } });
+        cer.stage.append(e); pools.push(e); const a = { common: .35, uncommon: .5, rare: .62, special: .75, archive: .28 }[plan.rarity];
+        cer.motion(e, [{ opacity: 0, transform: "scale(.5)" }, { opacity: a, transform: "scale(1)" }], { duration: 900, easing: EASE.out });
+      },
+      showAura(plan) {
+        if (!plan.aura) return; aura.dataset.kind = plan.aura;
+        if (reduced()) { aura.style.opacity = .6; return; }
+        cer.motion(aura, [{ opacity: 0 }, { opacity: 1, offset: .35 }, { opacity: plan.rarity === "special" ? .7 : .55 }], { duration: 1900, easing: "ease-out" });
+      },
+      /** radiating pen strokes and a line of handwriting, drawn as the light arrives (the archive) */
+      ink(plan, x, y, size, ink) {
+        if (reduced() || cer.skipped) return; const NS = "http://www.w3.org/2000/svg", st = cer.stage.getBoundingClientRect(), cx = x - st.left, cy = y - st.top;
+        const svg = document.createElementNS(NS, "svg"); svg.setAttribute("class", "cer-ink"); svg.setAttribute("viewBox", `0 0 ${st.width} ${st.height}`); cer.stage.append(svg); inks.push(svg);
+        const n = plan.rarity === "archive" ? 7 : 12, R0 = size * .62; let k = 1;
+        for (let i = 0; i < n; i++) {
+          k = (k * 16807) % 2147483647; const jitter = (k / 2147483647 - .5) * .22, a = i / n * Math.PI * 2 + jitter, r1 = R0 * 1.02, r2 = r1 + 16 + (k % 24);
+          const p = document.createElementNS(NS, "path"); p.setAttribute("d", `M${cx + Math.cos(a) * r1} ${cy + Math.sin(a) * r1 * .8} L${cx + Math.cos(a) * r2} ${cy + Math.sin(a) * r2 * .8}`);
+          p.setAttribute("fill", "none"); p.setAttribute("stroke", ink); p.setAttribute("stroke-width", "2.4"); p.setAttribute("stroke-linecap", "round"); svg.append(p);
+          const len = p.getTotalLength(); p.style.strokeDasharray = len; cer.motion(p, [{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 260, delay: 80 + i * 26, easing: "ease-out" });
+        }
+        if (size < 250) return; // a cell of the sheet is too small to hold a line of handwriting
+        const cap = h("div.cer-caption", { style: { top: Math.max(86, cy - R0 - 40) + "px", color: ink } }, CAPTION[plan.rarity] || ""); cer.stage.append(cap); inks.push(cap);
+        cer.motion(cap, [{ opacity: 0, clipPath: "inset(0 100% 0 0)" }, { opacity: 1, clipPath: "inset(0 0 0 0)" }], { duration: 700, delay: 360, easing: "cubic-bezier(.3,.6,.3,1)" });
+      },
+      /** the light goes back to the paper (the next sticker, or Keep it) */
+      async end(ms = 600) {
+        cer.root.dataset.tone = "";
+        const els = [exp, aura, ...pools, ...inks];
+        await Promise.all(els.map(e => cer.motion(e, [{ opacity: getComputedStyle(e).opacity }, { opacity: 0 }], { duration: ms })));
+        for (const e of [...pools, ...inks]) e.remove(); pools.length = inks.length = 0; exp.style.opacity = 0; aura.style.opacity = 0;
+      },
+    };
+    return api;
+  }
+  /** Sound, touch, light and sparks for one pulled thing. `face` carries the .glint bands. Resolves when the first sweep has gone across. */
+  function climax(cer, light, plan, { face, x, y, size, ink }) {
+    Snd.reveal(plan.rarity); if (plan.hot) Haptic.tap("seal");
+    if (plan.dim) light.dim(plan, x, y, 900);
+    light.pool(plan, x, y, size); light.showAura(plan);
+    if (!cer.skipped && !reduced()) {
+      const st = cer.stage.getBoundingClientRect(), fx = (x - st.left) / st.width, fy = (y - st.top) / st.height;
+      if (plan.rarity === "rare") sparkBurst(cer.stage, plan.sparks, { cx: fx, cy: fy, power: 1.2 });
+      else if (plan.rarity === "special") sparkBurst(cer.stage, plan.sparks, { cx: fx, cy: fy, power: 1.1, colors: ["#ffe9a3", "#ffd05a", "#fff6d6", "#f2b441"] });
+      else if (plan.rarity === "uncommon") sparkBurst(cer.stage, 8, { cx: fx, cy: fy, power: .6, colors: ["#f2d9a8", "#fff", "#e8bf80"] });
+      if (plan.ink) light.ink(plan, x, y, size, plan.dark || cer.root.dataset.kind === "pack" ? "rgba(246,226,186,.95)" : "#6d4f2a");
+    }
+    const glints = $$(".glint", face);
+    return Promise.all(glints.map((g, i) => cer.motion(g, [{ "--gl": "-60%" }, { "--gl": "150%" }], { duration: plan.rarity === "archive" ? 1 : plan.sweep, easing: "cubic-bezier(.35,.1,.2,1)" })));
+  }
+  /** A name that comes into focus one letter at a time. The words stay whole for VoiceOver. */
+  function typeIn(cer, el) {
+    const text = el.textContent; el.setAttribute("aria-label", text); el.textContent = "";
+    return Promise.all([...text].map((ch, i) => { const s = h("span.ch", { "aria-hidden": "true" }, ch === " " ? "\u00a0" : ch); el.append(s); return cer.motion(s, [{ opacity: 0, filter: "blur(8px)", transform: "translateY(8px)" }, { opacity: 1, filter: "blur(0)", transform: "none" }], { duration: 520, delay: i * 26, easing: EASE.out }); }));
+  }
+
   /* ------------------------------------------------------------------ TODAY'S MATERIAL: one envelope, one card */
   /** Resolves when the person keeps the card; the daily receipt is committed by Today only once. */
   function openMaterial(m) {
     return new Promise(resolve => {
       const cer=overlay("material"), stage=cer.stage, envelope=EnvelopeScene();
-      const fx=RAR_FX[m.rarity] || RAR_FX.common;
       envelope.classList.add("material-envelope");
       for (const name of ["role","tabindex","aria-label"]) envelope.removeAttribute(name);
       const openedFlap=img("envFlap","layer flap-open"); openedFlap.style.opacity=0;
@@ -167,16 +242,17 @@ const Cer = (() => {
         const r = card.getBoundingClientRect(), sr = stage.getBoundingClientRect();
         const position = h("div.material-card-position", {style:{position:"absolute",left:r.left-sr.left+"px",top:r.top-sr.top+"px",width:r.width+"px",zIndex:8}});
         stage.append(position); position.append(card);
+        card.classList.add("reveal"); card.append(h("i.veil"),h("i.glint")); card.setAttribute("aria-hidden","true"); // the face stays covered until the light writes it
         delete card.dataset.concealed; card.dataset.m=m.id;
-        revealTheme(cer,m.id,m.rarity);cer.allowSkip();
+        Object.assign(cer.root.dataset,{material:m.id,rarity:m.rarity});cer.allowSkip();
         $(".lab",card).append(h("b",m.name),h("small",m.rarity));
         card.style.cssText = `position:relative;transform:none;--w:${r.width}px;`;
         const {width,height} = card.getBoundingClientRect();
         let resize;
-        let kept=false;
-        const info = h("div.rv-info", {style:{opacity:0,pointerEvents:"none"}}, h("p.eyebrow", "Today's Material"), h("h2", m.name), h("div.rv-meta", h("span.seal", { data: { rarity: m.rarity } }, m.rarity), h("span.no", m.recipe)),
+        let kept=false, light=null;
+        const info = h("div.rv-info", {"aria-hidden":"true",style:{opacity:0,pointerEvents:"none"}}, h("p.eyebrow", "Today's Material"), h("h2", m.name), h("div.rv-meta", h("span.seal", { data: { rarity: m.rarity } }, m.rarity), h("span.no", m.recipe)),
           h("div.rv-btns", h("button.btn.keep", { disabled:true, on: { click: async e => {
-            if (kept) return; kept=true; e.currentTarget.disabled=true; resize?.disconnect(); Snd.tap(); const rect = card.getBoundingClientRect(), node = card.cloneNode(true); node.classList.remove("in-wrap", "big", "out"); node.getAnimations?.().forEach((a) => a.cancel());
+            if (kept) return; kept=true; e.currentTarget.disabled=true; resize?.disconnect(); light?.end(320); Snd.tap(); const rect = card.getBoundingClientRect(), node = card.cloneNode(true); node.classList.remove("in-wrap", "big", "out"); node.getAnimations?.().forEach((a) => a.cancel());
             resolve({ rect, node, close: opts => cer.close(opts) });
           } } }, "Keep it")));
         stage.append(info);
@@ -195,12 +271,23 @@ const Cer = (() => {
         };
         const fit = layout();
         await cer.motion(position, [{transform:"none"},{transform:target(fit)}], {duration:520,easing:EASE.out});
-        snap(fit); fix(card,"rotate(-2deg)"); Snd.chime(fx.chime,880);
+        snap(fit); fix(card,"rotate(-2deg)");
+        // The light of the rarity writes the face: the room dims in proportion, a band sweeps across, and the name comes into focus.
+        const plan=PetaMath.revealPlan(m.rarity); light=lightFor(cer);
+        { const cr=card.getBoundingClientRect(), cx=cr.left+cr.width/2, cy=cr.top+cr.height/2;
+          if(plan.pre) { light.dim({...plan,dim:plan.dim*.4},cx,cy,plan.pre+200); if(plan.rarity==="special"||plan.rarity==="archive")Snd.hush(); await cer.wait(plan.pre); }
+          const lit=climax(cer,light,plan,{face:card,x:cx,y:cy,size:cr.width*1.1});
+          await cer.motion(card,[{"--wp":"-18%"},{"--wp":"122%"}],{duration:plan.sweep,easing:"cubic-bezier(.35,.1,.2,1)"});
+          card.classList.add("shown"); card.removeAttribute("aria-hidden"); await lit; }
         Stk.tilt(card, { max:4, scale:1.01, baseTransform:"rotate(-2deg)", trigger:position });
         resize = new ResizeObserver(() => { const fit = layout(); snap(fit); });
         resize.observe(stage); resize.observe(info); resize.observe(hint);
-        info.style.opacity = 1; info.style.pointerEvents = "";
-        await cer.motion(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
+        info.removeAttribute("aria-hidden"); info.style.opacity = 1; info.style.pointerEvents = "";
+        const seal=$(".seal",info); seal.style.opacity=0;
+        cer.motion(info, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 }); typeIn(cer,$("h2",info));
+        await cer.wait(260); Snd.seal();
+        await cer.motion(seal, [{ opacity: 0, transform: "scale(2.5) rotate(-16deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 380, easing: EASE.out }); seal.style.opacity=1;
+        info.append(h("p",{role:"status",style:{position:"absolute",width:"1px",height:"1px",overflow:"hidden",clip:"rect(0 0 0 0)"}},`${m.rarity[0].toUpperCase()+m.rarity.slice(1)}. ${m.name}.`));
         const keep=$(".keep",info); keep.disabled=false; keep.focus({preventScroll:true});
         cer.endSkip();
       };
@@ -337,7 +424,9 @@ const Cer = (() => {
     rig.focus();
   }
 
-  /* One tear commits the batch. Turning the cards and Skip only change its presentation. */
+  /* One tear commits the batch. Turning the cards and Skip only change its presentation.
+     The sleeves leave the pack in an arc and land on a light table, ten places (a rare shows its edge through the glassine).
+     One press turns them over in a wave, and the wave waits for a rare: the room dims, that one turns alone, then the wave goes on. */
   const RARITY_RANK = ["common", "uncommon", "rare", "special", "archive"];
   async function openPackMany(pack, n) {
     n = Math.min(10, n, pack.left.length);
@@ -361,19 +450,34 @@ const Cer = (() => {
       Shell.toast("Waiting at the print slot — open the Peta menu.");
     };
     const rig = buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeves, onTear: async () => {
-      phase="loading"; Bridge.busy=true; cer.allowSkip(); cer.hint("Setting them on the tray.");
+      phase="loading"; Bridge.busy=true; cer.allowSkip(); cer.hint("Here they come.");
       cer.root.dataset.batch="true";
       const slots=Array.from({length:n},(_,i)=>h("div.pm-slot",{role:"img","aria-label":`Sealed sticker ${i+1}`},img("mystery","pm-covered")));
       const cols=Math.min(5,n), rows=Math.ceil(n/cols);
       const grid=h("div.pm-grid",{style:{"--cols":cols}},slots);
       const info=h("div.rv-info"), tray=h("div.pm-tray",grid);stage.append(tray,info);
+      for(const slot of slots)$(".pm-covered",slot).style.opacity=0;
       const size=new ResizeObserver(()=>{
-        const gap=12, cw=Math.floor(Math.max(32,Math.min(148,(stage.clientWidth-40-gap*(cols-1))/cols,(stage.clientHeight-Math.max(170,info.offsetHeight)-54-gap*(rows-1))/rows/1.08)));
-        grid.style.setProperty("--cw",cw+"px");grid.style.setProperty("--ch",Math.round(cw*1.08)+"px");grid.style.setProperty("--gap",gap+"px");
+        const cell=PetaMath.sheetCell({stageWidth:stage.clientWidth,stageHeight:stage.clientHeight,footer:Math.max(170,info.offsetHeight),count:n});
+        grid.style.setProperty("--cw",cell.width+"px");grid.style.setProperty("--ch",cell.height+"px");grid.style.setProperty("--gap",cell.gap+"px");
       });size.observe(stage);size.observe(info);
       const originalClose=cer.close;cer.close=opts=>{size.disconnect();return originalClose(opts);};
-      rig.wrapper.remove();
+      // The sleeves leave from the mouth of the pack; the pack itself slips away to the side.
+      const st0=stage.getBoundingClientRect(), pr=rig.pouch.getBoundingClientRect(), mouth=[pr.left+pr.width/2-st0.left,pr.top+pr.height*.2-st0.top];
+      rig.wrapper.style.zIndex=4; $$(".pk-sleeves",rig.pouch).forEach(e=>e.remove());
+      cer.motion(rig.pouch,[{transform:"none",opacity:1},{transform:`translate(${-pr.width*1.4}px, ${pr.height*.5}px) rotate(-14deg) scale(.5)`,opacity:0}],{duration:900,easing:EASE.inOut}).then(()=>rig.wrapper.remove());
       let failure="";
+      const landing=[];
+      const fly=(i)=>{
+        const slot=slots[i],cov=$(".pm-covered",slot);
+        if(cer.skipped||reduced()){cov.style.opacity=1;return Promise.resolve();}
+        const sr=slot.getBoundingClientRect(),st=stage.getBoundingClientRect(),w=sr.width*.8,tx=sr.left+sr.width/2-st.left,ty=sr.top+sr.height/2-st.top,sx=mouth[0],sy=mouth[1];
+        const token=h("div.pm-fly",{style:{width:w+"px"}},img("mystery"));stage.append(token);Snd.swoosh();
+        return cer.motion(token,[
+          {transform:`translate(${sx}px, ${sy-30}px) scale(.5) rotate(${rand(-30,30)}deg)`,opacity:0},
+          {transform:`translate(${(sx+tx)*.5-(sx-tx)*.12}px, ${Math.min(sy,ty)-90}px) scale(1.04) rotate(${rand(-9,9)}deg)`,opacity:1,offset:.5},
+          {transform:`translate(${tx}px, ${ty}px) scale(1) rotate(0)`,opacity:1}],{duration:640,easing:EASE.inOut}).then(()=>{cov.style.opacity=1;token.remove();});
+      };
       for(let i=0;i<n;i++) {
         let opened;
         try { opened=await Bridge.invoke("pack_open",{packId:pack.id}); }
@@ -381,14 +485,17 @@ const Cer = (() => {
         // Record the committed ID before preview loading: an image error must never lose an award.
         const one={entry:{id:opened.stickerId,title:opened.name || "Sticker",rarity:opened.rarity,material:"matte"},res:null};got.push(one);
         pack.left=Array(opened.remaining).fill(null);
+        slots[i].dataset.rarity=opened.rarity || "common";
+        landing.push(fly(i));
         try {
           const entry=await Bridge.entry(opened.stickerId);
           one.entry={...entry,rarity:opened.rarity,title:opened.name || entry.title};
           one.res=await resOf(one.entry);
         } catch(e) { previewFailed=true; }
         slots[i].dataset.rarity=one.entry.rarity || MAT[one.entry.material]?.rarity || "common";
-        await cer.motion(slots[i],[{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:140,easing:EASE.out});
+        await cer.wait(70);
       }
+      await Promise.all(landing);
       for(const slot of slots.slice(got.length))slot.remove();
       try { await Bridge.reload(); } catch(e) { Shell.toast(`Saved to Collection. ${String(e)}`); } Shell.renderNav();
       if(!got.length) {await cer.close();Bridge.busy=false;Shell.toast(failure);return;}
@@ -402,29 +509,47 @@ const Cer = (() => {
       if(failure)info.append(h("p.pm-notice",`Stopped after ${got.length}. The rest remain sealed in your pack.`));
       if(previewFailed)info.append(h("p.pm-notice","All received stickers are saved to Collection; some previews are unavailable."));
       phase="sealed";cer.root.dataset.phase=phase;cer.hint(`${got.length===10 ? "Ten" : got.length} stickers.`);
+      /* Turn one cell over: the glassine turns edge-on, the sticker takes its place. */
+      async function turnOver(i,{slow=false}={}) {
+        const one=got[i],slot=slots[i],rarity=slot.dataset.rarity;
+        await cer.motion(slot,[{transform:"perspective(700px) rotateY(0)"},{transform:"perspective(700px) rotateY(90deg)"}],{duration:slow?260:170,easing:EASE.inOut});
+        let tilter=h("span.pm-missing","Saved to Collection");
+        if(one.res) {
+          const stk=Stk.el(one.res);
+          stk.style.width=`calc(var(--cw) * ${.8*Math.min(1,one.res.aspect)})`;
+          tilter=h("div.pm-tilt",stk);
+        }
+        slot.replaceChildren(tilter);slot.classList.add("full");slot.setAttribute("aria-label",`${titleOf(one.entry)} · ${rarity}`);
+        if(one.res)Stk.tilt(tilter,{max:4,scale:1.015,trigger:slot});
+        await cer.motion(slot,[{transform:"perspective(700px) rotateY(-90deg)"},{transform:"perspective(700px) rotateY(0)"}],{duration:slow?340:220,easing:EASE.out});
+        fix(slot,"none");
+      }
       async function flip() {
         if(phase!=="sealed")return;
         phase="revealing";cer.root.dataset.phase=phase;turn.disabled=true;cer.allowSkip();
+        const light=lightFor(cer),turning=[];
         for(let i=0;i<got.length;i++) {
-          const one=got[i],slot=slots[i],rarity=slot.dataset.rarity;
-          await cer.motion(slot,[{transform:"perspective(700px) rotateY(0)"},{transform:"perspective(700px) rotateY(90deg)"}],{duration:170,easing:EASE.inOut});
-          let tilter=h("span.pm-missing","Saved to Collection");
-          if(one.res) {
-            const stk=Stk.el(one.res);
-            stk.style.width=`calc(var(--cw) * ${.8*Math.min(1,one.res.aspect)})`;
-            tilter=h("div.pm-tilt",stk);
+          const slot=slots[i],rarity=slot.dataset.rarity,plan=PetaMath.revealPlan(rarity);
+          if(plan.hot && !cer.skipped && !reduced()) {
+            // The wave waits: the room dims, this one turns alone, then the others go on.
+            await Promise.all(turning);turning.length=0;await cer.wait(180);
+            let r=slot.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+            if(plan.pre) { light.dim({...plan,dim:plan.dim*.4},x,y,plan.pre+200); if(plan.rarity==="special"||plan.rarity==="archive")Snd.hush(); await cer.wait(plan.pre); }
+            slot.style.zIndex=30; slot.dataset.stage="true";
+            await cer.motion(slot,[{scale:1},{scale:1.22}],{duration:420,easing:EASE.out});
+            const glint=h("i.glint");slot.append(glint);
+            await turnOver(i,{slow:true});slot.append(glint);
+            r=slot.getBoundingClientRect();x=r.left+r.width/2;y=r.top+r.height/2;
+            const lit=climax(cer,light,plan,{face:slot,x,y,size:r.width*1.5,ink:true});
+            await cer.wait(plan.hold);await lit;await light.end(560);
+            await cer.motion(slot,[{scale:1.22},{scale:1}],{duration:420,easing:EASE.inOut});
+            slot.style.zIndex="";slot.dataset.stage="";glint.remove();await cer.wait(200);
+          } else {
+            turning.push(turnOver(i).then(()=>Snd.chime((RAR_FX[rarity] || RAR_FX.common).chime,640+i*26)));
+            await cer.wait(150);
           }
-          slot.replaceChildren(tilter);slot.classList.add("full");slot.setAttribute("aria-label",`${titleOf(one.entry)} · ${rarity}`);
-          if(one.res)Stk.tilt(tilter,{max:4,scale:1.015,trigger:slot});
-          await cer.motion(slot,[{transform:"perspective(700px) rotateY(-90deg)"},{transform:"perspective(700px) rotateY(0)"}],{duration:220,easing:EASE.out});
-          fix(slot,"none");
-          Snd.chime((RAR_FX[rarity] || RAR_FX.common).chime,640+i*26);
-          if(!cer.skipped && !reduced() && RARITY_RANK.indexOf(rarity)>=2) {
-            const r=slot.getBoundingClientRect(),s=stage.getBoundingClientRect();
-            sparkBurst(stage,rarity==="rare"?12:18,{cx:(r.x+r.width/2-s.x)/s.width,cy:(r.y+r.height/2-s.y)/s.height,power:.6,colors:rarity==="rare"?["#d8c9ff","#eee5ff"]:["#f8d989","#fff0c4"]});
-          }
-          await cer.wait(50);
         }
+        await Promise.all(turning);
         phase="finished";cer.root.dataset.phase=phase;cer.endSkip();cer.hint("Tilt them to catch the light.");
         info.insertBefore(h("div.rv-meta",h("span.seal",{data:{rarity:best}},best),h("span.no",tally.map(([r,c])=>`${c} ${r}`).join(" · "))),buttons);
         buttons.replaceChildren(h("button.btn.keep",{type:"button",on:{click:keep}},"Stick them"),h("button.btn.paper",{type:"button",on:{click:later}},"Later"));

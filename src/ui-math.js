@@ -95,3 +95,32 @@ export function recentDays(stuckDates, today, count = 7) {
   });
 }
 
+
+/** How a pulled rarity shows itself. One table drives the daily envelope and the ten-at-once sheet.
+ *  Rarity is expressed by how light behaves: `dim` is how far the room darkens (0..1), `pre` the held breath before the reveal (ms),
+ *  `sweep` the band of light across the face (ms), `hold` how long the others wait while this one has the stage (ms),
+ *  `aura` the edge light that wraps the window, `tint` the colour the room goes (RGB, multiplied over paper). */
+const REVEAL = {
+  common:   {dim:0,   pre:0,   sweep:700,  hold:0,    aura:null,    tint:null,           sparks:0,  ink:false, tell:null},
+  uncommon: {dim:.14, pre:0,   sweep:800,  hold:0,    aura:null,    tint:'150,104,52',   sparks:0,  ink:false, tell:null},
+  rare:     {dim:.48, pre:260, sweep:1100, hold:1000, aura:'prism', tint:'70,60,118',    sparks:30, ink:false, tell:'prism'},
+  special:  {dim:.70, pre:560, sweep:1500, hold:1300, aura:'gold',  tint:'112,66,14',    sparks:34, ink:false, tell:'gold'},
+  archive:  {dim:.56, pre:420, sweep:1300, hold:1400, aura:'sepia', tint:'112,84,44',    sparks:0,  ink:true,  tell:'sepia'},
+};
+export function revealPlan(rarity) {
+  const plan = REVEAL[rarity] || REVEAL.common;
+  return {rarity:REVEAL[rarity] ? rarity : 'common', ...plan, hot:plan.hold > 0, dark:plan.dim > .34};
+}
+
+/** The order a ten-at-once sheet turns over: left to right, row by row. Rares and above hold the wave while they have the stage. */
+export function sheetWave(rarities) {
+  return rarities.map((rarity, index) => ({index, rarity, hold:revealPlan(rarity).hold, hot:revealPlan(rarity).hot}));
+}
+
+/** Cell size for a sheet of `count` sleeves in a stage; the sleeve art is slightly wider than tall. */
+export function sheetCell({stageWidth, stageHeight, footer, count, gap = 12, maxWidth = 150}) {
+  const cols = Math.min(5, count), rows = Math.ceil(count / cols);
+  const byWidth = (stageWidth - 40 - gap * (cols - 1)) / cols, byHeight = (stageHeight - footer - 54 - gap * (rows - 1)) / rows / 1.08;
+  const width = Math.floor(Math.max(32, Math.min(maxWidth, byWidth, byHeight)));
+  return {cols, rows, width, height:Math.round(width * 1.08), gap};
+}

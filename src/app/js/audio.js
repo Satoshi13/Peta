@@ -39,6 +39,20 @@ const Snd = {
   seal() { this.tone(0, 140, 0.18, { gain: 0.12, f2: 55 }); this.noise(0, 0.08, { f: 900, q: 0.6, gain: 0.05 }); },
   feed(steps = 14, span = 2) { for (let i = 0; i < steps; i++) this.noise(i * (span / steps), 0.05, { f: 1500 + (i % 2) * 400, q: 1.2, gain: 0.03 }); },
   crack() { this.noise(0, 0.07, { f: 3000, q: 1.5, gain: 0.1 }); this.tone(0, 420, 0.08, { type: "triangle", gain: 0.05, f2: 180 }); },
+  /* The sound of a rarity: the same family of notes, brighter and longer as the light does more.
+     Common is a soft paper pop; the archive is a small music box in a quiet room. */
+  glass(t0, f, dur = 1.1, gain = 0.045) { [1, 2.003, 3.01, 4.17].forEach((r, i) => this.tone(t0, f * r, dur / (1 + i * 0.4), { gain: gain / (1 + i * 1.1), attack: 0.002 })); },
+  bell(t0, f, dur = 2.2, gain = 0.055) { [1, 2.76, 5.4, 8.93].forEach((r, i) => this.tone(t0, f * r, dur / (1 + i * 0.55), { gain: gain / (1 + i * 0.9), attack: 0.003 })); },
+  pluck(t0, f, gain = 0.05) { this.tone(t0, f, 0.9, { type: "triangle", gain, attack: 0.002 }); this.tone(t0, f * 2.01, 0.35, { gain: gain * 0.35, attack: 0.002 }); },
+  hush(dur = 0.9) { this.noise(0, dur, { f: 380, type: "lowpass", gain: 0.05, attack: dur * 0.5 }); },
+  reveal(rarity, volume = 1) {
+    const v = volume;
+    if (rarity === "uncommon") { this.pluck(0, 659.3, 0.05 * v); this.pluck(0.1, 880, 0.055 * v); }
+    else if (rarity === "rare") { this.swoosh(); [659.3, 880, 987.8, 1318.5, 1568].forEach((f, i) => this.glass(0.12 + i * 0.075, f, 1.4, 0.045 * v)); }
+    else if (rarity === "special") { this.tone(0, 98, 1.25, { type: "sawtooth", f2: 196, gain: 0.02 * v, attack: 0.9 }); this.tone(0, 196, 1.25, { f2: 392, gain: 0.06 * v, attack: 0.9 }); [523.3, 784, 1318.5].forEach((f, i) => this.bell(0.95 + i * 0.07, f, 2.6, 0.05 * v)); }
+    else if (rarity === "archive") { [659.3, 587.3, 493.9, 659.3, 784, 880].forEach((f, i) => this.pluck(0.1 + i * 0.26, f, 0.042 * v)); this.hush(1.6); }
+    else { this.tone(0, 700, 0.05, { f2: 420, gain: 0.06, attack: 0.001 }); this.glass(0.03, 659.3, 0.9, 0.03 * v); }
+  },
 };
 
 // Tactile feedback is independent of sounds and reduced motion; unsupported hardware is silent.
