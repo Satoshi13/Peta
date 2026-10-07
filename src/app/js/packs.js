@@ -14,37 +14,64 @@ const PackZoom = {
   get active() { return this.current?.root.isConnected ? this.current : null; },
   open(pack, tile, build) {
     if (this.active) return;
+    if (this.current) this.dispose();
     const page = Shell.current, source = $(".pk-stack", tile);
     if (!page || !source) return;
-    const root = h("div.mkz", { role: "dialog", "aria-modal": "true", "aria-label": pack.title }), scrim = h("div.mkz-scrim");
+    const root = h("div.mkz", { role: "dialog", "aria-modal": "true", "aria-label": pack.title, tabindex: -1 }), scrim = h("div.mkz-scrim");
     const clone = source.cloneNode(true); clone.classList.add("mkz-pack"); clone.removeAttribute("style");
-    const card = build(pack);
-    // The view covers what is on screen now, even when the page is scrolled; the page itself stays put while the camera is in.
-    const scrolled = page.scrollTop, overflow = page.style.overflowY;
-    root.style.cssText = `top:${scrolled}px;bottom:auto;height:${page.clientHeight}px`; page.style.overflowY = "hidden";
-    root.append(scrim, clone, card); page.append(root);
-    const to = this.target(root), from = this.rectIn(root, source), k = to.width / from.width;
-    const camera = `translate(${to.left - from.left * k}px, ${to.top - from.top * k}px) scale(${k})`;
-    // Everything on the page is part of the world the camera moves through, and each piece scales around the same point.
-    const rr = root.getBoundingClientRect();
-    const world = [...page.children].filter((el) => el !== root).map((el) => { const r = el.getBoundingClientRect(); el.style.transformOrigin = `${rr.left - r.left}px ${rr.top - r.top}px`; return el; });
-    const packFrom = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${1 / k})`;
-    const cur = this.current = { root, scrim, clone, card, source, tile, pack, world, camera, packFrom, page, overflow, closing: false };
-    cur.onKey = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); this.close(); } };
-    window.addEventListener("keydown", cur.onKey, true);
-    scrim.addEventListener("click", () => this.close());
-    card.addEventListener("click", (e) => { if (e.target.closest(".mkz-back, .mkz-x")) this.close(); });
-    card.addEventListener("click", (e) => { if (e.target.closest(".mkz-act")) this.dispose(); }, true);
-    // Rasterize the pouch and its cqw label at their final size; only the journey uses a scale.
-    Object.assign(clone.style, { left: to.left + "px", top: to.top + "px", width: to.width + "px", height: to.height + "px", transformOrigin: "0 0", transform: packFrom });
-    source.style.visibility = "hidden";
-    anim(scrim, [{ opacity: 0 }, { opacity: 1 }], { duration: 420, easing: EASE.out, delay: 120 });
-    this.move(cur, "none", camera, 680).then(() => {
-      if (cur.closing || !root.isConnected) return;
-      anim(card, [{ opacity: 0, transform: "translateX(24px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: EASE.out }).then((a) => a.cancel?.());
-      card.classList.add("on"); (card.querySelector(".mkz-act:not(:disabled)") || card.querySelector(".mkz-back"))?.focus({ preventScroll: true });
-    });
-    onPointerFollow(clone, (x, y, e, amount) => { clone.style.setProperty("--sx", lerp(30, (1 - x) * 100, amount) + "%"); clone.style.setProperty("--sy", lerp(30, (1 - y) * 100, amount) + "%"); }, () => { clone.style.setProperty("--sx", "30%"); clone.style.setProperty("--sy", "30%"); });
+    const card = build(pack), world = [...page.children], nav = $("#nav");
+    const savedWorld = world.map(el => ({ el, inert: el.inert, transform: el.style.transform, origin: el.style.transformOrigin }));
+    const cur = this.current = { root, scrim, clone, card, source, tile, pack, world, savedWorld, nav, navInert: nav?.inert, page,
+      overflow: page.style.overflowY, sourceVisibility: source.style.visibility, closing: false };
+    const buttons = () => $$(".mkz-act, .mkz-back, .mkz-x", card).filter(b => !b.disabled && !b.hidden && b.getClientRects().length);
+    try {
+      // Freeze the shelf at its current scroll position; window controls remain outside this modal.
+      root.style.cssText = `top:${page.scrollTop}px;bottom:auto;height:${page.clientHeight}px`; page.style.overflowY = "hidden";
+      root.append(scrim, clone, card); page.append(root);
+      const to = this.target(root), from = this.rectIn(root, source), k = to.width / from.width;
+      cur.camera = `translate(${to.left - from.left * k}px, ${to.top - from.top * k}px) scale(${k})`;
+      cur.packFrom = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${1 / k})`;
+      const rr = root.getBoundingClientRect();
+      for (const el of world) {
+        const r = el.getBoundingClientRect(); el.style.transformOrigin = `${rr.left - r.left}px ${rr.top - r.top}px`; el.inert = true;
+      }
+      if (nav) nav.inert = true;
+      cur.onKey = e => {
+        if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); this.close(); return; }
+        if (e.key === "Tab") {
+          e.preventDefault(); e.stopImmediatePropagation();
+          const list = buttons(), i = list.indexOf(document.activeElement);
+          const next = i < 0 ? (e.shiftKey ? list.length - 1 : 0) : (i + (e.shiftKey ? -1 : 1) + list.length) % list.length;
+          (list[next] || root).focus({ preventScroll: true }); return;
+        }
+        const input = e.target.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])');
+        const button = e.target.closest?.("button");
+        if (!input && (e.metaKey || e.ctrlKey)) e.preventDefault();
+        if (!input && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(e.key) && !(button && e.key === " ")) e.preventDefault();
+        // Preserve native Enter/Space activation and text editing, while isolating global handlers.
+        e.stopImmediatePropagation();
+      };
+      cur.onFocus = e => {
+        if (!root.contains(e.target) && !e.target.closest?.(".wctl")) (buttons()[0] || root).focus({ preventScroll: true });
+      };
+      window.addEventListener("keydown", cur.onKey, true);
+      window.addEventListener("focusin", cur.onFocus, true);
+      root.focus({ preventScroll: true });
+      scrim.addEventListener("click", () => this.close());
+      card.addEventListener("click", e => { if (e.target.closest(".mkz-back, .mkz-x")) this.close(); });
+      card.addEventListener("click", e => { if (e.target.closest(".mkz-act")) this.dispose(); }, true);
+      // Rasterize at the final size; only the journey uses a scale.
+      Object.assign(clone.style, { left: to.left + "px", top: to.top + "px", width: to.width + "px", height: to.height + "px", transformOrigin: "0 0", transform: cur.packFrom });
+      source.style.visibility = "hidden";
+      anim(scrim, [{ opacity: 0 }, { opacity: 1 }], { duration: 420, easing: EASE.out, delay: 120 });
+      this.move(cur, "none", cur.camera, 680).then(async () => {
+        if (cur.closing || !root.isConnected) return;
+        const animation = anim(card, [{ opacity: 0, transform: "translateX(24px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: EASE.out });
+        card.classList.add("on"); (buttons().find(b => b.matches(".mkz-act")) || buttons()[0] || root).focus({ preventScroll: true });
+        (await animation).cancel?.();
+      }).catch(error => { if (this.current === cur) this.dispose(true); Shell.toast(String(error)); });
+      onPointerFollow(clone, (x, y, e, amount) => { clone.style.setProperty("--sx", lerp(30, (1 - x) * 100, amount) + "%"); clone.style.setProperty("--sy", lerp(30, (1 - y) * 100, amount) + "%"); }, () => { clone.style.setProperty("--sx", "30%"); clone.style.setProperty("--sy", "30%"); });
+    } catch (error) { this.dispose(true); throw error; }
   },
   /* One camera move for the pouch and the page around it, so they always stay in the same place relative to each other. */
   move(cur, a, b, duration) {
@@ -69,19 +96,23 @@ const PackZoom = {
   /* Move back out: the card goes first, then the camera pulls back to the whole shelf. */
   async close() {
     const cur = this.active; if (!cur || cur.closing) return; cur.closing = true;
-    anim(cur.card, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(16px)" }], { duration: 160, easing: EASE.out });
-    anim(cur.scrim, [{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: EASE.out, delay: 120 });
-    await this.move(cur, cur.camera, "none", 560);
-    this.dispose(true);
+    try {
+      anim(cur.card, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(16px)" }], { duration: 160, easing: EASE.out });
+      anim(cur.scrim, [{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: EASE.out, delay: 120 });
+      await this.move(cur, cur.camera, "none", 560);
+    } finally { if (this.current === cur) this.dispose(true); }
   },
   /* Remove the view at once (no motion). `restore` hands focus back to the pack that was chosen. */
   dispose(restore = false) {
     const cur = this.current; if (!cur) return;
     window.removeEventListener("keydown", cur.onKey, true);
-    for (const el of cur.world) { el.getAnimations().forEach((a) => a.cancel()); el.style.transform = ""; el.style.transformOrigin = ""; }
+    window.removeEventListener("focusin", cur.onFocus, true);
+    for (const { el, inert, transform, origin } of cur.savedWorld) { el.getAnimations().forEach(a => a.cancel()); el.style.transform = transform; el.style.transformOrigin = origin; el.inert = inert; }
+    if (cur.nav) cur.nav.inert = cur.navInert;
+    for (const el of [cur.clone, cur.scrim, cur.card]) el.getAnimations().forEach(a => a.cancel());
     cur.page.style.overflowY = cur.overflow;
-    cur.source.style.visibility = ""; cur.root.remove(); this.current = null;
-    if (restore) cur.tile.focus({ preventScroll: true });
+    cur.source.style.visibility = cur.sourceVisibility; cur.root.remove(); this.current = null;
+    if (restore && cur.tile.isConnected) cur.tile.focus({ preventScroll: true });
   },
 };
 

@@ -249,3 +249,5 @@ Linuxでのハーネス確認とmacOSでの起動確認は、サイドバー素�
 - [ ] A: Studio／Desk・1060×700／720×520でMaterialsとMarket Materialsを往復ホバー。静止角−2°が水平にならず、背景・影・持ち上がりが両方向に滑らか。ホロの反射・クリック範囲は維持。トラックパッドとReduce motionも確認。
 
 - [ ] B: Retina（DPR 2）でPacks／Marketのホロ・クラフト・マットをズーム。封の縁・タイトル・作者が鮮明で、反射マスクが袋に一致。680msで寄り、560msで戻る。途中Esc／外側／✕、Reduce motionでも棚・フォーカスが戻る。
+
+- [ ] C: ズーム中にTab／Shift+Tabを循環し、矢印・PageUp/Down・Home/End・⌘1〜7を連打。背景位置とページは不変、Space／Enterでボタンを実行、Esc後に元の袋へ戻る。VoiceOverでモーダル外の棚・ナビが読まれず、閉じる・更新・例外後に操作が復旧する。

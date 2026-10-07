@@ -107,6 +107,7 @@ const Shell = (() => {
     if (current && S.page === id && !o.force) return;
     const oldIdx = NAV.findIndex((n) => n.id === S.page), newIdx = NAV.findIndex((n) => n.id === id);
     const dir = newIdx >= oldIdx ? 1 : -1;
+    PackZoom.dispose();
     const prevId = S.page; S.page = id; markNav();
     Pages[prevId]?.leave?.(current);
     const next = build(id);
@@ -120,6 +121,7 @@ const Shell = (() => {
   /** Rebuild the current page in place (after state changes), no transition. */
   function refresh() {
     if (!current || navigating) return;
+    PackZoom.dispose();
     Pages[S.page]?.leave?.(current);
     const next = build(S.page); const st = current.querySelector(".page-in")?.scrollTop || 0;
     viewport().replaceChildren(next); current = next; Pages[S.page].enter?.(next, { refresh: true });
@@ -142,7 +144,7 @@ const Shell = (() => {
     $("#resize-h").addEventListener("mousedown", e => { if (e.button === 0) { e.preventDefault(); Bridge.window.startResizeDragging("SouthEast"); } });
     document.addEventListener("keydown", e => {
       if(e.defaultPrevented || !document.hasFocus()) return;
-      const page = PetaMath.navShortcut(e, { input:!!e.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])'), dialog:Bridge.dialogOpen || !!$("dialog[open]"), busy:Bridge.busy, ceremony:!!$(".cer") });
+      const page = PetaMath.navShortcut(e, { input:!!e.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])'), dialog:Bridge.dialogOpen || !!$("dialog[open]"), busy:Bridge.busy || !!PackZoom.active, ceremony:!!$(".cer") });
       if(page) { e.preventDefault(); go(page, {via:"nav"}); }
     });
     document.addEventListener("keydown", e => { if(e.key === "Escape" && !e.defaultPrevented && !$(".cer") && !e.target.closest("input")) close(); });
