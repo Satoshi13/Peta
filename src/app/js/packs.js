@@ -144,10 +144,9 @@ Pages.packs = {
     return shelf;
   },
   pack(p, i) {
-    const stack = h("div.pk-stack", {data:{empty:p.empty}}, h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, (p.kind || "holo") === "holo" ? h("i.sheen") : null), PackLabel(p),
-      h("span.pk-count", { "aria-hidden": "true" }, `${p.left.length} left`));
+    const stack = h("div.pk-stack", {data:{empty:p.empty}}, h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, (p.kind || "holo") === "holo" ? h("i.sheen") : null), PackLabel(p));
     const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
-      stack);
+      stack, h("span.pk-count", { "aria-hidden": "true" }, `${p.left.length} left`)); // written on the wall behind the pouch, so it stays put when the pouch lifts
     onPointerFollow(card, (x, y, e, amount) => { stack.style.setProperty("--sx", lerp(30,(1-x)*100,amount)+"%"); stack.style.setProperty("--sy", lerp(30,(1-y)*100,amount)+"%"); }, () => { stack.style.setProperty("--sx", "30%"); stack.style.setProperty("--sy", "30%"); });
     return card;
   },

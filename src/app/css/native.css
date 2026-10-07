@@ -826,5 +826,5 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .shelf-row .ledge { z-index:0; bottom:-17px; }
 .shelf-row .pack::after { bottom:-2px; left:14%; right:14%; opacity:.9; }
 .shelf .pack { display:grid; grid-template-rows:224px; padding:44px 0 0; }
-.pk-count { position:absolute; left:0; right:0; top:-15cqw; z-index:7; text-align:center; font:600 13.5cqw/1 var(--hand); letter-spacing:.02em; color:#625b50; pointer-events:none; white-space:nowrap; }
-.pack[data-empty="true"] .pk-count, .pk-stack[data-empty="true"] .pk-count { color:var(--muted); opacity:.7; }
+.pk-count { position:absolute; left:0; right:0; top:2px; text-align:center; font:700 27px/1 "Bradley Hand","Bradley Hand ITC","Segoe Print","Noteworthy",var(--hand),cursive; letter-spacing:.01em; color:#46433d; opacity:.82; mix-blend-mode:multiply; text-shadow:none; filter:none; pointer-events:none; white-space:nowrap; }
+.pack[data-empty="true"] .pk-count { opacity:.45; }
