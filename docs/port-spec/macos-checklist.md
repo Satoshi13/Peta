@@ -263,3 +263,14 @@ Linuxでのハーネス確認とmacOSでの起動確認は、サイドバー素�
 - [ ] パック別の無料開封: 通常9→10枚で黒い丸10個とOpen free。まとめ開けは成功した枚数分だけ進む。無料分は通常残数・進捗・Welcome日次枠を使わず、同じ袋の絵柄・素材・作者を保持してBookと印刷待ちに追加。Later→再起動で勝手に印刷しない。未受取の無料分・端数は保持し、複数の無料分をすべて受け取ると端数の丸に戻る。別パックの進捗は動かない。失敗時は無料分を失わず、途中のコピーがCollectionに残らない。
 
 - [ ] 空袋と残数バッジ: 空の袋がズーム中もグレーのままで、無料分があればOpen freeで受け取れる。N leftが袋の足元で一緒に拡大・縮小し、寄る途中／戻る途中も背景側へ下がらない。720×520／1060×700、Studio／Desk、Retina、途中EscとReduce motionを確認。
+
+## 2026-10-07: ホバー・閉じる・レア演出・まとめ開封
+
+- [ ] WKWebViewでMaterialsの影が入る／戻る両方向に滑らかに変化し、Kraft下端に白い線がない。ホロ反射とクリック領域を維持。
+- [ ] Materials／Packs／Market／Collectionの閉じるボタンの丸と×が揃い、クリック・Enter・Space・フォーカス復帰が機能。
+- [ ] Add another setのhover／activeでボタンが消えず、NightのStudioナビのhover／選択が読みやすい。
+- [ ] Holographic／Goldの素材演出と1枚パックのレア演出をRetinaで確認。最小窓でもカード・説明・ボタンが重ならない。
+- [ ] まとめ開封の伏せトレイ→Turn them over→結果→Stick them／Laterを実DBで確認。Skip・連打・途中失敗・再起動で獲得済みのステッカーが増減せず、無料進捗と印刷待ちが維持される。
+- [ ] VoiceOverで伏せ状態の名前が漏れず、めくった後に名前とレア度が分かる。アプリ／OSのReduce motionで移動演出を短縮し、キーで操作できる。
+
+Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に記録。ここはmacOS実機の未確認項目。

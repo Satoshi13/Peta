@@ -144,7 +144,7 @@ Pages.packs = {
     const one = h("button.btn.mkz-act" + (available ? ".paper" : ""), { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
     const free = available ? h("button.btn.mkz-act", {type:"button",on:{click:go(()=>{Snd.tap();Cer.openPack(p,{free:true});})}}, "Open free") : null;
     const ten = more ? h("button.btn.paper.mkz-act", { type: "button", on: { click: go(() => { Snd.tap(); Cer.openPackMany(p, many); }) } }, many === 10 ? "Open 10" : `Open all ${many}`) : null;
-    return h("aside.mkz-card", h("button.mkz-x", { type: "button", "aria-label": "Back to the shelf" }, "✕"),
+    return h("aside.mkz-card", CloseButton("Back to the shelf", {}, ".mkz-x"),
       h("p.eyebrow", `by ${p.by}${p.signatureStatus ? " ✓" : ""}`), h("h2", p.title), blurb ? h("p.mkz-blurb", blurb) : null,
       p.fingerprint ? h("p.mkz-fp.muted", `${p.fingerprint}${p.signatureStatus === "new" ? " · New friend" : p.signatureStatus === "warning" ? " · Same name, different key" : ""}`) : null,
       h("p.mkz-own", h("b", `${left} ${left === 1 ? "opening" : "openings"} left`)),

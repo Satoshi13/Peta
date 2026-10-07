@@ -20,3 +20,7 @@
 `developer-studio-1060-settings-tools.png`は実際のDeveloper専用操作欄。`final-night-studio-720-preview.png`は所持数下のDismantleと、NightのCloseボタンの最終配色。
 
 最終検査: `npm test` 39件、`cargo test --workspace` 120件、`cargo test --workspace --features developer` 121件を通過。通常版／Developerの`npm run check:mac`相当のaarch64-apple-darwin型検査も通過した。C／Objective-C依存のビルド補助stubを使ったLinux検査で、Macのリンク・bundle署名・実機確認は含まない。
+
+## 2026-10-07: ホバーと開封演出の追加フィードバック
+
+`ceremonies-before.json`／`ceremonies-after.json`はChromium DPR2、実src UI＋fixture IPCの記録。beforeは`1ed97e5`のsrc。Kraft・閉じる・exchange-hover・night-navをStudio／Desk、1060／720で比較し、holographic-reveal／gold-reveal／batch-sealed／batch-revealedに参考画像に合わせた演出を保存した。`scripts/ui-feedback-ceremonies.py before|after`で再現する。macOSのネイティブ窓・DB・実印刷の確認を意味しない。

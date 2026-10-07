@@ -21,6 +21,14 @@ function SegButton(label, props) {
   return h("button", props, h("span.seg-label", label), ring);
 }
 
+/** A centered vector cross, with one hit area and appearance across preview panels. */
+function CloseButton(label, props = {}, className = "") {
+  const ns="http://www.w3.org/2000/svg", icon=document.createElementNS(ns,"svg"), path=document.createElementNS(ns,"path");
+  for(const [key,value] of Object.entries({viewBox:"0 0 24 24","aria-hidden":"true",focusable:"false"})) icon.setAttribute(key,value);
+  path.setAttribute("d","M7 7L17 17M17 7L7 17");icon.append(path);
+  return h("button.close-control"+className,{...props,type:"button","aria-label":label},icon);
+}
+
 /** A tray of material cards. Picking marks the material for the next Create without moving the controls. */
 function MaterialTray({ w = 148, onPick, interactive = true, selected = S.chosen } = {}) {
   const tray = h("div.mtray", { role: "radiogroup", "aria-label": "Material" });

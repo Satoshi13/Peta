@@ -1,6 +1,6 @@
 # 2026-10-07 UI修正レポート
 
-追加フィードバックでパック詳細のボタン寸法とナビ操作を修正した。Cのナビ隔離については[追加フィードバック](#追加フィードバック-パック詳細)が現行の動作。その後の依頼による無料開封・グレー表示・残数バッジは末尾の「無料開封と袋の表示」に記録する。
+追加フィードバックでパック詳細のボタン寸法とナビ操作を修正した。Cのナビ隔離については[追加フィードバック](#追加フィードバック-パック詳細)が現行の動作。その後の依頼による無料開封・グレー表示・残数バッジは末尾の「無料開封と袋の表示」に記録する。最新のホバー・閉じるボタン・Kraft・開封演出は末尾の「ホバーと開封演出の追加フィードバック」を参照。
 
 `claude/relaxed-dijkstra-ocnjzu` の指定コミット `27f58c1` を取得し、作業ブランチ `codex/ui-fixes-oct07` で起動時の印刷バグ、A〜Fを順番に実装した。依頼書・最新のREADME／決定事項／tokens／macOSチェックリストと、`docs/ui-proposals/feedback-2026-10-07/` の4枚を参照した。開始時の作業ツリーはクリーン。
 
@@ -184,3 +184,39 @@ Chromium DPR2、Studio／Desk・1060×700／720×520の4構成で、5種類の�
 | 640ms: 重ね線も完成 | [画像](port-spec/compare/review-15/studio-1060-selection-stroke-640.png) |
 
 再現は`python3 scripts/ui-selection-review.py before`／`after`。beforeは直前の`18707ba`のsrcを読み、作業ツリーを書き換えない。最終npm testは61件成功、0失敗。git diff --checkも成功。npmの結果を[selection-final-npm-test.txt](port-spec/compare/review-15/selection-final-npm-test.txt)へ保存した。macOS WKWebView・Retina実機・VoiceOverはチェックリストの未確認項目として残す。
+
+## ホバーと開封演出の追加フィードバック
+
+添付の素材タイル・2種類の閉じるボタン・Add another set・Nightナビ・レア素材と10連の参考画像を元に修正した。直前の`1ed97e5`をbeforeとして保存した。
+
+- **素材カードの影**: 通常時の先頭はinset、hover時の先頭は外側だったため、shadow-listの補間が成立せず、実際のCSS transitionも作られていなかった。通常／hoverともinset＋外側2本に揃え、280msで補間。文字やクリック領域は移動させず、内側の持ち上がりと傾きの追従を維持した。
+- **閉じるボタン**: Materials・Packs・Market・Collection詳細を共通のCloseButtonへ。32×32 CSS pxの丸、16×16 SVGを中央配置し、右・上は12px。SVGは装飾扱いでクリックを遮らず、既存の閉じる処理とMaterialsのフォーカス復帰を維持。
+- **購入ボタンのhover**: 紙画像を使わないパック詳細に、共通のpaper hoverがbox-shadow:noneを適用していた。詳細用のhover／activeで背景と枠・影を保持。brightnessフィルタを外し、主ボタンはテーマに対応する背景色の補間へ変更した。Chromiumでは元の文字自体が消える現象は再現しなかったが、枠の消失とフィルタは再現・除去できた。WKWebViewでの実症状は未確認。
+- **NightのStudioナビ**: 白55%のhover背景と淡い文字が組み合わさっていた。hover・選択状態とも暗い面色と明るいinkを対応させた。1060pxのhover文字と背景のコントラストは12.05:1。
+- **Kraftの白い線**: 気のせいではなく、素材画像の下側にある白い焼き込みラベルを背景サンプルの最下段が拾っていた。Kraftだけbackground-position-yを30.4%→27.5%へ変更し、ラベル直前を避けた。画像ファイルは編集していない。
+
+開封演出はホロの紫・虹色の枠と光、金の暖色背景と既存のGold裏紙を使う枠を追加した。カードの最大レイアウト幅は400px（可視アートはその内側）とし、既存のfit計算で最小ウィンドウ、案内、説明、ボタン、傾きの余裕を確保する。隠れていた素材のレア度シールを表示し、説明も参考画像に合わせて表示する。1枚のパックでは、確定した素材・レア度を使って背景の光を変える。
+
+まとめ開封は最初に袋を切り、通常のpack_openを必要枚数だけ実行する。最大10枚を5×2の伏せトレイに並べ、**Turn them overでめくってから結果・レア度の集計・Stick them／Later**を出す。rareは紫、special／archiveは金の輪郭と控えめな粒子。サーバーの確定した結果を使い、レア度・抽選・Welcome日次枠・無料開封のルールは変更しない。裏面の状態ではステッカー名をDOMへ出さない。
+
+Skipは待ち時間と進行中のアニメーションを短縮する。取得中に押しても、予定した枚数の取得が終わってから結果へ進み、追加のpack_openを送らない。めくる操作と結果の操作は状態でガードし、連打で再抽選・二重印刷を起こさない。途中のpack_open失敗では成功分だけを表示して残数を維持する。確定したstickerIdをプレビュー取得より先に記録するため、画像やメタデータの読み込みに失敗しても獲得結果を失わず、Collectionへ保存済みの表示でStick them／Laterへ進める。
+
+検証は**実際のsrc UIとブラウザ、ネイティブIPCはfixture**で行った。実DBの開封・macOSの窓・実印刷は動かしていない。
+
+| 比較・演出（Studio 1060） | 記録 |
+|---|---|
+| Kraftの白い下端 | [before](port-spec/compare/review-15/studio-1060-kraft-before.png)／[after](port-spec/compare/review-15/studio-1060-kraft-after.png) |
+| 購入ボタンのhover | [before](port-spec/compare/review-15/studio-1060-exchange-hover-before.png)／[after](port-spec/compare/review-15/studio-1060-exchange-hover-after.png) |
+| Nightナビのhover | [before](port-spec/compare/review-15/studio-1060-night-nav-before.png)／[after](port-spec/compare/review-15/studio-1060-night-nav-after.png) |
+| レア素材 | [Holographic](port-spec/compare/review-15/studio-1060-holographic-reveal.png)／[Gold](port-spec/compare/review-15/studio-1060-gold-reveal.png) |
+| 10連 | [伏せ状態](port-spec/compare/review-15/studio-1060-batch-sealed.png)／[結果](port-spec/compare/review-15/studio-1060-batch-revealed.png) |
+
+再現: `python3 scripts/ui-feedback-ceremonies.py before`／`after`。beforeはgit showで旧srcを配信し、チェックアウトを変更しない。Studio／Desk・1060×700／720×520、DPR2で確認し、[before](port-spec/compare/review-15/ceremonies-before.json)／[after](port-spec/compare/review-15/ceremonies-after.json)に測定値を保存する。素材の在庫・レア度とパックの結果はfixtureの値を使う。
+
+最終のブラウザ検証は14ケース成功、pageerrorなし。4画面構成で影の入る／戻るアニメーションを0／140／280msに停止して3つの異なる影を確認し、閉じるボタンの×の中心差は水平・垂直とも0pxだった。購入ボタンはhover中も背景・影・opacity:1を保持した。4構成で伏せた10枚・開封IPC10回・残数2・結果10枚・Laterの呼び出し1回を確認した。案内とカード、トレイと結果、結果と画面下端は重ならなかった。
+
+追加の10ケースは、取得中Skip／めくり中Skip／4回目の開封失敗（成功3枚）／最初の開封失敗（成功0枚）／1枚の画像失敗／アプリReduce motion／OS Reduce motion／伏せ表示中の最小サイズへの変更／rareの1枚開封／specialの1枚開封。成功したIDだけを保持し、結果ボタンの連打でも印刷要求は1回・各IDは1つだった。1枚のレア演出ではSkip後も開封IPCは1回、Laterは1回。Reduce motionでも伏せ表示からの操作は維持し、動きだけを短縮する。
+
+今回の実装はJS／CSSとカードのfit計算のみでRust／DBは変更していない。macOS WKWebView・Retina実機・VoiceOver・実際の印刷は未確認としてチェックリストへ追記した。
+
+結果表示後にも1060×700→720×520へ変更し、各ステッカーがセル内に収まることを追加確認した。カードの大きさはトレイのCSS変数に追従する。大きい素材カードのfit境界テストを1件追加し、既存の無料開封テストはコメントに依存した切り出し境界を宣言に変更した。最終npm testは62件成功、0失敗。[実行ログ](port-spec/compare/review-15/ceremonies-final-npm-test.txt)。JSの構文確認とgit diff --checkも成功。

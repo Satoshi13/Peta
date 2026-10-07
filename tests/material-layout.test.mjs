@@ -6,7 +6,7 @@ const fits = (input, fit) => {
   const half=input.cardHeight*fit.scale*1.18/2;
   assert.ok(fit.cy-half>=fit.top-1e-9);
   assert.ok(fit.cy+half<=fit.bottom+1e-9);
-  assert.ok(input.cardWidth*fit.scale<=Math.min(300,input.stageWidth*.5)+1e-9);
+  assert.ok(input.cardWidth*fit.scale<=Math.min(input.maxWidth ?? 300,input.stageWidth*.5)+1e-9);
 };
 test('normal reveal keeps the preferred centre and caps card width', () => {
   const fit=fitMaterialCard(base);assert.equal(fit.cy,base.stageHeight*.42);assert.equal(base.cardWidth*fit.scale,300);fits(base,fit);
@@ -26,4 +26,14 @@ test('narrow windows fit the width while preserving the original card aspect', (
   const input={...base,stageWidth:120},fit=fitMaterialCard(input);fits(input,fit);
   assert.equal(input.cardWidth*fit.scale,60);
   assert.ok(Math.abs((input.cardWidth*fit.scale)/(input.cardHeight*fit.scale)-input.cardWidth/input.cardHeight)<1e-12);
+});
+
+test('a larger ceremony card still reserves room for the hint, tilt and result controls', () => {
+  for (const [stageWidth,stageHeight] of [[960,700],[760,574],[676,426]]) {
+    const input={...base,stageWidth,stageHeight,infoTop:stageHeight-170,maxWidth:400};
+    const fit=fitMaterialCard(input);fits(input,fit);
+    assert.ok(input.cardWidth*fit.scale<=400);
+  }
+  const input={...base,stageWidth:960,stageHeight:700,infoTop:530,maxWidth:400};
+  assert.equal(input.cardWidth*fitMaterialCard(input).scale,400);
 });

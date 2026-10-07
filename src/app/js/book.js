@@ -200,7 +200,7 @@ Pages.book = {
     }).catch(err=>Shell.toast(String(err)));
     const form = BK.gift ? this.giftForm(e, paint) : null;
     return h("aside.detail", { role: "dialog", "aria-label": "Sticker details" },
-      h("button.x", { "aria-label": "Close", on: { click: () => { BK.sel = null; BK.gift = false; BK.deleteId = null; paint(); } } }, "✕"),
+      CloseButton("Close", {on: { click: () => { BK.sel = null; BK.gift = false; BK.deleteId = null; paint(); } }}, ".x"),
       turn,
       S.bookView === "calendar" ? this.dayChoices(e, paint) : null,
       form || (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions",

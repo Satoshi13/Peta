@@ -36,7 +36,7 @@ const Market = {
     const peek = h("div.peek", pack.keys.slice(0, pack.count).map((k, i) => { const c = h("div.peek-s" + (i < 3 ? "" : ".sealed")); if (i < 3) Stk.make(A[k], { border: 10, material: "matte", max: 240 }).then((r) => c.append(Stk.el(r, r.aspect >= 1 ? 62 : 62 * r.aspect))); else c.append(h("b", "?")); return c; }));
     const act = paid ? this.exchange(pack) : h("button.btn", { on: { click: () => Market.get(pack) } }, "Get — Free");
     act.classList.add("mkz-act");
-    return h("aside.mkz-card", h("button.mkz-x", { type: "button", "aria-label": "Back to the shelf" }, "✕"),
+    return h("aside.mkz-card", CloseButton("Back to the shelf", {}, ".mkz-x"),
       h("p.eyebrow", `by ${pack.by} · ${pack.count} stickers`), h("h2", pack.title), h("p.mkz-blurb", pack.blurb),
       own ? h("p.mkz-own", h("b", "On your shelf"), ` · ${sealed} sealed`) : null,
       h("p.eyebrow.mkz-peek", "A peek inside"), peek,

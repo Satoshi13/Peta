@@ -7,18 +7,36 @@ const Cer = (() => {
   function overlay(kind) {
     Bridge.enterCeremony();
     const root = h("div.cer", { data: { kind }, tabindex: -1 }), stage = h("div.cer-stage"), top = h("p.cer-hint");
-    root.append(h("i.cer-bg"), top, stage); $("#overlay").append(root);
+    let skipped=false, skipAction=null, closing=null;
+    const waits=new Set();
+    const skip=h("button.cer-skip",{type:"button",hidden:true,on:{click:()=>{
+      skipped=true;root.dataset.skipped="true";skip.hidden=true;
+      for(const a of root.getAnimations({subtree:true})) {try{a.finish();}catch{}}
+      for(const done of [...waits])done();
+      const action=skipAction;skipAction=null;action?.();
+    }}},"Skip ⏭");
+    root.append(h("i.cer-rim"), h("i.cer-bg"), top, stage, skip); $("#overlay").append(root);
     anim(root, [{ opacity: 0 }, { opacity: 1 }], { duration: 420 });
-    const close = async ({keepScene=false} = {}) => { await anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 }); root.remove(); if(!keepScene) await Bridge.leaveCeremony(); document.removeEventListener("keydown", onKey); };
+    const close = ({keepScene=false} = {}) => closing ||= (async()=>{for(const done of [...waits])done();await anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 }); root.remove(); if(!keepScene) await Bridge.leaveCeremony(); document.removeEventListener("keydown", onKey);})();
     const onKey = (e) => { if (e.key === "Escape") root._esc && root._esc(); };
     document.addEventListener("keydown", onKey);
-    return { root, stage, close, hint: (t) => { if (top.textContent === t) return; top.textContent = t; anim(top, [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 400 }); } };
+    return { root, stage, close, get skipped(){return skipped;},
+      allowSkip(action=null){skipAction=action;skip.hidden=skipped;if(skipped)action?.();},
+      endSkip(){skip.hidden=true;skipAction=null;},
+      motion:(el,frames,opts={})=>anim(el,frames,{...opts,...(skipped?{duration:1,delay:0}: {})}),
+      wait:ms=>skipped || reduced()?Promise.resolve():new Promise(resolve=>{const done=()=>{clearTimeout(timer);waits.delete(done);resolve();};const timer=setTimeout(done,ms);waits.add(done);}),
+      hint: (t) => { if (top.textContent === t) return; top.textContent = t; anim(top, [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 400 }); } };
+  }
+
+  function revealTheme(cer, material, rarity, kind="material") {
+    Object.assign(cer.root.dataset,{reveal:kind,material,rarity});
   }
 
   /* After the sleeve is pulled out: unwrap it, reveal the sticker, let the person play with it. */
   async function unwrapAndReveal({ cer, stage, sleeve, entry, source, onKeep, onLater }) {
     cer.hint("Tilt it to catch the light.");
     const res = await resOf(entry, { max: 560 }), mat = MAT[entry.material], fx = RAR_FX[entry.rarity || mat.rarity];
+    if(cer.root.dataset.kind==="pack") { revealTheme(cer,entry.material,entry.rarity || mat.rarity,"sticker");cer.allowSkip(); }
     const W = stage.clientWidth, Hh = stage.clientHeight;
     const holder = h("div.rv-holder");
     const max = Math.min(280, W * .45, Hh * .4);
@@ -31,16 +49,16 @@ const Cer = (() => {
     const cx = st.left + W * .5, cy = st.top + Hh * .44;
     const dx = cx - (sr.left + sr.width / 2), dy = cy - (sr.top + sr.height / 2);
     Snd.swoosh();
-    await anim(sleeve, [{ transform: sleeve.style.transform || "none" }, { transform: `translate(${dx}px, ${dy}px) scale(1.1)` }], { duration: 560, easing: EASE.inOut, composite: "replace" });
+    await cer.motion(sleeve, [{ transform: sleeve.style.transform || "none" }, { transform: `translate(${dx}px, ${dy}px) scale(1.1)` }], { duration: 560, easing: EASE.inOut, composite: "replace" });
     Snd.crinkle(18, .55);
-    await anim(sleeve, [{ transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(0)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(-3deg)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(3deg)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(-2deg)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(0)` }], { duration: 480, easing: "ease-in-out" });
+    await cer.motion(sleeve, [{ transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(0)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(-3deg)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(3deg)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(-2deg)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(0)` }], { duration: 480, easing: "ease-in-out" });
     // pop
     Snd.chime(fx.chime, 880);
     anim(sleeve, [{ opacity: 1, transform: `translate(${dx}px, ${dy}px) scale(1.1)` }, { opacity: 0, transform: `translate(${dx}px, ${dy - 20}px) scale(1.42) rotate(6deg)` }], { duration: 480, easing: EASE.out });
     anim(glow, [{ opacity: 0, transform: "scale(.3)" }, { opacity: 1, transform: "scale(1)" }], { duration: 900, easing: EASE.out });
     if (entry.material !== "matte") anim(rays, [{ opacity: 0, transform: "scale(.5) rotate(0)" }, { opacity: .9, transform: "scale(1) rotate(40deg)" }], { duration: 1200, easing: EASE.out });
-    if (fx.n) sparkBurst(stage, fx.n, { cx: .5, cy: .44, power: (entry.rarity || mat.rarity) === "rare" ? 1.5 : 1, colors: entry.material === "kraft" ? ["#f2d9a8", "#fff", "#e8bf80"] : undefined });
-    await anim(holder, [{ opacity: 0, transform: "scale(.5) rotate(-12deg)" }, { opacity: 1, transform: "scale(1.06) rotate(2deg)", offset: .6 }, { opacity: 1, transform: "scale(1) rotate(0)" }], { duration: 760, easing: EASE.out });
+    if (fx.n && !cer.skipped && !reduced()) sparkBurst(stage, fx.n, { cx: .5, cy: .44, power: (entry.rarity || mat.rarity) === "rare" ? 1.5 : 1, colors: entry.material === "kraft" ? ["#f2d9a8", "#fff", "#e8bf80"] : undefined });
+    await cer.motion(holder, [{ opacity: 0, transform: "scale(.5) rotate(-12deg)" }, { opacity: 1, transform: "scale(1.06) rotate(2deg)", offset: .6 }, { opacity: 1, transform: "scale(1) rotate(0)" }], { duration: 760, easing: EASE.out });
     sleeve.remove();
     holder.style.opacity = 1; holder.getAnimations().forEach((a) => a.cancel());
     // alive: tilt + sheen
@@ -52,8 +70,8 @@ const Cer = (() => {
       h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, "Stick it"), h("button.btn.paper", { on: { click: onLater } }, "Later")));
     stage.append(info);
     anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
-    const seal = $(".seal", info); await sleep(260); Snd.seal();
-    await anim(seal, [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 360, easing: EASE.spring });
+    const seal = $(".seal", info); await cer.wait(260); Snd.seal();
+    await cer.motion(seal, [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 360, easing: EASE.spring });cer.endSkip();
   }
 
   /* ------------------------------------------------------------------ PACK */
@@ -150,12 +168,13 @@ const Cer = (() => {
         const position = h("div.material-card-position", {style:{position:"absolute",left:r.left-sr.left+"px",top:r.top-sr.top+"px",width:r.width+"px",zIndex:8}});
         stage.append(position); position.append(card);
         delete card.dataset.concealed; card.dataset.m=m.id;
+        revealTheme(cer,m.id,m.rarity);cer.allowSkip();
         $(".lab",card).append(h("b",m.name),h("small",m.rarity));
         card.style.cssText = `position:relative;transform:none;--w:${r.width}px;`;
         const {width,height} = card.getBoundingClientRect();
         let resize;
         let kept=false;
-        const info = h("div.rv-info", {style:{opacity:0,pointerEvents:"none"}}, h("p.eyebrow", "Today's Material"), h("h2", m.name), h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: m.rarity } }, m.rarity), h("span.no", m.recipe)),
+        const info = h("div.rv-info", {style:{opacity:0,pointerEvents:"none"}}, h("p.eyebrow", "Today's Material"), h("h2", m.name), h("div.rv-meta", h("span.seal", { data: { rarity: m.rarity } }, m.rarity), h("span.no", m.recipe)),
           h("div.rv-btns", h("button.btn.keep", { disabled:true, on: { click: async e => {
             if (kept) return; kept=true; e.currentTarget.disabled=true; resize?.disconnect(); Snd.tap(); const rect = card.getBoundingClientRect(), node = card.cloneNode(true); node.classList.remove("in-wrap", "big", "out"); node.getAnimations?.().forEach((a) => a.cancel());
             resolve({ rect, node, close: opts => cer.close(opts) });
@@ -164,7 +183,7 @@ const Cer = (() => {
         const hint = $(".cer-hint", cer.root);
         const layout = () => {
           const st = stage.getBoundingClientRect(), hr = hint.getBoundingClientRect();
-          const fit = PetaMath.fitMaterialCard({stageWidth:stage.clientWidth,stageHeight:stage.clientHeight,cardWidth:width,cardHeight:height,hintBottom:hr.bottom-st.top,infoTop:stage.clientHeight-info.offsetHeight});
+          const fit = PetaMath.fitMaterialCard({stageWidth:stage.clientWidth,stageHeight:stage.clientHeight,cardWidth:width,cardHeight:height,maxWidth:400,hintBottom:hr.bottom-st.top,infoTop:stage.clientHeight-info.offsetHeight});
           return {dx:fit.cx-(position.offsetLeft+width/2),dy:fit.cy-(position.offsetTop+height/2),k:fit.scale,cy:fit.cy};
         };
         const target = ({dx,dy,k}) => `translate(${dx}px, ${dy}px) scale(${k})`;
@@ -175,14 +194,15 @@ const Cer = (() => {
           fix(position,"none"); // Render the final size crisply instead of enlarging a small GPU surface.
         };
         const fit = layout();
-        await anim(position, [{transform:"none"},{transform:target(fit)}], {duration:520,easing:EASE.out});
+        await cer.motion(position, [{transform:"none"},{transform:target(fit)}], {duration:520,easing:EASE.out});
         snap(fit); fix(card,"rotate(-2deg)"); Snd.chime(fx.chime,880);
         Stk.tilt(card, { max:4, scale:1.01, baseTransform:"rotate(-2deg)", trigger:position });
         resize = new ResizeObserver(() => { const fit = layout(); snap(fit); });
         resize.observe(stage); resize.observe(info); resize.observe(hint);
         info.style.opacity = 1; info.style.pointerEvents = "";
-        anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
+        await cer.motion(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
         const keep=$(".keep",info); keep.disabled=false; keep.focus({preventScroll:true});
+        cer.endSkip();
       };
       drag(card, {
         down:()=> { if (!opened || pulled) return false; fix(card,base); },
@@ -317,86 +337,103 @@ const Cer = (() => {
     rig.focus();
   }
 
-  /* ------------------------------------------------------------------ PACK, TEN AT ONCE
-     One tear. The bag slips aside and the stickers leave it one after another, each flying to its own place on the tray and
-     turning over there. Rarer ones get a longer beat and a brighter ring. All of them are already in the Collection and queued
-     to be stuck; the last screen only asks whether to start sticking now or later. */
+  /* One tear commits the batch. Turning the cards and Skip only change its presentation. */
   const RARITY_RANK = ["common", "uncommon", "rare", "special", "archive"];
   async function openPackMany(pack, n) {
     n = Math.min(10, n, pack.left.length);
     if (n < 2) return openPack(pack);
     if (!packOpenable(pack)) return;
-    const cer = overlay("pack"), stage = cer.stage; cer.hint(`Tear along the top. ${n} stickers inside.`);
-    const sleeves = h("div.pk-sleeves", [0, 1, 2].map((k) => h("div.pk-sleeve", img("mystery"))));
-    const got = []; let finished = false, failure = "";
-    const rig = buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeves, onTear: async (rig) => {
-      Bridge.busy = true; cer.hint("Here they come.");
-      const openOne = async () => {
-        const opened = await Bridge.invoke("pack_open", { packId: pack.id });
-        const entry = await Bridge.entry(opened.stickerId); entry.rarity = opened.rarity; entry.title = opened.name || entry.title; pack.left = Array(opened.remaining).fill(null);
-        return { entry, res: await resOf(entry, { max: 360 }) };
-      };
-      let next = openOne(); next.catch(() => {});
-      try { await next; } catch (e) { Bridge.busy = false; await Bridge.reload().catch(() => {}); Shell.renderNav(); await cer.close(); Shell.toast(String(e)); return; }
-      // the tray: ten places, laid out to fit whatever window this is
-      const W = stage.clientWidth, H = stage.clientHeight, cols = Math.min(5, n), rows = Math.ceil(n / cols);
-      const gap = Math.round(clamp(W * .014, 8, 14)), cw = Math.floor(clamp(Math.min((W - 40 - gap * (cols - 1)) / cols, (H * .46 - gap * (rows - 1)) / rows / 1.08), 56, 148));
-      const slots = Array.from({ length: n }, (_, i) => h("div.pm-slot", { style: { "--i": i } }, h("b", "?")));
-      const grid = h("div.pm-grid", { style: { "--cw": cw + "px", "--ch": Math.round(cw * 1.08) + "px", "--gap": gap + "px", "--cols": cols } }, slots);
-      stage.append(grid); anim(grid, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
-      // the emptied bag slips down and to the side, and stays on the table
-      anim(sleeves, [{ opacity: 1 }, { opacity: 0 }], { duration: 240 });
-      const away = `translate(${-rig.PW * 1.0}px, ${rig.PH * .5}px) rotate(-13deg) scale(.62)`;
-      await anim(rig.pouch, [{ transform: "none" }, { transform: away }], { duration: 820, easing: EASE.inOut });
-      const flyOne = async (i, { entry, res }) => {
-        const rarity = entry.rarity || MAT[entry.material].rarity, fx = RAR_FX[rarity] || RAR_FX.common, hot = RARITY_RANK.indexOf(rarity) >= 2;
-        const st = stage.getBoundingClientRect(), pr = rig.pouch.getBoundingClientRect(), sr = slots[i].getBoundingClientRect(), tw = cw * .62;
-        const sx = pr.left + pr.width * .5 - st.left, sy = pr.top + pr.height * .22 - st.top, tx = sr.left + sr.width / 2 - st.left, ty = sr.top + sr.height / 2 - st.top;
-        const token = h("div.pm-fly", { style: { width: tw + "px" } }, img("mystery")); stage.append(token);
-        Snd.swoosh();
-        await anim(token, [
-          { transform: `translate(${sx}px, ${sy}px) scale(.5) rotate(-10deg)`, opacity: 0 },
-          { transform: `translate(${(sx + tx) / 2}px, ${Math.min(sy, ty) - 46}px) scale(1.04) rotate(7deg)`, opacity: 1, offset: .45 },
-          { transform: `translate(${tx}px, ${ty}px) scale(1) rotate(0)`, opacity: 1 }], { duration: 520, easing: EASE.inOut });
-        // turn over: the sealed sleeve is replaced by the sticker, which settles into its place
-        const slot = slots[i], box = cw * .8, stk = Stk.el(res, res.aspect >= 1 ? box : box * res.aspect), tilter = h("div.pm-tilt", stk);
-        slot.dataset.rarity = rarity; slot.title = titleOf(entry); slot.replaceChildren(tilter); slot.classList.add("full");
-        Stk.tilt(tilter, { max: 7, scale: 1.05, trigger: slot });
-        anim(token, [{ opacity: 1, transform: `translate(${tx}px, ${ty}px) scale(1)` }, { opacity: 0, transform: `translate(${tx}px, ${ty}px) scale(1.25)` }], { duration: 260 }).then(() => token.remove());
-        Snd.chime(fx.chime, 640 + i * 26);
-        if (fx.n) sparkBurst(stage, Math.round(fx.n * (hot ? .8 : .5)), { cx: tx / st.width, cy: ty / st.height, power: rarity === "rare" ? 1.3 : .8, colors: entry.material === "kraft" ? ["#f2d9a8", "#fff", "#e8bf80"] : undefined });
-        await anim(tilter, [{ opacity: 0, transform: "scale(.6) rotate(-8deg)" }, { opacity: 1, transform: `scale(${hot ? 1.16 : 1.08}) rotate(2deg)`, offset: .6 }, { opacity: 1, transform: "none" }], { duration: hot ? 560 : 340, easing: EASE.out });
-        if (hot) { slot.classList.add("hot"); await sleep(reduced() ? 40 : 420); }
-      };
-      for (let i = 0; i < n; i++) {
-        let one; try { one = i ? await next : await next; } catch (e) { failure = String(e); break; }
-        if (i + 1 < n) { next = openOne(); next.catch(() => {}); }
-        got.push(one.entry);
-        await flyOne(i, one);
-        await sleep(reduced() ? 30 : 90);
+    const cer = overlay("pack"), stage = cer.stage;
+    cer.hint(`Tear along the top. ${n} stickers inside.`);
+    const sleeves = h("div.pk-sleeves", [0, 1, 2].map(() => h("div.pk-sleeve", img("mystery"))));
+    const got = []; let phase="wrapped", choosing=false, previewFailed=false;
+    const keep = async () => {
+      if (choosing || phase!=="finished") return; choosing=true;
+      await cer.close(); Bridge.busy=false; Shell.refresh();
+      Shell.toast(`${got.length} stickers are in your Collection. They print one at a time; the next waits in the Peta menu.`);
+      await Desktop.print(got.map(one=>one.entry));
+    };
+    const later = async () => {
+      if (choosing || !["sealed","finished"].includes(phase)) return; choosing=true;
+      try { await Bridge.invoke("print_later"); }
+      catch(e) { choosing=false; Shell.toast(String(e)); return; }
+      await cer.close(); Bridge.busy=false; Shell.refresh(); Shell.renderNav();
+      Shell.toast("Waiting at the print slot — open the Peta menu.");
+    };
+    const rig = buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeves, onTear: async () => {
+      phase="loading"; Bridge.busy=true; cer.allowSkip(); cer.hint("Setting them on the tray.");
+      cer.root.dataset.batch="true";
+      const slots=Array.from({length:n},(_,i)=>h("div.pm-slot",{role:"img","aria-label":`Sealed sticker ${i+1}`},img("mystery","pm-covered")));
+      const cols=Math.min(5,n), rows=Math.ceil(n/cols);
+      const grid=h("div.pm-grid",{style:{"--cols":cols}},slots);
+      const info=h("div.rv-info"), tray=h("div.pm-tray",grid);stage.append(tray,info);
+      const size=new ResizeObserver(()=>{
+        const gap=12, cw=Math.floor(Math.max(32,Math.min(148,(stage.clientWidth-40-gap*(cols-1))/cols,(stage.clientHeight-Math.max(170,info.offsetHeight)-54-gap*(rows-1))/rows/1.08)));
+        grid.style.setProperty("--cw",cw+"px");grid.style.setProperty("--ch",Math.round(cw*1.08)+"px");grid.style.setProperty("--gap",gap+"px");
+      });size.observe(stage);size.observe(info);
+      const originalClose=cer.close;cer.close=opts=>{size.disconnect();return originalClose(opts);};
+      rig.wrapper.remove();
+      let failure="";
+      for(let i=0;i<n;i++) {
+        let opened;
+        try { opened=await Bridge.invoke("pack_open",{packId:pack.id}); }
+        catch(e) { failure=String(e);break; }
+        // Record the committed ID before preview loading: an image error must never lose an award.
+        const one={entry:{id:opened.stickerId,title:opened.name || "Sticker",rarity:opened.rarity,material:"matte"},res:null};got.push(one);
+        pack.left=Array(opened.remaining).fill(null);
+        try {
+          const entry=await Bridge.entry(opened.stickerId);
+          one.entry={...entry,rarity:opened.rarity,title:opened.name || entry.title};
+          one.res=await resOf(one.entry);
+        } catch(e) { previewFailed=true; }
+        slots[i].dataset.rarity=one.entry.rarity || MAT[one.entry.material]?.rarity || "common";
+        await cer.motion(slots[i],[{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:140,easing:EASE.out});
       }
-      if (failure) Shell.toast(`Stopped after ${got.length}. ${failure}`);
-      try { await Bridge.reload(); } catch {} Shell.renderNav();
-      anim(rig.pouch, [{ opacity: 1, transform: away }, { opacity: 0, transform: away }], { duration: 400 });
-      // what came out, in one line, and the only decision left
-      const tally = RARITY_RANK.map((r) => [r, got.filter((e) => (e.rarity || MAT[e.material].rarity) === r).length]).filter(([, c]) => c);
-      const best = tally.length ? tally[tally.length - 1][0] : "common";
-      cer.hint("Tilt them to catch the light.");
-      const info = h("div.rv-info", h("p.eyebrow", `${pack.title} · ${pack.left.length} left`), h("h2", `${got.length} new stickers`),
-        h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: best } }, best), h("span.no", tally.map(([r, c]) => `${c} ${r}`).join(" · "))),
-        h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); keep(); } } }, "Stick them"), h("button.btn.paper", { on: { click: later } }, "Later")));
-      stage.append(info); finished = true;
-      anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
-      const seal = $(".seal", info); await sleep(200); Snd.seal();
-      await anim(seal, [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 360, easing: EASE.spring });
-      $(".keep", info)?.focus({ preventScroll: true });
-    } });
-    const place = (sleeve, k) => sleeve.style.cssText = `width:${rig.PW * .66}px;left:${rig.PW * (.17 + (k - 1) * .045)}px;top:${rig.cutY - rig.PW * .66 * .12 - (k === 1 ? 0 : rig.PH * .02)}px;transform:rotate(${(k - 1) * 5}deg)`;
-    $$(".pk-sleeve", sleeves).forEach(place);
-    const keep = async () => { Bridge.busy = false; await cer.close(); Shell.refresh(); Shell.toast(`${got.length} stickers are in your Collection. They print one at a time; the next waits in the Peta menu.`); await Desktop.print(got); };
-    const later = async () => { Bridge.busy = false; await Bridge.invoke("print_later"); await cer.close(); Shell.refresh(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); };
-    cer.root._esc = () => { if (!rig.done) cer.close(); else if (finished) later(); };
-    rig.focus();
+      for(const slot of slots.slice(got.length))slot.remove();
+      try { await Bridge.reload(); } catch(e) { Shell.toast(`Saved to Collection. ${String(e)}`); } Shell.renderNav();
+      if(!got.length) {await cer.close();Bridge.busy=false;Shell.toast(failure);return;}
+      if(failure)Shell.toast(`Stopped after ${got.length}. ${failure}`);
+      if(previewFailed)Shell.toast("Saved to Collection. Some previews could not load.");
+      const tally=RARITY_RANK.map(r=>[r,slots.slice(0,got.length).filter(slot=>slot.dataset.rarity===r).length]).filter(([,count])=>count);
+      const best=tally.at(-1)?.[0] || "common";
+      info.append(h("p.eyebrow",`${pack.title} · ${pack.left.length} left`),h("h2",`${got.length} new stickers`));
+      const turn=h("button.btn",{type:"button",on:{click:()=>flip()}},"Turn them over"),buttons=h("div.rv-btns",turn);
+      info.append(buttons);
+      if(failure)info.append(h("p.pm-notice",`Stopped after ${got.length}. The rest remain sealed in your pack.`));
+      if(previewFailed)info.append(h("p.pm-notice","All received stickers are saved to Collection; some previews are unavailable."));
+      phase="sealed";cer.root.dataset.phase=phase;cer.hint(`${got.length===10 ? "Ten" : got.length} stickers.`);
+      async function flip() {
+        if(phase!=="sealed")return;
+        phase="revealing";cer.root.dataset.phase=phase;turn.disabled=true;cer.allowSkip();
+        for(let i=0;i<got.length;i++) {
+          const one=got[i],slot=slots[i],rarity=slot.dataset.rarity;
+          await cer.motion(slot,[{transform:"perspective(700px) rotateY(0)"},{transform:"perspective(700px) rotateY(90deg)"}],{duration:170,easing:EASE.inOut});
+          let tilter=h("span.pm-missing","Saved to Collection");
+          if(one.res) {
+            const stk=Stk.el(one.res);
+            stk.style.width=`calc(var(--cw) * ${.8*Math.min(1,one.res.aspect)})`;
+            tilter=h("div.pm-tilt",stk);
+          }
+          slot.replaceChildren(tilter);slot.classList.add("full");slot.setAttribute("aria-label",`${titleOf(one.entry)} · ${rarity}`);
+          if(one.res)Stk.tilt(tilter,{max:4,scale:1.015,trigger:slot});
+          await cer.motion(slot,[{transform:"perspective(700px) rotateY(-90deg)"},{transform:"perspective(700px) rotateY(0)"}],{duration:220,easing:EASE.out});
+          fix(slot,"none");
+          Snd.chime((RAR_FX[rarity] || RAR_FX.common).chime,640+i*26);
+          if(!cer.skipped && !reduced() && RARITY_RANK.indexOf(rarity)>=2) {
+            const r=slot.getBoundingClientRect(),s=stage.getBoundingClientRect();
+            sparkBurst(stage,rarity==="rare"?12:18,{cx:(r.x+r.width/2-s.x)/s.width,cy:(r.y+r.height/2-s.y)/s.height,power:.6,colors:rarity==="rare"?["#d8c9ff","#eee5ff"]:["#f8d989","#fff0c4"]});
+          }
+          await cer.wait(50);
+        }
+        phase="finished";cer.root.dataset.phase=phase;cer.endSkip();cer.hint("Tilt them to catch the light.");
+        info.insertBefore(h("div.rv-meta",h("span.seal",{data:{rarity:best}},best),h("span.no",tally.map(([r,c])=>`${c} ${r}`).join(" · "))),buttons);
+        buttons.replaceChildren(h("button.btn.keep",{type:"button",on:{click:keep}},"Stick them"),h("button.btn.paper",{type:"button",on:{click:later}},"Later"));
+        $(".keep",buttons).focus({preventScroll:true});
+      }
+      cer.allowSkip(flip);turn.focus({preventScroll:true});
+    }});
+    $$(".pk-sleeve",sleeves).forEach((sleeve,k)=>sleeve.style.cssText=`width:${rig.PW*.66}px;left:${rig.PW*(.17+(k-1)*.045)}px;top:${rig.cutY-rig.PW*.66*.12}px;transform:rotate(${(k-1)*5}deg)`);
+    cer.root._esc=()=>{if(!rig.done)cer.close();else if(["sealed","finished"].includes(phase))later();};rig.focus();
   }
 
   return { openMaterial, openGift, sealGift, openPack, openPackMany };

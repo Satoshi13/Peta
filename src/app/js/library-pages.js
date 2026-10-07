@@ -50,7 +50,7 @@ Pages.materials = {
     return h("section.material-preview", {"aria-label":`${m.name} preview`}, MatCard(m,240),
       h("div", h("h2",m.name), h("p",m.recipe), this.stock(m),
         Scraps.material(m.id) ? h("div.material-preview-actions", Scraps.button("dismantle",m.id,"Dismantle…",!(S.stock[m.id]>0))) : null),
-      h("button.x", {"aria-label":"Close material preview",on:{click:()=>{const id=this.selected;this.selected=null;Shell.refresh();$(`[data-material="${id}"]`)?.focus({preventScroll:true});}}}, "✕"));
+      CloseButton("Close material preview", {on:{click:()=>{const id=this.selected;this.selected=null;Shell.refresh();$(`[data-material="${id}"]`)?.focus({preventScroll:true});}}}, ".x"));
   },
 };
 

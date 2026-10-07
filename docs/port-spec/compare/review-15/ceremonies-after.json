@@ -1,0 +1,282 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "shadowRest": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px",
+    "shadowFrames": [
+      {
+        "t": 0,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px"
+      },
+      {
+        "t": 140,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.298) 0px 1px 1.95499px 0px, rgba(60, 45, 20, 0.137) 0px 9.45983px 20.9197px 0px"
+      },
+      {
+        "t": 280,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.3) 0px 1px 2px 0px, rgba(60, 45, 20, 0.14) 0px 10px 22px 0px"
+      }
+    ],
+    "shadowExit": [
+      {
+        "t": 0,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.3) 0px 1px 2px 0px, rgba(60, 45, 20, 0.14) 0px 10px 22px 0px"
+      },
+      {
+        "t": 140,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.282) 0px 1px 1.54501px 0px, rgba(60, 45, 20, 0.082) 0px 4.54017px 11.0803px 0px"
+      },
+      {
+        "t": 280,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px"
+      }
+    ],
+    "materialClose": {
+      "width": 32,
+      "height": 32,
+      "dx": 0,
+      "dy": 0
+    },
+    "exchangeHover": {
+      "background": "rgb(239, 232, 215)",
+      "shadow": "rgb(221, 212, 194) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px",
+      "filter": "none",
+      "opacity": "1",
+      "display": "block"
+    },
+    "packClose": {
+      "width": 32,
+      "height": 32,
+      "dx": 0,
+      "dy": 0
+    },
+    "nightHover": {
+      "background": "rgb(45, 41, 35)",
+      "color": "rgb(241, 234, 217)"
+    },
+    "batch": "ARCHIVE\n5 common \u00b7 2 uncommon \u00b7 2 rare \u00b7 1 archive"
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "shadowRest": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px",
+    "shadowFrames": [
+      {
+        "t": 0,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px"
+      },
+      {
+        "t": 140,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.298) 0px 1px 1.95499px 0px, rgba(60, 45, 20, 0.137) 0px 9.45983px 20.9197px 0px"
+      },
+      {
+        "t": 280,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.3) 0px 1px 2px 0px, rgba(60, 45, 20, 0.14) 0px 10px 22px 0px"
+      }
+    ],
+    "shadowExit": [
+      {
+        "t": 0,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.3) 0px 1px 2px 0px, rgba(60, 45, 20, 0.14) 0px 10px 22px 0px"
+      },
+      {
+        "t": 140,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.282) 0px 1px 1.54501px 0px, rgba(60, 45, 20, 0.082) 0px 4.54017px 11.0803px 0px"
+      },
+      {
+        "t": 280,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px"
+      }
+    ],
+    "materialClose": {
+      "width": 32,
+      "height": 32,
+      "dx": 0,
+      "dy": 0
+    },
+    "exchangeHover": {
+      "background": "rgb(239, 232, 215)",
+      "shadow": "rgb(221, 212, 194) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px",
+      "filter": "none",
+      "opacity": "1",
+      "display": "block"
+    },
+    "packClose": {
+      "width": 32,
+      "height": 32,
+      "dx": 0,
+      "dy": 0
+    },
+    "nightHover": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(241, 234, 217)"
+    },
+    "batch": "ARCHIVE\n5 common \u00b7 2 uncommon \u00b7 2 rare \u00b7 1 archive"
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "shadowRest": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px",
+    "shadowFrames": [
+      {
+        "t": 0,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px"
+      },
+      {
+        "t": 140,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.298) 0px 1px 1.95499px 0px, rgba(60, 45, 20, 0.137) 0px 9.45983px 20.9197px 0px"
+      },
+      {
+        "t": 280,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.3) 0px 1px 2px 0px, rgba(60, 45, 20, 0.14) 0px 10px 22px 0px"
+      }
+    ],
+    "shadowExit": [
+      {
+        "t": 0,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.3) 0px 1px 2px 0px, rgba(60, 45, 20, 0.14) 0px 10px 22px 0px"
+      },
+      {
+        "t": 140,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.282) 0px 1px 1.54501px 0px, rgba(60, 45, 20, 0.082) 0px 4.54017px 11.0803px 0px"
+      },
+      {
+        "t": 280,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px"
+      }
+    ],
+    "materialClose": {
+      "width": 32,
+      "height": 32,
+      "dx": 0,
+      "dy": 0
+    },
+    "exchangeHover": {
+      "background": "rgb(239, 232, 215)",
+      "shadow": "rgb(221, 212, 194) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px",
+      "filter": "none",
+      "opacity": "1",
+      "display": "block"
+    },
+    "packClose": {
+      "width": 32,
+      "height": 32,
+      "dx": 0,
+      "dy": 0
+    },
+    "nightHover": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(241, 234, 217)"
+    },
+    "batch": "ARCHIVE\n5 common \u00b7 2 uncommon \u00b7 2 rare \u00b7 1 archive"
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "shadowRest": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px",
+    "shadowFrames": [
+      {
+        "t": 0,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px"
+      },
+      {
+        "t": 140,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.298) 0px 1px 1.95499px 0px, rgba(60, 45, 20, 0.137) 0px 9.45983px 20.9197px 0px"
+      },
+      {
+        "t": 280,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.3) 0px 1px 2px 0px, rgba(60, 45, 20, 0.14) 0px 10px 22px 0px"
+      }
+    ],
+    "shadowExit": [
+      {
+        "t": 0,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.3) 0px 1px 2px 0px, rgba(60, 45, 20, 0.14) 0px 10px 22px 0px"
+      },
+      {
+        "t": 140,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.282) 0px 1px 1.54501px 0px, rgba(60, 45, 20, 0.082) 0px 4.54017px 11.0803px 0px"
+      },
+      {
+        "t": 280,
+        "shadow": "rgb(227, 218, 199) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px"
+      }
+    ],
+    "materialClose": {
+      "width": 32,
+      "height": 32,
+      "dx": 0,
+      "dy": 0
+    },
+    "exchangeHover": {
+      "background": "rgb(239, 232, 215)",
+      "shadow": "rgb(221, 212, 194) 0px 0px 0px 1px inset, rgba(60, 45, 20, 0.28) 0px 1px 1.5px 0px, rgba(60, 45, 20, 0.08) 0px 4px 10px 0px",
+      "filter": "none",
+      "opacity": "1",
+      "display": "block"
+    },
+    "packClose": {
+      "width": 32,
+      "height": 32,
+      "dx": 0,
+      "dy": 0
+    },
+    "nightHover": {
+      "background": "rgba(0, 0, 0, 0)",
+      "color": "rgb(241, 234, 217)"
+    },
+    "batch": "ARCHIVE\n5 common \u00b7 2 uncommon \u00b7 2 rare \u00b7 1 archive"
+  },
+  {
+    "case": "skip-loading",
+    "passed": true
+  },
+  {
+    "case": "skip-reveal",
+    "passed": true
+  },
+  {
+    "case": "partial",
+    "passed": true
+  },
+  {
+    "case": "zero",
+    "passed": true
+  },
+  {
+    "case": "preview-failure",
+    "passed": true
+  },
+  {
+    "case": "app-reduce",
+    "passed": true
+  },
+  {
+    "case": "os-reduce",
+    "passed": true
+  },
+  {
+    "case": "single-rare",
+    "passed": true
+  },
+  {
+    "case": "single-special",
+    "passed": true
+  },
+  {
+    "case": "resize",
+    "passed": true
+  }
+]

@@ -20,7 +20,8 @@ function fixture({remaining=0,credits=1,fail=false}={}) {
   });
   const source=readFileSync(new URL('../src/app/js/ceremony.js',import.meta.url),'utf8');
   const begin=source.indexOf('  async function openPack(');
-  const end=source.indexOf('  /* ------------------------------------------------------------------ PACK, TEN AT ONCE',begin);
+  const end=source.indexOf('  const RARITY_RANK',begin);
+  assert.ok(begin>=0 && end>begin,'production pack ceremony boundaries must be present');
   vm.runInContext(source.slice(begin,end),context);
   return {pack,calls,toasts,context,open:free=>vm.runInContext(`openPack(pack,{free:${free}})`,context),tear:()=>tear(rig),get closed(){return closed;},get overlays(){return overlays;}};
 }
