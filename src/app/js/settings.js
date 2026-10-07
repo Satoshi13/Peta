@@ -14,7 +14,9 @@ Pages.settings = {
       sw("Sounds", "Paper, tear, and the little peta", () => Snd.on, (v) => { Snd.on = v; S.sound = v; Bridge.savePreferences(); }),
       sw("Haptics", "A small tap when you stick, peel, or break a seal", () => Haptic.on, (v) => { Haptic.on = v; S.haptics = v; Bridge.savePreferences(); }),
       sw("Put away on outside click", "A click on the desktop closes the window, like a menu", () => S.closeOutside, (v) => { S.closeOutside = v; Bridge.savePreferences(); }),
-      sw("Reduce motion", "Skips page turns and ceremonies' flourishes", () => document.documentElement.dataset.motion === "reduce", (v) => { document.documentElement.dataset.motion = v ? "reduce" : "full"; S.motion = v ? "reduce" : "full"; Bridge.savePreferences(); })));
+      sw("Reduce motion", "Skips page turns and ceremonies' flourishes", () => document.documentElement.dataset.motion === "reduce", (v) => { document.documentElement.dataset.motion = v ? "reduce" : "full"; S.motion = v ? "reduce" : "full"; Bridge.savePreferences(); }),
+      h("div.setrow", h("div", h("b", "Redeem a code"), h("small", "Enter a code from Peta or a friend.")),
+        h("button.btn.paper.small", {type:"button",on:{click:()=>Distribution.redeem()}}, "Redeem…"))));
     if(S.developer) root.append(h("section.setcard.developer-tools", h("h2","Peta Developer"), h("p.muted.small","Unlimited materials, exchanges, envelopes and pack openings. Data stays separate from Peta."),
       h("div.row-btns",
         h("button.btn.paper.small",{on:{click:()=>{S.extraEnvelope=true;S.dayState="arrived";Shell.go("today");}}},"Open another envelope"),

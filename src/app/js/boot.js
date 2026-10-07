@@ -5,7 +5,14 @@ async function boot() {
   const displayUnits = () => { document.documentElement.style.setProperty('--desktop-height',screen.height+'px'); document.documentElement.style.setProperty('--desktop-width',screen.width+'px'); };
   displayUnits(); window.addEventListener('resize',displayUnits);
   Shell.applyAssetVars(); Shell.initChrome(); Shell.setShell(S.shell); Bridge.savePreferences();
-  await Bridge.listen('app-page', async e => { if(e.payload==='redeem') {await Shell.open('today');Distribution.redeem();} else await Shell.open(e.payload); });
+  await Bridge.listen('app-page', async e => {
+    if(e.payload==='redeem') {
+      PackZoom.dispose(true);
+      if(!Shell.current) await Shell.open('today');
+      else { $('#win').hidden=false; S.windowOpen=true; Pages[S.page]?.resume?.(); }
+      Distribution.redeem();
+    } else await Shell.open(e.payload);
+  });
   await Bridge.listen('distribution-result', async e => {await Bridge.reload(); Shell.refresh(); if(e.payload.pack) Distribution.offer(e.payload.pack);else Shell.toast(e.payload.result);});
   await Bridge.listen('daily-changed', Bridge.changed);
   await Bridge.listen('placements-changed', Bridge.changed);

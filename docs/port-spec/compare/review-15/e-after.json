@@ -1,0 +1,182 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "e",
+    "phase": "after",
+    "entry": {
+      "label": "Redeem a code",
+      "sub": "Enter a code from Peta or a friend.",
+      "button": "btn paper small",
+      "count": 15
+    },
+    "success": {
+      "page": "settings",
+      "toast": "Code received.",
+      "code": "PETA1-REVIEW",
+      "bonus": 1
+    },
+    "menu": [
+      {
+        "page": "book",
+        "same": true,
+        "open": true,
+        "dialog": true
+      },
+      {
+        "page": "book",
+        "same": true,
+        "open": true,
+        "dialog": true
+      }
+    ],
+    "today-True": {
+      "text": "Wednesday, October 7TodayNext envelope in 13:40:55A new material arrives every day. Each sticker uses one sheet.+Today's Peta goes hereMake one from any imageToday's PetaReady when you areHolographicrareToday's materialAdded to your MaterialsHolographic rare3 of the last 7 daysMake today's PetaOther ways to get a PetaCollectionStick one you already haveGiftOpen one that arrivedPackOpen one at random",
+      "scroll": 700
+    },
+    "today-False": {
+      "text": "Wednesday, October 7TodayOct 7 · WedToday'sMaterialToday's Material has arrived.Open",
+      "scroll": 700
+    },
+    "gifts": "SEALED UNTIL YOU OPEN THEM\n\nGifts\n\nA friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material.\n\nNothing has arrived yet.\n\nWhen a friend sends you a .peta file, it lands here.\n\nOpen Peta file…",
+    "coldMenu": "today"
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "step": "e",
+    "phase": "after",
+    "entry": {
+      "label": "Redeem a code",
+      "sub": "Enter a code from Peta or a friend.",
+      "button": "btn paper small",
+      "count": 15
+    },
+    "success": {
+      "page": "settings",
+      "toast": "Code received.",
+      "code": "PETA1-REVIEW",
+      "bonus": 1
+    },
+    "menu": [
+      {
+        "page": "book",
+        "same": true,
+        "open": true,
+        "dialog": true
+      },
+      {
+        "page": "book",
+        "same": true,
+        "open": true,
+        "dialog": true
+      }
+    ],
+    "today-True": {
+      "text": "Wednesday, October 7TodayNext envelope in 13:40:50A new material arrives every day. Each sticker uses one sheet.+Today's Peta goes hereMake one from any imageToday's PetaReady when you areHolographicrareToday's materialAdded to your MaterialsHolographic rare3 of the last 7 daysMake today's PetaOther ways to get a PetaCollectionStick one you already haveGiftOpen one that arrivedPackOpen one at random",
+      "scroll": 843
+    },
+    "today-False": {
+      "text": "Wednesday, October 7TodayOct 7 · WedToday'sMaterialToday's Material has arrived.Open",
+      "scroll": 577
+    },
+    "gifts": "SEALED UNTIL YOU OPEN THEM\n\nGifts\n\nA friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material.\n\nNothing has arrived yet.\n\nWhen a friend sends you a .peta file, it lands here.\n\nOpen Peta file…",
+    "coldMenu": "today"
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "e",
+    "phase": "after",
+    "entry": {
+      "label": "Redeem a code",
+      "sub": "Enter a code from Peta or a friend.",
+      "button": "btn paper small",
+      "count": 15
+    },
+    "success": {
+      "page": "settings",
+      "toast": "Code received.",
+      "code": "PETA1-REVIEW",
+      "bonus": 1
+    },
+    "menu": [
+      {
+        "page": "book",
+        "same": true,
+        "open": true,
+        "dialog": true
+      },
+      {
+        "page": "book",
+        "same": true,
+        "open": true,
+        "dialog": true
+      }
+    ],
+    "today-True": {
+      "text": "Wednesday, October 7TodayNext envelope in 13:40:44A new material arrives every day. Each sticker uses one sheet.+Today's Peta goes hereMake one from any imageToday's PetaReady when you areHolographicrareToday's materialAdded to your MaterialsHolographic rare3 of the last 7 daysMake today's PetaOther ways to get a PetaCollectionStick one you already haveGiftOpen one that arrivedPackOpen one at random",
+      "scroll": 668
+    },
+    "today-False": {
+      "text": "Wednesday, October 7TodayOct 7 · WedToday'sMaterialToday's Material has arrived.Open",
+      "scroll": 668
+    },
+    "gifts": "SEALED UNTIL YOU OPEN THEM\n\nGifts\n\nA friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material.\n\nNothing has arrived yet.\n\nWhen a friend sends you a .peta file, it lands here.\n\nOpen Peta file…",
+    "coldMenu": "today"
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "step": "e",
+    "phase": "after",
+    "entry": {
+      "label": "Redeem a code",
+      "sub": "Enter a code from Peta or a friend.",
+      "button": "btn paper small",
+      "count": 15
+    },
+    "success": {
+      "page": "settings",
+      "toast": "Code received.",
+      "code": "PETA1-REVIEW",
+      "bonus": 1
+    },
+    "menu": [
+      {
+        "page": "book",
+        "same": true,
+        "open": true,
+        "dialog": true
+      },
+      {
+        "page": "book",
+        "same": true,
+        "open": true,
+        "dialog": true
+      }
+    ],
+    "today-True": {
+      "text": "Wednesday, October 7TodayNext envelope in 13:40:39A new material arrives every day. Each sticker uses one sheet.+Today's Peta goes hereMake one from any imageToday's PetaReady when you areHolographicrareToday's materialAdded to your MaterialsHolographic rare3 of the last 7 daysMake today's PetaOther ways to get a PetaCollectionStick one you already haveGiftOpen one that arrivedPackOpen one at random",
+      "scroll": 833
+    },
+    "today-False": {
+      "text": "Wednesday, October 7TodayOct 7 · WedToday'sMaterialToday's Material has arrived.Open",
+      "scroll": 567
+    },
+    "gifts": "SEALED UNTIL YOU OPEN THEM\n\nGifts\n\nA friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material.\n\nNothing has arrived yet.\n\nWhen a friend sends you a .peta file, it lands here.\n\nOpen Peta file…",
+    "coldMenu": "today"
+  }
+]

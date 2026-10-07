@@ -8,6 +8,8 @@
 
 ### 2026-10-07 の操作修正
 
+- E: コードの入口はSettingsの最後の行「Redeem a code」とメニューバーにまとめます。メニューは今のページ（隠した窓なら直前、初回はToday）でダイアログを開き、受取後の更新・結果表示は従来どおりです。
+
 - D: Featuredの索引カードは9-sliceで角・縁・穴を固定し、中央だけを伸ばします。紙クリップ・0.6°の傾き・影と、左の袋・扇の配置を維持します。
 
 - C: パックのズーム中は棚とナビを操作できず、Tab／Shift+Tabは詳細内を循環します。矢印・ページ移動・⌘ナビは背景に届かず、Enter／SpaceとEscは利用できます。閉じる・画面更新・例外時に元の操作状態へ戻します。
@@ -28,7 +30,7 @@ Settings の Sounds / Haptics / Reduce motion は `peta.preferences` に保存�
 
 StudioのナビはMake / Collect / Discoverに分け、PetaロゴをTodayの上、Settingsとローカルプロフィール札を下端に置きます。Deskは従来の縦並びと下端のSettings、≤880pxは従来の下部バーです。⌘1〜⌘7はToday / Create / Collection / Packs / Gifts / Materials / Market、⌘,はSettings。入力・ダイアログ・演出中は無効。未開封Giftは数、今日の封筒はクラフト色の点で示します。
 
-開封後のTodayはCreateを主導線にし、今日の素材とStuck todayを同じ高さのカードに配置します。素材の説明ピルは置かず、在庫はスウォッチと枚数で示します。開封前の封筒、次の封筒の札・Redeem Codeは維持します。
+開封後のTodayはCreateを主導線にし、今日の素材とStuck todayを同じ高さのカードに配置します。素材の説明ピルは置かず、在庫はスウォッチと枚数で示します。開封前の封筒、次の封筒の札は維持します。コードの入口は2026-10-07の修正でSettingsへ移動しました。
 
 ### Todayの次の封筒
 

@@ -253,3 +253,5 @@ Linuxでのハーネス確認とmacOSでの起動確認は、サイドバー素�
 - [ ] C: ズーム中にTab／Shift+Tabを循環し、矢印・PageUp/Down・Home/End・⌘1〜7を連打。背景位置とページは不変、Space／Enterでボタンを実行、Esc後に元の袋へ戻る。VoiceOverでモーダル外の棚・ナビが読まれず、閉じる・更新・例外後に操作が復旧する。
 
 - [ ] D: Studio／DeskのMarket Featuredを720〜1400pxでリサイズ。索引カードの角・縁・穴の寸法が一定で、紙クリップ・影・左の扇が重ならず、Retinaでも歪みがない。
+
+- [ ] E: Settingsの末尾の副ボタンへTabで到達してコードを入力。成功・エラー・キャンセルは従来どおり、追加封筒はTodayに反映。メニューバーからCollectionなどを表示したまま／隠した後／ミニマイズ後に呼び、同じページで開く。窓がまだなければToday。Today開封前後とGiftsにRedeemの文字がない。

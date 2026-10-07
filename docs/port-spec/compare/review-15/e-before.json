@@ -1,0 +1,74 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "e",
+    "phase": "before",
+    "today-True": {
+      "text": "Wednesday, October 7TodayNext envelope in 13:41:56A new material arrives every day. Each sticker uses one sheet.+Today's Peta goes hereMake one from any imageToday's PetaReady when you areHolographicrareToday's materialAdded to your MaterialsHolographic rare3 of the last 7 daysMake today's PetaOther ways to get a PetaCollectionStick one you already haveGiftOpen one that arrivedPackOpen one at randomRedeem Code…",
+      "scroll": 700
+    },
+    "today-False": {
+      "text": "Wednesday, October 7TodayOct 7 · WedToday'sMaterialToday's Material has arrived.OpenRedeem Code…",
+      "scroll": 700
+    },
+    "gifts": "SEALED UNTIL YOU OPEN THEM\n\nGifts\n\nA friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material.\n\nNothing has arrived yet.\n\nWhen a friend sends you a .peta file, it lands here.\n\nOpen Peta file…\nRedeem Code…"
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "step": "e",
+    "phase": "before",
+    "today-True": {
+      "text": "Wednesday, October 7TodayNext envelope in 13:41:51A new material arrives every day. Each sticker uses one sheet.+Today's Peta goes hereMake one from any imageToday's PetaReady when you areHolographicrareToday's materialAdded to your MaterialsHolographic rare3 of the last 7 daysMake today's PetaOther ways to get a PetaCollectionStick one you already haveGiftOpen one that arrivedPackOpen one at randomRedeem Code…",
+      "scroll": 872
+    },
+    "today-False": {
+      "text": "Wednesday, October 7TodayOct 7 · WedToday'sMaterialToday's Material has arrived.OpenRedeem Code…",
+      "scroll": 606
+    },
+    "gifts": "SEALED UNTIL YOU OPEN THEM\n\nGifts\n\nA friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material.\n\nNothing has arrived yet.\n\nWhen a friend sends you a .peta file, it lands here.\n\nOpen Peta file…\nRedeem Code…"
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "e",
+    "phase": "before",
+    "today-True": {
+      "text": "Wednesday, October 7TodayNext envelope in 13:41:47A new material arrives every day. Each sticker uses one sheet.+Today's Peta goes hereMake one from any imageToday's PetaReady when you areHolographicrareToday's materialAdded to your MaterialsHolographic rare3 of the last 7 daysMake today's PetaOther ways to get a PetaCollectionStick one you already haveGiftOpen one that arrivedPackOpen one at randomRedeem Code…",
+      "scroll": 695
+    },
+    "today-False": {
+      "text": "Wednesday, October 7TodayOct 7 · WedToday'sMaterialToday's Material has arrived.OpenRedeem Code…",
+      "scroll": 668
+    },
+    "gifts": "SEALED UNTIL YOU OPEN THEM\n\nGifts\n\nA friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material.\n\nNothing has arrived yet.\n\nWhen a friend sends you a .peta file, it lands here.\n\nOpen Peta file…\nRedeem Code…"
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "step": "e",
+    "phase": "before",
+    "today-True": {
+      "text": "Wednesday, October 7TodayNext envelope in 13:41:42A new material arrives every day. Each sticker uses one sheet.+Today's Peta goes hereMake one from any imageToday's PetaReady when you areHolographicrareToday's materialAdded to your MaterialsHolographic rare3 of the last 7 daysMake today's PetaOther ways to get a PetaCollectionStick one you already haveGiftOpen one that arrivedPackOpen one at randomRedeem Code…",
+      "scroll": 862
+    },
+    "today-False": {
+      "text": "Wednesday, October 7TodayOct 7 · WedToday'sMaterialToday's Material has arrived.OpenRedeem Code…",
+      "scroll": 596
+    },
+    "gifts": "SEALED UNTIL YOU OPEN THEM\n\nGifts\n\nA friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material.\n\nNothing has arrived yet.\n\nWhen a friend sends you a .peta file, it lands here.\n\nOpen Peta file…\nRedeem Code…"
+  }
+]
