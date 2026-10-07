@@ -1,0 +1,278 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "d",
+    "phase": "after",
+    "card": {
+      "rect": {
+        "x": 586.755859375,
+        "y": 201.84718322753906,
+        "width": 414.25390625,
+        "height": 202.30564880371094,
+        "top": 201.84718322753906,
+        "right": 1001.009765625,
+        "bottom": 404.15283203125,
+        "left": 586.755859375
+      },
+      "background": "none",
+      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "slice": "175 205 110 150 fill",
+      "borderWidth": "35px 41px 22px 30px",
+      "angle": 0.6000010116398002,
+      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
+      "art": [
+        {
+          "width": 104,
+          "transform": "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -0.00142857, 0, 0, 0, 1)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.990268, -0.139173, 0.139173, 0.990268, 0, 0)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.994522, 0.104528, -0.104528, 0.994522, 0, 0)"
+        },
+        {
+          "width": 80,
+          "transform": "matrix(0.984808, 0.173648, -0.173648, 0.984808, 0, 0)"
+        }
+      ]
+    }
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "step": "d",
+    "phase": "after",
+    "card": {
+      "rect": {
+        "x": 325.4880676269531,
+        "y": 214.25942993164062,
+        "width": 335.5238952636719,
+        "height": 201.48117065429688,
+        "top": 214.25942993164062,
+        "right": 661.011962890625,
+        "bottom": 415.7406005859375,
+        "left": 325.4880676269531
+      },
+      "background": "none",
+      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "slice": "175 205 110 150 fill",
+      "borderWidth": "35px 41px 22px 30px",
+      "angle": 0.6000010116398002,
+      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
+      "art": [
+        {
+          "width": 104,
+          "transform": "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -0.00142857, 0, 0, 0, 1)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.990268, -0.139173, 0.139173, 0.990268, 0, 0)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.994522, 0.104528, -0.104528, 0.994522, 0, 0)"
+        },
+        {
+          "width": 80,
+          "transform": "matrix(0.984808, 0.173648, -0.173648, 0.984808, 0, 0)"
+        }
+      ]
+    }
+  },
+  {
+    "shell": "studio",
+    "size": [
+      1400,
+      700
+    ],
+    "step": "d",
+    "phase": "after",
+    "card": {
+      "rect": {
+        "x": 729.91748046875,
+        "y": 200.81643676757812,
+        "width": 611.1025390625,
+        "height": 204.36712646484375,
+        "top": 200.81643676757812,
+        "right": 1341.02001953125,
+        "bottom": 405.1835632324219,
+        "left": 729.91748046875
+      },
+      "background": "none",
+      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "slice": "175 205 110 150 fill",
+      "borderWidth": "35px 41px 22px 30px",
+      "angle": 0.6000010116398002,
+      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
+      "art": [
+        {
+          "width": 104,
+          "transform": "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -0.00142857, 0, 0, 0, 1)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.990268, -0.139173, 0.139173, 0.990268, 0, 0)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.994522, 0.104528, -0.104528, 0.994522, 0, 0)"
+        },
+        {
+          "width": 80,
+          "transform": "matrix(0.984808, 0.173648, -0.173648, 0.984808, 0, 0)"
+        }
+      ]
+    }
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "d",
+    "phase": "after",
+    "card": {
+      "rect": {
+        "x": 526.757080078125,
+        "y": 213.61679077148438,
+        "width": 458.25146484375,
+        "height": 202.76641845703125,
+        "top": 213.61679077148438,
+        "right": 985.008544921875,
+        "bottom": 416.3832092285156,
+        "left": 526.757080078125
+      },
+      "background": "none",
+      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "slice": "175 205 110 150 fill",
+      "borderWidth": "35px 41px 22px 30px",
+      "angle": 0.6000010116398002,
+      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
+      "art": [
+        {
+          "width": 104,
+          "transform": "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -0.00142857, 0, 0, 0, 1)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.990268, -0.139173, 0.139173, 0.990268, 0, 0)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.994522, 0.104528, -0.104528, 0.994522, 0, 0)"
+        },
+        {
+          "width": 80,
+          "transform": "matrix(0.984808, 0.173648, -0.173648, 0.984808, 0, 0)"
+        }
+      ]
+    }
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "step": "d",
+    "phase": "after",
+    "card": {
+      "rect": {
+        "x": 62.979522705078125,
+        "y": 422.90576171875,
+        "width": 594.0408935546875,
+        "height": 204.1884765625,
+        "top": 422.90576171875,
+        "right": 657.0204162597656,
+        "bottom": 627.09423828125,
+        "left": 62.979522705078125
+      },
+      "background": "none",
+      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "slice": "175 205 110 150 fill",
+      "borderWidth": "35px 41px 22px 30px",
+      "angle": 0.6000010116398002,
+      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
+      "art": [
+        {
+          "width": 104,
+          "transform": "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -0.00142857, 0, 0, 0, 1)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.990268, -0.139173, 0.139173, 0.990268, 0, 0)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.994522, 0.104528, -0.104528, 0.994522, 0, 0)"
+        },
+        {
+          "width": 80,
+          "transform": "matrix(0.984808, 0.173648, -0.173648, 0.984808, 0, 0)"
+        }
+      ]
+    }
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1400,
+      700
+    ],
+    "step": "d",
+    "phase": "after",
+    "card": {
+      "rect": {
+        "x": 669.918701171875,
+        "y": 212.5860595703125,
+        "width": 655.10009765625,
+        "height": 204.827880859375,
+        "top": 212.5860595703125,
+        "right": 1325.018798828125,
+        "bottom": 417.4139404296875,
+        "left": 669.918701171875
+      },
+      "background": "none",
+      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "slice": "175 205 110 150 fill",
+      "borderWidth": "35px 41px 22px 30px",
+      "angle": 0.6000010116398002,
+      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
+      "art": [
+        {
+          "width": 104,
+          "transform": "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -0.00142857, 0, 0, 0, 1)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.990268, -0.139173, 0.139173, 0.990268, 0, 0)"
+        },
+        {
+          "width": 84,
+          "transform": "matrix(0.994522, 0.104528, -0.104528, 0.994522, 0, 0)"
+        },
+        {
+          "width": 80,
+          "transform": "matrix(0.984808, 0.173648, -0.173648, 0.984808, 0, 0)"
+        }
+      ]
+    }
+  }
+]

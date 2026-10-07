@@ -86,7 +86,7 @@ html[data-motion="reduce"] .seg button::after { animation: none !important; }
 .mk-hero .fan-s .stk { width: var(--fan-width) !important; }
 .mk-hero-text {
   min-width: 0; margin: 0; padding: 24px;
-  background-size: 120% 140%; transform: none;
+  transform: rotate(.6deg);
 }
 .mk-hero-text::before { right: 14px; top: -24px; width: 54px; height: 54px; }
 .mk-hero-text h2 { font-size: 28px; }

@@ -251,3 +251,5 @@ Linuxでのハーネス確認とmacOSでの起動確認は、サイドバー素�
 - [ ] B: Retina（DPR 2）でPacks／Marketのホロ・クラフト・マットをズーム。封の縁・タイトル・作者が鮮明で、反射マスクが袋に一致。680msで寄り、560msで戻る。途中Esc／外側／✕、Reduce motionでも棚・フォーカスが戻る。
 
 - [ ] C: ズーム中にTab／Shift+Tabを循環し、矢印・PageUp/Down・Home/End・⌘1〜7を連打。背景位置とページは不変、Space／Enterでボタンを実行、Esc後に元の袋へ戻る。VoiceOverでモーダル外の棚・ナビが読まれず、閉じる・更新・例外後に操作が復旧する。
+
+- [ ] D: Studio／DeskのMarket Featuredを720〜1400pxでリサイズ。索引カードの角・縁・穴の寸法が一定で、紙クリップ・影・左の扇が重ならず、Retinaでも歪みがない。
