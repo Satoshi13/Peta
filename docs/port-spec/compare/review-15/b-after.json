@@ -1,0 +1,138 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "b",
+    "phase": "after",
+    "zoom": {
+      "transform": "none",
+      "rect": {
+        "x": 295,
+        "y": 136,
+        "width": 330,
+        "height": 440,
+        "top": 136,
+        "right": 625,
+        "bottom": 576,
+        "left": 295
+      },
+      "target": {
+        "left": 91,
+        "top": 136,
+        "width": 330,
+        "height": 440
+      },
+      "label": "29.7px",
+      "sheen": true,
+      "dpr": 2
+    },
+    "closed": true,
+    "reduceTransform": "none",
+    "marketTransform": "none"
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "step": "b",
+    "phase": "after",
+    "zoom": {
+      "transform": "none",
+      "rect": {
+        "x": 75.390625,
+        "y": 70.390625,
+        "width": 248.390625,
+        "height": 331.1875,
+        "top": 70.390625,
+        "right": 323.78125,
+        "bottom": 401.578125,
+        "left": 75.390625
+      },
+      "target": {
+        "left": 75.4,
+        "top": 70.4,
+        "width": 248.39999999999998,
+        "height": 331.2
+      },
+      "label": "22.3552px",
+      "sheen": true,
+      "dpr": 2
+    },
+    "closed": true,
+    "reduceTransform": "none",
+    "marketTransform": "none"
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "b",
+    "phase": "after",
+    "zoom": {
+      "transform": "none",
+      "rect": {
+        "x": 241,
+        "y": 136,
+        "width": 330,
+        "height": 440,
+        "top": 136,
+        "right": 571,
+        "bottom": 576,
+        "left": 241
+      },
+      "target": {
+        "left": 129,
+        "top": 120,
+        "width": 330,
+        "height": 440
+      },
+      "label": "29.7px",
+      "sheen": true,
+      "dpr": 2
+    },
+    "closed": true,
+    "reduceTransform": "none",
+    "marketTransform": "none"
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "step": "b",
+    "phase": "after",
+    "zoom": {
+      "transform": "none",
+      "rect": {
+        "x": 82.6875,
+        "y": 82.4375,
+        "width": 240.828125,
+        "height": 321.109375,
+        "top": 82.4375,
+        "right": 323.515625,
+        "bottom": 403.546875,
+        "left": 82.6875
+      },
+      "target": {
+        "left": 74.7,
+        "top": 68.44,
+        "width": 240.84,
+        "height": 321.12
+      },
+      "label": "21.6745px",
+      "sheen": true,
+      "dpr": 2
+    },
+    "closed": true,
+    "reduceTransform": "none",
+    "marketTransform": "none"
+  }
+]

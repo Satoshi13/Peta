@@ -28,13 +28,15 @@ const PackZoom = {
     // Everything on the page is part of the world the camera moves through, and each piece scales around the same point.
     const rr = root.getBoundingClientRect();
     const world = [...page.children].filter((el) => el !== root).map((el) => { const r = el.getBoundingClientRect(); el.style.transformOrigin = `${rr.left - r.left}px ${rr.top - r.top}px`; return el; });
-    const cur = this.current = { root, scrim, clone, card, source, tile, pack, world, camera, page, overflow, closing: false };
+    const packFrom = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${1 / k})`;
+    const cur = this.current = { root, scrim, clone, card, source, tile, pack, world, camera, packFrom, page, overflow, closing: false };
     cur.onKey = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); this.close(); } };
     window.addEventListener("keydown", cur.onKey, true);
     scrim.addEventListener("click", () => this.close());
     card.addEventListener("click", (e) => { if (e.target.closest(".mkz-back, .mkz-x")) this.close(); });
     card.addEventListener("click", (e) => { if (e.target.closest(".mkz-act")) this.dispose(); }, true);
-    Object.assign(clone.style, { left: from.left + "px", top: from.top + "px", width: from.width + "px", height: from.height + "px", transformOrigin: `${-from.left}px ${-from.top}px` });
+    // Rasterize the pouch and its cqw label at their final size; only the journey uses a scale.
+    Object.assign(clone.style, { left: to.left + "px", top: to.top + "px", width: to.width + "px", height: to.height + "px", transformOrigin: "0 0", transform: packFrom });
     source.style.visibility = "hidden";
     anim(scrim, [{ opacity: 0 }, { opacity: 1 }], { duration: 420, easing: EASE.out, delay: 120 });
     this.move(cur, "none", camera, 680).then(() => {
@@ -46,13 +48,20 @@ const PackZoom = {
   },
   /* One camera move for the pouch and the page around it, so they always stay in the same place relative to each other. */
   move(cur, a, b, duration) {
-    const frames = [{ transform: a }, { transform: b }];
-    return Promise.all([cur.clone, ...cur.world].map((el) => animCommit(el, frames, { duration, easing: EASE.inOut })));
+    return Promise.all([cur.clone, ...cur.world].map((el) => {
+      const start = getComputedStyle(el).transform;
+      el.getAnimations().forEach((animation) => animation.cancel());
+      const end = el === cur.clone ? (b === "none" ? cur.packFrom : "none") : b;
+      return animCommit(el, [{ transform: start }, { transform: end }], { duration, easing: EASE.inOut }).then(() => {
+        if (el === cur.clone && b !== "none" && !cur.closing) el.style.transform = "none";
+      });
+    }));
   },
   /* Where the pouch comes to rest: left of the card, as large as the window allows. */
   target(root) {
     const r = root.getBoundingClientRect(), cardW = Math.min(340, r.width * .44), leftW = r.width - cardW - 52;
-    let height = Math.min(r.height * .72, 440), width = height * .75;
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    let height = Math.min(r.height * .72, 440, 1024 / dpr), width = height * .75;
     if (width > leftW * .84) { width = leftW * .84; height = width / .75; }
     return { left: 24 + (leftW - width) / 2, top: (r.height - height) / 2 + 6, width, height };
   },
