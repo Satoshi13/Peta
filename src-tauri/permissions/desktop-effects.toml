@@ -43,3 +43,18 @@ commands.allow = ["developer_next_day", "developer_sync_displays", "developer_sh
 identifier = "allow-arrival-notification"
 description = "Read and open the desktop arrival envelope"
 commands.allow = ["arrival_status", "arrival_hover_status", "arrival_open"]
+
+[[permission]]
+identifier = "allow-poster-save"
+description = "Save a Collection month poster as a PNG the person chooses a place for."
+commands.allow = ["poster_save"]
+
+[[permission]]
+identifier = "allow-window-vibrancy"
+description = "Let the main window show a translucent sidebar material behind its page."
+commands.allow = ["window_vibrancy"]
+
+[[permission]]
+identifier = "allow-clipboard-create"
+description = "Start a cutting session from the picture on the clipboard."
+commands.allow = ["creator_begin_clipboard"]

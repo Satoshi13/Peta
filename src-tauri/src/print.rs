@@ -87,4 +87,12 @@ pub fn print_later(app: AppHandle) {
 
 /// Resume after a ceremony, or from the tray. The pending print remains in Rust storage.
 #[tauri::command]
-pub fn print_resume(app: AppHandle) { begin(&app); }
+/// `sticker_ids` are the ones the person has just chosen to stick: they print first, in that order, ahead of anything that was already waiting.
+pub fn print_resume(app: AppHandle, store: State<Store>, sticker_ids: Option<Vec<String>>) -> Result<(), String> {
+    if let Some(ids) = sticker_ids.filter(|ids| !ids.is_empty()) {
+        let ids: Vec<&str> = ids.iter().map(String::as_str).collect();
+        store.lock().db_mut().print_prioritize(&ids).map_err(|e| e.to_string())?;
+    }
+    begin(&app);
+    Ok(())
+}

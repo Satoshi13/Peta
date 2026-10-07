@@ -8,15 +8,15 @@ const usesLabel = () => {
   const name=MAT[S.chosen].name, at=text.indexOf(name);
   return CR.editing ? text : [text.slice(0,at),h("b",name),text.slice(at+name.length)];
 };
-function crReset() { CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{stage:'empty',src:null,photo:null,original:null,res:null,note:'',editing:null,editMaterial:null,urls:[],history:{canUndo:false,canRedo:false},zoom:{scale:1,x:0,y:0}}); }
+function crReset() { if(CR.preview?.startsWith('blob:')) URL.revokeObjectURL(CR.preview); CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{preview:null,reveal:false,stage:'empty',src:null,photo:null,original:null,res:null,note:'',editing:null,editMaterial:null,urls:[],history:{canUndo:false,canRedo:false},zoom:{scale:1,x:0,y:0}}); }
 async function crBegin(bytes) {
   if(!usableMats().includes(S.chosen)) { Shell.toast("No material sheets left. Visit Market to exchange Scraps."); return; }
   CR.stage='cutting'; Shell.refresh();
   try { await Bridge.invoke('creator_begin_bytes',{bytes:Array.from(bytes),materialId:S.chosen}); } catch(e) { crReset(); Shell.refresh(); Shell.toast(String(e)); }
 }
-async function crLoadFile(file) { if(!file?.type.startsWith('image/')) return; CR.samplePhoto=null; await crBegin(new Uint8Array(await file.arrayBuffer())); }
+async function crLoadFile(file) { if(!file?.type.startsWith('image/')) return; CR.samplePhoto=null; CR.preview=URL.createObjectURL(file); await crBegin(new Uint8Array(await file.arrayBuffer())); }
 async function crLoadSample(key) {
-  const {photo,alpha}=await Stk.fakePhoto(A[key],PHOTO_W); CR.samplePhoto=photo;
+  const {photo,alpha}=await Stk.fakePhoto(A[key],PHOTO_W); CR.samplePhoto=photo; CR.preview=photo.toDataURL('image/jpeg',.85);
   const blob=await new Promise(resolve=>alpha.toBlob(resolve,'image/png'));
   await crBegin(new Uint8Array(await blob.arrayBuffer()));
 }
@@ -30,7 +30,7 @@ async function crSync() {
   if(CR.editing) { S.chosen=CR.editMaterial; CR.border=info.defaultOutline; CR.smooth=Math.round(info.defaultSmooth*12); CR.strength=info.defaultStrength; }
   const bytes=await Bridge.invoke('creator_original'), url=URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:'image/jpeg'}));
   const i=await Stk.load(url), photo=Stk.cv(info.width,info.height); photo.getContext('2d').drawImage(i,0,0,info.width,info.height); URL.revokeObjectURL(url);
-  CR.original=photo; CR.photo=CR.samplePhoto || photo; CR.stage='ready'; await Bridge.reload(); if(S.page==='create') Shell.refresh();
+  CR.original=photo; CR.photo=CR.samplePhoto || photo; CR.reveal=CR.stage==='cutting'; CR.stage='ready'; await Bridge.reload(); if(S.page==='create') Shell.refresh();
 }
 Bridge.listen('creator-changed',()=>crSync().catch(e=>Shell.toast(String(e))));
 const canvasPoint = (cv, e) => {
@@ -38,7 +38,29 @@ const canvasPoint = (cv, e) => {
   return { x: (e.clientX - r.left - ox) / k, y: (e.clientY - r.top - oy) / k, k, ox, oy, r };
 };
 
+/* ⌘V on the empty Create page cuts out the picture on the clipboard (Rust reads it; the page has no Edit menu to receive a paste). */
+document.addEventListener('keydown',e=>{
+  if(e.defaultPrevented || !e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || e.key.toLowerCase()!=='v' || S.page!=='create' || CR.stage!=='empty') return;
+  if(e.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])') || Bridge.dialogOpen || Bridge.busy || document.querySelector('.cer, dialog[open]')) return;
+  e.preventDefault();
+  if(!usableMats().includes(S.chosen)) { Shell.toast('No material sheets left. Visit Market to exchange Scraps.'); return; }
+  CR.samplePhoto=null;
+  Bridge.invoke('creator_begin_clipboard',{materialId:S.chosen}).catch(err=>Shell.toast(String(err)));
+});
+
+/* The three steps shown over the mat: the photo is in, the cutout is yours to fix, then the stock decides what it becomes. */
+function createSteps(active) {
+  const els = ["Photo", "Cutout", "Stock"].map((t, i) => h("span", h("b", String(i + 1)), t));
+  const set = n => els.forEach((e, i) => { e.classList.toggle("on", i === n); e.classList.toggle("done", i < n); });
+  set(active); return { el: h("div.cs-steps", els), set };
+}
+
 Pages.create = {
+  /* A picture can reach Rust first (Finder "Open With", the Dock, the menu bar): pick up a session that is already running. */
+  async enter(el, o = {}) {
+    if(o.refresh || CR.stage!=='empty') return;
+    try { const info=await Bridge.invoke('creator_info'); if(['loading','ready'].includes(info.phase)) await crSync(); } catch {}
+  },
   build() {
     if(CR.editing) S.chosen=CR.editMaterial || S.chosen;
     else if (!usableMats().includes(S.chosen)) S.chosen = usableMats()[0];
@@ -50,9 +72,14 @@ Pages.create = {
       return root;
     }
     if (CR.stage === "empty") root.append(this.empty());
-    else if (CR.stage === "cutting") root.append(h("div.cr-cutting", h("div.cut-anim"), h("p", "Cutting…"), h("p.muted", "Taking the background away")));
+    else if (CR.stage === "cutting") root.append(this.cutting());
     else root.append(this.mat());
     return root;
+  },
+  /* While Rust finds the edge, the photo sits on the mat under a slow band of light. */
+  cutting() {
+    const card = h("div.cs-photo", h("div.cs-photo-in", CR.preview ? h("img", { src: CR.preview, alt: "" }) : h("div.cut-anim"), h("i.cs-scan.loop", { "aria-hidden": "true" })), h("i.cs-tape", { "aria-hidden": "true" }));
+    return h("div.cr-wrap", h("div.cr-stage.cs-wait", h("div.cs-top", createSteps(0).el), h("div.cs-center", card, h("p.cs-wait-text", { role: "status" }, "Finding the edge…"))));
   },
   empty() {
     const file = h("input", { type: "file", accept: "image/*", hidden: true, on: { change: (e) => crLoadFile(e.target.files[0]) } });
@@ -60,7 +87,7 @@ Pages.create = {
       on: { click: () => crChooseFile(), keydown: (e) => (e.key === "Enter" || e.key === " ") && crChooseFile(),
         dragover: (e) => { e.preventDefault(); zone.classList.add("over"); }, dragleave: () => zone.classList.remove("over"),
         drop: (e) => { e.preventDefault(); zone.classList.remove("over"); crLoadFile(e.dataTransfer.files[0]); } } },
-      h("i.drop-obj"), h("b", "Drop an image here"), h("small", "or click to choose a file"), file);
+      h("i.drop-obj"), h("b", "Drop an image here"), h("small", "or click to choose a file · ⌘V to paste"), file);
     return h("section.cr-empty", zone,
       h("div.cr-samples", h("p.eyebrow", "Or try one of these"), h("div.sample-grid", SAMPLE_KEYS.map((k, i) =>
         h("button.sample", { style: { "--i": i }, title: SAMPLE_TITLES[k], on: { click: () => { Snd.tap(); crLoadSample(k); } } }, h("img", { src: A[k], alt: SAMPLE_TITLES[k] }))))));
@@ -75,12 +102,45 @@ Pages.create = {
       const css = getComputedStyle(stkHost);
       const width = stkHost.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight);
       const height = stkHost.clientHeight - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom);
-      if (width > 0 && height > 0) sticker.style.width = Math.min(230, 230 * res.aspect, width, height * res.aspect) + "px";
+      if (width > 0 && height > 0) sticker.style.width = Math.min(460, 460 * res.aspect, width, height * res.aspect) + "px";
     };
     const sizeCv = () => { origCv.width = CR.photo.width; origCv.height = CR.photo.height; cutCv.width = CR.photo.width; cutCv.height = CR.photo.height; };
     sizeCv();
     origBg.width=origCv.width;origBg.height=origCv.height;
     origBg.getContext("2d").drawImage(CR.photo,0,0);origCv.getContext("2d").drawImage(CR.photo,0,0);
+    // The first time the cutout is ready: a band of light, a glow around the subject, the photograph falls away and the
+    // subject is lifted into the finished sticker. Never on later redraws, and not with Reduce motion.
+    let reveal = CR.reveal && !reduced(); CR.reveal = false;
+    const photoCv = h("canvas"), ghost = h("canvas.cs-ghost"), scan = h("i.cs-scan", { "aria-hidden": "true" });
+    photoCv.width = ghost.width = CR.photo.width; photoCv.height = ghost.height = CR.photo.height;
+    photoCv.getContext("2d").drawImage(CR.photo, 0, 0);
+    const photoCard = h("div.cs-photo", { hidden: !reveal, "aria-hidden": "true" }, h("div.cs-photo-in", photoCv, ghost, scan), h("i.cs-tape"));
+    const landReveal = async () => {
+      const sticker = stkHost.firstElementChild, inner = photoCard.firstElementChild;
+      if (!sticker || !inner.isConnected) { photoCard.hidden = true; return; }
+      sticker.style.opacity = 0;
+      ghost.getContext("2d").drawImage(cutCv, 0, 0);
+      const small = document.createElement("canvas"), k0 = Math.min(1, 160 / Math.max(cutCv.width, cutCv.height));
+      small.width = Math.max(1, Math.round(cutCv.width * k0)); small.height = Math.max(1, Math.round(cutCv.height * k0));
+      small.getContext("2d").drawImage(cutCv, 0, 0, small.width, small.height);
+      const b0 = PetaMath.alphaBounds(small.getContext("2d").getImageData(0, 0, small.width, small.height).data, small.width, small.height);
+      const box = b0 && { x: b0.x / k0, y: b0.y / k0, w: b0.w / k0, h: b0.h / k0 };
+      anim(scan, [{ transform: "translateY(-110%)", opacity: .9 }, { transform: "translateY(520%)", opacity: 0 }], { duration: 760, easing: EASE.inOut });
+      await anim(ghost, [{ filter: "none" }, { filter: "drop-shadow(0 0 2px #fff) drop-shadow(0 0 10px #a9e4ff) drop-shadow(0 0 20px #ffc2e6)" }], { duration: 520, easing: EASE.out });
+      photoCard.classList.add("fall");
+      anim(photoCv, [{ opacity: 1, filter: "blur(0)" }, { opacity: 0, filter: "blur(6px)" }], { duration: 420, easing: EASE.out });
+      await sleep(280);
+      const sr = sticker.getBoundingClientRect(), ir = inner.getBoundingClientRect();
+      if (box && sr.width) {
+        const kp = Math.min(ir.width / CR.photo.width, ir.height / CR.photo.height), ox = ir.left + (ir.width - CR.photo.width * kp) / 2, oy = ir.top + (ir.height - CR.photo.height * kp) / 2;
+        const cx = ox + (box.x + box.w / 2) * kp, cy = oy + (box.y + box.h / 2) * kp, gr = ghost.getBoundingClientRect();
+        const scale = (sr.width * box.w / (box.w + 2 * CR.border)) / (box.w * kp);
+        ghost.style.transformOrigin = `${cx - gr.left}px ${cy - gr.top}px`;
+        await anim(ghost, [{ transform: "none" }, { transform: `translate(${sr.left + sr.width / 2 - cx}px, ${sr.top + sr.height / 2 - cy}px) scale(${scale})` }], { duration: 620, easing: EASE.inOut });
+      }
+      sticker.style.opacity = ""; photoCard.hidden = true;
+      anim(sticker, [{ transform: "scale(1.06)" }, { transform: "scale(.975)", offset: .6 }, { transform: "none" }], { duration: 380, easing: EASE.out }).then(a => a.cancel());
+    };
     let seq = 0, rendering = null, renderRequested = false;
     const redraw = () => {
       ++seq; renderRequested = true;
@@ -113,6 +173,7 @@ Pages.create = {
             cx.drawImage(cutImg,0,0,cutCv.width,cutCv.height);
             const res = {url:sticker,w:head.width,h:head.height,aspect:head.width/head.height,material:S.chosen,mask:['holographic','gold'].includes(S.chosen)?sticker:null}; CR.res=res;
             stkHost.replaceChildren(Stk.el(res,res.aspect>=1?230:230*res.aspect)); fitSticker(); syncMake();
+            if(reveal) { reveal=false; landReveal(); }
           } catch(e) {
             if (mine !== seq || painting || !stkHost.isConnected) continue;
             CR.res=null; stkHost.replaceChildren(h("p.muted", "Nothing left to cut out")); syncMake(); Shell.toast(String(e));
@@ -151,6 +212,7 @@ Pages.create = {
       CR.zoom.x=clamp(CR.zoom.x,-mx,mx);CR.zoom.y=clamp(CR.zoom.y,-my,my);
     };
     const applyZoom = () => {
+      if(!cutFrame.clientWidth) return;
       constrainZoom();
       cutCv.style.transform=`translate(${CR.zoom.x}px,${CR.zoom.y}px) scale(${CR.zoom.scale})`;
       resetZoom.textContent=Math.round(CR.zoom.scale*100)+"%";
@@ -218,26 +280,33 @@ Pages.create = {
     CR.keys = (e) => { if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z" || !$(".cr-mat") || e.target.closest("input")) return; e.preventDefault(); e.shiftKey ? redo() : undo(); };
     document.addEventListener("keydown", CR.keys);
     const slider = (label, key, min, max, unit, onChange) => { const out = h("output", CR[key] + unit); const inp = h("input", { type: "range", min, max, value: CR[key], on: { input: (e) => { CR[key] = +e.target.value; out.textContent = CR[key] + unit; onChange(); } } }); return h("label.slider", h("span", label), inp, out); };
-    const seg = h("div.seg", ["erase", "restore"].map((t) => h("button", { "aria-pressed": String(CR.tool === t), on: { click: (e) => { CR.tool = t; $$(".seg button", mat).forEach((b) => b.setAttribute("aria-pressed", String(b === e.currentTarget))); Snd.tap(); } } }, t === "erase" ? "Erase" : "Restore")));
+    const seg = h("div.seg.only-edit", ["erase", "restore"].map((t) => h("button", { "aria-pressed": String(CR.tool === t), on: { click: (e) => { CR.tool = t; $$(".seg button", mat).forEach((b) => b.setAttribute("aria-pressed", String(b === e.currentTarget))); Snd.tap(); } } }, t === "erase" ? "Erase" : "Restore")));
     const make = h("button.btn", { on: { click: () => this.make() } }, CR.editing ? "Save changes" : "Make this Peta");
     const syncMake = () => { make.disabled = !CR.res || painting || Boolean(rendering); };
 
-    const tray = CR.editing ? h("div.edit-material", h("div.material-plate", {data:{m:S.chosen}}, MaterialPlateContents(MAT[S.chosen], "Original material"))) : MaterialTray({w:86,onPick:()=>{redraw();const u=$(".uses");if(u)u.replaceChildren(...usesLabel());}});
+    const steps = createSteps(1);
+    const tray = CR.editing ? h("div.edit-material", h("div.material-plate", {data:{m:S.chosen}}, MaterialPlateContents(MAT[S.chosen], "Original material"))) : MaterialTray({w:86,onPick:()=>{steps.set(2);redraw();const u=$(".uses");if(u)u.replaceChildren(...usesLabel());}});
 
-    const mat = h("div.cr-mat",
-      h("i.tape.t1", { style: { left: "26px", top: "-12px", transform: "rotate(-6deg)" } }), h("i.tape.t4", { style: { right: "40px", top: "-12px", transform: "rotate(5deg)" } }),
-      h("div.panes",
-        pane("orig", "Original", origBg, origCv), h("span.arrow", "→"),
-        h("figure.pane.cut", cutFrame, caption(2,"Cutout — paint to fix")), h("span.arrow", "→"),
-        h("figure.pane.stk-pane", h("div.frame.desk", stkHost), caption(3,"Sticker"))),
-      h("div.cr-controls",
-        h("div.grp.g-mat", h("label.lbl", "Material"), tray),
-        h("div.grp.g-look", h("label.lbl", "Look"), slider("Outline", "border", 4, 64, "", redraw), slider("Smooth", "smooth", 0, 12, "", redraw)),
-        h("div.grp.g-tools", h("label.lbl", "Brush"), h("div.tools", seg, undoBtn, redoBtn), slider("Size", "brush", 1, 60, "", () => {})),
-        h("div.grp.g-go", CR.note ? h("p.muted.small", CR.note) : null, h("div.go-btns", h("span.muted.small.uses", usesLabel()), h("button.btn.quiet", { on: { click: async () => { const editing=CR.editing; CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open(editing ? "book" : "create"); } } }, "Cancel"), make))));
-    Stk.tilt(stkHost, {max:8,scale:1.02,trigger:stkHost.parentElement});
+    // The sticker is the subject. Fixing the cutout swaps it for the editable cutout; the sticker keeps updating in a corner.
+    const setMode = mode => { mat.dataset.mode = mode; fixBtn.setAttribute("aria-pressed", String(mode === "edit")); Snd.tap(); };
+    const fixBtn = h("button.cs-tool.only-view", { type: "button", "aria-pressed": "false", title: "Erase or restore parts of the cutout", on: { click: () => setMode("edit") } }, "Fix the cutout");
+    const doneBtn = h("button.cs-tool.cs-done.only-edit", { type: "button", on: { click: () => { endPaint(); setMode("view"); } } }, "Done");
+    const refine = h("div.cs-refine", { hidden: true, role: "group", "aria-label": "Refine the edge" }, slider("Outline", "border", 4, 64, "", redraw), slider("Smooth", "smooth", 0, 12, "", redraw));
+    const refineBtn = h("button.cs-tool", { type: "button", "aria-expanded": "false", title: "Outline and smoothness", on: { click: () => { const open = refine.hidden; refine.hidden = !open; refineBtn.setAttribute("aria-expanded", String(open)); Snd.tap(); } } }, "Refine");
+    const size = slider("Size", "brush", 1, 60, "", () => {}); size.classList.add("only-edit");
+    const dock = h("div.cs-dock", { role: "toolbar", "aria-label": "Cutout tools" }, fixBtn, seg, size, undoBtn, redoBtn, h("span.cs-sep"), refineBtn, doneBtn);
+    const orig = h("div.cs-orig", { title: "Your original photo", tabindex: 0, "aria-label": "Original photo" }, h("div.frame", origBg, origCv), h("small", "Original"));
+
+    const stickerBox = h("div.cs-sticker", stkHost);
+    const mat = h("div.cr-mat.cr-stage", { data: { mode: "view" } },
+      h("div.cs-top", steps.el, CR.note ? h("p.muted.small", CR.note) : null),
+      h("div.cs-center", photoCard, stickerBox, h("div.cs-editor", cutFrame, orig)),
+      h("aside.cs-rail", h("label.lbl", CR.editing ? "Material" : "Stock"), tray),
+      refine, dock);
+    const foot = h("div.cs-foot.g-go", h("span.muted.small.uses", usesLabel()), h("div.go-btns", h("button.btn.quiet", { on: { click: async () => { const editing=CR.editing; CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open(editing ? "book" : "create"); } } }, CR.editing ? "Cancel" : "Start over"), make));
+    Stk.tilt(stkHost, {max:8,scale:1.02,trigger:stickerBox});
     syncUndo(); syncMake(); redraw();
-    return h("div.cr-wrap", mat);
+    return h("div.cr-wrap", mat, foot);
   },
   suspend() { CR.flushStroke?.(); },
   leave() { CR.flushStroke?.(); CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener("keydown",CR.keys); },

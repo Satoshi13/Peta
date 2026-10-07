@@ -34,6 +34,17 @@
         "description": "Signed Peta files and gifts",
         "role": "Viewer",
         "mimeType": "application/x-peta"
+      },
+      {
+        "ext": [
+          "png",
+          "jpg",
+          "jpeg",
+          "webp"
+        ],
+        "name": "Picture to cut out",
+        "role": "Viewer",
+        "rank": "Alternate"
       }
     ]
   }

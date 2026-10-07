@@ -50,8 +50,9 @@ pub fn sync(app: &AppHandle, primary: Option<&WebviewWindow>, visible: bool)
         .skip_taskbar(true).focused(false).accept_first_mouse(true).visible(false)
         .position(x, y).inner_size(WINDOW_WIDTH, WINDOW_HEIGHT)
         .build().map_err(|e| e.to_string())?;
-    // Only this envelope-sized window sits above desktop icons. No stickers are rendered in it.
-    if let Err(error) = crate::platform::apply_layer_mode(&window, crate::platform::LayerMode::Editing)
+    // Only this envelope-sized window sits above desktop icons, one level above the editing sticker layers.
+    // No stickers are rendered in it.
+    if let Err(error) = crate::platform::apply_layer_mode(&window, crate::platform::LayerMode::Notice)
         .and_then(|_| window.set_ignore_cursor_events(true).map_err(|e| e.to_string()))
         .and_then(|_| window.show().map_err(|e| e.to_string()))
     {

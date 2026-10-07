@@ -11,32 +11,39 @@ const MARKET_CREATORS = [
   { name: "Nao", src: "sCoffee", packs: 3, line: "Cafés, cups and quiet mornings" }, { name: "Ryo", src: "sComputer", packs: 5, line: "Pixels, cables, small screens" },
   { name: "Yuki", src: "sCat", packs: 4, line: "Cats, mostly" }, { name: "Mika", src: "sPlant", packs: 2, line: "Plants and windowsills" }, { name: "Ren", src: "sCassette", packs: 6, line: "Night walks, tape hiss" },
 ];
-const MK = { tab: "packs", sel: null };
+const MK = { tab: "packs" };
 
 const Market = {
-  pouch(p) { const foil = (p.kind || "holo") === "holo"; return h("div.pk-stack.mk-pouch", h("i.pk-img" + (foil && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, foil ? h("i.sheen") : null)); },
+  pouch(p) { const foil = (p.kind || "holo") === "holo"; return h("div.pk-stack.mk-pouch", h("i.pk-img" + (foil && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, foil ? h("i.sheen") : null), PackLabel(p)); },
   own(id) { return !!S.owned[id]; },
-  price(pack) { const rate = Scraps.pack(pack.id); return pack.price === "Free" ? "Free" : rate ? `${rate.exchange} Scraps` : "Coming later"; },
+  /* Sealed stickers still in the bag, and whether another set would overflow it. */
+  sealed(id) { return S.packs.find((p) => p.id === id)?.left.length || 0; },
+  full(pack) { const rate = Scraps.pack(pack.id); return !!rate && this.sealed(pack.id) + rate.stickers > PACK_SEALED_CAP; },
+  price(pack) { const rate = Scraps.pack(pack.id); return pack.price === "Free" && !this.own(pack.id) ? "Free" : rate ? `${rate.exchange} Scraps` : "Coming later"; },
   exchange(pack) {
-    const rate = Scraps.pack(pack.id);
-    return Scraps.button("pack",pack.id,rate ? `Exchange — ${rate.exchange} Scraps` : "Coming later",!rate || !S.developer && S.scraps.balance<rate.exchange);
+    const rate = Scraps.pack(pack.id), own = this.own(pack.id);
+    return Scraps.button("pack", pack.id, !rate ? "Coming later" : this.full(pack) ? "The bag is full" : `${own ? "Add another set" : "Exchange"} — ${rate.exchange} Scraps`, !rate || this.full(pack) || !S.developer && S.scraps.balance < rate.exchange);
   },
-  refill(pack) {
-    const rate = Scraps.pack(pack.id);
-    if(!rate || !S.packs.some(p=>p.id===pack.id && !p.left.length)) return null;
-    return Scraps.button("pack", pack.id, `Refill — ${rate.exchange} Scraps`, !S.developer && S.scraps.balance < rate.exchange);
-  },
+  /* Free packs are taken straight away; anything else (including a second set of a pack you already have) goes through the exchange. */
   async get(pack) {
-    if (this.own(pack.id)) {
-      Snd.tap(); await Shell.go("packs");
-      const bag = Array.from(Shell.current.querySelectorAll(".pack")).find(p => p.dataset.pack === pack.id);
-      bag?.scrollIntoView({block:"nearest",behavior:reduced() ? "instant" : "smooth"});
-      if (bag && !bag.disabled) bag.focus({preventScroll:true});
-      return;
-    }
-    if (pack.price !== "Free") { this.exchange(pack).click(); return; }
+    if (this.own(pack.id) || pack.price !== "Free") { this.exchange(pack).click(); return; }
     try { await Bridge.invoke("pack_install_demo", {packId:pack.id}); await Bridge.reload(); Snd.chime(3,784); Shell.toast(`${pack.title} is on your Packs shelf.`); Shell.refresh(); }
     catch(e) { Shell.toast(String(e)); }
+  },
+  /* The zoomed card: details first, then what it costs. */
+  card(pack) {
+    const rate = Scraps.pack(pack.id), own = this.own(pack.id), paid = pack.price !== "Free" || own, sealed = this.sealed(pack.id);
+    const peek = h("div.peek", pack.keys.slice(0, pack.count).map((k, i) => { const c = h("div.peek-s" + (i < 3 ? "" : ".sealed")); if (i < 3) Stk.make(A[k], { border: 10, material: "matte", max: 240 }).then((r) => c.append(Stk.el(r, r.aspect >= 1 ? 62 : 62 * r.aspect))); else c.append(h("b", "?")); return c; }));
+    const act = paid ? this.exchange(pack) : h("button.btn", { on: { click: () => Market.get(pack) } }, "Get — Free");
+    act.classList.add("mkz-act");
+    return h("aside.mkz-card", h("button.mkz-x", { type: "button", "aria-label": "Back to the shelf" }, "✕"),
+      h("p.eyebrow", `by ${pack.by} · ${pack.count} stickers`), h("h2", pack.title), h("p.mkz-blurb", pack.blurb),
+      own ? h("p.mkz-own", h("b", "On your shelf"), ` · ${sealed} sealed`) : null,
+      h("p.eyebrow.mkz-peek", "A peek inside"), peek,
+      h("div.mkz-buy", h("div.mkz-price", h("span", own ? "Another set" : "Price"), h("b", this.price(pack))),
+        paid && rate && !S.developer ? h("small.muted", S.scraps.balance >= rate.exchange ? `You have ${S.scraps.balance.toLocaleString("en-US")} Scraps` : `You have ${S.scraps.balance.toLocaleString("en-US")} Scraps — ${rate.exchange - S.scraps.balance} more to go`) : null,
+        act, h("small.muted", own ? `Adds ${pack.count} sealed stickers to the same bag. Stickers you have already opened stay in your Collection.` : "Open it any time, as often as you like. What's inside stays a surprise until you tear it."),
+        h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
   },
 };
 
@@ -44,38 +51,28 @@ Pages.market = {
   build() {
     const root = h("div.page-in.marketpage");
     const paint = () => {
-      const sel = MK.tab === "packs" ? MARKET_PACKS.find((p) => p.id === MK.sel) : null;
       root.replaceChildren(
         PageHead("Market", "Packs, materials and creators", Scraps.badge()),
-        h("div.seg.mk-seg", ["packs", "materials", "creators"].map((t) => h("button", { "aria-pressed": String(MK.tab === t), on: { click: () => { MK.tab = t; MK.sel = null; Snd.tap(); paint(); } } }, t[0].toUpperCase() + t.slice(1)))),
-        MK.tab === "packs" ? this.packs(paint, sel) : MK.tab === "materials" ? this.materials(paint) : this.creators(paint));
+        h("div.seg.mk-seg", ["packs", "materials", "creators"].map((t) => h("button", { "aria-pressed": String(MK.tab === t), on: { click: () => { MK.tab = t; Snd.tap(); paint(); } } }, t[0].toUpperCase() + t.slice(1)))),
+        MK.tab === "packs" ? this.packs(paint) : MK.tab === "materials" ? this.materials(paint) : this.creators(paint));
       const form = Scraps.form(); if(form) root.insertBefore(form, root.children[2]);
     };
     paint(); return root;
   },
-  packs(paint, sel) {
+  packs(paint) {
     const feat = MARKET_PACKS[0];
+    const open = (p, tile) => { Snd.tap(); PackZoom.open(p, tile, (pack) => Market.card(pack)); };
     const cell = (p, i) => {
       const own = Market.own(p.id);
-      return h("div.mk-item", h("button.mk-tile", { "aria-pressed": own ? null : String(MK.sel === p.id), "aria-label": own ? `${p.title} — view on your Packs shelf` : null, style: { "--i": i }, on: { click: () => { if (own) { Market.get(p); return; } MK.sel = MK.sel === p.id ? null : p.id; Snd.tap(); paint(); } } },
-        Market.pouch(p), h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by} · ${p.count} stickers`)), h("span.price" + (own ? ".own" : p.price === "Free" ? ".free" : ""), own ? "On your shelf" : Market.price(p))), Market.refill(p));
+      return h("div.mk-item", h("button.mk-tile", { "aria-label": `${p.title} by ${p.by}${own ? ", on your shelf" : ""} — look closer`, "aria-haspopup": "dialog", style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
+        Market.pouch(p), own ? h("span.pk-badge.own", "On shelf") : p.price === "Free" ? h("span.pk-badge.free", "Free") : null));
     };
     const main = h("div.mk-main",
       h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat), h("div.fan", feat.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
         h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", feat.title), h("p.muted", `by ${feat.by} · ${feat.count} stickers`), h("p", feat.blurb),
-          h("div.mk-hero-actions", h("button.btn", { on: { click: () => Market.get(feat) } }, Market.own(feat.id) ? "On your shelf" : "Get — Free"), Market.refill(feat)))),
+          h("div.mk-hero-actions", h("button.btn", { on: { click: (e) => Market.own(feat.id) ? open(feat, e.currentTarget.closest(".mk-hero").querySelector(".mk-hero-art")) : Market.get(feat) } }, Market.own(feat.id) ? "Add another set…" : "Get — Free")))),
       h("p.eyebrow.mk-h", "New and popular"), h("div.mk-grid", MARKET_PACKS.slice(1).map(cell)));
-    return h("div.mk" + (sel ? ".has-detail" : ""), main, sel ? this.detail(sel, paint) : null);
-  },
-  detail(p, paint) {
-    const own = Market.own(p.id);
-    return h("aside.detail.mk-detail", h("button.x", { "aria-label": "Close", on: { click: () => { MK.sel = null; paint(); } } }, "✕"),
-      h("div.mk-d-art", Market.pouch(p)), h("h3", p.title), h("p.muted", `by ${p.by} · ${p.count} stickers`), h("p", p.blurb),
-      h("p.eyebrow", { style: { marginTop: "10px" } }, "A peek inside"),
-      h("div.peek", p.keys.slice(0, p.count).map((k, i) => { const c = h("div.peek-s" + (i < 3 ? "" : ".sealed")); if (i < 3) Stk.make(A[k], { border: 10, material: "matte", max: 240 }).then((r) => c.append(Stk.el(r, r.aspect >= 1 ? 62 : 62 * r.aspect))); else c.append(h("b", "?")); return c; })),
-      !own && p.price !== "Free" ? Market.exchange(p) : h("button.btn", { style: { width: "100%", marginTop: "12px" }, on: { click: () => Market.get(p) } }, own ? "On your shelf" : "Get — Free"),
-      Market.refill(p),
-      h("p.muted.small", { style: { marginTop: "8px" } }, "Open it any time, as often as you like. What's inside stays a surprise until you tear it."));
+    return h("div.mk", main);
   },
   materials(paint) {
     // TODO(owner): cash purchases remain unavailable. Sakura awaits its seasonal distribution.

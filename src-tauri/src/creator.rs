@@ -130,6 +130,45 @@ pub fn begin(app: &AppHandle, bytes: Vec<u8>, target: Target) -> Result<(), Stri
     Ok(())
 }
 
+/// Start cutting whatever picture is on the clipboard. The pasteboard is read on the main thread; call this off it.
+pub async fn begin_from_clipboard(app: &AppHandle, material_hint: Option<String>) -> Result<(), String> {
+    let (tx, rx) = std::sync::mpsc::channel();
+    app.run_on_main_thread(move || { let _ = tx.send(crate::platform::clipboard_image()); }).map_err(|e| e.to_string())?;
+    let bytes = rx.recv().ok().flatten().ok_or("There is no picture on the clipboard.")?;
+    let layers = app.state::<crate::layers::Layers>();
+    begin(app, bytes, Target { display_id: layers.primary_display_id(), x: 0.5, y: 0.5, counts_for_today: true, material_hint })
+}
+
+#[tauri::command]
+pub async fn creator_begin_clipboard(app: AppHandle, material_id: String) -> Result<(), String> {
+    begin_from_clipboard(&app, Some(material_id)).await
+}
+
+const MAX_IMAGE_BYTES: u64 = 80 * 1024 * 1024;
+
+/// Is this a picture file the cutter can read?
+pub fn is_cuttable_image(path: &std::path::Path) -> bool {
+    path.extension().and_then(|e| e.to_str()).is_some_and(|e| matches!(e.to_ascii_lowercase().as_str(), "png" | "jpg" | "jpeg" | "webp"))
+}
+
+/// A picture handed to Peta by Finder ("Open With", or dropped on the app icon) is cut out like a picked image.
+/// Returns false when the file is not a picture, so the caller can try other file kinds.
+pub fn open_image_file(app: &AppHandle, path: &std::path::Path) -> bool {
+    if !is_cuttable_image(path) { return false; }
+    let outcome = (|| -> Result<(), String> {
+        let size = std::fs::metadata(path).map_err(|e| e.to_string())?.len();
+        if size > MAX_IMAGE_BYTES { return Err("That picture is too large to cut out.".into()); }
+        let bytes = std::fs::read(path).map_err(|e| e.to_string())?;
+        let layers = app.state::<crate::layers::Layers>();
+        begin(app, bytes, Target { display_id: layers.primary_display_id(), x: 0.5, y: 0.5, counts_for_today: true, material_hint: None })
+    })();
+    if let Err(error) = outcome {
+        use tauri_plugin_dialog::DialogExt;
+        app.dialog().message(error).title("Peta").show(|_| {});
+    }
+    true
+}
+
 fn open_window(app: &AppHandle) -> tauri::Result<()> {
     crate::app_window::open(app, "create")
 }
@@ -337,6 +376,7 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
 
     let date = app.state::<today::Today>().date();
     let store = app.state::<Store>();
+    let mut made_id = None;
     {
         let mut lib = store.lock();
         if target.counts_for_today && !lib.db().has_material(&material).map_err(|e| e.to_string())? {
@@ -351,10 +391,13 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
             lib.db_mut().consume_material(&material).map_err(|e| e.to_string())?;
             // Keep every creation in the durable queue and Book; no daily sticker quota.
             daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Created, random_unit()).map_err(|e| e.to_string())?;
+            // What was just made prints first, even when older stickers are still waiting.
+            lib.db_mut().print_prioritize(&[sticker.id.as_str()]).map_err(|e| e.to_string())?;
+            made_id = Some(sticker.id.clone());
         }
     }
     today::announce(app);
-    if target.counts_for_today {
+    if made_id.is_some() {
         print::begin(app);
     }
     Ok(())
@@ -433,3 +476,16 @@ pub fn creator_begin_path(app: AppHandle, layers: State<crate::layers::Layers>, 
     let bytes=std::fs::read(path).map_err(|e|e.to_string())?;
     begin(&app,bytes,Target {display_id:layers.primary_display_id(),x:0.5,y:0.5,counts_for_today:true,material_hint:Some(material_id)})
 }
+
+#[cfg(test)]
+mod open_image_tests {
+    use super::is_cuttable_image;
+    use std::path::Path;
+
+    #[test]
+    fn only_formats_the_cutter_reads_are_taken() {
+        for ok in ["a.png", "b.JPG", "c.jpeg", "d.WebP", "/x/y z/e.png"] { assert!(is_cuttable_image(Path::new(ok)), "{ok}"); }
+        for no in ["a.peta", "b.gif", "c.heic", "d", "e.png.txt", ".png"] { assert!(!is_cuttable_image(Path::new(no)), "{no}"); }
+    }
+}
+

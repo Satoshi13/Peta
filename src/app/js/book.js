@@ -1,6 +1,10 @@
 /* Sticker Book: a list or local-date calendar, a detail card you can turn over, peel / gift / stick-as-today. */
 const BK = { sel: null, gift: false, anim: false, deleteId: null, day: null, completed: new Set() };
 
+/** First weekday of the device locale (0 = Sunday); Sunday when the engine cannot say. */
+function calendarWeekStart() {
+  try { const locale = new Intl.Locale(navigator.language); return (locale.getWeekInfo?.() || locale.weekInfo)?.firstDay % 7 || 0; } catch { return 0; }
+}
 const monthKey = (d) => d.getFullYear() * 12 + d.getMonth();
 const monthName = (k) => fmtDate(new Date(Math.floor(k / 12), k % 12, 1), { month: "long", year: "numeric" });
 const monthShort = (k) => fmtDate(new Date(Math.floor(k / 12), k % 12, 1), { month: "short" });
@@ -102,7 +106,8 @@ Pages.book = {
       else {
         main.append(h("p.muted.book-count", `${items.length} sticker${items.length === 1 ? "" : "s"}`), items.length ? h("div.bk-grid", items.map((e,i) => this.tile(e,i,select))) : h("p.empty-note", "Your Collection is waiting for its first sticker."));
       }
-      root.replaceChildren(PageHead("Collection", "Your stickers", view, h("button.btn.paper.small", {disabled:S.lib.length<3,on:{click:()=>PackMaker.open()}}, "Make a Pack…")),
+      const poster = S.bookView === "calendar" ? this.posterButton(items) : null;
+      root.replaceChildren(PageHead("Collection", "Your stickers", view, poster, h("button.btn.paper.small", {disabled:S.lib.length<3,on:{click:()=>PackMaker.open()}}, "Make a Pack…")),
         ...(S.pickMode ? [h("div.pick-banner", h("span", "Choose one to stick on the desktop"), h("button.link", { on: { click: () => { S.pickMode = false; paint(); } } }, "Cancel"))] : []),
         h("div.bk" + (sel ? ".has-detail" : ""), main, sel ? this.detail(sel, paint) : null));
     };
@@ -115,6 +120,22 @@ Pages.book = {
       const g = $(".bk", root); if(g) await anim(g, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(-26px) rotate(-.8deg)" }], { duration: 160, easing: "ease-in" });
       paint(); const n = $(".bk", root); if(n) await anim(n, [{ opacity: 0, transform: "translateX(26px) rotate(.8deg)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: EASE.out });
     } finally { BK.anim = false; }
+  },
+  /* Save the month on screen as a PNG poster. Rust opens the save panel; cancelling writes nothing. */
+  posterButton(items) {
+    const key = clamp(S.bookMonth ?? monthKey(S.today), Math.min(monthKey(S.today), ...items.map(e => monthKey(e.date))), monthKey(S.today));
+    const empty = !PetaMath.calendarMonth(items, key, S.today, 0).daysStuck;
+    const button = h("button.btn.paper.small.poster-save", { disabled: empty, title: empty ? "Nothing stuck this month yet" : "Save this month as a picture", on: { click: async () => {
+      if(button.disabled) return;
+      const label = button.textContent; button.disabled = true; button.textContent = "Saving…"; Bridge.dialogOpen = true;
+      try {
+        const weekStart = calendarWeekStart(), month = PetaMath.calendarMonth(items, key, S.today, weekStart);
+        const path = await Poster.save(month, key, weekStart);
+        if(path) { Snd.chime(2, 740); Shell.toast("Poster saved."); }
+      } catch(err) { Shell.toast(String(err)); }
+      finally { Bridge.dialogOpen = !!document.querySelector("dialog"); button.disabled = false; button.textContent = label; }
+    } } }, "Save poster…");
+    return button;
   },
   lazySticker(holder, entry, size) {
     holder._load = () => {
@@ -134,8 +155,7 @@ Pages.book = {
   calendar(items, select, root, paint) {
     const current = monthKey(S.today), earliest = Math.min(current, ...items.map(e => monthKey(e.date)));
     S.bookMonth = clamp(S.bookMonth ?? current, earliest, current);
-    let weekStart = 0;
-    try { const locale = new Intl.Locale(navigator.language); weekStart = (locale.getWeekInfo?.() || locale.weekInfo)?.firstDay % 7 || 0; } catch {}
+    const weekStart = calendarWeekStart();
     const month = PetaMath.calendarMonth(items, S.bookMonth, S.today, weekStart);
     const move = delta => {
       if(BK.anim) return; S.bookMonth = clamp(S.bookMonth + delta, earliest, current); Snd.flip(); this.turn(root, paint);
@@ -158,7 +178,7 @@ Pages.book = {
         return h("button.calendar-day.stuck", { data:{date:PetaMath.bookDateKey(cell.date)}, title:dateLabel+" · "+titleOf(latest), "aria-label":dateLabel+" · "+titleOf(latest)+(cell.entries.length>1?` · ${cell.entries.length} stickers`:""), "aria-pressed":String(BK.day===PetaMath.bookDateKey(cell.date) && BK.sel!=null), on:{click:()=>select(latest)} }, contents);
       }
       if(cell.state === "today") return h("button.calendar-day.today-empty", {"aria-label":"Make a Peta today", on:{click:()=>Shell.go("today")}}, contents, h("span.calendar-add", "+"));
-      return h("div.calendar-day."+cell.state, contents, cell.state === "past" ? h("small.calendar-rest", "rest") : null);
+      return h("div.calendar-day."+cell.state, contents, cell.state === "past" ? h("span.calendar-rest", { role:"img", "aria-label":"Rest day" }) : null);
     }));
     return h("div.calendar-ledger", heading, weekdays, grid);
   },

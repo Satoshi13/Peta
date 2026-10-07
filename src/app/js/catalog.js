@@ -36,5 +36,7 @@ A.gear = A.iconSettings; A.shop = A.iconMarket;
 // TODO(owner): the current Rust library has no sticker-title field; display its neutral label until that schema is decided.
 const titleOf = e => e.title || "Sticker";
 const dayLabel = () => fmtDate(S.today, { weekday:"short", month:"short", day:"numeric" });
+/* Mirrors MAX_SEALED_PER_PACK in scraps.rs: one bag never holds more sealed stickers than this. */
+const PACK_SEALED_CAP = 100;
 const packsLeftToday = () => S.packAvailable ? 1 : 0;
 const packOpenable = p => p.left.length > 0 && (!p.daily || S.packAvailable);

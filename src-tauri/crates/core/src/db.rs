@@ -908,6 +908,17 @@ impl Database {
         Ok(self.conn.query_row("SELECT sticker_id FROM print_queue ORDER BY seq LIMIT 1",[],|r|r.get(0)).optional()?)
     }
 
+    /// The stickers the person just chose to stick go to the front, in the order given; everything else keeps its place.
+    /// Ids that are not waiting in the queue are ignored.
+    pub fn print_prioritize(&mut self, ids: &[&str]) -> Result<()> {
+        let tx=self.conn.transaction()?;
+        for id in ids.iter().rev() {
+            tx.execute("UPDATE print_queue SET seq=(SELECT COALESCE(MIN(seq),1)-1 FROM print_queue) WHERE sticker_id=?1",[id])?;
+        }
+        tx.commit()?;
+        Ok(())
+    }
+
     /// Finish only the queue's current head; late or repeated drops cannot spend another print.
     pub fn finish_print(&mut self, sticker_id: &str) -> Result<()> {
         if self.next_print()?.as_deref()!=Some(sticker_id) { return Err(Error::Invalid("nothing is waiting to be pasted".into())); }
@@ -1314,6 +1325,23 @@ mod tests {
             assert_eq!(db.book_rows().unwrap().len(),3);
         }
         let _=std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn a_sticker_the_person_just_chose_prints_first_and_the_rest_keep_their_order() {
+        let mut db=Database::open_in_memory().unwrap();
+        for id in ["A","B","C","D"] {
+            db.create_sticker(NewSticker{id:id.into(),creator_id:None,creator_name:None,original_asset_path:"o".into(),rendered_asset_path:"r".into(),mask_asset_path:None,material_id:Some("matte".into()),source_type:SourceType::Created,aspect:1.0}).unwrap();
+            crate::daily::confirm(&mut db,"2026-10-01",id,SourceType::Created,0.0).unwrap();
+        }
+        db.print_prioritize(&["C"]).unwrap();
+        assert_eq!(db.next_print().unwrap().as_deref(),Some("C"));
+        db.finish_print("C").unwrap();
+        // several at once keep the order they were given; unknown ids are ignored
+        db.print_prioritize(&["D","nobody","B"]).unwrap();
+        let mut order=vec![];
+        while let Some(id)=db.next_print().unwrap() { db.finish_print(&id).unwrap(); order.push(id); }
+        assert_eq!(order,["D","B","A"]);
     }
 
     #[test]

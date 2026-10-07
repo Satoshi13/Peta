@@ -5,6 +5,12 @@
 | [`peta-prototype.html`](peta-prototype.html) | **触れるプロトタイプ(1ファイル)**。ブラウザで開くだけ(`file://` でOK。画像・CSS・JS は全部埋め込み済み、約1.1MB) |
 | [`app/`](app) | そのソース(素材は `src/art/` をそのまま参照)。ビルド: `node docs/ui-proposals/app/build.mjs`(要 ImageMagick) |
 | [`design-quality-preview.html`](design-quality-preview.html) | **デザイン品質レビュー**。実機スクリーンショット(Before)と実素材を使った提案(After)を左右ワイプで比較。文字の役割・コントラスト・Today/Book/Create/Market/Packs・Sidebar・Night Desk・部品の状態表・動き・着手順。**1ファイル完結**(画像・フォント埋め込み、約1.6MB)。ソースは `design-quality-preview.src.html`、再生成は `python3 scripts/build-design-quality-preview.py` |
+| [`aaa-preview.html`](aaa-preview.html) | **AAA級レビュー**。現状の実機スクリーンショット(いま)と実素材で作った提案(提案)を切り替えて比較。Today の主役化・Create の切り抜き演出・Materials の棚・Collection のポスター・Mac への入口(メニューバー/ウィジェット/共有)・面と階層・動きの数値化・着手順。**`file://` では光の表現(mask)が効かない**ので `python3 -m http.server 8765` で配信して `http://localhost:8765/docs/ui-proposals/aaa-preview.html` を開く |
+| [`aaa2-preview.html`](aaa2-preview.html) | **AAA級レビュー 第2弾**。実機を全ページ撮り直し、まだ「箱・枠」に閉じ込められているモノを紙の上に置き直す4案(Today=台紙から抜く / Collection=紙に直接+絞り込み / Gifts=手紙トレイ+Sent / Materials=見本帳)と、共通文法(寄る・紙に置く・手書きで示す)、レア度の梯子、進める順番。「いま / 提案」を切り替えられ、Collection と Gifts は「寄る」まで触れる。現状の撮影は `aaa2/`。`aaa2-preview.html` は画像を埋め込んだ単体ファイル(約6MB。どのビューアでも画像が出る)で、ソースは `aaa2-preview.src.html`、再生成は `python3 docs/ui-proposals/aaa2/build.py` |
+| [`packs-shelf-preview.html`](packs-shelf-preview.html) | **Packsを「棚」に見せる3案**(A 棚に立てる / B クリップで吊るす / C コルクボードに留める)。実アプリの現状スクショと切り替えて比較。袋・棚板・タグ・画鋲は `src/art/` の実アート。`python3 -m http.server` で配信して開く |
+| [`sticker-shop-preview.html`](sticker-shop-preview.html) | **ステッカーのお店の見せ方+「寄る」詳細**。袋を押すとカメラがその袋に寄り、そこで初めて詳細と Get / Exchange / Open が出る(Esc・✕・背景クリックで引く)。Market(買う)/ Packs(持っている)と、店先の棚(日よけ・看板・値札)/ 吊るす壁を切り替え。袋の名前は袋の白い札に印字。`python3 -m http.server` で配信して開く |
+| [`sticker-shop-v2-preview.html`](sticker-shop-v2-preview.html) | **ステッカーのお店 v2(背景は紙の面のまま、モノだけ写実)**。左上1灯の光(接地影・環境遮蔽・紙に落ちる影)、壁付けの棚(金具・天面・値札レール)/ 金属レールに吊るす案(ユーロ穴ヘッダー・フック・値付けシール)、在庫の厚み、寄って詳細(傾き・ホロ)。Market / Packs 切替。`python3 -m http.server` で配信して開く |
+| [`sticker-shop-v3-preview.html`](sticker-shop-v3-preview.html) | **Market=レール(先頭にピックアップ)/ Packs=棚**。ページに入るとレールの袋が2Dで順に揺れる(3Dの傾きは全廃)。影はアート規約(薄く短く右下2px)に合わせた。下に「依頼する部品」の見本。部品の依頼文は [`../codex-shop-parts-prompt.md`](../codex-shop-parts-prompt.md) |
 | [`index.html`](index.html) | 最初の静的な比較(素材ピッカー3案・全体3方向)。プロトタイプの前段 |
 
 開発中にソースの `app/index.html` を開くときは、ファイルを直接開かず `python3 -m http.server` などで配信する(canvas が `file://` の画像で汚染されるため)。

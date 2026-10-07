@@ -1,26 +1,116 @@
 /* Packs: a shelf of pouches. Tearing one open is the ceremony in pack.js. */
+
+/* The title and the author are printed on the pouch's own white label, wherever the pouch is shown. */
+function PackLabel(p) {
+  return h("span.pk-label", { "aria-hidden": "true", data: { kind: p.kind || "holo" } }, h("b", p.title), h("small", "by " + p.by));
+}
+
+/* Click a pack (in the Market or on the Packs shelf) and the camera moves in on it: the whole shelf scales up around the pouch until it
+   fills the left half, the page behind softens, and only then do the details and the choices appear. Back, Esc or a click outside moves
+   the camera out again. The pouch never travels on its own; it stays where it is in the world and the world moves.
+   `build(pack)` returns the card; a button inside it with the class mkz-act closes the view at once before its own handler runs. */
+const PackZoom = {
+  current: null,
+  get active() { return this.current?.root.isConnected ? this.current : null; },
+  open(pack, tile, build) {
+    if (this.active) return;
+    const page = Shell.current, source = $(".pk-stack", tile);
+    if (!page || !source) return;
+    const root = h("div.mkz", { role: "dialog", "aria-modal": "true", "aria-label": pack.title }), scrim = h("div.mkz-scrim");
+    const clone = source.cloneNode(true); clone.classList.add("mkz-pack"); clone.removeAttribute("style");
+    const card = build(pack);
+    // The view covers what is on screen now, even when the page is scrolled; the page itself stays put while the camera is in.
+    const scrolled = page.scrollTop, overflow = page.style.overflowY;
+    root.style.cssText = `top:${scrolled}px;bottom:auto;height:${page.clientHeight}px`; page.style.overflowY = "hidden";
+    root.append(scrim, clone, card); page.append(root);
+    const to = this.target(root), from = this.rectIn(root, source), k = to.width / from.width;
+    const camera = `translate(${to.left - from.left * k}px, ${to.top - from.top * k}px) scale(${k})`;
+    // Everything on the page is part of the world the camera moves through, and each piece scales around the same point.
+    const rr = root.getBoundingClientRect();
+    const world = [...page.children].filter((el) => el !== root).map((el) => { const r = el.getBoundingClientRect(); el.style.transformOrigin = `${rr.left - r.left}px ${rr.top - r.top}px`; return el; });
+    const cur = this.current = { root, scrim, clone, card, source, tile, pack, world, camera, page, overflow, closing: false };
+    cur.onKey = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); this.close(); } };
+    window.addEventListener("keydown", cur.onKey, true);
+    scrim.addEventListener("click", () => this.close());
+    card.addEventListener("click", (e) => { if (e.target.closest(".mkz-back, .mkz-x")) this.close(); });
+    card.addEventListener("click", (e) => { if (e.target.closest(".mkz-act")) this.dispose(); }, true);
+    Object.assign(clone.style, { left: from.left + "px", top: from.top + "px", width: from.width + "px", height: from.height + "px", transformOrigin: `${-from.left}px ${-from.top}px` });
+    source.style.visibility = "hidden";
+    anim(scrim, [{ opacity: 0 }, { opacity: 1 }], { duration: 420, easing: EASE.out, delay: 120 });
+    this.move(cur, "none", camera, 680).then(() => {
+      if (cur.closing || !root.isConnected) return;
+      anim(card, [{ opacity: 0, transform: "translateX(24px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: EASE.out }).then((a) => a.cancel?.());
+      card.classList.add("on"); (card.querySelector(".mkz-act:not(:disabled)") || card.querySelector(".mkz-back"))?.focus({ preventScroll: true });
+    });
+    onPointerFollow(clone, (x, y, e, amount) => { clone.style.setProperty("--sx", lerp(30, (1 - x) * 100, amount) + "%"); clone.style.setProperty("--sy", lerp(30, (1 - y) * 100, amount) + "%"); }, () => { clone.style.setProperty("--sx", "30%"); clone.style.setProperty("--sy", "30%"); });
+  },
+  /* One camera move for the pouch and the page around it, so they always stay in the same place relative to each other. */
+  move(cur, a, b, duration) {
+    const frames = [{ transform: a }, { transform: b }];
+    return Promise.all([cur.clone, ...cur.world].map((el) => animCommit(el, frames, { duration, easing: EASE.inOut })));
+  },
+  /* Where the pouch comes to rest: left of the card, as large as the window allows. */
+  target(root) {
+    const r = root.getBoundingClientRect(), cardW = Math.min(340, r.width * .44), leftW = r.width - cardW - 52;
+    let height = Math.min(r.height * .72, 440), width = height * .75;
+    if (width > leftW * .84) { width = leftW * .84; height = width / .75; }
+    return { left: 24 + (leftW - width) / 2, top: (r.height - height) / 2 + 6, width, height };
+  },
+  rectIn(root, el) { const a = root.getBoundingClientRect(), b = el.getBoundingClientRect(); return { left: b.left - a.left, top: b.top - a.top, width: b.width, height: b.height }; },
+  /* Move back out: the card goes first, then the camera pulls back to the whole shelf. */
+  async close() {
+    const cur = this.active; if (!cur || cur.closing) return; cur.closing = true;
+    anim(cur.card, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(16px)" }], { duration: 160, easing: EASE.out });
+    anim(cur.scrim, [{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: EASE.out, delay: 120 });
+    await this.move(cur, cur.camera, "none", 560);
+    this.dispose(true);
+  },
+  /* Remove the view at once (no motion). `restore` hands focus back to the pack that was chosen. */
+  dispose(restore = false) {
+    const cur = this.current; if (!cur) return;
+    window.removeEventListener("keydown", cur.onKey, true);
+    for (const el of cur.world) { el.getAnimations().forEach((a) => a.cancel()); el.style.transform = ""; el.style.transformOrigin = ""; }
+    cur.page.style.overflowY = cur.overflow;
+    cur.source.style.visibility = ""; cur.root.remove(); this.current = null;
+    if (restore) cur.tile.focus({ preventScroll: true });
+  },
+};
+
 Pages.packs = {
   build() {
-    const root = h("div.page-in.packspage"), locked = false;
+    const root = h("div.page-in.packspage");
     root.append(PageHead("Packs", "Open one at random", h("span.quota", { "aria-live": "polite" }, h("b", "Welcome Pack"), ` ${S.packAvailable ? 0 : 1} of 1 today`, h("small", "resets at midnight · other packs open any time"))));
     const total = S.packs.reduce((a, p) => a + p.left.length, 0);
-    const items = [
-      ...S.packs.map((p) => ({ ...p, empty: !p.left.length })),
-    ];
-    root.append(h("p.muted.lede", "Opening a pack gives you one sticker, picked at random. The Welcome Pack opens once a day; packs you get from the Market or friends open any time, as often as you like."));
-    root.append(h("div.shelf", items.map((p, i) => this.pack(p, i, locked)), h("i.ledge")));
+    const items = S.packs.map((p) => ({ ...p, empty: !p.left.length }));
+    root.append(h("p.muted.lede", "Choose a pack to look closer, then open one sticker at a time or ten at once. Each is picked at random. The Welcome Pack opens once a day; packs you get from the Market or friends open any time."));
+    root.append(h("div.shelf", items.map((p, i) => this.pack(p, i)), h("i.ledge")));
     root.append(h("p.shelf-note.muted", total ? `${total} sticker${total === 1 ? "" : "s"} still sealed.` : "Every pack is open."));
     return root;
   },
-  pack(p, i, locked) {
-    const off = p.empty || !packOpenable(p), n = Math.min(3, p.left.length || 1);
-    const stack = h("div.pk-stack", Array.from({ length: n }, (_, k) => h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": k, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, k === n - 1 && (p.kind || "holo") === "holo" ? h("i.sheen") : null)));
-    const card = h("button.pack", { disabled: off, "aria-label": `${p.title}, ${p.left.length} left`, data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: () => { Snd.tap(); Cer.openPack(p); } } },
-      stack,
-      h("span.pack-tag", h("b.hand", p.title), h("small", `by ${p.by}${p.signatureStatus ? " ✓" : ""} · ${p.empty ? "all opened" : p.daily ? p.left.length + " of " + p.total + " left" : p.left.length + " left · " + p.total + " total"}`), p.fingerprint ? h("small", `${p.fingerprint}${p.signatureStatus==="new" ? " · New friend" : p.signatureStatus==="warning" ? " · Same name, different key" : ""}`) : null, h("small.rule", p.empty ? "" : p.daily ? (packsLeftToday() ? "once a day" : "back tomorrow") : "open any time")),
-      h("span.open-cta", { "aria-hidden": off ? "true" : null, style: { visibility: off ? "hidden" : "visible" } }, "Open one"));
-    if (!off) { onPointerFollow(card, (x, y, e, amount) => { stack.style.setProperty("--sx", lerp(30,(1-x)*100,amount)+"%"); stack.style.setProperty("--sy", lerp(30,(1-y)*100,amount)+"%"); }, () => { stack.style.setProperty("--sx", "30%"); stack.style.setProperty("--sy", "30%"); }); }
+  pack(p, i) {
+    const stack = h("div.pk-stack", h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, (p.kind || "holo") === "holo" ? h("i.sheen") : null), PackLabel(p));
+    const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
+      stack, h("span.pk-badge", p.empty ? "All opened" : `${p.left.length} left`));
+    onPointerFollow(card, (x, y, e, amount) => { stack.style.setProperty("--sx", lerp(30,(1-x)*100,amount)+"%"); stack.style.setProperty("--sy", lerp(30,(1-y)*100,amount)+"%"); }, () => { stack.style.setProperty("--sx", "30%"); stack.style.setProperty("--sy", "30%"); });
     return card;
+  },
+  /* The zoomed card: what is left, then the two ways to open. */
+  card(p) {
+    const left = p.left.length, many = Math.min(10, left), more = left >= 2 && !p.daily;
+    const rule = p.empty ? "Every sticker in this pack has been opened." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "Open any time, as often as you like.";
+    const blurb = MARKET_PACKS.find((m) => m.id === p.id)?.blurb;
+    const go = (fn) => () => { PackZoom.dispose(); fn(); };
+    const one = h("button.btn.mkz-act", { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
+    const ten = more ? h("button.btn.paper.mkz-act", { type: "button", on: { click: go(() => { Snd.tap(); Cer.openPackMany(p, many); }) } }, many === 10 ? "Open 10" : `Open all ${many}`) : null;
+    return h("aside.mkz-card", h("button.mkz-x", { type: "button", "aria-label": "Back to the shelf" }, "✕"),
+      h("p.eyebrow", `by ${p.by}${p.signatureStatus ? " ✓" : ""}`), h("h2", p.title), blurb ? h("p.mkz-blurb", blurb) : null,
+      p.fingerprint ? h("p.mkz-fp.muted", `${p.fingerprint}${p.signatureStatus === "new" ? " · New friend" : p.signatureStatus === "warning" ? " · Same name, different key" : ""}`) : null,
+      h("p.mkz-own", h("b", p.empty ? "All opened" : `${left} sealed`), ` · ${p.total - left} opened of ${p.total}`),
+      p.total <= 60 ? h("div.mkz-pips", { "aria-hidden": "true" }, Array.from({ length: p.total }, (_, i) => h("i" + (i < left ? "" : ".o")))) : null,
+      h("div.mkz-buy", h("p.mkz-rule", rule),
+        p.empty ? h("button.btn.mkz-act", { type: "button", on: { click: () => Shell.go("market") } }, "Find more in the Market") : [one, ten],
+        !p.empty && more ? h("small.muted", many === 10 ? "Ten at a time: one tear, ten stickers, all picked at random." : "All the rest in one go.") : null,
+        h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
   },
 };
 

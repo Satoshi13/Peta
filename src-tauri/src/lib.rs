@@ -139,6 +139,7 @@ pub fn run() {
             port_capture::port_capture_report,
             port_capture::port_capture_tray,
             haptic_tap,
+            app_window::window_vibrancy,
             developer_next_day,
             developer_sync_displays,
             arrival::developer_show_arrival,
@@ -158,6 +159,7 @@ pub fn run() {
             today::daily_stick_from_collection,
             creator::creator_begin_path,
             creator::creator_begin_bytes,
+            creator::creator_begin_clipboard,
             creator::creator_info,
             creator::creator_original,
             creator::creator_render,
@@ -198,10 +200,15 @@ pub fn run() {
             collection::scrap_trade,
             collection::profile_get,
             collection::profile_set_icon,
-            collection::profile_set
+            collection::profile_set,
+            collection::poster_save
         ])
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Destroyed) { layers::forget_reflection(window.app_handle(), window.label()); }
+            // The main window is transparent and rounded: its native shadow is recomputed whenever the shape changes.
+            if window.label() == app_window::APP_LABEL && matches!(event, tauri::WindowEvent::Resized(_)) {
+                if let Some(w) = window.app_handle().get_webview_window(app_window::APP_LABEL) { platform::invalidate_shadow(&w); }
+            }
             // closing the Cutting Mat with the window button is a cancel: nothing was spent
             if window.label() == app_window::APP_LABEL && matches!(event, tauri::WindowEvent::Destroyed) {
                 creator::clear(window.app_handle());
@@ -229,7 +236,7 @@ pub fn run() {
     app.run(|app, event| {
         #[cfg(any(target_os="macos",target_os="ios"))]
         if let tauri::RunEvent::Opened {urls}=&event {
-            for url in urls {if let Ok(path)=url.to_file_path(){gifts::open_external(app,&path);}}
+            for url in urls {if let Ok(path)=url.to_file_path(){if !creator::open_image_file(app,&path){gifts::open_external(app,&path);}}}
         }
         #[cfg(not(any(target_os="macos",target_os="ios")))]
         if matches!(event,tauri::RunEvent::Ready) {

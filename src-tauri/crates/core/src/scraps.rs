@@ -5,6 +5,8 @@ use crate::{error::{Error, Result}, pack};
 
 const BALANCE_KEY: &str = "scraps.balance";
 const MAX_SAFE_COUNT: i64 = 9_007_199_254_740_991;
+/// A pack never holds more than this many sealed stickers, so repeated purchases stay readable and in range.
+pub const MAX_SEALED_PER_PACK: i64 = 100;
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -96,7 +98,7 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
                 tx.execute("INSERT INTO packs(id,title,by_name,created_at) VALUES(?1,?2,?3,?4)", params![p.id,p.title,p.by,chrono::Utc::now().to_rfc3339()])?;
             }
             let left: i64 = tx.query_row("SELECT COUNT(*) FROM pack_items WHERE pack_id=?1 AND opened_at IS NULL", [&request.item_id], |r| r.get(0))?;
-            if left!=0 { return Err(invalid("Open the remaining stickers before refilling this pack.")); }
+            if left+p.keys.len() as i64>MAX_SEALED_PER_PACK { return Err(invalid("This pack already holds as many sealed stickers as it can.")); }
             for item in pack::market_pack(&request.item_id).unwrap().keys {
                 tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES(?1,?2)", params![request.item_id,item])?;
             }
@@ -183,21 +185,47 @@ mod tests {
         assert!(db.scrap_trade(&request(Kind::Material,"kraft",1),"no-funds").is_err());
         assert_eq!(db.material_count("kraft").unwrap(),0);assert_eq!(db.scrap_status().unwrap().balance,0);
     }
+    fn funded_by(extra: i64) -> Database {
+        let mut db=funded();
+        db.add_material("holographic",extra).unwrap();
+        db.scrap_trade(&request(Kind::Dismantle,"holographic",extra),"fund-more").unwrap();db
+    }
     #[test]
-    fn empty_packs_refill_without_overwriting_opened_history_or_welcome_allowance() {
-        let mut db=funded();pack::ensure_welcome_pack(&mut db).unwrap();
+    fn owned_packs_take_another_set_whether_or_not_stickers_are_left_and_keep_history_and_welcome_allowance() {
+        let mut db=funded_by(60);pack::ensure_welcome_pack(&mut db).unwrap();
+        let welcome=db.packs().unwrap().into_iter().find(|p|p.id=="welcome").unwrap().total;
         for (id,cost) in &PACKS[..3] {
-            let p=pack::market_pack(id).unwrap();let req=request(Kind::Pack,id,1);
+            let p=pack::market_pack(id).unwrap();let req=request(Kind::Pack,id,1);let n=p.keys.len() as i64;
             assert!(db.scrap_trade(&req,&format!("missing-{id}")).is_err());
-            db.pack_install(p.id,p.title,p.by,p.keys).unwrap();assert!(db.scrap_trade(&req,&format!("full-{id}")).is_err());
+            db.pack_install(p.id,p.title,p.by,p.keys).unwrap();
+            let before=db.scrap_status().unwrap().balance;
+            db.scrap_trade(&req,&format!("full-{id}")).unwrap();
+            assert_eq!(db.scrap_status().unwrap().balance,before-cost);
+            let row=db.packs().unwrap().into_iter().find(|p|p.id==*id).unwrap();assert_eq!((row.total,row.remaining),(n*2,n*2));
             while let Some((item,_))=db.pack_pick(id,0.0).unwrap() { db.pack_mark_opened(item,"old-sticker").unwrap(); }
             let before=db.scrap_status().unwrap().balance;
             db.scrap_trade(&req,&format!("refill-{id}")).unwrap();
             assert_eq!(db.scrap_status().unwrap().balance,before-cost);
-            let row=db.packs().unwrap().into_iter().find(|p|p.id==*id).unwrap();assert_eq!(row.total,p.keys.len() as i64*2);assert_eq!(row.remaining,p.keys.len() as i64);
+            let row=db.packs().unwrap().into_iter().find(|p|p.id==*id).unwrap();assert_eq!((row.total,row.remaining),(n*3,n));
             assert!(!db.pack_install(p.id,p.title,p.by,p.keys).unwrap());
         }
-        assert!(db.welcome_available("2026-10-04").unwrap());assert_eq!(db.packs().unwrap().iter().find(|p|p.id=="welcome").unwrap().total,12);
+        assert!(db.welcome_available("2026-10-04").unwrap());assert_eq!(db.packs().unwrap().iter().find(|p|p.id=="welcome").unwrap().total,welcome);
+    }
+    #[test]
+    fn a_pack_stops_taking_sets_at_the_sealed_cap_without_spending() {
+        let mut db=funded_by(60);
+        let p=pack::market_pack("plants").unwrap();let n=p.keys.len() as i64;db.pack_install(p.id,p.title,p.by,p.keys).unwrap();
+        // fill to exactly one set short of the cap, then the next purchase fits and the one after it does not
+        let target=MAX_SEALED_PER_PACK-n;
+        let have: i64=db.conn.query_row("SELECT COUNT(*) FROM pack_items WHERE pack_id='plants' AND opened_at IS NULL",[],|r|r.get(0)).unwrap();
+        for i in have..target { db.conn.execute("INSERT INTO pack_items(pack_id,item_key) VALUES('plants',?1)",[format!("extra-{i}")]).unwrap(); }
+        let req=request(Kind::Pack,"plants",1);
+        db.scrap_trade(&req,"fits").unwrap();
+        assert_eq!(db.packs().unwrap().into_iter().find(|p|p.id=="plants").unwrap().remaining,MAX_SEALED_PER_PACK);
+        let before=db.scrap_status().unwrap().balance;
+        assert!(db.scrap_trade(&req,"over-the-cap").is_err());
+        assert_eq!(db.scrap_status().unwrap().balance,before);
+        assert_eq!(db.packs().unwrap().into_iter().find(|p|p.id=="plants").unwrap().remaining,MAX_SEALED_PER_PACK);
     }
     #[test]
     fn paid_packs_are_installed_atomically_and_retries_do_not_add_items() {
@@ -211,7 +239,6 @@ mod tests {
             let p=pack::market_pack(id).unwrap();
             let row=db.packs().unwrap().into_iter().find(|p|p.id==*id).unwrap();
             assert_eq!((row.total,row.remaining),(p.keys.len() as i64,p.keys.len() as i64));
-            assert!(db.scrap_trade(&req,&format!("full-{id}")).is_err());
         }
     }
     #[test]

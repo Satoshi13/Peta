@@ -19,6 +19,6 @@ async function boot() {
   });
   document.addEventListener("visibilitychange", () => { if(document.hidden) Pages[S.page]?.suspend?.(); else Pages[S.page]?.resume?.(); });
   const page=new URLSearchParams(location.search).get('page') || 'today';
-  await Shell.open(page==='redeem' ? 'today' : page);if(page==='redeem') Distribution.redeem();if(S.packOffer)Distribution.offer(S.packOffer);
+  await Shell.open(page==='redeem' ? 'today' : page); requestAnimationFrame(() => requestAnimationFrame(() => Vibrancy.sync()));if(page==='redeem') Distribution.redeem();if(S.packOffer)Distribution.offer(S.packOffer);
 }
 boot().catch(e => { console.error(e); document.getElementById('toast').textContent=String(e); document.getElementById('toast').classList.add('on'); });

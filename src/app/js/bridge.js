@@ -74,7 +74,21 @@ async function resOf(entry) {
   return stickerResources.get(key);
 }
 // Desktop rendering and placement belong to the existing layer windows.
-const Desktop = { hideArrival() {}, async print(entry) { await Bridge.printAction("print_resume"); }, async later() { await Bridge.invoke('print_later'); }, };
+const Desktop = { hideArrival() {}, async print(...entries) { await Bridge.printAction("print_resume", { stickerIds: entries.flat().map(e => e?.id).filter(Boolean) }); }, async later() { await Bridge.invoke('print_later'); }, };
+
+/* The Studio sidebar is translucent on macOS: Rust shows a sidebar material behind the transparent web view.
+   The page only turns its own sidebar translucent once Rust says the material is really there. */
+const Vibrancy = (() => {
+  const lessTransparency = matchMedia('(prefers-reduced-transparency: reduce)');
+  async function sync() {
+    const want = S.shell === 'studio' && !lessTransparency.matches;
+    let shown = false;
+    try { shown = !!(await Bridge.invoke('window_vibrancy', { enabled: want })); } catch {}
+    document.documentElement.dataset.vibrancy = want && shown ? 'on' : 'off';
+  }
+  lessTransparency.addEventListener('change', sync);
+  return { sync };
+})();
 
 const Appearance = (() => {
   const media = matchMedia('(prefers-color-scheme: dark)');

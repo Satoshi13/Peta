@@ -34,6 +34,7 @@ pub fn apply_layer_mode(window: &WebviewWindow, mode: LayerMode) -> Result<(), S
         match mode {
             LayerMode::Resting => CGWindowLevelForKey(DESKTOP_WINDOW_LEVEL_KEY) as isize + 10,
             LayerMode::Editing => CGWindowLevelForKey(DESKTOP_ICON_WINDOW_LEVEL_KEY) as isize + 1,
+            LayerMode::Notice => CGWindowLevelForKey(DESKTOP_ICON_WINDOW_LEVEL_KEY) as isize + 2,
         }
     };
 
@@ -97,3 +98,75 @@ pub fn haptic(kind: &str) {
         }
     }
 }
+
+/// Main thread only. Shows or hides a "sidebar" material behind the transparent web view, so the page's translucent
+/// Studio sidebar picks up the desktop behind the window. The view is created on first use and only hidden afterwards.
+/// Returns whether the material is showing; `false` leaves the page opaque.
+pub fn set_sidebar_vibrancy(window: &WebviewWindow, enabled: bool, corner_radius: f64) -> bool {
+    if objc2::MainThreadMarker::new().is_none() { return false; }
+    invalidate_shadow(window);
+    let Some(class) = objc2::runtime::AnyClass::get(c"NSVisualEffectView") else { return false };
+    let ns_window = match window.ns_window() { Ok(w) => w as *mut AnyObject, Err(_) => return false };
+    if ns_window.is_null() { return false; }
+    unsafe {
+        let content: *mut AnyObject = msg_send![ns_window, contentView];
+        if content.is_null() { return false; }
+        let subviews: *mut AnyObject = msg_send![content, subviews];
+        let count: usize = if subviews.is_null() { 0 } else { msg_send![subviews, count] };
+        for i in 0..count {
+            let view: *mut AnyObject = msg_send![subviews, objectAtIndex: i];
+            let is_effect: Bool = msg_send![view, isKindOfClass: class];
+            if is_effect.as_bool() {
+                let _: () = msg_send![view, setHidden: Bool::new(!enabled)];
+                return enabled;
+            }
+        }
+        if !enabled { return false; }
+        let bounds: Frame = msg_send![content, bounds];
+        let alloc: *mut AnyObject = msg_send![class, alloc];
+        let view: *mut AnyObject = msg_send![alloc, initWithFrame: bounds];
+        if view.is_null() { return false; }
+        let _: () = msg_send![view, setMaterial: 7isize];          // NSVisualEffectMaterialSidebar
+        let _: () = msg_send![view, setBlendingMode: 0isize];      // behind the window
+        let _: () = msg_send![view, setState: 0isize];             // follows the window's active state
+        let _: () = msg_send![view, setAutoresizingMask: 18usize]; // width and height follow the window
+        let _: () = msg_send![view, setWantsLayer: Bool::YES];
+        let layer: *mut AnyObject = msg_send![view, layer];
+        if !layer.is_null() {
+            let _: () = msg_send![layer, setCornerRadius: corner_radius];
+            let _: () = msg_send![layer, setMasksToBounds: Bool::YES];
+        }
+        let none: *mut AnyObject = std::ptr::null_mut();
+        let _: () = msg_send![content, addSubview: view, positioned: -1isize, relativeTo: none]; // below the web view
+        let _: () = msg_send![view, release];
+        true
+    }
+}
+
+/// Main thread only. The picture on the general pasteboard (a screenshot or a copied image) as PNG or JPEG bytes, if any.
+/// TIFF-only pasteboards are skipped: the cutter reads PNG, JPEG and WebP.
+pub fn clipboard_image() -> Option<Vec<u8>> {
+    unsafe {
+        let board: *mut AnyObject = msg_send![objc2::class!(NSPasteboard), generalPasteboard];
+        if board.is_null() { return None; }
+        for uti in [c"public.png", c"public.jpeg"] {
+            let kind: *mut AnyObject = msg_send![objc2::class!(NSString), stringWithUTF8String: uti.as_ptr()];
+            let data: *mut AnyObject = msg_send![board, dataForType: kind];
+            if data.is_null() { continue; }
+            let len: usize = msg_send![data, length];
+            let bytes: *const u8 = msg_send![data, bytes];
+            if !bytes.is_null() && len > 0 { return Some(std::slice::from_raw_parts(bytes, len).to_vec()); }
+        }
+        None
+    }
+}
+
+/// Main thread only. A transparent window's shadow follows what was painted when it was computed (the rounded page),
+/// so ask AppKit to compute it again after the page has painted or the window changed size.
+pub fn invalidate_shadow(window: &WebviewWindow) {
+    let Ok(ns_window) = window.ns_window() else { return };
+    let ns_window = ns_window as *mut AnyObject;
+    if ns_window.is_null() { return; }
+    unsafe { let _: () = msg_send![ns_window, invalidateShadow]; }
+}
+

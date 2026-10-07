@@ -26,3 +26,6 @@ pub fn cursor_position() -> Option<super::coordinates::Point> { None }
 pub fn layer_frame(_window: &WebviewWindow) -> Option<super::coordinates::Frame> { None }
 
 pub fn haptic(_kind: &str) {}
+pub fn set_sidebar_vibrancy(_window: &WebviewWindow, _enabled: bool, _corner_radius: f64) -> bool { false }
+pub fn clipboard_image() -> Option<Vec<u8>> { None }
+pub fn invalidate_shadow(_window: &WebviewWindow) {}

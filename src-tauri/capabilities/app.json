@@ -18,6 +18,9 @@
     "allow-existing-app-commands",
     "allow-haptic-tap",
     "allow-profile-icon",
+    "allow-poster-save",
+    "allow-window-vibrancy",
+    "allow-clipboard-create",
     "allow-scrap-trades",
     "allow-signed-distribution",
     "allow-developer-tools"

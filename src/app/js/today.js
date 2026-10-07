@@ -35,14 +35,60 @@ Pages.today = {
     return root;
   },
   openedBlock() {
-    const m = MAT[S.todayMat];
-    return h("section.t-choose",
-      h("div.t-top", h("p.today-lead", "A new material arrives every day. Each sticker uses one sheet."), h("p.eyebrow.make-label", "Make a Peta"), Choices({hero:true})),
-      h("div.t-bottom",
-        h("div.t-mat", h("div.tm-card", MatCard(m, 120)),
-          h("div.tm-text", h("div.tm-heading", h("p.eyebrow", "Today's material"), h("small.addnote", "Added to your Materials")), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity))),
-          h("div.stock", Object.keys(S.stock).filter(id=>MAT[id] && !MAT[id].locked).map(id=>h("span.stock-pill", MaterialSwatch(MAT[id]), MAT[id].name, " ", h("b", MAT[id].unlimited ? "∞" : String(S.stock[id] || 0)))))),
-        h("div.t-stuck", h("div.stuck-heading", h("b", "Stuck today"), h("small.muted", `${S.stuckToday.length} on your desktop`)), StuckStrip())));
+    return h("section.t-choose.t-stage",
+      h("p.today-lead", "A new material arrives every day. Each sticker uses one sheet."),
+      Pages.today.stage(MAT[S.todayMat]),
+      h("p.eyebrow.make-label", "Other ways to get a Peta"), Choices({ more: true }));
+  },
+
+  /* Today's Peta gets the stage: an empty die-cut slot until something is stuck, then the sticker itself. */
+  stage(m) {
+    const entries = PetaMath.newestBookEntries(S.stuckToday.map((id) => S.lib.find((l) => l.id === id)).filter(Boolean));
+    const slot = h("div.t-slot", { data: { state: entries.length ? "stuck" : "empty" } });
+    if (entries.length) Pages.today.fillSlot(slot, entries);
+    else {
+      const die = h("div.t-die", { "aria-hidden": "true" });
+      die.innerHTML = '<svg viewBox="0 0 318 282"><path d="M60 40c40-34 126-30 170-6 44 24 70 74 58 128-12 54-62 88-130 88-70 0-128-26-140-82C8 114 20 72 60 40z"/></svg>';
+      slot.append(die, h("div.t-ghost", h("span.t-plus", "+"), h("b", "Today's Peta goes here"), h("small", "Make one from any image")));
+    }
+    const n = entries.length;
+    const info = h("div.t-info",
+      h("p.eyebrow", "Today's Peta"), h("h2.t-status", n ? (n === 1 ? "Stuck on your desktop" : `${n} stuck on your desktop`) : "Ready when you are"),
+      h("div.t-mat", h("div.tm-card", MatCard(m, 120)),
+        h("div.tm-text", h("div.tm-heading", h("p.eyebrow", "Today's material"), h("small.addnote", "Added to your Materials")), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)))),
+      Pages.today.streak(),
+      h("div.t-cta", h("button.btn.t-make", { on: { click: (e) => { Snd.tap(); Shell.go("create", { origin: e.currentTarget, via: "object" }); } } }, n ? "Make another" : "Make today's Peta")));
+    return h("div.t-hero", slot, info);
+  },
+  /* The last seven days as a row of dots: filled where something was stuck, today ringed. No counting up, no shame for gaps. */
+  streak() {
+    const days = PetaMath.recentDays(S.lib.map((e) => PetaMath.bookDateKey(e.date)), S.today), n = days.filter((d) => d.filled).length;
+    return h("div.t-chain", { role: "img", "aria-label": `${n} of the last 7 days` }, h("span.dots", days.map((d) => h("i", { class: (d.filled ? "f" : "") + (d.today ? " t" : "") }))), h("small", `${n} of the last 7 days`));
+  },
+  fillSlot(slot, entries) {
+    const wrap = h("div.t-landed"), stamp = h("span.datestamp.t-stamp", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" })), ripple = h("i.t-ripple");
+    const shown = entries.slice(0, 6), thumbs = h("div.t-others", { role: "group", "aria-label": "Stickers stuck today" });
+    const show = async (e, first) => {
+      const res = await resOf(e); if (!wrap.isConnected && !first) return;
+      wrap.replaceChildren(Stk.el(res, Math.min(280, res.aspect >= 1 ? 280 : 280 * res.aspect)));
+      Stk.tilt(wrap, { max: 5, scale: 1.015, trigger: slot });
+      $$(".t-thumb", thumbs).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.id === e.id)));
+    };
+    if (shown.length > 1) shown.forEach((e, i) => { const b = h("button.t-thumb", { data: { id: e.id }, "aria-pressed": String(i === 0), "aria-label": "Show " + titleOf(e), on: { click: () => { if (b.getAttribute("aria-pressed") === "true") return; Snd.tap(); show(e); } } }); resOf(e).then((res) => b.append(Stk.el(res, res.aspect >= 1 ? 40 : 40 * res.aspect))).catch(() => {}); thumbs.append(b); });
+    slot.append(wrap, ripple, stamp, shown.length > 1 ? thumbs : null);
+    let saved = null; try { saved = JSON.parse(localStorage.getItem("peta.landed") || "null"); } catch {}
+    const { fresh, next } = PetaMath.landingState(saved, PetaMath.bookDateKey(S.today), entries.map((e) => e.id));
+    try { localStorage.setItem("peta.landed", JSON.stringify(next)); } catch {}
+    const lands = fresh.includes(entries[0].id) && !reduced();
+    if (lands) { stamp.style.opacity = 0; wrap.style.opacity = 0; }
+    show(entries[0], true).then(async () => {
+      if (!lands) return;
+      const a = await anim(wrap, [{ opacity: 0, transform: "translateY(-70px) scale(1.14) rotate(-4deg)" }, { opacity: 1, transform: "translateY(0) scale(1.06) rotate(1deg)", offset: .6 }, { transform: "scale(.975)", offset: .82 }, { opacity: 1, transform: "none" }], { duration: 760, easing: EASE.out });
+      a.cancel(); wrap.style.opacity = "";
+      anim(ripple, [{ opacity: .45, transform: "translate(-50%,-50%) scale(.4)" }, { opacity: 0, transform: "translate(-50%,-50%) scale(1.9)" }], { duration: 560, easing: EASE.out });
+      const s = await anim(stamp, [{ opacity: 0, transform: "rotate(-6deg) scale(1.8)" }, { opacity: .92, transform: "rotate(-3deg) scale(.95)", offset: .6 }, { opacity: .92, transform: "rotate(-3deg) scale(1)" }], { duration: 340, easing: EASE.spring });
+      s.cancel(); stamp.style.opacity = "";
+    }).catch((err) => Shell.toast(String(err)));
   },
 
   /* One envelope releases the actual material card; Keep settles it into Today. */

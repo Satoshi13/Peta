@@ -130,6 +130,7 @@ const Shell = (() => {
     await Bridge.reload();
     win().hidden = false; S.windowOpen = true; renderNav();
     await go(id || S.page, { ...o, instant: true, force: true });
+    requestAnimationFrame(() => Vibrancy.sync());
   }
   async function close() { S.windowOpen = false; Pages[S.page]?.suspend?.(); await Bridge.window.hide(); }
   function initChrome() {
@@ -148,7 +149,7 @@ const Shell = (() => {
   }
   function setShell(name) {
     if (!["studio", "desk"].includes(name)) return;
-    S.shell = name; document.body.dataset.shell = name; Bridge.savePreferences();
+    S.shell = name; document.body.dataset.shell = name; Bridge.savePreferences(); Vibrancy.sync();
   }
   return { applyAssetVars, toast, renderNav, go, refresh, open, close, initChrome, setShell, get current() { return current; } };
 })();

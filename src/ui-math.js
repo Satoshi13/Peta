@@ -59,3 +59,39 @@ export function navShortcut(event, {input=false, dialog=false, busy=false, cerem
 export function resolveTheme(pref, systemDark) {
   return pref === 'night' || pref === 'auto' && systemDark ? 'night' : 'day';
 }
+
+/** Which of today's stickers have not landed on the Today stage yet. `saved` is the last stored record. */
+export function landingState(saved, dateKey, ids) {
+  const seen = saved && saved.date === dateKey && Array.isArray(saved.ids) ? saved.ids : [];
+  return {fresh:ids.filter(id => !seen.includes(id)), next:{date:dateKey, ids:[...new Set([...seen, ...ids])].slice(-24)}};
+}
+
+/** Geometry of the month poster the Collection can save as a PNG (all values in image pixels). */
+export function posterLayout(offset, days, {width = 1600, margin = 96, headerH = 330, weekdayH = 64, cellH = 224, footerH = 150} = {}) {
+  const rows = Math.ceil((offset + days) / 7), cellW = (width - margin * 2) / 7, gridTop = headerH + weekdayH;
+  const cell = day => { const i = offset + day - 1; return {x:margin + i % 7 * cellW, y:gridTop + Math.floor(i / 7) * cellH, w:cellW, h:cellH}; };
+  return {width, height:gridTop + rows * cellH + footerH, rows, cellW, cellH, margin, gridTop, cell};
+}
+export function fitInside(w, h, boxW, boxH) {
+  const k = Math.min(boxW / w, boxH / h);
+  return {w:w * k, h:h * k};
+}
+
+/** Bounding box of the visible pixels in RGBA data (alpha above `threshold`), or null when nothing is visible. */
+export function alphaBounds(rgba, width, height, threshold = 16) {
+  let x0 = width, y0 = height, x1 = -1, y1 = -1;
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    if (rgba[(y * width + x) * 4 + 3] > threshold) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  }
+  return x1 < 0 ? null : {x:x0, y:y0, w:x1 - x0 + 1, h:y1 - y0 + 1};
+}
+
+/** The last `count` local days ending today (oldest first), each marked when something was stuck on it. */
+export function recentDays(stuckDates, today, count = 7) {
+  const stuck = new Set(stuckDates);
+  return Array.from({length:count}, (_, i) => {
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (count - 1 - i), 12), key = bookDateKey(date);
+    return {key, filled:stuck.has(key), today:i === count - 1};
+  });
+}
+

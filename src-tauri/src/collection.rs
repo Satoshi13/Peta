@@ -6,7 +6,8 @@ use peta_core::{
     book, materials, BookEntry, Material, MonthIndex, StickerBack,
 };
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, State, WebviewWindow};
+use tauri_plugin_dialog::DialogExt;
 
 use crate::{store::Store};
 
@@ -117,4 +118,60 @@ pub fn profile_set_icon(app: AppHandle, store: State<Store>, sticker_id: Option<
 pub fn profile_set(store: State<Store>, display_name: String) -> Result<Profile, String> {
     store.lock().db_mut().set_display_name(&display_name).map_err(|e| e.to_string())?;
     profile_get(store)
+}
+
+const PNG_SIGNATURE: [u8; 8] = [0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A];
+const POSTER_MAX_BYTES: usize = 24 * 1024 * 1024;
+
+/// A file name for the save panel: letters, digits, spaces, `-` and `_` only, never empty.
+fn poster_file_name(name: &str) -> String {
+    let stem: String = name.chars().filter(|c| c.is_ascii_alphanumeric() || matches!(c, ' ' | '-' | '_')).take(60).collect();
+    let stem = stem.trim();
+    format!("{}.png", if stem.is_empty() { "Peta poster" } else { stem })
+}
+
+/// Save a month poster that the page drew. Rust only checks that it is a PNG of sane size and writes it
+/// where the person picks; cancelling the panel writes nothing and uses nothing up.
+#[tauri::command]
+pub async fn poster_save(window: WebviewWindow, app: AppHandle, name: String, png: Vec<u8>) -> Result<Option<String>, String> {
+    if png.len() > POSTER_MAX_BYTES || !png.starts_with(&PNG_SIGNATURE) {
+        return Err("The poster picture could not be saved.".into());
+    }
+    let Some(path) = app.dialog().file().set_parent(&window).add_filter("PNG image", &["png"]).set_file_name(poster_file_name(&name)).blocking_save_file().and_then(|p| p.into_path().ok()) else {
+        return Ok(None);
+    };
+    // Write a complete file next to the target first, so a failed write never damages an existing picture.
+    use std::io::Write;
+    let temp = path.with_file_name(format!(".peta-{}.tmp", peta_core::ids::new_gift_id()));
+    let saved = (|| -> std::io::Result<()> {
+        let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(&temp)?;
+        file.write_all(&png)?;
+        file.sync_all()?;
+        std::fs::rename(&temp, &path)
+    })();
+    if let Err(error) = saved {
+        let _ = std::fs::remove_file(&temp);
+        return Err(format!("Could not save the poster: {error}"));
+    }
+    Ok(Some(path.display().to_string()))
+}
+
+#[cfg(test)]
+mod poster_tests {
+    use super::*;
+
+    #[test]
+    fn poster_names_are_safe_and_never_empty() {
+        assert_eq!(poster_file_name("Peta October 2026"), "Peta October 2026.png");
+        assert_eq!(poster_file_name("../../etc/passwd"), "etcpasswd.png");
+        assert_eq!(poster_file_name("   "), "Peta poster.png");
+        assert_eq!(poster_file_name("日本語"), "Peta poster.png");
+        assert!(poster_file_name(&"a".repeat(200)).len() <= 64);
+    }
+
+    #[test]
+    fn only_png_signatures_pass() {
+        assert!([0x89u8, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A, 0].starts_with(&PNG_SIGNATURE));
+        assert!(!b"GIF89a".starts_with(&PNG_SIGNATURE));
+    }
 }
