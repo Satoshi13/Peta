@@ -122,13 +122,30 @@ Pages.packs = {
     const total = S.packs.reduce((a, p) => a + p.left.length, 0);
     const items = S.packs.map((p) => ({ ...p, empty: !p.left.length }));
     root.append(h("p.muted.lede", "Choose a pack to look closer, then open one sticker at a time or ten at once. Each is picked at random. The Welcome Pack opens once a day; packs you get from the Market or friends open any time."));
-    root.append(h("div.shelf", items.map((p, i) => this.pack(p, i)), h("i.ledge")));
+    root.append(this.shelf(items));
     root.append(h("p.shelf-note.muted", total ? `${total} sticker${total === 1 ? "" : "s"} still sealed.` : "Every pack is open."));
     return root;
   },
+  /* The pouches stand on shelf boards, as many to a row as fit; every row gets its own board. The cards are kept and only moved between rows,
+     so listeners, focus and the zoom's references survive a resize. */
+  shelf(items) {
+    const GAP = 22, CELL = 192, cards = items.map((p, i) => this.pack(p, i)), shelf = h("div.shelf");
+    let cols = 0;
+    const place = (n) => {
+      if (n === cols) return; cols = n;
+      const rows = []; for (let i = 0; i < cards.length; i += n) rows.push(h("div.shelf-row", cards.slice(i, i + n), h("i.ledge")));
+      shelf.replaceChildren(...rows);
+    };
+    place(3);
+    new ResizeObserver(() => {
+      if (!shelf.clientWidth || PackZoom.active) return;
+      place(Math.max(1, Math.floor((shelf.clientWidth + GAP) / (CELL + GAP))));
+    }).observe(shelf);
+    return shelf;
+  },
   pack(p, i) {
     const stack = h("div.pk-stack", {data:{empty:p.empty}}, h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, (p.kind || "holo") === "holo" ? h("i.sheen") : null), PackLabel(p),
-      h("span.pk-badge", `${p.left.length} left`));
+      h("span.pk-count", { "aria-hidden": "true" }, `${p.left.length} left`));
     const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
       stack);
     onPointerFollow(card, (x, y, e, amount) => { stack.style.setProperty("--sx", lerp(30,(1-x)*100,amount)+"%"); stack.style.setProperty("--sy", lerp(30,(1-y)*100,amount)+"%"); }, () => { stack.style.setProperty("--sx", "30%"); stack.style.setProperty("--sy", "30%"); });

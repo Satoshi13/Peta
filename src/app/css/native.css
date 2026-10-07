@@ -818,3 +818,13 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .cer-caption { position:absolute; left:50%; z-index:9; white-space:nowrap; pointer-events:none; text-shadow:0 1px 8px rgba(40,25,10,.5); font:500 21px/1.4 var(--hand); transform:translateX(-50%) rotate(-3deg); }
 
 .cer[data-skipped="true"] .spark { visibility:hidden; }
+
+/* Packs shelf: each pouch stands on its board with its count written above it, like a label pencilled on the shelf.
+   Rows are built in js (Pages.packs.shelf); every row has its own board. */
+.shelf { display:block; padding:6px 0 0; margin-top:6px; }
+.shelf-row { position:relative; display:flex; justify-content:center; align-items:flex-end; gap:22px; margin-bottom:34px; }
+.shelf-row .ledge { z-index:0; bottom:-17px; }
+.shelf-row .pack::after { bottom:-2px; left:14%; right:14%; opacity:.9; }
+.shelf .pack { display:grid; grid-template-rows:224px; padding:44px 0 0; }
+.pk-count { position:absolute; left:0; right:0; top:-15cqw; z-index:7; text-align:center; font:600 13.5cqw/1 var(--hand); letter-spacing:.02em; color:#625b50; pointer-events:none; white-space:nowrap; }
+.pack[data-empty="true"] .pk-count, .pk-stack[data-empty="true"] .pk-count { color:var(--muted); opacity:.7; }
