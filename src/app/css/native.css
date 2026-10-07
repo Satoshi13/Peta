@@ -826,5 +826,7 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .shelf-row .ledge { z-index:0; bottom:-17px; }
 .shelf-row .pack::after { bottom:-2px; left:14%; right:14%; opacity:.9; }
 .shelf .pack { display:grid; grid-template-rows:224px; padding:44px 0 0; }
-.pk-count { position:absolute; left:0; right:0; top:10px; text-align:center; font:300 28px/1 "Kalam","Bradley Hand","Segoe Print",var(--hand),cursive; letter-spacing:.1em; color:#55514a; opacity:.9; mix-blend-mode:multiply; text-shadow:none; filter:none; pointer-events:none; white-space:nowrap; }
+.pk-count { position:absolute; left:0; right:0; top:16px; text-align:center; font:400 26px/1 "Kalam","Bradley Hand","Segoe Print",var(--hand),cursive; letter-spacing:.03em; word-spacing:.28em; color:#57534c; opacity:.94; mix-blend-mode:multiply; text-shadow:none; filter:none; pointer-events:none; white-space:nowrap; }
 .pack[data-empty="true"] .pk-count { opacity:.45; }
+
+.shelf-note { font:400 14px/1.4 var(--sys); color:#5f5a52; margin-top:6px; }
