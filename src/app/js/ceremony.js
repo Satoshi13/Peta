@@ -294,12 +294,12 @@ const Cer = (() => {
     await anim(env, [{ transform: "none", opacity: 1 }, { transform: "translateY(-260px) rotate(-5deg) scale(.9)", opacity: 0 }], { duration: 900, easing: "cubic-bezier(.5,0,.9,.4)" });
     await cer.close(); Shell.toast(`Saved “${to}.peta” — your own sticker stays in the Collection.`);
   }
-  async function openPack(pack) {
-    if (!packOpenable(pack)) return;
+  async function openPack(pack, { free = false } = {}) {
+    if (free ? !packHasFreeOpening(pack) : !packOpenable(pack)) return;
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
     const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null;
     const rig = buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, onTear: async (rig) => {
-      try { Bridge.busy = true; const opened=await Bridge.invoke("pack_open", {packId:pack.id}); entry=await Bridge.entry(opened.stickerId); entry.rarity=opened.rarity; entry.title=opened.name || entry.title; pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
+      try { Bridge.busy = true; const opened=await Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id}); entry=await Bridge.entry(opened.stickerId); entry.rarity=opened.rarity; entry.title=opened.name || entry.title; pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
       await anim(sleeve, [{ transform: sleeve.style.transform }, { transform: `translateY(${-rig.PH * .3}px) rotate(-1.5deg)` }], { duration: 760, easing: EASE.out });
       fix(sleeve, `translateY(${-rig.PH * .3}px) rotate(-1.5deg)`); sleeve.classList.add("out"); cer.hint("Pull it out.");

@@ -141,6 +141,15 @@ impl Library {
         Ok(())
     }
 
+    /// Clean up a prepared copy after its free-opening transaction failed.
+    pub fn discard_unconfirmed_pack(&mut self, id: &str) -> Result<()> {
+        self.db.discard_unconfirmed_pack(id)?;
+        if id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+            let _ = fs::remove_dir_all(self.assets_dir.join("stickers").join(id));
+        }
+        Ok(())
+    }
+
     /// Store a sticker that came out of a pack: its maker is the pack's author, and the back says which pack.
     pub fn add_from_pack(
         &mut self,

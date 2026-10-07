@@ -1,6 +1,6 @@
 # 2026-10-07 UI修正レポート
 
-追加フィードバックでパック詳細のボタン寸法とナビ操作を修正した。Cのナビ隔離については[末尾の追記](#追加フィードバック-パック詳細)が現行の動作。
+追加フィードバックでパック詳細のボタン寸法とナビ操作を修正した。Cのナビ隔離については[追加フィードバック](#追加フィードバック-パック詳細)が現行の動作。その後の依頼による無料開封・グレー表示・残数バッジは末尾の「無料開封と袋の表示」に記録する。
 
 `claude/relaxed-dijkstra-ocnjzu` の指定コミット `27f58c1` を取得し、作業ブランチ `codex/ui-fixes-oct07` で起動時の印刷バグ、A〜Fを順番に実装した。依頼書・最新のREADME／決定事項／tokens／macOSチェックリストと、`docs/ui-proposals/feedback-2026-10-07/` の4枚を参照した。開始時の作業ツリーはクリーン。
 
@@ -102,7 +102,7 @@ python3 scripts/ui-fixes-oct07-review.py a after
 npm test
 ```
 
-## 最終確認と未確認事項
+## 初回A〜Fの最終確認と未確認事項
 
 最終の`npm test`は58件成功、0失敗。[出力](port-spec/compare/review-15/oct07-final-npm-test.txt)を保存した。JS回帰テストのほか、各項目のブラウザ確認はすべて成功。`git diff --check`も成功し、`src/art/`・プロトタイプ・core・DB・Cargo.lockに差分はない。
 
@@ -120,7 +120,7 @@ Rustコアの`cargo test --manifest-path src-tauri/Cargo.toml -p peta-core --off
 
 4構成で、寄る途中（100ms）・静止後のナビクリック、ナビのEnter、同じPacksの選択、Marketからの移動、Reduce motionを確認。Tabは詳細とナビを循環し、矢印・PageUp/Down・Home/End・⌘1／⌘7は棚を動かさない。Escの元の袋への復帰・例外時の解除も確認した。先のC節は初回修正時の記録で、この追記と新しい決定表の行がナビに関する方針を更新する。
 
-丸は1個が1枚分の枚数表示。黒は未開封、薄い丸は開封済み。提示画像の12個は「3枚未開封・9枚開封済み」で、レア度・絵柄・個々のステッカーの位置を表していない。既存の数字と同じ枚数を描き、60枚以下のパックにだけ表示する。今回は仕様の説明を求められたため丸の表示自体は変更していない。
+この修正時点の丸は1個が1枚分の枚数表示で、黒は未開封、薄い丸は開封済みだった。提示画像の12個は「3枚未開封・9枚開封済み」。その後のオーナー指示により、以下の無料開封の進捗表示へ変更した。
 
 比較画像はreview-15の`<shell>-<width>-pack-feedback-before.png`／`pack-feedback-after.png`。beforeは`df2b302`。
 
@@ -130,3 +130,39 @@ Rustコアの`cargo test --manifest-path src-tauri/Cargo.toml -p peta-core --off
 - [再現スクリプト](../scripts/ui-fixes-oct07-pack-feedback.py): `python3 scripts/ui-fixes-oct07-pack-feedback.py after`
 
 最終`npm test`は58件成功、0失敗。ブラウザ確認は実際のsrc UI＋IPC fixtureで、macOS実機・VoiceOverはチェックリストに未確認として残す。
+
+## 無料開封と袋の表示
+
+オーナーの回答「パック別に10枚ごとに追加1枚」に従い、通常の開封が10枚に達するたびに、そのパックの絵柄からランダムに追加1枚を受け取れるようにした。無料コピーは通常残数を減らさず、進捗にも数えない。まとめ開けは既存の1枚ずつの開封処理の成功数を数える。Welcomeの通常開封は引き続き1日1回で、獲得した無料分は別枠。
+
+既存の開封履歴を基に付与数を計算し、無料分の受取レシートを既存のmetaへ保存する。無料コピー用の開封済みpack_itemsは通常の総数・残数・進捗から除外するため、追加購入や開発者版の補充後もカウントを保てる。DB v8のままでマイグレーションは不要。受取レシート・署名付きパックの絵柄情報・Book履歴・印刷待ちは1取引で確定する。失敗時は無料分を保持し、作成途中のコピーとファイルを片付ける。
+
+10個の丸は開封進捗を表示し、満タンではOpen freeと未受取数を出す。通常残数はN openings leftに分けた。未受取分をすべて受け取ると次の10枚への端数に戻る（例えば12枚開封済みなら2／10）。未受取分・端数は再起動後も保持する。空袋も無料分が残っていれば受け取れるので、TodayのPack入口を利用可能にした。無料分も通常と同じ儀式で、袋を切るまでコマンドを実行しない。印刷はStick／Laterの既存選択を使う。
+
+空袋のグレーと札のopacityはpk-stack自身の状態へ引き継ぎ、複製でも維持する。N leftはpk-stackの中へ移し、袋と同じ変換で拡大・縮小する。位置も袋の足元へ寄せ、バッジだけが背景の世界へ取り残される原因を除いた。サイズと位置は袋の幅に比例させ、最終サイズで描画する。
+
+### 検証
+
+- Rustコア: 通常版132件（単体127＋統合5）、developer版133件（単体128＋統合5）が成功。10枚の境界・パック別の独立性・重複受取防止・通常残数維持・再起動・署名付き絵柄とレア度・取引失敗の巻き戻し・安全な途中コピーの削除を含む。
+- 開封コマンド: [実コードを使うハーネス](../tests/pack-rewards-runtime.rs)で5件成功。実SQLiteと実画像ファイルを使い、pack_status／pack_open／pack_open_freeの処理を実行。画像取得失敗とDB確定失敗で無料分を失わず、後者では途中コピーとファイルを削除して再試行できた。Tauriの状態・アセット取得・spawn_blockingだけを置き換え、ネイティブIPCやOS窓は動かしていない。
+- JS: 実際の儀式関数のテストを3件追加。空のWelcomeで無料分を受け取れること、切る前のIPCがないこと、通常の日次条件と無料分の獲得条件、失敗時のbusy解除を確認。最終npm testは61件成功、0失敗。
+- ブラウザ: 実際のsrc UI＋IPC fixture、DPR2、Studio／Desk・1060×700／720×520の4構成。進捗3／9／10、受取後の端数2、空袋の未受取2→1→0の計28状態を確認。Open free／Open one／Open all 4の3ボタンも幅が一致し、高さ40 CSS pxで最小窓でも操作可能。袋とバッジの相対位置・寸法を開始時とズーム途中・静止後・戻りで測定。グレー・札の薄さ、ナビ操作とReduce motionも確認。[測定結果](port-spec/compare/review-15/pack-rewards-after.json)
+
+| 画面 | 通常残数2＋無料分1 | グレーの空袋＋無料分1 |
+|---|---|---|
+| Studio 1060 | [画像](port-spec/compare/review-15/studio-1060-pack-rewards-ready.png) | [画像](port-spec/compare/review-15/studio-1060-pack-rewards-empty.png) |
+| Studio 720 | [画像](port-spec/compare/review-15/studio-720-pack-rewards-ready.png) | [画像](port-spec/compare/review-15/studio-720-pack-rewards-empty.png) |
+| Desk 1060 | [画像](port-spec/compare/review-15/desk-1060-pack-rewards-ready.png) | [画像](port-spec/compare/review-15/desk-1060-pack-rewards-empty.png) |
+| Desk 720 | [画像](port-spec/compare/review-15/desk-720-pack-rewards-ready.png) | [画像](port-spec/compare/review-15/desk-720-pack-rewards-empty.png) |
+
+```sh
+cargo test --manifest-path src-tauri/Cargo.toml -p peta-core --offline
+cargo test --manifest-path src-tauri/Cargo.toml -p peta-core --features developer --offline
+python3 scripts/check-pack-rewards-runtime.py
+python3 scripts/ui-fixes-oct07-pack-rewards.py
+npm test
+```
+
+出力はreview-15の`pack-rewards-core-tests.txt`／`pack-rewards-developer-tests.txt`／`pack-rewards-runtime-tests.txt`／`pack-rewards-final-npm-test.txt`へ保存した。ネイティブ全体のcargo checkは再確認したが、このLinux環境のglib-2.0.pc不足で停止。Tauri本体のビルド・macOS WKWebView・VoiceOver・Retina実機・実際の再起動と印刷は未確認のままチェックリストへ追記した。
+
+ローカルでは`codex/ui-fixes-oct07`を取得・更新し、通常版は`npm run dev`、開発者版は`npm run dev:developer`で起動する。無料分の進捗を確認する場合、通常版と開発者版はデータの保存先が別である点に注意。

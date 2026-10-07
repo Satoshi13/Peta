@@ -40,3 +40,4 @@ const dayLabel = () => fmtDate(S.today, { weekday:"short", month:"short", day:"n
 const PACK_SEALED_CAP = 100;
 const packsLeftToday = () => S.packAvailable ? 1 : 0;
 const packOpenable = p => p.left.length > 0 && (!p.daily || S.packAvailable);
+const packHasFreeOpening = p => (p.freeOpenings || 0) > 0;

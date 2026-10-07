@@ -36,12 +36,12 @@ const CHOICES = [
   { id: "create", key: "chCreate", label: "Create", sub: "From an image you pick" },
   { id: "book", key: "chCollection", label: "Collection", sub: "Stick one you already have" },
   { id: "gifts", key: "chGift", label: "Gift", sub: () => { const n = S.gifts.filter((g) => !g.opened).length; return n ? `${n} waiting` : "Open one that arrived"; } },
-  { id: "packs", key: "chPack", label: "Pack", sub: () => { const n = S.packs.filter(packOpenable).length; return n ? "Open one at random" : S.packs.some((p) => p.left.length) ? "Welcome Pack: back tomorrow" : "All opened"; } },
+  { id: "packs", key: "chPack", label: "Pack", sub: () => { const n = S.packs.filter(p=>packOpenable(p) || packHasFreeOpening(p)).length; return n ? "Open one at random" : S.packs.some((p) => p.left.length) ? "Welcome Pack: back tomorrow" : "All opened"; } },
 ];
 function Choices({ compact, hero = false, more = false } = {}) {
   const list = more ? CHOICES.filter((c) => c.id !== "create") : CHOICES;
   return h("div.choices" + (compact ? ".compact" : hero ? ".featured" : more ? ".more" : ""), list.map((c, i) => {
-    const sub = typeof c.sub === "function" ? c.sub() : c.sub, off = c.id === "packs" && !S.packs.some(packOpenable);
+    const sub = typeof c.sub === "function" ? c.sub() : c.sub, off = c.id === "packs" && !S.packs.some(p=>packOpenable(p) || packHasFreeOpening(p));
     return h("button.choice" + (hero && c.id === "create" ? ".hero" : ""), { disabled: off, style: { "--i": i }, data: { id: c.id },
       on: { click: (e) => { Snd.tap(); if (c.id === "book") S.pickMode = true; Shell.go(c.id, { origin: e.currentTarget, via: "object" }); } } },
       hero && c.id === "create" ? h("span.choice-copy", h("b", "Create"), h("small", "Turn any image into a sticker, cut out on the mat."), h("span.btn.small.choice-cta", "Choose image")) : null,

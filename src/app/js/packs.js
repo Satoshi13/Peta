@@ -127,27 +127,32 @@ Pages.packs = {
     return root;
   },
   pack(p, i) {
-    const stack = h("div.pk-stack", h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, (p.kind || "holo") === "holo" ? h("i.sheen") : null), PackLabel(p));
+    const stack = h("div.pk-stack", {data:{empty:p.empty}}, h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, (p.kind || "holo") === "holo" ? h("i.sheen") : null), PackLabel(p),
+      h("span.pk-badge", `${p.left.length} left`));
     const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
-      stack, h("span.pk-badge", p.empty ? "All opened" : `${p.left.length} left`));
+      stack);
     onPointerFollow(card, (x, y, e, amount) => { stack.style.setProperty("--sx", lerp(30,(1-x)*100,amount)+"%"); stack.style.setProperty("--sy", lerp(30,(1-y)*100,amount)+"%"); }, () => { stack.style.setProperty("--sx", "30%"); stack.style.setProperty("--sy", "30%"); });
     return card;
   },
   /* The zoomed card: what is left, then the two ways to open. */
   card(p) {
     const left = p.left.length, many = Math.min(10, left), more = left >= 2 && !p.daily;
-    const rule = p.empty ? "Every sticker in this pack has been opened." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "Open any time, as often as you like.";
+    const available = p.freeOpenings || 0, progress = available ? 10 : Math.max(0, p.total - left) % 10;
+    const rule = p.empty ? "No regular openings left." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "Open any time, as often as you like.";
     const blurb = MARKET_PACKS.find((m) => m.id === p.id)?.blurb;
     const go = (fn) => () => { PackZoom.dispose(); fn(); };
-    const one = h("button.btn.mkz-act", { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
+    const one = h("button.btn.mkz-act" + (available ? ".paper" : ""), { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
+    const free = available ? h("button.btn.mkz-act", {type:"button",on:{click:go(()=>{Snd.tap();Cer.openPack(p,{free:true});})}}, "Open free") : null;
     const ten = more ? h("button.btn.paper.mkz-act", { type: "button", on: { click: go(() => { Snd.tap(); Cer.openPackMany(p, many); }) } }, many === 10 ? "Open 10" : `Open all ${many}`) : null;
     return h("aside.mkz-card", h("button.mkz-x", { type: "button", "aria-label": "Back to the shelf" }, "✕"),
       h("p.eyebrow", `by ${p.by}${p.signatureStatus ? " ✓" : ""}`), h("h2", p.title), blurb ? h("p.mkz-blurb", blurb) : null,
       p.fingerprint ? h("p.mkz-fp.muted", `${p.fingerprint}${p.signatureStatus === "new" ? " · New friend" : p.signatureStatus === "warning" ? " · Same name, different key" : ""}`) : null,
-      h("p.mkz-own", h("b", p.empty ? "All opened" : `${left} sealed`), ` · ${p.total - left} opened of ${p.total}`),
-      p.total <= 60 ? h("div.mkz-pips", { "aria-hidden": "true" }, Array.from({ length: p.total }, (_, i) => h("i" + (i < left ? "" : ".o")))) : null,
+      h("p.mkz-own", h("b", `${left} ${left === 1 ? "opening" : "openings"} left`)),
+      h("div.mkz-reward", h("p.small.muted", available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} / 10 toward a free opening`),
+        h("div.mkz-pips", {role:"progressbar","aria-label":"Free opening progress","aria-valuemin":0,"aria-valuemax":10,"aria-valuenow":progress,"aria-valuetext":available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} of 10 openings`}, Array.from({length:10}, (_, i) => h("i" + (i < progress ? "" : ".o"))))),
       h("div.mkz-buy", h("p.mkz-rule", rule),
-        p.empty ? h("button.btn.mkz-act", { type: "button", on: { click: () => Shell.go("market") } }, "Find more in the Market") : [one, ten],
+        free,
+        p.empty ? (available ? null : h("button.btn.mkz-act", { type: "button", on: { click: () => Shell.go("market") } }, "Find more in the Market")) : [one, ten],
         !p.empty && more ? h("small.muted", many === 10 ? "Ten at a time: one tear, ten stickers, all picked at random." : "All the rest in one go.") : null,
         h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
   },

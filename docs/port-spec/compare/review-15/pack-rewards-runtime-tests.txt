@@ -1,0 +1,22 @@
+    Blocking waiting for file lock on artifact directory
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 23.84s
+warning: function `pack_install_demo` is never used
+   --> tests/../src-tauri/src/packs.rs:105:8
+    |
+105 | pub fn pack_install_demo(app: AppHandle, pack_id: String) -> Result<(), String> {
+    |        ^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: 1 warning emitted
+
+
+running 5 tests
+test exhausted_pack_and_unspent_daily_allowance_both_work_with_a_bonus ... ok
+test asset_failure_preserves_credit_and_creates_no_copy ... ok
+test normal_command_still_obeys_welcome_limit_and_does_not_spend_a_bonus ... ok
+test free_command_adds_a_real_copy_and_queue_entry_without_spending_stock_or_welcome_quota ... ok
+test transaction_failure_preserves_credit_and_removes_prepared_copy_and_assets ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

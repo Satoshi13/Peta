@@ -190,6 +190,7 @@ pub fn run() {
             packs::pack_install_demo,
             packs::pack_status,
             packs::pack_open,
+            packs::pack_open_free,
             print::print_resume,
             print::print_pending,
             print::print_paste,

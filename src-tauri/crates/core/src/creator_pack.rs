@@ -114,6 +114,14 @@ pub fn pick(db:&crate::Database,pack_id:&str,grade_roll:f64,item_roll:f64)->Resu
     let rarities:Vec<_>=items.iter().map(|i|i.2.as_str()).collect();Ok(weighted_index(&rarities,grade_roll,item_roll).map(|i|(items[i].0,items[i].1.clone())))
 }
 
+/// A bonus draws from the pack's original designs, including exhausted ones, without spending stock.
+pub fn pick_bonus(db:&crate::Database,pack_id:&str,grade_roll:f64,item_roll:f64)->Result<Option<(i64,String)>> {
+    let mut stmt=db.conn.prepare("SELECT MIN(i.id),i.item_key,COALESCE(s.rarity,'common') FROM pack_items i LEFT JOIN signed_pack_items s ON s.item_id=i.id WHERE i.pack_id=?1 GROUP BY i.item_key ORDER BY MIN(i.id)")?;
+    let items=stmt.query_map([pack_id],|r|Ok((r.get::<_,i64>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?)))?.collect::<std::result::Result<Vec<_>,_>>()?;
+    let rarities:Vec<_>=items.iter().map(|i|i.2.as_str()).collect();
+    Ok(weighted_index(&rarities,grade_roll,item_roll).map(|i|(items[i].0,items[i].1.clone())))
+}
+
 #[cfg(test)] mod tests {
     use super::*;
     fn lib()->Library {Library::open(&std::env::temp_dir().join(format!("peta-creator-pack-{}",crate::ids::new_sticker_id()))).unwrap()}
@@ -135,6 +143,21 @@ pub fn pick(db:&crate::Database,pack_id:&str,grade_roll:f64,item_roll:f64)->Resu
     #[test] fn weights_are_injected_and_missing_grades_get_redistributed() {
         let all=["common","uncommon","rare"];assert_eq!(weighted_index(&all,0.59,0.0),Some(0));assert_eq!(weighted_index(&all,0.6,0.0),Some(1));assert_eq!(weighted_index(&all,0.9,0.0),Some(2));
         assert_eq!(weighted_index(&["common","uncommon"],0.65,0.0),Some(0));assert_eq!(weighted_index(&["common","uncommon"],0.67,0.0),Some(1));assert_eq!(weighted_index(&["rare","rare"],0.99,0.99),Some(1));assert_eq!(weighted_index(&[],0.0,0.0),None);
+    }
+    #[test] fn exhausted_signed_pack_bonus_uses_original_grades_and_finished_metadata() {
+        let key=sign::generate().unwrap();let (h,body)=pack(&key,3);let mut lib=lib();
+        let id=install(&mut lib,&decode(&encode(&h,&body,&key).unwrap()).unwrap(),true).unwrap();
+        for _ in 0..3 {
+            let (item,_)=pick(lib.db(),&id,0.0,0.0).unwrap().unwrap();
+            lib.db_mut().pack_mark_opened(item,"old-copy").unwrap();
+        }
+        assert!(pick(lib.db(),&id,0.99,0.0).unwrap().is_none());
+        let (rare,key)=pick_bonus(lib.db(),&id,0.99,0.0).unwrap().unwrap();
+        assert_eq!(key,"item-0");
+        let metadata=crate::pack::stored_item(lib.db(),rare).unwrap().unwrap();
+        assert_eq!(metadata.rarity,"rare");assert_eq!(metadata.name,"Sticker 0");assert!(metadata.finished);
+        let (common,_)=pick_bonus(lib.db(),&id,0.0,0.0).unwrap().unwrap();
+        assert_eq!(crate::pack::stored_item(lib.db(),common).unwrap().unwrap().rarity,"common");
     }
     #[test] fn export_to_another_library_contains_finished_copies_only_and_versions_increase() {
         let mut mine=lib();mine.db_mut().set_display_name("Nao").unwrap();let picture=png();let rendered=crate::pack::render_pack_sticker(&picture).unwrap();let mut selections=Vec::new();

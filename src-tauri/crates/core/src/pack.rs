@@ -12,6 +12,7 @@ use crate::{
 pub const WELCOME_PACK_ID: &str = "welcome";
 pub const WELCOME_PACK_TITLE: &str = "Welcome Pack";
 pub const PACK_AUTHOR: &str = "Peta";
+pub const FREE_OPENING_EVERY: i64 = 10;
 
 pub struct MarketPack {
     pub id: &'static str,

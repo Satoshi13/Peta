@@ -702,6 +702,8 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 .pk-label b { font:600 9cqw/1.16 var(--hand); color:#3a342a; text-wrap:balance; overflow-wrap:normal; }
 .pk-label small { font:600 5.4cqw/1 var(--sys); letter-spacing:.07em; text-transform:uppercase; color:#7a705e; }
 .pack[data-empty="true"] .pk-label { opacity:.5; }
+.pk-stack[data-empty="true"] .pk-label { opacity:.5; }
+.pk-stack[data-empty="true"] .pk-img { filter:grayscale(.8) opacity(.55) drop-shadow(0 4px 4px rgba(60,45,20,.2)); }
 
 /* Market: looking closer at one pack. The pouch lifts to the left and the page behind softens; details and price come after. */
 .mkz { position:absolute; inset:0; z-index:40; overflow:hidden; }
@@ -730,8 +732,9 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 /* Pouches stand on their own: the title is printed on the pouch, so only a small status chip sits at its foot. */
 .pk-badge { position:absolute; left:50%; bottom:12px; translate:-50% 0; padding:3px 10px; border-radius:999px; background:var(--w-surface); color:var(--ink2); font:500 11px/16px var(--sys); letter-spacing:0; box-shadow:0 0 0 1px var(--w-line),0 2px 6px rgba(60,45,20,.16); pointer-events:none; white-space:nowrap; }
 .pk-badge.own { color:#35563a; } .pk-badge.own::before { content:"✓ "; }
+.pack .pk-stack .pk-badge, .mkz-pack .pk-badge { z-index:7; bottom:3cqw; padding:1.8cqw 6cqw; font-size:6.55cqw; line-height:1.45; }
 .shelf .pack::after { bottom:6px; }
-.pack[data-empty="true"] .pk-badge { color:var(--muted); }
+.pack[data-empty="true"] .pk-badge, .pk-stack[data-empty="true"] .pk-badge { color:var(--muted); }
 .mk-tile { padding-bottom:30px; }
 .mk-tile .pk-badge { bottom:6px; }
 .mkz-own { margin:10px 0 0; font:400 13px/18px var(--sys); color:var(--ink2); } .mkz-own b { font-weight:600; color:var(--ink); }
@@ -739,3 +742,6 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 .mkz-rule { margin:0; font:400 13px/19px var(--sys); color:var(--ink2); }
 .mkz-buy .btn[disabled] { opacity:.5; }
 .mkz-pips { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; } .mkz-pips i { width:11px; height:11px; border-radius:50%; background:var(--ink); } .mkz-pips i.o { background:var(--w-sunken); box-shadow:inset 0 0 0 1px var(--w-line); }
+.mkz-reward { margin-top:12px; }
+.mkz-reward p { margin:0; }
+.mkz-reward .mkz-pips { margin-top:8px; }

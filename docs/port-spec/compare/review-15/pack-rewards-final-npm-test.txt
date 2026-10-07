@@ -1,0 +1,78 @@
+
+> peta@0.0.1 test
+> node --test tests/*.test.mjs
+
+✔ the box wraps every visible pixel and nothing else (1.260816ms)
+✔ faint specks below the threshold are ignored; an empty image has no box (0.174699ms)
+✔ calendar groups by the existing local date and puts latest creation on top (10.271821ms)
+✔ weekday offsets respect Sunday or Monday starts, leap February and 31-day months (1.639647ms)
+✔ COMPLETE requires every day, and the current month must reach its last day (0.997296ms)
+✔ date-derived tilt is stable, bounded, and does not mutate inputs (0.380763ms)
+✔ WCAG formula handles black, white and identical colours (0.862316ms)
+✔ day UI text, status and primary button meet AA (1.083764ms)
+✔ night UI text, status and primary button meet AA (0.43194ms)
+✔ countdown uses the next real local midnight, including fractional seconds and rollover (1.087008ms)
+✔ local midnight follows DST rather than a fixed 24-hour offset (0.286144ms)
+✔ haptic helper sends the three patterns once, honours opt-out, and tolerates unavailable hardware (6.028822ms)
+✔ a sticker lands on the Today stage once per day (1.954782ms)
+✔ a new day starts with an empty record and old records are ignored (0.199325ms)
+✔ the stored list stays small (0.279464ms)
+✔ normal reveal keeps the preferred centre and caps card width (0.951057ms)
+✔ short stages and taller info shrink uniformly between hint and buttons (0.211873ms)
+✔ zero space and zero-size cards remain finite without a negative scale (0.166136ms)
+✔ narrow windows fit the width while preserving the original card aspect (0.217962ms)
+✔ Command navigation follows the displayed order (0.728719ms)
+✔ typing, dialogs, ceremonies and native editing shortcuts are untouched (0.334605ms)
+✔ a free opening works on an empty Welcome pack and spends nothing before the tear (4.507931ms)
+✔ a credit does not bypass the normal daily rule and free opening requires a credit (2.022072ms)
+✔ a rejected free opening closes the ceremony and clears busy state for retry (1.17589ms)
+✔ prototype four slots reject the previous tag and keep success timing / cleanup (5.010665ms)
+✔ toPixels / fromPixels round-trip (2.263369ms)
+✔ same relative placement scales with a different resolution (spec §10) (0.171333ms)
+✔ aspect ratio drives height (0.100058ms)
+✔ fromPixels clamps center to the display and scale to limits (0.150243ms)
+✔ resizedWidth is proportional to pointer distance and clamped (0.139186ms)
+✔ pointerAngle: clockwise in screen coordinates (0.200457ms)
+✔ rotatedAngle adds the angular delta and wraps (0.379451ms)
+✔ toLocalUV: center is (0.5,0.5) and respects rotation (0.258312ms)
+✔ pivot grab = rim of the sticker, body = move (0.328576ms)
+✔ pivotResult: drag the rim outward and around => bigger and rotated at once (0.258682ms)
+✔ peelPose: pulling right leaves the right edge attached, axis is vertical (0.185474ms)
+✔ peelPose: pulling down leaves the bottom edge attached (0.82426ms)
+✔ peelPose follows the sticker's rotation and caps the angle (0.138265ms)
+✔ the trailing edge folds towards the pull, in both axes and rotated stickers (8.275686ms)
+✔ curl keeps the attached part flat and covers the original silhouette without losing paper (2.156301ms)
+✔ curl reveals the underside before the unchanged release threshold, in every pull direction (1.21666ms)
+✔ curl begins flat, ends fully released and stays finite for extreme/zero pulls (0.889777ms)
+✔ pointer decoration converges without overshoot and stops its clock at rest (4.34468ms)
+✔ leaving and quickly entering again returns continuously, then resets exactly (1.149251ms)
+✔ Reduce motion resets even a settled hover; detached targets leave no frames (0.829668ms)
+✔ leaving the window or losing focus cancels decoration without waiting for background RAF (1.541692ms)
+✔ poster layout places days on a seven-column grid below the header (1.141589ms)
+✔ poster height grows with the number of week rows and every cell stays inside the image (0.247747ms)
+✔ stickers fit a cell without distortion (0.181348ms)
+✔ poster rows agree with the calendar month the page shows (0.883257ms)
+✔ saved queue stays quiet on launch until Resume requests printing (5.493179ms)
+✔ rebuilt primary layer recovers a live print session after subscribing (1.367914ms)
+✔ Later invalidates an in-flight queue read before a sheet starts (2.424357ms)
+✔ the last seven days end today and mark the days with a sticker (1.683041ms)
+✔ month and year boundaries are crossed by calendar days, not by 24-hour steps (0.255338ms)
+✔ reflection fallback is the original position/rotation band (1.29738ms)
+✔ cursor direction moves only a bounded band (0.228478ms)
+✔ interpolation converges exactly and has a stopping condition (0.340484ms)
+✔ explicit Day/Night are independent of the system appearance (0.706756ms)
+✔ Auto follows the system; absent or unknown preferences keep Day (0.131355ms)
+✔ Appearance subscribes only during Auto and removes its listener for explicit preferences (2.761396ms)
+ℹ tests 61
+ℹ suites 0
+ℹ pass 61
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 371.986601
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

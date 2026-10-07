@@ -2,7 +2,7 @@
 
 毎日、ひとつだけ。デスクトップに残る、ステッカーのある暮らし。
 
-現在は `src/` と `src-tauri/` の本物のTauriアプリに、Studio / Desk、Cutting Mat、Print → Grab → Paste、Collection、Packs、Gifts、MaterialsとSettingsがあります。DBはv8。配布版の素材はすべて有限で、Welcomeは1日1回、Market / Giftは回数制限なしです。作成は選んだ素材を1枚消費します。最新のルールは [docs/decisions.md](docs/decisions.md)、移植・未決事項は [docs/port-spec/README.md](docs/port-spec/README.md) を参照してください。
+現在は `src/` と `src-tauri/` の本物のTauriアプリに、Studio / Desk、Cutting Mat、Print → Grab → Paste、Collection、Packs、Gifts、MaterialsとSettingsがあります。DBはv8。配布版の素材はすべて有限で、Welcomeの通常開封は1日1回、Market / Giftは回数制限なしです。パック別の無料開封は以下のルールで追加できます。作成は選んだ素材を1枚消費します。最新のルールは [docs/decisions.md](docs/decisions.md)、移植・未決事項は [docs/port-spec/README.md](docs/port-spec/README.md) を参照してください。
 
 ## ネイティブUIの設定
 
@@ -16,7 +16,11 @@
 
 - C（追加フィードバック反映）: パックのズーム中は棚を操作できず、サイドメニューはクリック／Enter／Spaceで移動できます。Tab／Shift+Tabは詳細とナビを循環。ページ移動時はズームを解除し、同じPacks／Marketを押した場合も棚へ戻します。矢印・ページスクロール・⌘ナビは背景に届かず、Escで元の袋へ戻ります。
 
-- パック詳細のOpen one／Open all／Open 10は同じ幅・高さのボタン枠に揃えます。黒い主ボタンと紙色の副ボタンで強弱を保ちます。枚数の丸は黒が未開封、薄い丸が開封済み（種類・レア度・絵柄の位置は表しません）。
+- パック詳細のOpen free／Open one／Open all／Open 10は同じ幅・高さのボタン枠に揃えます。黒い主ボタンと紙色の副ボタンで強弱を保ちます。
+
+- パック別に通常開封10枚ごとに追加1枚の無料開封を獲得します。10個の丸は開けた数の進捗で、黒が加算済み、薄い丸が未達分。満タンになるとOpen freeを表示し、通常の残数は別に表示します。まとめ開けは成功した枚数分を加算、無料分は進捗・通常残数・Welcomeの日次枠を消費しません。無料分をすべて受け取ると次の進捗（端数）へ戻ります。既存の開封履歴も数え、再起動後も保持します。
+
+- 空の袋はズーム中もグレー表示を保ちます。足元のN leftバッジは袋の中の同じレイヤーに配置し、袋と一緒に拡大・縮小するため背景へ取り残されません。
 
 - B: パックのズームは最終サイズで袋・ラベル・反射を描画し、静止時に拡大transformを残しません。680msの寄りと560msの戻りを維持し、画像の1024px高とDPRを上限にします。
 

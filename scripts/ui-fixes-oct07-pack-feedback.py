@@ -91,9 +91,9 @@ with sync_playwright() as pw:
      page.get_by_role('button',name='Pixel Dream by Ryo, on your shelf — look closer').click();page.wait_for_timeout(150)
      page.locator('#nav [data-page=book]').click();page.wait_for_timeout(800)
      assert page.evaluate("()=>S.page==='book' && !PackZoom.current && !document.querySelector('#nav').inert")
-    # Pips are slot counts, not identity/rarity indicators.
-    record['dots']=page.evaluate("()=>{const p={...S.packs.find(p=>p.id==='welcome'),left:Array(3).fill(null)};const card=Pages.packs.card(p);return {text:card.querySelector('.mkz-own').textContent,sealed:card.querySelectorAll('.mkz-pips i:not(.o)').length,opened:card.querySelectorAll('.mkz-pips i.o').length};}")
-    assert record['dots']=={'text':'3 sealed · 9 opened of 12','sealed':3,'opened':9}
+    # Pips show progress toward the next free opening, separately from stock.
+    record['dots']=page.evaluate("()=>{const p={...S.packs.find(p=>p.id==='welcome'),left:Array(3).fill(null)};const card=Pages.packs.card(p);return {text:card.querySelector('.mkz-own').textContent,filled:card.querySelectorAll('.mkz-pips i:not(.o)').length,empty:card.querySelectorAll('.mkz-pips i.o').length};}")
+    assert record['dots']=={'text':'3 openings left','filled':9,'empty':1}
    assert not errors,errors
    records.append(record);context.close()
  browser.close()

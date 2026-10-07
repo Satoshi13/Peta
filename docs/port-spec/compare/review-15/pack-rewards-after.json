@@ -1,0 +1,698 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "states": [
+      {
+        "stock": "9 openings left",
+        "progress": "3 / 10 toward a free opening",
+        "filled": 3,
+        "empty": 7,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "3",
+        "total": 12,
+        "left": 9,
+        "credits": 0
+      },
+      {
+        "stock": "3 openings left",
+        "progress": "9 / 10 toward a free opening",
+        "filled": 9,
+        "empty": 1,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "9",
+        "total": 12,
+        "left": 3,
+        "credits": 0
+      },
+      {
+        "stock": "2 openings left",
+        "progress": "1 free opening ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "10",
+        "total": 12,
+        "left": 2,
+        "credits": 1
+      },
+      {
+        "stock": "2 openings left",
+        "progress": "0 / 10 toward a free opening",
+        "filled": 0,
+        "empty": 10,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "0",
+        "total": 12,
+        "left": 2,
+        "credits": 0
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "2 free openings ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "10",
+        "total": 20,
+        "left": 0,
+        "credits": 2
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "1 free opening ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "10",
+        "total": 20,
+        "left": 0,
+        "credits": 1
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "0 / 10 toward a free opening",
+        "filled": 0,
+        "empty": 10,
+        "free": false,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "0",
+        "total": 20,
+        "left": 0,
+        "credits": 0
+      }
+    ],
+    "badge": [
+      {
+        "center": 0.500070469475638,
+        "bottom": -0.029988575953562795,
+        "width": 0.26197063892929984,
+        "font": 0.0655,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.5000000908111305,
+        "bottom": -0.02997166874351722,
+        "width": 0.2619792140587254,
+        "font": 0.06549999999999999,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.5,
+        "bottom": -0.029971525055038254,
+        "width": 0.26197920469410385,
+        "font": 0.06549999999999999,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.49999992185311887,
+        "bottom": -0.02997167331852919,
+        "width": 0.26197913540791423,
+        "font": 0.06549999999999999,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.5,
+        "bottom": -0.02997159090909091,
+        "width": 0.26197916666666665,
+        "font": 0.06549999999999999,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.49999995300134803,
+        "bottom": -0.02997165135309589,
+        "width": 0.2619791339144811,
+        "font": 0.06549999999999999,
+        "visible": "visible",
+        "inside": true
+      }
+    ],
+    "threeButtons": [
+      {
+        "text": "Open free",
+        "width": 296,
+        "height": 40
+      },
+      {
+        "text": "Open one",
+        "width": 296,
+        "height": 40
+      },
+      {
+        "text": "Open all 4",
+        "width": 296,
+        "height": 40
+      }
+    ]
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "states": [
+      {
+        "stock": "9 openings left",
+        "progress": "3 / 10 toward a free opening",
+        "filled": 3,
+        "empty": 7,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "3",
+        "total": 12,
+        "left": 9,
+        "credits": 0
+      },
+      {
+        "stock": "3 openings left",
+        "progress": "9 / 10 toward a free opening",
+        "filled": 9,
+        "empty": 1,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "9",
+        "total": 12,
+        "left": 3,
+        "credits": 0
+      },
+      {
+        "stock": "2 openings left",
+        "progress": "1 free opening ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "10",
+        "total": 12,
+        "left": 2,
+        "credits": 1
+      },
+      {
+        "stock": "2 openings left",
+        "progress": "0 / 10 toward a free opening",
+        "filled": 0,
+        "empty": 10,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "0",
+        "total": 12,
+        "left": 2,
+        "credits": 0
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "2 free openings ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "10",
+        "total": 20,
+        "left": 0,
+        "credits": 2
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "1 free opening ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "10",
+        "total": 20,
+        "left": 0,
+        "credits": 1
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "0 / 10 toward a free opening",
+        "filled": 0,
+        "empty": 10,
+        "free": false,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "0",
+        "total": 20,
+        "left": 0,
+        "credits": 0
+      }
+    ],
+    "badge": [
+      {
+        "center": 0.5000704694948364,
+        "bottom": -0.02998840250104955,
+        "width": 0.2619708011101125,
+        "font": 0.0655,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.4999685781532618,
+        "bottom": -0.02994284039145809,
+        "width": 0.2617475250982001,
+        "font": 0.06560322580645161,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.49996859616072475,
+        "bottom": -0.02994272481940759,
+        "width": 0.2617474307140935,
+        "font": 0.06560322580645161,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.4999685217088417,
+        "bottom": -0.02994278936156478,
+        "width": 0.2617474965302434,
+        "font": 0.06560322580645161,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.49996854752469017,
+        "bottom": -0.029942756494936152,
+        "width": 0.26174749952821286,
+        "font": 0.06560322580645161,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.4999684887378749,
+        "bottom": -0.02994271531955866,
+        "width": 0.2617475071797557,
+        "font": 0.06560322580645161,
+        "visible": "visible",
+        "inside": true
+      }
+    ],
+    "threeButtons": [
+      {
+        "text": "Open free",
+        "width": 299.1875,
+        "height": 40
+      },
+      {
+        "text": "Open one",
+        "width": 299.1875,
+        "height": 40
+      },
+      {
+        "text": "Open all 4",
+        "width": 299.1875,
+        "height": 40
+      }
+    ]
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "states": [
+      {
+        "stock": "9 openings left",
+        "progress": "3 / 10 toward a free opening",
+        "filled": 3,
+        "empty": 7,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "3",
+        "total": 12,
+        "left": 9,
+        "credits": 0
+      },
+      {
+        "stock": "3 openings left",
+        "progress": "9 / 10 toward a free opening",
+        "filled": 9,
+        "empty": 1,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "9",
+        "total": 12,
+        "left": 3,
+        "credits": 0
+      },
+      {
+        "stock": "2 openings left",
+        "progress": "1 free opening ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "10",
+        "total": 12,
+        "left": 2,
+        "credits": 1
+      },
+      {
+        "stock": "2 openings left",
+        "progress": "0 / 10 toward a free opening",
+        "filled": 0,
+        "empty": 10,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "0",
+        "total": 12,
+        "left": 2,
+        "credits": 0
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "2 free openings ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "10",
+        "total": 20,
+        "left": 0,
+        "credits": 2
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "1 free opening ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "10",
+        "total": 20,
+        "left": 0,
+        "credits": 1
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "0 / 10 toward a free opening",
+        "filled": 0,
+        "empty": 10,
+        "free": false,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "0",
+        "total": 20,
+        "left": 0,
+        "credits": 0
+      }
+    ],
+    "badge": [
+      {
+        "center": 0.5000995223472164,
+        "bottom": -0.030005261245253392,
+        "width": 0.26195970761496695,
+        "font": 0.0655,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.5000000908050614,
+        "bottom": -0.029971663372561724,
+        "width": 0.2619791398980913,
+        "font": 0.06549999999999999,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.5,
+        "bottom": -0.02997165363432195,
+        "width": 0.2619791163411064,
+        "font": 0.06549999999999999,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.4999999197905314,
+        "bottom": -0.029971711724603035,
+        "width": 0.2619790435117117,
+        "font": 0.06549999999999999,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.5,
+        "bottom": -0.02997159090909091,
+        "width": 0.26197916666666665,
+        "font": 0.06549999999999999,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.5,
+        "bottom": -0.029971623418668544,
+        "width": 0.261979086843177,
+        "font": 0.06549999999999999,
+        "visible": "visible",
+        "inside": true
+      }
+    ],
+    "threeButtons": [
+      {
+        "text": "Open free",
+        "width": 296,
+        "height": 40
+      },
+      {
+        "text": "Open one",
+        "width": 296,
+        "height": 40
+      },
+      {
+        "text": "Open all 4",
+        "width": 296,
+        "height": 40
+      }
+    ]
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "states": [
+      {
+        "stock": "9 openings left",
+        "progress": "3 / 10 toward a free opening",
+        "filled": 3,
+        "empty": 7,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "3",
+        "total": 12,
+        "left": 9,
+        "credits": 0
+      },
+      {
+        "stock": "3 openings left",
+        "progress": "9 / 10 toward a free opening",
+        "filled": 9,
+        "empty": 1,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "9",
+        "total": 12,
+        "left": 3,
+        "credits": 0
+      },
+      {
+        "stock": "2 openings left",
+        "progress": "1 free opening ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "10",
+        "total": 12,
+        "left": 2,
+        "credits": 1
+      },
+      {
+        "stock": "2 openings left",
+        "progress": "0 / 10 toward a free opening",
+        "filled": 0,
+        "empty": 10,
+        "free": false,
+        "filter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "sourceFilter": "drop-shadow(rgba(60, 45, 20, 0.3) 0px 8px 8px)",
+        "labelOpacity": "1",
+        "aria": "0",
+        "total": 12,
+        "left": 2,
+        "credits": 0
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "2 free openings ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "10",
+        "total": 20,
+        "left": 0,
+        "credits": 2
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "1 free opening ready",
+        "filled": 10,
+        "empty": 0,
+        "free": true,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "10",
+        "total": 20,
+        "left": 0,
+        "credits": 1
+      },
+      {
+        "stock": "0 openings left",
+        "progress": "0 / 10 toward a free opening",
+        "filled": 0,
+        "empty": 10,
+        "free": false,
+        "filter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "sourceFilter": "grayscale(0.8) opacity(0.55) drop-shadow(rgba(60, 45, 20, 0.2) 0px 4px 4px)",
+        "labelOpacity": "0.5",
+        "aria": "0",
+        "total": 20,
+        "left": 0,
+        "credits": 0
+      }
+    ],
+    "badge": [
+      {
+        "center": 0.5000704240700481,
+        "bottom": -0.029988575953562795,
+        "width": 0.2619707297404798,
+        "font": 0.0655,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.49996753338748373,
+        "bottom": -0.02997481135762932,
+        "width": 0.26185680689095,
+        "font": 0.06545311203319502,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.4999675438926147,
+        "bottom": -0.029974698621217807,
+        "width": 0.2618569532579908,
+        "font": 0.06545311203319502,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.49996761089440117,
+        "bottom": -0.029974704558944732,
+        "width": 0.2618568694713312,
+        "font": 0.06545311203319502,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.4999675598520729,
+        "bottom": -0.029974696684616883,
+        "width": 0.26185687406734576,
+        "font": 0.06545311203319502,
+        "visible": "visible",
+        "inside": true
+      },
+      {
+        "center": 0.4999675860744912,
+        "bottom": -0.02997472161781646,
+        "width": 0.26185690515806986,
+        "font": 0.06545311203319502,
+        "visible": "visible",
+        "inside": true
+      }
+    ],
+    "threeButtons": [
+      {
+        "text": "Open free",
+        "width": 291.828125,
+        "height": 40
+      },
+      {
+        "text": "Open one",
+        "width": 291.828125,
+        "height": 40
+      },
+      {
+        "text": "Open all 4",
+        "width": 291.828125,
+        "height": 40
+      }
+    ]
+  }
+]

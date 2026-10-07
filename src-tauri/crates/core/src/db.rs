@@ -112,6 +112,7 @@ pub struct PackSummary {
     pub by: String,
     pub total: i64,
     pub remaining: i64,
+    pub free_openings: i64,
     pub pouch: Option<String>,
     pub signature_status: Option<String>,
     pub fingerprint: Option<String>,
@@ -366,6 +367,18 @@ impl Database {
         if n != 1 { return Err(Error::Invalid("only your original stickers can be deleted".into())); }
         tx.execute("DELETE FROM meta WHERE key='profile.icon_sticker_id' AND value=?1", [id])?;
         tx.commit()?;
+        Ok(())
+    }
+
+    /// Undo a prepared pack copy only while it has no receipt, daily history or placement.
+    pub fn discard_unconfirmed_pack(&mut self, id: &str) -> Result<()> {
+        let n = self.conn.execute("DELETE FROM stickers WHERE id=?1 AND source_type='pack'
+            AND NOT EXISTS(SELECT 1 FROM pack_items WHERE sticker_id=?1)
+            AND NOT EXISTS(SELECT 1 FROM sticker_events WHERE sticker_id=?1)
+            AND NOT EXISTS(SELECT 1 FROM daily_records WHERE sticker_id=?1)
+            AND NOT EXISTS(SELECT 1 FROM print_queue WHERE sticker_id=?1)
+            AND NOT EXISTS(SELECT 1 FROM placements WHERE sticker_id=?1)", [id])?;
+        if n!=1 { return Err(Error::Invalid("Only an unconfirmed pack copy can be discarded.".into())); }
         Ok(())
     }
 
@@ -763,13 +776,53 @@ impl Database {
     pub fn packs(&self) -> Result<Vec<PackSummary>> {
         let mut stmt = self.conn.prepare(
             "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint
-             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id LEFT JOIN pack_distributions d ON d.pack_id=p.id
+             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id AND NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id) LEFT JOIN pack_distributions d ON d.pack_id=p.id
              GROUP BY p.id ORDER BY p.created_at, p.id",
         )?;
         let rows = stmt.query_map([], |r| {
-            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)? })
+            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, free_openings:0, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)? })
         })?;
-        Ok(rows.collect::<std::result::Result<Vec<_>, _>>()?)
+        let mut packs = rows.collect::<std::result::Result<Vec<_>, _>>()?;
+        for pack in &mut packs { pack.free_openings = self.pack_free_openings(&pack.id)?; }
+        Ok(packs)
+    }
+
+    fn pack_reward_counts(conn: &Connection, pack_id: &str) -> Result<(i64, i64)> {
+        let opened = conn.query_row("SELECT COUNT(*) FROM pack_items i WHERE pack_id=?1 AND opened_at IS NOT NULL AND NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id)", [pack_id], |r| r.get::<_,i64>(0))?;
+        let claimed = conn.query_row("SELECT COUNT(*) FROM meta WHERE key GLOB 'pack.free_item.*' AND value=?1", [pack_id], |r| r.get::<_,i64>(0))?;
+        Ok((opened, claimed))
+    }
+
+    pub fn pack_free_openings(&self, pack_id: &str) -> Result<i64> {
+        let (opened, claimed) = Self::pack_reward_counts(&self.conn, pack_id)?;
+        Ok((opened / crate::pack::FREE_OPENING_EVERY - claimed).max(0))
+    }
+
+    /// A bonus copy spends one earned opening, never a sealed item or Welcome's daily allowance.
+    /// Its receipt, signed metadata, Book entry and print queue commit together in the existing v8 DB.
+    pub fn claim_pack_free_opening(&mut self, pack_id: &str, template_id: i64, sticker_id: &str, date: &str) -> Result<()> {
+        let tx = self.conn.transaction()?;
+        if tx.query_row("SELECT EXISTS(SELECT 1 FROM pack_items i JOIN meta m ON m.key='pack.free_item.' || i.id WHERE i.sticker_id=?1)", [sticker_id], |r| r.get::<_,bool>(0))? {
+            return Err(Error::Invalid("This free opening was already claimed.".into()));
+        }
+        let (opened, claimed) = Self::pack_reward_counts(&tx, pack_id)?;
+        if opened / crate::pack::FREE_OPENING_EVERY <= claimed { return Err(Error::Invalid("No free opening is ready for this pack.".into())); }
+        let valid: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM pack_items i WHERE i.id=?1 AND i.pack_id=?2 AND NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id))", params![template_id,pack_id], |r| r.get(0))?;
+        if !valid { return Err(Error::Invalid("This item does not belong to the pack.".into())); }
+        if !tx.query_row("SELECT EXISTS(SELECT 1 FROM stickers WHERE id=?1 AND source_type='pack')", [sticker_id], |r| r.get::<_,bool>(0))? {
+            return Err(Error::Invalid("A finished pack sticker is required.".into()));
+        }
+        if !tx.query_row("SELECT EXISTS(SELECT 1 FROM daily_records WHERE date=?1)", [date], |r| r.get::<_,bool>(0))? {
+            return Err(Error::Invalid("The daily record is not ready.".into()));
+        }
+        let ts = now();
+        tx.execute("INSERT INTO pack_items(pack_id,item_key,opened_at,sticker_id) SELECT pack_id,item_key,?2,?3 FROM pack_items WHERE id=?1", params![template_id,ts,sticker_id])?;
+        let bonus_id = tx.last_insert_rowid();
+        tx.execute("INSERT INTO signed_pack_items SELECT ?1,png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?2", params![bonus_id,template_id])?;
+        tx.execute("INSERT INTO meta(key,value) VALUES (?1,?2)", params![format!("pack.free_item.{bonus_id}"),pack_id])?;
+        Self::confirm_in(&tx, date, sticker_id, SourceType::Pack, &ts)?;
+        tx.commit()?;
+        Ok(())
     }
 
     /// The not-yet-opened item chosen by `roll` (0..1): returns (item id, item key). `None` when the pack is used up.
@@ -897,10 +950,15 @@ impl Database {
 
     pub fn daily_set_confirmed(&mut self, date: &str, sticker_id: &str, source: SourceType, ts: &str) -> Result<()> {
         let tx=self.conn.transaction()?;
+        Self::confirm_in(&tx, date, sticker_id, source, ts)?;
+        tx.commit()?;
+        Ok(())
+    }
+
+    fn confirm_in(tx: &rusqlite::Transaction<'_>, date: &str, sticker_id: &str, source: SourceType, ts: &str) -> Result<()> {
         tx.execute("INSERT OR IGNORE INTO print_queue(sticker_id,queued_at) VALUES (?1,?2)",params![sticker_id,ts])?;
         tx.execute("INSERT INTO sticker_events(date,sticker_id,source_type) VALUES (?1,?2,?3) ON CONFLICT(date,sticker_id) DO UPDATE SET source_type=excluded.source_type",params![date,sticker_id,source.as_str()])?;
         tx.execute("UPDATE daily_records SET sticker_id=?2,source_type=?3,confirmed_at=?4,used_at=NULL WHERE date=?1",params![date,sticker_id,source.as_str(),ts])?;
-        tx.commit()?;
         Ok(())
     }
 
@@ -1342,6 +1400,147 @@ mod tests {
         let mut order=vec![];
         while let Some(id)=db.next_print().unwrap() { db.finish_print(&id).unwrap(); order.push(id); }
         assert_eq!(order,["D","B","A"]);
+    }
+
+    fn reward_pack(db: &mut Database, id: &str, count: usize) {
+        let keys = vec!["cat-skateboard"; count];
+        db.pack_install(id, id, "Peta", &keys).unwrap();
+        db.daily_insert("2026-10-07", "matte").unwrap();
+    }
+
+    fn reward_open(db: &mut Database, pack_id: &str, count: usize) {
+        for n in 0..count {
+            let (item, _) = db.pack_pick(pack_id, 0.0).unwrap().unwrap();
+            let id = format!("{pack_id}-{item}");
+            db.create_sticker(new(&id, SourceType::Pack)).unwrap();
+            db.pack_open_on(item, &id, &format!("2026-10-{:02}", n+1)).unwrap();
+        }
+    }
+
+    #[test]
+    fn every_ten_regular_openings_earns_a_bonus_for_that_pack_only() {
+        let mut db = Database::open_in_memory().unwrap();
+        reward_pack(&mut db, "a", 24);
+        db.pack_install("b", "b", "Peta", &["good-day"; 12]).unwrap();
+        reward_open(&mut db, "a", 9);
+        reward_open(&mut db, "b", 1);
+        assert_eq!(db.pack_free_openings("a").unwrap(), 0);
+        assert_eq!(db.pack_free_openings("b").unwrap(), 0);
+        reward_open(&mut db, "a", 1);
+        assert_eq!(db.pack_free_openings("a").unwrap(), 1);
+        reward_open(&mut db, "a", 10);
+        let a = db.packs().unwrap().into_iter().find(|p| p.id=="a").unwrap();
+        assert_eq!((a.total, a.remaining, a.free_openings), (24,4,2));
+        assert_eq!(db.pack_free_openings("b").unwrap(), 0);
+    }
+
+    #[test]
+    fn bonus_does_not_spend_stock_or_earn_another_bonus_and_cannot_be_claimed_twice() {
+        let mut db = Database::open_in_memory().unwrap();
+        reward_pack(&mut db, "a", 12);
+        reward_open(&mut db, "a", 10);
+        let (template, _) = crate::creator_pack::pick_bonus(&db, "a", 0.0, 0.0).unwrap().unwrap();
+        db.create_sticker(new("free", SourceType::Pack)).unwrap();
+        db.claim_pack_free_opening("a", template, "free", "2026-10-07").unwrap();
+        let a = &db.packs().unwrap()[0];
+        assert_eq!((a.total, a.remaining, a.free_openings), (12,2,0));
+        assert_eq!(db.book_rows().unwrap().iter().filter(|e| e.sticker_id=="free").count(), 1);
+        assert_eq!(db.next_print().unwrap().as_deref(), Some("free"));
+        assert!(db.claim_pack_free_opening("a", template, "free", "2026-10-07").is_err());
+        db.create_sticker(new("free-again", SourceType::Pack)).unwrap();
+        assert!(db.claim_pack_free_opening("a", template, "free-again", "2026-10-07").is_err());
+        reward_open(&mut db, "a", 2);
+        assert_eq!(db.pack_free_openings("a").unwrap(), 0);
+        assert_eq!(db.packs().unwrap()[0].total-db.packs().unwrap()[0].remaining, 12);
+    }
+
+    #[test]
+    fn free_opening_receipt_and_queue_roll_back_together_on_failure() {
+        let mut db = Database::open_in_memory().unwrap();
+        reward_pack(&mut db, "a", 10);
+        reward_open(&mut db, "a", 10);
+        db.create_sticker(new("free-fail", SourceType::Pack)).unwrap();
+        let (template, _) = crate::creator_pack::pick_bonus(&db, "a", 0.0, 0.0).unwrap().unwrap();
+        db.conn.execute_batch("CREATE TRIGGER fail_bonus BEFORE INSERT ON sticker_events BEGIN SELECT RAISE(ABORT,'test'); END;").unwrap();
+        assert!(db.claim_pack_free_opening("a", template, "free-fail", "2026-10-07").is_err());
+        assert_eq!(db.pack_free_openings("a").unwrap(), 1);
+        assert!(db.next_print().unwrap().is_none());
+        assert!(db.book_rows().unwrap().iter().all(|row| row.daily_date.is_none()));
+        assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_items", [], |r| r.get::<_,i64>(0)).unwrap(), 10);
+        db.conn.execute_batch("DROP TRIGGER fail_bonus;").unwrap();
+        db.claim_pack_free_opening("a", template, "free-fail", "2026-10-07").unwrap();
+        assert_eq!(db.pack_free_openings("a").unwrap(), 0);
+    }
+
+    #[test]
+    fn bonus_claim_rejects_wrong_pack_missing_sticker_or_missing_daily_record() {
+        let mut db = Database::open_in_memory().unwrap();
+        reward_pack(&mut db, "a", 10);
+        db.pack_install("b", "b", "Peta", &["good-day"]).unwrap();
+        reward_open(&mut db, "a", 10);
+        let (a, _) = crate::creator_pack::pick_bonus(&db, "a", 0.0, 0.0).unwrap().unwrap();
+        let (b, _) = db.pack_pick("b", 0.0).unwrap().unwrap();
+        db.create_sticker(new("free", SourceType::Pack)).unwrap();
+        assert!(db.claim_pack_free_opening("a", b, "free", "2026-10-07").is_err());
+        assert!(db.claim_pack_free_opening("a", a, "missing", "2026-10-07").is_err());
+        assert!(db.claim_pack_free_opening("a", a, "free", "2026-10-08").is_err());
+        assert!(db.claim_pack_free_opening("b", b, "free", "2026-10-07").is_err());
+        assert_eq!(db.pack_free_openings("a").unwrap(), 1);
+        assert!(db.next_print().unwrap().is_none());
+    }
+
+    #[test]
+    fn cleanup_discards_only_unconfirmed_pack_copies() {
+        let mut db=Database::open_in_memory().unwrap();
+        for (id,source) in [("original",SourceType::Created),("gift",SourceType::Gift),("confirmed",SourceType::Pack),("prepared",SourceType::Pack)] {
+            db.create_sticker(new(id,source)).unwrap();
+        }
+        crate::daily::confirm(&mut db,"2026-10-07","confirmed",SourceType::Pack,0.0).unwrap();
+        for id in ["original","gift","confirmed"] {
+            assert!(db.discard_unconfirmed_pack(id).is_err());
+            assert!(db.sticker_id_exists(id).unwrap());
+        }
+        db.discard_unconfirmed_pack("prepared").unwrap();
+        assert!(!db.sticker_id_exists("prepared").unwrap());
+        assert_eq!(db.next_print().unwrap().as_deref(),Some("confirmed"));
+    }
+
+    #[test]
+    fn an_exhausted_welcome_pack_can_claim_a_bonus_without_spending_daily_allowance() {
+        let mut db = Database::open_in_memory().unwrap();
+        reward_pack(&mut db, "welcome", 10);
+        reward_open(&mut db, "welcome", 10);
+        assert!(!db.welcome_available("2026-10-07").unwrap());
+        assert!(db.pack_pick("welcome", 0.0).unwrap().is_none());
+        db.create_sticker(new("free", SourceType::Pack)).unwrap();
+        let (item, _) = crate::creator_pack::pick_bonus(&db, "welcome", 0.0, 0.0).unwrap().unwrap();
+        db.claim_pack_free_opening("welcome", item, "free", "2026-10-07").unwrap();
+        assert!(!db.welcome_available("2026-10-07").unwrap());
+        assert!(db.welcome_available("2026-10-11").unwrap());
+        assert_eq!(db.packs().unwrap()[0].remaining, 0);
+        assert!(db.pack_pick("welcome", 0.0).unwrap().is_none());
+    }
+
+    #[test]
+    fn reward_history_and_signed_bonus_metadata_survive_restart() {
+        let path = std::env::temp_dir().join(format!("peta-rewards-{}.db", crate::ids::new_sticker_id()));
+        {
+            let mut db = Database::open(&path).unwrap();
+            reward_pack(&mut db, "a", 20);
+            reward_open(&mut db, "a", 20);
+            db.create_sticker(new("free", SourceType::Pack)).unwrap();
+            let (item, _) = crate::creator_pack::pick_bonus(&db, "a", 0.0, 0.0).unwrap().unwrap();
+            db.conn.execute("INSERT INTO signed_pack_items VALUES (?1,'png','mask','holographic',1,'Bonus cat','rare',1)", [item]).unwrap();
+            db.claim_pack_free_opening("a", item, "free", "2026-10-07").unwrap();
+        }
+        {
+            let db = Database::open(&path).unwrap();
+            assert_eq!((db.packs().unwrap()[0].total,db.packs().unwrap()[0].remaining,db.pack_free_openings("a").unwrap()), (20,0,1));
+            assert_eq!(crate::pack::item_name(&db, "free").unwrap().as_deref(), Some("Bonus cat"));
+            assert_eq!(db.next_print().unwrap().as_deref(), Some("free"));
+            assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_,i64>(0)).unwrap(), 8);
+        }
+        let _ = std::fs::remove_file(path);
     }
 
     #[test]
