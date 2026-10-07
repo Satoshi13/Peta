@@ -1,5 +1,7 @@
 # 2026-10-07 UI修正レポート
 
+追加フィードバックでパック詳細のボタン寸法とナビ操作を修正した。Cのナビ隔離については[末尾の追記](#追加フィードバック-パック詳細)が現行の動作。
+
 `claude/relaxed-dijkstra-ocnjzu` の指定コミット `27f58c1` を取得し、作業ブランチ `codex/ui-fixes-oct07` で起動時の印刷バグ、A〜Fを順番に実装した。依頼書・最新のREADME／決定事項／tokens／macOSチェックリストと、`docs/ui-proposals/feedback-2026-10-07/` の4枚を参照した。開始時の作業ツリーはクリーン。
 
 ## コミットとテスト
@@ -107,3 +109,24 @@ npm test
 Rustコアの`cargo test --manifest-path src-tauri/Cargo.toml -p peta-core --offline`は124件（単体119＋統合5）成功、0失敗。印刷FIFO・優先順・再起動後のキュー保持を含む既存テストが通った。これは変更したTauri状態同期コードの型検査・実機検証を代替しない。[出力](port-spec/compare/review-15/oct07-core-tests.txt)を保存した。
 
 ネイティブ全体の`cargo check`も試したが、このLinux環境には`glib-2.0.pc`がなく、`glib-sys`のビルドで停止した。Tauri本体の型検査・起動は完了していない。ChromiumのDPR2確認はmacOS WKWebViewのRetina描画を代替しない。起動時印刷・ディスプレイ再構成・トラックパッドの追従感・VoiceOver・トレイ／保存パネル／署名コードの実機確認はチェックリストで未チェックのまま残した。
+
+## 追加フィードバック: パック詳細
+
+オーナーの追加画像で、Open oneとOpen all 4の見える幅が違い、ズーム中にナビが押せないことを確認した。
+
+副ボタンのクリック枠は元から幅100%だったが、紙画像の透明余白で見える枠が狭かった。ズーム内の副ボタンを紙色の丸枠で描画し、主・副の幅・高さ・角丸・行高を揃えた。主ボタンの黒、副ボタンの紙色は維持。Studio／Desk、1060×700／720×520の4構成で両ボタンのx・width・heightが一致し、高さは40 CSS px。1060pxでは幅296px、720pxはStudio約299.19px／Desk約291.83px。Day／Nightでも一致。
+
+ナビのinertを撤去し、Tab／Shift+Tabの移動先と許可するフォーカス先に含めた。棚のinertとスクロールキーの抑止は維持する。ナビが操作できるため詳細は非モーダルdialogとし、aria-modalを外した。ナビから別ページへ移動すると既存の終了処理でズームを解除し、同じPacks／Marketを選んでも棚へ戻る。
+
+4構成で、寄る途中（100ms）・静止後のナビクリック、ナビのEnter、同じPacksの選択、Marketからの移動、Reduce motionを確認。Tabは詳細とナビを循環し、矢印・PageUp/Down・Home/End・⌘1／⌘7は棚を動かさない。Escの元の袋への復帰・例外時の解除も確認した。先のC節は初回修正時の記録で、この追記と新しい決定表の行がナビに関する方針を更新する。
+
+丸は1個が1枚分の枚数表示。黒は未開封、薄い丸は開封済み。提示画像の12個は「3枚未開封・9枚開封済み」で、レア度・絵柄・個々のステッカーの位置を表していない。既存の数字と同じ枚数を描き、60枚以下のパックにだけ表示する。今回は仕様の説明を求められたため丸の表示自体は変更していない。
+
+比較画像はreview-15の`<shell>-<width>-pack-feedback-before.png`／`pack-feedback-after.png`。beforeは`df2b302`。
+
+- [修正前（Studio 1060）](port-spec/compare/review-15/studio-1060-pack-feedback-before.png)／[修正後](port-spec/compare/review-15/studio-1060-pack-feedback-after.png)
+- [4構成の測定・操作結果](port-spec/compare/review-15/pack-feedback-after.json)
+- [Cの更新後の操作確認](port-spec/compare/review-15/c-navigation-after.json)
+- [再現スクリプト](../scripts/ui-fixes-oct07-pack-feedback.py): `python3 scripts/ui-fixes-oct07-pack-feedback.py after`
+
+最終`npm test`は58件成功、0失敗。ブラウザ確認は実際のsrc UI＋IPC fixtureで、macOS実機・VoiceOverはチェックリストに未確認として残す。

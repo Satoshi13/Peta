@@ -104,7 +104,7 @@ const Shell = (() => {
   async function go(id, o = {}) {
     if (!Pages[id] || navigating) return;
     const vp = viewport();
-    if (current && S.page === id && !o.force) return;
+    if (current && S.page === id && !o.force) { PackZoom.dispose(true); return; }
     const oldIdx = NAV.findIndex((n) => n.id === S.page), newIdx = NAV.findIndex((n) => n.id === id);
     const dir = newIdx >= oldIdx ? 1 : -1;
     PackZoom.dispose();

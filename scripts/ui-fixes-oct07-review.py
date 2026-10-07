@@ -160,12 +160,12 @@ with sync_playwright() as pw:
           page.evaluate("async()=>{await Shell.open('packs');}")
           page.locator('[data-pack="pixel"]').click();page.wait_for_timeout(1150)
           record['scroll']=page.evaluate("()=>PackZoom.active.page.scrollTop")
-          record['inert']=page.evaluate("()=>PackZoom.active.world.every(e=>e.inert) && document.querySelector('#nav').inert && !document.querySelector('.wctl').inert")
+          record['inert']=page.evaluate("()=>PackZoom.active.world.every(e=>e.inert) && !document.querySelector('#nav').inert && !document.querySelector('.wctl').inert")
           assert record['inert']
           record['focus']=[]
           for key in ['Tab','Tab','Tab','Tab','Shift+Tab','Shift+Tab','ArrowDown','ArrowUp','ArrowLeft','ArrowRight','PageDown','PageUp','Home','End','Meta+1','Meta+7']:
             page.keyboard.press(key)
-            record['focus'].append(page.evaluate("()=>({key:document.activeElement.className,inside:PackZoom.active.root.contains(document.activeElement),scroll:PackZoom.active.page.scrollTop,page:S.page})"))
+            record['focus'].append(page.evaluate("()=>({key:document.activeElement.className,inside:PackZoom.active.root.contains(document.activeElement) || !!document.activeElement.closest('#nav'),scroll:PackZoom.active.page.scrollTop,page:S.page})"))
             assert record['focus'][-1]['inside'] and record['focus'][-1]['scroll']==record['scroll'] and record['focus'][-1]['page']=='packs'
           page.evaluate("()=>{window.reviewClicks=0;document.querySelector('.mkz-act').focus({preventScroll:true});window.reviewClickBlock=e=>{if(e.target.closest('.mkz-act')){reviewClicks++;e.preventDefault();e.stopImmediatePropagation();}};window.addEventListener('click',reviewClickBlock,true);}")
           for key in ['Enter','Space']:page.keyboard.press(key)
@@ -226,5 +226,5 @@ with sync_playwright() as pw:
         records.append(record);context.close()
     browser.close()
 server.shutdown();server.server_close()
-(OUT/f'{step}-{phase}.json').write_text(json.dumps(records,ensure_ascii=False,indent=2))
+(OUT/(f'c-navigation-{phase}.json' if step=='c' and phase=='after' else f'{step}-{phase}.json')).write_text(json.dumps(records,ensure_ascii=False,indent=2))
 print(json.dumps({'step':step,'phase':phase,'views':len(records),'passed':True}))

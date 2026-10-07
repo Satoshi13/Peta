@@ -1,0 +1,446 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "c",
+    "phase": "after",
+    "scroll": 0,
+    "inert": true,
+    "focus": [
+      {
+        "key": "btn paper mkz-act",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      }
+    ],
+    "activation": 2,
+    "exceptionCleanup": true
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "step": "c",
+    "phase": "after",
+    "scroll": 0,
+    "inert": true,
+    "focus": [
+      {
+        "key": "btn paper mkz-act",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      }
+    ],
+    "activation": 2,
+    "exceptionCleanup": true
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "c",
+    "phase": "after",
+    "scroll": 0,
+    "inert": true,
+    "focus": [
+      {
+        "key": "btn paper mkz-act",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      }
+    ],
+    "activation": 2,
+    "exceptionCleanup": true
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "step": "c",
+    "phase": "after",
+    "scroll": 0,
+    "inert": true,
+    "focus": [
+      {
+        "key": "btn paper mkz-act",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "nav-item",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      },
+      {
+        "key": "mkz-back link",
+        "inside": true,
+        "scroll": 0,
+        "page": "packs"
+      }
+    ],
+    "activation": 2,
+    "exceptionCleanup": true
+  }
+]

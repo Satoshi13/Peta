@@ -250,10 +250,12 @@ Linuxでのハーネス確認とmacOSでの起動確認は、サイドバー素�
 
 - [ ] B: Retina（DPR 2）でPacks／Marketのホロ・クラフト・マットをズーム。封の縁・タイトル・作者が鮮明で、反射マスクが袋に一致。680msで寄り、560msで戻る。途中Esc／外側／✕、Reduce motionでも棚・フォーカスが戻る。
 
-- [ ] C: ズーム中にTab／Shift+Tabを循環し、矢印・PageUp/Down・Home/End・⌘1〜7を連打。背景位置とページは不変、Space／Enterでボタンを実行、Esc後に元の袋へ戻る。VoiceOverでモーダル外の棚・ナビが読まれず、閉じる・更新・例外後に操作が復旧する。
+- [ ] C（追加フィードバック反映）: ズーム中にTab／Shift+Tabで詳細とナビを循環し、矢印・PageUp/Down・Home/End・⌘1〜7で背景が動かない。ナビはクリック／Enter／Spaceで移動でき、寄る途中の操作でもズームを解除する。同じページのナビも棚へ戻る。Esc後に元の袋へ戻る。VoiceOverはナビと非モーダル詳細を読めるが、棚は読まれない。閉じる・更新・例外後に操作が復旧する。
 
 - [ ] D: Studio／DeskのMarket Featuredを720〜1400pxでリサイズ。索引カードの角・縁・穴の寸法が一定で、紙クリップ・影・左の扇が重ならず、Retinaでも歪みがない。
 
 - [ ] E: Settingsの末尾の副ボタンへTabで到達してコードを入力。成功・エラー・キャンセルは従来どおり、追加封筒はTodayに反映。メニューバーからCollectionなどを表示したまま／隠した後／ミニマイズ後に呼び、同じページで開く。窓がまだなければToday。Today開封前後とGiftsにRedeemの文字がない。
 
 - [ ] F: Studio／Desk・1060×700／720×520でList⇄Calendarを連続切替。切替とMake a Packの位置・幅が動かず、720pxではボタン群だけが下段。Save posterの保存パネルとMake a Pack、有効／無効、再起動後のビュー保存も従来どおり。
+
+- [ ] パック詳細の追加修正: Open one／Open all／Open 10の見える枠とクリック範囲が同じ幅・高さ。黒／紙色の強弱があり、Day／Night・Reduce motionでも一致。黒い丸は未開封、薄い丸は開封済みで、開封後に枚数と一致する。

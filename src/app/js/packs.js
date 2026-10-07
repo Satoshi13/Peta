@@ -17,15 +17,16 @@ const PackZoom = {
     if (this.current) this.dispose();
     const page = Shell.current, source = $(".pk-stack", tile);
     if (!page || !source) return;
-    const root = h("div.mkz", { role: "dialog", "aria-modal": "true", "aria-label": pack.title, tabindex: -1 }), scrim = h("div.mkz-scrim");
+    const root = h("div.mkz", { role: "dialog", "aria-label": pack.title, tabindex: -1 }), scrim = h("div.mkz-scrim");
     const clone = source.cloneNode(true); clone.classList.add("mkz-pack"); clone.removeAttribute("style");
     const card = build(pack), world = [...page.children], nav = $("#nav");
     const savedWorld = world.map(el => ({ el, inert: el.inert, transform: el.style.transform, origin: el.style.transformOrigin }));
-    const cur = this.current = { root, scrim, clone, card, source, tile, pack, world, savedWorld, nav, navInert: nav?.inert, page,
+    const cur = this.current = { root, scrim, clone, card, source, tile, pack, world, savedWorld, nav, page,
       overflow: page.style.overflowY, sourceVisibility: source.style.visibility, closing: false };
     const buttons = () => $$(".mkz-act, .mkz-back, .mkz-x", card).filter(b => !b.disabled && !b.hidden && b.getClientRects().length);
+    const focusable = () => [...buttons(), ...(nav ? $$("button:not(:disabled)", nav).filter(b => !b.closest("[inert]") && b.getClientRects().length) : [])];
     try {
-      // Freeze the shelf at its current scroll position; window controls remain outside this modal.
+      // Freeze the shelf at its current scroll position; navigation and window controls stay available.
       root.style.cssText = `top:${page.scrollTop}px;bottom:auto;height:${page.clientHeight}px`; page.style.overflowY = "hidden";
       root.append(scrim, clone, card); page.append(root);
       const to = this.target(root), from = this.rectIn(root, source), k = to.width / from.width;
@@ -35,12 +36,11 @@ const PackZoom = {
       for (const el of world) {
         const r = el.getBoundingClientRect(); el.style.transformOrigin = `${rr.left - r.left}px ${rr.top - r.top}px`; el.inert = true;
       }
-      if (nav) nav.inert = true;
       cur.onKey = e => {
         if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); this.close(); return; }
         if (e.key === "Tab") {
           e.preventDefault(); e.stopImmediatePropagation();
-          const list = buttons(), i = list.indexOf(document.activeElement);
+          const list = focusable(), i = list.indexOf(document.activeElement);
           const next = i < 0 ? (e.shiftKey ? list.length - 1 : 0) : (i + (e.shiftKey ? -1 : 1) + list.length) % list.length;
           (list[next] || root).focus({ preventScroll: true }); return;
         }
@@ -52,7 +52,7 @@ const PackZoom = {
         e.stopImmediatePropagation();
       };
       cur.onFocus = e => {
-        if (!root.contains(e.target) && !e.target.closest?.(".wctl")) (buttons()[0] || root).focus({ preventScroll: true });
+        if (!root.contains(e.target) && !nav?.contains(e.target) && !e.target.closest?.(".wctl")) (buttons()[0] || root).focus({ preventScroll: true });
       };
       window.addEventListener("keydown", cur.onKey, true);
       window.addEventListener("focusin", cur.onFocus, true);
@@ -108,7 +108,6 @@ const PackZoom = {
     window.removeEventListener("keydown", cur.onKey, true);
     window.removeEventListener("focusin", cur.onFocus, true);
     for (const { el, inert, transform, origin } of cur.savedWorld) { el.getAnimations().forEach(a => a.cancel()); el.style.transform = transform; el.style.transformOrigin = origin; el.inert = inert; }
-    if (cur.nav) cur.nav.inert = cur.navInert;
     for (const el of [cur.clone, cur.scrim, cur.card]) el.getAnimations().forEach(a => a.cancel());
     cur.page.style.overflowY = cur.overflow;
     cur.source.style.visibility = cur.sourceVisibility; cur.root.remove(); this.current = null;

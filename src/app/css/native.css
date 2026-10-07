@@ -720,7 +720,9 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 .mkz-buy { margin-top:auto; display:grid; gap:9px; padding-top:12px; }
 .mkz-price { display:flex; align-items:baseline; justify-content:space-between; font:500 13px/18px var(--sys); color:var(--muted); }
 .mkz-price b { font:700 22px/26px var(--sys); letter-spacing:-.015em; color:var(--ink); font-variant-numeric:tabular-nums; }
-.mkz-buy .btn { width:100%; justify-content:center; }
+.mkz-buy .btn { width:100%; min-height:40px; padding:10px 26px; line-height:20px; border-radius:999px; justify-content:center; }
+.mkz-buy .btn.paper { background:var(--paper); box-shadow:inset 0 0 0 1px var(--line),var(--sh1); }
+.mkz-buy .btn.paper::before { display:none; }
 .mkz-buy small { font:var(--meta); text-align:center; }
 .mkz-back { align-self:center; padding:6px 8px; }
 @media (max-width:760px) { .mkz-card { width:46%; padding:20px 16px 14px; } .mkz-card h2 { font-size:21px; } }
