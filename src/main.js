@@ -621,7 +621,7 @@ async function boot() {
     await reconcile();
   });
   await wireFileDrop();
-  initPrint({ layer, invoke, listen, info, addSticker, nodes, render, lift, settle, removeNode, layerSize, fromPixels, loadAsset });
+  await initPrint({ layer, invoke, listen, info, addSticker, nodes, render, lift, settle, removeNode, layerSize, fromPixels, loadAsset });
   await listen("edit-mode", (e) => setEditMode(Boolean(e.payload)));
   window.addEventListener("resize", () => nodes.forEach(render));
   window.addEventListener("pointermove", e => cursorReflect({x:e.clientX,y:e.clientY,inside:true}));

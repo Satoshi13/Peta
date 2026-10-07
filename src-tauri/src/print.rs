@@ -32,9 +32,11 @@ pub fn pending(app: &AppHandle) -> Result<Option<PendingPrint>, String> {
     }))
 }
 
-/// Make the layer match the library: grabbable if a Peta is waiting, resting otherwise.
+/// Stop an empty print session without starting a saved queue on launch or day rollover.
 pub fn sync(app: &AppHandle) {
-    layers::set_print(app, matches!(pending(app), Ok(Some(_))));
+    if !matches!(pending(app), Ok(Some(_))) {
+        layers::set_print(app, false);
+    }
 }
 
 /// Start (or resume) the print if a Peta is waiting: the primary layer becomes grabbable.

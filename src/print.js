@@ -1,7 +1,7 @@
 // Print → Grab → Paste (spec §26-29). A finished Peta is not stuck down for you: it is printed out of an
 // abstract slot at the top of the screen, on its backing sheet, and waits there. You grab it, drag it anywhere
 // and let go: "Peta!". Nothing is stored here — Rust says what is waiting (`print_pending`) and does the sticking
-// (`print_paste`), so quitting in the middle just brings the Peta back at the slot next launch.
+// (`print_paste`). Saved jobs wait quietly after launch until an explicit Resume / Stick action.
 //
 // Art: the slot (`data-art="print-slot"` / `print-slot-glow`), the backing sheet (`data-art="backing-sheet"`)
 // and the sound (`pata()`) are the original paper artwork / synthesized WebAudio. Peta! uses the four
@@ -13,13 +13,13 @@ const MIN_DRAG = 3; // px: let go closer than this to where you grabbed it and i
 
 export function pata() { Snd.peta(); Haptic.tap("paste"); }
 
-export function initPrint(ctx) {
+export async function initPrint(ctx) {
   const { layer, invoke, listen, info, addSticker, nodes, render, lift, settle, removeNode, layerSize, fromPixels, loadAsset } = ctx;
   if (!info.isPrimary) return; // the print slot is on the main display only
 
   const hint = document.getElementById("print-hint");
   let showRequest = 0, refreshRequest = 0;
-  let completing = false, printVisible = true;
+  let completing = false, printVisible = false;
   let job = null; // { pending, stage, sheet, img, slot }
 
   const el = (cls, art) => {
@@ -198,7 +198,7 @@ export function initPrint(ctx) {
   const later = () => { if (!completing && !hold) invoke("print_later"); };
   document.getElementById("print-later").addEventListener("click", later);
   window.addEventListener("keydown", (e) => { if (job && e.key === "Escape") later(); });
-  listen("print-changed", (e) => {
+  await listen("print-changed", (e) => {
     printVisible=Boolean(e.payload); refreshRequest++;
     if (completing || hold) return;
     if (printVisible) refresh(); else hide();
@@ -208,5 +208,6 @@ export function initPrint(ctx) {
     if(hold) { if(hold.node) removeNode(hold.node); if(layer.hasPointerCapture(hold.pointer)) layer.releasePointerCapture(hold.pointer); hold=null; layer.classList.remove("dragging"); layer.dataset.cursor=""; }
     await hide(true); if(printVisible) await refresh();
   });
-  refresh();
+  // Recover an already active session after display reconstruction, never infer activity from the queue.
+  await invoke("layer_info");
 }

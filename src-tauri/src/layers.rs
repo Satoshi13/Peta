@@ -71,6 +71,11 @@ impl Layers {
     }
     pub fn interactive(&self)->bool { let state=self.0.lock().unwrap(); state.edit_mode||state.print }
 
+    pub fn printing_for(&self, label: &str) -> bool {
+        let state = self.0.lock().unwrap();
+        state.print && state.by_label.get(label).is_some_and(|info| info.is_primary)
+    }
+
 }
 
 /// Stable-ish display ids. macOS reports localized names ("Built-in Retina Display");

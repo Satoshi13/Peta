@@ -22,7 +22,10 @@ use tauri::{ipc::Response, AppHandle, Emitter, Manager, State, WebviewWindow};
 
 #[tauri::command]
 fn layer_info(window: WebviewWindow, layers: State<Layers>) -> Result<layers::LayerInfo, String> {
-    layers.info(window.label()).ok_or_else(|| format!("unknown layer {}", window.label()))
+    let info = layers.info(window.label()).ok_or_else(|| format!("unknown layer {}", window.label()))?;
+    // A rebuilt webview can subscribe first, then recover the live session using the existing event.
+    window.emit("print-changed", layers.printing_for(window.label())).map_err(|e| e.to_string())?;
+    Ok(info)
 }
 
 /// A placement plus what the layer needs to dress the sticker (its material).
