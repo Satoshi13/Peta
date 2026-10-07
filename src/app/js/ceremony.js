@@ -402,7 +402,7 @@ const Cer = (() => {
     await cer.close(); Shell.toast(`Saved “${to}.peta” — your own sticker stays in the Collection.`);
   }
   async function openPack(pack, { free = false } = {}) {
-    if (free ? !packHasFreeOpening(pack) : !packOpenable(pack)) return;
+    if (free ? !packHasFreeOpening(pack) : (!packOpenable(pack) || packHasFreeOpening(pack))) return; // a ready free opening always comes first
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
     const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null;
     const rig = buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, onTear: async (rig) => {
@@ -430,7 +430,7 @@ const Cer = (() => {
   async function openPackMany(pack, n) {
     n = Math.min(10, n, pack.left.length);
     if (n < 2) return openPack(pack);
-    if (!packOpenable(pack)) return;
+    if (!packOpenable(pack) || packHasFreeOpening(pack)) return; // a ready free opening always comes first
     const cer = overlay("pack"); let sheet = null;
     const gotEntries = () => (sheet?.got || []).map(one => one.entry);
     const keepIt = async () => {

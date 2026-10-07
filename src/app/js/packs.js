@@ -138,10 +138,11 @@ Pages.packs = {
   card(p) {
     const left = p.left.length, many = Math.min(10, left), more = left >= 2 && !p.daily;
     const available = p.freeOpenings || 0, progress = available ? 10 : Math.max(0, p.total - left) % 10;
-    const rule = p.empty ? "No regular openings left." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "Open any time, as often as you like.";
+    /* A ready free opening always comes first: while one is waiting, it is the only thing the card offers. */
+    const rule = available ? `${available === 1 ? "A free opening is" : "Free openings are"} ready. ${available === 1 ? "It comes" : "They come"} first.` : p.empty ? "No regular openings left." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "Open any time, as often as you like.";
     const blurb = MARKET_PACKS.find((m) => m.id === p.id)?.blurb;
     const go = (fn) => () => { PackZoom.dispose(); fn(); };
-    const one = h("button.btn.mkz-act" + (available ? ".paper" : ""), { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
+    const one = h("button.btn.mkz-act", { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
     const free = available ? h("button.btn.mkz-act", {type:"button",on:{click:go(()=>{Snd.tap();Cer.openPack(p,{free:true});})}}, "Open free") : null;
     const ten = more ? h("button.btn.paper.mkz-act", { type: "button", on: { click: go(() => { Snd.tap(); Cer.openPackMany(p, many); }) } }, many === 10 ? "Open 10" : `Open all ${many}`) : null;
     return h("aside.mkz-card", CloseButton("Back to the shelf", {}, ".mkz-x"),
@@ -152,8 +153,8 @@ Pages.packs = {
         h("div.mkz-pips", {role:"progressbar","aria-label":"Free opening progress","aria-valuemin":0,"aria-valuemax":10,"aria-valuenow":progress,"aria-valuetext":available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} of 10 openings`}, Array.from({length:10}, (_, i) => h("i" + (i < progress ? "" : ".o"))))),
       h("div.mkz-buy", h("p.mkz-rule", rule),
         free,
-        p.empty ? (available ? null : h("button.btn.mkz-act", { type: "button", on: { click: () => Shell.go("market") } }, "Find more in the Market")) : [one, ten],
-        !p.empty && more ? h("small.muted", many === 10 ? "Ten at a time: one tear, ten stickers, all picked at random." : "All the rest in one go.") : null,
+        available ? null : p.empty ? h("button.btn.mkz-act", { type: "button", on: { click: () => Shell.go("market") } }, "Find more in the Market") : [one, ten],
+        !available && !p.empty && more ? h("small.muted", many === 10 ? "Ten at a time: one tear, ten stickers, all picked at random." : "All the rest in one go.") : null,
         h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
   },
 };

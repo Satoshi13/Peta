@@ -4,9 +4,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 // Exercise the production ceremony through its tear callback; no native IPC or animations.
-function fixture({remaining=0,credits=1,fail=false}={}) {
+function fixture({remaining=0,credits=1,fail=false,daily=true}={}) {
   const calls=[],toasts=[];let tear,closed=false,overlays=0;
-  const pack={id:'welcome',title:'Welcome Pack',daily:true,left:Array(remaining).fill(null),freeOpenings:credits};
+  const pack={id:'welcome',title:'Welcome Pack',daily,left:Array(remaining).fill(null),freeOpenings:credits};
   const rig={PW:200,PH:260,cutY:40,focus(){},pullable(){},done:false};
   const cer={stage:{},root:{},hint(){},close:async()=>{closed=true;}};
   const context=vm.createContext({
@@ -45,4 +45,11 @@ test('a rejected free opening closes the ceremony and clears busy state for retr
   const f=fixture({fail:true});await f.open(true);await f.tear();
   assert.equal(f.closed,true);assert.equal(f.context.Bridge.busy,false);
   assert.equal(f.pack.freeOpenings,1);assert.equal(f.toasts[0],'Error: retry');
+});
+
+test('a ready free opening comes first: a regular opening of an openable pack does not start',async()=>{
+  const waiting=fixture({remaining:3,credits:1,daily:false});await waiting.open(false);
+  assert.equal(waiting.overlays,0);assert.deepEqual(waiting.calls,[]);
+  const none=fixture({remaining:3,credits:0,daily:false});await none.open(false);
+  assert.equal(none.overlays,1);
 });
