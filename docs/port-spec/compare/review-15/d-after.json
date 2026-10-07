@@ -19,11 +19,11 @@
         "left": 586.755859375
       },
       "background": "none",
-      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "borderSource": "url(\"http://127.0.0.1:41801/src/art/notes/note-index-card-blank.png\")",
       "slice": "175 205 110 150 fill",
       "borderWidth": "35px 41px 22px 30px",
       "angle": 0.6000010116398002,
-      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "clip": "url(\"http://127.0.0.1:41801/src/art/notes/paper-clip.png\")",
       "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
       "art": [
         {
@@ -65,11 +65,11 @@
         "left": 325.4880676269531
       },
       "background": "none",
-      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "borderSource": "url(\"http://127.0.0.1:41801/src/art/notes/note-index-card-blank.png\")",
       "slice": "175 205 110 150 fill",
       "borderWidth": "35px 41px 22px 30px",
       "angle": 0.6000010116398002,
-      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "clip": "url(\"http://127.0.0.1:41801/src/art/notes/paper-clip.png\")",
       "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
       "art": [
         {
@@ -111,11 +111,11 @@
         "left": 729.91748046875
       },
       "background": "none",
-      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "borderSource": "url(\"http://127.0.0.1:41801/src/art/notes/note-index-card-blank.png\")",
       "slice": "175 205 110 150 fill",
       "borderWidth": "35px 41px 22px 30px",
       "angle": 0.6000010116398002,
-      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "clip": "url(\"http://127.0.0.1:41801/src/art/notes/paper-clip.png\")",
       "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
       "art": [
         {
@@ -157,11 +157,11 @@
         "left": 526.757080078125
       },
       "background": "none",
-      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "borderSource": "url(\"http://127.0.0.1:41801/src/art/notes/note-index-card-blank.png\")",
       "slice": "175 205 110 150 fill",
       "borderWidth": "35px 41px 22px 30px",
       "angle": 0.6000010116398002,
-      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "clip": "url(\"http://127.0.0.1:41801/src/art/notes/paper-clip.png\")",
       "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
       "art": [
         {
@@ -203,11 +203,11 @@
         "left": 62.979522705078125
       },
       "background": "none",
-      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "borderSource": "url(\"http://127.0.0.1:41801/src/art/notes/note-index-card-blank.png\")",
       "slice": "175 205 110 150 fill",
       "borderWidth": "35px 41px 22px 30px",
       "angle": 0.6000010116398002,
-      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "clip": "url(\"http://127.0.0.1:41801/src/art/notes/paper-clip.png\")",
       "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
       "art": [
         {
@@ -249,11 +249,11 @@
         "left": 669.918701171875
       },
       "background": "none",
-      "borderSource": "url(\"http://127.0.0.1:8765/src/art/notes/note-index-card-blank.png\")",
+      "borderSource": "url(\"http://127.0.0.1:41801/src/art/notes/note-index-card-blank.png\")",
       "slice": "175 205 110 150 fill",
       "borderWidth": "35px 41px 22px 30px",
       "angle": 0.6000010116398002,
-      "clip": "url(\"http://127.0.0.1:8765/src/art/notes/paper-clip.png\")",
+      "clip": "url(\"http://127.0.0.1:41801/src/art/notes/paper-clip.png\")",
       "shadow": "drop-shadow(rgba(60, 40, 10, 0.35) 1px 3px 3px)",
       "art": [
         {

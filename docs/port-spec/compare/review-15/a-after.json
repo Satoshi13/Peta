@@ -35,9 +35,9 @@
         "bottom": 460.921875,
         "left": 773.328125
       },
-      "angle": -2.000005823464755,
-      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.00381deg) rotateX(1.87148deg) scale(1.01495)",
-      "sheen": "59.96643077494369%",
+      "angle": -2.000008689407606,
+      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.00544deg) rotateX(1.87453deg) scale(1.01496)",
+      "sheen": "59.998980585969605%",
       "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
       "background": "rgb(255, 253, 249)"
     },
@@ -113,9 +113,9 @@
         "bottom": 374.84375,
         "left": 36
       },
-      "angle": -2.000009860157829,
-      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.82229deg) rotateX(1.87153deg) scale(1.01495)",
-      "sheen": "68.15111274413617%",
+      "angle": -1.999993015800601,
+      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.82526deg) rotateX(1.87458deg) scale(1.01496)",
+      "sheen": "68.19705522295452%",
       "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
       "background": "rgb(255, 253, 249)"
     },
@@ -191,9 +191,9 @@
         "bottom": 472.921875,
         "left": 732
       },
-      "angle": -1.9999967778965886,
-      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.36695deg) rotateX(1.87146deg) scale(1.01495)",
-      "sheen": "63.597663988591506%",
+      "angle": -1.9999996442960848,
+      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.36917deg) rotateX(1.87451deg) scale(1.01496)",
+      "sheen": "63.636183655964146%",
       "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
       "background": "rgb(255, 253, 249)"
     },
@@ -270,8 +270,8 @@
         "left": 44
       },
       "angle": -2.000001616721929,
-      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.74071deg) rotateX(1.87156deg) scale(1.01495)",
-      "sheen": "67.33554309132506%",
+      "transform": "rotate(-2deg) perspective(700px) rotateY(-1.7407deg) rotateX(1.87154deg) scale(1.01495)",
+      "sheen": "67.33524024403474%",
       "transition": "background-color 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), filter 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.22s cubic-bezier(0.2, 0.7, 0.3, 1)",
       "background": "rgb(255, 253, 249)"
     },

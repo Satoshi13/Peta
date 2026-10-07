@@ -1,0 +1,161 @@
+   Compiling generic-array v0.14.7
+   Compiling typenum v1.20.1
+   Compiling semver v1.0.28
+   Compiling cpufeatures v0.2.17
+   Compiling curve25519-dalek-derive v0.1.1
+   Compiling signature v2.2.0
+   Compiling rustc_version v0.4.1
+   Compiling zeroize v1.9.0
+   Compiling subtle v2.6.1
+   Compiling ed25519 v2.2.3
+   Compiling curve25519-dalek v4.1.3
+   Compiling base64 v0.22.1
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling ed25519-dalek v2.2.0
+   Compiling peta-core v0.0.1 (/workspace/Peta/src-tauri/crates/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 39.62s
+     Running unittests src/lib.rs (src-tauri/target/debug/deps/peta_core-980ae412391b7657)
+
+running 119 tests
+test back::tests::long_dates ... ok
+test back::tests::local_ymd_parses_timestamps ... ok
+test back::tests::edition_numbers_are_padded ... ok
+test back::tests::display_name_is_stored_and_can_be_reset ... ok
+test back::tests::stickers_from_before_names_were_recorded_use_the_fallback ... ok
+test back::tests::the_back_of_something_you_made ... ok
+test back::tests::the_back_of_something_you_received ... ok
+test book::tests::a_sticker_stuck_again_later_appears_on_both_pages ... ok
+test book::tests::a_sticker_lands_on_the_page_of_the_day_it_was_stuck ... ok
+test book::tests::empty_book ... ok
+test book::tests::stickers_that_were_never_a_days_peta_use_their_creation_month ... ok
+test book::tests::within_a_day_the_order_is_by_original_number ... ok
+test creator::tests::new_finishes_pass_through_both_creator_sizes_without_stretching_or_losing_the_cutout ... ok
+test creator::tests::an_opaque_photo_without_a_model_is_a_clear_error ... ok
+test creator::tests::old_strokes_fall_off_the_undo_history_but_stay_painted ... ok
+test creator::tests::painting_after_an_undo_ends_the_redo_chain_and_reset_clears_everything ... ok
+test creator::tests::nothing_cut_out_is_reported ... ok
+test creator::tests::render_inputs_keep_full_and_preview_pixels_and_do_not_follow_new_edits ... ok
+test creator::tests::a_transparent_image_needs_no_model ... ok
+test creator::tests::undo_takes_back_one_whole_stroke_even_when_it_arrived_in_pieces ... ok
+test creator_pack::tests::altered_signatures_reserved_author_invalid_rarity_and_limits_are_refused ... ok
+test creator_pack::tests::consent_versions_new_keys_and_rollback_preserve_shelf_and_tofu ... ok
+test creator_pack::tests::export_to_another_library_contains_finished_copies_only_and_versions_increase ... ok
+test creator_pack::tests::weights_are_injected_and_missing_grades_get_redistributed ... ok
+test cutout::tests::a_higher_outline_setting_gives_a_smoother_edge_without_eating_the_shape ... ok
+test cutout::tests::a_smoother_die_cut_bridges_wider_gaps ... ok
+test cutout::tests::box_blur_keeps_constants_and_total_mass_in_the_middle ... ok
+test cutout::tests::brush_edits_are_not_smoothed_away ... ok
+test cutout::tests::components_and_holes ... ok
+test cutout::tests::cutout_adjust_is_monotonic ... ok
+test cutout::tests::distance_transform_matches_brute_force ... ok
+test cutout::tests::guided_filter_pulls_a_misplaced_mask_edge_back_to_the_photo_edge ... ok
+test cutout::tests::refine_drops_specks_fills_small_holes_and_keeps_big_pieces ... ok
+test cutout::tests::silhouette_bridges_a_narrow_gap_like_scissors ... ok
+test cutout::tests::silhouette_is_round_hole_free_and_about_border_px_wide ... ok
+test cutout::tests::user_edits_win ... ok
+test daily::tests::a_confirmed_sticker_waits_to_be_pasted_until_used ... ok
+test daily::tests::confirm_records_what_was_chosen ... ok
+test daily::tests::extra_envelopes_are_consumed_after_daily_open_and_survive_midnight ... ok
+test daily::tests::first_day_draws_holographic_and_is_stable_within_the_day ... ok
+test daily::tests::local_today_is_a_date_and_offsets_by_days ... ok
+test daily::tests::looking_at_the_material_does_not_consume_the_slot ... ok
+test daily::tests::many_new_petas_per_day_and_reprints_are_allowed ... ok
+test daily::tests::mark_used_needs_a_confirmation ... ok
+test daily::tests::new_day_new_material_and_new_slot ... ok
+test daily::tests::opening_adds_one_to_stock_once_a_day ... ok
+test daily::tests::opening_unlocks_the_material_once_and_keeps_it ... ok
+test daily::tests::using_a_material_consumes_it_but_the_book_keeps_it ... ok
+test db::tests::a_sticker_the_person_just_chose_prints_first_and_the_rest_keep_their_order ... ok
+test db::tests::creating_a_sticker_records_provenance ... ok
+test db::tests::creator_icon_persists_and_only_accepts_owned_originals ... ok
+test db::tests::data_survives_reopen_and_numbering_continues ... ok
+test db::tests::deleting_a_creator_icon_is_atomic_and_stale_references_are_hidden ... ok
+test db::tests::moving_keeps_placed_at_but_restick_after_peel_resets_it ... ok
+test db::tests::off_desktop_lists_peeled_and_never_stuck_stickers ... ok
+test db::tests::original_numbers_are_sequential_and_only_for_created ... ok
+test db::tests::peel_removes_from_desktop_but_keeps_the_sticker ... ok
+test db::tests::place_brings_to_front_and_keeps_stacking_order ... ok
+test db::tests::unlimited_confirmations_keep_fifo_prints_and_all_book_rows_across_restart ... ok
+test creator::tests::preview_is_a_half_size_version_of_the_final ... ok
+test db::tests::upgrades_a_v1_database_without_losing_data ... ok
+test db::tests::upgrades_a_v2_database_and_old_stickers_have_no_creator_name ... ok
+test db::tests::upgrades_a_v3_database_found_materials_start_with_one_each ... ok
+test db::tests::v6_migration_keeps_previous_day_prints_history_and_welcome_allowance ... ok
+test db::tests::v7_to_v8_preserves_stickers_stock_packs_gifts_and_meta ... ok
+test db::tests::welcome_once_per_day_is_independent_of_create_gift_and_market_packs ... ok
+test device_key::tests::private_key_survives_restart_and_is_never_overwritten ... ok
+test events::tests::codes_normalize_verify_and_share_file_receipt_id ... ok
+test events::tests::events_apply_once_and_revocation_only_blocks_unapplied ... ok
+test events::tests::limits_dates_unsupported_materials_and_atomic_rollback ... ok
+test events::tests::signed_pictures_install_atomically_and_png_is_checked_after_signature ... ok
+test events::tests::new_material_codes_append_ids_and_share_one_receipt_with_signed_files ... ok
+test gift::tests::a_gift_goes_from_one_library_to_another_as_a_numbered_copy ... ok
+test gift::tests::broken_or_hostile_files_are_refused_without_touching_the_library ... ok
+test gift::tests::changing_sender_edition_or_png_is_rejected_before_any_receipt ... ok
+test gift::tests::giving_a_gift_is_written_on_the_back_of_the_one_you_keep ... ok
+test ids::tests::id_format ... ok
+test ids::tests::unit_range ... ok
+test gift::tests::signed_gifts_use_tofu_and_legacy_gifts_stay_unsigned ... ok
+test image_import::tests::exif_orientation_is_applied ... ok
+test image_import::tests::rejects_garbage_and_empty_images ... ok
+test image_import::tests::small_images_are_not_upscaled ... ok
+test image_import::tests::trims_transparent_margins ... ok
+test library::tests::import_stick_restart_roundtrip ... ok
+test library::tests::portrait_stickers_get_a_narrower_default_width ... ok
+test library::tests::unknown_sticker_asset_is_an_error ... ok
+test materials::tests::catalog_has_ten_distinct_manufacturing_recipes ... ok
+test materials::tests::draw_distribution_roughly_matches ... ok
+test materials::tests::draw_follows_rarity_weights ... ok
+test materials::tests::first_draw_is_always_holographic ... ok
+test pack::tests::a_pack_sticker_is_rendered_stored_and_says_where_it_came_from ... ok
+test pack::tests::picking_is_by_roll_never_repeats_and_runs_out ... ok
+test pack::tests::the_welcome_pack_is_installed_once_with_all_items_unopened ... ok
+test scraps::tests::a_pack_stops_taking_sets_at_the_sealed_cap_without_spending ... ok
+test scraps::tests::balance_stock_receipts_and_schema_survive_restart_and_failed_receipt_rolls_everything_back ... ok
+test scraps::tests::corrupt_balance_and_unsafe_totals_fail_without_resetting_the_balance ... ok
+test scraps::tests::dismantling_preserves_discovery_and_cannot_spend_unowned_sheets ... ok
+test scraps::tests::exchange_prices_cannot_create_scraps_and_unlocks_keep_their_original_date ... ok
+test scraps::tests::invalid_quantities_products_ids_and_insufficient_balance_do_not_mutate_stock ... ok
+test image_import::tests::downscales_large_images_keeping_aspect ... ok
+test scraps::tests::matte_exchange_and_consumption_use_real_stock_without_creating_scraps ... ok
+test scraps::tests::owned_packs_take_another_set_whether_or_not_stickers_are_left_and_keep_history_and_welcome_allowance ... ok
+test scraps::tests::new_material_exchanges_are_atomic_finite_and_cannot_mint_scraps ... ok
+test scraps::tests::paid_packs_are_installed_atomically_and_retries_do_not_add_items ... ok
+test scraps::tests::retries_return_the_saved_receipt_without_spending_again_and_changed_requests_are_rejected ... ok
+test scraps::tests::simultaneous_retries_share_one_transaction ... ok
+test scraps::tests::receipt_failure_rolls_back_dismantling_and_partial_pack_refills ... ok
+test sign::tests::framing_verifies_all_bytes_before_exposing_attachments ... ok
+test sign::tests::signatures_reject_changed_bytes_and_wrong_keys ... ok
+test sticker::tests::border_comes_from_the_recipe ... ok
+test sticker::tests::clear_has_translucent_unprinted_film_and_opaque_white_ink ... ok
+test sticker::tests::alpha_is_the_die_cut_silhouette_and_background_never_leaks ... ok
+test sticker::tests::holographic_border_has_a_white_ring_and_many_hues ... ok
+test sticker::tests::kraft_border_is_brown_and_darker_than_matte ... ok
+test sticker::tests::matte_border_is_off_white_paper ... ok
+test sticker::tests::every_new_finish_is_deterministic_and_distinct_without_changing_canvas_shape ... ok
+test sticker::tests::rendering_is_deterministic ... ok
+test creator::tests::the_model_finds_the_cat_in_a_busy_photo ... ok
+test creator::tests::cutout_adjust_and_brush_edits_change_the_result ... ok
+
+test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.84s
+
+     Running tests/original_management.rs (src-tauri/target/debug/deps/original_management-8d9ac7d06e52f6ae)
+
+running 5 tests
+test editor_roundtrip_keeps_saved_brushwork_and_new_undo_returns_to_it ... ok
+test delete_clears_book_desktop_queue_and_assets_without_reclaiming_stock_or_gifts ... ok
+test failed_revision_write_preserves_previous_files_and_database_pointer ... ok
+test edit_keeps_identity_stock_print_queue_position_and_sent_gift_across_restart ... ok
+test pack_and_received_stickers_cannot_be_edited_or_deleted ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+   Doc-tests peta_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
