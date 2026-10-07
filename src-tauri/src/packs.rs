@@ -42,16 +42,17 @@ fn item_bytes(app: &AppHandle, key: &str) -> Option<Vec<u8>> {
 }
 
 #[tauri::command]
-pub async fn pack_open(app: AppHandle, pack_id: String) -> Result<Opened, String> {
-    open(app, pack_id, false).await
+/// `queue: false` keeps the sticker in the Collection without adding it to the print queue (ten at once never queue ten prints).
+pub async fn pack_open(app: AppHandle, pack_id: String, queue: Option<bool>) -> Result<Opened, String> {
+    open(app, pack_id, false, queue.unwrap_or(true)).await
 }
 
 #[tauri::command]
 pub async fn pack_open_free(app: AppHandle, pack_id: String) -> Result<Opened, String> {
-    open(app, pack_id, true).await
+    open(app, pack_id, true, true).await
 }
 
-async fn open(app: AppHandle, pack_id: String, free: bool) -> Result<Opened, String> {
+async fn open(app: AppHandle, pack_id: String, free: bool, queue: bool) -> Result<Opened, String> {
     let (item_id, key, title, by) = {
         let store = app.state::<Store>();
         let mut lib = store.lock();
@@ -90,7 +91,7 @@ async fn open(app: AppHandle, pack_id: String, free: bool) -> Result<Opened, Str
         }
         else {
             lib.db_mut().pack_open_on(item_id, &sticker.id, &date).map_err(|e|e.to_string())?;
-            daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Pack, random_unit()).map_err(|e|e.to_string())?;
+            if queue { daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Pack, random_unit()).map_err(|e|e.to_string())?; }
         }
         let remaining = lib.db().packs().map_err(|e| e.to_string())?.into_iter().find(|p| p.id == pack_id).map(|p| p.remaining).unwrap_or(0);
         (sticker.id, remaining)

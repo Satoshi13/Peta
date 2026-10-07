@@ -291,7 +291,7 @@ const Gx = (() => {
   }
 
   /* ---------------------------------------------------------------- the ceremony */
-  async function sheet(cer, pack, n, { keepIt, laterIt }) {
+  async function sheet(cer, pack, n, { keepIt }) {
     const root = cer.root; root.dataset.gx = "true"; root.dataset.kind = "pack";
     const host = h("div.gx-world"), skipBtn = h("button.gx-skip", { type: "button" }, "Skip ⏭"); root.append(host);
     const fit = () => { const s = Math.min(root.clientWidth / W, root.clientHeight / H); host.style.transform = `translate(${(root.clientWidth - W * s) / 2}px, ${(root.clientHeight - H * s) / 2}px) scale(${s})`; scale = s; };
@@ -308,7 +308,7 @@ const Gx = (() => {
     const slotsData = [];
     const finishWith = async (fn) => { if (choosing) return; choosing = true; await fn(); };
     const rig = pouch(run, host, pack, { pw: 250, x: 480, y: 330 });
-    cer.root._esc = () => { if (phase === "sealed" || phase === "finished") laterIt(); else run.skip(); };
+    cer.root._esc = () => { if (phase === "sealed" || phase === "finished") finishWith(keepIt); else run.skip(); };
     run.play(async () => {
       await run.anim(rig.wrap, [{ opacity: 0, transform: "translateY(60px) rotate(6deg) scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 760, easing: EASE.spring });
       say(`Tear along the top.  ${n} stickers inside.`); rig.pouch.focus({ preventScroll: true });
@@ -321,7 +321,7 @@ const Gx = (() => {
       const cells = Array.from({ length: n }, (_, i) => { const c = i % cols, r = Math.floor(i / cols), x = x0 + c * (cw + gx), y = y0 + r * (ch + gy); const slot = h("div.gx-slot", { role: "img", "aria-label": `Sealed sticker ${i + 1}`, style: { left: x + "px", top: y + "px", width: cw + "px", height: ch + "px" } }); grid.append(slot); return { slot, x, y, cx: x + cw / 2, cy: y + ch / 2, sleeve: null }; });
       let failure = ""; rig.wrap.style.zIndex = 4; let pouchGone = false;
       for (let i = 0; i < n; i++) {
-        let opened; try { opened = await Bridge.invoke("pack_open", { packId: pack.id }); } catch (e) { failure = String(e); break; }
+        let opened; try { opened = await Bridge.invoke("pack_open", { packId: pack.id, queue: false }); } catch (e) { failure = String(e); break; }
         // Record the committed ID first: a failed preview must never lose an award.
         const one = { entry: { id: opened.stickerId, title: opened.name || "Sticker", rarity: opened.rarity, material: "matte" }, res: null, rarity: opened.rarity || "common" }; got.push(one); pack.left = Array(opened.remaining).fill(null);
         const c = cells[i], el = sleeveEl(one, cw * .96); el.style.left = (cw - cw * .96) / 2 + "px"; el.style.top = (ch - cw * .96 * .92) / 2 + "px"; el.style.zIndex = 16; c.slot.dataset.rarity = one.rarity; c.slot.append(el); c.sleeve = el;
@@ -368,14 +368,13 @@ const Gx = (() => {
       await gDone.p;
       // ---- the result
       exp.set(0, 700); root.dataset.tone = ""; const tally = ["common", "uncommon", "rare", "special", "archive"].map((r) => [r, got.filter((g) => g.rarity === r).length]).filter(([, c]) => c), best = tally.at(-1)?.[0] || "common";
-      const seal = h("span.gx-seal", { data: { r: best } }, best), h2 = h("h2", `${got.length} new stickers`), keepBtn = h("button.gx-btn.keep", { type: "button" }, "Stick them"), laterBtn = h("button.gx-btn.quiet", { type: "button" }, "Later");
-      const info = h("div.gx-info", { style: { opacity: 0, pointerEvents: "none" } }, h("p.gx-eyebrow", `${pack.title} · ${pack.left.length} left`), h2, h("div.gx-meta", seal, h("span", tally.map(([r, c]) => `${c} ${r}`).join(" · ")), previewFailed ? h("span", "· some previews are unavailable") : null), h("div.gx-btns", keepBtn, laterBtn)); host.append(info); seal.style.opacity = 0;
+      const seal = h("span.gx-seal", { data: { r: best } }, best), h2 = h("h2", `${got.length} new stickers`), keepBtn = h("button.gx-btn.keep", { type: "button" }, "Done");
+      const info = h("div.gx-info", { style: { opacity: 0, pointerEvents: "none" } }, h("p.gx-eyebrow", `${pack.title} · ${pack.left.length} left`), h2, h("div.gx-meta", seal, h("span", tally.map(([r, c]) => `${c} ${r}`).join(" · ")), previewFailed ? h("span", "· some previews are unavailable") : null), h("div.gx-btns", keepBtn)); host.append(info); seal.style.opacity = 0;
       info.style.pointerEvents = ""; run.anim(info, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 }); typeIn(run, h2, h2.textContent); await run.wait(260); Sfx.stamp(); Hap.fire("thud");
       await run.anim(seal, [{ opacity: 0, transform: "scale(2.5) rotate(-16deg)" }, { opacity: 1, transform: "scale(.96) rotate(-2.5deg)", offset: .62 }, { opacity: 1, transform: "rotate(-2.5deg)" }], { duration: 380, easing: EASE.out });
       say("Tilt them to catch the light."); phase = "finished"; root.dataset.phase = phase; kit.hideSkip(); keepBtn.focus({ preventScroll: true });
       keepBtn.addEventListener("click", () => { Snd.tap(); finishWith(async () => { info.style.pointerEvents = "none"; say(""); run.anim(info, [{ opacity: 1 }, { opacity: 0 }], { duration: 300 }); Sfx.whoosh(.6, 500, 2400, .6);
         await run.to(grid, [{ transform: "none", opacity: 1 }, { transform: "translateY(260px) scale(.35)", opacity: 0 }], { duration: 760, easing: EASE.in }); Sfx.thock(.8); Hap.fire("snap"); await keepIt(); }); });
-      laterBtn.addEventListener("click", () => { finishWith(() => laterIt()); });
     });
     return { cer, run, get phase() { return phase; }, got };
   }

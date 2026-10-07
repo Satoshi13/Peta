@@ -67,7 +67,7 @@ const Cer = (() => {
     // who/what is it
     const info = h("div.rv-info", h("p.eyebrow", source), h("h2", titleOf(entry)),
       h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: entry.rarity || mat.rarity } }, mat.name + " · " + (entry.rarity || mat.rarity)), h("span.no", entry.kind === "received" && entry.edition != null ? `Edition #${pad4(entry.edition)}` : "")),
-      h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, "Stick it"), h("button.btn.paper", { on: { click: onLater } }, "Later")));
+      h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, "Stick it"), onLater ? h("button.btn.paper", { on: { click: onLater } }, "Later") : null));
     stage.append(info);
     anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
     const seal = $(".seal", info); await cer.wait(260); Snd.seal();
@@ -414,13 +414,12 @@ const Cer = (() => {
         rig.linger();
         const r = sleeve.getBoundingClientRect(), sr = stage.getBoundingClientRect();
         stage.append(sleeve); sleeve.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;`;
-        await unwrapAndReveal({ cer, stage, sleeve, entry, source: `${pack.title} · ${pack.left.length} left`, onKeep: keep, onLater: later });
+        await unwrapAndReveal({ cer, stage, sleeve, entry, source: `${pack.title} · ${pack.left.length} left`, onKeep: keep });
       } });
     } });
     sleeve.style.cssText = `width:${rig.PW * .72}px;left:${rig.PW * .14}px;top:${rig.cutY - rig.PW * .72 * .12}px`;
     const keep = async () => { Bridge.busy=false; await cer.close(); Shell.refresh(); Shell.toast("It's yours."); await Desktop.print(entry); };
-    const later = async () => { Bridge.busy=false; await Bridge.invoke("print_later"); await cer.close(); Shell.refresh(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); };
-    cer.root._esc = () => { if (!rig.done) cer.close(); else if (entry && $(".rv-info")) later(); };
+    cer.root._esc = () => { if (!rig.done) cer.close(); }; // once it is out, "Stick it" is the one way on
     rig.focus();
   }
 
@@ -432,19 +431,12 @@ const Cer = (() => {
     if (n < 2) return openPack(pack);
     if (!packOpenable(pack) || packHasFreeOpening(pack)) return; // a ready free opening always comes first
     const cer = overlay("pack"); let sheet = null;
-    const gotEntries = () => (sheet?.got || []).map(one => one.entry);
+    // Ten stickers never queue ten prints: they go straight to the Collection and nothing waits at the print slot.
     const keepIt = async () => {
-      await cer.close(); Bridge.busy = false; Shell.refresh();
-      Shell.toast(`${gotEntries().length} stickers are in your Collection. They print one at a time; the next waits in the Peta menu.`);
-      await Desktop.print(gotEntries());
-    };
-    const laterIt = async () => {
-      try { await Bridge.invoke("print_later"); }
-      catch(e) { Shell.toast(String(e)); return; }
       await cer.close(); Bridge.busy = false; Shell.refresh(); Shell.renderNav();
-      Shell.toast("Waiting at the print slot \u2014 open the Peta menu.");
+      Shell.toast(`${sheet?.got.length || n} stickers are in your Collection.`);
     };
-    sheet = await Gx.sheet(cer, pack, n, { keepIt, laterIt });
+    sheet = await Gx.sheet(cer, pack, n, { keepIt });
   }
 
   return { openMaterial, openGift, sealGift, openPack, openPackMany };

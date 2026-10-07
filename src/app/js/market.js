@@ -44,7 +44,7 @@ const Market = {
   buyBox(pack, onBought) {
     let qty = 1, busy = false, request = null;
     const n = (v) => v.toLocaleString("en-US");
-    const out = h("output.mkz-n", { "aria-live": "polite" }), minus = h("button.mkz-ctl", { type: "button", "aria-label": "One set fewer" }, "−"), plus = h("button.mkz-ctl", { type: "button", "aria-label": "One set more" }, "+");
+    const out = h("output.mkz-n", { "aria-live": "polite" }), minus = h("button.mkz-ctl.minus", { type: "button", "aria-label": "One set fewer" }), plus = h("button.mkz-ctl.plus", { type: "button", "aria-label": "One set more" });
     const adds = h("b"), costs = h("b"), after = h("b"), afterRow = h("div", h("span", "Scraps after"), after), perSet = h("b"), have = h("small.muted"), stop = h("small.mkz-stop", { role: "status" }), note = h("small.muted");
     const buy = h("button.btn.mkz-primary", { type: "button" });
     const update = () => {
