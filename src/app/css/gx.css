@@ -51,13 +51,13 @@ html[data-motion="reduce"] .gx-aura .spin { animation:none; }
   background:linear-gradient(115deg, transparent 16%, rgba(255,255,255,0) 32%, rgba(255,255,255,.95) 47%, rgba(190,225,255,.6) 54%, rgba(255,190,235,.45) 61%, transparent 74%); background-size:280% 280%; background-position:var(--sx,30%) var(--sy,30%); }
 .gx-pk-body { z-index:4; } .gx-pk-top { z-index:6; } .gx-pk-inside { z-index:2; opacity:0; }
 .gx-pouch > .pk-label { z-index:5; }
-.gx-pk-line { z-index:7; height:0; border-top:2px dashed rgba(60,60,70,.5); pointer-events:none; inset:auto !important; }
-.gx-pk-tab { z-index:8; inset:auto !important; width:13%; height:7%; border-radius:6px; background:rgba(255,255,255,.88); box-shadow:0 1px 3px rgba(0,0,0,.3); display:grid; place-items:center; font-style:normal; pointer-events:none; animation:gx-wiggle 1.5s ease-in-out infinite; }
+.gx-pouch > .gx-pk-line { z-index:7; height:0; border-top:2px dashed rgba(60,60,70,.5); pointer-events:none; inset:auto; }
+.gx-pouch > .gx-pk-tab { z-index:8; inset:auto; width:13%; height:7%; border-radius:6px; background:rgba(255,255,255,.88); box-shadow:0 1px 3px rgba(0,0,0,.3); display:grid; place-items:center; font-style:normal; pointer-events:none; animation:gx-wiggle 1.5s ease-in-out infinite; }
 .gx-pk-tab b { font:700 9px var(--sys); letter-spacing:.12em; text-transform:uppercase; color:#5b6068; }
 .gx-pk-tab::after { content:"\2192"; position:absolute; left:calc(100% + 7px); top:50%; translate:0 -50%; font:600 22px var(--sys); color:#f6efe0; animation:gx-nudge 1.3s ease-in-out infinite; text-shadow:0 1px 6px rgba(0,0,0,.5); }
 @keyframes gx-wiggle { 0%,100% { transform:rotate(-3deg); } 50% { transform:rotate(3deg) translateY(-2px); } } @keyframes gx-nudge { 0%,100% { transform:translateX(0); opacity:.55; } 50% { transform:translateX(8px); opacity:1; } }
 html[data-motion="reduce"] :is(.gx-pk-tab, .gx-pk-tab::after) { animation:none; }
-.gx-slit { z-index:7; inset:auto !important; height:4px; border-radius:4px; opacity:0; pointer-events:none; mix-blend-mode:screen; }
+.gx-pouch > .gx-slit { z-index:7; inset:auto; height:4px; border-radius:4px; opacity:0; pointer-events:none; mix-blend-mode:screen; }
 /* the light table */
 .gx-lightbox { z-index:4; border-radius:22px; background:linear-gradient(180deg, rgba(255,246,226,.1), rgba(255,246,226,.04)); box-shadow:inset 0 0 0 1px rgba(255,255,255,.1), inset 0 1px 0 rgba(255,255,255,.14); }
 .gx-grid { inset:0; z-index:12; pointer-events:none; } .gx-grid > * { pointer-events:auto; }
