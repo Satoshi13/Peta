@@ -23,7 +23,7 @@ const PackZoom = {
     const savedWorld = world.map(el => ({ el, inert: el.inert, transform: el.style.transform, origin: el.style.transformOrigin }));
     const cur = this.current = { root, scrim, clone, card, source, tile, pack, world, savedWorld, nav, page,
       overflow: page.style.overflowY, sourceVisibility: source.style.visibility, closing: false };
-    const buttons = () => $$(".mkz-act, .mkz-back, .mkz-x", card).filter(b => !b.disabled && !b.hidden && b.getClientRects().length);
+    const buttons = () => $$(".mkz-act, .mkz-ctl, .mkz-primary, .mkz-back, .mkz-x", card).filter(b => !b.disabled && !b.hidden && b.getClientRects().length);
     const focusable = () => [...buttons(), ...(nav ? $$("button:not(:disabled)", nav).filter(b => !b.closest("[inert]") && b.getClientRects().length) : [])];
     try {
       // Freeze the shelf at its current scroll position; navigation and window controls stay available.
@@ -67,7 +67,7 @@ const PackZoom = {
       this.move(cur, "none", cur.camera, 680).then(async () => {
         if (cur.closing || !root.isConnected) return;
         const animation = anim(card, [{ opacity: 0, transform: "translateX(24px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: EASE.out });
-        card.classList.add("on"); (buttons().find(b => b.matches(".mkz-act")) || buttons()[0] || root).focus({ preventScroll: true });
+        card.classList.add("on"); (buttons().find(b => b.matches(".mkz-act, .mkz-primary")) || buttons()[0] || root).focus({ preventScroll: true });
         (await animation).cancel?.();
       }).catch(error => { if (this.current === cur) this.dispose(true); Shell.toast(String(error)); });
       onPointerFollow(clone, (x, y, e, amount) => { clone.style.setProperty("--sx", lerp(30, (1 - x) * 100, amount) + "%"); clone.style.setProperty("--sy", lerp(30, (1 - y) * 100, amount) + "%"); }, () => { clone.style.setProperty("--sx", "30%"); clone.style.setProperty("--sy", "30%"); });
@@ -111,8 +111,11 @@ const PackZoom = {
     for (const el of [cur.clone, cur.scrim, cur.card]) el.getAnimations().forEach(a => a.cancel());
     cur.page.style.overflowY = cur.overflow;
     cur.source.style.visibility = cur.sourceVisibility; cur.root.remove(); this.current = null;
+    if (cur.stale) { Shell.refresh(); const id = cur.pack.id; $(`[data-pack="${id}"]`)?.focus({ preventScroll: true }); return; }
     if (restore && cur.tile.isConnected) cur.tile.focus({ preventScroll: true });
   },
+  /* Something behind the card changed (a purchase): redraw the page once the card has gone, not under it. */
+  stale() { if (this.current) this.current.stale = true; },
 };
 
 Pages.packs = {

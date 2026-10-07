@@ -70,8 +70,8 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
         Kind::Dismantle => rate.ok_or_else(|| invalid("This material cannot be dismantled."))?.dismantle * request.quantity,
         Kind::Material => -rate.and_then(|m| m.exchange).ok_or_else(|| invalid("This material is not available to exchange."))? * request.quantity,
         Kind::Pack => {
-            if request.quantity!=1 { return Err(invalid("Exchange for one pack at a time.")); }
-            -PACKS.iter().find(|(id,_)| *id==request.item_id).ok_or_else(|| invalid("This pack is not available to exchange."))?.1
+            // Sets are bought together: one price per set, all added to the same bag in one transaction.
+            -PACKS.iter().find(|(id,_)| *id==request.item_id).ok_or_else(|| invalid("This pack is not available to exchange."))?.1 * request.quantity
         }
     };
     let delta = if unrestricted && delta<0 { 0 } else { delta };
@@ -98,9 +98,11 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
                 tx.execute("INSERT INTO packs(id,title,by_name,created_at) VALUES(?1,?2,?3,?4)", params![p.id,p.title,p.by,chrono::Utc::now().to_rfc3339()])?;
             }
             let left: i64 = tx.query_row("SELECT COUNT(*) FROM pack_items WHERE pack_id=?1 AND opened_at IS NULL", [&request.item_id], |r| r.get(0))?;
-            if left+p.keys.len() as i64>MAX_SEALED_PER_PACK { return Err(invalid("This pack already holds as many sealed stickers as it can.")); }
-            for item in pack::market_pack(&request.item_id).unwrap().keys {
-                tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES(?1,?2)", params![request.item_id,item])?;
+            if left+p.keys.len() as i64*request.quantity>MAX_SEALED_PER_PACK { return Err(invalid("This pack already holds as many sealed stickers as it can.")); }
+            for _ in 0..request.quantity {
+                for item in pack::market_pack(&request.item_id).unwrap().keys {
+                    tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES(?1,?2)", params![request.item_id,item])?;
+                }
             }
         }
     }
@@ -226,6 +228,33 @@ mod tests {
         assert!(db.scrap_trade(&req,"over-the-cap").is_err());
         assert_eq!(db.scrap_status().unwrap().balance,before);
         assert_eq!(db.packs().unwrap().into_iter().find(|p|p.id=="plants").unwrap().remaining,MAX_SEALED_PER_PACK);
+    }
+    #[test]
+    fn several_sets_are_bought_in_one_transaction_and_never_past_the_cap_or_the_balance() {
+        let mut db=funded_by(60);
+        let p=pack::market_pack("plants").unwrap();let n=p.keys.len() as i64;db.pack_install(p.id,p.title,p.by,p.keys).unwrap();
+        let cost=PACKS.iter().find(|(id,_)| *id=="plants").unwrap().1;
+        let before=db.scrap_status().unwrap().balance;
+        db.scrap_trade(&request(Kind::Pack,"plants",3),"three-sets").unwrap();
+        assert_eq!(db.scrap_status().unwrap().balance,before-cost*3);
+        let row=db.packs().unwrap().into_iter().find(|p|p.id=="plants").unwrap();assert_eq!((row.total,row.remaining),(n*4,n*4));
+        // a retry of the same request adds nothing and spends nothing
+        db.scrap_trade(&request(Kind::Pack,"plants",3),"three-sets").unwrap();
+        assert_eq!(db.packs().unwrap().into_iter().find(|p|p.id=="plants").unwrap().remaining,n*4);
+        // more sets than the bag can hold: refused, nothing spent, nothing added
+        let before=db.scrap_status().unwrap().balance;
+        let too_many=(MAX_SEALED_PER_PACK/n)+1;
+        assert!(db.scrap_trade(&request(Kind::Pack,"plants",too_many),"too-many").is_err());
+        assert_eq!(db.scrap_status().unwrap().balance,before);
+        assert_eq!(db.packs().unwrap().into_iter().find(|p|p.id=="plants").unwrap().remaining,n*4);
+        // more sets than the balance pays for: refused as a whole
+        let mut poor=funded();poor.pack_install(p.id,p.title,p.by,p.keys).unwrap();
+        let sets=poor.scrap_status().unwrap().balance/cost+1;
+        assert!(sets>1&&sets*n<=MAX_SEALED_PER_PACK);
+        let before=poor.scrap_status().unwrap().balance;
+        assert!(poor.scrap_trade(&request(Kind::Pack,"plants",sets),"cannot-afford").is_err());
+        assert_eq!(poor.scrap_status().unwrap().balance,before);
+        assert_eq!(poor.packs().unwrap().into_iter().find(|p|p.id=="plants").unwrap().remaining,n);
     }
     #[test]
     fn paid_packs_are_installed_atomically_and_retries_do_not_add_items() {

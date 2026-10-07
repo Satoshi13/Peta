@@ -830,3 +830,19 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .pack[data-empty="true"] .pk-count { opacity:.45; }
 
 .shelf-note { font:400 14px/1.4 var(--sys); color:#5f5a52; margin-top:6px; }
+
+/* Market card: choose the number of sets and buy them without leaving the card. */
+.mkz-qty { display:grid; gap:9px; }
+.mkz-qty .mkz-price b { font:700 16px/22px var(--sys); }
+.mkz-stepper { display:flex; align-items:center; justify-content:space-between; font:500 13px/18px var(--sys); color:var(--muted); }
+.mkz-ctls { display:flex; align-items:center; gap:4px; padding:3px; border-radius:999px; background:var(--w-sunken); box-shadow:inset 0 0 0 1px var(--w-line); }
+.mkz-ctl { width:30px; height:30px; border:0; border-radius:50%; background:var(--paper); color:var(--ink); font:600 18px/30px var(--sys); box-shadow:0 1px 2px rgba(60,45,20,.18); cursor:pointer; }
+.mkz-ctl:disabled { opacity:.35; box-shadow:none; cursor:default; }
+.mkz-ctl:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
+.mkz-n { min-width:34px; text-align:center; font:700 17px/30px var(--sys); color:var(--ink); font-variant-numeric:tabular-nums; }
+.mkz-sum { display:grid; gap:3px; margin:0; padding:9px 0; border-block:1px solid var(--w-line); }
+.mkz-sum > div { display:flex; justify-content:space-between; gap:12px; font:400 13px/19px var(--sys); color:var(--muted); }
+.mkz-sum b { font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums; }
+.mkz-sum > div[hidden] { display:none; }
+.mkz-stop { color:#8a4a1c; font:500 12.5px/17px var(--sys); text-align:center; }
+.mkz-qty small[hidden] { display:none; }

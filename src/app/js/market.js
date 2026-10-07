@@ -30,19 +30,72 @@ const Market = {
     try { await Bridge.invoke("pack_install_demo", {packId:pack.id}); await Bridge.reload(); Snd.chime(3,784); Shell.toast(`${pack.title} is on your Packs shelf.`); Shell.refresh(); }
     catch(e) { Shell.toast(String(e)); }
   },
+  /* What one set costs: nothing in the developer edition. */
+  unit(pack) { const rate = Scraps.pack(pack.id); return !rate || S.developer ? 0 : rate.exchange; },
+  /* How many sets can be bought right now, and what stops more. */
+  limit(pack) {
+    const rate = Scraps.pack(pack.id); if (!rate) return { max: 0, stop: "Not available yet." };
+    const room = Math.floor((PACK_SEALED_CAP - this.sealed(pack.id)) / rate.stickers), unit = this.unit(pack), afford = unit ? Math.floor(S.scraps.balance / unit) : Infinity;
+    const max = Math.max(0, Math.min(room, afford, 1000));
+    const stop = room < 1 ? "This bag is full. Open a few stickers to make room." : afford < 1 ? `You need ${(unit - S.scraps.balance).toLocaleString("en-US")} more Scraps.` : max === room && room <= afford ? "That fills the bag." : max === afford ? "That is all your Scraps will buy." : "";
+    return { max, stop, rate };
+  },
+  /* Choose how many sets and buy them in one go, inside the card. Nothing is redrawn that holds focus; the numbers change in place. */
+  buyBox(pack, onBought) {
+    let qty = 1, busy = false, request = null;
+    const n = (v) => v.toLocaleString("en-US");
+    const out = h("output.mkz-n", { "aria-live": "polite" }), minus = h("button.mkz-ctl", { type: "button", "aria-label": "One set fewer" }, "−"), plus = h("button.mkz-ctl", { type: "button", "aria-label": "One set more" }, "+");
+    const adds = h("b"), costs = h("b"), after = h("b"), afterRow = h("div", h("span", "Scraps after"), after), perSet = h("b"), have = h("small.muted"), stop = h("small.mkz-stop", { role: "status" }), note = h("small.muted");
+    const buy = h("button.btn.mkz-primary", { type: "button" });
+    const update = () => {
+      const { max, stop: why, rate } = this.limit(pack), own = this.own(pack.id), unit = this.unit(pack);
+      qty = Math.min(Math.max(1, qty), Math.max(1, max));
+      const total = unit * qty;
+      out.textContent = String(qty); minus.disabled = busy || qty <= 1; plus.disabled = busy || qty >= max;
+      adds.textContent = rate ? `${n(qty * rate.stickers)} sealed stickers` : "—";
+      costs.textContent = S.developer ? "No Scraps (developer)" : `${n(total)} Scraps`;
+      afterRow.hidden = S.developer; after.textContent = max < 1 ? "—" : n(S.scraps.balance - total);
+      perSet.textContent = S.developer ? "Free (developer)" : rate ? `${n(rate.exchange)} Scraps` : "Coming later";
+      have.textContent = S.developer ? "" : `You have ${n(S.scraps.balance)} Scraps`; have.hidden = S.developer;
+      buy.disabled = busy || max < 1; buy.textContent = max < 1 ? (rate ? "Can't buy right now" : "Coming later") : `Buy ${qty} ${qty === 1 ? "set" : "sets"}`;
+      if (!stop.dataset.error) stop.textContent = max < 1 || qty >= max ? why : ""; stop.hidden = !stop.textContent;
+      note.textContent = own ? "Sets go into the same bag. Stickers you have already opened stay in your Collection." : "Adds this pack to your Packs shelf. What's inside stays a surprise until you tear it.";
+    };
+    const step = (d) => () => { qty += d; request = null; delete stop.dataset.error; Snd.tap(); update(); };
+    minus.addEventListener("click", step(-1)); plus.addEventListener("click", step(1));
+    buy.addEventListener("click", async () => {
+      if (busy || Scraps.inFlight) return;
+      const trade = { kind: "pack", itemId: pack.id, quantity: qty };
+      if (!request || JSON.stringify(request.trade) !== JSON.stringify(trade)) request = { trade, requestId: Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("") };
+      const was = this.own(pack.id);
+      busy = true; Scraps.inFlight = true; Bridge.busy = true; delete stop.dataset.error; update();
+      try {
+        await Bridge.invoke("scrap_trade", request); await Bridge.reload();
+        Snd.chime(2, 740); Shell.toast(`${qty} ${qty === 1 ? "set" : "sets"} of ${pack.title} ${qty === 1 ? "is" : "are"} ${was ? "in the bag" : "on your shelf"}.`);
+        request = null; qty = 1; PackZoom.stale(); onBought();
+      } catch (e) { stop.dataset.error = "1"; stop.textContent = String(e); }
+      finally { busy = false; Scraps.inFlight = false; Bridge.busy = false; update(); }
+    });
+    const el = h("div.mkz-qty",
+      h("div.mkz-price", h("span", "Per set"), perSet), have,
+      h("div.mkz-stepper", { role: "group", "aria-label": "Number of sets" }, h("span", "Sets"), h("div.mkz-ctls", minus, out, plus)),
+      h("dl.mkz-sum", h("div", h("span", "Adds"), adds), h("div", h("span", "Costs"), costs), afterRow),
+      stop, buy, note);
+    update(); return { el, update };
+  },
   /* The zoomed card: details first, then what it costs. */
   card(pack) {
-    const rate = Scraps.pack(pack.id), own = this.own(pack.id), paid = pack.price !== "Free" || own, sealed = this.sealed(pack.id);
+    const paid = pack.price !== "Free" || this.own(pack.id);
     const peek = h("div.peek", pack.keys.slice(0, pack.count).map((k, i) => { const c = h("div.peek-s" + (i < 3 ? "" : ".sealed")); if (i < 3) Stk.make(A[k], { border: 10, material: "matte", max: 240 }).then((r) => c.append(Stk.el(r, r.aspect >= 1 ? 62 : 62 * r.aspect))); else c.append(h("b", "?")); return c; }));
-    const act = paid ? this.exchange(pack) : h("button.btn", { on: { click: () => Market.get(pack) } }, "Get — Free");
-    act.classList.add("mkz-act");
+    const own = h("p.mkz-own"), paintOwn = () => { const have = this.own(pack.id); own.hidden = !have; own.replaceChildren(h("b", "On your shelf"), ` · ${this.sealed(pack.id)} sealed`); };
+    paintOwn();
+    const buy = paid ? this.buyBox(pack, paintOwn) : null;
+    const free = paid ? null : h("button.btn.mkz-act", { on: { click: () => Market.get(pack) } }, "Get — Free");
     return h("aside.mkz-card", CloseButton("Back to the shelf", {}, ".mkz-x"),
       h("p.eyebrow", `by ${pack.by} · ${pack.count} stickers`), h("h2", pack.title), h("p.mkz-blurb", pack.blurb),
-      own ? h("p.mkz-own", h("b", "On your shelf"), ` · ${sealed} sealed`) : null,
-      h("p.eyebrow.mkz-peek", "A peek inside"), peek,
-      h("div.mkz-buy", h("div.mkz-price", h("span", own ? "Another set" : "Price"), h("b", this.price(pack))),
-        paid && rate && !S.developer ? h("small.muted", S.scraps.balance >= rate.exchange ? `You have ${S.scraps.balance.toLocaleString("en-US")} Scraps` : `You have ${S.scraps.balance.toLocaleString("en-US")} Scraps — ${rate.exchange - S.scraps.balance} more to go`) : null,
-        act, h("small.muted", own ? `Adds ${pack.count} sealed stickers to the same bag. Stickers you have already opened stay in your Collection.` : "Open it any time, as often as you like. What's inside stays a surprise until you tear it."),
+      own, h("p.eyebrow.mkz-peek", "A peek inside"), peek,
+      h("div.mkz-buy", buy ? buy.el : [h("div.mkz-price", h("span", "Price"), h("b", "Free")), free,
+        h("small.muted", "Open it any time, as often as you like. What's inside stays a surprise until you tear it.")],
         h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
   },
 };
@@ -64,7 +117,7 @@ Pages.market = {
     const open = (p, tile) => { Snd.tap(); PackZoom.open(p, tile, (pack) => Market.card(pack)); };
     const cell = (p, i) => {
       const own = Market.own(p.id);
-      return h("div.mk-item", h("button.mk-tile", { "aria-label": `${p.title} by ${p.by}${own ? ", on your shelf" : ""} — look closer`, "aria-haspopup": "dialog", style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
+      return h("div.mk-item", h("button.mk-tile", { "aria-label": `${p.title} by ${p.by}${own ? ", on your shelf" : ""} — look closer`, "aria-haspopup": "dialog", data: { pack: p.id }, style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
         Market.pouch(p), own ? h("span.pk-badge.own", "On shelf") : p.price === "Free" ? h("span.pk-badge.free", "Free") : null));
     };
     const main = h("div.mk-main",

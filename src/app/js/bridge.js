@@ -46,7 +46,7 @@ const Bridge = (() => {
     const back = await invoke('sticker_back', {stickerId:id});
     return { id, material:back.material?.id || 'matte', kind:back.kind, from:back.receivedFrom, no:back.originalNumber == null ? null : Number(back.originalNumber), edition:back.editionNumber == null ? null : Number(back.editionNumber), date:new Date(), back, title:'Sticker' };
   }
-  async function changed() { try { await reload(); Shell.renderNav(); if (!Bridge.busy && !document.querySelector('.cer') && S.page !== 'create') Shell.refresh(); if(S.packOffer) Distribution.offer(S.packOffer); } catch(e) { Shell.toast(String(e)); } }
+  async function changed() { try { await reload(); Shell.renderNav(); if (!Bridge.busy && !document.querySelector('.cer') && S.page !== 'create') { if (typeof PackZoom !== 'undefined' && PackZoom.current) PackZoom.stale(); else Shell.refresh(); } if(S.packOffer) Distribution.offer(S.packOffer); } catch(e) { Shell.toast(String(e)); } }
   function enterCeremony() {
     document.body.dataset.scene='ceremony';
     if(S.page==='today') Pages.today.suspend();
