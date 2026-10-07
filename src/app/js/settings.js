@@ -4,7 +4,7 @@ Pages.settings = {
     root.append(PageHead("Settings", "Quiet by default"));
     const name = h("input", { type: "text", value: S.name, maxlength: 40, autocomplete: "off", spellcheck: false, on: { change: async (e) => { try { S.name = (await Bridge.invoke("profile_set", { displayName: e.target.value })).displayName; e.target.value = S.name; Shell.renderNav(); } catch(err) { Shell.toast(String(err)); } } } });
     const sw = (label, sub, get, set) => { const b = h("button.switch", { role: "switch", "aria-checked": String(get()), on: { click: () => { set(!get()); b.setAttribute("aria-checked", String(get())); Snd.tap(); } } }, h("i")); return h("div.setrow", h("div", h("b", label), h("small", sub)), b); };
-    const segRow = (label, sub, opts, get, set) => { const seg = h("div.seg", opts.map(([v, text]) => h("button", { "aria-pressed": String(get() === v), on: { click: () => { set(v); Snd.tap(); $$("button", seg).forEach((b, i) => b.setAttribute("aria-pressed", String(opts[i][0] === v))); } } }, text))); return h("div.setrow", h("div", h("b", label), h("small", sub)), seg); };
+    const segRow = (label, sub, opts, get, set) => { const seg = h("div.seg", opts.map(([v, text]) => SegButton(text, { "aria-pressed": String(get() === v), on: { click: () => { set(v); Snd.tap(); $$("button", seg).forEach((b, i) => b.setAttribute("aria-pressed", String(opts[i][0] === v))); } } }))); return h("div.setrow", h("div", h("b", label), h("small", sub)), seg); };
     root.append(h("div.setcard",
       h("div.setrow", h("div", h("b", "Your name on stickers"), h("small", "Printed on the back of stickers you make from now on")), name),
       h("div.setrow", h("div", h("b", "Creator icon"), h("small", "Choose an original sticker from your Collection")),

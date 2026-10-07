@@ -166,3 +166,21 @@ npm test
 出力はreview-15の`pack-rewards-core-tests.txt`／`pack-rewards-developer-tests.txt`／`pack-rewards-runtime-tests.txt`／`pack-rewards-final-npm-test.txt`へ保存した。ネイティブ全体のcargo checkは再確認したが、このLinux環境のglib-2.0.pc不足で停止。Tauri本体のビルド・macOS WKWebView・VoiceOver・Retina実機・実際の再起動と印刷は未確認のままチェックリストへ追記した。
 
 ローカルでは`codex/ui-fixes-oct07`を取得・更新し、通常版は`npm run dev`、開発者版は`npm run dev:developer`で起動する。無料分の進捗を確認する場合、通常版と開発者版はデータの保存先が別である点に注意。
+
+## 選択の囲みと文字位置
+
+添付のMarket・Collection・Settings・Erase／Restoreを確認し、共通のsegを修正した。元の囲みは完成済みのSVGマスクをclip-pathで左から表示するだけで、ペンが丸を描く動きになっていなかった。選択時だけfont-weightが500→700に変わるため、文字の幅・中央位置と、幅が固定でないボタンや切替全体の寸法も変わっていた。
+
+共通のSegButtonで装飾SVGを文字と分け、stroke-dashoffsetで線の経路に沿って描く。主線は520ms、薄い重ね線は440msから200ms（全体640ms）。角度と手書き風の線形は既存のものを使う。SVGは絶対配置でレイアウトに影響せず、aria-hidden・focusable=false・pointer-events:noneにした。選択前後の文字はfont-weight:500に揃える。選択色・フォーカス枠・既存のクリック／キー処理と設定保存は維持した。Reduce motionはアプリ設定とOS設定の両方で、アニメーションなしの完成形になる。
+
+Chromium DPR2、Studio／Desk・1060×700／720×520の4構成で、5種類の切替を実際に操作した（計20組）。文字とボタンの矩形、切替全体の幅を比較し、修正前の最大差はMarket 3.484375px、Collection 2.78125px、Appearance 2.75px、Window style 3.4375px、Erase／Restore 2.765625pxだった。修正後は全20組で文字・ボタンの矩形差と切替全体の幅差が0pxだった。[修正後](port-spec/compare/review-15/selection-after.json)と[修正前](port-spec/compare/review-15/selection-before.json)の測定値を保存した。
+
+実際のCSSアニメーションを0／160／360／640msで停止し、主線のdashoffsetが1から0へ連続して減り、重ね線は遅れて描かれることを確認した。clip-pathは使わない。高速な連続切替とEnter／Spaceでも選択は1項目になり、アプリ／OSのReduce motionで両線は即時完成する。Cutting Matは本物のページと切替処理を使い、Rustの画像レンダー応答のみfixtureへ差し替えた。画像素材・Rust・DBへの変更はない。
+
+| 描画の途中（Studio 1060） | 画像 |
+|---|---|
+| 160ms: 上側を描く | [画像](port-spec/compare/review-15/studio-1060-selection-stroke-160.png) |
+| 360ms: 丸を一周する | [画像](port-spec/compare/review-15/studio-1060-selection-stroke-360.png) |
+| 640ms: 重ね線も完成 | [画像](port-spec/compare/review-15/studio-1060-selection-stroke-640.png) |
+
+再現は`python3 scripts/ui-selection-review.py before`／`after`。beforeは直前の`18707ba`のsrcを読み、作業ツリーを書き換えない。最終npm testは61件成功、0失敗。git diff --checkも成功。npmの結果を[selection-final-npm-test.txt](port-spec/compare/review-15/selection-final-npm-test.txt)へ保存した。macOS WKWebView・Retina実機・VoiceOverはチェックリストの未確認項目として残す。

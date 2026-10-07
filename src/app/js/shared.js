@@ -5,6 +5,22 @@ function PageHead(title, sub, ...extra) {
 const DateStamp = () => h("span.datestamp", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" }));
 const usableMats = () => Object.keys(MAT).filter((id) => !MAT[id].locked && (MAT[id].unlimited || S.stock[id] > 0));
 
+/** The active choice is circled along a pen stroke; the decorative SVG never affects text layout. */
+function SegButton(label, props) {
+  const ns = "http://www.w3.org/2000/svg", ring = document.createElementNS(ns, "svg");
+  for (const [key, value] of Object.entries({ class:"seg-ring", viewBox:"0 0 120 48", preserveAspectRatio:"none", "aria-hidden":"true", focusable:"false" })) ring.setAttribute(key, value);
+  const strokes = [
+    ["M17 10C40 3 92 3 108 14C119 22 112 38 90 41C62 46 26 44 12 34C3 26 8 14 30 8C46 4 62 4 76 6", "2.6"],
+    ["M26 6C52 1 101 7 111 21C116 32 99 42 72 43C45 45 15 40 9 28C6 18 17 10 36 7", "1.3"],
+  ];
+  for (const [d, width] of strokes) {
+    const path = document.createElementNS(ns, "path");
+    path.setAttribute("d", d); path.setAttribute("pathLength", "1"); path.setAttribute("stroke-width", width);
+    ring.append(path);
+  }
+  return h("button", props, h("span.seg-label", label), ring);
+}
+
 /** A tray of material cards. Picking marks the material for the next Create without moving the controls. */
 function MaterialTray({ w = 148, onPick, interactive = true, selected = S.chosen } = {}) {
   const tray = h("div.mtray", { role: "radiogroup", "aria-label": "Material" });

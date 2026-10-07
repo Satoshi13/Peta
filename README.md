@@ -8,6 +8,8 @@
 
 ### 2026-10-07 の操作修正
 
+- Market／Collection／Settings／Erase・Restoreの選択囲みは、ペンの先端が丸を一周して薄い線を重ねる動きに統一します。文字は選択前後で同じ太さを保ち、切替で位置やボタン幅が変わりません。Reduce motionでは完成した囲みを即時表示します。
+
 - F: CollectionのList／Calendarはヘッダー右端に固定し、その左にMake a Pack、さらに左にCalendarだけのSave posterを並べます。880px以下ではボタン群だけが下段へ移り、切替とMake a Packの座標は両ビューで一致します。
 
 - E: コードの入口はSettingsの最後の行「Redeem a code」とメニューバーにまとめます。メニューは今のページ（隠した窓なら直前、初回はToday）でダイアログを開き、受取後の更新・結果表示は従来どおりです。

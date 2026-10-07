@@ -96,11 +96,11 @@ Pages.book = {
       }, { root, rootMargin: "80px" });
       const items = PetaMath.newestBookEntries(S.lib);
       const sel = items.find(e => e.id === BK.sel && PetaMath.bookDateKey(e.date) === BK.day) || items.find(e => e.id === BK.sel);
-      const view = h("div.seg.book-view", { role: "group", "aria-label": "Collection view" }, ["list", "calendar"].map(v => h("button", { "aria-pressed": String(S.bookView === v), on: { click: () => {
+      const view = h("div.seg.book-view", { role: "group", "aria-label": "Collection view" }, ["list", "calendar"].map(v => SegButton(v === "list" ? "List" : "Calendar", { "aria-pressed": String(S.bookView === v), on: { click: () => {
         if(S.bookView === v) return; S.bookView = v;
         if(v === "calendar" && sel) S.bookMonth = monthKey(sel.date);
         Bridge.savePreferences(); paint();
-      } } }, v === "list" ? "List" : "Calendar")));
+      } } })));
       const main = h("div.bk-main");
       if(S.bookView === "calendar") main.append(this.calendar(items, select, root, paint));
       else {

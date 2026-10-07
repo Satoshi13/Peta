@@ -237,7 +237,7 @@ Linuxでの画像・IPC確認とmacOS向け型検査は、macOS実機の反射�
 - [ ] AAA13: 10連は袋を1回切ると袋が脇へ下がり、10枚が1枚ずつトレーへ飛んで裏返る。レア以上は少し長く止まり光る。最後に枚数・最高レア度・`Stick them`／`Later`が出て、10枚ともCollectionに入る。途中で失敗したら、それまでの分で終了画面になり理由が出る。Reduce motionで動きが省かれる。
 - [ ] AAA14: 1枚開封で、スリーブを少し持ち上げて離しても袋の前に出ず、`Pull it out.`と矢印が出たまま袋の中に戻る。十分に引くと従来どおり取り出せる。
 - [ ] AAA15: 印刷待ちに別のステッカーが残っている状態で、①パックを開けてStick it ②Collectionの再印刷 ③Make this Peta ④10連のStick them を行うと、いま選んだステッカー（10連は最初に開いた1枚）が先に印刷され、残りは元の順序で続く。
-- [ ] AAA16: 選択中の丸囲み（Market／Collectionなどの切り替え）が手書き風の二重線で、選ぶたびに左から書かれる。DayでもNightでも読め、Reduce motionでは書く動きがない。
+- [ ] AAA16（追加フィードバック反映）: MarketのPacks／Materials／Creators、CollectionのList／Calendar、SettingsのDesk／StudioとDay／Night／Auto、Cutting MatのErase／Restoreで、線の先端が丸を一周し、薄い線を重ねて囲む（合計640ms）。文字の太さ・位置と切替全体の幅が選択前後で変わらない。連続切替・Enter／Spaceでも正しい1項目を囲み、Nightでも読める。アプリ／OSのReduce motionでは完成した囲みを即時表示。Retina／WKWebViewとVoiceOverで装飾を読み上げず、ボタン名と選択状態を読める。
 
 Linuxでのハーネス確認とmacOSでの起動確認は、サイドバー素材の見え方・複数ディスプレイ・Retina・VoiceOverの実機確認を代替しない。
 
