@@ -107,7 +107,8 @@ Pages.book = {
         main.append(h("p.muted.book-count", `${items.length} sticker${items.length === 1 ? "" : "s"}`), items.length ? h("div.bk-grid", items.map((e,i) => this.tile(e,i,select))) : h("p.empty-note", "Your Collection is waiting for its first sticker."));
       }
       const poster = S.bookView === "calendar" ? this.posterButton(items) : null;
-      root.replaceChildren(PageHead("Collection", "Your stickers", view, poster, h("button.btn.paper.small", {disabled:S.lib.length<3,on:{click:()=>PackMaker.open()}}, "Make a Pack…")),
+      const actions = h("div.book-head-actions", poster, h("button.btn.paper.small", {disabled:S.lib.length<3,on:{click:()=>PackMaker.open()}}, "Make a Pack…"));
+      root.replaceChildren(PageHead("Collection", "Your stickers", actions, view),
         ...(S.pickMode ? [h("div.pick-banner", h("span", "Choose one to stick on the desktop"), h("button.link", { on: { click: () => { S.pickMode = false; paint(); } } }, "Cancel"))] : []),
         h("div.bk" + (sel ? ".has-detail" : ""), main, sel ? this.detail(sel, paint) : null));
     };

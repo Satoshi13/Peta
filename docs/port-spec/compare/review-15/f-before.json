@@ -1,0 +1,294 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "f",
+    "phase": "before",
+    "list": {
+      "view": {
+        "x": 740.90625,
+        "y": 48,
+        "width": 146.734375,
+        "height": 38,
+        "top": 48,
+        "right": 887.640625,
+        "bottom": 86,
+        "left": 740.90625
+      },
+      "make": {
+        "x": 899.640625,
+        "y": 52,
+        "width": 124.359375,
+        "height": 30,
+        "top": 52,
+        "right": 1024,
+        "bottom": 82,
+        "left": 899.640625
+      },
+      "header": {
+        "x": 240,
+        "y": 38,
+        "width": 784,
+        "height": 62,
+        "top": 38,
+        "right": 1024,
+        "bottom": 100,
+        "left": 240
+      }
+    },
+    "calendar": {
+      "view": {
+        "x": 605.265625,
+        "y": 48,
+        "width": 149.5,
+        "height": 38,
+        "top": 48,
+        "right": 754.765625,
+        "bottom": 86,
+        "left": 605.265625
+      },
+      "make": {
+        "x": 899.640625,
+        "y": 52,
+        "width": 124.359375,
+        "height": 30,
+        "top": 52,
+        "right": 1024,
+        "bottom": 82,
+        "left": 899.640625
+      },
+      "header": {
+        "x": 240,
+        "y": 38,
+        "width": 784,
+        "height": 62,
+        "top": 38,
+        "right": 1024,
+        "bottom": 100,
+        "left": 240
+      }
+    }
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "step": "f",
+    "phase": "before",
+    "list": {
+      "view": {
+        "x": 400.90625,
+        "y": 48,
+        "width": 146.734375,
+        "height": 38,
+        "top": 48,
+        "right": 547.640625,
+        "bottom": 86,
+        "left": 400.90625
+      },
+      "make": {
+        "x": 559.640625,
+        "y": 52,
+        "width": 124.359375,
+        "height": 30,
+        "top": 52,
+        "right": 684,
+        "bottom": 82,
+        "left": 559.640625
+      },
+      "header": {
+        "x": 36,
+        "y": 38,
+        "width": 648,
+        "height": 62,
+        "top": 38,
+        "right": 684,
+        "bottom": 100,
+        "left": 36
+      }
+    },
+    "calendar": {
+      "view": {
+        "x": 265.265625,
+        "y": 48,
+        "width": 149.5,
+        "height": 38,
+        "top": 48,
+        "right": 414.765625,
+        "bottom": 86,
+        "left": 265.265625
+      },
+      "make": {
+        "x": 559.640625,
+        "y": 52,
+        "width": 124.359375,
+        "height": 30,
+        "top": 52,
+        "right": 684,
+        "bottom": 82,
+        "left": 559.640625
+      },
+      "header": {
+        "x": 36,
+        "y": 38,
+        "width": 648,
+        "height": 62,
+        "top": 38,
+        "right": 684,
+        "bottom": 100,
+        "left": 36
+      }
+    }
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "f",
+    "phase": "before",
+    "list": {
+      "view": {
+        "x": 714.90625,
+        "y": 76,
+        "width": 146.734375,
+        "height": 38,
+        "top": 76,
+        "right": 861.640625,
+        "bottom": 114,
+        "left": 714.90625
+      },
+      "make": {
+        "x": 873.640625,
+        "y": 80,
+        "width": 124.359375,
+        "height": 30,
+        "top": 80,
+        "right": 998,
+        "bottom": 110,
+        "left": 873.640625
+      },
+      "header": {
+        "x": 188,
+        "y": 68,
+        "width": 810,
+        "height": 58,
+        "top": 68,
+        "right": 998,
+        "bottom": 126,
+        "left": 188
+      }
+    },
+    "calendar": {
+      "view": {
+        "x": 579.265625,
+        "y": 76,
+        "width": 149.5,
+        "height": 38,
+        "top": 76,
+        "right": 728.765625,
+        "bottom": 114,
+        "left": 579.265625
+      },
+      "make": {
+        "x": 873.640625,
+        "y": 80,
+        "width": 124.359375,
+        "height": 30,
+        "top": 80,
+        "right": 998,
+        "bottom": 110,
+        "left": 873.640625
+      },
+      "header": {
+        "x": 188,
+        "y": 68,
+        "width": 810,
+        "height": 58,
+        "top": 68,
+        "right": 998,
+        "bottom": 126,
+        "left": 188
+      }
+    }
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "step": "f",
+    "phase": "before",
+    "list": {
+      "view": {
+        "x": 382.90625,
+        "y": 71,
+        "width": 146.734375,
+        "height": 38,
+        "top": 71,
+        "right": 529.640625,
+        "bottom": 109,
+        "left": 382.90625
+      },
+      "make": {
+        "x": 541.640625,
+        "y": 75,
+        "width": 124.359375,
+        "height": 30,
+        "top": 75,
+        "right": 666,
+        "bottom": 105,
+        "left": 541.640625
+      },
+      "header": {
+        "x": 84,
+        "y": 66,
+        "width": 582,
+        "height": 52,
+        "top": 66,
+        "right": 666,
+        "bottom": 118,
+        "left": 84
+      }
+    },
+    "calendar": {
+      "view": {
+        "x": 84,
+        "y": 128,
+        "width": 149.5,
+        "height": 38,
+        "top": 128,
+        "right": 233.5,
+        "bottom": 166,
+        "left": 84
+      },
+      "make": {
+        "x": 378.375,
+        "y": 132,
+        "width": 124.359375,
+        "height": 30,
+        "top": 132,
+        "right": 502.734375,
+        "bottom": 162,
+        "left": 378.375
+      },
+      "header": {
+        "x": 84,
+        "y": 66,
+        "width": 582,
+        "height": 104,
+        "top": 66,
+        "right": 666,
+        "bottom": 170,
+        "left": 84
+      }
+    }
+  }
+]

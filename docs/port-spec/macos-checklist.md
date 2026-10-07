@@ -255,3 +255,5 @@ Linuxでのハーネス確認とmacOSでの起動確認は、サイドバー素�
 - [ ] D: Studio／DeskのMarket Featuredを720〜1400pxでリサイズ。索引カードの角・縁・穴の寸法が一定で、紙クリップ・影・左の扇が重ならず、Retinaでも歪みがない。
 
 - [ ] E: Settingsの末尾の副ボタンへTabで到達してコードを入力。成功・エラー・キャンセルは従来どおり、追加封筒はTodayに反映。メニューバーからCollectionなどを表示したまま／隠した後／ミニマイズ後に呼び、同じページで開く。窓がまだなければToday。Today開封前後とGiftsにRedeemの文字がない。
+
+- [ ] F: Studio／Desk・1060×700／720×520でList⇄Calendarを連続切替。切替とMake a Packの位置・幅が動かず、720pxではボタン群だけが下段。Save posterの保存パネルとMake a Pack、有効／無効、再起動後のビュー保存も従来どおり。

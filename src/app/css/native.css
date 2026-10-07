@@ -180,8 +180,15 @@ html[data-motion="reduce"] .seg button::after { animation: none !important; }
 .envelope-clock { display:inline-grid; grid-template-columns:repeat(8,1ch); text-align:center; color:var(--ink); font-family:var(--type); font-variant-numeric:tabular-nums; }
 
 /* Book keeps the existing paper and detail actions; the content can be a list or a ledger. */
-.bookpage .ph { align-items:center; flex-wrap:wrap; }
+.bookpage .ph { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; }
+.book-head-actions { display:flex; align-items:center; justify-content:flex-end; gap:12px; }
 .book-view { flex:none; }
+.book-view button { width:76px; padding-inline:10px; flex:none; }
+@media (max-width:880px) {
+  .bookpage .ph-extra { display:contents; }
+  .bookpage .book-view { grid-column:2; grid-row:1; justify-self:end; }
+  .bookpage .book-head-actions { grid-column:1 / -1; grid-row:2; justify-self:end; }
+}
 .book-count { margin:0; }
 .bookpage .pick-banner { margin-bottom:16px; }
 .bookpage .tile-stk { width:100%; will-change:auto; }

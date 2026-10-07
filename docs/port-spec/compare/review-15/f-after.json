@@ -1,0 +1,298 @@
+[
+  {
+    "shell": "studio",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "f",
+    "phase": "after",
+    "list": {
+      "view": {
+        "x": 862,
+        "y": 48,
+        "width": 162,
+        "height": 38,
+        "top": 48,
+        "right": 1024,
+        "bottom": 86,
+        "left": 862
+      },
+      "make": {
+        "x": 725.640625,
+        "y": 52,
+        "width": 124.359375,
+        "height": 30,
+        "top": 52,
+        "right": 850,
+        "bottom": 82,
+        "left": 725.640625
+      },
+      "header": {
+        "x": 240,
+        "y": 38,
+        "width": 784,
+        "height": 62,
+        "top": 38,
+        "right": 1024,
+        "bottom": 100,
+        "left": 240
+      }
+    },
+    "calendar": {
+      "view": {
+        "x": 862,
+        "y": 48,
+        "width": 162,
+        "height": 38,
+        "top": 48,
+        "right": 1024,
+        "bottom": 86,
+        "left": 862
+      },
+      "make": {
+        "x": 725.640625,
+        "y": 52,
+        "width": 124.359375,
+        "height": 30,
+        "top": 52,
+        "right": 850,
+        "bottom": 82,
+        "left": 725.640625
+      },
+      "header": {
+        "x": 240,
+        "y": 38,
+        "width": 784,
+        "height": 62,
+        "top": 38,
+        "right": 1024,
+        "bottom": 100,
+        "left": 240
+      }
+    },
+    "actionsPreserved": true
+  },
+  {
+    "shell": "studio",
+    "size": [
+      720,
+      520
+    ],
+    "step": "f",
+    "phase": "after",
+    "list": {
+      "view": {
+        "x": 522,
+        "y": 50,
+        "width": 162,
+        "height": 38,
+        "top": 50,
+        "right": 684,
+        "bottom": 88,
+        "left": 522
+      },
+      "make": {
+        "x": 559.640625,
+        "y": 112,
+        "width": 124.359375,
+        "height": 30,
+        "top": 112,
+        "right": 684,
+        "bottom": 142,
+        "left": 559.640625
+      },
+      "header": {
+        "x": 36,
+        "y": 38,
+        "width": 648,
+        "height": 104,
+        "top": 38,
+        "right": 684,
+        "bottom": 142,
+        "left": 36
+      }
+    },
+    "calendar": {
+      "view": {
+        "x": 522,
+        "y": 50,
+        "width": 162,
+        "height": 38,
+        "top": 50,
+        "right": 684,
+        "bottom": 88,
+        "left": 522
+      },
+      "make": {
+        "x": 559.640625,
+        "y": 112,
+        "width": 124.359375,
+        "height": 30,
+        "top": 112,
+        "right": 684,
+        "bottom": 142,
+        "left": 559.640625
+      },
+      "header": {
+        "x": 36,
+        "y": 38,
+        "width": 648,
+        "height": 104,
+        "top": 38,
+        "right": 684,
+        "bottom": 142,
+        "left": 36
+      }
+    },
+    "actionsPreserved": true
+  },
+  {
+    "shell": "desk",
+    "size": [
+      1060,
+      700
+    ],
+    "step": "f",
+    "phase": "after",
+    "list": {
+      "view": {
+        "x": 836,
+        "y": 76,
+        "width": 162,
+        "height": 38,
+        "top": 76,
+        "right": 998,
+        "bottom": 114,
+        "left": 836
+      },
+      "make": {
+        "x": 699.640625,
+        "y": 80,
+        "width": 124.359375,
+        "height": 30,
+        "top": 80,
+        "right": 824,
+        "bottom": 110,
+        "left": 699.640625
+      },
+      "header": {
+        "x": 188,
+        "y": 68,
+        "width": 810,
+        "height": 58,
+        "top": 68,
+        "right": 998,
+        "bottom": 126,
+        "left": 188
+      }
+    },
+    "calendar": {
+      "view": {
+        "x": 836,
+        "y": 76,
+        "width": 162,
+        "height": 38,
+        "top": 76,
+        "right": 998,
+        "bottom": 114,
+        "left": 836
+      },
+      "make": {
+        "x": 699.640625,
+        "y": 80,
+        "width": 124.359375,
+        "height": 30,
+        "top": 80,
+        "right": 824,
+        "bottom": 110,
+        "left": 699.640625
+      },
+      "header": {
+        "x": 188,
+        "y": 68,
+        "width": 810,
+        "height": 58,
+        "top": 68,
+        "right": 998,
+        "bottom": 126,
+        "left": 188
+      }
+    },
+    "actionsPreserved": true
+  },
+  {
+    "shell": "desk",
+    "size": [
+      720,
+      520
+    ],
+    "step": "f",
+    "phase": "after",
+    "list": {
+      "view": {
+        "x": 504,
+        "y": 73,
+        "width": 162,
+        "height": 38,
+        "top": 73,
+        "right": 666,
+        "bottom": 111,
+        "left": 504
+      },
+      "make": {
+        "x": 541.640625,
+        "y": 130,
+        "width": 124.359375,
+        "height": 30,
+        "top": 130,
+        "right": 666,
+        "bottom": 160,
+        "left": 541.640625
+      },
+      "header": {
+        "x": 84,
+        "y": 66,
+        "width": 582,
+        "height": 94,
+        "top": 66,
+        "right": 666,
+        "bottom": 160,
+        "left": 84
+      }
+    },
+    "calendar": {
+      "view": {
+        "x": 504,
+        "y": 73,
+        "width": 162,
+        "height": 38,
+        "top": 73,
+        "right": 666,
+        "bottom": 111,
+        "left": 504
+      },
+      "make": {
+        "x": 541.640625,
+        "y": 130,
+        "width": 124.359375,
+        "height": 30,
+        "top": 130,
+        "right": 666,
+        "bottom": 160,
+        "left": 541.640625
+      },
+      "header": {
+        "x": 84,
+        "y": 66,
+        "width": 582,
+        "height": 94,
+        "top": 66,
+        "right": 666,
+        "bottom": 160,
+        "left": 84
+      }
+    },
+    "actionsPreserved": true
+  }
+]
