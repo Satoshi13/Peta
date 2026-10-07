@@ -778,22 +778,7 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 .cer-skip:hover { background:#ffffff2b; }
 .cer-skip[hidden] { display:none; }
 .cer-skip:focus-visible { outline:2px solid #f5efe2; outline-offset:3px; }
-.cer[data-batch="true"] .cer-stage { top:76px; translate:-50% 0; width:min(960px,calc(100vw - 48px)); height:calc(100% - 108px); display:flex; flex-direction:column; align-items:center; justify-content:space-between; gap:14px; }
-.cer[data-batch="true"] .cer-hint { top:30px; }
-.pm-tray { display:grid; place-items:center; flex:1; width:100%; min-height:0; }
-.cer[data-batch="true"] .pm-grid { position:relative; left:auto; top:auto; translate:none; padding:20px; border-radius:20px; background:#fff8eb0f; box-shadow:inset 0 0 0 1.5px #fff8eb2b; }
-.cer[data-batch="true"] .pm-slot { background:transparent; box-shadow:none; }
-.cer[data-batch="true"] .pm-slot[data-rarity="rare"] { box-shadow:inset 0 0 0 1.5px #d6c4ff,0 0 20px #c1a1ff66; }
-.cer[data-batch="true"] .pm-slot[data-rarity="special"], .cer[data-batch="true"] .pm-slot[data-rarity="archive"] { box-shadow:inset 0 0 0 1.5px #edd184,0 0 20px #eac36170; }
-.pm-covered { display:block; width:80%; height:80%; object-fit:contain; }
-.cer[data-batch="true"] .rv-info { position:relative; left:auto; right:auto; bottom:auto; width:100%; flex:none; }
-.cer[data-batch="true"] .rv-meta { flex-wrap:wrap; justify-content:center; }
-.cer[data-batch="true"] .rv-meta .no { font:12px/1.4 var(--sys); }
-.pm-notice { margin:0; font:12px/1.4 var(--sys); color:inherit; }
-.pm-missing { padding:8px; font:12px/1.4 var(--sys); color:#f5efe2; }
-.cer[data-skipped="true"] .spark { visibility:hidden; }
 
-.cer[data-batch="true"] .cer-bg { background:radial-gradient(ellipse at 50% 38%,#514534,#211a13 85%); backdrop-filter:none; }
 
 
 /* ---- The light of a pulled rarity (Today's material and the ten-at-once sheet) ----
@@ -832,9 +817,4 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .cer-ink { position:absolute; inset:0; width:100%; height:100%; z-index:7; pointer-events:none; overflow:visible; }
 .cer-caption { position:absolute; left:50%; z-index:9; white-space:nowrap; pointer-events:none; text-shadow:0 1px 8px rgba(40,25,10,.5); font:500 21px/1.4 var(--hand); transform:translateX(-50%) rotate(-3deg); }
 
-/* ten-at-once sheet: the tray is a light table. The rare in the wave gets the stage; its pool of light sits under the glass. */
-.pm-tray { position:relative; z-index:1; }
-.pm-slot { transition:background .3s, box-shadow .3s; }
-.pm-slot[data-stage="true"] { box-shadow:inset 0 0 0 1.5px #ffffff55,0 12px 34px #0007; background:#fff8eb18; }
-.pm-slot .glint { position:absolute; inset:4%; border-radius:12px; pointer-events:none; z-index:3; mix-blend-mode:soft-light; background:linear-gradient(108deg, transparent calc(var(--gl) - 16%), rgba(255,255,255,.95) var(--gl), transparent calc(var(--gl) + 16%)); }
-.pm-covered { transition:opacity .2s; }
+.cer[data-skipped="true"] .spark { visibility:hidden; }
