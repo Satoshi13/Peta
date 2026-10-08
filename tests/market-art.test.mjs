@@ -38,6 +38,9 @@ test("the rail's packs are pendulums driven by the page's real motion, start wit
   assert.match(js, /root\._swinging/);
   assert.doesNotMatch(css, /\.mk-item:has\(\.mk-tile:hover\)/);
   assert.match(js, /h\("span\.pk-badge\.own", "Owned"\)/);
+  // the word is written on the wall: it sits outside the part that swings
+  assert.match(js, /h\("div\.mk-hang", h\("i\.mk-clip"[^]*Market\.pouch\(p\)\)\), own \? h\("span\.pk-badge\.own"/);
+  assert.match(js, /\$\$\("\.mk-rail \.mk-hang", root\)/);
   assert.doesNotMatch(js, /On shelf/);
   assert.match(css, /\.mk-tile:hover, \.mk-tile\[aria-pressed="true"\][^}]*background:none; box-shadow:none/);
   assert.match(css, /\.mk-tile \.pk-badge \{ position:static;[^}]*background:none; box-shadow:none/);

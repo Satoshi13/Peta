@@ -122,8 +122,9 @@ Pages.market = {
     const open = (p, tile) => { Snd.tap(); PackZoom.open(p, tile, (pack) => Market.card(pack)); };
     const cell = (p, i) => {
       const own = Market.own(p.id);
-      return h("div.mk-item", h("i.mk-clip", { "aria-hidden": "true" }), h("button.mk-tile", { "aria-label": `${p.title} by ${p.by}${own ? ", owned" : ""} — look closer`, "aria-haspopup": "dialog", data: { pack: p.id }, style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
-        Market.pouch(p), own ? h("span.pk-badge.own", "Owned") : p.price === "Free" ? h("span.pk-badge.free", "Free") : null));
+      /* The clip and the pack hang and swing together; the word under them is written on the wall, so it stays put. */
+      return h("div.mk-item", h("div.mk-hang", h("i.mk-clip", { "aria-hidden": "true" }), h("button.mk-tile", { "aria-label": `${p.title} by ${p.by}${own ? ", owned" : ""} — look closer`, "aria-haspopup": "dialog", data: { pack: p.id }, style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
+        Market.pouch(p))), own ? h("span.pk-badge.own", "Owned") : p.price === "Free" ? h("span.pk-badge.free", "Free") : null);
     };
     const main = h("div.mk-main",
       h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat), h("div.fan", feat.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
@@ -140,7 +141,7 @@ Pages.market = {
     if (reduced() || root._swinging) return;
     const G = 9.8, PX = .0018, ZETA = .14, GAIN = .3, GAIN_Y = .1;   // 1 css px ≈ 1.8 mm: a pack is about 18 cm tall
     // No two packs hang quite alike: the pouch sits a little lower in one clip than in the next, and the first push is a small stand-in for the page stopping.
-    const bobs = $$(".mk-rail .mk-item", root).map((el, i) => ({ el, th: 0, om: (follow ? .35 : .5) * dir, skew: 1 + (((i * 37) % 11) - 5) * .014, ecc: (((i * 53) % 7) - 3) * .06 }));
+    const bobs = $$(".mk-rail .mk-hang", root).map((el, i) => ({ el, th: 0, om: (follow ? .35 : .5) * dir, skew: 1 + (((i * 37) % 11) - 5) * .014, ecc: (((i * 53) % 7) - 3) * .06 }));
     if (!bobs.length) return;
     root._swinging = true;
     let last = performance.now(), start = last, x0 = null, y0 = null, vx = 0, vy = 0, ax0 = 0, ay0 = 0, still = 0;
