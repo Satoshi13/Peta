@@ -54,7 +54,7 @@ test('the name tag has no outline on focus or hover, and its shadow is always th
 test('the bottom row of Create uses the app\'s standard sizes: the name field is 44px high, the buttons are the plain .btn, the notes the usual small text', () => {
   const css = read('src/app/css/native.css'), js = read('src/app/js/create.js');
   assert.match(css, /\.cs-foot \{ display:grid; grid-template-columns:minmax\(0,1fr\) auto; align-items:start;/);
-  assert.match(css, /\.nametag \{[^}]*grid-template-columns:auto minmax\(0,380px\)/);
+  assert.match(css, /\.nametag \{[^}]*grid-template-columns:auto minmax\(0,300px\)/);
   assert.match(css, /\.nt-paper \{ --nt-h:44px; position:relative; height:var\(--nt-h\); \}/);
   assert.match(css, /\.cs-foot \.go-btns \{[^}]*height:44px/);
   assert.doesNotMatch(css, /\.cs-foot \.go-btns \.btn \{/, 'no private button size');

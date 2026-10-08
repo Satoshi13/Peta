@@ -910,7 +910,7 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 
 /* Create: the name of the sticker, at the bottom left. A paper tag with a lifted corner; art/ui/name-tag-paper*.png replaces this CSS paper when it arrives. */
 .cs-foot-left { display:grid; gap:10px; min-width:0; }
-.nametag { display:grid; justify-content:start; grid-template-columns:auto minmax(0,380px); align-items:center; column-gap:14px; }
+.nametag { display:grid; justify-content:start; grid-template-columns:auto minmax(0,300px); align-items:center; column-gap:14px; }
 .nt-label { font:500 14px/1 var(--sys); color:var(--ink2); }
 /* The paper is art/ui/name-tag-paper.png (2400×360). The paper itself is x 28–2365, y 35–287 of it; the rest is margin and a baked shadow.
    --nt-h is the height of the paper (252 art px); everything is that height × the art's own proportions. Left and right 200px are kept. */
