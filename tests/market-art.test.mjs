@@ -28,7 +28,7 @@ test("the rail's packs are pendulums driven by the page's real motion, start wit
   const js = read("src/app/js/market.js"), css = read("src/app/css/native.css"), shell = read("src/app/js/shell.js");
   assert.match(js, /arrive\(root, o\) \{ if \(MK\.tab === "packs"\) requestAnimationFrame\(\(\) => Pages\.market\.sway\(root, o\?\.dir, Pages\.market\.follow\(root\)\)\)/);
   assert.match(js, /follow\(root\) \{ return \(\) => \{ const r = root\.querySelector\("\.mk-rail-row"\)\?\.getBoundingClientRect\(\); return r \? \[r\.left, r\.top\] : null;/);
-  assert.match(js, /sway\(root, dir = 1, follow = null\) \{\s*if \(reduced\(\)\) return;/);
+  assert.match(js, /sway\(root, dir = 1, follow = null\) \{\s*if \(reduced\(\) \|\| root\._swinging\) return;/);
   assert.match(js, /Math\.sin\(b\.th\)[^;]*Math\.cos\(b\.th\)/);
   assert.ok(shell.indexOf("Pages[id].arrive?.(next") < shell.indexOf("await TRANS["), "the swing starts before the transition, not after it");
   assert.doesNotMatch(js, /enter\(root, o\)/);
