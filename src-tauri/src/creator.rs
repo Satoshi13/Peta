@@ -353,16 +353,18 @@ impl History {
 
 /// "Make this Peta": render at full size, keep it in the library, consume one material (except Matte), and enqueue it for printing.
 #[tauri::command]
-pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: Option<f32>) -> Result<(), String> {
+/// `name` is what the person called it (optional). It is checked before anything is made, so a refused name makes nothing.
+pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: Option<f32>, name: Option<String>) -> Result<(), String> {
+    let title = match name.as_deref() { Some(n) => peta_core::clean_title(n).map_err(|e| e.to_string())?, None => None };
     let app2 = app.clone();
-    tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth, outline))
+    tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth, outline, title.as_deref()))
         .await
         .map_err(|e| e.to_string())??;
     clear(&app);
     Ok(())
 }
 
-fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outline: Option<f32>) -> Result<(), String> {
+fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outline: Option<f32>, title: Option<&str>) -> Result<(), String> {
     let creator = app.state::<Creator>();
     let (rendered, original, ext, target, editor) = {
         let active = creator.active.lock().unwrap();
@@ -395,6 +397,8 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
             lib.db_mut().print_prioritize(&[sticker.id.as_str()]).map_err(|e| e.to_string())?;
             made_id = Some(sticker.id.clone());
         }
+        // Last, once the sticker is fully made: a failure here leaves a good sticker without its name, never half of one.
+        if let Some(title) = title { lib.db_mut().set_sticker_title(&sticker.id, Some(title)).map_err(|e| format!("The sticker was made, but its name could not be saved: {e}"))?; }
     }
     today::announce(app);
     if made_id.is_some() {
@@ -438,7 +442,9 @@ pub async fn creator_edit_original(app: AppHandle, sticker_id: String) -> Result
 }
 
 #[tauri::command]
-pub async fn creator_save_original(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: f32) -> Result<String, String> {
+/// `name`: `None` leaves the name as it is; `Some("")` takes it away.
+pub async fn creator_save_original(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: f32, name: Option<String>) -> Result<String, String> {
+    let rename = match name.as_deref() { Some(n) => Some(peta_core::clean_title(n).map_err(|e| e.to_string())?), None => None };
     if !strength.is_finite() || !(0.0..=1.0).contains(&strength) || !smooth.is_finite() || !(0.0..=1.0).contains(&smooth) || !outline.is_finite() || !(4.0..=64.0).contains(&outline) {
         return Err("invalid cutout settings".into());
     }
@@ -453,7 +459,9 @@ pub async fn creator_save_original(app: AppHandle, material_id: String, strength
             let editor = EditorState::capture(&a.session, outline.clamp(4.0, 64.0), smooth, strength);
             (id, rendered, editor)
         };
-        app2.state::<Store>().lock().update_original(&id, &rendered, &editor).map_err(|e| e.to_string())?;
+        let store = app2.state::<Store>(); let mut lib = store.lock();
+        lib.update_original(&id, &rendered, &editor).map_err(|e| e.to_string())?;
+        if let Some(title) = rename { lib.db_mut().set_sticker_title(&id, title.as_deref()).map_err(|e| format!("Saved, but the name could not be changed: {e}"))?; }
         Ok(id)
     }).await.map_err(|e| e.to_string())??;
     clear(&app); let _ = app.emit("sticker-updated", &id); today::announce(&app);

@@ -664,7 +664,7 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 .cs-rail .material-plate > b { grid-area:name; width:auto; min-width:0; overflow-wrap:normal; }
 .cs-rail .material-plate small { grid-area:left; }
 .cs-rail .edit-material { grid-template-columns:minmax(0,1fr); }
-.cs-foot { display:flex; align-items:center; justify-content:flex-end; gap:14px; }
+.cs-foot { display:flex; align-items:flex-end; justify-content:space-between; gap:14px 24px; flex-wrap:wrap; }
 .cs-foot .go-btns { align-items:center; }
 .cs-foot .btn.quiet { color:#2b2a28; }
 [data-shell="desk"] .page[data-page="create"] .cs-foot .uses { color:#f4f0e4; }
@@ -907,3 +907,17 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .cs-refine input[type="range"]::-webkit-slider-runnable-track, .cs-dock input[type="range"]::-webkit-slider-runnable-track { height:2px; border-radius:1px; background:#1f1b16; }
 .cs-refine input[type="range"]::-webkit-slider-thumb, .cs-dock input[type="range"]::-webkit-slider-thumb { margin-top:-12px; } /* centre the 26px knob on the 2px line */
 .cs-refine input[type="range"]::-moz-range-track, .cs-dock input[type="range"]::-moz-range-track { height:2px; border-radius:1px; background:#1f1b16; }
+
+/* Create: the name of the sticker, at the bottom left. A paper tag with a lifted corner; art/ui/name-tag-paper*.png replaces this CSS paper when it arrives. */
+.cs-foot-left { display:grid; gap:6px; min-width:0; flex:1 1 320px; }
+.nametag { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; column-gap:14px; row-gap:6px; max-width:460px; }
+.nt-label { font:500 15px/1 var(--sys); color:var(--ink2); }
+.nt-paper { position:relative; height:54px; border-radius:15px 15px 4px 15px; background:linear-gradient(180deg,#fcf9f2,#f4eee0); box-shadow:0 0 0 .5px rgba(60,45,20,.18), 0 1px 2px rgba(60,45,20,.16), 0 8px 16px rgba(60,45,20,.12); }
+.nt-paper::after { content:""; position:absolute; right:0; bottom:0; width:24px; height:24px; border-radius:20px 0 15px 0; background:linear-gradient(135deg, transparent 49%, #e6dabd 50%, #f6efdc 100%); box-shadow:-3px -3px 5px rgba(60,45,20,.16); pointer-events:none; }
+.nt-paper input { width:100%; height:100%; padding:0 58px 0 20px; border:0; border-radius:inherit; background:none; color:#2b2a28; font:400 24px/1 "Kalam","Bradley Hand","Segoe Print",var(--hand),cursive; letter-spacing:.01em; caret-color:#2b2a28; }
+.nt-paper input::placeholder { color:#8a8478; opacity:1; }
+.nt-paper input:focus { outline:none; }
+.nt-paper:focus-within { box-shadow:0 0 0 1.5px rgba(82,125,147,.7), 0 1px 2px rgba(60,45,20,.16), 0 10px 20px rgba(60,45,20,.16); }
+.nt-return { position:absolute; right:30px; top:50%; width:22px; height:22px; margin-top:-11px; fill:none; stroke:#7b766a; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+.nt-hint { grid-column:2; margin:0; }
+[data-shell="desk"] .page[data-page="create"] .nt-label, [data-shell="desk"] .page[data-page="create"] .nt-hint { color:#f4f0e4; }

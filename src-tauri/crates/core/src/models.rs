@@ -131,3 +131,43 @@ pub struct Placement {
 fn yes() -> bool {
     true
 }
+
+/// The longest name a sticker can have, in letters (Unicode scalar values).
+pub const MAX_TITLE_LETTERS: usize = 40;
+
+/// A name the person typed, made safe to store and show: runs of whitespace (and line breaks) become one space, control and invisible
+/// direction/zero-width characters are dropped, the ends are trimmed. Nothing left means "no name" (`None`); too long is refused, never cut.
+pub fn clean_title(raw: &str) -> crate::Result<Option<String>> {
+    let invisible = |c: char| matches!(c, '\u{200B}'..='\u{200F}' | '\u{202A}'..='\u{202E}' | '\u{2060}'..='\u{2064}' | '\u{2066}'..='\u{2069}' | '\u{FEFF}');
+    let mut out = String::new(); let mut gap = false;
+    for c in raw.chars() {
+        if c.is_whitespace() || (c.is_control() && matches!(c, '\n' | '\r' | '\t')) { gap = !out.is_empty(); continue; }
+        if c.is_control() || invisible(c) { continue; }
+        if gap { out.push(' '); gap = false; }
+        out.push(c);
+    }
+    if out.is_empty() { return Ok(None); }
+    if out.chars().count() > MAX_TITLE_LETTERS {
+        return Err(crate::Error::Invalid(format!("A name can be up to {MAX_TITLE_LETTERS} letters.")));
+    }
+    Ok(Some(out))
+}
+
+#[cfg(test)]
+mod title_tests {
+    use super::*;
+    #[test]
+    fn names_are_tidied_and_empty_means_none() {
+        assert_eq!(clean_title("  Sunny   side\n up ").unwrap().as_deref(), Some("Sunny side up"));
+        assert_eq!(clean_title("").unwrap(), None);
+        assert_eq!(clean_title(" \t\n ").unwrap(), None);
+        assert_eq!(clean_title("a\u{0007}b\u{200B}c\u{202E}d").unwrap().as_deref(), Some("abcd"));
+        assert_eq!(clean_title("目玉焼き 🍳").unwrap().as_deref(), Some("目玉焼き 🍳"));
+    }
+    #[test]
+    fn a_name_of_forty_letters_fits_and_forty_one_is_refused_not_cut() {
+        assert!(clean_title(&"あ".repeat(40)).unwrap().is_some());
+        assert!(clean_title(&"あ".repeat(41)).is_err());
+        assert!(clean_title(&format!("{}{}", "a ".repeat(20), "b")).is_err()); // 41 letters once spaced
+    }
+}

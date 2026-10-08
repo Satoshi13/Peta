@@ -260,7 +260,7 @@ Pages.book = {
         } } }, "Delete")));
   },
   async edit(e) {
-    try { await Bridge.invoke("creator_cancel"); crReset(); CR.editing = e.id; CR.stage = "cutting"; CR.samplePhoto = null; await Shell.open("create"); await Bridge.invoke("creator_edit_original", { stickerId: e.id }); }
+    try { await Bridge.invoke("creator_cancel"); crReset(); CR.editing = e.id; CR.name = e.name || ""; CR.stage = "cutting"; CR.samplePhoto = null; await Shell.open("create"); await Bridge.invoke("creator_edit_original", { stickerId: e.id }); }
     catch(err) { crReset(); await Shell.open("book"); Shell.toast(String(err)); }
   },
   giftForm(e, paint) {

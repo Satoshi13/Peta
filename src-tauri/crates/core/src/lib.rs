@@ -26,7 +26,7 @@ pub use error::{Error, Result};
 pub use image_import::{process_image, Processed};
 pub use library::{default_scale, Library};
 pub use materials::{Material, Rarity};
-pub use models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker};
+pub use models::{clean_title, NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker};
 
 pub mod sign;
 pub mod official_keys;

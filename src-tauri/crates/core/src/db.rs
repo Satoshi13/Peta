@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 8;
+pub const SCHEMA_VERSION: i64 = 9;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -186,6 +186,11 @@ CREATE TABLE signed_pack_items (item_id INTEGER PRIMARY KEY REFERENCES pack_item
 CREATE TABLE packs_made (pack_id TEXT PRIMARY KEY, title TEXT NOT NULL, version INTEGER NOT NULL, made_at TEXT NOT NULL);
 ";
 
+/// A name the person gave their own sticker. Older stickers (and pack and gift stickers) have none.
+const MIGRATION_V9: &str = "
+ALTER TABLE stickers ADD COLUMN title TEXT;
+";
+
 /// A gift waiting in the Inbox (or already opened).
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -335,12 +340,31 @@ impl Database {
             tx.pragma_update(None, "user_version", 8)?;
             tx.commit()?;
         }
+        if version < 9 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V9)?;
+            tx.pragma_update(None, "user_version", 9)?;
+            tx.commit()?;
+        }
         Ok(())
     }
 
     pub fn bonus_envelopes(&self) -> Result<i64> {
         let value:String=self.conn.query_row("SELECT value FROM meta WHERE key='bonus_envelopes'",[],|r|r.get(0))?;
         value.parse().map_err(|_|Error::Invalid("Extra envelope count is damaged.".into()))
+    }
+
+    /// The name the person gave this sticker, if any.
+    pub fn sticker_title(&self, id: &str) -> Result<Option<String>> {
+        Ok(self.conn.query_row("SELECT title FROM stickers WHERE id = ?1", [id], |r| r.get::<_, Option<String>>(0)).optional()?.flatten())
+    }
+
+    /// `None` removes the name. Callers pass the result of `models::clean_title`.
+    pub fn set_sticker_title(&mut self, id: &str, title: Option<&str>) -> Result<()> {
+        if self.conn.execute("UPDATE stickers SET title = ?2 WHERE id = ?1", params![id, title])? == 0 {
+            return Err(Error::Invalid("that sticker does not exist".into()));
+        }
+        Ok(())
     }
 
     pub fn sticker_id_exists(&self, id: &str) -> Result<bool> {
@@ -1149,7 +1173,7 @@ mod tests {
             }
             db.update_original_assets("mine","new-render","new-mask",1.5).unwrap();
             assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
-            assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),8);
+            assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),9);
         }
         let mut db = Database::open(&path).unwrap();
         assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
@@ -1321,6 +1345,33 @@ mod tests {
         let _ = std::fs::remove_dir_all(dir);
     }
     #[test]
+    fn a_sticker_can_be_named_renamed_and_unnamed_and_old_ones_have_no_name() {
+        let mut db = Database::open_in_memory().unwrap();
+        db.create_sticker(new("A", SourceType::Created)).unwrap();
+        assert_eq!(db.sticker_title("A").unwrap(), None);
+        db.set_sticker_title("A", Some("Sunny side up")).unwrap();
+        assert_eq!(db.sticker_title("A").unwrap().as_deref(), Some("Sunny side up"));
+        db.set_sticker_title("A", Some("Over easy")).unwrap();
+        assert_eq!(db.sticker_title("A").unwrap().as_deref(), Some("Over easy"));
+        db.set_sticker_title("A", None).unwrap();
+        assert_eq!(db.sticker_title("A").unwrap(), None);
+        assert!(db.set_sticker_title("nope", Some("x")).is_err());
+        assert_eq!(db.sticker_title("nope").unwrap(), None);
+    }
+    #[test]
+    fn v8_to_v9_adds_the_name_column_and_keeps_everything() {
+        let conn = Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8] { conn.execute_batch(migration).unwrap(); }
+        conn.pragma_update(None, "user_version", 8).unwrap();
+        conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect) VALUES ('old','x','o','r','created',1)", []).unwrap();
+        let mut db = Database::init(conn).unwrap();
+        assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0)).unwrap(), 9);
+        assert!(db.sticker("old").unwrap().is_some());
+        assert_eq!(db.sticker_title("old").unwrap(), None);
+        db.set_sticker_title("old", Some("Still mine")).unwrap();
+        assert_eq!(db.sticker_title("old").unwrap().as_deref(), Some("Still mine"));
+    }
+    #[test]
     fn v7_to_v8_preserves_stickers_stock_packs_gifts_and_meta() {
         let conn=Connection::open_in_memory().unwrap();
         for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7] {conn.execute_batch(migration).unwrap();}
@@ -1332,7 +1383,7 @@ mod tests {
         conn.execute("INSERT INTO material_stock VALUES ('kraft',4)",[]).unwrap();
         conn.execute("INSERT INTO meta VALUES ('scraps.balance','9')",[]).unwrap();
         let db=Database::init(conn).unwrap();
-        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),8);
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),9);
         assert!(db.sticker("old").unwrap().is_some());assert_eq!(db.material_count("kraft").unwrap(),4);
         assert_eq!(db.packs().unwrap()[0].remaining,1);assert_eq!(db.gifts_received().unwrap()[0].from,"Nao");
         assert_eq!(db.scrap_status().unwrap().balance,9);assert_eq!(db.bonus_envelopes().unwrap(),0);
@@ -1538,7 +1589,7 @@ mod tests {
             assert_eq!((db.packs().unwrap()[0].total,db.packs().unwrap()[0].remaining,db.pack_free_openings("a").unwrap()), (20,0,1));
             assert_eq!(crate::pack::item_name(&db, "free").unwrap().as_deref(), Some("Bonus cat"));
             assert_eq!(db.next_print().unwrap().as_deref(), Some("free"));
-            assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_,i64>(0)).unwrap(), 8);
+            assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_,i64>(0)).unwrap(), 9);
         }
         let _ = std::fs::remove_file(path);
     }
