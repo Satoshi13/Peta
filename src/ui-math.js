@@ -16,6 +16,32 @@ export const bookDateKey = date => [date.getFullYear(), String(date.getMonth() +
 export function newestBookEntries(entries) {
   return [...entries].sort((a, b) => b.date - a.date || (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0) || (b.no || 0) - (a.no || 0) || a.id.localeCompare(b.id));
 }
+/* The words a sticker can be found by: its name, material, where it came from, its number and when it was made. */
+const fold = text => String(text ?? '').normalize('NFKC').toLowerCase();
+export function bookSearchText(entry, materialName = entry.material) {
+  const d = entry.date, pad = n => String(n).padStart(2, '0');
+  const words = [entry.title, materialName, entry.material, entry.kind === 'received' ? 'received gift pack' : 'original', entry.onDesktop ? 'on desktop' : '',
+    entry.no == null ? '' : `no ${pad4(entry.no)} ${entry.no}`,
+    d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }), bookDateKey(d)];
+  return fold(words.join(' '));
+}
+const pad4 = n => String(n).padStart(4, '0');
+/* Search (every word must match), one material or all, and an order. Newest first is the default and the tie-break of every other order. */
+export function filterBookEntries(entries, { query = '', material = 'all', sort = 'newest', materialIds = [], nameOf = id => id } = {}) {
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  const kept = entries.filter(e => (material === 'all' || e.material === material) && (!words.length || words.every(w => bookSearchText(e, nameOf(e.material)).includes(w))));
+  const newest = newestBookEntries(kept);
+  if (sort === 'oldest') return newest.reverse();
+  const rank = new Map(newest.map((e, i) => [e.id, i]));
+  const byNewest = (a, b) => rank.get(a.id) - rank.get(b.id);
+  if (sort === 'name') return newest.sort((a, b) => String(a.title ?? '').localeCompare(String(b.title ?? ''), undefined, { numeric: true, sensitivity: 'base' }) || byNewest(a, b));
+  if (sort === 'material') {
+    const order = id => { const i = materialIds.indexOf(id); return i < 0 ? materialIds.length : i; };
+    return newest.sort((a, b) => order(a.material) - order(b.material) || byNewest(a, b));
+  }
+  return newest;
+}
 export function calendarTilt(date) {
   return [...bookDateKey(date)].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) % 997, 0) % 13 - 6;
 }

@@ -1,5 +1,6 @@
 /* Sticker Book: a list or local-date calendar, a detail card you can turn over, peel / gift / stick-as-today. */
-const BK = { sel: null, gift: false, anim: false, deleteId: null, day: null, completed: new Set() };
+const BK = { sel: null, gift: false, anim: false, deleteId: null, day: null, completed: new Set(), q: "", mat: "all", sort: "newest" };
+const BOOK_SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["name", "Name A–Z"], ["material", "By material"]];
 
 /** First weekday of the device locale (0 = Sunday); Sunday when the engine cannot say. */
 function calendarWeekStart() {
@@ -104,7 +105,18 @@ Pages.book = {
       const main = h("div.bk-main");
       if(S.bookView === "calendar") main.append(this.calendar(items, select, root, paint));
       else {
-        main.append(h("p.muted.book-count", `${items.length} sticker${items.length === 1 ? "" : "s"}`), items.length ? h("div.bk-grid", items.map((e,i) => this.tile(e,i,select))) : h("p.empty-note", "Your Collection is waiting for its first sticker."));
+        const count = h("p.muted.book-count", { "aria-live": "polite" }), results = h("div.bk-results");
+        // Only the numbers and the tiles are redrawn while typing, so the field keeps its focus.
+        const fill = () => {
+          const shown = PetaMath.filterBookEntries(items, { query: BK.q, material: BK.mat, sort: BK.sort, materialIds: Object.keys(MAT), nameOf: id => MAT[id]?.name || id });
+          const filtered = !!BK.q.trim() || BK.mat !== "all";
+          count.replaceChildren(...[filtered ? `${shown.length} of ${items.length} sticker${items.length === 1 ? "" : "s"}` : `${items.length} sticker${items.length === 1 ? "" : "s"}`,
+            filtered ? h("button.link.bk-clear", { type: "button", on: { click: () => { BK.q = ""; BK.mat = "all"; Snd.tap(); paint(); $(".bk-search input")?.focus({ preventScroll: true }); } } }, "Clear") : null].filter(Boolean));
+          results.replaceChildren(shown.length ? h("div.bk-grid", shown.map((e, i) => this.tile(e, i, select)))
+            : h("p.empty-note", BK.q.trim() ? `No stickers match “${BK.q.trim()}”.` : "No stickers in this material yet."));
+        };
+        main.append(count, items.length ? this.filters(items, fill) : null, items.length ? results : h("p.empty-note", "Your Collection is waiting for its first sticker."));
+        if (items.length) fill();
       }
       const poster = S.bookView === "calendar" ? this.posterButton(items) : null;
       const actions = h("div.book-head-actions", poster, h("button.btn.paper.small", {disabled:S.lib.length<3,on:{click:()=>PackMaker.open()}}, "Make a Pack…"));
@@ -152,6 +164,21 @@ Pages.book = {
       h("span.tile-date", fmtDate(e.date,{month:"short",day:"numeric"})),
       holder, h("span.tile-footer", h("b", titleOf(e)), h("small", `${MAT[e.material].name} · ${e.kind === "received" ? "Received" : "No. "+pad4(e.no)}`)),
       onDesk ? h("i.on-desk", "On desktop") : null, e.kind === "received" ? h("i.recv", "Gift") : null);
+  },
+  /* Search, material and order for the list. The values live in BK so they survive picking a sticker and coming back to the page. */
+  filters(items, fill) {
+    const counts = {}; for (const e of items) counts[e.material] = (counts[e.material] || 0) + 1;
+    if (BK.mat !== "all" && !counts[BK.mat]) BK.mat = "all";
+    const search = h("input", { type: "search", placeholder: "Search stickers", value: BK.q, autocomplete: "off", spellcheck: false, "aria-label": "Search stickers", enterkeyhint: "search" });
+    search.addEventListener("input", () => { BK.q = search.value; fill(); });
+    search.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && search.value) { ev.preventDefault(); ev.stopPropagation(); search.value = ""; BK.q = ""; fill(); } });
+    const pick = (label, value, options, set) => {
+      const select = h("select", { "aria-label": label, on: { change: () => { set(select.value); Snd.tap(); fill(); } } }, options.map(([v, text]) => h("option", { value: v, selected: v === value }, text)));
+      return h("label.bk-select", select);
+    };
+    return h("div.bk-filter", { role: "search" }, h("label.bk-search", search),
+      pick("Material", BK.mat, [["all", "All materials"], ...Object.keys(MAT).filter(id => counts[id]).map(id => [id, `${MAT[id].name} (${counts[id]})`])], v => { BK.mat = v; }),
+      pick("Sort by", BK.sort, BOOK_SORTS, v => { BK.sort = v; }));
   },
   calendar(items, select, root, paint) {
     const current = monthKey(S.today), earliest = Math.min(current, ...items.map(e => monthKey(e.date)));
