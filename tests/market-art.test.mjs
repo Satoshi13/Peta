@@ -26,8 +26,9 @@ test("each rail row is its own rod, so a wrapped row never hangs from nothing", 
 
 test("the rail's packs sway when the page is entered (not on a redraw), never with reduced motion, and 'Owned' is plain text", () => {
   const js = read("src/app/js/market.js"), css = read("src/app/css/native.css");
-  assert.match(js, /enter\(root, o\) \{ if \(!o\?\.refresh && MK\.tab === "packs"\) Pages\.market\.sway\(root\)/);
-  assert.match(js, /sway\(root\) \{\s*if \(reduced\(\)\) return;/);
+  assert.match(js, /enter\(root, o\) \{ if \(!o\?\.refresh && MK\.tab === "packs"\) Pages\.market\.sway\(root, o\?\.dir\)/);
+  assert.doesNotMatch(css, /\.mk-item:has\(\.mk-tile:hover\)/); // nothing swings on hover
+  assert.match(js, /sway\(root, dir = 1\) \{\s*if \(reduced\(\)\) return;/);
   assert.match(js, /h\("span\.pk-badge\.own", "Owned"\)/);
   assert.doesNotMatch(js, /On shelf/);
   assert.match(css, /\.mk-tile:hover, \.mk-tile\[aria-pressed="true"\][^}]*background:none; box-shadow:none/);

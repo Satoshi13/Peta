@@ -102,7 +102,7 @@ const Market = {
 
 Pages.market = {
   /* Coming to the page gives the hanging packs a light push. A redraw of the same page (data changed) does not. */
-  enter(root, o) { if (!o?.refresh && MK.tab === "packs") Pages.market.sway(root); },
+  enter(root, o) { if (!o?.refresh && MK.tab === "packs") Pages.market.sway(root, o?.dir); },
   build() {
     const root = h("div.page-in.marketpage");
     const paint = () => {
@@ -129,13 +129,14 @@ Pages.market = {
       h("p.eyebrow.mk-h", "New and popular"), this.rail(MARKET_PACKS.slice(1).map(cell)));
     return h("div.mk", main);
   },
-  /* Every hanging pack swings once on its clip and settles; each a little differently, so it never looks stamped. */
-  sway(root) {
+  /* The momentum of the page coming in: the packs lag behind the rail, swing past, and settle, all the same way (a hair later along the rail).
+     `dir` is the direction of the move (1 forward, -1 back). */
+  sway(root, dir = 1) {
     if (reduced()) return;
+    const a = 2.6 * dir;
     $$(".mk-rail .mk-item", root).forEach((item, i) => {
-      const a = 1.7 + (i % 3) * .45, d = i % 2 ? 1 : -1;
-      item.animate([{ transform: "rotate(0)" }, { transform: `rotate(${d * a}deg)`, offset: .22 }, { transform: `rotate(${-d * a * .62}deg)`, offset: .48 }, { transform: `rotate(${d * a * .34}deg)`, offset: .72 }, { transform: `rotate(${-d * a * .12}deg)`, offset: .88 }, { transform: "rotate(0)" }],
-        { duration: 1700 + (i % 3) * 140, delay: 80 + i * 70, easing: "ease-in-out" });
+      item.animate([{ transform: "rotate(0)" }, { transform: `rotate(${a}deg)`, offset: .2 }, { transform: `rotate(${-a * .55}deg)`, offset: .46 }, { transform: `rotate(${a * .3}deg)`, offset: .7 }, { transform: `rotate(${-a * .1}deg)`, offset: .88 }, { transform: "rotate(0)" }],
+        { duration: 1700, delay: 40 + i * 35, easing: "ease-in-out" });
     });
   },
   /* Packs hang from a metal rail by a clip. As many to a row as fit; every row gets its own rail. The cells are only moved between rows,
