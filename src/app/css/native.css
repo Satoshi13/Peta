@@ -861,3 +861,14 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .mk-end.l { left:0; } .mk-end.r { right:0; background-image:var(--a-marketRailEndR); height:34.25px; }
 .mk-rail .mk-item { position:relative; }
 .mk-clip { position:absolute; left:50%; top:calc(-1 * var(--pad) - 4.65px); width:21.25px; height:46px; margin-left:-10.6px; background:var(--a-marketRailClip) center / 100% 100% no-repeat; pointer-events:none; z-index:3; }
+
+/* Packs on the rail: no panel appears around a pack, the whole pack swings on its clip, and "Owned" is plain text. */
+.mk-tile:hover, .mk-tile[aria-pressed="true"], [data-theme="night"] .mk-tile:hover, [data-theme="night"] .mk-tile[aria-pressed="true"] { background:none; box-shadow:none; }
+.mk-tile:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
+.mk-rail .mk-item { transform-origin:50% -3.15px; transition:transform .45s var(--ease-spring); }
+.mk-rail .mk-item:has(.mk-tile:hover) { transform:rotate(-1.4deg); }
+.mk-rail .mk-tile { animation:none; padding-bottom:6px; }
+.mk-rail .mk-tile:hover .pk-stack { transform:none; }
+.mk-tile .pk-badge { position:static; translate:none; margin-top:10px; padding:0; border-radius:0; background:none; box-shadow:none; color:var(--ink); font:500 15px/1.2 var(--sys); }
+.mk-tile .pk-badge.own::before { content:"✓"; margin-right:6px; color:#2f7a45; font-weight:700; }
+html[data-motion="reduce"] .mk-rail .mk-item:has(.mk-tile:hover) { transform:none; }

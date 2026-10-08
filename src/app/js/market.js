@@ -101,12 +101,14 @@ const Market = {
 };
 
 Pages.market = {
+  /* Coming to the page gives the hanging packs a light push. A redraw of the same page (data changed) does not. */
+  enter(root, o) { if (!o?.refresh && MK.tab === "packs") Pages.market.sway(root); },
   build() {
     const root = h("div.page-in.marketpage");
     const paint = () => {
       root.replaceChildren(
         PageHead("Market", "Packs, materials and creators", Scraps.badge()),
-        h("div.seg.mk-seg", ["packs", "materials", "creators"].map((t) => SegButton(t[0].toUpperCase() + t.slice(1), { "aria-pressed": String(MK.tab === t), on: { click: () => { MK.tab = t; Snd.tap(); paint(); } } }))),
+        h("div.seg.mk-seg", ["packs", "materials", "creators"].map((t) => SegButton(t[0].toUpperCase() + t.slice(1), { "aria-pressed": String(MK.tab === t), on: { click: () => { MK.tab = t; Snd.tap(); paint(); if (t === "packs") Pages.market.sway(root); } } }))),
         MK.tab === "packs" ? this.packs(paint) : MK.tab === "materials" ? this.materials(paint) : this.creators(paint));
       const form = Scraps.form(); if(form) root.insertBefore(form, root.children[2]);
     };
@@ -117,8 +119,8 @@ Pages.market = {
     const open = (p, tile) => { Snd.tap(); PackZoom.open(p, tile, (pack) => Market.card(pack)); };
     const cell = (p, i) => {
       const own = Market.own(p.id);
-      return h("div.mk-item", h("i.mk-clip", { "aria-hidden": "true" }), h("button.mk-tile", { "aria-label": `${p.title} by ${p.by}${own ? ", on your shelf" : ""} — look closer`, "aria-haspopup": "dialog", data: { pack: p.id }, style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
-        Market.pouch(p), own ? h("span.pk-badge.own", "On shelf") : p.price === "Free" ? h("span.pk-badge.free", "Free") : null));
+      return h("div.mk-item", h("i.mk-clip", { "aria-hidden": "true" }), h("button.mk-tile", { "aria-label": `${p.title} by ${p.by}${own ? ", owned" : ""} — look closer`, "aria-haspopup": "dialog", data: { pack: p.id }, style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
+        Market.pouch(p), own ? h("span.pk-badge.own", "Owned") : p.price === "Free" ? h("span.pk-badge.free", "Free") : null));
     };
     const main = h("div.mk-main",
       h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat), h("div.fan", feat.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
@@ -126,6 +128,15 @@ Pages.market = {
           h("div.mk-hero-actions", h("button.btn", { on: { click: (e) => Market.own(feat.id) ? open(feat, e.currentTarget.closest(".mk-hero").querySelector(".mk-hero-art")) : Market.get(feat) } }, Market.own(feat.id) ? "Add another set…" : "Get — Free")))),
       h("p.eyebrow.mk-h", "New and popular"), this.rail(MARKET_PACKS.slice(1).map(cell)));
     return h("div.mk", main);
+  },
+  /* Every hanging pack swings once on its clip and settles; each a little differently, so it never looks stamped. */
+  sway(root) {
+    if (reduced()) return;
+    $$(".mk-rail .mk-item", root).forEach((item, i) => {
+      const a = 1.7 + (i % 3) * .45, d = i % 2 ? 1 : -1;
+      item.animate([{ transform: "rotate(0)" }, { transform: `rotate(${d * a}deg)`, offset: .22 }, { transform: `rotate(${-d * a * .62}deg)`, offset: .48 }, { transform: `rotate(${d * a * .34}deg)`, offset: .72 }, { transform: `rotate(${-d * a * .12}deg)`, offset: .88 }, { transform: "rotate(0)" }],
+        { duration: 1700 + (i % 3) * 140, delay: 80 + i * 70, easing: "ease-in-out" });
+    });
   },
   /* Packs hang from a metal rail by a clip. As many to a row as fit; every row gets its own rail. The cells are only moved between rows,
      so their listeners and focus survive a resize. */
