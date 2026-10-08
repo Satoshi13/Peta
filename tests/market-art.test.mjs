@@ -31,6 +31,10 @@ test("the rail's packs are pendulums driven by the page's real motion, start wit
   assert.match(js, /Math\.sin\(b\.th\)[^;]*Math\.cos\(b\.th\)/);
   assert.ok(shell.indexOf("Pages[id].arrive?.(next") < shell.indexOf("await TRANS["), "the swing starts before the transition, not after it");
   assert.doesNotMatch(js, /enter\(root, o\)/);
+  // a fast scroll swings them too (the rail moves up and down); a slow one barely does
+  assert.match(js, /root\.addEventListener\("scroll", \(\) => \{ if \(MK\.tab === "packs"\) Pages\.market\.sway\(root, 0, Pages\.market\.follow\(root\)\)/);
+  assert.match(js, /\(ay \/ L\) \* b\.ecc/);
+  assert.match(js, /root\._swinging/);
   assert.doesNotMatch(css, /\.mk-item:has\(\.mk-tile:hover\)/);
   assert.match(js, /h\("span\.pk-badge\.own", "Owned"\)/);
   assert.doesNotMatch(js, /On shelf/);

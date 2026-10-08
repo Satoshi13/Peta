@@ -101,10 +101,13 @@ const Market = {
 };
 
 Pages.market = {
+  /* Where the rail is on screen, [x, y]: the packs feel its real motion, whether it is the page sliding in or the page being scrolled. */
+  follow(root) { return () => { const r = root.querySelector(".mk-rail-row")?.getBoundingClientRect(); return r ? [r.left, r.top] : null; }; },
   /* The page is still sliding in when the packs start to swing: they are real pendulums on a moving rail. */
-  arrive(root, o) { if (MK.tab === "packs") requestAnimationFrame(() => Pages.market.sway(root, o?.dir, () => root.querySelector(".mk-rail-row")?.getBoundingClientRect().left)); },
+  arrive(root, o) { if (MK.tab === "packs") requestAnimationFrame(() => Pages.market.sway(root, o?.dir, Pages.market.follow(root))); },
   build() {
     const root = h("div.page-in.marketpage");
+    root.addEventListener("scroll", () => { if (MK.tab === "packs") Pages.market.sway(root, 0, Pages.market.follow(root)); }, { passive: true });
     const paint = () => {
       root.replaceChildren(
         PageHead("Market", "Packs, materials and creators", Scraps.badge()),
@@ -130,33 +133,41 @@ Pages.market = {
     return h("div.mk", main);
   },
   /* Each pack is a damped pendulum hanging from the rod: θ'' = -ω₀² sin θ - 2ζω₀ θ' + (a/L) cos θ, where a is the rail's real acceleration along x
-     (measured every frame from where the page actually is, by `follow`). The rail's motion pushes them, they lag, swing past, and ring down
+     (measured every frame from where the page actually is, by `follow`). Scrolling moves the rail up and down; a pack that hangs a little off-centre
+     turns a little when that speeds up or slows down (the ecc term), so a fast scroll sets them swinging too. The rail's motion pushes them, they lag, swing past, and ring down
      on their own once it has stopped, so nothing is timed by hand. A shorter pack swings quicker. Without a moving page, one small push stands in for it. */
   sway(root, dir = 1, follow = null) {
-    if (reduced()) return;
-    const G = 9.8, PX = .0018, ZETA = .14, GAIN = .3;   // 1 css px ≈ 1.8 mm: a pack is about 18 cm tall
+    if (reduced() || root._swinging) return;
+    const G = 9.8, PX = .0018, ZETA = .14, GAIN = .3, GAIN_Y = .1;   // 1 css px ≈ 1.8 mm: a pack is about 18 cm tall
     // No two packs hang quite alike: the pouch sits a little lower in one clip than in the next, and the first push is a small stand-in for the page stopping.
-    const bobs = $$(".mk-rail .mk-item", root).map((el, i) => ({ el, th: 0, om: (follow ? .35 : .5) * dir, skew: 1 + (((i * 37) % 11) - 5) * .014 }));
+    const bobs = $$(".mk-rail .mk-item", root).map((el, i) => ({ el, th: 0, om: (follow ? .35 : .5) * dir, skew: 1 + (((i * 37) % 11) - 5) * .014, ecc: (((i * 53) % 7) - 3) * .06 }));
     if (!bobs.length) return;
-    let last = performance.now(), start = last, x0 = null, v0 = 0, a0 = 0, still = 0;
+    root._swinging = true;
+    let last = performance.now(), start = last, x0 = null, y0 = null, vx = 0, vy = 0, ax0 = 0, ay0 = 0, still = 0;
     const tick = (now) => {
       const dt = Math.min(.05, (now - last) / 1000); last = now;
       if (!dt) return requestAnimationFrame(tick);
-      let ax = 0;
-      const x = follow?.();
-      if (x != null) { if (x0 != null) { const v = (x - x0) / dt; a0 += ((v - v0) / dt - a0) * .5; v0 = v; ax = a0 * GAIN; } x0 = x; }
+      let ax = 0, ay = 0;
+      const at = follow?.();
+      if (at) {
+        if (x0 != null) {
+          const u = (at[0] - x0) / dt, w = (at[1] - y0) / dt;
+          ax0 += ((u - vx) / dt - ax0) * .5; ay0 += ((w - vy) / dt - ay0) * .5; vx = u; vy = w; ax = ax0 * GAIN; ay = ay0 * GAIN_Y;
+        }
+        x0 = at[0]; y0 = at[1];
+      }
       const n = Math.ceil(dt / .004), h = dt / n;
       let energy = 0;
       for (const b of bobs) {
         const L = b.L ||= Math.max(60, b.el.getBoundingClientRect().height * .5 || 85) * b.skew, w0 = Math.sqrt(G / (L * PX));
         for (let k = 0; k < n; k++) {   // semi-implicit Euler, small steps
-          b.om += (-w0 * w0 * Math.sin(b.th) - 2 * ZETA * w0 * b.om + (ax / L) * Math.cos(b.th)) * h;
+          b.om += (-w0 * w0 * Math.sin(b.th) - 2 * ZETA * w0 * b.om + (ax / L) * Math.cos(b.th) + (ay / L) * b.ecc) * h;
           b.th = Math.max(-.45, Math.min(.45, b.th + b.om * h));
         }
         b.el.style.transform = `rotate(${b.th}rad)`; energy += Math.abs(b.th) + Math.abs(b.om) * .1;
       }
-      still = energy < .0015 * bobs.length && Math.abs(ax) < 1 ? still + dt : 0;
-      if ((still > .25 && now - start > 400) || now - start > 9000 || !root.isConnected) { bobs.forEach((b) => { b.el.style.transform = ""; }); return; }
+      still = energy < .0015 * bobs.length && Math.abs(ax) < 1 && Math.abs(ay) < 1 ? still + dt : 0;
+      if ((still > .25 && now - start > 400) || now - start > 9000 || !root.isConnected) { bobs.forEach((b) => { b.el.style.transform = ""; }); root._swinging = false; return; }
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
