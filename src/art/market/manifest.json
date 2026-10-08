@@ -1,0 +1,180 @@
+{
+  "format": "RGBA PNG",
+  "lighting": "upper left",
+  "background": "transparent",
+  "redraws_not_screenshot_crops": true,
+  "export_note": "All exports are upscaled from separately AI-redrawn originals; this is not native 2400px generation.",
+  "parts": [
+    {
+      "file": "cork-board.png",
+      "size": [
+        3000,
+        1000
+      ],
+      "source_size": [
+        2172,
+        724
+      ],
+      "source_solid_bounds": [
+        50,
+        73,
+        2122,
+        646
+      ],
+      "alpha_bounds": [
+        59,
+        14,
+        2933,
+        985
+      ],
+      "native_generation": false
+    },
+    {
+      "file": "paper-clip-silver.png",
+      "size": [
+        807,
+        2760
+      ],
+      "source_size": [
+        793,
+        1983
+      ],
+      "source_solid_bounds": [
+        218,
+        296,
+        572,
+        1725
+      ],
+      "alpha_bounds": [
+        79,
+        80,
+        744,
+        2699
+      ],
+      "native_generation": false
+    },
+    {
+      "file": "rail-bar.png",
+      "size": [
+        2800,
+        190
+      ],
+      "source_size": [
+        1983,
+        793
+      ],
+      "source_solid_bounds": [
+        0,
+        343,
+        1983,
+        449
+      ],
+      "alpha_bounds": [
+        0,
+        12,
+        2800,
+        176
+      ],
+      "native_generation": false,
+      "horizontal_repeat": true,
+      "edge_max_difference": 0,
+      "tangent_max_difference": 0
+    },
+    {
+      "file": "rail-clip.png",
+      "size": [
+        1361,
+        2760
+      ],
+      "source_size": [
+        877,
+        1792
+      ],
+      "source_solid_bounds": [
+        51,
+        51,
+        826,
+        1731
+      ],
+      "alpha_bounds": [
+        79,
+        80,
+        1298,
+        2699
+      ],
+      "native_generation": false
+    },
+    {
+      "file": "memo-card-blank.png",
+      "size": [
+        2800,
+        1280
+      ],
+      "source_size": [
+        1855,
+        848
+      ],
+      "source_solid_bounds": [
+        71,
+        116,
+        1784,
+        729
+      ],
+      "alpha_bounds": [
+        57,
+        24,
+        2737,
+        1253
+      ],
+      "native_generation": false
+    },
+    {
+      "file": "rail-end-left.png",
+      "size": [
+        2760,
+        2005
+      ],
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_solid_bounds": [
+        285,
+        386,
+        965,
+        868
+      ],
+      "alpha_bounds": [
+        80,
+        80,
+        2696,
+        1943
+      ],
+      "native_generation": false
+    },
+    {
+      "file": "rail-end-right.png",
+      "size": [
+        2760,
+        2035
+      ],
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_solid_bounds": [
+        283,
+        387,
+        970,
+        882
+      ],
+      "alpha_bounds": [
+        80,
+        80,
+        2696,
+        1973
+      ],
+      "native_generation": false
+    }
+  ]
+}
