@@ -50,3 +50,13 @@ test('the name tag has no outline on focus or hover, and its shadow is always th
   assert.match(css, /\.nt-paper::before \{[^}]*filter:drop-shadow\(0 7px 7px rgba\(60,45,20,\.16\)\)/);
   assert.match(css, /\.nt-paper input:focus \{ outline:none; \}/);
 });
+
+test('the bottom row of Create: the name field (480×56) and the two buttons sit on one line, the notes below start under the word Name', () => {
+  const css = read('src/app/css/native.css'), js = read('src/app/js/create.js');
+  assert.match(css, /\.cs-foot \{ display:grid; grid-template-columns:minmax\(0,1fr\) auto; align-items:start;/);
+  assert.match(css, /\.nametag \{[^}]*grid-template-columns:auto minmax\(0,480px\)/);
+  assert.match(css, /\.nt-paper \{ position:relative; height:56px; \}/);
+  assert.match(css, /\.cs-foot \.go-btns \{[^}]*height:56px/);
+  assert.match(js, /h\("div\.cs-foot-left", this\.nameField\(\), h\("div\.nt-notes", h\("small\.muted\.nt-hint"/);
+  assert.match(js, /CR\.editing \? "Cancel" : "Start over"/);
+});

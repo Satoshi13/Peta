@@ -303,7 +303,7 @@ Pages.create = {
       h("div.cs-center", photoCard, stickerBox, h("div.cs-editor", cutFrame, orig)),
       h("aside.cs-rail", h("label.lbl", CR.editing ? "Material" : "Stock"), tray),
       refine, dock);
-    const foot = h("div.cs-foot.g-go", h("div.cs-foot-left", this.nameField(), h("span.muted.small.uses", usesLabel())), h("div.go-btns", h("button.btn.quiet", { on: { click: async () => { const editing=CR.editing; CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open(editing ? "book" : "create"); } } }, CR.editing ? "Cancel" : "Start over"), make));
+    const foot = h("div.cs-foot.g-go", h("div.cs-foot-left", this.nameField(), h("div.nt-notes", h("small.muted.nt-hint", CR.editing ? "Rename it any time." : "A little label for your Peta."), h("span.muted.small.uses", usesLabel()))), h("div.go-btns", h("button.btn.quiet", { on: { click: async () => { const editing=CR.editing; CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open(editing ? "book" : "create"); } } }, CR.editing ? "Cancel" : "Start over"), make));
     Stk.tilt(stkHost, {max:8,scale:1.02,trigger:stickerBox});
     syncUndo(); syncMake(); redraw();
     return h("div.cr-wrap", mat, foot);
@@ -316,8 +316,7 @@ Pages.create = {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"), path = document.createElementNS(svg.namespaceURI, "path");
     svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("aria-hidden", "true"); svg.classList.add("nt-return");
     path.setAttribute("d", "M19 5v7a2 2 0 0 1-2 2H6m0 0 4-4m-4 4 4 4"); svg.append(path);
-    return h("div.nametag", h("label.nt-label", { for: "cr-name" }, "Name"), h("div.nt-paper", Object.assign(input, { id: "cr-name" }), svg),
-      h("small.muted.nt-hint", CR.editing ? "Rename it any time." : "A little label for your Peta."));
+    return h("div.nametag", h("label.nt-label", { for: "cr-name" }, "Name"), h("div.nt-paper", Object.assign(input, { id: "cr-name" }), svg));
   },
   suspend() { CR.flushStroke?.(); },
   leave() { CR.flushStroke?.(); CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener("keydown",CR.keys); },
