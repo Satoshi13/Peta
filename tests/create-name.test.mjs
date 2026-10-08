@@ -41,22 +41,24 @@ test('the name is written in the bundled Patrick Hand (OFL); Japanese comes from
   assert.match(css, /font-family: "Patrick Hand"; src: url\("PatrickHand-Regular-Latin\.woff2"\)/);
   assert.match(css, /font-family: "Kiwi Maru"; src: url\("KiwiMaru-Regular-JP\.woff2"\)/);
   assert.match(read('src/fonts/NOTICE.md'), /Patrick Hand[^]*Kiwi Maru/);
-  assert.match(read('src/app/css/native.css'), /\.nt-paper input \{[^}]*font:400 26px\/1 "Patrick Hand","Kiwi Maru","Hiragino Maru Gothic ProN"/);
+  assert.match(read('src/app/css/native.css'), /\.nt-paper input \{[^}]*font:400 21px\/1 "Patrick Hand","Kiwi Maru","Hiragino Maru Gothic ProN"/);
 });
 
 test('the name tag has no outline on focus or hover, and its shadow is always the same depth', () => {
   const css = read('src/app/css/native.css');
   assert.doesNotMatch(css, /\.nt-paper:(focus-within|hover|focus)/);
-  assert.match(css, /\.nt-paper::before \{[^}]*filter:drop-shadow\(0 7px 7px rgba\(60,45,20,\.16\)\)/);
+  assert.match(css, /\.nt-paper::before \{[^}]*filter:drop-shadow\(0 5px 5px rgba\(60,45,20,\.16\)\)/);
   assert.match(css, /\.nt-paper input:focus \{ outline:none; \}/);
 });
 
-test('the bottom row of Create: the name field (480×56) and the two buttons sit on one line, the notes below start under the word Name', () => {
+test('the bottom row of Create uses the app\'s standard sizes: the name field is 44px high, the buttons are the plain .btn, the notes the usual small text', () => {
   const css = read('src/app/css/native.css'), js = read('src/app/js/create.js');
   assert.match(css, /\.cs-foot \{ display:grid; grid-template-columns:minmax\(0,1fr\) auto; align-items:start;/);
-  assert.match(css, /\.nametag \{[^}]*grid-template-columns:auto minmax\(0,480px\)/);
-  assert.match(css, /\.nt-paper \{ position:relative; height:56px; \}/);
-  assert.match(css, /\.cs-foot \.go-btns \{[^}]*height:56px/);
+  assert.match(css, /\.nametag \{[^}]*grid-template-columns:auto minmax\(0,380px\)/);
+  assert.match(css, /\.nt-paper \{ --nt-h:44px; position:relative; height:var\(--nt-h\); \}/);
+  assert.match(css, /\.cs-foot \.go-btns \{[^}]*height:44px/);
+  assert.doesNotMatch(css, /\.cs-foot \.go-btns \.btn \{/, 'no private button size');
+  assert.doesNotMatch(css, /\.nt-notes > \*/, 'no private text size for the notes');
   assert.match(js, /h\("div\.cs-foot-left", this\.nameField\(\), h\("div\.nt-notes", h\("small\.muted\.nt-hint"/);
   assert.match(js, /CR\.editing \? "Cancel" : "Start over"/);
 });
