@@ -32,3 +32,11 @@ test('the name field is drawn on the delivered paper (2400×360): its left and r
   assert.match(read('src/app/js/assets.js'), /nameTagPaper: "ui\/name-tag-paper\.png"/);
   assert.match(read('src/app/css/native.css'), /\.nt-paper::before \{[^}]*border-image:var\(--a-nameTagPaper\) 0 200 0 200 fill/);
 });
+
+test('the name is written in the bundled Patrick Hand (OFL), with Klee One behind it for Japanese names', () => {
+  assert.ok(fs.existsSync(new URL('../src/fonts/PatrickHand-Regular-Latin.woff2', import.meta.url)));
+  assert.ok(fs.existsSync(new URL('../src/fonts/PatrickHand-OFL.txt', import.meta.url)));
+  assert.match(read('src/fonts/fonts.css'), /font-family: "Patrick Hand"; src: url\("PatrickHand-Regular-Latin\.woff2"\)/);
+  assert.match(read('src/fonts/NOTICE.md'), /Patrick Hand/);
+  assert.match(read('src/app/css/native.css'), /\.nt-paper input \{[^}]*font:400 26px\/1 "Patrick Hand","Klee One"/);
+});
