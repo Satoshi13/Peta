@@ -891,3 +891,7 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .bk-clear { margin-left:10px; font:500 13px/1 var(--sys); }
 .book-count { display:flex; align-items:baseline; min-height:22px; }
 @media (max-width:760px) { .bk-filter { flex-wrap:wrap; } .bk-search { flex-basis:100%; } .bk-select { flex:1 1 140px; } }
+/* With the detail card open the list is narrow: the search field takes a row of its own so its hint is never cut. */
+.bk.has-detail .bk-filter { flex-wrap:wrap; }
+.bk.has-detail .bk-search { flex-basis:100%; }
+.bk.has-detail .bk-select { flex:1 1 140px; }
