@@ -33,10 +33,13 @@ test('the name field is drawn on the delivered paper (2400×360): its left and r
   assert.match(read('src/app/css/native.css'), /\.nt-paper::before \{[^}]*border-image:var\(--a-nameTagPaper\) 0 200 0 200 fill/);
 });
 
-test('the name is written in the bundled Patrick Hand (OFL), with Klee One behind it for Japanese names', () => {
-  assert.ok(fs.existsSync(new URL('../src/fonts/PatrickHand-Regular-Latin.woff2', import.meta.url)));
-  assert.ok(fs.existsSync(new URL('../src/fonts/PatrickHand-OFL.txt', import.meta.url)));
-  assert.match(read('src/fonts/fonts.css'), /font-family: "Patrick Hand"; src: url\("PatrickHand-Regular-Latin\.woff2"\)/);
-  assert.match(read('src/fonts/NOTICE.md'), /Patrick Hand/);
-  assert.match(read('src/app/css/native.css'), /\.nt-paper input \{[^}]*font:400 26px\/1 "Patrick Hand","Klee One"/);
+test('the name is written in the bundled Patrick Hand (OFL); Japanese comes from Kiwi Maru (OFL), which has the same stroke weight', () => {
+  for (const f of ['PatrickHand-Regular-Latin.woff2', 'PatrickHand-OFL.txt', 'KiwiMaru-Regular-JP.woff2', 'KiwiMaru-OFL.txt'])
+    assert.ok(fs.existsSync(new URL(`../src/fonts/${f}`, import.meta.url)), f);
+  assert.ok(!fs.existsSync(new URL('../src/fonts/HachiMaruPop-Regular-JP.woff2', import.meta.url)), 'the rejected candidate is not bundled');
+  const css = read('src/fonts/fonts.css');
+  assert.match(css, /font-family: "Patrick Hand"; src: url\("PatrickHand-Regular-Latin\.woff2"\)/);
+  assert.match(css, /font-family: "Kiwi Maru"; src: url\("KiwiMaru-Regular-JP\.woff2"\)/);
+  assert.match(read('src/fonts/NOTICE.md'), /Patrick Hand[^]*Kiwi Maru/);
+  assert.match(read('src/app/css/native.css'), /\.nt-paper input \{[^}]*font:400 26px\/1 "Patrick Hand","Kiwi Maru","Hiragino Maru Gothic ProN"/);
 });
