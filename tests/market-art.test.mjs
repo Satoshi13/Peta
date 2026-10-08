@@ -14,9 +14,9 @@ test("the rail uses the delivered anchors: the rod is 13px high, the hanging cli
   const anchors = JSON.parse(read("src/art/market/anchors.json")), css = read("src/app/css/native.css");
   assert.equal(anchors["rail-bar"].displayHeightPx, 13);
   assert.match(css, /\.mk-rod \{[^}]*height:13px/);
-  // ring centre 42px at 4x → 10.5px below the clip's top; the rod's centre is 23.4px at 4x → 5.85px below the rod's top.
-  assert.equal(anchors["rail-clip"].ringCenterY / 4, 10.5);
-  assert.match(css, /\.mk-clip \{[^}]*top:calc\(-1 \* var\(--pad\) - 4\.65px\)/);
+  // ring centre 38px at 4x → 9.5px below the clip's top; the rod's centre is 23.4px at 4x → 5.85px below the rod's top.
+  assert.equal(anchors["rail-clip"].ringCenterY / 4, 9.5);
+  assert.match(css, /\.mk-clip \{[^}]*top:calc\(-1 \* var\(--pad\) - 3\.65px\)/);
 });
 
 test("each rail row is its own rod, so a wrapped row never hangs from nothing", () => {

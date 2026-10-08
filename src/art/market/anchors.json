@@ -47,10 +47,10 @@
       85,
       184
     ],
-    "ringCenterX": 42.0,
-    "ringCenterY": 42.0,
-    "ringHoleWidth": 62,
+    "ringCenterX": 41.5,
+    "ringCenterY": 38.0,
+    "ringHoleWidth": 61,
     "clampPlateTopY": null,
-    "note": "4x of a 46px-tall display"
+    "note": "4x of a 46px-tall display; the redelivered front-facing (symmetric) version"
   }
 }

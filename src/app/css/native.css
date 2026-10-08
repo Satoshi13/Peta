@@ -860,7 +860,7 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .mk-end { position:absolute; top:-12px; width:47.5px; height:33.75px; background:var(--a-marketRailEndL) center / 100% 100% no-repeat; pointer-events:none; z-index:2; }
 .mk-end.l { left:0; } .mk-end.r { right:0; background-image:var(--a-marketRailEndR); height:34.25px; }
 .mk-rail .mk-hang { position:relative; width:100%; }
-.mk-clip { position:absolute; left:50%; top:calc(-1 * var(--pad) - 4.65px); width:21.25px; height:46px; margin-left:-10.6px; background:var(--a-marketRailClip) center / 100% 100% no-repeat; pointer-events:none; z-index:3; }
+.mk-clip { position:absolute; left:50%; top:calc(-1 * var(--pad) - 3.65px); width:21.25px; height:46px; margin-left:-10.4px; background:var(--a-marketRailClip) center / 100% 100% no-repeat; pointer-events:none; z-index:3; }
 
 /* Packs on the rail: no panel appears around a pack, nothing moves on hover, and "Owned" is plain text. */
 .mk-tile:hover, .mk-tile[aria-pressed="true"], [data-theme="night"] .mk-tile:hover, [data-theme="night"] .mk-tile[aria-pressed="true"] { background:none; box-shadow:none; }
