@@ -24,3 +24,11 @@ test('the native side checks the name before it makes anything, and stores it la
   assert.ok(finish.indexOf('lib.add_made_with_editor') < finish.indexOf('set_sticker_title'), 'the name is saved after the sticker exists');
   assert.match(rs, /creator_save_original\(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: f32, name: Option<String>\)/);
 });
+
+test('the name field is drawn on the delivered paper (2400×360): its left and right 200px are kept and the middle stretches', () => {
+  const png = fs.readFileSync(new URL('../src/art/ui/name-tag-paper.png', import.meta.url));
+  assert.equal(png.readUInt32BE(16), 2400); assert.equal(png.readUInt32BE(20), 360);
+  assert.equal(png[25], 6, 'RGBA'); // colour type 6
+  assert.match(read('src/app/js/assets.js'), /nameTagPaper: "ui\/name-tag-paper\.png"/);
+  assert.match(read('src/app/css/native.css'), /\.nt-paper::before \{[^}]*border-image:var\(--a-nameTagPaper\) 0 200 0 200 fill/);
+});
