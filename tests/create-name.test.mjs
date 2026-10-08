@@ -43,3 +43,10 @@ test('the name is written in the bundled Patrick Hand (OFL); Japanese comes from
   assert.match(read('src/fonts/NOTICE.md'), /Patrick Hand[^]*Kiwi Maru/);
   assert.match(read('src/app/css/native.css'), /\.nt-paper input \{[^}]*font:400 26px\/1 "Patrick Hand","Kiwi Maru","Hiragino Maru Gothic ProN"/);
 });
+
+test('the name tag has no outline on focus or hover, and its shadow is always the same depth', () => {
+  const css = read('src/app/css/native.css');
+  assert.doesNotMatch(css, /\.nt-paper:(focus-within|hover|focus)/);
+  assert.match(css, /\.nt-paper::before \{[^}]*filter:drop-shadow\(0 7px 7px rgba\(60,45,20,\.16\)\)/);
+  assert.match(css, /\.nt-paper input:focus \{ outline:none; \}/);
+});
