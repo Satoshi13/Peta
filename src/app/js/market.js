@@ -101,8 +101,8 @@ const Market = {
 };
 
 Pages.market = {
-  /* Coming to the page gives the hanging packs a light push. A redraw of the same page (data changed) does not. */
-  enter(root, o) { if (!o?.refresh && MK.tab === "packs") Pages.market.sway(root, o?.dir); },
+  /* The page is still sliding in when the packs start to swing: they are real pendulums on a moving rail. */
+  arrive(root, o) { if (MK.tab === "packs") requestAnimationFrame(() => Pages.market.sway(root, o?.dir, () => root.querySelector(".mk-rail-row")?.getBoundingClientRect().left)); },
   build() {
     const root = h("div.page-in.marketpage");
     const paint = () => {
@@ -129,15 +129,37 @@ Pages.market = {
       h("p.eyebrow.mk-h", "New and popular"), this.rail(MARKET_PACKS.slice(1).map(cell)));
     return h("div.mk", main);
   },
-  /* The momentum of the page coming in: the packs lag behind the rail, swing past, and settle, all the same way (a hair later along the rail).
-     `dir` is the direction of the move (1 forward, -1 back). */
-  sway(root, dir = 1) {
+  /* Each pack is a damped pendulum hanging from the rod: θ'' = -ω₀² sin θ - 2ζω₀ θ' + (a/L) cos θ, where a is the rail's real acceleration along x
+     (measured every frame from where the page actually is, by `follow`). The rail's motion pushes them, they lag, swing past, and ring down
+     on their own once it has stopped, so nothing is timed by hand. A shorter pack swings quicker. Without a moving page, one small push stands in for it. */
+  sway(root, dir = 1, follow = null) {
     if (reduced()) return;
-    const a = 2.6 * dir;
-    $$(".mk-rail .mk-item", root).forEach((item, i) => {
-      item.animate([{ transform: "rotate(0)" }, { transform: `rotate(${a}deg)`, offset: .2 }, { transform: `rotate(${-a * .55}deg)`, offset: .46 }, { transform: `rotate(${a * .3}deg)`, offset: .7 }, { transform: `rotate(${-a * .1}deg)`, offset: .88 }, { transform: "rotate(0)" }],
-        { duration: 1700, delay: 40 + i * 35, easing: "ease-in-out" });
-    });
+    const G = 9.8, PX = .0018, ZETA = .14, GAIN = .3;   // 1 css px ≈ 1.8 mm: a pack is about 18 cm tall
+    // No two packs hang quite alike: the pouch sits a little lower in one clip than in the next, and the first push is a small stand-in for the page stopping.
+    const bobs = $$(".mk-rail .mk-item", root).map((el, i) => ({ el, th: 0, om: (follow ? .35 : .5) * dir, skew: 1 + (((i * 37) % 11) - 5) * .014 }));
+    if (!bobs.length) return;
+    let last = performance.now(), start = last, x0 = null, v0 = 0, a0 = 0, still = 0;
+    const tick = (now) => {
+      const dt = Math.min(.05, (now - last) / 1000); last = now;
+      if (!dt) return requestAnimationFrame(tick);
+      let ax = 0;
+      const x = follow?.();
+      if (x != null) { if (x0 != null) { const v = (x - x0) / dt; a0 += ((v - v0) / dt - a0) * .5; v0 = v; ax = a0 * GAIN; } x0 = x; }
+      const n = Math.ceil(dt / .004), h = dt / n;
+      let energy = 0;
+      for (const b of bobs) {
+        const L = b.L ||= Math.max(60, b.el.getBoundingClientRect().height * .5 || 85) * b.skew, w0 = Math.sqrt(G / (L * PX));
+        for (let k = 0; k < n; k++) {   // semi-implicit Euler, small steps
+          b.om += (-w0 * w0 * Math.sin(b.th) - 2 * ZETA * w0 * b.om + (ax / L) * Math.cos(b.th)) * h;
+          b.th = Math.max(-.45, Math.min(.45, b.th + b.om * h));
+        }
+        b.el.style.transform = `rotate(${b.th}rad)`; energy += Math.abs(b.th) + Math.abs(b.om) * .1;
+      }
+      still = energy < .0015 * bobs.length && Math.abs(ax) < 1 ? still + dt : 0;
+      if ((still > .25 && now - start > 400) || now - start > 9000 || !root.isConnected) { bobs.forEach((b) => { b.el.style.transform = ""; }); return; }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
   },
   /* Packs hang from a metal rail by a clip. As many to a row as fit; every row gets its own rail. The cells are only moved between rows,
      so their listeners and focus survive a resize. */

@@ -112,11 +112,12 @@ const Shell = (() => {
     Pages[prevId]?.leave?.(current);
     const next = build(id);
     if (!current || o.instant || !win() || win().hidden) {
-      vp.replaceChildren(next); current = next; Pages[id].enter?.(next, { ...o, dir }); return;
+      vp.replaceChildren(next); current = next; Pages[id].enter?.(next, o); return;
     }
     navigating = true;
+    Pages[id].arrive?.(next, { ...o, dir });
     try { await TRANS[document.body.dataset.shell](vp, current, next, dir, o); } finally { navigating = false; }
-    current = next; Pages[id].enter?.(next, { ...o, dir });
+    current = next; Pages[id].enter?.(next, o);
   }
   /** Rebuild the current page in place (after state changes), no transition. */
   function refresh() {
