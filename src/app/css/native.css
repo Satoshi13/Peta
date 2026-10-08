@@ -902,12 +902,8 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .cs-rail::after { content:""; flex:none; height:6px; }
 .cs-rail { scroll-padding-bottom:20px; }
 
-/* Create: the sliders are a plain black line with a small round knob, not a filled meter with a gold knob. */
-.cs-refine input[type="range"], .cs-dock input[type="range"] { height:22px; background:none; }
+/* Create: the sliders are a plain black line instead of a filled meter; the knob stays the gold one (polish.css). */
+.cs-refine input[type="range"], .cs-dock input[type="range"] { height:26px; background:none; }
 .cs-refine input[type="range"]::-webkit-slider-runnable-track, .cs-dock input[type="range"]::-webkit-slider-runnable-track { height:2px; border-radius:1px; background:#1f1b16; }
-.cs-refine input[type="range"]::-webkit-slider-thumb, .cs-dock input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; margin-top:-7px; border:0; border-radius:50%; background:#fffdf9; box-shadow:0 0 0 2px #1f1b16, 0 1px 3px rgba(0,0,0,.28); filter:none; cursor:grab; }
-.cs-refine input[type="range"]::-webkit-slider-thumb:active, .cs-dock input[type="range"]::-webkit-slider-thumb:active { cursor:grabbing; }
+.cs-refine input[type="range"]::-webkit-slider-thumb, .cs-dock input[type="range"]::-webkit-slider-thumb { margin-top:-12px; } /* centre the 26px knob on the 2px line */
 .cs-refine input[type="range"]::-moz-range-track, .cs-dock input[type="range"]::-moz-range-track { height:2px; border-radius:1px; background:#1f1b16; }
-.cs-refine input[type="range"]::-moz-range-thumb, .cs-dock input[type="range"]::-moz-range-thumb { width:12px; height:12px; border:2px solid #1f1b16; border-radius:50%; background:#fffdf9; box-shadow:0 1px 3px rgba(0,0,0,.28); }
-.cs-refine input[type="range"]:focus-visible, .cs-dock input[type="range"]:focus-visible { outline:none; }
-.cs-refine input[type="range"]:focus-visible::-webkit-slider-thumb, .cs-dock input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow:0 0 0 2px #1f1b16, 0 0 0 5px rgba(82,125,147,.45); }
