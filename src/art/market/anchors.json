@@ -1,0 +1,56 @@
+{
+  "cork-board": [
+    1800,
+    606
+  ],
+  "memo-card-blank": [
+    1200,
+    549
+  ],
+  "paper-clip-silver": [
+    64,
+    256
+  ],
+  "rail-bar": {
+    "size": [
+      767,
+      52
+    ],
+    "rodCenterY": 23.4,
+    "rodThickness": 40.0,
+    "displayHeightPx": 13.0,
+    "tileWidthPx": 191.75,
+    "note": "4x of display; repeat-x at displayHeightPx"
+  },
+  "rail-end-left": {
+    "size": [
+      190,
+      135
+    ],
+    "stubCenterY": 71.4,
+    "stubThickness": 40,
+    "joinsAt": "right edge",
+    "note": "stub is 40px at 4x = 10px display; scale the image to 25%"
+  },
+  "rail-end-right": {
+    "size": [
+      190,
+      137
+    ],
+    "stubCenterY": 71.1,
+    "stubThickness": 40,
+    "joinsAt": "left edge",
+    "note": "stub is 40px at 4x = 10px display; scale the image to 25%"
+  },
+  "rail-clip": {
+    "size": [
+      85,
+      184
+    ],
+    "ringCenterX": 42.0,
+    "ringCenterY": 42.0,
+    "ringHoleWidth": 62,
+    "clampPlateTopY": null,
+    "note": "4x of a 46px-tall display"
+  }
+}

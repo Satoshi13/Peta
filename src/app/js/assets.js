@@ -42,6 +42,8 @@ const P = {
   sealCommon: "ui/seal-common.png", sealUncommon: "ui/seal-uncommon.png", sealRare: "ui/seal-rare.png", sealSpecial: "ui/seal-special.png", sealArchive: "ui/seal-archive.png",
   btnLabel: "ui/button-label.png", btnLabelDown: "ui/button-label-pressed.png", trayBox: "ui/material-tray.png", cardLocked: "ui/card-locked.png", dateStamp: "ui/date-stamp.png",
   memoTorn: "ui/memo-torn.png", tagKraft: "ui/tag-kraft.png", paperClip: "notes/paper-clip.png", binderClip: "ui/binder-clip.png", indexCard: "notes/note-index-card-blank.png", indexRuled: "ui/index-card-ruled.png",
+  marketCork: "market/cork-board.png", marketMemo: "market/memo-card-blank.png", marketClip: "market/paper-clip-silver.png",
+  marketRail: "market/rail-bar.png", marketRailClip: "market/rail-clip.png", marketRailEndL: "market/rail-end-left.png", marketRailEndR: "market/rail-end-right.png",
   sBlueFlower: "samples/blue-flower.png", sCassette: "samples/cassette-tape.png", sCat: "samples/cat-skateboard.png", sCoffee: "samples/coffee-cup.png",
   sCamera: "samples/film-camera.png", sEgg: "samples/fried-egg.png", sGoodDay: "samples/good-day.png", sBubble: "samples/peta-bubble.png",
   sPolaroid: "samples/polaroid-mountain.png", sPlant: "samples/potted-plant.png", sScribble: "samples/purple-scribble.png", sComputer: "samples/retro-computer.png",

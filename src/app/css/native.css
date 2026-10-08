@@ -849,3 +849,15 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .mkz-sum > div[hidden] { display:none; }
 .mkz-stop { color:#8a4a1c; font:500 12.5px/17px var(--sys); text-align:center; }
 .mkz-qty small[hidden] { display:none; }
+
+/* Market: a cork board with a memo and a clip, and packs hanging from a metal rail. The art is in art/market (sizes in anchors.json). */
+.mk-hero { padding:0; background:none; box-shadow:none; border-radius:0; border:24px solid transparent; border-image:var(--a-marketCork) 60 fill / 42px / 0 stretch; }
+.mk-hero-text { border:22px solid transparent; border-image:var(--a-marketMemo) 70 fill / 30px / 0 stretch; padding:18px 22px 16px; filter:none; }
+.mk-hero-text::before { right:34px; top:-48px; width:24px; height:64px; background:var(--a-marketClip) center / contain no-repeat; transform:rotate(7deg); filter:none; }
+.mk-rail { display:grid; gap:10px; margin-top:26px; }
+.mk-rail-row { --pad:9px; position:relative; display:grid; grid-template-columns:repeat(var(--n),minmax(0,1fr)); gap:0 18px; padding:var(--pad) 44px 14px; }
+.mk-rod { position:absolute; left:40px; right:40px; top:0; height:13px; background:var(--a-marketRail) 0 0 / auto 13px repeat-x; pointer-events:none; }
+.mk-end { position:absolute; top:-12px; width:47.5px; height:33.75px; background:var(--a-marketRailEndL) center / 100% 100% no-repeat; pointer-events:none; z-index:2; }
+.mk-end.l { left:0; } .mk-end.r { right:0; background-image:var(--a-marketRailEndR); height:34.25px; }
+.mk-rail .mk-item { position:relative; }
+.mk-clip { position:absolute; left:50%; top:calc(-1 * var(--pad) - 4.65px); width:21.25px; height:46px; margin-left:-10.6px; background:var(--a-marketRailClip) center / 100% 100% no-repeat; pointer-events:none; z-index:3; }

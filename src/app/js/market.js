@@ -117,15 +117,32 @@ Pages.market = {
     const open = (p, tile) => { Snd.tap(); PackZoom.open(p, tile, (pack) => Market.card(pack)); };
     const cell = (p, i) => {
       const own = Market.own(p.id);
-      return h("div.mk-item", h("button.mk-tile", { "aria-label": `${p.title} by ${p.by}${own ? ", on your shelf" : ""} — look closer`, "aria-haspopup": "dialog", data: { pack: p.id }, style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
+      return h("div.mk-item", h("i.mk-clip", { "aria-hidden": "true" }), h("button.mk-tile", { "aria-label": `${p.title} by ${p.by}${own ? ", on your shelf" : ""} — look closer`, "aria-haspopup": "dialog", data: { pack: p.id }, style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
         Market.pouch(p), own ? h("span.pk-badge.own", "On shelf") : p.price === "Free" ? h("span.pk-badge.free", "Free") : null));
     };
     const main = h("div.mk-main",
       h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat), h("div.fan", feat.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
         h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", feat.title), h("p.muted", `by ${feat.by} · ${feat.count} stickers`), h("p", feat.blurb),
           h("div.mk-hero-actions", h("button.btn", { on: { click: (e) => Market.own(feat.id) ? open(feat, e.currentTarget.closest(".mk-hero").querySelector(".mk-hero-art")) : Market.get(feat) } }, Market.own(feat.id) ? "Add another set…" : "Get — Free")))),
-      h("p.eyebrow.mk-h", "New and popular"), h("div.mk-grid", MARKET_PACKS.slice(1).map(cell)));
+      h("p.eyebrow.mk-h", "New and popular"), this.rail(MARKET_PACKS.slice(1).map(cell)));
     return h("div.mk", main);
+  },
+  /* Packs hang from a metal rail by a clip. As many to a row as fit; every row gets its own rail. The cells are only moved between rows,
+     so their listeners and focus survive a resize. */
+  rail(cells) {
+    const GAP = 18, CELL = 150, ENDS = 88, rail = h("div.mk-rail");
+    let cols = 0;
+    const place = (n) => {
+      if (n === cols) return; cols = n;
+      const rows = []; for (let i = 0; i < cells.length; i += n) rows.push(h("div.mk-rail-row", { style: { "--n": n } }, h("i.mk-rod"), h("i.mk-end.l"), h("i.mk-end.r"), cells.slice(i, i + n)));
+      rail.replaceChildren(...rows);
+    };
+    place(5);
+    new ResizeObserver(() => {
+      if (!rail.clientWidth || PackZoom.active) return;
+      place(Math.max(2, Math.floor((rail.clientWidth - ENDS + GAP) / (CELL + GAP))));
+    }).observe(rail);
+    return rail;
   },
   materials(paint) {
     // TODO(owner): cash purchases remain unavailable. Sakura awaits its seasonal distribution.
