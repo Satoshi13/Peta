@@ -8,7 +8,7 @@
 
 
 .pk-wrap { position: absolute; left: 50%; top: 46%; translate: -50% -50%; will-change: transform; }
-.pouch { position: relative; touch-action: none; cursor: grab; outline: none; filter: drop-shadow(0 22px 26px rgba(0, 0, 0, .5)); }
+.pouch { container-type: inline-size; position: relative; touch-action: none; cursor: grab; outline: none; filter: drop-shadow(0 22px 26px rgba(0, 0, 0, .5)); }
 .pouch.pulling { cursor: grabbing; }
 .pk-layer { position: absolute; inset: 0; background: var(--pk, var(--a-pouch)) center / 100% 100% no-repeat; }
 .pk-layer .sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; -webkit-mask: var(--pk, var(--a-pouch)) center / 100% 100% no-repeat; mask: var(--pk, var(--a-pouch)) center / 100% 100% no-repeat;
@@ -115,3 +115,5 @@ img.peta-tag { width: 120px; }
 .pm-tilt .stk { filter: none; }
 .pm-fly { position: absolute; left: 0; top: 0; translate: -50% -50%; z-index: 9; pointer-events: none; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .35)); }
 .pm-fly img { display: block; width: 100%; }
+
+.pouch > .pk-label { z-index: 5; } /* the printed label sits on the pouch body and under the torn-off top strip */

@@ -81,13 +81,13 @@ const Cer = (() => {
 
   /* One tearable wrapper, used by Packs (the sticker comes out) and by Today's material (the card comes out).
      `content` sits inside, behind the front of the wrapper; `onTear(rig)` runs once, the moment the top is torn off. */
-  function buildRig(cer, stage, { kind, hue, content, onTear }) {
+  function buildRig(cer, stage, { kind, hue, content, onTear, label }) {
     const K = PACK_KINDS[kind] || PACK_KINDS.holo, PW = Math.min(310, stage.clientHeight * .48, stage.clientWidth * .55), PH = PW * 4 / 3, CUT = K.cut;
     const jag = jagged(26, CUT), tint = K.foil && hue ? ".tinted" : "";
     const mk = (cls, clip) => h("div.pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--hue": (hue || 0) + "deg" } }, K.foil ? h("i.sheen") : null);
     const body = mk("pk-body", polyBody(jag)), topStrip = mk("pk-top", polyTop(jag)), inside = h("div.pk-inside");
     const tab = h("i.pk-tab", h("b", "tear")), line = h("i.pk-line");
-    const pouch = h("div.pouch", { data: { kind: kind || "holo" }, style: { width: PW + "px", height: PH + "px", "--pk": packVar(kind) } }, inside, content, body, topStrip, line, tab);
+    const pouch = h("div.pouch", { data: { kind: kind || "holo" }, style: { width: PW + "px", height: PH + "px", "--pk": packVar(kind) } }, inside, content, body, label || null, topStrip, line, tab);
     line.style.top = CUT + "%"; tab.style.top = CUT - 3.6 + "%";
     const wrapper = h("div.pk-wrap", pouch); stage.append(wrapper);
     anim(wrapper, [{ opacity: 0, transform: "translateY(60px) rotate(8deg) scale(.86)" }, { opacity: 1, transform: "none" }], { duration: 720, easing: EASE.spring });
@@ -405,7 +405,7 @@ const Cer = (() => {
     if (free ? !packHasFreeOpening(pack) : (!packOpenable(pack) || packHasFreeOpening(pack))) return; // a ready free opening always comes first
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
     const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null;
-    const rig = buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, onTear: async (rig) => {
+    const rig = buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, label: PackLabel({ ...pack, kind: pack.kind || "holo" }), onTear: async (rig) => {
       try { Bridge.busy = true; const opened=await Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false}); entry=await Bridge.entry(opened.stickerId); entry.rarity=opened.rarity; entry.title=opened.name || entry.title; pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
       await anim(sleeve, [{ transform: sleeve.style.transform }, { transform: `translateY(${-rig.PH * .3}px) rotate(-1.5deg)` }], { duration: 760, easing: EASE.out });
