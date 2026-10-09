@@ -13,7 +13,7 @@ function fixture({remaining=0,credits=1,fail=false,daily=true}={}) {
     packOpenable:p=>p.left.length>0 && !p.daily,
     packHasFreeOpening:p=>(p.freeOpenings||0)>0,
     overlay:()=>{overlays++;return cer;},
-    h:()=>({style:{},classList:{add(){}}}),img(){},
+    h:()=>({style:{},classList:{add(){}}}),img(){},PackLabel:()=>({}),
     buildRig:(_cer,_stage,options)=>{tear=options.onTear;return rig;},
     Bridge:{busy:false,invoke:async(cmd,args)=>{calls.push({cmd,args:{...args}});if(fail)throw Error('retry');return {stickerId:'bonus',remaining};},entry:async()=>({title:'Sticker'}),reload:async()=>{}},
     Shell:{renderNav(){},toast:s=>toasts.push(s)},anim:async()=>{},fix(){},EASE:{out:'ease-out'},pack,
