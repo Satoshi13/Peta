@@ -70,6 +70,8 @@ const PackZoom = {
         card.classList.add("on"); (buttons().find(b => b.matches(".mkz-act, .mkz-primary")) || buttons()[0] || root).focus({ preventScroll: true });
         (await animation).cancel?.();
       }).catch(error => { if (this.current === cur) this.dispose(true); Shell.toast(String(error)); });
+      // the picture and its label are tilted as ONE layer; tilting each on its own gives each its own perspective, and the label slides off the pouch
+      const tiltLayer = h("div.mkz-tilt"); tiltLayer.append(...clone.childNodes); clone.append(tiltLayer);
       const zoomLight = SurfaceLight.attach($(".pk-img", clone), pack.kind || "holo");
       onPointerFollow(clone, (x, y, e, amount) => {
         if (!e) return;

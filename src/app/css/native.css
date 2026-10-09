@@ -994,5 +994,5 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 /* The glint on a pack: light drawn over the pack's own surface (js/surface-light.js). It lightens and darkens the picture (soft-light) and never
    covers it, so nothing shows until the pointer is over it. */
 .pk-img > canvas.glint { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; mix-blend-mode:soft-light; }
-/* the zoomed pack tilts toward the pointer: the picture and its label together */
-.mkz .mkz-pack > * { transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); }
+/* the zoomed pack tilts toward the pointer: the picture and its label are one layer */
+.mkz-tilt { position:absolute; inset:0; transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); }
