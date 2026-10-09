@@ -83,7 +83,7 @@ header.top { padding: 56px 0 8px; } h1 { font-size: clamp(30px, 5vw, 50px); line
 .btn { appearance: none; border: 0; border-radius: 999px; padding: 9px 22px; background: var(--ink); color: #fff; font: 650 14px/1 var(--sys); box-shadow: 0 2px 0 rgba(0,0,0,.55), 0 8px 14px rgba(0,0,0,.14); transition: transform .12s, opacity .2s; } .btn:active { transform: translateY(1px); } .btn:disabled { opacity: .35; box-shadow: none; cursor: default; }
 .btn.quiet { background: none; color: var(--ink2); box-shadow: none; padding: 9px 10px; font-weight: 600; } .btn.paper { background: #f1eadb; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
 .small { font-size: 12px; color: var(--muted); }
-.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .tile { position: relative; aspect-ratio: 1; border: 0; border-radius: 14px; background: #f3ecdb; box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; padding: 8px; transition: transform .18s var(--spring), box-shadow .2s; }
 .tile:hover { transform: translateY(-2px) rotate(-1deg); } .tile img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .tile[aria-pressed="true"] { background: #fffdf6; box-shadow: inset 0 0 0 2px var(--ink), 0 4px 10px rgba(60,45,20,.15); } .tile[aria-pressed="true"]::after { content: "✓"; position: absolute; right: 6px; top: 6px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 12px; display: grid; place-items: center; }
@@ -177,6 +177,7 @@ html[data-reduce="1"] *, html[data-reduce="1"] *::before, html[data-reduce="1"] 
 
 <script>
 const ART = "../../src/art/";
+const A = (rel) => (window.ART_MAP && window.ART_MAP[rel]) || ART + rel;   // the standalone build embeds the images in ART_MAP
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const h = (t, a = {}, ...k) => { const [tag, ...cl] = t.split("."); const e = document.createElement(tag || "div"); if (cl.length) e.className = cl.join(" "); for (const [n, v] of Object.entries(a || {})) { if (n === "on") for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (n === "style") { for (const [k, x] of Object.entries(v)) k.startsWith("--") ? e.style.setProperty(k, x) : (e.style[k] = x); } else if (n === "data") Object.assign(e.dataset, v); else if (v === true) e.setAttribute(n, ""); else if (v !== false && v != null) e.setAttribute(n, v); } for (const c of k.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -187,12 +188,12 @@ const STK = [
   ["cat", "cat-skateboard.png", "Skate Cat"], ["coffee", "coffee-cup.png", "Latte"], ["plant", "potted-plant.png", "Monstera"], ["camera", "film-camera.png", "Film Camera"],
   ["egg", "fried-egg.png", "Sunny Side"], ["goodday", "good-day.png", "Good Day"], ["cassette", "cassette-tape.png", "Mixtape"], ["computer", "retro-computer.png", "Old Mac"],
   ["flower", "blue-flower.png", "Blue Flower"], ["polaroid", "polaroid-mountain.png", "Mountain"], ["bubble", "peta-bubble.png", "Peta"], ["scribble", "purple-scribble.png", "Scribble"],
-].map(([id, f, name]) => ({ id, src: ART + "samples/" + f, name }));
+].map(([id, f, name]) => ({ id, src: A("samples/" + f), name }));
 const sOf = (id) => STK.find((s) => s.id === id);
 const WEIGHTS = { common: 60, uncommon: 30, rare: 10 };   // creator_pack::RARITY_WEIGHTS
 const TIERS = [["rare", "Rare", "r"], ["uncommon", "Uncommon", "u"], ["common", "Common", ""]];
 const KINDS = [["kraft", "Kraft", "pack-kraft.png"], ["matte", "Matte", "pack-matte.png"], ["holo", "Holographic", "pack-holographic.png"]];
-const CHARMS = [["clip", "Paper clip", ART + "notes/paper-clip.png", 12], ["pin", "Pin", ART + "ui/pin-red.png", 11], ["bind", "Binder clip", ART + "notes/binder-clip.png", 20], ["ribbon", "Bookmark", ART + "ui/ribbon-bookmark.png", 16]];
+const CHARMS = [["clip", "Paper clip", A("notes/paper-clip.png"), 12], ["pin", "Pin", A("ui/pin-red.png"), 11], ["bind", "Binder clip", A("notes/binder-clip.png"), 20], ["ribbon", "Bookmark", A("ui/ribbon-bookmark.png"), 16]];
 const TAPES = ["none", "mint", "pink", "sky", "stripe", "dot"];
 const LABELS = [["paper", "Paper"], ["stamp", "Stamp"], ["tape", "Tape"], ["type", "Typed"]];
 const STEPS = ["Gather", "Sort", "Dress", "Seal"];
@@ -206,7 +207,7 @@ const sfx = { tap: () => tone(620, .07, .05), pop: () => { tone(420, .09, .07); 
 /* ---------- the pouch (the same element is used on the bench, on the shelf and on the rail) ---------- */
 function pouch(opts) {
   const { w = 270, fan = true, interactive = false } = opts;
-  const el = h("div.pouch", { style: { "--w": w + "px", "--hue": S.hue + "deg", "--art": `url("${ART}pack/pack-${S.kind === "holo" ? "holographic" : S.kind}.png")` }, data: { kind: S.kind, ls: S.ls, tinted: S.hue !== 200 ? "1" : "0" } });
+  const el = h("div.pouch", { style: { "--w": w + "px", "--hue": S.hue + "deg", "--art": `url("${A(`pack/pack-${S.kind === "holo" ? "holographic" : S.kind}.png`)}")` }, data: { kind: S.kind, ls: S.ls, tinted: S.hue !== 200 ? "1" : "0" } });
   if (fan) { const f = h("div.fan"); S.items.slice(0, 6).forEach((it, i, a) => { const n = a.length, spread = n === 1 ? 0 : (i / (n - 1) - .5); f.append(h("img", { src: sOf(it.id).src, alt: "", style: { transform: `translateX(-50%) translateX(${spread * 150}%) rotate(${spread * 40}deg) translateY(${-6 - (1 - Math.abs(spread) * 2) * 12}%)`, zIndex: i } })); }); if (S.items.length > 6) f.append(h("span.more", {}, "+" + (S.items.length - 6))); el.append(f); }
   el.append(h("div.art"), h("div.sheen"));
   if (S.tape !== "none") el.append(h("i.toptape", { data: { t: S.tape } }));
@@ -299,7 +300,7 @@ function dragChip(ev, it, c) {
   addEventListener("pointermove", mv); addEventListener("pointerup", up);
 }
 function dress() {
-  const kinds = h("div.kinds", {}, KINDS.map(([k, n, f]) => h("button.kind", { "aria-pressed": String(S.kind === k), on: { click: () => { S.kind = k; sfx.tap(); mount(); } } }, h("div.ph2", { style: { "--a": `url(${ART}pack/${f})` } }), n)));
+  const kinds = h("div.kinds", {}, KINDS.map(([k, n, f]) => h("button.kind", { "aria-pressed": String(S.kind === k), on: { click: () => { S.kind = k; sfx.tap(); mount(); } } }, h("div.ph2", { style: { "--a": `url(${A("pack/" + f)})` } }), n)));
   const hue = h("input.hue", { type: "range", min: 0, max: 360, value: S.hue, "aria-label": "Tint", on: { input: (e) => { S.hue = +e.target.value; mountPouch(); } } });
   const title = h("input", { value: S.title, maxlength: 40, "aria-label": "Pack name", on: { input: (e) => { S.title = e.target.value; const b = $(".pouch .lbl b"); if (b) b.textContent = S.title || "Untitled"; } } });
   const labels = h("div.seg", {}, LABELS.map(([k, n]) => h("button", { "aria-pressed": String(S.ls === k), on: { click: () => { S.ls = k; sfx.tap(); mount(); } } }, n)));
@@ -327,7 +328,7 @@ function seal() {
 function sceneBlock() {
   const seg = h("div.seg.ctxs", {}, [["shelf", "Shelf"], ["market", "Market"], ["card", "Card"]].map(([k, n]) => h("button", { "aria-pressed": String(S.ctx === k), on: { click: () => { S.ctx = k; sfx.tap(); renderPanel(); } } }, n)));
   const sc = h("div.scene"), left = S.items.length, w = 116;
-  if (S.ctx === "shelf") { const a = pouch({ w, fan: false }); a.style.cssText += `left:50%;bottom:20px;translate:-50% 0;`; const b = h("div.pouch", { style: { "--w": "92px", "--art": `url(${ART}pack/pack-matte.png)`, left: "10%", bottom: "20px", position: "absolute", opacity: .55 }, data: { kind: "matte", ls: "paper" } }, h("div.art")), c = h("div.pouch", { style: { "--w": "92px", "--art": `url(${ART}pack/pack-holographic.png)`, right: "10%", bottom: "20px", position: "absolute", opacity: .55, "--hue": "120deg" }, data: { kind: "holo", ls: "paper" } }, h("div.art")); sc.append(b, c, a, h("div.plank"), h("span.wallcount", { style: { left: "50%", top: "6px", translate: "-50% 0", rotate: "-1deg" } }, `${left} left`)); }
+  if (S.ctx === "shelf") { const a = pouch({ w, fan: false }); a.style.cssText += `left:50%;bottom:20px;translate:-50% 0;`; const b = h("div.pouch", { style: { "--w": "92px", "--art": `url(${A("pack/pack-matte.png")})`, left: "10%", bottom: "20px", position: "absolute", opacity: .55 }, data: { kind: "matte", ls: "paper" } }, h("div.art")), c = h("div.pouch", { style: { "--w": "92px", "--art": `url(${A("pack/pack-holographic.png")})`, right: "10%", bottom: "20px", position: "absolute", opacity: .55, "--hue": "120deg" }, data: { kind: "holo", ls: "paper" } }, h("div.art")); sc.append(b, c, a, h("div.plank"), h("span.wallcount", { style: { left: "50%", top: "6px", translate: "-50% 0", rotate: "-1deg" } }, `${left} left`)); }
   else if (S.ctx === "market") { sc.append(h("div.rod"), h("i.endl"), h("i.endr")); const a = pouch({ w, fan: false }); a.style.cssText += "left:50%;top:44px;translate:-50% 0;"; sc.append(a, h("i.clip", { style: { left: "50%", top: "14px", translate: "-50% 0" } }), h("span.small", { style: { position: "absolute", left: 0, right: 0, bottom: "8px", textAlign: "center", color: "#38342f", font: "600 13px var(--sys)" } }, "Free · ✓ Owned")); }
   else { const a = pouch({ w: 120, fan: false }); a.style.cssText += "left:22px;top:20px;"; sc.append(a, h("div.mcard", {}, h("div.eyebrow", { style: { fontSize: "10px" } }, "by Satoshi · " + left + " stickers"), h("h3", {}, S.title || "Untitled"), h("p", {}, S.blurb), h("div.row", {}, S.items.slice(0, 3).map((it) => h("i", {}, h("img", { src: sOf(it.id).src, alt: "" }))), left > 3 ? h("i", {}, "?") : null))); }
   return h("div", {}, seg, sc);
