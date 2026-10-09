@@ -147,3 +147,13 @@ export function peelCurl(pose, w, h) {
   }
   return { front, lifted, strips, length, dlx, dly };
 }
+
+// ---- The back card (the card that replaces a sticker when it is turned over) ----
+
+/** Narrowest the back card is drawn: its text is set in CSS px with a floor, and below this the last lines spill out. */
+export const BACK_CARD_MIN = 170;
+/** Card width per sticker width: a default sticker (10% of a 1440px display = 144px) gets the 170px card. */
+export const BACK_CARD_PER_STICKER = 1.18;
+
+/** The back card follows the size of its sticker: enlarge the sticker and the card grows with it. */
+export const backCardWidth = (stickerWidth) => Math.max(BACK_CARD_MIN, stickerWidth * BACK_CARD_PER_STICKER);

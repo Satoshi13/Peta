@@ -5,6 +5,7 @@ import { REFLECTIVE_MATERIALS, staticSheen, reflectedSheen, approachSheen } from
 import {
   toPixels, fromPixels, toLocalUV, isPivotGrab, pivotResult, pointerAngle, distance, normalizeAngle,
   peelPose, PEEL_COMMIT, PEEL_DISTANCE,
+  backCardWidth,
 } from "./placement.js";
 
 const { invoke } = window.__TAURI__.core;
@@ -85,6 +86,7 @@ function render(node) {
     node.baseH = box.h;
     node.el.style.width = `${box.w}px`;
     node.el.style.height = `${box.h}px`;
+    if (node.cardEl) node.cardEl.style.width = `${cardWidth(node)}px`; // the back card is committed at the new size together with the front
   }
   const k = box.w / node.baseW;
   node.el.style.transform =
@@ -186,7 +188,7 @@ function hits(node, x, y) {
   const box = boxOf(node);
   if (node.flipped) {
     // turned over: it is the back card (a rectangle) you are touching
-    const cw = cardWidth(node);
+    const cw = cardWidth(node, box.w);
     const { u, v } = toLocalUV(x, y, { ...box, w: cw, h: cw * CARD_RATIO });
     return u >= 0 && u <= 1 && v >= 0 && v <= 1;
   }
@@ -204,7 +206,9 @@ function pick(x, y) {
 // The card is drawn from what Rust says is printed on the back; nothing here is stored.
 
 const CARD_RATIO = 1.25; // height / width of the back card
-const cardWidth = () => 170;
+// The card is as wide as the sticker it belongs to (see backCardWidth). `w` is the width it is drawn at: the committed size by default,
+// the live size when hit-testing a gesture in progress.
+const cardWidth = (node, w = node.baseW ?? boxOf(node).w) => backCardWidth(w);
 const backs = new Map(); // stickerId -> Promise<StickerBack | null>
 const fetchBack = (id) => {
   if (!backs.has(id)) backs.set(id, invoke("sticker_back", { stickerId: id }).catch(() => null));

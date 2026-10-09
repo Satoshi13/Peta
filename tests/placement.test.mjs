@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   toPixels, fromPixels, resizedWidth, pointerAngle, rotatedAngle, normalizeAngle, MIN_SCALE, MAX_SCALE,
-  toLocalUV, grabRadius, isPivotGrab, pivotResult, peelPose, peelCurl, PEEL_MAX_ANGLE, PEEL_COMMIT,
+  toLocalUV, grabRadius, isPivotGrab, pivotResult, peelPose, peelCurl, PEEL_MAX_ANGLE, PEEL_COMMIT, backCardWidth, BACK_CARD_MIN,
 } from "../src/placement.js";
 
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} !~ ${b}`);
@@ -136,4 +136,12 @@ test("curl begins flat, ends fully released and stays finite for extreme/zero pu
   near(area(full.front), 0); near(full.strips.reduce((sum, band) => sum + area(band.clip), 0), 20000);
   assert.ok(full.strips.every(band => [band.ox, band.oy, band.x, band.y, band.z, band.angle, band.shade].every(Number.isFinite)));
   assert.equal(peelCurl({dlx:1,dly:0,progress:1}, 0, 0).strips.length, 0);
+});
+
+test("the back card grows with its sticker, and never gets narrower than its text needs", () => {
+  near(backCardWidth(144), 170, 0.5);              // a default sticker (10% of 1440px) gets the usual card
+  near(backCardWidth(288), 2 * backCardWidth(144), 0.5); // enlarge the sticker twice and the card doubles
+  assert.ok(backCardWidth(600) > backCardWidth(300));
+  assert.equal(backCardWidth(40), BACK_CARD_MIN);   // a tiny sticker still gets a card its text fits on
+  assert.equal(backCardWidth(0), BACK_CARD_MIN);
 });
