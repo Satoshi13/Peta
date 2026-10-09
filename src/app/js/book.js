@@ -155,14 +155,14 @@ Pages.book = {
   lazySticker(holder, entry, size) {
     holder._load = () => {
       holder._load = null;
-      resOf(entry).then(res => { if(!holder.isConnected) return; const sticker = Stk.el(res, res.aspect >= 1 ? size : size * res.aspect); sticker.style.setProperty("--aspect", res.aspect); holder.append(sticker); }).catch(err => Shell.toast(String(err)));
+      thumbOf(entry).then(res => { if(!holder.isConnected) return; const sticker = Stk.el(res, res.aspect >= 1 ? size : size * res.aspect); sticker.style.setProperty("--aspect", res.aspect); holder.append(sticker); }).catch(err => Shell.toast(String(err)));
     };
     this.observer.observe(holder);
   },
   tile(e, i, select) {
     const holder = h("div.tile-stk"), onDesk = S.desk.some(d => d.id === e.id);
     this.lazySticker(holder, e, 128);
-    return h("button.tile", { data: { sticker: e.id }, "aria-pressed": String(BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date)), style: { "--i": Math.min(i, 8) }, on: { click: () => select(e) } },
+    return h("button.tile", { data: { sticker: e.id, late: i >= 12 ? "1" : "0" }, "aria-pressed": String(BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date)), style: { "--i": Math.min(i, 8) }, on: { click: () => select(e) } },
       h("span.tile-date", fmtDate(e.date,{month:"short",day:"numeric"})),
       holder, h("span.tile-footer", h("b", titleOf(e)), h("small", `${MAT[e.material].name} · ${e.kind === "received" ? "Received" : "No. "+pad4(e.no)}`)),
       onDesk ? h("i.on-desk", "On desktop") : null, e.kind === "received" ? h("i.recv", "Gift") : null);

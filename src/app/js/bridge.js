@@ -41,7 +41,22 @@ const Bridge = (() => {
     if (!assets.has(id)) assets.set(id, invoke('sticker_asset', {stickerId:id}).then(bytes => URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type:'image/png'}))));
     return assets.get(id);
   }
-  function invalidateAsset(id) { const old = assets.get(id); assets.delete(id); for(const key of stickerResources.keys()) if(key.startsWith(id+":")) stickerResources.delete(key); old?.then(URL.revokeObjectURL).catch(()=>{}); }
+  /* A smaller picture for lists (the Collection's tiles and calendar): about a tenth of the bytes to send and decode. At most a few are fetched
+     at once, so opening a long list never queues a hundred pictures in front of the one you are waiting for. */
+  const thumbs = new Map(); let thumbBusy = 0; const thumbWaiting = [];
+  const thumbSlot = () => new Promise(go => { const run = () => { thumbBusy++; go(); }; if(thumbBusy < 4) run(); else thumbWaiting.push(run); });
+  const thumbDone = () => { thumbBusy--; thumbWaiting.shift()?.(); };
+  async function thumb(id, max = 384) {
+    const key = id + ":" + max;
+    if (!thumbs.has(key)) thumbs.set(key, (async () => {
+      await thumbSlot();
+      try { const bytes = await invoke('sticker_thumb', {stickerId:id, max}); return URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type:'image/png'})); }
+      catch { return asset(id); } // no thumbnail (an older core, an odd file): the full picture still works
+      finally { thumbDone(); }
+    })());
+    return thumbs.get(key);
+  }
+  function invalidateAsset(id) { const old = assets.get(id); assets.delete(id); for(const key of stickerResources.keys()) if(key.startsWith(id+":")) stickerResources.delete(key); old?.then(URL.revokeObjectURL).catch(()=>{}); for(const key of [...thumbs.keys()]) if(key.startsWith(id+":")) { thumbs.get(key).then(u => { if(u !== assets.get(id)) URL.revokeObjectURL(u); }).catch(()=>{}); thumbs.delete(key); } }
   async function entry(id) {
     const back = await invoke('sticker_back', {stickerId:id});
     return { id, material:back.material?.id || 'matte', kind:back.kind, from:back.receivedFrom, no:back.originalNumber == null ? null : Number(back.originalNumber), edition:back.editionNumber == null ? null : Number(back.editionNumber), date:new Date(), back, title:'Sticker' };
@@ -62,13 +77,22 @@ const Bridge = (() => {
     try { return await invoke(cmd, args); }
     catch(e) { Bridge.printFocusTransfer=false; throw e; }
   }
-  return { invoke, printAction, enterCeremony, leaveCeremony, window:windowApi, reload, asset, invalidateAsset, entry, savePreferences, changed, listen:api.event.listen };
+  return { invoke, printAction, enterCeremony, leaveCeremony, window:windowApi, reload, asset, thumb, invalidateAsset, entry, savePreferences, changed, listen:api.event.listen };
 })();
 const stickerResources = new Map();
 async function resOf(entry) {
   const key = entry.id + ":" + entry.material;
   if (!stickerResources.has(key)) stickerResources.set(key, (async () => {
     const url = await Bridge.asset(entry.id), i = await Stk.load(url);
+    return { url, w:i.naturalWidth, h:i.naturalHeight, aspect:i.naturalWidth/i.naturalHeight, material:entry.material, mask:['holographic','gold'].includes(entry.material) ? url : null };
+  })().catch(err => { stickerResources.delete(key); throw err; }));
+  return stickerResources.get(key);
+}
+/* The same as resOf, from the thumbnail: for tiles. */
+async function thumbOf(entry) {
+  const key = entry.id + ":" + entry.material + ":thumb";
+  if (!stickerResources.has(key)) stickerResources.set(key, (async () => {
+    const url = await Bridge.thumb(entry.id), i = await Stk.load(url);
     return { url, w:i.naturalWidth, h:i.naturalHeight, aspect:i.naturalWidth/i.naturalHeight, material:entry.material, mask:['holographic','gold'].includes(entry.material) ? url : null };
   })().catch(err => { stickerResources.delete(key); throw err; }));
   return stickerResources.get(key);

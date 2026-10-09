@@ -68,11 +68,34 @@ fn peel_sticker(app: AppHandle, store: State<Store>, sticker_id: String) -> Resu
     Ok(())
 }
 
-/// The rendered PNG of a sticker, as raw bytes (no base64).
+/// The rendered PNG of a sticker, as raw bytes (no base64). `async` so the file read runs on a worker thread, not the one that draws the window.
 #[tauri::command]
-fn sticker_asset(store: State<Store>, sticker_id: String) -> Result<Response, String> {
+async fn sticker_asset(store: State<'_, Store>, sticker_id: String) -> Result<Response, String> {
     let bytes = store.lock().read_rendered(&sticker_id).map_err(|e| e.to_string())?;
     Ok(Response::new(bytes))
+}
+
+/// A smaller picture of a sticker for lists (its longer side is at most `max` px). The first request makes it and keeps it under
+/// `<library>/thumbs`; the name carries the size of the full picture, so editing a sticker makes a fresh one and the old file is removed.
+#[tauri::command]
+async fn sticker_thumb(store: State<'_, Store>, sticker_id: String, max: Option<u32>) -> Result<Response, String> {
+    let max = max.unwrap_or(384).clamp(64, 1024);
+    let (bytes, dir) = { let lib = store.lock(); (lib.read_rendered(&sticker_id).map_err(|e| e.to_string())?, lib.root().join("thumbs")) };
+    if !sticker_id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') { return Err("bad sticker id".into()); }
+    let out = tauri::async_runtime::spawn_blocking(move || -> Result<Vec<u8>, String> {
+        let name = format!("{sticker_id}_{max}_{}.png", bytes.len());
+        let path = dir.join(&name);
+        if let Ok(hit) = std::fs::read(&path) { return Ok(hit); }
+        let small = peta_core::thumb::thumbnail_png(&bytes, max).map_err(|e| e.to_string())?;
+        if std::fs::create_dir_all(&dir).is_ok() {
+            let prefix = format!("{sticker_id}_{max}_");
+            if let Ok(rd) = std::fs::read_dir(&dir) { for f in rd.flatten() { let n = f.file_name().to_string_lossy().to_string(); if n.starts_with(&prefix) && n != name { let _ = std::fs::remove_file(f.path()); } } }
+            let tmp = dir.join(format!("{name}.tmp")); // write then rename, so a half-written file is never read
+            if std::fs::write(&tmp, &small).is_ok() { let _ = std::fs::rename(&tmp, &path); }
+        }
+        Ok(small)
+    }).await.map_err(|e| e.to_string())??;
+    Ok(Response::new(out))
 }
 
 /// An image file dropped onto a layer is a Create: it opens on the Cutting Mat, and becomes today's Peta
@@ -153,6 +176,7 @@ pub fn run() {
             save_placement,
             peel_sticker,
             sticker_asset,
+            sticker_thumb,
             import_dropped,
             exit_edit_mode,
             today::daily_status,
