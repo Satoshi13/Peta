@@ -826,7 +826,8 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .shelf-row .ledge { z-index:0; bottom:-17px; }
 .shelf-row .pack::after { bottom:-2px; left:14%; right:14%; opacity:.9; }
 .shelf .pack { display:grid; grid-template-rows:224px; padding:44px 0 0; }
-.pk-count { position:absolute; left:0; right:0; top:30px; text-align:center; font:400 26px/1 "Kalam","Bradley Hand","Segoe Print",var(--hand),cursive; letter-spacing:.03em; word-spacing:.28em; color:#38342f; opacity:.96; mix-blend-mode:multiply; text-shadow:none; filter:url(#wall-ink); transform:translateX(var(--dx,0)) rotate(var(--tilt,0deg)); pointer-events:none; white-space:nowrap; }
+/* Written on the wall: letters tilt and lift a little each, and the wall's grain makes the ink uneven (a mask, never a filter: WebKit renders an SVG/CSS filter at 1x and scales it up, which smears 2px strokes on a Retina screen). */
+.pk-count { position:absolute; left:0; right:0; top:30px; text-align:center; font:400 26px/1 "Kalam","Bradley Hand","Segoe Print",var(--hand),cursive; letter-spacing:.03em; word-spacing:.28em; color:#38342f; opacity:.96; mix-blend-mode:multiply; text-shadow:none; filter:none; -webkit-mask-image:var(--a-wallInkGrain); mask-image:var(--a-wallInkGrain); -webkit-mask-size:128px 128px; mask-size:128px 128px; -webkit-mask-repeat:repeat; mask-repeat:repeat; transform:translateX(var(--dx,0)) rotate(var(--tilt,0deg)); pointer-events:none; white-space:nowrap; }
 .pk-count .ink { display:inline-block; transform:translateY(var(--y,0)) rotate(var(--r,0deg)) scale(var(--s,1)); opacity:var(--o,1); }
 .pack[data-empty="true"] .pk-count { opacity:.45; }
 
