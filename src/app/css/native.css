@@ -275,9 +275,16 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .calendar-complete { grid-column:2; justify-self:center; padding:3px 9px; border:2px solid #918da0; border-radius:3px; background:var(--holo-soft); color:var(--ink2); font:12px/1.4 var(--type); transform:rotate(-4deg); white-space:nowrap; }
 .calendar-complete.press { animation:calendar-press .4s var(--ease-spring) 1; }
 @keyframes calendar-press { from { opacity:0; transform:rotate(-12deg) scale(1.5); } }
-.book-day-choices { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
-.book-day-choices button { display:grid; place-items:center; width:46px; height:46px; padding:3px; border:1px solid var(--line); border-radius:6px; background:var(--paper); }
-.book-day-choices button[aria-pressed="true"] { border-color:var(--ink); }
+.detail.stay { animation:none; }
+/* the day's stickers: arrows either side of the card, and where you are under it */
+.insp-pager { position:relative; display:grid; justify-items:center; margin-bottom:2px; }
+.insp-pager .flip-stage { width:100%; }
+.insp-arrow { position:absolute; top:calc(50% - 22px); z-index:4; display:grid; place-items:center; width:34px; height:34px; padding:0; border:0; border-radius:50%; background:rgba(255,253,246,.78); color:#4a4632; box-shadow:0 1px 3px rgba(60,45,20,.3); cursor:pointer; transition:background .15s, transform .15s; }
+.insp-arrow:hover { background:#fffdf6; transform:scale(1.06); } .insp-arrow:active { transform:scale(.96); }
+.insp-arrow:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
+.insp-arrow svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+.insp-arrow.prev { left:2px; } .insp-arrow.next { right:2px; }
+.insp-count { position:absolute; left:8px; top:6px; font:400 11px/1 ui-monospace,"SF Mono",Menlo,monospace; letter-spacing:.04em; color:#5b5547; }
 @media(max-width:800px) { .calendar-ledger { padding:12px 6px 8px; } .calendar-day { min-height:72px; padding:4px; } .calendar-sticker { height:42px; } .calendar-sticker .stk { width:min(84px,85%,calc(36px * var(--aspect))) !important; } .calendar-heading h2 { font-size:19px; } }
 @media(prefers-reduced-motion:reduce) { .calendar-add, .calendar-complete.press { animation:none; } .calendar-sticker { transition:none; } .calendar-day.stuck:hover .calendar-sticker { transform:rotate(var(--rot)); } }
 :root[data-motion="reduce"] .calendar-add, :root[data-motion="reduce"] .calendar-complete.press { animation:none; }

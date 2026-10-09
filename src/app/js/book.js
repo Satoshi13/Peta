@@ -228,10 +228,10 @@ Pages.book = {
     const act = (cls, action, icon, text, click) => h("button.btn.quiet.book-action." + cls, { data: { action }, on: { click } }, icon, h("span", text));
     const peel = onDesk ? act("primary", "peel", Icon("peel"), "Peel off desktop", async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Collection."); paint(); })
       : act("primary", "stick", Icon("stick"), "Stick on desktop", () => this.stick(e));
-    return note = h("aside.detail", { role: "dialog", "aria-label": "Sticker details" },
+    const stay = BK.stay; BK.stay = false; // moving between a day's stickers keeps the note where it is instead of sliding it in again
+    return note = h("aside.detail" + (stay ? ".stay" : ""), { role: "dialog", "aria-label": "Sticker details" },
       CloseButton("Close", {on: { click: () => { BK.sel = null; BK.gift = false; BK.deleteId = null; paint(); } }}, ".x"),
-      turn,
-      S.bookView === "calendar" ? this.dayChoices(e, paint) : null,
+      this.dayPager(e, turn, paint),
       // The name, the number, and the material are three small pieces of paper, as on a real sticker sheet.
       h("div.insp-head",
         h("div.insp-label.insp-paper", h("b", { title: name, style: { fontSize: Math.max(13, Math.min(24, 148 / Math.max(nameWidth, 1))) + "px" } }, name)),
@@ -248,14 +248,17 @@ Pages.book = {
           e.canManage ? act("secondary", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,
           e.canManage ? act("danger", "delete", Icon("trash"), "Delete", () => { BK.deleteId = e.id; paint(); }) : null))));
   },
-  dayChoices(e, paint) {
-    const peers = PetaMath.newestBookEntries(S.lib.filter(p => PetaMath.bookDateKey(p.date) === PetaMath.bookDateKey(e.date)));
-    if(peers.length < 2) return null;
-    return h("div.book-day-choices", {role:"group", "aria-label":"Stickers on this day"}, peers.map(p => {
-      const button = h("button", {"aria-label":titleOf(p), "aria-pressed":String(p.id===e.id), on:{click:()=>{BK.sel=p.id;BK.gift=false;BK.deleteId=null;paint();}}});
-      resOf(p).then(res => {if(button.isConnected) button.append(Stk.el(res, res.aspect >= 1 ? 38 : 38 * res.aspect));}).catch(err => Shell.toast(String(err)));
-      return button;
-    }));
+  /* Several stickers on one day: the card is flanked by arrows and a small "3 / 21" sits under it (no thumbnail grid). ← → work too. */
+  dayPager(e, turn, paint) {
+    const peers = S.bookView === "calendar" ? PetaMath.newestBookEntries(S.lib.filter(p => PetaMath.bookDateKey(p.date) === PetaMath.bookDateKey(e.date))) : [];
+    if(peers.length < 2) return turn;
+    const at = Math.max(0, peers.findIndex(p => p.id === e.id));
+    const go = (step) => { const next = peers[(at + step + peers.length) % peers.length]; Snd.tap(); BK.sel = next.id; BK.gift = false; BK.deleteId = null; BK.stay = true; paint(); };
+    const arrow = (dir, label) => h("button.insp-arrow." + (dir < 0 ? "prev" : "next"), { type: "button", "aria-label": label, on: { click: () => go(dir) } },
+      (() => { const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg"), path = document.createElementNS(ns, "path"); svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("aria-hidden", "true"); path.setAttribute("d", dir < 0 ? "M15 5l-7 7 7 7" : "M9 5l7 7-7 7"); svg.append(path); return svg; })());
+    const box = h("div.insp-pager", { role: "group", "aria-label": "Stickers on this day", on: { keydown: (ev) => { if(ev.key === "ArrowLeft") { ev.preventDefault(); go(-1); } else if(ev.key === "ArrowRight") { ev.preventDefault(); go(1); } } } },
+      arrow(-1, "Previous sticker of the day"), turn, arrow(1, "Next sticker of the day"), h("small.insp-count", { "aria-live": "polite" }, `${at + 1} / ${peers.length}`));
+    return box;
   },
   deleteForm(e, paint) {
     return h("div.book-delete", { role: "group", "aria-label": "Confirm sticker deletion" },
