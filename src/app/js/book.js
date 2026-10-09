@@ -76,7 +76,7 @@ function renderBackFallback() {
 function BackCard(entry) { const card = entry.back ? renderBackCard(entry.back) : renderBackFallback(); card.dataset.mat=entry.material; if (!entry.back) Bridge.invoke("sticker_back", {stickerId:entry.id}).then(b=>{ if(b) { entry.back=b; const next=renderBackCard(b); next.dataset.mat=entry.material; card.replaceWith(next); }}).catch(e=>Shell.toast(String(e))); return card; }
 async function BackingFront(entry) {
   const res = await resOf(entry, { max: 420 });
-  const el = h("div.backing", { data: { mat: entry.material } }, h("i.tape.t3"), Stk.el(res, res.aspect >= 1 ? 152 : 152 * res.aspect));
+  const el = h("div.backing", { data: { mat: entry.material } }, h("i.tape.t3"), Stk.el(res, res.aspect >= 1 ? 170 : 170 * res.aspect));
   return el;
 }
 
@@ -213,24 +213,22 @@ Pages.book = {
   detail(e, paint) {
     const mat = MAT[e.material], onDesk = S.desk.some((d) => d.id === e.id), flip = h("div.flip-inner"), front = h("div.flip-face.f-front"), back = h("div.flip-face.f-back", BackCard(e));
     BackingFront(e).then((el) => front.append(el)); flip.append(front, back);
-    let turned = false;
+    let turned = false, note = null;
     const turn = h("button.flip-stage.book-flip", { type: "button", "aria-label": "Show sticker back", "aria-pressed": "false", on: { click: () => {
-      turned = !turned; Snd.flip(); flip.classList.toggle("turned", turned);
+      turned = !turned; Snd.flip(); flip.classList.toggle("turned", turned); note?.classList.toggle("is-back", turned);
       turn.setAttribute("aria-pressed", String(turned)); turn.setAttribute("aria-label", turned ? "Show sticker front" : "Show sticker back");
     } } }, flip);
-    const history = h("ul.history"), number = h("b", e.kind === "received" ? "—" : pad4(e.no));
+    const number = h("b", e.kind === "received" ? "—" : pad4(e.no));
     Bridge.invoke("sticker_back", {stickerId:e.id}).then(b => {
       if (!b) return;
       number.textContent = b.kind === "received" ? (b.editionNumber ? "#"+b.editionNumber : "—") : (b.originalNumber || "—");
-      const labels = {created:"Created by",received:"Received from",pack_opened:"Pack opened",stuck:"Stuck on the desktop",peeled:"Peeled off",sent:"Gift sent to"};
-      history.replaceChildren(...b.history.map(p=>h("li",h("span",(labels[p.type] || p.type)+(p.by?" "+p.by:"")),h("span",p.on))));
     }).catch(err=>Shell.toast(String(err)));
     const form = BK.gift ? this.giftForm(e, paint) : null;
     const name = titleOf(e), nameWidth = [...name].reduce((w, c) => w + (c.charCodeAt(0) > 255 ? 1 : .5), 0);   // a long name shrinks to stay on one line of its paper label
     const act = (cls, action, icon, text, click) => h("button.btn.quiet.book-action." + cls, { data: { action }, on: { click } }, icon, h("span", text));
     const peel = onDesk ? act("primary", "peel", Icon("peel"), "Peel off desktop", async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Collection."); paint(); })
       : act("primary", "stick", Icon("stick"), "Stick on desktop", () => this.stick(e));
-    return h("aside.detail", { role: "dialog", "aria-label": "Sticker details" },
+    return note = h("aside.detail", { role: "dialog", "aria-label": "Sticker details" },
       CloseButton("Close", {on: { click: () => { BK.sel = null; BK.gift = false; BK.deleteId = null; paint(); } }}, ".x"),
       turn,
       S.bookView === "calendar" ? this.dayChoices(e, paint) : null,
@@ -248,8 +246,7 @@ Pages.book = {
         h("div.book-action-row",
           act("secondary", "gift", Icon("gift"), "Gift", () => { BK.deleteId = null; BK.gift = true; paint(); }),
           e.canManage ? act("secondary", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,
-          e.canManage ? act("danger", "delete", Icon("trash"), "Delete", () => { BK.deleteId = e.id; paint(); }) : null))),
-      history);
+          e.canManage ? act("danger", "delete", Icon("trash"), "Delete", () => { BK.deleteId = e.id; paint(); }) : null))));
   },
   dayChoices(e, paint) {
     const peers = PetaMath.newestBookEntries(S.lib.filter(p => PetaMath.bookDateKey(p.date) === PetaMath.bookDateKey(e.date)));
