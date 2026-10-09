@@ -1,5 +1,27 @@
 /* Packs: a shelf of pouches. Tearing one open is the ceremony in pack.js. */
 
+/* What a Studio-made pack shows of itself: its cover and up to three pictures (Rust picks the cover, then the most common items; the rarest stay a
+   surprise). Fetched once and kept. */
+const PackArt = {
+  cache: new Map(),
+  /** [{ src, baked: true }] for a signed pack; [] for the packs that ship with the app. */
+  peek(p) {
+    if(!p.signed) return Promise.resolve([]);
+    if(!this.cache.has(p.id)) this.cache.set(p.id, (async () => {
+      const items = await Bridge.invoke("pack_peek", { packId: p.id });
+      return Promise.all(items.map(async (it) => { const bytes = await Bridge.invoke("pack_peek_picture", { itemId: it.itemId }); return { src: URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "image/png" })), baked: true, name: it.name }; }));
+    })().catch(() => []));
+    return this.cache.get(p.id);
+  },
+  /** The wrapped pack for a shelf cell, standing on the ledge; `cover` is a picture url or null. Scales with its box, so the zoom can enlarge it. */
+  shelf(p, cover) {
+    const b = BAGS[p.bag], [x0, , x1, y1] = b.body, bw = x1 - x0, obj = Math.min(b.cm * 15, 166);
+    const pic = BagPic({ bag: p.bag, title: p.title, sub: "by " + p.by, cover, deco: p.deco || "none", k: 15, fit: 166, shut: true, id: p.id });
+    pic.style.width = (obj / (bw / 100) / 168 * 100) + "%"; pic.style.left = "50%"; pic.style.bottom = "0"; pic.style.translate = `-50% ${100 - y1}%`; pic.style.position = "absolute";
+    return pic;
+  },
+};
+
 /* The title and the author are printed on the pouch's own white label, wherever the pouch is shown. */
 function PackLabel(p) {
   return h("span.pk-label", { "aria-hidden": "true", data: { kind: p.kind || "holo" } }, h("b", p.title), h("small", "by " + p.by));
@@ -83,10 +105,10 @@ const PackZoom = {
       }).catch(error => { if (this.current === cur) this.dispose(true); Shell.toast(String(error)); });
       // the picture and its label are tilted as ONE layer; tilting each on its own gives each its own perspective, and the label slides off the pouch
       const tiltLayer = h("div.mkz-tilt"); tiltLayer.append(...clone.childNodes); clone.append(tiltLayer);
-      const zoomLight = SurfaceLight.attach($(".pk-img", clone), pack.kind || "holo");
+      const zoomImg = $(".pk-img", clone), zoomLight = zoomImg ? SurfaceLight.attach(zoomImg, pack.kind || "holo") : { aim() {}, rest() {} };
       onPointerFollow(clone, (x, y, e, amount) => {
         if (!e) return;
-        const r = $(".pk-img", clone).getBoundingClientRect(), px = clamp((e.clientX - r.left) / r.width, -.2, 1.2), py = clamp((e.clientY - r.top) / r.height, -.2, 1.2);
+        const r = (zoomImg || $(".bagpic", clone)).getBoundingClientRect(), px = clamp((e.clientX - r.left) / r.width, -.2, 1.2), py = clamp((e.clientY - r.top) / r.height, -.2, 1.2);
         zoomLight.aim(px, py, amount);
         clone.style.setProperty("--rx", -(py - .5) * 8 * amount + "deg"); clone.style.setProperty("--ry", (px - .5) * 8 * amount + "deg");
       }, () => { zoomLight.rest(); clone.style.setProperty("--rx", "0deg"); clone.style.setProperty("--ry", "0deg"); });
@@ -178,14 +200,16 @@ Pages.packs = {
     return shelf;
   },
   pack(p, i) {
-    const img = h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } });
-    const stack = h("div.pk-stack", {data:{empty:p.empty}}, img, PackLabel(p));
-    const light = SurfaceLight.attach(img, p.kind || "holo"); // the glint is lit over the pack's own surface, not slid across it
+    const gen = p.bag && BAGS[p.bag]?.gen;
+    const img = gen ? null : h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } });
+    const stack = h("div.pk-stack", {data:{empty:p.empty, gen: gen ? "1" : "0"}}, gen ? PackArt.shelf(p, null) : img, gen ? null : PackLabel(p));
+    if(gen && p.cover) PackArt.peek(p).then((items) => { const first = items[0]; if(first && stack.isConnected) { $(".bagpic", stack)?.replaceWith(PackArt.shelf(p, first.src)); } });
+    const light = gen ? { aim() {}, rest() {} } : SurfaceLight.attach(img, p.kind || "holo"); // the glint is lit over the pack's own surface, not slid across it
     const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
       stack, (() => { const ink = WallInk.write(`${p.left.length} left`, p.id); return h("span.pk-count", { "aria-hidden": "true", style: { "--tilt": ink.tilt, "--dx": ink.dx } }, ...ink.nodes); })()); // written on the wall behind the pouch, so it stays put when the pouch lifts
     onPointerFollow(card, (x, y, e, amount) => {
       if (!e) return;
-      const r = $(".pk-img", stack).getBoundingClientRect(), px = clamp((e.clientX - r.left) / r.width, -.2, 1.2), py = clamp((e.clientY - r.top) / r.height, -.2, 1.2);
+      const r = (img || $(".bagpic", stack)).getBoundingClientRect(), px = clamp((e.clientX - r.left) / r.width, -.2, 1.2), py = clamp((e.clientY - r.top) / r.height, -.2, 1.2);
       light.aim(px, py, amount);
       stack.style.setProperty("--rx", -(py - .5) * 7 * amount + "deg"); stack.style.setProperty("--ry", (px - .5) * 7 * amount + "deg");
     }, () => { light.rest(); stack.style.setProperty("--rx", "0deg"); stack.style.setProperty("--ry", "0deg"); });
@@ -197,8 +221,12 @@ Pages.packs = {
     const available = p.freeOpenings || 0, progress = available ? 10 : Math.max(0, p.total - left) % 10;
     /* A ready free opening always comes first: while one is waiting, it is the only thing the card offers. */
     const rule = available ? `${available === 1 ? "A free opening is" : "Free openings are"} ready. ${available === 1 ? "It comes" : "They come"} first.` : p.empty ? "No regular openings left." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "";
-    const listed = MARKET_PACKS.find((m) => m.id === p.id), blurb = listed?.blurb;
-    const peek = PackPeek(listed ? listed.keys : p.id === "welcome" ? ["sCat", "sEgg", "sBlueFlower"] : [], ""); // packs made by friends have no shipped pictures to show yet
+    const listed = MARKET_PACKS.find((m) => m.id === p.id), blurb = listed?.blurb || p.blurb;
+    // the packs that ship with the app show shipped pictures; a pack made in Studio shows its own (the cover first, the rarest kept hidden)
+    const peekHost = h("div.peek-host"), shipped = listed ? listed.keys : p.id === "welcome" ? ["sCat", "sEgg", "sBlueFlower"] : [];
+    if(shipped.length) peekHost.append(PackPeek(shipped, "") || "");
+    else PackArt.peek(p).then((items) => { const fig = PackPeek(items, ""); if(fig) peekHost.replaceChildren(fig); });
+    const peek = peekHost;
     const go = (fn) => () => { PackZoom.dispose(); fn(); };
     const one = h("button.btn.mkz-act", { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
     const free = available ? h("button.btn.mkz-act", {type:"button",on:{click:go(()=>{Snd.tap();Cer.openPack(p,{free:true});})}}, "Open free") : null;

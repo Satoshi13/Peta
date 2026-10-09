@@ -57,10 +57,11 @@ const PEEK_SPOTS = {   // centre x, centre y, box width, box height (all % of th
   3: [[27, 32, 38, 40, -3], [72, 30, 36, 44, 4], [50, 69, 34, 38, -2]],
 };
 function PackPeek(keys, caption = "A few from this pack") {
-  const list = keys.filter((k) => A[k]).slice(0, 3), sheet = h("div.peek-sheet", h("i.peek-tape"));
+  const list = keys.filter((k) => (typeof k === "object" ? k.src : A[k])).slice(0, 3), sheet = h("div.peek-sheet", h("i.peek-tape"));
   list.forEach((k, i) => {
     const [x, y, bw, bh, r] = PEEK_SPOTS[list.length][i], cell = h("div.peek-item", { style: { left: x + "%", top: y + "%", width: bw + "%", height: bh + "%", "--r": r + "deg" } });
     sheet.append(cell);
+    if (typeof k === "object") { cell.append(h("img", { src: k.src, alt: k.name || "" })); return; }   // a finished sticker: its white border is already in the picture
     if (PEEK_BAKED.has(k)) { cell.append(h("img", { src: A[k], alt: "" })); return; }
     Stk.make(A[k], { border: 10, material: "matte", max: 300 }).then((res) => {
       if (!cell.isConnected) return;

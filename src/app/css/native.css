@@ -998,3 +998,9 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 
 /* The light pill under the window buttons turns dark with the night theme (it is a picture of a pale pill, so it is darkened, not recoloured). */
 [data-theme="night"] .wctl .wc-back { filter:brightness(.2) saturate(.55) contrast(1.05); }
+
+/* A pack in a wrapping that is not a pouch (Studio): the picture stands on the ledge and scales with its cell */
+.pk-stack[data-gen="1"] { aspect-ratio: 3 / 4; }
+.pk-stack[data-gen="1"] .bagpic { filter: drop-shadow(0 8px 8px rgba(60,45,20,.3)); }
+.mkz-pack[data-gen="1"] .bagpic { filter: drop-shadow(0 14px 14px rgba(60,45,20,.28)); }
+.peek-host:empty { display: none; }

@@ -20,7 +20,7 @@ const bagEm = (text) => [...text].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 
 function BagPic({ bag: id, title = "", sub = "", cover = null, deco = "none", k = 15, fit = 0, items = [], shut = false, id: key = "" } = {}) {
   const bag = BAGS[id] || BAGS.kraft, [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, seed = bagHash(title + bag.id + key), jit = (i, amp) => (bagRnd(seed, i) - .5) * amp;
   let boxW = bag.cm * k / (bw / 100); if (fit) boxW = Math.min(boxW, fit / (bw / 100));
-  const el = h("div.bagpic", { data: { kind: bag.gen ? "gen" : bag.id, bag: bag.id, gloss: bag.gen && bag.gloss ? "1" : "0", nolabel: bag.gen && !bag.hasLabel ? "1" : "0" },
+  const el = h("div.bagpic", { data: { kind: bag.gen ? "gen" : bag.id, bag: bag.id, gloss: bag.gen && bag.gloss && !(shut && bag.seal === "slide") ? "1" : "0", nolabel: bag.gen && !bag.hasLabel ? "1" : "0" },
     style: { "--w": boxW + "px", "--art": `var(--a-${bag.art})`, "--gloss": bag.gloss ?? 0, aspectRatio: `${bag.W} / ${bag.H}` } });
   if (bag.lean) el.style.rotate = bag.lean + "deg";
   const [l, t, r, b] = bag.lbl;

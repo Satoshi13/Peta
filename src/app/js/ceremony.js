@@ -143,6 +143,43 @@ const Cer = (() => {
     return rig;
   }
 
+  /* The same rig for a wrapping that is not a pouch (a Studio pack): the picture of the wrapping stands where the pouch stood, the sleeve of stickers sits
+     behind it, and opening is a tap, a drag, or Enter (there is no top to tear). It gives the same things back (PW, PH, cutY, pullable, linger), measured
+     on the object's own box, so the rest of the opening does not care which one it is. */
+  function buildBagRig(cer, stage, { pack, content, onTear, cover }) {
+    const bag = BAGS[pack.bag], [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, ratio = (bh * bag.H) / (bw * bag.W);
+    let PW = Math.min(300, stage.clientWidth * .5); if (PW * ratio > stage.clientHeight * .5) PW = stage.clientHeight * .5 / ratio;
+    const PH = PW * ratio, picW = PW / (bw / 100), picH = picW * bag.H / bag.W;
+    const pic = BagPic({ bag: pack.bag, title: pack.title, sub: "by " + pack.by, cover, deco: pack.deco || "none", fit: PW, k: 99, id: pack.id });
+    Object.assign(pic.style, { position: "absolute", left: -(x0 / 100) * picW + "px", top: -(y0 / 100) * picH + "px", zIndex: 4 });
+    const pouch = h("div.bagrig", { style: { width: PW + "px", height: PH + "px" }, tabIndex: 0, role: "button", "aria-label": "Open the pack" }, content, pic);
+    const wrapper = h("div.pk-wrap", pouch); stage.append(wrapper);
+    anim(wrapper, [{ opacity: 0, transform: "translateY(60px) rotate(8deg) scale(.86)" }, { opacity: 1, transform: "none" }], { duration: 720, easing: EASE.spring });
+    // the sleeve of stickers sits inside the object's own box, so a flat envelope never has it hanging out of its bottom
+    const sw = Math.min(PW * .72, PH * .68), rig = { PW, PH, cutY: PH * .18, pouch, wrapper, content, done: false, prog: 0, sleeveCss: `width:${sw}px;left:${(PW - sw) / 2}px;top:${PH * .12}px` };
+    const finish = async () => {
+      if (rig.done) return; rig.done = true; cer.hint(""); Snd.crinkle(4, .25);
+      if (!reduced()) await pic.animate([{ transform: "none" }, { transform: "translateY(-5px) rotate(-1.4deg) scale(1.025)", offset: .4 }, { transform: "none" }], { duration: 420, easing: "ease-out" }).finished;
+      Snd.swoosh(); await onTear(rig);
+    };
+    drag(pouch, { down: () => { if (rig.done) return false; }, move: (dx, dy) => { if (!rig.done && Math.hypot(dx, dy) > 16) finish(); }, up: (e, moved) => { if (!moved && !rig.done) finish(); } });
+    pouch.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && finish());
+    rig.focus = () => pouch.focus({ preventScroll: true });
+    rig.linger = () => anim(pouch, [{ transform: "none" }, { transform: `translate(${-PW * .9}px, ${PH * .34}px) rotate(-13deg) scale(.72)` }], { duration: 850, easing: EASE.inOut, delay: 100 });
+    rig.pullable = (el, { rise = .3, need = .34, onPull }) => {
+      let pulled = false; const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
+      drag(el, {
+        down: () => { if (pulled) return false; },
+        move: (dx, dy) => { const up = clamp(-dy, 0, PH * .8), rb = up > PH * .5 ? PH * .5 + (up - PH * .5) * .3 : up; el.style.transform = `translateY(${-PH * rise - rb}px) rotate(${-1.5 + dx * .03}deg)`; Snd.crinkle(1, .03); if (up > PH * need && !pulled) go(); },
+        up: () => { if (!pulled) anim(el, [{ transform: el.style.transform }, { transform: base }], { duration: 300, easing: EASE.spring }).then(() => fix(el, base)); },
+      });
+      const go = () => { if (pulled) return; pulled = true; el.style.cursor = "default"; onPull(); };
+      el.addEventListener("dblclick", go); el.tabIndex = 0; el.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && go());
+      return base;
+    };
+    return rig;
+  }
+
   /* ------------------------------------------------------------------ THE LIGHT OF A PULLED RARITY
      Shared by Today's material and the ten-at-once sheet. Rarity is how light behaves, not how many sparks fly:
      the room darkens in proportion (.cer-exp), a pool of light sits behind what was pulled (.cer-pool), a band of light writes the face,
@@ -377,7 +414,7 @@ const Cer = (() => {
     if (free ? !packHasFreeOpening(pack) : (!packOpenable(pack) || packHasFreeOpening(pack))) return; // a ready free opening always comes first
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
     const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null;
-    const rig = buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, label: PackLabel({ ...pack, kind: pack.kind || "holo" }), onTear: async (rig) => {
+    const onTear = async (rig) => {
       try { Bridge.busy = true; const opened=await Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false}); entry=await Bridge.entry(opened.stickerId); entry.rarity=opened.rarity; entry.title=opened.name || entry.title; pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
       await anim(sleeve, [{ transform: sleeve.style.transform }, { transform: `translateY(${-rig.PH * .3}px) rotate(-1.5deg)` }], { duration: 760, easing: EASE.out });
@@ -388,8 +425,13 @@ const Cer = (() => {
         stage.append(sleeve); sleeve.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;`;
         await unwrapAndReveal({ cer, stage, sleeve, entry, source: `${pack.title} · ${pack.left.length} left`, onKeep: keep, onLater: leave, laterLabel: "Keep in Collection" });
       } });
-    } });
-    sleeve.style.cssText = `width:${rig.PW * .72}px;left:${rig.PW * .14}px;top:${rig.cutY - rig.PW * .72 * .12}px`;
+    };
+    // a pouch is torn along its top; every other wrapping (Studio) is simply opened
+    const generic = !!(pack.bag && BAGS[pack.bag]?.gen), peeked = generic && pack.cover ? await PackArt.peek(pack) : [];
+    if (generic) cer.hint("Open it.");
+    const rig = generic ? buildBagRig(cer, stage, { pack, content: sleeve, cover: peeked[0]?.src || null, onTear })
+      : buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, label: PackLabel({ ...pack, kind: pack.kind || "holo" }), onTear });
+    sleeve.style.cssText = rig.sleeveCss || `width:${rig.PW * .72}px;left:${rig.PW * .14}px;top:${rig.cutY - rig.PW * .72 * .12}px`;
     // A pull is already in the Collection. "Stick it" sends it to the desktop the same way the Collection's "Stick on desktop" does;
     // "Keep in Collection" (or Esc) just closes, and nothing is left waiting at the print slot.
     const keep = async () => {
