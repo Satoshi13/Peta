@@ -67,7 +67,7 @@ pub fn preview(lib:&Library,pack:&Verified)->Result<Preview> {
 }
 pub fn install(lib:&mut Library,pack:&Verified,consent:bool)->Result<String> {
     if !consent{return Err(invalid("Pack import cancelled."));}
-    let h=&pack.header;let id=internal_id(h)?;
+    let h=&pack.header;let id=internal_id(h)?;let lib_root=lib.root().to_path_buf();
     let existing=lib.db().conn.query_row("SELECT version FROM pack_distributions WHERE pack_id=?1",[&id],|r|r.get::<_,i64>(0)).optional()?;
     if existing.is_some_and(|v|v>=h.version){return Err(invalid("This version is already on your shelf."));}
     let content=digest(&pack.bytes);let mut paths=Vec::new();
@@ -78,7 +78,9 @@ pub fn install(lib:&mut Library,pack:&Verified,consent:bool)->Result<String> {
     let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     let existing=tx.query_row("SELECT version FROM pack_distributions WHERE pack_id=?1",[&id],|r|r.get::<_,i64>(0)).optional()?;
     if existing.is_some_and(|v|v>=h.version){return Err(invalid("This version is already on your shelf."));}
-    let identity=friends::observe(&tx,public(h)?,&h.author)?;
+    // A pack you made yourself is not a new friend: it is marked as yours and nobody is added to the friends list
+    let own=crate::device_key::load_or_create(&lib_root).ok().map(|k|sign::public_key(&k));
+    let identity=if own.as_deref()==Some(public(h)?) {Identity{name:h.author.clone(),status:"mine".into(),fingerprint:sign::fingerprint(&sign::parse_public(public(h)?)?),public_key:public(h)?.into()}} else {friends::observe(&tx,public(h)?,&h.author)?};
     if existing.is_none(){tx.execute("INSERT INTO packs VALUES (?1,?2,?3,?4)",params![id,h.title,identity.name,now()])?;}
     else {tx.execute("UPDATE packs SET title=?2,by_name=?3 WHERE id=?1",params![id,h.title,identity.name])?;}
     tx.execute("INSERT INTO pack_distributions VALUES (?1,?2,?3,?4,?5,?6,?7) ON CONFLICT(pack_id) DO UPDATE SET version=excluded.version,status=excluded.status,pouch=excluded.pouch",params![id,h.pack_id,h.version,public(h)?,identity.fingerprint,identity.status,h.pouch])?;
@@ -222,6 +224,22 @@ pub fn peek(db:&crate::Database,pack_id:&str)->Result<Vec<(i64,String,String,Str
         assert_eq!(metadata.rarity,"rare");assert_eq!(metadata.name,"Sticker 0");assert!(metadata.finished);
         let (common,_)=pick_bonus(lib.db(),&id,0.99,0.0).unwrap().unwrap();
         assert_eq!(crate::pack::stored_item(lib.db(),common).unwrap().unwrap().rarity,"common");
+    }
+    #[test] fn a_pack_you_made_can_go_on_your_own_shelf_dressed_and_weighted() {
+        let mut mine=lib();mine.db_mut().set_display_name("Nao").unwrap();let rendered=crate::pack::render_pack_sticker(&png()).unwrap();let mut selections=Vec::new();
+        for i in 0..4{let sticker=mine.add_made(&rendered,b"orig","jpg",None,"holographic").unwrap();selections.push(Selection{sticker_id:sticker.id,name:format!("Drawing {i}"),weight:Some([1,2,4,16][i])});}
+        let dress=Dress{cover:Some(selections[2].sticker_id.clone()),deco:Some("pin".into()),blurb:Some("Small things.".into())};
+        let (h,bytes)=build(&mine,"My Desk","cotton",&selections,&dress).unwrap();
+        assert!(h.items.iter().all(|i|i.rarity=="rare"&&i.material_id=="holographic")); // the grade written down is the material's
+        let id=install(&mut mine,&decode(&bytes).unwrap(),true).unwrap();record_made(&mut mine,&h).unwrap();
+        let shelf=mine.db().packs().unwrap();let mine_on_shelf=shelf.iter().find(|p|p.id==id).unwrap();
+        assert_eq!((mine_on_shelf.pouch.as_deref(),mine_on_shelf.deco.as_deref(),mine_on_shelf.blurb.as_deref(),mine_on_shelf.total),(Some("cotton"),Some("pin"),Some("Small things."),4));
+        let peeked=peek(mine.db(),&id).unwrap();assert_eq!(peeked.len(),3);assert_eq!(peeked[0].1,"Drawing 2"); // the cover first, then 16, then 4... the weight 1 stays hidden
+        assert!(!peeked.iter().any(|p|p.1=="Drawing 0"));
+        assert_eq!(mine_on_shelf.signature_status.as_deref(),Some("mine"));assert_eq!(mine.db().conn.query_row("SELECT COUNT(*) FROM friends",[],|r|r.get::<_,i64>(0)).unwrap(),0);
+        // a second save of the same pack is a newer version, not a duplicate on the shelf
+        let (h2,bytes2)=build(&mine,"My Desk","cotton",&selections,&dress).unwrap();assert_eq!(h2.version,2);install(&mut mine,&decode(&bytes2).unwrap(),true).unwrap();
+        assert_eq!(mine.db().packs().unwrap().iter().filter(|p|p.title=="My Desk").count(),1);
     }
     #[test] fn export_to_another_library_contains_finished_copies_only_and_versions_increase() {
         let mut mine=lib();mine.db_mut().set_display_name("Nao").unwrap();let picture=png();let rendered=crate::pack::render_pack_sticker(&picture).unwrap();let mut selections=Vec::new();

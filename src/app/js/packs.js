@@ -233,7 +233,7 @@ Pages.packs = {
     const ten = more ? h("button.btn.paper.mkz-act", { type: "button", on: { click: go(() => { Snd.tap(); Cer.openPackMany(p, many); }) } }, many === 10 ? "Open 10" : `Open all ${many}`) : null;
     return h("aside.mkz-card", CloseButton("Back to the shelf", {}, ".mkz-x"),
       h("p.eyebrow", `by ${p.by}${p.signatureStatus ? " ✓" : ""}`), h("h2", p.title), blurb ? h("p.mkz-blurb", blurb) : null,
-      p.fingerprint ? h("p.mkz-fp.muted", `${p.fingerprint}${p.signatureStatus === "new" ? " · New friend" : p.signatureStatus === "warning" ? " · Same name, different key" : ""}`) : null,
+      p.fingerprint ? h("p.mkz-fp.muted", `${p.fingerprint}${p.signatureStatus === "mine" ? " · Made by you" : p.signatureStatus === "new" ? " · New friend" : p.signatureStatus === "warning" ? " · Same name, different key" : ""}`) : null,
       h("p.mkz-own", h("b", `${left} ${left === 1 ? "opening" : "openings"} left`)),
       h("div.mkz-reward", h("p.small.muted", available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} / 10 toward a free opening`),
         h("div.mkz-pips", {role:"progressbar","aria-label":"Free opening progress","aria-valuemin":0,"aria-valuemax":10,"aria-valuenow":progress,"aria-valuetext":available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} of 10 openings`}, Array.from({length:10}, (_, i) => h("i" + (i < progress ? "" : ".o"))))),
