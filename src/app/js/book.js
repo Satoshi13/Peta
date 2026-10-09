@@ -1,5 +1,5 @@
 /* Sticker Book: a list or local-date calendar, a detail card you can turn over, peel / gift / stick-as-today. */
-const BK = { sel: null, gift: false, anim: false, deleteId: null, day: null, completed: new Set(), q: "", mat: "all", sort: "newest" };
+const BK = { sel: null, anim: false, deleteId: null, day: null, completed: new Set(), q: "", mat: "all", sort: "newest" };
 const BOOK_SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["name", "Name A–Z"], ["material", "By material"]];
 
 /** First weekday of the device locale (0 = Sunday); Sunday when the engine cannot say. */
@@ -89,7 +89,7 @@ Pages.book = {
   leave() { this.observer?.disconnect(); this.observer = null; },
   build() {
     const root = h("div.page-in.bookpage");
-    const select = (e) => { BK.sel = BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date) ? null : e.id; BK.day = PetaMath.bookDateKey(e.date); BK.gift = false; BK.deleteId = null; Snd.tap(); paint(); };
+    const select = (e) => { BK.sel = BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date) ? null : e.id; BK.day = PetaMath.bookDateKey(e.date); BK.deleteId = null; Snd.tap(); paint(); };
     const paint = () => {
       this.leave();
       this.observer = new IntersectionObserver(records => {
@@ -121,7 +121,7 @@ Pages.book = {
         if (items.length) fill();
       }
       const poster = S.bookView === "calendar" ? this.posterButton(items) : null;
-      const actions = h("div.book-head-actions", poster, h("button.btn.paper.small", {disabled:S.lib.length<3,on:{click:()=>PackMaker.open()}}, "Make a Pack…"));
+      const actions = h("div.book-head-actions", poster, h("button.btn.paper.small", {disabled:S.lib.length<3,on:{click:()=>StudioOpen("pack")}}, "Make a Pack…"));
       root.replaceChildren(PageHead("Collection", "Your stickers", actions, view),
         ...(S.pickMode ? [h("div.pick-banner", h("span", "Choose one to stick on the desktop"), h("button.link", { on: { click: () => { S.pickMode = false; paint(); } } }, "Cancel"))] : []),
         h("div.bk" + (sel ? ".has-detail" : ""), main, sel ? this.detail(sel, paint, listFor(sel, items)) : null));
@@ -220,28 +220,27 @@ Pages.book = {
       turned = !turned; Snd.flip(); flip.classList.toggle("turned", turned);
       turn.setAttribute("aria-pressed", String(turned)); turn.setAttribute("aria-label", turned ? "Show sticker front" : "Show sticker back");
     } } }, flip);
-    const form = BK.gift ? this.giftForm(e, paint) : null;
     const name = titleOf(e), nameWidth = [...name].reduce((w, c) => w + (c.charCodeAt(0) > 255 ? 1 : .5), 0);   // a long name shrinks to stay on one line of its paper label
     const act = (cls, action, icon, text, click) => h("button.btn.quiet.book-action." + cls, { data: { action }, on: { click } }, icon, h("span", text));
     const main = onDesk ? act("det-main", "peel", Icon("peel"), "Peel off desktop", async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Collection."); paint(); })
       : act("det-main", "stick", Icon("desk"), "Stick on desktop", () => this.stick(e));
     // paging through the collection: arrows either side of the card, and where this one is in the list
     const at = list.findIndex((p) => p.id === e.id), many = list.length > 1 && at >= 0;
-    const go = (step) => { const next = list[(at + step + list.length) % list.length]; Snd.tap(); BK.sel = next.id; BK.day = PetaMath.bookDateKey(next.date); if(S.bookView === "calendar") S.bookMonth = monthKey(next.date); BK.gift = false; BK.deleteId = null; BK.stay = true; paint(); };
+    const go = (step) => { const next = list[(at + step + list.length) % list.length]; Snd.tap(); BK.sel = next.id; BK.day = PetaMath.bookDateKey(next.date); if(S.bookView === "calendar") S.bookMonth = monthKey(next.date); BK.deleteId = null; BK.stay = true; paint(); };
     const arrow = (dir, label) => h("button.det-arrow." + (dir < 0 ? "prev" : "next"), { type: "button", "aria-label": label, on: { click: () => go(dir) } }, Icon(dir < 0 ? "left" : "right"));
     const stage = many ? h("div.det-pager", { role: "group", "aria-label": "Stickers in your Collection", on: { keydown: (ev) => { if(ev.key === "ArrowLeft") { ev.preventDefault(); go(-1); } else if(ev.key === "ArrowRight") { ev.preventDefault(); go(1); } } } },
       arrow(-1, "Previous sticker"), turn, arrow(1, "Next sticker")) : turn;
     const stay = BK.stay; BK.stay = false; // moving between stickers keeps the card where it is instead of sliding it in again
     return h("aside.detail" + (stay ? ".stay" : ""), { role: "dialog", "aria-label": "Sticker details" },
-      CloseButton("Close", {on: { click: () => { BK.sel = null; BK.gift = false; BK.deleteId = null; paint(); } }}, ".x"),
+      CloseButton("Close", {on: { click: () => { BK.sel = null; BK.deleteId = null; paint(); } }}, ".x"),
       many ? h("small.det-count", { "aria-live": "polite" }, `${at + 1} / ${list.length}`) : null,
       stage,
       h("div.det-label", h("b", { title: name, style: { fontSize: Math.max(14, Math.min(26, 190 / Math.max(nameWidth, 1))) + "px" } }, name)),
       h("div.det-info",
         h("div", h("small", "Material"), h("span.det-mat", MaterialSwatch({ id: mat.id || e.material, sw: mat.sw, card: mat.card }), h("b", mat.name))),
         h("div", h("small", "Made"), h("b", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })))),
-      form || (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions", main,
-        h("div.book-action-row", act("det-link", "gift", Icon("gift"), "Gift", () => { BK.deleteId = null; BK.gift = true; paint(); }),
+      (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions", main,
+        h("div.book-action-row", act("det-link", "gift", Icon("gift"), "Gift", () => { BK.deleteId = null; StudioOpen("gift", e.id); }),
           e.canManage ? act("det-link.quiet2", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,
           e.canManage ? act("det-link.quiet2.danger", "delete", Icon("trash"), "Delete", () => { BK.deleteId = e.id; paint(); }) : null))));
   },
@@ -259,13 +258,6 @@ Pages.book = {
   async edit(e) {
     try { await Bridge.invoke("creator_cancel"); crReset(); CR.editing = e.id; CR.name = e.name || ""; CR.stage = "cutting"; CR.samplePhoto = null; await Shell.open("create"); await Bridge.invoke("creator_edit_original", { stickerId: e.id }); }
     catch(err) { crReset(); await Shell.open("book"); Shell.toast(String(err)); }
-  },
-  giftForm(e, paint) {
-    const to = h("input", { type: "text", maxlength: 40, placeholder: "Who is it for?", autocomplete: "off" }), note = h("input", { type: "text", maxlength: 140, placeholder: "(optional)", autocomplete: "off" });
-    return h("form.gift-form", { on: { submit: (ev) => { ev.preventDefault(); GiftSeal(e, to.value.trim() || "a friend", note.value.trim()).then(() => { BK.gift = false; paint(); }); } } },
-      h("label", "To", to), h("label", "A few words", note),
-      h("div.book-action-row", h("button.btn.book-action.secondary", { type: "button", on: { click: () => { BK.gift = false; paint(); } } }, "Cancel"), h("button.btn.book-action.primary", { type: "submit" }, "Seal & save…")),
-      h("small.muted", "You give a copy; yours stays in your book. The file holds only the finished sticker — never your photo."));
   },
   async stick(e) {
     S.pickMode = false; BK.sel = null; Snd.tap();

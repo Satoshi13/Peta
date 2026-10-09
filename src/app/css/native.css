@@ -185,10 +185,6 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .detail .book-actions .btn.det-link.quiet2 { color:#655e51; font-size:14px; } .detail .book-actions .btn.det-link.quiet2.danger { color:#92704f; }
 .detail .book-actions .btn.det-link .ico { width:22px; height:22px; stroke-width:1.5; } .detail .book-actions .btn.det-link.quiet2 .ico { width:18px; height:18px; }
 .detail .book-action:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
-/* the gift form keeps ordinary buttons (the paper strip and the plain lines belong to the main actions only) */
-.detail .gift-form button.btn.book-action { height: 40px; padding: 0 14px; border-radius: 10px; font: 600 14px/1.2 var(--sys); }
-.detail .gift-form button.btn.book-action.secondary { background: #fffdf9; color: #2b2a28; border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(60, 45, 20, .15); }
-.detail .gift-form button.btn.book-action.primary { background: #2b2a28; color: #fff; }
 .detail > button.close-control { top:11px; right:14px; width:30px; height:30px; min-width:30px; background:none; color:#3a362a; }
 .detail > button.close-control:hover { background:rgba(60,45,20,.08); color:#2b2a28; }
 .detail > button.close-control svg { stroke-width:1.6; }

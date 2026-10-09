@@ -373,34 +373,6 @@ const Cer = (() => {
     wax.style.cursor = "pointer"; cer.root._esc = () => { if (!opened) cer.close(); };
   }
 
-  /* ------------------------------------------------------------------ GIFT (seal and save) */
-  async function sealGift(entry, to, note) {
-    Bridge.dialogOpen = true;
-    let saved;
-    try { saved=await Bridge.invoke("gift_send", {stickerId:entry.id, to, note}); }
-    catch(e) { Shell.toast(String(e)); return; } finally { Bridge.dialogOpen=false; }
-    if (!saved) return;
-    const cer = overlay("seal"), stage = cer.stage; cer.hint("");
-    const EW = Math.min(400, stage.clientWidth * .58, stage.clientHeight * .68), EH = EW * 2 / 3;
-    const res = await resOf(entry, { max: 420 });
-    const stk = Stk.el(res, res.aspect >= 1 ? EW * .42 : EW * .42 * res.aspect);
-    const back = img("envBack", "ev-layer"), pocket = h("span.ev-layer.pk", img("envPocket"), h("span.env-label", "To", h("br"), to)), flap = img("envFlap", "ev-layer flap");
-    const wax = h("div.wax.one", { style: { width: EW * .2 + "px", left: "50%", top: "40%", opacity: 0 } }, img("waxSeal", "w-full"));
-    const env = h("div.env-wrap.send", { style: { width: EW + "px", height: EH + "px" } }, back, h("div.slide-stk", stk), pocket, flap, wax);
-    stage.append(h("div.gift-scene", env));
-    anim(env, [{ opacity: 0, transform: "translateY(40px) scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.spring });
-    flap.style.transformOrigin = "50% 12.5%"; await anim(flap, [{ transform: "rotateX(0)" }, { transform: "rotateX(-172deg)" }], { duration: 480, easing: EASE.out, delay: 300 }); fix(flap, "rotateX(-172deg)");
-    const holder = $(".slide-stk", env); Snd.swoosh();
-    await anim(holder, [{ transform: `translateY(-${EH * .75}px) rotate(-8deg) scale(1.1)`, opacity: 0 }, { transform: `translateY(-${EH * .45}px) rotate(-3deg) scale(1)`, opacity: 1, offset: .4 }, { transform: `translateY(${EH * .08}px) rotate(0) scale(.7)`, opacity: 1 }], { duration: 900, easing: EASE.inOut });
-    await anim(flap, [{ transform: "rotateX(-172deg)" }, { transform: "rotateX(0)" }], { duration: 480, easing: EASE.out }); fix(flap, "rotateX(0)");
-    await sleep(120);
-    wax.style.opacity = 1; Snd.seal();
-    await anim(wax, [{ transform: "translate(-50%,-50%) scale(2.2)", opacity: 0 }, { transform: "translate(-50%,-50%) scale(.9)", opacity: 1, offset: .6 }, { transform: "translate(-50%,-50%) scale(1)", opacity: 1 }], { duration: 420, easing: "ease-out" });
-    fix(wax, "translate(-50%,-50%)");
-    cer.hint(`Sealed. ${to}.peta is saved.`); await sleep(900);
-    await anim(env, [{ transform: "none", opacity: 1 }, { transform: "translateY(-260px) rotate(-5deg) scale(.9)", opacity: 0 }], { duration: 900, easing: "cubic-bezier(.5,0,.9,.4)" });
-    await cer.close(); Shell.toast(`Saved “${to}.peta” — your own sticker stays in the Collection.`);
-  }
   async function openPack(pack, { free = false } = {}) {
     if (free ? !packHasFreeOpening(pack) : (!packOpenable(pack) || packHasFreeOpening(pack))) return; // a ready free opening always comes first
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
@@ -446,7 +418,6 @@ const Cer = (() => {
     sheet = await Gx.sheet(cer, pack, n, { keepIt });
   }
 
-  return { openMaterial, openGift, sealGift, openPack, openPackMany };
+  return { openMaterial, openGift, openPack, openPackMany };
 })();
 
-const GiftSeal = (e,to,note) => Cer.sealGift(e,to,note);
