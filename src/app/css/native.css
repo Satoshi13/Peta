@@ -991,3 +991,11 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 /* A long Collection: only the first screenful animates in, and tiles far off screen are not laid out or painted until they come near. */
 .bk-grid .tile[data-late="1"] { animation:none; }
 .bk-grid .tile { content-visibility:auto; contain-intrinsic-size:auto 242px; }
+
+/* Gifts with nothing waiting: the kraft pocket, what it says, and the one thing to do */
+.gifts-empty { gap:6px; min-height:0; margin-top:28px; padding-bottom:24px; }
+.gifts-empty-art { display:block; width:min(240px,62%); aspect-ratio:1; margin-bottom:22px; background:var(--a-emptyGifts) center / contain no-repeat; filter:drop-shadow(0 2px 2px rgba(60,45,20,.22)) drop-shadow(0 12px 14px rgba(60,45,20,.14)); }
+.gifts-empty h2 { margin:0; font:700 27px/1.2 var(--sys); letter-spacing:-.015em; }
+.gifts-empty p { margin:0; font:400 16px/1.5 var(--sys); }
+.gifts-empty .btn { margin-top:20px; }
+.gifts-kept { text-align:center; margin-top:4px; }

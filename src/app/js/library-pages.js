@@ -8,8 +8,11 @@ Pages.gifts = {
     root.append(waiting.length
       ? h("div.inbox", waiting.map((g, i) => h("div", h("button.gift", { disabled: locked, style: { "--i": i, "--r": [-3, 2.5, -1.5][i % 3] + "deg" }, on: { click: () => { Snd.tap(); Cer.openGift(g); } } },
           img("arrGift", "g-env"), h("span.g-from.hand", h("small", "From"), g.from + (["known","official"].includes(g.signatureStatus) ? " ✓" : "")), locked ? null : h("span.open-cta", "Open")), h("p.muted.small", {style:{maxWidth:"240px",textAlign:"center"}}, Distribution.trust(g)))))
-      : h("div.empty", h("p", "Nothing has arrived yet."), h("p.muted", "When a friend sends you a .peta file, it lands here.")));
-    root.append(h("div.gift-actions", h("button.btn.paper", { on: { click: () => this.receiveFile() } }, "Open Peta file…"), got.length ? h("span.muted.small", `${got.length} already opened and kept in your Collection`) : null));
+      : h("div.empty.gifts-empty", h("i.gifts-empty-art", { "aria-hidden": "true" }), h("h2", "Nothing has arrived yet."), h("p.muted", "When a friend sends you a .peta file, it lands here."),
+          h("button.btn", { on: { click: () => this.receiveFile() } }, "Open Peta file…")));
+    // with gifts waiting, the button stays at the foot of the page; when nothing is waiting it sits in the empty picture above
+    if(waiting.length) root.append(h("div.gift-actions", h("button.btn.paper", { on: { click: () => this.receiveFile() } }, "Open Peta file…"), got.length ? h("span.muted.small", `${got.length} already opened and kept in your Collection`) : null));
+    else if(got.length) root.append(h("p.muted.small.gifts-kept", `${got.length} already opened and kept in your Collection`));
     if(S.events.length) root.append(h("section", h("h2", "From Peta ✓"), S.events.map(e=>h("article",h("b",e.title),h("p.muted.small",e.result),e.message ? h("p.small",e.message) : null))));
     return root;
   },
