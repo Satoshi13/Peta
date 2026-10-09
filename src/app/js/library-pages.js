@@ -7,7 +7,7 @@ Pages.gifts = {
     root.append(h("p.muted.lede", "A friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material."));
     root.append(waiting.length
       ? h("div.inbox", waiting.map((g, i) => h("div", h("button.gift", { disabled: locked, style: { "--i": i, "--r": [-3, 2.5, -1.5][i % 3] + "deg" }, on: { click: () => { Snd.tap(); Cer.openGift(g); } } },
-          img("arrGift", "g-env"), h("span.g-from.hand", h("small", "From"), g.from + (["known","official"].includes(g.signatureStatus) ? " ✓" : "")), locked ? null : h("span.open-cta", "Open")), h("p.muted.small", {style:{maxWidth:"240px",textAlign:"center"}}, Distribution.trust(g)))))
+          g.bag ? h("div.g-env.g-bag", BagPic({ bag: g.bag, title: g.to ? "For " + g.to : "For you", sub: "from " + g.from + (["known","official"].includes(g.signatureStatus) ? " ✓" : ""), deco: g.deco || "none", k: 14, fit: 200, shut: true, id: g.id })) : [img("arrGift", "g-env"), h("span.g-from.hand", h("small", "From"), g.from + (["known","official"].includes(g.signatureStatus) ? " ✓" : ""))], locked ? null : h("span.open-cta", "Open")), h("p.muted.small", {style:{maxWidth:"240px",textAlign:"center"}}, Distribution.trust(g)))))
       : h("div.empty.gifts-empty", h("i.gifts-empty-art", { "aria-hidden": "true" }), h("h2", "Nothing has arrived yet."), h("p.muted", "When a friend sends you a .peta file, it lands here."),
           h("button.btn", { on: { click: () => this.receiveFile() } }, "Open Peta file…")));
     // with gifts waiting, the button stays at the foot of the page; when nothing is waiting it sits in the empty picture above

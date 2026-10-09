@@ -1004,3 +1004,7 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .pk-stack[data-gen="1"] .bagpic { filter: drop-shadow(0 8px 8px rgba(60,45,20,.3)); }
 .mkz-pack[data-gen="1"] .bagpic { filter: drop-shadow(0 14px 14px rgba(60,45,20,.28)); }
 .peek-host:empty { display: none; }
+
+/* a gift that arrived in a Studio wrapping: the wrapping itself, with the name it was written for */
+.g-env.g-bag { display: grid; justify-items: center; min-height: 150px; align-content: end; filter: none; }
+.g-env.g-bag .bagpic { filter: drop-shadow(0 10px 10px rgba(60,40,10,.28)); }
