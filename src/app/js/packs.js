@@ -118,6 +118,17 @@ const PackZoom = {
   stale() { if (this.current) this.current.stale = true; },
 };
 
+/* The remaining count, written by hand on the wall. No two letters are drawn alike: each gets its own small tilt, lift, size and pressure
+   (from a seed, so a pack's count is always written the same way), and the whole line leans a little. The ink look itself is the #wall-ink filter. */
+const WallInk = {
+  rng(key) { let a = 2166136261; for (const c of String(key)) { a ^= c.charCodeAt(0); a = Math.imul(a, 16777619); } return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; },
+  write(text, key) {
+    const r = this.rng(key), span = (k) => (r() * 2 - 1) * k;
+    const words = String(text).split(" ").map((word) => h("span.ink-w", [...word].map((c) => h("span.ink", { style: { "--r": span(3.4) + "deg", "--y": span(1.3) + "px", "--s": (1 + span(.05)).toFixed(3), "--o": (.8 + r() * .2).toFixed(2) } }, c))));
+    return { nodes: words.flatMap((w, i) => i ? [" ", w] : [w]), tilt: span(1.3) + "deg", dx: span(3) + "px" };
+  },
+};
+
 Pages.packs = {
   build() {
     const root = h("div.page-in.packspage");
@@ -149,7 +160,7 @@ Pages.packs = {
   pack(p, i) {
     const stack = h("div.pk-stack", {data:{empty:p.empty}}, h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, (p.kind || "holo") === "holo" ? h("i.sheen") : null), PackLabel(p));
     const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
-      stack, h("span.pk-count", { "aria-hidden": "true" }, `${p.left.length} left`)); // written on the wall behind the pouch, so it stays put when the pouch lifts
+      stack, (() => { const ink = WallInk.write(`${p.left.length} left`, p.id); return h("span.pk-count", { "aria-hidden": "true", style: { "--tilt": ink.tilt, "--dx": ink.dx } }, ...ink.nodes); })()); // written on the wall behind the pouch, so it stays put when the pouch lifts
     onPointerFollow(card, (x, y, e, amount) => { stack.style.setProperty("--sx", lerp(30,(1-x)*100,amount)+"%"); stack.style.setProperty("--sy", lerp(30,(1-y)*100,amount)+"%"); }, () => { stack.style.setProperty("--sx", "30%"); stack.style.setProperty("--sy", "30%"); });
     return card;
   },
