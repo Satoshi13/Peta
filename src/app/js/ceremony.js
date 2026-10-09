@@ -156,7 +156,7 @@ const Cer = (() => {
     const wrapper = h("div.pk-wrap", pouch); stage.append(wrapper);
     anim(wrapper, [{ opacity: 0, transform: "translateY(60px) rotate(8deg) scale(.86)" }, { opacity: 1, transform: "none" }], { duration: 720, easing: EASE.spring });
     // the sleeve of stickers sits inside the object's own box, so a flat envelope never has it hanging out of its bottom
-    const sw = Math.min(PW * .72, PH * .68), rig = { PW, PH, cutY: PH * .18, pouch, wrapper, content, done: false, prog: 0, sleeveCss: `width:${sw}px;left:${(PW - sw) / 2}px;top:${PH * .12}px` };
+    const sw = Math.min(PW * .72, PH * .68), rig = { PW, PH, cutY: PH * .18, pouch, wrapper, content, done: false, prog: 0, rise: .5, sleeveCss: `width:${sw}px;left:${(PW - sw) / 2}px;top:${PH * .12}px` };
     const finish = async () => {
       if (rig.done) return; rig.done = true; cer.hint(""); Snd.crinkle(4, .25);
       if (!reduced()) await pic.animate([{ transform: "none" }, { transform: "translateY(-5px) rotate(-1.4deg) scale(1.025)", offset: .4 }, { transform: "none" }], { duration: 420, easing: "ease-out" }).finished;
@@ -166,7 +166,7 @@ const Cer = (() => {
     pouch.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && finish());
     rig.focus = () => pouch.focus({ preventScroll: true });
     rig.linger = () => anim(pouch, [{ transform: "none" }, { transform: `translate(${-PW * .9}px, ${PH * .34}px) rotate(-13deg) scale(.72)` }], { duration: 850, easing: EASE.inOut, delay: 100 });
-    rig.pullable = (el, { rise = .3, need = .34, onPull }) => {
+    rig.pullable = (el, { rise = .5, need = .5, onPull }) => {
       let pulled = false; const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
       drag(el, {
         down: () => { if (pulled) return false; },
@@ -417,8 +417,8 @@ const Cer = (() => {
     const onTear = async (rig) => {
       try { Bridge.busy = true; const opened=await Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false}); entry=await Bridge.entry(opened.stickerId); entry.rarity=opened.rarity; entry.title=opened.name || entry.title; pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
-      await anim(sleeve, [{ transform: sleeve.style.transform }, { transform: `translateY(${-rig.PH * .3}px) rotate(-1.5deg)` }], { duration: 760, easing: EASE.out });
-      fix(sleeve, `translateY(${-rig.PH * .3}px) rotate(-1.5deg)`); sleeve.classList.add("out"); cer.hint("Pull it out.");
+      await anim(sleeve, [{ transform: sleeve.style.transform }, { transform: `translateY(${-rig.PH * (rig.rise ?? .3)}px) rotate(-1.5deg)` }], { duration: 760, easing: EASE.out });
+      fix(sleeve, `translateY(${-rig.PH * (rig.rise ?? .3)}px) rotate(-1.5deg)`); sleeve.classList.add("out"); cer.hint("Pull it out.");
       rig.pullable(sleeve, { onPull: async () => {
         rig.linger();
         const r = sleeve.getBoundingClientRect(), sr = stage.getBoundingClientRect();
