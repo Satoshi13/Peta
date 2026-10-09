@@ -1,0 +1,25 @@
+/* BagPic (js/bagpic.js): a wrapped pack or gift. Everything is placed in percent of the wrapping's own picture. */
+.bagpic { position: relative; width: var(--w, 200px); filter: drop-shadow(0 12px 10px rgba(50, 35, 10, .3)); container-type: inline-size; }
+.bagpic .bp-art { position: absolute; inset: 0; background: var(--art) center / 100% 100% no-repeat; z-index: 2; }
+.bagpic[data-gloss="1"]::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; mix-blend-mode: soft-light; opacity: var(--gloss, 0); -webkit-mask: var(--art) center / 100% 100% no-repeat; mask: var(--art) center / 100% 100% no-repeat;
+  background: linear-gradient(115deg, transparent 22%, rgba(255,255,255,0) 36%, rgba(255,255,255,.9) 48%, rgba(255,235,255,.5) 54%, transparent 68%) var(--sx, 30%) var(--sy, 30%) / 280% 280%; }
+.bp-lbl { position: absolute; z-index: 5; display: grid; place-content: center; gap: .45em; text-align: center; pointer-events: none; container-type: inline-size; }
+.bagpic[data-kind="holo"] .bp-lbl { left: 22.5%; right: 22.8%; top: 38%; bottom: 37.4%; } .bagpic[data-kind="kraft"] .bp-lbl { left: 21%; right: 21%; top: 39%; bottom: 34.5%; } .bagpic[data-kind="matte"] .bp-lbl { left: 20%; right: 19.5%; top: 47.8%; bottom: 28%; }
+.bagpic[data-kind="gen"] .bp-lbl { left: var(--ll); top: var(--lt); right: var(--lr); bottom: var(--lb); rotate: var(--lrot, 0deg); }
+.bp-lbl b { font: 400 13cqw/1.16 "Patrick Hand", "Kiwi Maru", "Klee One", cursive; color: #27303f; mix-blend-mode: multiply; letter-spacing: .01em; text-shadow: 0 0 .6px rgba(39,48,63,.5); white-space: nowrap; }
+.bp-lbl small { font: 400 7cqw/1 "Special Elite", "Courier New", monospace; letter-spacing: .12em; text-transform: uppercase; color: #6b6150; mix-blend-mode: multiply; }
+.bagpic[data-kind="gen"] .bp-lbl small { font-size: 6cqw; }
+.bp-cover { position: absolute; inset: -4% -3%; background: #f3ead6 var(--a-paperCream) center / 240px; box-shadow: inset 0 0 0 1px rgba(120,100,60,.2); z-index: -1; display: none; }
+.bagpic[data-nolabel="1"] .bp-cover { display: block; }
+.bp-tape { position: absolute; z-index: 6; left: 12%; right: 12%; top: 5.5%; height: 8%; background: #bfe6d3; box-shadow: 0 1px 2px rgba(60,45,20,.28); opacity: .94; pointer-events: none;
+  clip-path: polygon(0 10%, 2% 0, 4% 14%, 6% 0, 8% 10%, 92% 0, 94% 14%, 96% 0, 98% 12%, 100% 8%, 100% 92%, 98% 100%, 96% 86%, 94% 100%, 92% 90%, 8% 100%, 6% 86%, 4% 100%, 2% 88%, 0 90%); }
+.bp-tape.cream { background: #efe4c6; }
+.bp-fan { position: absolute; z-index: 1; left: 8%; right: 8%; top: -19%; height: 36%; pointer-events: none; }
+.bp-fan img { position: absolute; bottom: 0; left: 50%; width: 36%; transform-origin: 50% 100%; filter: drop-shadow(0 2px 2px rgba(50,35,10,.3)); }
+.bp-deco { position: absolute; z-index: 4; transform: translate(-50%, -50%) rotate(var(--r, 0deg)); pointer-events: none; }
+.bp-deco img { display: block; width: 100%; filter: drop-shadow(1px 3px 3px rgba(50,35,10,.35)); }
+.bp-deco.sticker img { filter: drop-shadow(0 0 0 #fff) drop-shadow(1px 3px 2px rgba(50,35,10,.35)); }
+.bp-deco[data-k="clip"], .bp-deco[data-k="pin"] { z-index: 7; }
+.bp-drbox, .bp-drsleeve { position: absolute; inset: 0; background: var(--art) center / 100% 100% no-repeat; pointer-events: none; }
+.bp-drbox { z-index: 2; clip-path: inset(0 0 0 66%); transform: translateX(-29%); } .bp-drsleeve { z-index: 3; clip-path: inset(0 34% 0 0); }
+.bagpic .bp-fan { z-index: 4; }
