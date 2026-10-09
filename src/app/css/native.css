@@ -997,12 +997,13 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 /* the zoomed pack tilts toward the pointer: the picture and its label are one layer */
 .mkz-tilt { position:absolute; inset:0; transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); }
 
-/* A peek inside a pack: stickers on a sheet of paper under a strip of tape (js/shared.js PackPeek). The paper's own shadow is part of the art. */
+/* A peek inside a pack: stickers on a sheet of paper under a strip of tape (js/shared.js PackPeek). */
 .peek-fig { margin:2px 0 0; text-align:center; }
 .peek-fig figcaption { margin-top:8px; font:500 12.5px/1.3 var(--sys); color:var(--muted); }
-.peek-sheet { position:relative; width:100%; aspect-ratio:663 / 518; background:var(--a-peekPaper) center / 100% 100% no-repeat; }
+.peek-sheet { position:relative; width:94%; margin:0 auto; aspect-ratio:680 / 546; }
+.peek-sheet::before { content:""; position:absolute; inset:0; background:var(--a-peekPaper) center / 100% 100% no-repeat; filter:drop-shadow(0 1px 1px rgba(60,45,20,.28)) drop-shadow(0 4px 6px rgba(60,45,20,.18)); } /* the art has no shadow of its own */
 .peek-tape { position:absolute; left:50%; top:-3.5%; width:25%; aspect-ratio:360 / 169; translate:-50% 0; rotate:-1.5deg; background:var(--a-peekTape) center / 100% 100% no-repeat; z-index:3; pointer-events:none; filter:drop-shadow(0 1px 1.5px rgba(60,45,20,.3)); }
 .peek-item { position:absolute; transform:translate(-50%,-50%) rotate(var(--r,0deg)); display:grid; place-items:center; }
 .peek-item > img, .peek-item > .stk { max-width:100%; max-height:100%; filter:drop-shadow(0 3px 4px rgba(60,45,20,.28)); }
 .peek-item > img { width:100%; height:100%; object-fit:contain; }
-.peek-fig.compact .peek-sheet { width:72%; margin:0 auto; }
+.peek-fig.compact .peek-sheet { width:68%; }
