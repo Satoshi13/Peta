@@ -86,14 +86,14 @@ const Market = {
   /* The zoomed card: details first, then what it costs. */
   card(pack) {
     const paid = pack.price !== "Free" || this.own(pack.id);
-    const peek = PackPeek(pack.keys); peek?.classList.add("compact"); // the Market card also holds the price box, so the sheet is smaller here
+    const peek = PackPeek(pack.keys, ""); peek?.classList.add("compact"); // the Market card also holds the price box, so the sheet is smaller here
     const own = h("p.mkz-own"), paintOwn = () => { const have = this.own(pack.id); own.hidden = !have; own.replaceChildren(h("b", "On your shelf"), ` · ${this.sealed(pack.id)} sealed`); };
     paintOwn();
     const buy = paid ? this.buyBox(pack, paintOwn) : null;
     const free = paid ? null : h("button.btn.mkz-act", { on: { click: () => Market.get(pack) } }, "Get — Free");
     return h("aside.mkz-card", CloseButton("Back to the shelf", {}, ".mkz-x"),
       h("p.eyebrow", `by ${pack.by} · ${pack.count} stickers`), h("h2", pack.title), h("p.mkz-blurb", pack.blurb),
-      own, peek ? [h("p.eyebrow.mkz-peek", "A peek inside"), peek] : null,
+      own, peek,
       h("div.mkz-buy", buy ? buy.el : [h("div.mkz-price", h("span", "Price"), h("b", "Free")), free,
         h("small.muted", "Open it any time, as often as you like. What's inside stays a surprise until you tear it.")],
         h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));

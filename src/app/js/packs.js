@@ -54,6 +54,17 @@ const PackZoom = {
       cur.onFocus = e => {
         if (!root.contains(e.target) && !nav?.contains(e.target) && !e.target.closest?.(".wctl")) (buttons()[0] || root).focus({ preventScroll: true });
       };
+      // The window can change size while a pack is zoomed: the overlay was sized when it opened, so keep it covering the page and the pouch beside the card.
+      cur.onResize = () => {
+        if (cur.closing || this.current !== cur) return;
+        root.style.cssText = `top:${page.scrollTop}px;bottom:auto;height:${page.clientHeight}px`;
+        const t = this.target(root);
+        cur.world.forEach((el) => { el.getAnimations().forEach((a) => a.cancel()); el.style.transform = ""; el.style.transformOrigin = ""; }); // the shelf is hidden behind the veil; no camera to undo
+        cur.camera = "none";
+        clone.getAnimations().forEach((a) => a.cancel());
+        Object.assign(clone.style, { left: t.left + "px", top: t.top + "px", width: t.width + "px", height: t.height + "px", transform: "none" });
+      };
+      window.addEventListener("resize", cur.onResize);
       window.addEventListener("keydown", cur.onKey, true);
       window.addEventListener("focusin", cur.onFocus, true);
       root.focus({ preventScroll: true });
@@ -113,6 +124,7 @@ const PackZoom = {
   /* Remove the view at once (no motion). `restore` hands focus back to the pack that was chosen. */
   dispose(restore = false) {
     const cur = this.current; if (!cur) return;
+    window.removeEventListener("resize", cur.onResize);
     window.removeEventListener("keydown", cur.onKey, true);
     window.removeEventListener("focusin", cur.onFocus, true);
     for (const { el, inert, transform, origin } of cur.savedWorld) { el.getAnimations().forEach(a => a.cancel()); el.style.transform = transform; el.style.transformOrigin = origin; el.inert = inert; }
@@ -184,9 +196,9 @@ Pages.packs = {
     const left = p.left.length, many = Math.min(10, left), more = left >= 2 && !p.daily;
     const available = p.freeOpenings || 0, progress = available ? 10 : Math.max(0, p.total - left) % 10;
     /* A ready free opening always comes first: while one is waiting, it is the only thing the card offers. */
-    const rule = available ? `${available === 1 ? "A free opening is" : "Free openings are"} ready. ${available === 1 ? "It comes" : "They come"} first.` : p.empty ? "No regular openings left." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "Open any time, as often as you like.";
+    const rule = available ? `${available === 1 ? "A free opening is" : "Free openings are"} ready. ${available === 1 ? "It comes" : "They come"} first.` : p.empty ? "No regular openings left." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "";
     const listed = MARKET_PACKS.find((m) => m.id === p.id), blurb = listed?.blurb;
-    const peek = PackPeek(listed ? listed.keys : p.id === "welcome" ? ["sCat", "sEgg", "sBlueFlower"] : []); // packs made by friends have no shipped pictures to show yet
+    const peek = PackPeek(listed ? listed.keys : p.id === "welcome" ? ["sCat", "sEgg", "sBlueFlower"] : [], ""); // packs made by friends have no shipped pictures to show yet
     const go = (fn) => () => { PackZoom.dispose(); fn(); };
     const one = h("button.btn.mkz-act", { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
     const free = available ? h("button.btn.mkz-act", {type:"button",on:{click:go(()=>{Snd.tap();Cer.openPack(p,{free:true});})}}, "Open free") : null;
@@ -197,11 +209,10 @@ Pages.packs = {
       h("p.mkz-own", h("b", `${left} ${left === 1 ? "opening" : "openings"} left`)),
       h("div.mkz-reward", h("p.small.muted", available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} / 10 toward a free opening`),
         h("div.mkz-pips", {role:"progressbar","aria-label":"Free opening progress","aria-valuemin":0,"aria-valuemax":10,"aria-valuenow":progress,"aria-valuetext":available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} of 10 openings`}, Array.from({length:10}, (_, i) => h("i" + (i < progress ? "" : ".o"))))),
-      peek ? [h("p.eyebrow.mkz-peek", "A peek inside"), peek] : null,
-      h("div.mkz-buy", h("p.mkz-rule", rule),
+      peek,
+      h("div.mkz-buy", rule ? h("p.mkz-rule", rule) : null,
         free,
         available ? null : p.empty ? h("button.btn.mkz-act", { type: "button", on: { click: () => Shell.go("market") } }, "Find more in the Market") : [one, ten],
-        !available && !p.empty && more ? h("small.muted", many === 10 ? "Ten at a time: one tear, ten stickers, all picked at random." : "All the rest in one go.") : null,
         h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
   },
 };

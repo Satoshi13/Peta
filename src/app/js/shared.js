@@ -65,7 +65,7 @@ function PackPeek(keys, caption = "A few from this pack") {
       cell.append(Stk.el(res, fit));
     }).catch(() => {});
   });
-  return list.length ? h("figure.peek-fig", sheet, h("figcaption", caption)) : null;
+  return list.length ? h("figure.peek-fig", sheet, caption ? h("figcaption", caption) : null) : null;
 }
 
 /** A tray of material cards. Picking marks the material for the next Create without moving the controls. */
