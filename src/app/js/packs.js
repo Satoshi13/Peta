@@ -70,7 +70,13 @@ const PackZoom = {
         card.classList.add("on"); (buttons().find(b => b.matches(".mkz-act, .mkz-primary")) || buttons()[0] || root).focus({ preventScroll: true });
         (await animation).cancel?.();
       }).catch(error => { if (this.current === cur) this.dispose(true); Shell.toast(String(error)); });
-      onPointerFollow(clone, (x, y, e, amount) => { clone.style.setProperty("--sx", lerp(30, (1 - x) * 100, amount) + "%"); clone.style.setProperty("--sy", lerp(30, (1 - y) * 100, amount) + "%"); }, () => { clone.style.setProperty("--sx", "30%"); clone.style.setProperty("--sy", "30%"); });
+      const zoomLight = SurfaceLight.attach($(".pk-img", clone), pack.kind || "holo");
+      onPointerFollow(clone, (x, y, e, amount) => {
+        if (!e) return;
+        const r = $(".pk-img", clone).getBoundingClientRect(), px = clamp((e.clientX - r.left) / r.width, -.2, 1.2), py = clamp((e.clientY - r.top) / r.height, -.2, 1.2);
+        zoomLight.aim(px, py, amount);
+        clone.style.setProperty("--rx", -(py - .5) * 8 * amount + "deg"); clone.style.setProperty("--ry", (px - .5) * 8 * amount + "deg");
+      }, () => { zoomLight.rest(); clone.style.setProperty("--rx", "0deg"); clone.style.setProperty("--ry", "0deg"); });
     } catch (error) { this.dispose(true); throw error; }
   },
   /* One camera move for the pouch and the page around it, so they always stay in the same place relative to each other. */
@@ -158,10 +164,17 @@ Pages.packs = {
     return shelf;
   },
   pack(p, i) {
-    const stack = h("div.pk-stack", {data:{empty:p.empty}}, h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, (p.kind || "holo") === "holo" ? h("i.sheen") : null), PackLabel(p));
+    const img = h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } });
+    const stack = h("div.pk-stack", {data:{empty:p.empty}}, img, PackLabel(p));
+    const light = SurfaceLight.attach(img, p.kind || "holo"); // the glint is lit over the pack's own surface, not slid across it
     const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
       stack, (() => { const ink = WallInk.write(`${p.left.length} left`, p.id); return h("span.pk-count", { "aria-hidden": "true", style: { "--tilt": ink.tilt, "--dx": ink.dx } }, ...ink.nodes); })()); // written on the wall behind the pouch, so it stays put when the pouch lifts
-    onPointerFollow(card, (x, y, e, amount) => { stack.style.setProperty("--sx", lerp(30,(1-x)*100,amount)+"%"); stack.style.setProperty("--sy", lerp(30,(1-y)*100,amount)+"%"); }, () => { stack.style.setProperty("--sx", "30%"); stack.style.setProperty("--sy", "30%"); });
+    onPointerFollow(card, (x, y, e, amount) => {
+      if (!e) return;
+      const r = $(".pk-img", stack).getBoundingClientRect(), px = clamp((e.clientX - r.left) / r.width, -.2, 1.2), py = clamp((e.clientY - r.top) / r.height, -.2, 1.2);
+      light.aim(px, py, amount);
+      stack.style.setProperty("--rx", -(py - .5) * 7 * amount + "deg"); stack.style.setProperty("--ry", (px - .5) * 7 * amount + "deg");
+    }, () => { light.rest(); stack.style.setProperty("--rx", "0deg"); stack.style.setProperty("--ry", "0deg"); });
     return card;
   },
   /* The zoomed card: what is left, then the two ways to open. */
