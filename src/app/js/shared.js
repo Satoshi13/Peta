@@ -36,6 +36,9 @@ const ICONS = {
   gift: "M4 9h16v4H4zM5 13h14v8H5zM12 9v12M12 9C9.5 9 8 8 8 6.5S10 4 12 9c2-5 4-3.5 4-2.5S14.5 9 12 9z",
   edit: "M4 20l1-4L16 5l3 3L8 19zM14 7l3 3",
   trash: "M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6",
+  desk: "M3 5h18v11H3zM8 20h8M12 16v4",
+  left: "M15 5l-7 7 7 7",
+  right: "M9 5l7 7-7 7",
 };
 function Icon(name) {
   const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg"), path = document.createElementNS(ns, "path");

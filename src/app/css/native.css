@@ -147,7 +147,8 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 
 /* The shared sticky details keep their prototype width, padding and scrolling behaviour.
    CSS sizing trims only the supplied transparent gutters; the PNG itself is unchanged. */
-.detail { border-radius: 0; background: var(--a-noteStickyYellow) center / 121% 129% no-repeat; box-shadow: none; filter: drop-shadow(0 4px 8px rgba(60, 45, 20, .2)); }
+.detail { padding:44px 20px 16px; border-radius:20px; background:linear-gradient(rgba(235,232,220,.88),rgba(235,232,220,.88)), var(--a-paperCream) 0 0 / 420px, #ebe8dc; box-shadow:0 0 0 1px rgba(90,80,55,.14), 0 14px 30px rgba(60,45,20,.18); filter:none;
+  color:#2b2a28; --ink:#2b2a28; --ink2:#4a463f; --muted:#655e51; --line:#d6d0bf; } /* a flat card of paper; it keeps its own light colours in the night theme too */
 .book-flip { width: 100%; border: 0; background: none; cursor: pointer; margin-bottom: 12px; }
 .book-flip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 14px; }
 .book-actions { display: grid; gap: 8px; margin-bottom: 12px; }
@@ -155,61 +156,42 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .book-action-row > * { flex: 1; min-width: 0; }
 .book-action .ico { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
 
-/* The Collection details are a sticky note with three small papers on it (art/ui/inspector-*.png: name label, edition ticket, material record).
-   The art carries only the paper and its shadow; the text, number, swatch and divider are drawn here. Each paper is laid out at the size of its
-   body, and ::before spreads the whole picture around it (the negative insets are the baked shadow margin, as % of the body). The papers stay
-   paper in the night theme, so their ink does not follow --ink. */
-.insp-paper { position: relative; color: #2b2a28; }
-.insp-paper::before { content: ""; position: absolute; inset: var(--pt) var(--pr) var(--pb) var(--pl); background: var(--art) 0 0 / 100% 100% no-repeat; pointer-events: none; filter: drop-shadow(0 2px 2px rgba(60, 45, 20, .3)) drop-shadow(0 7px 8px rgba(60, 45, 20, .2)); }
-.insp-paper > * { position: relative; }
-.insp-head, .insp-record, .insp-stamp { --mono: ui-monospace, "SF Mono", Menlo, "Courier New", monospace; }
-/* the label and the ticket lie across the lower edge of the sticker card, the ticket standing a little higher */
-.insp-head { position: relative; z-index: 3; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: -66px 2px 12px 0; }
-/* while the card is turned, the back is the thing to read: the papers step off it */
-.insp-head { transition: margin-top .5s var(--ease-out); } .detail.is-back .insp-head { margin-top: 12px; }
-.insp-label { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; flex: none; width: 188px; aspect-ratio: 991 / 298; display: grid; align-items: center; padding: 0 18px 2px 20px; rotate: -.6deg; margin-left: 4px; }
-.insp-label b { font: 400 25px/1.1 "Patrick Hand", "Kiwi Maru", "Hiragino Maru Gothic ProN", "Klee One", cursive; letter-spacing: .005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #3a3526; }
-/* the ticket art is already tilted; only its writing is turned to follow it */
-.insp-ticket { --art: var(--a-inspEditionTicket); --pt: -6.18%; --pr: -3.46%; --pb: -7.35%; --pl: -7.69%; flex: none; width: 76px; aspect-ratio: 520 / 599; display: grid; place-content: center; margin-right: 6px; margin-bottom: 4px; }
-.insp-ticket .t { display: grid; justify-items: center; gap: 2px; rotate: -7deg; translate: 1px 1px; }
-.insp-ticket small { font: 400 11px/1 var(--mono); color: #5b5547; }
-.insp-ticket b { font: 400 22px/1 var(--mono); letter-spacing: .02em; font-variant-numeric: tabular-nums; color: #2f2c25; }
-.insp-record { --art: var(--a-inspMaterialRecord); --pt: -18.66%; --pr: -3.64%; --pb: -16.42%; --pl: -3.15%; width: 266px; aspect-ratio: 1017 / 268; margin: 0 0 16px 8px; display: flex; align-items: center; gap: 9px; padding: 0 18px 0 16px; }
-.insp-swatch { position: relative; flex: none; }
-.insp-swatch .material-swatch { width: 38px; height: 38px; border-radius: 4px; box-shadow: 0 1px 2px rgba(60, 45, 20, .3); }
-/* two strips of tape hold the swatch: one down its left side, one under it, hanging over the edge of the paper */
-.insp-swatch .tape { z-index: 2; width: 44px; filter: drop-shadow(0 1px 1.5px rgba(60, 45, 20, .4)) sepia(.3) saturate(1.3) brightness(.96); }
-.insp-swatch .tape:nth-of-type(1) { left: -24px; top: 6px; rotate: -84deg; }
-.insp-swatch .tape:nth-of-type(2) { left: -3px; top: 36px; width: 50px; rotate: 2deg; }
-/* a smaller sticker card, so the whole note still fits in the window */
-.detail .flip-stage { padding: 4px 0 2px; } .detail .flip-inner { width: 172px; }   /* the back card sets its text at this width; any smaller and the last lines spill out */
-.insp-col { display: grid; gap: 2px; min-width: 0; }
-.insp-col small { font: 400 10.5px/1.2 var(--mono); color: #5b5547; }
-.insp-col b { font: 400 12px/1.25 var(--mono); letter-spacing: -.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #2f2c25; }
-.insp-vr { align-self: stretch; width: 1px; margin: 13px 0; background: rgba(43, 42, 40, .5); }
-.insp-stamp { display: inline-block; margin: 4px 0 2px 6px; padding: 4px 9px 3px; border: 2px solid rgba(70, 66, 44, .6); border-radius: 5px; color: rgba(70, 66, 44, .74); font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; rotate: -3deg; mix-blend-mode: multiply; }
-/* the actions: one torn strip of paper for the main action, then three plain lines */
-.detail .book-actions .btn.book-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; height: auto; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: #2b2a28; font: 500 15px/1.2 var(--sys); cursor: pointer; }
-.detail .book-actions .btn.book-action.primary { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; position: relative; width: calc(100% - 8px); margin: 4px 4px 6px 4px; aspect-ratio: 991 / 180; justify-content: flex-start; padding: 0 22px; gap: 16px; font-size: 18px; }
-.detail .book-actions .btn.book-action.primary::before { content: ""; position: absolute; inset: var(--pt) var(--pr) var(--pb) var(--pl); background: var(--art) 0 0 / 100% 100% no-repeat; filter: drop-shadow(0 2px 2px rgba(60, 45, 20, .3)) drop-shadow(0 7px 8px rgba(60, 45, 20, .2)); pointer-events: none; }
-.detail .book-actions .btn.book-action.primary > * { position: relative; }
-.detail .book-actions .btn.book-action.primary .ico { width: 26px; height: 26px; stroke-width: 1.5; }
-.detail .book-actions .btn.book-action.primary:hover::before { filter: drop-shadow(0 3px 3px rgba(60, 45, 20, .32)) drop-shadow(0 10px 11px rgba(60, 45, 20, .22)); } .detail .book-actions .btn.book-action.primary:active::before { filter: drop-shadow(0 1px 1px rgba(60, 45, 20, .3)) drop-shadow(0 3px 4px rgba(60, 45, 20, .16)); }
-/* the three lines sit together on the left, clear of the curled corner at the bottom right */
-.detail .book-actions .book-action-row { gap: 20px; justify-content: flex-start; margin: 2px 4px 0 6px; }
-.detail .book-actions .book-action-row > * { flex: none; padding: 8px 8px; border-radius: 8px; }
-.detail .book-actions .book-action-row > :hover { background: rgba(60, 45, 20, .07); }
-.detail .book-actions .btn.book-action { color: #3f3a2a; }
-.detail .book-actions .btn.book-action.danger { color: #92704f; border: 0; }
-.detail .book-actions .btn.book-action:focus-visible { outline: 2px solid #527d93; outline-offset: 2px; }
+/* Collection details: a card with the sticker (arrows either side, its place in the list top left), its name on a paper label,
+   Material and Made as plain mono text, one dark action, and Gift / Edit / Delete as quiet lines. */
+.detail .flip-stage { padding:0 0 2px; } .detail .flip-inner { width:172px; }   /* the back card sets its text at this width; any smaller and the last lines spill out */
+.det-pager { position:relative; display:grid; }
+.det-arrow { position:absolute; top:calc(50% - 20px); z-index:4; display:grid; place-items:center; width:36px; height:40px; padding:0; border:0; background:none; color:#3a362a; cursor:pointer; border-radius:10px; transition:background .15s, transform .15s; }
+.det-arrow:hover { background:rgba(60,45,20,.08); } .det-arrow:active { transform:scale(.94); } .det-arrow:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
+.det-arrow svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+.det-arrow.prev { left:-6px; } .det-arrow.next { right:-6px; }
+.det-count { position:absolute; left:20px; top:20px; font:400 12px/1 ui-monospace,"SF Mono",Menlo,monospace; letter-spacing:.04em; color:#4a463f; font-variant-numeric:tabular-nums; }
+/* the name: the paper label art, stretched to the card's width (the art's own shadow margin is the negative inset) */
+.det-label { position:relative; height:54px; margin:-6px 4px 14px; display:grid; align-items:center; padding:0 20px 2px; z-index:2; }
+.det-label::before { content:""; position:absolute; inset:-14.77% -3.63% -8.72% -4.04%; background:var(--a-inspNameLabel) 0 0 / 100% 100% no-repeat; filter:drop-shadow(0 2px 2px rgba(60,45,20,.26)) drop-shadow(0 6px 7px rgba(60,45,20,.16)); pointer-events:none; }
+.det-label b { position:relative; font:400 26px/1.1 "Patrick Hand","Kiwi Maru","Hiragino Maru Gothic ProN","Klee One",cursive; letter-spacing:.005em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#3a3526; }
+.det-info { display:grid; grid-template-columns:1fr 1fr; gap:10px 18px; margin:0 4px 18px; font-family:ui-monospace,"SF Mono",Menlo,"Courier New",monospace; }
+.det-info small { display:block; margin-bottom:5px; font:400 12px/1 ui-monospace,"SF Mono",Menlo,monospace; color:#655e51; }
+.det-info b { font:400 15px/1.2 ui-monospace,"SF Mono",Menlo,monospace; color:#2b2a28; white-space:nowrap; }
+.det-mat { display:flex; align-items:center; gap:10px; }
+.det-mat .material-swatch { width:32px; height:32px; border-radius:7px; box-shadow:0 0 0 2px #fffdf6, 0 1px 3px rgba(60,45,20,.28); }
+.book-action .ico { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+.detail .book-actions { gap:6px; margin-bottom:2px; }
+.detail .book-actions .btn.det-main { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; height:54px; padding:0 18px; border:0; border-radius:16px; background:#2b2a28; color:#fff; box-shadow:0 2px 0 rgba(0,0,0,.35), 0 8px 16px rgba(40,30,15,.22); font:600 17px/1 var(--sys); cursor:pointer; }
+.detail .book-actions .btn.det-main:hover { background:#3a3834; } .detail .book-actions .btn.det-main:active { transform:translateY(1px); box-shadow:0 1px 0 rgba(0,0,0,.35); }
+.detail .book-actions .btn.det-main .ico { width:24px; height:24px; stroke-width:1.5; }
+.detail .book-actions .book-action-row { gap:6px; justify-content:flex-start; margin:0 -2px; flex-wrap:wrap; }
+.detail .book-actions .btn.det-link { display:inline-flex; align-items:center; gap:9px; width:auto; height:auto; padding:9px 8px; border:0; border-radius:10px; background:none; box-shadow:none; color:#2b2a28; font:500 16px/1.2 var(--sys); cursor:pointer; }
+.detail .book-actions .btn.det-link:hover { background:rgba(60,45,20,.07); }
+.detail .book-actions .btn.det-link.quiet2 { color:#655e51; font-size:14px; } .detail .book-actions .btn.det-link.quiet2.danger { color:#92704f; }
+.detail .book-actions .btn.det-link .ico { width:22px; height:22px; stroke-width:1.5; } .detail .book-actions .btn.det-link.quiet2 .ico { width:18px; height:18px; }
+.detail .book-action:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
 /* the gift form keeps ordinary buttons (the paper strip and the plain lines belong to the main actions only) */
 .detail .gift-form button.btn.book-action { height: 40px; padding: 0 14px; border-radius: 10px; font: 600 14px/1.2 var(--sys); }
 .detail .gift-form button.btn.book-action.secondary { background: #fffdf9; color: #2b2a28; border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(60, 45, 20, .15); }
 .detail .gift-form button.btn.book-action.primary { background: #2b2a28; color: #fff; }
-/* the close mark is drawn on the paper: no circle, just the cross, like a pencil mark */
-.detail > button.close-control { top: 14px; right: 18px; width: 30px; height: 30px; min-width: 30px; background: none; color: #4a4632; }
-.detail > button.close-control:hover { background: rgba(60, 45, 20, .08); color: #2b2a28; }
-.detail > button.close-control svg { stroke-width: 1.6; }
+.detail > button.close-control { top:11px; right:14px; width:30px; height:30px; min-width:30px; background:none; color:#3a362a; }
+.detail > button.close-control:hover { background:rgba(60,45,20,.08); color:#2b2a28; }
+.detail > button.close-control svg { stroke-width:1.6; }
 .book-delete { display: grid; gap: 8px; margin-bottom: 12px; }
 .detail .book-delete button.btn.book-action { height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fffdf9; box-shadow: 0 1px 2px rgba(60, 45, 20, .15); font-weight: 600; font-size: 14px; }
 .detail .book-delete button.btn.book-action.secondary { color: #2b2a28; }
@@ -276,15 +258,6 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .calendar-complete.press { animation:calendar-press .4s var(--ease-spring) 1; }
 @keyframes calendar-press { from { opacity:0; transform:rotate(-12deg) scale(1.5); } }
 .detail.stay { animation:none; }
-/* the day's stickers: arrows either side of the card, and where you are under it */
-.insp-pager { position:relative; display:grid; justify-items:center; margin-bottom:2px; }
-.insp-pager .flip-stage { width:100%; }
-.insp-arrow { position:absolute; top:calc(50% - 22px); z-index:4; display:grid; place-items:center; width:34px; height:34px; padding:0; border:0; border-radius:50%; background:rgba(255,253,246,.78); color:#4a4632; box-shadow:0 1px 3px rgba(60,45,20,.3); cursor:pointer; transition:background .15s, transform .15s; }
-.insp-arrow:hover { background:#fffdf6; transform:scale(1.06); } .insp-arrow:active { transform:scale(.96); }
-.insp-arrow:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
-.insp-arrow svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
-.insp-arrow.prev { left:2px; } .insp-arrow.next { right:2px; }
-.insp-count { position:absolute; left:8px; top:6px; font:400 11px/1 ui-monospace,"SF Mono",Menlo,monospace; letter-spacing:.04em; color:#5b5547; }
 @media(max-width:800px) { .calendar-ledger { padding:12px 6px 8px; } .calendar-day { min-height:72px; padding:4px; } .calendar-sticker { height:42px; } .calendar-sticker .stk { width:min(84px,85%,calc(36px * var(--aspect))) !important; } .calendar-heading h2 { font-size:19px; } }
 @media(prefers-reduced-motion:reduce) { .calendar-add, .calendar-complete.press { animation:none; } .calendar-sticker { transition:none; } .calendar-day.stuck:hover .calendar-sticker { transform:rotate(var(--rot)); } }
 :root[data-motion="reduce"] .calendar-add, :root[data-motion="reduce"] .calendar-complete.press { animation:none; }

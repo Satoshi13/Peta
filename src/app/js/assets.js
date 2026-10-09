@@ -45,7 +45,7 @@ const P = {
   nameTagPaper: "ui/name-tag-paper.png",
   peekPaper: "ui/peek-paper.png", peekTape: "ui/peek-tape.png",
   sCatSleeping: "samples/cat-pack-sleeping.png", sCatSkateboard: "samples/cat-pack-skateboard.png", sCatSitting: "samples/cat-pack-sitting.png",
-  inspNameLabel: "ui/inspector-name-label.png", inspEditionTicket: "ui/inspector-edition-ticket.png", inspMaterialRecord: "ui/inspector-material-record.png",
+  inspNameLabel: "ui/inspector-name-label.png",
   wallInkGrain: "ui/wall-ink-grain.png",
   marketCork: "market/cork-board.png", marketMemo: "market/memo-card-blank.png", marketClip: "market/paper-clip-silver.png",
   marketRail: "market/rail-bar.png", marketRailClip: "market/rail-clip.png", marketRailEndL: "market/rail-end-left.png", marketRailEndR: "market/rail-end-right.png",
