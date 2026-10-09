@@ -7,7 +7,7 @@ body[data-shell="desk"] { --window-radius:20px; }
 input { user-select: text; -webkit-user-select: text; }
 #win-layer, body[data-shell] #win-layer { position: fixed; inset: 0; padding: 0; }
 .win { width: 100%; height: 100%; --win-w: 100vw; --win-h: 100vh; }
-.drag-strip { height: 28px; }
+.drag-strip { height: 46px; } /* a wider grip along the top; the first page buttons start at 51px */
 
 /* Delivered notes/book art replaces the paper stand-ins below; original files stay untouched. */
 /* Prototype viewport units refer to the display around the 1060×700 shell. Preserve that

@@ -142,6 +142,8 @@ const Shell = (() => {
     $("#wc-min").addEventListener("click", () => { S.windowOpen = false; Pages[S.page]?.suspend?.(); Bridge.window.minimize(); });
     $("#wc-zoom").addEventListener("click", () => Bridge.window.toggleMaximize());
     $("#titlebar").addEventListener("mousedown", e => { if (e.button === 0 && !e.target.closest("button")) { e.preventDefault(); Bridge.window.startDragging(); } });
+    // the sidebar's top (around the wordmark) moves the window too, where no button is
+    $("#nav").addEventListener("mousedown", e => { if (e.button === 0 && e.target === e.currentTarget && e.offsetY < 92) { e.preventDefault(); Bridge.window.startDragging(); } });
     $("#resize-h").addEventListener("mousedown", e => { if (e.button === 0) { e.preventDefault(); Bridge.window.startResizeDragging("SouthEast"); } });
     document.addEventListener("keydown", e => {
       if(e.defaultPrevented || !document.hasFocus()) return;
