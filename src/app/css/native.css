@@ -153,10 +153,54 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .book-actions { display: grid; gap: 8px; margin-bottom: 12px; }
 .book-action-row { display: flex; gap: 8px; }
 .book-action-row > * { flex: 1; min-width: 0; }
-.detail .book-action { width: 100%; height: 40px; padding: 0 12px; border: 1px solid transparent; border-radius: 10px; font: 600 14px/1.2 var(--sys); }
-.detail .book-action.secondary { background: #fffdf9; color: var(--ink); border-color: var(--line); box-shadow: 0 1px 2px rgba(60, 45, 20, .15); }
-.detail .book-action.danger { background: transparent; color: #934238; border-color: rgba(147, 66, 56, .24); box-shadow: none; }
+.book-action .ico { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+
+/* The Collection details are a sticky note with three small papers on it (art/ui/inspector-*.png: name label, edition ticket, material record).
+   The art carries only the paper and its shadow; the text, number, swatch and divider are drawn here. Each paper is laid out at the size of its
+   body, and ::before spreads the whole picture around it (the negative insets are the baked shadow margin, as % of the body). The papers stay
+   paper in the night theme, so their ink does not follow --ink. */
+.insp-paper { position: relative; color: #2b2a28; }
+.insp-paper::before { content: ""; position: absolute; inset: var(--pt) var(--pr) var(--pb) var(--pl); background: var(--art) 0 0 / 100% 100% no-repeat; pointer-events: none; }
+.insp-paper > * { position: relative; }
+.insp-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 2px 4px 10px 2px; }
+.insp-label { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; flex: none; width: 184px; aspect-ratio: 991 / 298; display: grid; align-items: center; padding: 0 18px 2px 20px; filter: drop-shadow(0 3px 3px rgba(60, 45, 20, .1)); rotate: -.6deg; }
+.insp-label b { font: 400 24px/1.1 "Patrick Hand", "Kiwi Maru", "Hiragino Maru Gothic ProN", "Klee One", cursive; letter-spacing: .005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.insp-ticket { --art: var(--a-inspEditionTicket); --pt: -6.18%; --pr: -3.46%; --pb: -7.35%; --pl: -7.69%; flex: none; width: 74px; aspect-ratio: 520 / 599; display: grid; place-content: center; text-align: center; gap: 1px; rotate: -9deg; margin-right: 6px; }
+.insp-ticket small { font: 400 12px/1 "Special Elite", "Courier New", monospace; color: #5b5547; }
+.insp-ticket b { font: 400 19px/1.1 "Special Elite", "Courier New", monospace; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.insp-record { --art: var(--a-inspMaterialRecord); --pt: -18.66%; --pr: -3.64%; --pb: -16.42%; --pl: -3.15%; width: 262px; aspect-ratio: 1017 / 268; margin: 0 0 6px 6px; display: flex; align-items: center; gap: 12px; padding: 0 22px 0 18px; }
+.insp-swatch { position: relative; flex: none; }
+.insp-swatch .material-swatch { width: 38px; height: 38px; border-radius: 4px; box-shadow: 0 1px 2px rgba(60, 45, 20, .3); }
+.insp-swatch .tape { width: 34px; filter: drop-shadow(0 1px 1px rgba(60, 45, 20, .3)); }
+/* a smaller sticker card, so the whole note still fits in the window */
+.detail .flip-stage { padding: 4px 0 2px; } .detail .flip-inner { width: 140px; }
+.detail .history { margin-bottom: 8px; font-size: 11.5px; } .detail .history li { padding: 3px 0; }
+.insp-swatch .tape:nth-of-type(1) { left: -20px; top: 9px; rotate: -88deg; } .insp-swatch .tape:nth-of-type(2) { left: 0; top: 36px; rotate: 3deg; }
+.insp-col { display: grid; gap: 1px; min-width: 0; }
+.insp-col small { font: 400 11px/1.2 "Special Elite", "Courier New", monospace; color: #5b5547; }
+.insp-col b { font: 400 13.5px/1.25 "Special Elite", "Courier New", monospace; white-space: nowrap; }
+.insp-vr { align-self: stretch; width: 1px; margin: 14px 0; background: rgba(43, 42, 40, .55); }
+.insp-stamp { display: inline-block; margin: 4px 0 2px 6px; padding: 4px 9px 3px; border: 2px solid rgba(70, 66, 44, .62); border-radius: 5px; color: rgba(70, 66, 44, .72); font: 400 12.5px/1 "Special Elite", "Courier New", monospace; letter-spacing: .09em; text-transform: uppercase; rotate: -3deg; mix-blend-mode: multiply; }
+/* the actions: one torn strip of paper for the main action, then three plain lines */
+.detail .btn.book-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; height: auto; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: #2b2a28; font: 500 15px/1.2 var(--sys); cursor: pointer; }
+.detail .btn.book-action.primary { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; position: relative; width: calc(100% - 8px); margin: 4px 4px 6px 4px; aspect-ratio: 991 / 215; justify-content: flex-start; padding: 0 20px; gap: 14px; font-size: 17px; }
+.detail .btn.book-action.primary::before { content: ""; position: absolute; inset: var(--pt) var(--pr) var(--pb) var(--pl); background: var(--art) 0 0 / 100% 100% no-repeat; filter: drop-shadow(0 3px 3px rgba(60, 45, 20, .1)); pointer-events: none; }
+.detail .btn.book-action.primary > * { position: relative; }
+.detail .btn.book-action.primary .ico { width: 26px; height: 26px; stroke-width: 1.5; }
+.detail .btn.book-action.primary:hover::before { filter: drop-shadow(0 5px 5px rgba(60, 45, 20, .16)); } .detail .btn.book-action.primary:active::before { filter: drop-shadow(0 1px 1px rgba(60, 45, 20, .14)); }
+.detail .btn.book-action-row { gap: 4px; justify-content: space-between; margin: 0 4px; }
+.detail .btn.book-action-row > * { flex: none; padding: 8px 6px; border-radius: 8px; }
+.detail .btn.book-action-row > :hover { background: rgba(60, 45, 20, .07); }
+.detail .btn.book-action.danger { color: #96533f; border: 0; }
+.detail .btn.book-action:focus-visible { outline: 2px solid #527d93; outline-offset: 2px; }
+/* the close mark is drawn on the paper: no circle, just the cross, like a pencil mark */
+.detail > button.close-control { top: 14px; right: 18px; width: 30px; height: 30px; min-width: 30px; background: none; color: #4a4632; }
+.detail > button.close-control:hover { background: rgba(60, 45, 20, .08); color: #2b2a28; }
+.detail > button.close-control svg { stroke-width: 1.6; }
 .book-delete { display: grid; gap: 8px; margin-bottom: 12px; }
+.detail .book-delete button.btn.book-action { height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fffdf9; box-shadow: 0 1px 2px rgba(60, 45, 20, .15); font-weight: 600; font-size: 14px; }
+.detail .book-delete button.btn.book-action.secondary { color: #2b2a28; }
+.detail .book-delete button.btn.book-action.danger { color: #934238; border-color: rgba(147, 66, 56, .3); }
 .book-delete p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
 .edit-material { display: flex; align-items: center; gap: 12px; min-height: 98px; }
 
@@ -758,8 +802,8 @@ button.close-control { position:absolute; top:12px; right:12px; z-index:8; displ
 button.close-control:hover { background:var(--w-line); color:var(--ink); }
 button.close-control:focus-visible { outline:2px solid #527d93; outline-offset:3px; }
 button.close-control svg { display:block; width:16px; height:16px; pointer-events:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; }
-.material-preview > button.close-control, .detail > button.close-control { top:12px; right:12px; background:var(--w-sunken); color:var(--ink2); }
-.material-preview > button.close-control:hover, .detail > button.close-control:hover { background:var(--w-line); color:var(--ink); }
+.material-preview > button.close-control { top:12px; right:12px; background:var(--w-sunken); color:var(--ink2); }
+.material-preview > button.close-control:hover { background:var(--w-line); color:var(--ink); }
 [data-theme="night"] [data-shell="studio"] .nav-item:hover { background:var(--w-surface); color:var(--ink); }
 [data-theme="night"] [data-shell="studio"] .nav-item[aria-current="page"] { background:var(--w-surface2); color:var(--ink); box-shadow:inset 0 0 0 1px var(--w-line); }
 [data-theme="night"] [data-shell="studio"] .nav-item[aria-current="page"]:hover { background:var(--w-surface); }

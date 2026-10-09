@@ -76,7 +76,7 @@ function renderBackFallback() {
 function BackCard(entry) { const card = entry.back ? renderBackCard(entry.back) : renderBackFallback(); card.dataset.mat=entry.material; if (!entry.back) Bridge.invoke("sticker_back", {stickerId:entry.id}).then(b=>{ if(b) { entry.back=b; const next=renderBackCard(b); next.dataset.mat=entry.material; card.replaceWith(next); }}).catch(e=>Shell.toast(String(e))); return card; }
 async function BackingFront(entry) {
   const res = await resOf(entry, { max: 420 });
-  const el = h("div.backing", { data: { mat: entry.material } }, h("i.tape.t3"), Stk.el(res, res.aspect >= 1 ? 170 : 170 * res.aspect));
+  const el = h("div.backing", { data: { mat: entry.material } }, h("i.tape.t3"), Stk.el(res, res.aspect >= 1 ? 140 : 140 * res.aspect));
   return el;
 }
 
@@ -218,7 +218,7 @@ Pages.book = {
       turned = !turned; Snd.flip(); flip.classList.toggle("turned", turned);
       turn.setAttribute("aria-pressed", String(turned)); turn.setAttribute("aria-label", turned ? "Show sticker front" : "Show sticker back");
     } } }, flip);
-    const history = h("ul.history"), number = h("dd", e.kind === "received" ? "—" : pad4(e.no));
+    const history = h("ul.history"), number = h("b", e.kind === "received" ? "—" : pad4(e.no));
     Bridge.invoke("sticker_back", {stickerId:e.id}).then(b => {
       if (!b) return;
       number.textContent = b.kind === "received" ? (b.editionNumber ? "#"+b.editionNumber : "—") : (b.originalNumber || "—");
@@ -226,17 +226,29 @@ Pages.book = {
       history.replaceChildren(...b.history.map(p=>h("li",h("span",(labels[p.type] || p.type)+(p.by?" "+p.by:"")),h("span",p.on))));
     }).catch(err=>Shell.toast(String(err)));
     const form = BK.gift ? this.giftForm(e, paint) : null;
+    const name = titleOf(e), nameWidth = [...name].reduce((w, c) => w + (c.charCodeAt(0) > 255 ? 1 : .5), 0);   // a long name shrinks to stay on one line of its paper label
+    const act = (cls, action, icon, text, click) => h("button.btn.quiet.book-action." + cls, { data: { action }, on: { click } }, icon, h("span", text));
+    const peel = onDesk ? act("primary", "peel", Icon("peel"), "Peel off desktop", async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Collection."); paint(); })
+      : act("primary", "stick", Icon("stick"), "Stick on desktop", () => this.stick(e));
     return h("aside.detail", { role: "dialog", "aria-label": "Sticker details" },
       CloseButton("Close", {on: { click: () => { BK.sel = null; BK.gift = false; BK.deleteId = null; paint(); } }}, ".x"),
       turn,
       S.bookView === "calendar" ? this.dayChoices(e, paint) : null,
+      // The name, the number, and the material are three small pieces of paper, as on a real sticker sheet.
+      h("div.insp-head",
+        h("div.insp-label.insp-paper", h("b", { title: name, style: { fontSize: Math.max(13, Math.min(24, 148 / Math.max(nameWidth, 1))) + "px" } }, name)),
+        h("div.insp-ticket.insp-paper", h("small", e.kind === "received" ? "Edition" : "No."), number)),
+      h("div.insp-record.insp-paper",
+        h("div.insp-swatch", MaterialSwatch({ id: mat.id || e.material, sw: mat.sw, card: mat.card }), h("i.tape"), h("i.tape")),
+        h("div.insp-col", h("small", "Material"), h("b", mat.name)), h("i.insp-vr"),
+        h("div.insp-col", h("small", "Made"), h("b", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })))),
+      onDesk ? h("span.insp-stamp", "On desktop") : null,
       form || (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions",
-        onDesk ? h("button.btn.book-action.primary", { data: { action: "peel" }, on: { click: async () => { await peelFromDesk(e.id); Shell.toast("Peeled off — it's waiting in your Collection."); paint(); } } }, "Peel off desktop") : h("button.btn.book-action.primary", { data: { action: "stick" }, on: { click: () => this.stick(e) } }, "Stick on desktop"),
-        h("div.book-action-row", h("button.btn.book-action.secondary", { data: { action: "gift" }, on: { click: () => { BK.deleteId = null; BK.gift = true; paint(); } } }, "Gift…"),
-          e.canManage ? h("button.btn.book-action.secondary", { data: { action: "edit" }, on: { click: () => this.edit(e) } }, "Edit") : null),
-        e.canManage ? h("button.btn.book-action.danger", { data: { action: "delete" }, on: { click: () => { BK.deleteId = e.id; paint(); } } }, "Delete…") : null)),
-      h("dl", h("dt", "Name"), h("dd", titleOf(e)), h("dt", "Material"), h("dd", h("span.seal", { data: { rarity: mat.rarity } }, mat.name)), h("dt", "Made"), h("dd", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })),
-        h("dt", e.kind === "received" ? "Edition" : "No."), number),
+        peel,
+        h("div.book-action-row",
+          act("secondary", "gift", Icon("gift"), "Gift", () => { BK.deleteId = null; BK.gift = true; paint(); }),
+          e.canManage ? act("secondary", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,
+          e.canManage ? act("danger", "delete", Icon("trash"), "Delete", () => { BK.deleteId = e.id; paint(); }) : null))),
       history);
   },
   dayChoices(e, paint) {

@@ -29,6 +29,21 @@ function CloseButton(label, props = {}, className = "") {
   return h("button.close-control"+className,{...props,type:"button","aria-label":label},icon);
 }
 
+/** Small line icons for paper actions: one stroke, no fill, so they take the text colour. */
+const ICONS = {
+  peel: "M4 19C8 11 13 8 20 7M15 3l5 4-4 5",
+  stick: "M4 5c4 8 9 11 16 12M16 12l4 5-5 4",
+  gift: "M4 9h16v4H4zM5 13h14v8H5zM12 9v12M12 9C9.5 9 8 8 8 6.5S10 4 12 9c2-5 4-3.5 4-2.5S14.5 9 12 9z",
+  edit: "M4 20l1-4L16 5l3 3L8 19zM14 7l3 3",
+  trash: "M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6",
+};
+function Icon(name) {
+  const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg"), path = document.createElementNS(ns, "path");
+  for (const [key, value] of Object.entries({ viewBox: "0 0 24 24", "aria-hidden": "true", focusable: "false" })) svg.setAttribute(key, value);
+  svg.setAttribute("class", "ico"); path.setAttribute("d", ICONS[name]); svg.append(path);
+  return svg;
+}
+
 /** A tray of material cards. Picking marks the material for the next Create without moving the controls. */
 function MaterialTray({ w = 148, onPick, interactive = true, selected = S.chosen } = {}) {
   const tray = h("div.mtray", { role: "radiogroup", "aria-label": "Material" });

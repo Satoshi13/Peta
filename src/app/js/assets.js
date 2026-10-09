@@ -43,6 +43,7 @@ const P = {
   btnLabel: "ui/button-label.png", btnLabelDown: "ui/button-label-pressed.png", trayBox: "ui/material-tray.png", cardLocked: "ui/card-locked.png", dateStamp: "ui/date-stamp.png",
   memoTorn: "ui/memo-torn.png", tagKraft: "ui/tag-kraft.png", paperClip: "notes/paper-clip.png", binderClip: "ui/binder-clip.png", indexCard: "notes/note-index-card-blank.png", indexRuled: "ui/index-card-ruled.png",
   nameTagPaper: "ui/name-tag-paper.png",
+  inspNameLabel: "ui/inspector-name-label.png", inspEditionTicket: "ui/inspector-edition-ticket.png", inspMaterialRecord: "ui/inspector-material-record.png",
   wallInkGrain: "ui/wall-ink-grain.png",
   marketCork: "market/cork-board.png", marketMemo: "market/memo-card-blank.png", marketClip: "market/paper-clip-silver.png",
   marketRail: "market/rail-bar.png", marketRailClip: "market/rail-clip.png", marketRailEndL: "market/rail-end-left.png", marketRailEndR: "market/rail-end-right.png",
