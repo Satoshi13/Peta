@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Peta Pack Studio Preview</title>
+<link rel="stylesheet" href="../../src/fonts/fonts.css" />
+<style>
+:root {
+  --ink: #2b2a28; --ink2: #4a463f; --muted: #655e51; --paper: #f6f1e6; --card: #fffdf8; --line: #e3dac7;
+  --sys: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --type: "Special Elite", "Courier New", monospace; --hand: "Klee One", "Noteworthy", cursive; --pen: "Patrick Hand", "Kiwi Maru", "Klee One", cursive;
+  --sh2: 0 1px 2px rgba(60,45,20,.18), 0 10px 24px rgba(60,45,20,.12); --sh3: 0 2px 4px rgba(60,45,20,.22), 0 28px 60px rgba(40,30,12,.28);
+  --out: cubic-bezier(.2,.7,.3,1); --spring: cubic-bezier(.34,1.5,.5,1);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper) url("../../src/art/book/page-paper.jpg") 0 0 / 520px; color: var(--ink); font: 16px/1.75 var(--sys); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+img { -webkit-user-drag: none; user-select: none; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+.eyebrow { font: 13px/1 var(--type); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+header.top { padding: 56px 0 8px; } h1 { font-size: clamp(30px, 5vw, 50px); line-height: 1.15; letter-spacing: -.02em; margin: 14px 0; }
+.lead { color: var(--ink2); max-width: 820px; margin: 0 0 8px; font-size: 17px; }
+.bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 22px 0 12px; }
+.tog { display: inline-flex; align-items: center; gap: 7px; font: 500 12.5px/1 var(--sys); padding: 8px 12px; border-radius: 999px; border: 0; background: rgba(0,0,0,.06); }
+.tog[aria-pressed="true"] { background: #1f1b16; color: #fff; }
+.fit { position: relative; width: 100%; overflow: hidden; border-radius: 22px; box-shadow: var(--sh3); background: #8fa5c9; }
+.stage { position: absolute; left: 0; top: 0; width: 1120px; height: 740px; transform-origin: 0 0; overflow: hidden; background: radial-gradient(900px 600px at 8% 10%, #ffd9bd, transparent 60%), radial-gradient(800px 600px at 95% 90%, #b6c5f0, transparent 60%), linear-gradient(160deg, #f3d3c6, #aab5e6); user-select: none; }
+.win { position: absolute; left: 30px; top: 24px; width: 1060px; height: 692px; border-radius: 18px; overflow: hidden; background: var(--paper) url("../../src/art/book/page-paper.jpg") 0 0 / 520px; box-shadow: 0 0 0 .5px rgba(0,0,0,.2), 0 30px 70px rgba(20,14,40,.35); font: 14px/1.5 var(--sys); }
+.dots { position: absolute; left: 16px; top: 14px; display: flex; gap: 8px; z-index: 5; } .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; } .dots i:nth-child(1) { background: #ec6a5e; } .dots i:nth-child(2) { background: #f4bf4f; } .dots i:nth-child(3) { background: #61c554; }
+.page { position: absolute; inset: 0; padding: 40px 36px 0; }
+.ph .eyebrow { font-size: 11px; } .ph h1 { font-size: 30px; margin: 8px 0 0; letter-spacing: -.03em; }
+.ph { display: flex; justify-content: space-between; align-items: flex-end; }
+.steps { display: inline-flex; background: rgba(60,45,20,.1); border-radius: 999px; padding: 3px; gap: 2px; }
+.steps button { border: 0; background: none; padding: 7px 15px; border-radius: 999px; font: 500 13px/1 var(--sys); color: #55503f; display: flex; gap: 7px; align-items: center; }
+.steps button b { font-weight: 500; opacity: .6; font-variant-numeric: tabular-nums; }
+.steps button[aria-current="step"] { background: #fff; color: var(--ink); font-weight: 650; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.steps button.done b::after { content: " ✓"; color: #2f7a45; opacity: 1; }
+.saved { font-size: 12px; color: var(--muted); margin-right: 14px; }
+.saved i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #5fb06a; margin-right: 6px; }
+/* workbench */
+.work { position: absolute; left: 36px; right: 36px; top: 108px; bottom: 28px; display: grid; grid-template-columns: 470px 1fr; gap: 18px; }
+.bench { position: relative; border-radius: 22px; overflow: hidden; background: #c9a878 url("../../src/art/book/cover-board.jpg") 0 0 / 420px; box-shadow: inset 0 0 0 3px rgba(90,60,25,.25), inset 0 3px 16px rgba(60,40,10,.35), 0 10px 26px rgba(60,45,20,.18); }
+.bench::after { content: ""; position: absolute; inset: 0; z-index: 0; background: radial-gradient(60% 55% at 50% 48%, rgba(255,246,222,.3), transparent 70%); pointer-events: none; }
+.bench .cap { position: absolute; left: 16px; bottom: 12px; right: 16px; display: flex; justify-content: space-between; font: 12px/1.2 var(--type); letter-spacing: .06em; color: rgba(255,248,230,.85); text-shadow: 0 1px 2px rgba(40,25,5,.5); z-index: 6; }
+.stagepouch { position: absolute; z-index: 2; left: 50%; top: 54%; translate: -50% -50%; perspective: 900px; }
+.tilt { transition: transform .35s var(--out); transform-style: preserve-3d; }
+/* the pouch */
+.pouch { position: relative; width: var(--w, 270px); aspect-ratio: 3 / 4; filter: drop-shadow(0 14px 12px rgba(50,35,10,.35)); }
+.pouch .art { position: absolute; inset: 0; background: var(--art) center / 100% 100% no-repeat; z-index: 2; }
+.pouch[data-kind="holo"] .art { filter: sepia(.55) saturate(1.9) hue-rotate(calc(var(--hue, 200deg) - 40deg)) brightness(1.03); }
+.pouch[data-kind="matte"][data-tinted="1"] .art { filter: sepia(.6) saturate(.9) hue-rotate(calc(var(--hue, 200deg) - 40deg)) brightness(1.02); }
+.pouch .sheen { position: absolute; inset: 0; z-index: 3; pointer-events: none; mix-blend-mode: soft-light; -webkit-mask: var(--art) center / 100% 100% no-repeat; mask: var(--art) center / 100% 100% no-repeat; background: linear-gradient(115deg, transparent 22%, rgba(255,255,255,0) 36%, rgba(255,255,255,.9) 48%, rgba(255,235,255,.5) 54%, transparent 68%); background-size: 280% 280%; background-position: var(--sx, 30%) var(--sy, 30%); }
+.pouch[data-kind="kraft"] .sheen { opacity: .35; }
+.pouch .lbl { position: absolute; z-index: 5; display: grid; place-content: center; gap: .45em; text-align: center; pointer-events: none; container-type: inline-size; }
+.pouch[data-kind="holo"] .lbl { left: 22.5%; right: 22.8%; top: 38%; bottom: 37.4%; } .pouch[data-kind="kraft"] .lbl { left: 21%; right: 21%; top: 39%; bottom: 34.5%; } .pouch[data-kind="matte"] .lbl { left: 20%; right: 19.5%; top: 47.8%; bottom: 28%; }
+.lbl b { font: 600 13cqw/1.16 var(--hand); color: #3a342a; text-wrap: balance; overflow-wrap: anywhere; } .lbl small { font: 600 7cqw/1 var(--sys); letter-spacing: .07em; text-transform: uppercase; color: #7a705e; }
+.lbl .cover { position: absolute; inset: -4% -3%; background: #f3ead6 url("../../src/art/book/page-paper.jpg") center / 240px; box-shadow: inset 0 0 0 1px rgba(120,100,60,.2); z-index: -1; display: none; }
+.pouch[data-ls="stamp"] .lbl .cover, .pouch[data-ls="type"] .lbl .cover { display: block; }
+.pouch[data-ls="stamp"] .lbl { rotate: -3deg; } .pouch[data-ls="stamp"] .lbl b { color: #b04236; font-family: var(--type); font-weight: 400; text-transform: uppercase; letter-spacing: .04em; font-size: 11cqw; } .pouch[data-ls="stamp"] .lbl small { color: #b04236; }
+.pouch[data-ls="stamp"] .lbl::before { content: ""; position: absolute; inset: 0; border: 2.5px double #b04236; border-radius: 6px; opacity: .85; }
+.pouch[data-ls="type"] .lbl b { font-family: var(--type); font-weight: 400; font-size: 10.5cqw; letter-spacing: .01em; color: #2b2a28; } .pouch[data-ls="type"] .lbl small { font-family: var(--type); font-weight: 400; color: #5b5547; letter-spacing: .1em; }
+.pouch[data-ls="tape"] .lbl::before { content: ""; position: absolute; inset: 6% -9%; background: repeating-linear-gradient(90deg, rgba(240,228,192,.96) 0 6px, rgba(236,223,184,.96) 6px 7px); box-shadow: 0 1px 2px rgba(60,45,20,.3); clip-path: polygon(0 8%, 3% 0, 6% 10%, 9% 0, 12% 8%, 100% 0, 97% 12%, 100% 25%, 98% 40%, 100% 55%, 97% 70%, 100% 88%, 96% 100%, 4% 100%, 1% 90%, 3% 74%, 0 60%, 2% 42%, 0 25%); z-index: -1; }
+.pouch[data-ls="tape"] .lbl b { font-family: var(--pen); font-weight: 400; font-size: 15cqw; color: #2b2a28; rotate: -2deg; }
+.pouch .toptape { position: absolute; z-index: 6; left: 12%; right: 12%; top: 5.5%; height: 8%; rotate: -1.5deg; box-shadow: 0 1px 2px rgba(60,45,20,.28); opacity: .94; }
+.pouch .toptape[data-t="mint"] { background: #bfe6d3; } .pouch .toptape[data-t="pink"] { background: #f3c4d2; } .pouch .toptape[data-t="sky"] { background: #bcd9f0; } .pouch .toptape[data-t="stripe"] { background: repeating-linear-gradient(45deg, #f6efe0 0 7px, #e9a3a3 7px 14px); } .pouch .toptape[data-t="dot"] { background: radial-gradient(circle, #8fb9d6 2.2px, transparent 2.6px) 0 0 / 11px 11px, #f6f1e2; }
+.pouch .toptape { clip-path: polygon(0 10%, 2% 0, 4% 14%, 6% 0, 8% 10%, 92% 0, 94% 14%, 96% 0, 98% 12%, 100% 8%, 100% 92%, 98% 100%, 96% 86%, 94% 100%, 92% 90%, 8% 100%, 6% 86%, 4% 100%, 2% 88%, 0 90%); }
+.fan { position: absolute; z-index: 1; left: 8%; right: 8%; top: -19%; height: 36%; pointer-events: none; }
+.fan img { position: absolute; bottom: 0; left: 50%; width: 36%; transform-origin: 50% 100%; transition: transform .45s var(--spring), opacity .3s; filter: drop-shadow(0 2px 2px rgba(50,35,10,.3)); }
+.fan .more { position: absolute; right: -2%; top: 14%; font: 600 11px/1 var(--sys); background: #1f1b16; color: #fff; padding: 4px 8px; border-radius: 99px; z-index: 2; }
+.deco { position: absolute; z-index: 4; touch-action: none; cursor: grab; transform: translate(-50%, -50%) rotate(var(--r, 0deg)); transform-origin: 50% 50%; }
+.deco img { display: block; width: 100%; pointer-events: none; filter: drop-shadow(1px 3px 3px rgba(50,35,10,.35)); }
+.deco.sel::after { content: ""; position: absolute; inset: -6px; border: 1.5px dashed rgba(31,27,22,.65); border-radius: 8px; pointer-events: none; }
+.deco.sticker img { filter: drop-shadow(0 0 0 #fff) drop-shadow(1px 3px 2px rgba(50,35,10,.35)); }
+.deco:active { cursor: grabbing; }
+.deco[data-k="clip"] { z-index: 7; } .deco[data-k="pin"] { z-index: 7; }
+.hand { position: absolute; z-index: 8; width: 38px; height: 38px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); display: none; }
+/* right panel */
+.panel { position: relative; border-radius: 22px; background: rgba(255,253,248,.82); box-shadow: inset 0 0 0 1px var(--line), 0 6px 18px rgba(60,45,20,.08); padding: 18px 20px 14px; overflow: hidden; display: flex; flex-direction: column; }
+.panel h2 { margin: 0 0 2px; font-size: 19px; letter-spacing: -.01em; } .panel .sub { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.scroll { flex: 1; overflow-y: auto; padding: 2px 3px 6px; margin: 0 -3px; scrollbar-width: none; } .scroll::-webkit-scrollbar { display: none; }
+.foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(120,100,60,.14); margin-top: 8px; }
+.btn { appearance: none; border: 0; border-radius: 999px; padding: 9px 22px; background: var(--ink); color: #fff; font: 650 14px/1 var(--sys); box-shadow: 0 2px 0 rgba(0,0,0,.55), 0 8px 14px rgba(0,0,0,.14); transition: transform .12s, opacity .2s; } .btn:active { transform: translateY(1px); } .btn:disabled { opacity: .35; box-shadow: none; cursor: default; }
+.btn.quiet { background: none; color: var(--ink2); box-shadow: none; padding: 9px 10px; font-weight: 600; } .btn.paper { background: #f1eadb; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.small { font-size: 12px; color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.tile { position: relative; aspect-ratio: 1; border: 0; border-radius: 14px; background: #f3ecdb; box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; padding: 8px; transition: transform .18s var(--spring), box-shadow .2s; }
+.tile:hover { transform: translateY(-2px) rotate(-1deg); } .tile img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.tile[aria-pressed="true"] { background: #fffdf6; box-shadow: inset 0 0 0 2px var(--ink), 0 4px 10px rgba(60,45,20,.15); } .tile[aria-pressed="true"]::after { content: "✓"; position: absolute; right: 6px; top: 6px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 12px; display: grid; place-items: center; }
+.count { display: flex; align-items: baseline; gap: 8px; margin: 2px 0 12px; } .count b { font-size: 30px; letter-spacing: -.03em; font-variant-numeric: tabular-nums; } .count span { color: var(--muted); font-size: 13px; }
+.meter { height: 6px; border-radius: 4px; background: rgba(60,45,20,.12); overflow: hidden; margin-bottom: 14px; } .meter i { display: block; height: 100%; background: var(--ink); border-radius: 4px; transition: width .35s var(--out); }
+/* sort */
+.tiers { display: grid; gap: 10px; }
+.tier { border-radius: 16px; padding: 10px 12px 12px; background: #f3ecdb; box-shadow: inset 0 0 0 1px var(--line); transition: box-shadow .15s, background .15s; min-height: 92px; }
+.tier.over { background: #fffdf6; box-shadow: inset 0 0 0 2px var(--ink); }
+.tier .th { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; } .tier .th b { font-size: 13px; letter-spacing: .02em; display: flex; align-items: center; gap: 7px; }
+.tier .pct { font: 12px/1 var(--type); color: var(--muted); }
+.seal-dot { width: 18px; height: 18px; border-radius: 50%; display: inline-block; background: #d9d1bf; } .seal-dot.r { background: conic-gradient(#f6c6e3, #c9c3f5, #bfe3f7, #c8f2dc, #f7f0be, #f6c6e3); box-shadow: 0 0 0 1.5px #fff inset, 0 0 6px rgba(160,140,255,.5); } .seal-dot.u { background: #cfe4cf; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 52px; }
+.chip { position: relative; width: 64px; touch-action: none; cursor: grab; text-align: center; }
+.chip .im { width: 48px; height: 48px; margin: 0 auto; border-radius: 10px; background: #fffdf6; box-shadow: 0 1px 2px rgba(60,45,20,.25); display: grid; place-items: center; padding: 4px; } .chip .im img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.chip input { width: 64px; margin-top: 3px; border: 0; background: transparent; text-align: center; font: 11.5px/1.2 var(--sys); color: var(--ink2); border-radius: 5px; padding: 2px 0; } .chip input:focus { background: #fff; outline: 1.5px solid #527d93; }
+.chip.dragging { opacity: .25; } .ghost { position: fixed; z-index: 99; pointer-events: none; width: 54px; rotate: -6deg; filter: drop-shadow(0 8px 8px rgba(0,0,0,.3)); }
+.odds { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin: 4px 0 6px; background: rgba(60,45,20,.12); } .odds i { display: block; height: 100%; transition: flex-basis .4s var(--out); }
+.feel { font: 13px/1.5 var(--sys); padding: 10px 12px; border-radius: 12px; background: #1f1b16; color: #f1eadb; margin-top: 10px; } .feel b { color: #ffd877; }
+/* dress */
+.sec { margin: 0 0 16px; } .sec > label, .sec > .lb { display: block; font: 600 11px/1 var(--sys); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.kinds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.kind { border: 0; border-radius: 14px; background: #f3ecdb; box-shadow: inset 0 0 0 1px var(--line); padding: 8px 6px 6px; text-align: center; font: 500 12px/1.2 var(--sys); } .kind .ph2 { height: 86px; background: var(--a) center / contain no-repeat; margin-bottom: 4px; } .kind[aria-pressed="true"] { background: #fffdf6; box-shadow: inset 0 0 0 2px var(--ink); font-weight: 650; }
+.hue { -webkit-appearance: none; appearance: none; width: 100%; height: 14px; border-radius: 8px; background: linear-gradient(90deg, hsl(0 70% 78%), hsl(60 70% 78%), hsl(120 60% 76%), hsl(180 60% 76%), hsl(240 70% 82%), hsl(300 60% 80%), hsl(360 70% 78%)); outline: none; }
+.hue::-webkit-slider-thumb, .rng::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #fffdf9; box-shadow: 0 0 0 2px var(--ink), 0 2px 4px rgba(0,0,0,.3); cursor: grab; }
+.rng { -webkit-appearance: none; appearance: none; width: 100%; height: 2px; background: #1f1b16; border-radius: 1px; outline: none; margin: 10px 0; }
+.field { display: grid; gap: 4px; margin-bottom: 8px; } .field input, .field textarea { width: 100%; border: 0; border-radius: 12px; padding: 10px 12px; background: #fffdf6; box-shadow: inset 0 0 0 1px var(--line); font: 500 15px/1.3 var(--sys); resize: none; } .field input:focus, .field textarea:focus { outline: 2px solid #527d93; }
+.seg { display: inline-flex; background: rgba(60,45,20,.1); border-radius: 999px; padding: 3px; flex-wrap: wrap; } .seg button { border: 0; background: none; padding: 6px 12px; border-radius: 999px; font: 500 12.5px/1 var(--sys); } .seg button[aria-pressed="true"] { background: #fff; font-weight: 650; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.swatches { display: flex; gap: 8px; flex-wrap: wrap; } .sw { width: 38px; height: 26px; border: 0; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(60,45,20,.25); position: relative; } .sw[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink); } .sw.none { background: repeating-linear-gradient(45deg, #f6f1e6 0 4px, #e6dcc6 4px 8px); }
+.charms { display: flex; gap: 8px; } .charm { width: 56px; height: 56px; border: 0; border-radius: 12px; background: #f3ecdb; box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; padding: 6px; transition: transform .15s var(--spring); } .charm:hover { transform: translateY(-2px) rotate(-3deg); } .charm img { max-width: 100%; max-height: 100%; }
+.covers { display: flex; gap: 8px; flex-wrap: wrap; } .cv { width: 48px; height: 48px; border: 0; border-radius: 10px; background: #f3ecdb; box-shadow: inset 0 0 0 1px var(--line); padding: 4px; display: grid; place-items: center; } .cv img { width: 100%; height: 100%; object-fit: contain; } .cv[aria-pressed="true"] { background: #fffdf6; box-shadow: inset 0 0 0 2px var(--ink); } .cv.none { font-size: 11px; color: var(--muted); }
+.hintbox { font-size: 12px; color: var(--muted); line-height: 1.5; background: rgba(60,45,20,.06); border-radius: 10px; padding: 8px 10px; margin-top: 6px; }
+/* seal */
+.ctxs { margin-bottom: 10px; } .scene { position: relative; height: 196px; border-radius: 16px; overflow: hidden; background: #ece3d1 url("../../src/art/book/page-paper.jpg") 0 0 / 360px; box-shadow: inset 0 0 0 1px var(--line); margin-bottom: 10px; }
+.scene .pouch { position: absolute; }
+.scene .plank { position: absolute; left: -6px; right: -6px; bottom: -4px; height: 38px; background: url("../../src/art/ui/shelf-board.png") center / 100% 100% no-repeat; z-index: 3; filter: drop-shadow(0 5px 4px rgba(70,50,20,.3)); }
+.scene .wallcount { position: absolute; font: 400 18px/1 "Kalam", var(--hand); color: #38342f; opacity: .95; letter-spacing: .03em; word-spacing: .22em; mix-blend-mode: multiply; }
+.scene .rod { position: absolute; left: 34px; right: 34px; top: 20px; height: 9px; background: url("../../src/art/market/rail-bar.png") 0 0 / auto 9px repeat-x; } .scene .endl, .scene .endr { position: absolute; top: 12px; width: 32px; height: 23px; background: url("../../src/art/market/rail-end-left.png") center / 100% 100% no-repeat; z-index: 2; } .scene .endl { left: 0; } .scene .endr { right: 0; background-image: url("../../src/art/market/rail-end-right.png"); }
+.scene .clip { position: absolute; width: 15px; height: 32px; background: url("../../src/art/market/rail-clip.png") center / 100% 100% no-repeat; z-index: 6; }
+.mcard { position: absolute; inset: 10px 10px 10px 50%; border-radius: 14px; background: rgba(255,253,248,.95); box-shadow: 0 0 0 1px var(--line), 0 8px 20px rgba(60,45,20,.18); padding: 12px 14px; } .mcard h3 { margin: 0; font-size: 16px; } .mcard p { margin: 4px 0 8px; font-size: 11.5px; line-height: 1.45; color: var(--ink2); } .mcard .row { display: flex; gap: 5px; } .mcard .row i { width: 26px; height: 26px; border-radius: 6px; background: #f3ecdb; box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; font: 600 11px/1 var(--sys); color: var(--muted); font-style: normal; } .mcard .row img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+.signed { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--ink2); background: #f3ecdb; border-radius: 12px; padding: 8px 12px; box-shadow: inset 0 0 0 1px var(--line); } .signed i { font-style: normal; font: 12px/1 var(--type); color: #2f7a45; }
+.press { position: absolute; left: -8%; right: -8%; top: -24%; height: 22%; z-index: 9; border-radius: 10px; background: linear-gradient(180deg, #e8ecef, #aeb5be 60%, #8d949e); box-shadow: 0 10px 14px rgba(30,25,15,.4), inset 0 1px 0 #fff; transform: translateY(-140%); pointer-events: none; }
+.press::after { content: ""; position: absolute; left: 6%; right: 6%; bottom: 0; height: 6px; background: repeating-linear-gradient(90deg, #6d747d 0 6px, #9aa1aa 6px 12px); border-radius: 0 0 6px 6px; }
+.flash { position: absolute; inset: 0; z-index: 10; border-radius: 22px; background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.95), transparent 60%); opacity: 0; pointer-events: none; }
+.stamp { position: absolute; z-index: 11; left: 50%; top: 73%; translate: -50% -50%; rotate: -12deg; padding: 6px 14px; border: 3px double #b04236; border-radius: 8px; color: #b04236; font: 400 26px/1 var(--type); letter-spacing: .1em; background: rgba(255,250,240,.35); opacity: 0; pointer-events: none; mix-blend-mode: multiply; }
+.sparks i { position: absolute; z-index: 12; width: 7px; height: 7px; border-radius: 50%; pointer-events: none; }
+.done { text-align: center; padding: 8px 4px; } .done h2 { font-size: 22px; } .done p { color: var(--ink2); }
+.note { max-width: 900px; margin: 34px auto 0; } .note h2 { font-size: 22px; letter-spacing: -.01em; margin: 40px 0 8px; } .note p, .note li { color: var(--ink2); font-size: 15.5px; } .note ul { padding-left: 1.2em; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin: 14px 0; } .card { background: var(--card); border-radius: 16px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(60,45,20,.12), 0 8px 24px rgba(60,45,20,.06); } .card h3 { margin: 0 0 6px; font-size: 16px; } .card p, .card li { margin: 0 0 6px; font-size: 14px; line-height: 1.65; }
+.tag { display: inline-block; font: 600 11px/1 var(--sys); padding: 4px 8px; border-radius: 99px; background: #e6f1e4; color: #2f5a2f; margin-right: 4px; } .tag.new { background: #f7e6cf; color: #7a4a14; } .tag.art { background: #e4e8f7; color: #35457a; }
+footer { padding: 60px 0 100px; color: var(--muted); font-size: 13px; }
+html[data-reduce="1"] *, html[data-reduce="1"] *::before, html[data-reduce="1"] *::after { animation-duration: .001s !important; transition-duration: .001s !important; }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="eyebrow">Peta · Make a Pack</div>
+  <h1>Pack Studio</h1>
+  <p class="lead">いまの「Make a Pack…」はモーダルの2ページ(選ぶ → 名前と袋を決める)で終わります。これを、<b>ページ全体の作業台</b>にして、袋そのものを触りながら作り込めるようにしたプレビューです。左の袋はいつも見えていて、右の道具で変えたことがすぐ袋に出ます。工程は自由に行き来できます。</p>
+  <div class="bar">
+    <button class="tog" id="tSnd" aria-pressed="false">音</button>
+    <button class="tog" id="tRed" aria-pressed="false">動きを減らす</button>
+    <button class="tog" id="tReset">最初からやり直す</button>
+    <span class="small">袋はドラッグ(傾く・光る)、ステッカーや飾りは袋の上へドラッグ、ホイールで拡大、Shift+ホイールで回転。</span>
+  </div>
+</div></header>
+<main class="wrap"><div class="fit" id="fit"><div class="stage" id="stage">
+  <div class="win"><div class="dots"><i></i><i></i><i></i></div>
+    <div class="page">
+      <div class="ph"><div><div class="eyebrow">Make a Pack</div><h1>Pack Studio</h1></div>
+        <div style="display:flex;align-items:center"><span class="saved"><i></i>Draft saved</span><div class="steps" id="steps" role="tablist"></div></div></div>
+      <div class="work"><div class="bench" id="bench"><div class="stagepouch" id="sp"></div><div class="cap"><span id="capL"></span><span id="capR"></span></div><div class="flash" id="flash"></div></div><div class="panel" id="panel"></div></div>
+    </div>
+  </div>
+</div></div></main>
+<div class="wrap note">
+  <h2>何を変えたか</h2>
+  <div class="cols">
+    <div class="card"><h3>今(モーダル)</h3><ul><li>3〜24枚をチェックボックスで選ぶ</li><li>名前・袋の種類(3つ)・各ステッカーの名前とレア度をフォームで入力</li><li>袋が見えるのは、作った後だけ</li><li>全部が「入力して保存」で、作り込む余地がない</li></ul></div>
+    <div class="card"><h3>Pack Studio(このプレビュー)</h3><ul><li><b>袋がずっと見えている。</b>触れる(傾く・光る)し、入れたステッカーが袋の口から覗く</li><li><b>Sort:</b>レア度の棚へステッカーをドラッグ。出やすさは<b>アプリ本物の重み(60/30/10)</b>で計算して、棚の下に実数を出す</li><li><b>Dress:</b>袋・色・ラベルの形・口のテープ・<b>表紙ステッカー</b>・飾り(クリップ/ピン)を袋の上で配置</li><li><b>Seal:</b>棚とMarketでの見え方を確かめてから、封をする演出で完成</li></ul></div>
+  </div>
+  <h2>実装に必要なもの(今のアプリで足りないもの)</h2>
+  <div class="cols">
+    <div class="card"><h3>そのまま使える <span class="tag">今ある</span></h3><ul><li>タイトル(40文字)、袋の種類3つ、3〜24枚、各ステッカーの名前とレア度、署名つきの保存</li><li>レア度の出やすさ(common 60 / uncommon 30 / rare 10、空の等級は残りで按分)</li></ul></div>
+    <div class="card"><h3>パックの形式に項目を足す <span class="tag new">データ</span></h3><ul><li>色(hue)、ラベルの形、口のテープ、表紙ステッカー、飾りの位置、紹介文(Marketのカードに出す)</li><li>どれも署名の対象に含める(受け取った側で見た目が変わらないように)</li></ul></div>
+    <div class="card"><h3>素材の追加 <span class="tag art">アート</span></h3><ul><li>ラベルの形(スタンプ・マスキングテープ・タイプライター)を紙の画像で</li><li>口のテープ数種(マスキングテープ)、飾り数種(クリップ・ピン・しおり・小さな札)</li><li>封をする金属の押さえ(今回は仮の絵)</li></ul></div>
+  </div>
+  <p>まず Gather → Sort → Dress → Seal の順で触って、「ここは要らない」「ここをもっと作り込みたい」を教えてください。次のどれから実装するかを決められます。</p>
+</div>
+<footer><div class="wrap">Pack Studio preview · 画像はアプリ本物の素材(src/art)、数字は本物の重み。保存・署名・シールの音は仮です。</div></footer>
+
+<script>
+const ART = "../../src/art/";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const h = (t, a = {}, ...k) => { const [tag, ...cl] = t.split("."); const e = document.createElement(tag || "div"); if (cl.length) e.className = cl.join(" "); for (const [n, v] of Object.entries(a || {})) { if (n === "on") for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (n === "style") { for (const [k, x] of Object.entries(v)) k.startsWith("--") ? e.style.setProperty(k, x) : (e.style[k] = x); } else if (n === "data") Object.assign(e.dataset, v); else if (v === true) e.setAttribute(n, ""); else if (v !== false && v != null) e.setAttribute(n, v); } for (const c of k.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const reduced = () => document.documentElement.dataset.reduce === "1";
+
+/* ---------- data ---------- */
+const STK = [
+  ["cat", "cat-skateboard.png", "Skate Cat"], ["coffee", "coffee-cup.png", "Latte"], ["plant", "potted-plant.png", "Monstera"], ["camera", "film-camera.png", "Film Camera"],
+  ["egg", "fried-egg.png", "Sunny Side"], ["goodday", "good-day.png", "Good Day"], ["cassette", "cassette-tape.png", "Mixtape"], ["computer", "retro-computer.png", "Old Mac"],
+  ["flower", "blue-flower.png", "Blue Flower"], ["polaroid", "polaroid-mountain.png", "Mountain"], ["bubble", "peta-bubble.png", "Peta"], ["scribble", "purple-scribble.png", "Scribble"],
+].map(([id, f, name]) => ({ id, src: ART + "samples/" + f, name }));
+const sOf = (id) => STK.find((s) => s.id === id);
+const WEIGHTS = { common: 60, uncommon: 30, rare: 10 };   // creator_pack::RARITY_WEIGHTS
+const TIERS = [["rare", "Rare", "r"], ["uncommon", "Uncommon", "u"], ["common", "Common", ""]];
+const KINDS = [["kraft", "Kraft", "pack-kraft.png"], ["matte", "Matte", "pack-matte.png"], ["holo", "Holographic", "pack-holographic.png"]];
+const CHARMS = [["clip", "Paper clip", ART + "notes/paper-clip.png", 12], ["pin", "Pin", ART + "ui/pin-red.png", 11], ["bind", "Binder clip", ART + "notes/binder-clip.png", 20], ["ribbon", "Bookmark", ART + "ui/ribbon-bookmark.png", 16]];
+const TAPES = ["none", "mint", "pink", "sky", "stripe", "dot"];
+const LABELS = [["paper", "Paper"], ["stamp", "Stamp"], ["tape", "Tape"], ["type", "Typed"]];
+const STEPS = ["Gather", "Sort", "Dress", "Seal"];
+const fresh = () => ({ step: 1, kind: "kraft", hue: 200, title: "Sunny Pack", blurb: "Small things that make a morning.", ls: "paper", tape: "none", items: ["cat", "coffee", "plant", "camera", "egg"].map((id, i) => ({ id, name: sOf(id).name, rarity: i === 3 ? "uncommon" : i === 4 ? "rare" : "common" })), cover: null, charms: [], sel: null, sealed: false, ctx: "shelf", visited: new Set([1]) });
+let S = fresh(), sound = false;
+
+/* ---------- sound (a tiny synth: a real one would reuse Snd) ---------- */
+let ac; const tone = (f, d, v = .08, type = "sine", t0 = 0) => { if (!sound) return; ac ||= new (window.AudioContext || window.webkitAudioContext)(); const t = ac.currentTime + t0, o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02); };
+const sfx = { tap: () => tone(620, .07, .05), pop: () => { tone(420, .09, .07); tone(640, .12, .05, "sine", .05); }, thunk: () => { tone(110, .22, .22, "triangle"); tone(70, .3, .2, "sine"); }, chime: () => { tone(880, .5, .06); tone(1320, .6, .04, "sine", .08); } };
+
+/* ---------- the pouch (the same element is used on the bench, on the shelf and on the rail) ---------- */
+function pouch(opts) {
+  const { w = 270, fan = true, interactive = false } = opts;
+  const el = h("div.pouch", { style: { "--w": w + "px", "--hue": S.hue + "deg", "--art": `url("${ART}pack/pack-${S.kind === "holo" ? "holographic" : S.kind}.png")` }, data: { kind: S.kind, ls: S.ls, tinted: S.hue !== 200 ? "1" : "0" } });
+  if (fan) { const f = h("div.fan"); S.items.slice(0, 6).forEach((it, i, a) => { const n = a.length, spread = n === 1 ? 0 : (i / (n - 1) - .5); f.append(h("img", { src: sOf(it.id).src, alt: "", style: { transform: `translateX(-50%) translateX(${spread * 150}%) rotate(${spread * 40}deg) translateY(${-6 - (1 - Math.abs(spread) * 2) * 12}%)`, zIndex: i } })); }); if (S.items.length > 6) f.append(h("span.more", {}, "+" + (S.items.length - 6))); el.append(f); }
+  el.append(h("div.art"), h("div.sheen"));
+  if (S.tape !== "none") el.append(h("i.toptape", { data: { t: S.tape } }));
+  el.append(h("div.lbl", {}, h("i.cover"), h("b", {}, S.title || "Untitled"), h("small", {}, "by Satoshi")));
+  if (S.cover) el.append(deco(S.cover, "sticker", interactive));
+  S.charms.forEach((c) => el.append(deco(c, c.k, interactive)));
+  return el;
+}
+function deco(d, k, interactive) {
+  const src = k === "sticker" ? sOf(d.id).src : CHARMS.find((c) => c[0] === k)[2];
+  const e = h("div.deco" + (k === "sticker" ? ".sticker" : "") + (interactive && S.sel === d ? ".sel" : ""), { data: { k }, style: { left: d.x + "%", top: d.y + "%", width: d.s + "%", "--r": d.r + "deg" } }, h("img", { src, alt: "" }));
+  if (interactive) { e.addEventListener("pointerdown", (ev) => dragDeco(ev, d, e)); e.addEventListener("dblclick", () => { if (k === "sticker") S.cover = null; else S.charms = S.charms.filter((c) => c !== d); S.sel = null; mount(); sfx.tap(); }); }
+  return e;
+}
+function dragDeco(ev, d, e) {
+  ev.preventDefault(); ev.stopPropagation(); S.sel = d; $$(".deco").forEach((x) => x.classList.toggle("sel", x === e));
+  const box = e.parentElement.getBoundingClientRect(), k = 1120 / $("#fit").clientWidth; const sx = ev.clientX, sy = ev.clientY, x0 = d.x, y0 = d.y;
+  const mv = (m) => { d.x = clamp(x0 + (m.clientX - sx) * k / box.width * 100 * (1 / (box.width / e.parentElement.offsetWidth)), -10, 110); d.y = clamp(y0 + (m.clientY - sy) * k / box.height * 100 * (1 / (box.height / e.parentElement.offsetHeight)), -10, 110); e.style.left = d.x + "%"; e.style.top = d.y + "%"; };
+  const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); sfx.pop(); renderPanel(); }; addEventListener("pointermove", mv); addEventListener("pointerup", up);
+}
+$("#bench").addEventListener("wheel", (ev) => { const d = S.sel; if (!d) return; ev.preventDefault(); if (ev.shiftKey) d.r = Math.round(d.r + ev.deltaY * .15); else d.s = clamp(d.s * (1 - ev.deltaY * .0016), 8, 90); mountPouch(); renderPanel(); }, { passive: false });
+
+/* ---------- bench ---------- */
+let tiltEl;
+function mountPouch() {
+  const sp = $("#sp"); sp.replaceChildren(); const t = h("div.tilt"); t.append(pouch({ w: 270, interactive: true })); sp.append(t); tiltEl = t;
+  $("#capL").textContent = `${S.items.length} stickers · ${S.kind === "holo" ? "Holographic" : S.kind[0].toUpperCase() + S.kind.slice(1)}`; $("#capR").textContent = S.sealed ? "Sealed ✓" : "Draft";
+}
+$("#bench").addEventListener("pointermove", (ev) => {
+  if (!tiltEl || S.sealing) return; const r = $("#bench").getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
+  if (!reduced()) tiltEl.style.transform = `rotateY(${(x - .5) * 18}deg) rotateX(${-(y - .5) * 14}deg)`;
+  const p = $(".pouch", tiltEl); if (p) { p.style.setProperty("--sx", (100 - x * 100) + "%"); p.style.setProperty("--sy", (100 - y * 100) + "%"); }
+});
+$("#bench").addEventListener("pointerleave", () => { if (tiltEl) tiltEl.style.transform = ""; });
+$("#bench").addEventListener("pointerdown", (ev) => { if (!ev.target.closest(".deco") && S.sel) { S.sel = null; $$(".deco").forEach((x) => x.classList.remove("sel")); renderPanel(); } });
+
+/* ---------- steps ---------- */
+function renderSteps() {
+  const st = $("#steps"); st.replaceChildren(...STEPS.map((n, i) => h("button", { role: "tab", class: S.visited.has(i + 1) && i + 1 !== S.step ? "done" : "", "aria-current": S.step === i + 1 ? "step" : "false", on: { click: () => go(i + 1) } }, h("b", {}, i + 1), n)));
+}
+function go(n) { S.step = n; S.visited.add(n); S.sel = null; sfx.tap(); mount(); }
+const total = () => S.items.length;
+const canNext = () => total() >= 3;
+
+/* ---------- panels ---------- */
+function foot(back, next, nextLabel, disabled) { return h("div.foot", {}, back ? h("button.btn.quiet", { on: { click: () => go(S.step - 1) } }, "Back") : h("span"), next ? h("button.btn", { disabled, on: { click: next } }, nextLabel) : h("span")); }
+function gather() {
+  const sel = new Set(S.items.map((i) => i.id));
+  const tiles = STK.map((s) => h("button.tile", { "aria-pressed": String(sel.has(s.id)), title: s.name, on: { click: () => toggle(s.id) } }, h("img", { src: s.src, alt: s.name })));
+  return [h("h2", {}, "Gather your stickers"), h("p.sub", {}, "袋に入れるステッカーを選びます。選ぶと袋の口から覗きます。"),
+    h("div.count", {}, h("b", {}, total()), h("span", {}, "of 24 · at least 3")), h("div.meter", {}, h("i", { style: { width: Math.min(100, total() / 24 * 100) + "%" } })),
+    h("div.scroll", {}, h("div.grid", {}, tiles), h("div.hintbox", {}, "Collection のステッカーがここに並びます(プレビューは見本の12枚)。", h("br"), "「Gather」は Collection を直接見ながら、検索や素材の絞り込みも使えるようにします。")),
+    h("div.foot", {}, h("div", {}, h("button.btn.quiet", { on: { click: () => { S.items = STK.slice(0, 12).map((s, i) => S.items.find((x) => x.id === s.id) || { id: s.id, name: s.name, rarity: "common" }); sfx.pop(); mount(); } } }, "Add all"), h("button.btn.quiet", { on: { click: () => { S.items = []; S.cover = null; mount(); } } }, "Clear")), h("button.btn", { disabled: !canNext(), on: { click: () => go(2) } }, "Sort them →"))];
+}
+function toggle(id) {
+  const i = S.items.findIndex((x) => x.id === id);
+  if (i >= 0) { S.items.splice(i, 1); if (S.cover?.id === id) S.cover = null; sfx.tap(); } else if (S.items.length < 24) { S.items.push({ id, name: sOf(id).name, rarity: "common" }); sfx.pop(); }
+  mount();
+}
+function oddsOf() {
+  const by = { common: [], uncommon: [], rare: [] }; S.items.forEach((i) => by[i.rarity].push(i));
+  const active = Object.keys(by).filter((k) => by[k].length), sum = active.reduce((s, k) => s + WEIGHTS[k], 0);
+  const tier = Object.fromEntries(Object.keys(by).map((k) => [k, by[k].length ? WEIGHTS[k] / sum : 0]));
+  return { by, tier, each: (it) => tier[it.rarity] / by[it.rarity].length };
+}
+function sort() {
+  const o = oddsOf(), pct = (v) => (v * 100 < 10 ? (v * 100).toFixed(1) : Math.round(v * 100)) + "%";
+  const rows = TIERS.map(([k, label, dot]) => {
+    const row = h("div.tier", { data: { tier: k } }, h("div.th", {}, h("b", {}, h("span.seal-dot" + (dot ? "." + dot : "")), label), h("span.pct", {}, o.by[k].length ? `${pct(o.tier[k])} of pulls` : "empty — skipped")),
+      h("div.chips", {}, o.by[k].map((it) => chip(it, o))));
+    return row;
+  });
+  const rare = o.by.rare.length, n = total();
+  const feel = rare === 0 ? ["Flat", "レアがないので、残りの等級でそのまま按分されます。"] : o.tier.rare >= .1 && rare / n > .35 ? ["Generous", "レアがたくさん。袋を開けるたびに特別感が出ます。"] : rare === 1 && n >= 5 ? ["Chase", `レアは1枚だけ。引けたら ${pct(o.tier.rare)}、という狙う楽しさがあります。`] : ["Balanced", "ちょうどよい配分です。"];
+  return [h("h2", {}, "Sort by rarity"), h("p.sub", {}, "ステッカーを棚にドラッグ。出やすさは、アプリの本当の重み(Common 60・Uncommon 30・Rare 10)で計算します。空の棚は飛ばして残りで按分します。"),
+    h("div.scroll", {}, h("div.odds", {}, TIERS.slice().reverse().map(([k]) => h("i", { style: { flex: `0 0 ${o.tier[k] * 100}%`, background: k === "common" ? "#cfc6b0" : k === "uncommon" ? "#a9cfa6" : "linear-gradient(90deg,#f6c6e3,#c9c3f5,#bfe3f7)" } }))),
+      h("div.tiers", {}, rows), h("div.feel", {}, h("b", {}, feel[0]), " — ", feel[1])),
+    foot(true, () => go(3), "Dress it →", !canNext())];
+}
+function chip(it, o) {
+  const c = h("div.chip", { title: `${it.name} · ${(o.each(it) * 100).toFixed(1)}% per pull` }, h("div.im", {}, h("img", { src: sOf(it.id).src, alt: "" })), h("input", { value: it.name, maxlength: 40, "aria-label": "Name", on: { input: (e) => { it.name = e.target.value; }, pointerdown: (e) => e.stopPropagation() } }));
+  c.addEventListener("pointerdown", (ev) => { if (ev.target.tagName === "INPUT") return; dragChip(ev, it, c); });
+  return c;
+}
+function dragChip(ev, it, c) {
+  ev.preventDefault(); const ghost = h("img.ghost", { src: sOf(it.id).src }); let moved = false;
+  const place = (e) => { ghost.style.left = e.clientX - 27 + "px"; ghost.style.top = e.clientY - 27 + "px"; };
+  const mv = (e) => { if (!moved) { moved = true; document.body.append(ghost); c.classList.add("dragging"); } place(e); $$(".tier").forEach((t) => { const r = t.getBoundingClientRect(); t.classList.toggle("over", e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom); }); };
+  const up = (e) => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); ghost.remove(); const t = $$(".tier").find((t) => t.classList.contains("over")); if (moved && t) { it.rarity = t.dataset.tier; sfx.pop(); } else if (!moved) { const order = ["common", "uncommon", "rare"]; it.rarity = order[(order.indexOf(it.rarity) + 1) % 3]; sfx.tap(); } renderPanel(); };
+  addEventListener("pointermove", mv); addEventListener("pointerup", up);
+}
+function dress() {
+  const kinds = h("div.kinds", {}, KINDS.map(([k, n, f]) => h("button.kind", { "aria-pressed": String(S.kind === k), on: { click: () => { S.kind = k; sfx.tap(); mount(); } } }, h("div.ph2", { style: { "--a": `url(${ART}pack/${f})` } }), n)));
+  const hue = h("input.hue", { type: "range", min: 0, max: 360, value: S.hue, "aria-label": "Tint", on: { input: (e) => { S.hue = +e.target.value; mountPouch(); } } });
+  const title = h("input", { value: S.title, maxlength: 40, "aria-label": "Pack name", on: { input: (e) => { S.title = e.target.value; const b = $(".pouch .lbl b"); if (b) b.textContent = S.title || "Untitled"; } } });
+  const labels = h("div.seg", {}, LABELS.map(([k, n]) => h("button", { "aria-pressed": String(S.ls === k), on: { click: () => { S.ls = k; sfx.tap(); mount(); } } }, n)));
+  const tapes = h("div.swatches", {}, TAPES.map((t) => h("button.sw" + (t === "none" ? ".none" : ""), { "aria-pressed": String(S.tape === t), "aria-label": "Top tape " + t, style: t === "none" ? {} : { background: { mint: "#bfe6d3", pink: "#f3c4d2", sky: "#bcd9f0", stripe: "repeating-linear-gradient(45deg,#f6efe0 0 5px,#e9a3a3 5px 10px)", dot: "radial-gradient(circle,#8fb9d6 1.6px,transparent 2px) 0 0/8px 8px,#f6f1e2" }[t] }, on: { click: () => { S.tape = t; sfx.tap(); mount(); } } })));
+  const covers = h("div.covers", {}, h("button.cv.none", { "aria-pressed": String(!S.cover), on: { click: () => { S.cover = null; mount(); } } }, "None"), S.items.map((it) => h("button.cv", { "aria-pressed": String(S.cover?.id === it.id), title: it.name, on: { click: () => { S.cover = { id: it.id, x: 50, y: 70, s: 34, r: -6 }; S.sel = S.cover; sfx.pop(); mount(); } } }, h("img", { src: sOf(it.id).src, alt: "" }))));
+  const charms = h("div.charms", {}, CHARMS.map(([k, n, src, w]) => h("button.charm", { title: n, on: { click: () => { const c = { k, x: 30 + S.charms.length * 14, y: k === "ribbon" ? 22 : 12, s: w, r: k === "clip" ? 16 : 0 }; S.charms.push(c); S.sel = c; sfx.pop(); mount(); } } }, h("img", { src, alt: n }))));
+  const ctl = S.sel ? h("div.hintbox", {}, "選択中:", h("input.rng", { type: "range", min: 8, max: 90, value: S.sel.s, "aria-label": "Size", on: { input: (e) => { S.sel.s = +e.target.value; mountPouch(); } } }), h("input.rng", { type: "range", min: -45, max: 45, value: S.sel.r, "aria-label": "Rotate", on: { input: (e) => { S.sel.r = +e.target.value; mountPouch(); } } }), h("span.small", {}, "袋の上でドラッグ / ダブルクリックで外す")) : null;
+  return [h("h2", {}, "Dress the pouch"), h("p.sub", {}, "袋を見ながら、素材・色・ラベル・表紙・飾りを決めます。"),
+    h("div.scroll", {}, h("div.sec", {}, h("label", {}, "Wrapper"), kinds),
+      (S.kind !== "kraft") ? h("div.sec", {}, h("label", {}, S.kind === "holo" ? "Tint" : "Paper tone"), hue) : null,
+      h("div.sec", {}, h("label", {}, "Name"), h("div.field", {}, title), h("div.lb", {}, "Label"), labels),
+      h("div.sec", {}, h("label", {}, "Top tape"), tapes),
+      h("div.sec", {}, h("label", {}, "Cover sticker"), covers),
+      h("div.sec", {}, h("label", {}, "Charms"), charms, ctl)),
+    foot(true, () => go(4), "Seal it →", false)];
+}
+function seal() {
+  if (S.sealed) return [h("div.done", {}, h("h2", {}, "Sealed. 「" + (S.title || "Untitled") + "」"), h("p", {}, `${total()} stickers · signed as Satoshi`), h("div.signed", {}, h("i", {}, "✓ SIGNED"), "fingerprint 3F9A · 7C21 · B0D4 — 改ざんされると開けません"), h("p.small", {}, "共有ファイル(.petapack)を保存するか、自分の棚に置けます。"), h("div", { style: { display: "flex", gap: "10px", justifyContent: "center", marginTop: "12px" } }, h("button.btn", { on: { click: () => { sfx.chime(); flashMsg("Saved to Desktop"); } } }, "Save pack file…"), h("button.btn.paper", { on: { click: () => { S.ctx = "shelf"; sfx.tap(); renderPanel(); } } }, "Put on my shelf")), h("button.btn.quiet", { style: { marginTop: "8px" }, on: { click: () => { S.sealed = false; mount(); } } }, "Reopen to keep editing"))].concat([sceneBlock()]);
+  const o = oddsOf();
+  return [h("h2", {}, "Check it, then seal it"), h("p.sub", {}, "棚とMarketでどう見えるかを確かめます。封をすると署名されて、中身は変えられなくなります。"),
+    h("div.scroll", {}, sceneBlock(), h("div.sec", {}, h("label", {}, "About this pack"), h("div.field", {}, h("textarea", { rows: 2, maxlength: 90, "aria-label": "Description", on: { input: (e) => { S.blurb = e.target.value; const p = $(".mcard p"); if (p) p.textContent = S.blurb; } } }, S.blurb))),
+      h("div.signed", {}, h("i", {}, "SIGN"), `Satoshi · ${total()} stickers · rare ${(o.tier.rare * 100).toFixed(0)}%`)),
+    h("div.foot", {}, h("button.btn.quiet", { on: { click: () => go(3) } }, "Back"), h("button.btn", { disabled: !canNext(), on: { click: sealIt } }, "Seal the pack"))];
+}
+function sceneBlock() {
+  const seg = h("div.seg.ctxs", {}, [["shelf", "Shelf"], ["market", "Market"], ["card", "Card"]].map(([k, n]) => h("button", { "aria-pressed": String(S.ctx === k), on: { click: () => { S.ctx = k; sfx.tap(); renderPanel(); } } }, n)));
+  const sc = h("div.scene"), left = S.items.length, w = 116;
+  if (S.ctx === "shelf") { const a = pouch({ w, fan: false }); a.style.cssText += `left:50%;bottom:20px;translate:-50% 0;`; const b = h("div.pouch", { style: { "--w": "92px", "--art": `url(${ART}pack/pack-matte.png)`, left: "10%", bottom: "20px", position: "absolute", opacity: .55 }, data: { kind: "matte", ls: "paper" } }, h("div.art")), c = h("div.pouch", { style: { "--w": "92px", "--art": `url(${ART}pack/pack-holographic.png)`, right: "10%", bottom: "20px", position: "absolute", opacity: .55, "--hue": "120deg" }, data: { kind: "holo", ls: "paper" } }, h("div.art")); sc.append(b, c, a, h("div.plank"), h("span.wallcount", { style: { left: "50%", top: "6px", translate: "-50% 0", rotate: "-1deg" } }, `${left} left`)); }
+  else if (S.ctx === "market") { sc.append(h("div.rod"), h("i.endl"), h("i.endr")); const a = pouch({ w, fan: false }); a.style.cssText += "left:50%;top:44px;translate:-50% 0;"; sc.append(a, h("i.clip", { style: { left: "50%", top: "14px", translate: "-50% 0" } }), h("span.small", { style: { position: "absolute", left: 0, right: 0, bottom: "8px", textAlign: "center", color: "#38342f", font: "600 13px var(--sys)" } }, "Free · ✓ Owned")); }
+  else { const a = pouch({ w: 120, fan: false }); a.style.cssText += "left:22px;top:20px;"; sc.append(a, h("div.mcard", {}, h("div.eyebrow", { style: { fontSize: "10px" } }, "by Satoshi · " + left + " stickers"), h("h3", {}, S.title || "Untitled"), h("p", {}, S.blurb), h("div.row", {}, S.items.slice(0, 3).map((it) => h("i", {}, h("img", { src: sOf(it.id).src, alt: "" }))), left > 3 ? h("i", {}, "?") : null))); }
+  return h("div", {}, seg, sc);
+}
+function flashMsg(t) { const m = h("div", { style: { position: "absolute", left: "50%", top: "10px", translate: "-50% 0", background: "#1f1b16", color: "#fff", padding: "8px 16px", borderRadius: "99px", font: "600 13px var(--sys)", zIndex: 30 } }, t); $(".win").append(m); setTimeout(() => m.remove(), 1800); }
+
+/* ---------- the sealing: a press crimps the top; the pack is signed ---------- */
+async function sealIt() {
+  if (S.sealing) return; S.sealing = true; S.sel = null; mountPouch(); const wait = (ms) => new Promise((r) => setTimeout(r, reduced() ? 1 : ms));
+  const p = $(".pouch"), t = $(".tilt"); t.style.transform = ""; const press = h("div.press"); p.append(press);
+  press.animate([{ transform: "translateY(-140%)" }, { transform: "translateY(62%)" }], { duration: reduced() ? 1 : 520, easing: "cubic-bezier(.5,0,.8,.4)", fill: "forwards" }); await wait(500);
+  sfx.thunk(); p.animate([{ transform: "scale(1)" }, { transform: "scale(.975,.96) translateY(6px)" }, { transform: "scale(1.015)" }, { transform: "scale(1)" }], { duration: reduced() ? 1 : 420, easing: "ease-out" });
+  const fl = $("#flash"); fl.animate([{ opacity: 0 }, { opacity: .75 }, { opacity: 0 }], { duration: reduced() ? 1 : 520 });
+  if (!reduced()) { const sp = h("div.sparks"); $("#bench").append(sp); const r = $(".pouch").getBoundingClientRect(), b = $("#bench").getBoundingClientRect(), k = 1120 / $("#fit").clientWidth; for (let i = 0; i < 18; i++) { const d = h("i", { style: { left: (r.left - b.left + r.width * (.2 + Math.random() * .6)) * k + "px", top: (r.top - b.top + r.height * .1) * k + "px", background: ["#ffd877", "#fff", "#f6c6e3", "#bfe3f7"][i % 4] } }); sp.append(d); d.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${(Math.random() - .5) * 160}px,${60 + Math.random() * 90}px) scale(.2)`, opacity: 0 }], { duration: 800 + Math.random() * 400, easing: "cubic-bezier(.2,.7,.3,1)", fill: "forwards" }); } setTimeout(() => sp.remove(), 1400); }
+  await wait(380); press.animate([{ transform: "translateY(62%)" }, { transform: "translateY(-140%)" }], { duration: reduced() ? 1 : 460, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" }); await wait(300);
+  const st = h("div.stamp", {}, "SEALED"); $("#bench").append(st); st.animate([{ opacity: 0, transform: "scale(2.2)" }, { opacity: .9, transform: "scale(.94)", offset: .6 }, { opacity: .85, transform: "scale(1)" }], { duration: reduced() ? 1 : 360, easing: "ease-out", fill: "forwards" }); sfx.tap(); await wait(700); sfx.chime();
+  S.sealed = true; S.sealing = false; S.ctx = "shelf"; mount(); setTimeout(() => st.remove(), 400);
+}
+
+/* ---------- mount ---------- */
+function renderPanel() { const p = $("#panel"); const body = { 1: gather, 2: sort, 3: dress, 4: seal }[S.step](); p.replaceChildren(...[].concat(body)); }
+function mount() { renderSteps(); mountPouch(); renderPanel(); }
+mount();
+
+/* ---------- page chrome ---------- */
+const fit = $("#fit"), stage = $("#stage"); const rs = () => { const k = fit.clientWidth / 1120; stage.style.transform = `scale(${k})`; fit.style.height = 740 * k + "px"; }; new ResizeObserver(rs).observe(fit); rs();
+$("#tSnd").addEventListener("click", (e) => { sound = !sound; e.currentTarget.setAttribute("aria-pressed", String(sound)); if (sound) sfx.pop(); });
+$("#tRed").addEventListener("click", (e) => { const on = document.documentElement.dataset.reduce !== "1"; document.documentElement.dataset.reduce = on ? "1" : "0"; e.currentTarget.setAttribute("aria-pressed", String(on)); });
+$("#tReset").addEventListener("click", () => { S = fresh(); mount(); });
+</script>
+</body>
+</html>
