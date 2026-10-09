@@ -66,14 +66,21 @@ Pages.today = {
   },
   fillSlot(slot, entries) {
     const wrap = h("div.t-landed"), stamp = h("span.datestamp.t-stamp", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" })), ripple = h("i.t-ripple");
-    const shown = entries.slice(0, 6), thumbs = h("div.t-others", { role: "group", "aria-label": "Stickers stuck today" });
+    const shown = entries.slice(0, 12), thumbs = h("div.t-others", { role: "group", "aria-label": "Stickers stuck today" });
     const show = async (e, first) => {
       const res = await resOf(e); if (!wrap.isConnected && !first) return;
       wrap.replaceChildren(Stk.el(res, Math.min(280, res.aspect >= 1 ? 280 : 280 * res.aspect)));
       Stk.tilt(wrap, { max: 5, scale: 1.015, trigger: slot });
       $$(".t-thumb", thumbs).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.id === e.id)));
+      const on = $(`.t-thumb[data-id="${e.id}"]`, thumbs); // keep the chosen one inside the strip
+      if (on) { const a = on.offsetLeft - 4, z = on.offsetLeft + on.offsetWidth + 4; if (a < thumbs.scrollLeft) thumbs.scrollTo({ left: a, behavior: "smooth" }); else if (z > thumbs.scrollLeft + thumbs.clientWidth) thumbs.scrollTo({ left: z - thumbs.clientWidth, behavior: "smooth" }); }
     };
     if (shown.length > 1) shown.forEach((e, i) => { const b = h("button.t-thumb", { data: { id: e.id }, "aria-pressed": String(i === 0), "aria-label": "Show " + titleOf(e), on: { click: () => { if (b.getAttribute("aria-pressed") === "true") return; Snd.tap(); show(e); } } }); resOf(e).then((res) => b.append(Stk.el(res, res.aspect >= 1 ? 40 : 40 * res.aspect))).catch(() => {}); thumbs.append(b); });
+    // one row, about four and a half thumbnails wide; what runs past the edge fades out, and a wheel scrolls it sideways
+    const fade = () => { const max = thumbs.scrollWidth - thumbs.clientWidth; thumbs.dataset.fadeStart = String(thumbs.scrollLeft > 2); thumbs.dataset.fadeEnd = String(max > 2 && thumbs.scrollLeft < max - 2); };
+    thumbs.addEventListener("scroll", fade, { passive: true });
+    thumbs.addEventListener("wheel", (ev) => { if (Math.abs(ev.deltaY) > Math.abs(ev.deltaX)) { thumbs.scrollLeft += ev.deltaY; ev.preventDefault(); } }, { passive: false });
+    new ResizeObserver(fade).observe(thumbs);
     slot.append(wrap, ripple, stamp, shown.length > 1 ? thumbs : null);
     let saved = null; try { saved = JSON.parse(localStorage.getItem("peta.landed") || "null"); } catch {}
     const { fresh, next } = PetaMath.landingState(saved, PetaMath.bookDateKey(S.today), entries.map((e) => e.id));

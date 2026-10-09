@@ -48,8 +48,8 @@ pub async fn pack_open(app: AppHandle, pack_id: String, queue: Option<bool>) -> 
 }
 
 #[tauri::command]
-pub async fn pack_open_free(app: AppHandle, pack_id: String) -> Result<Opened, String> {
-    open(app, pack_id, true, true).await
+pub async fn pack_open_free(app: AppHandle, pack_id: String, queue: Option<bool>) -> Result<Opened, String> {
+    open(app, pack_id, true, queue.unwrap_or(true)).await
 }
 
 async fn open(app: AppHandle, pack_id: String, free: bool, queue: bool) -> Result<Opened, String> {

@@ -30,7 +30,7 @@ test('a free opening works on an empty Welcome pack and spends nothing before th
   const f=fixture();await f.open(true);
   assert.equal(f.overlays,1);assert.deepEqual(f.calls,[]);
   await f.tear();
-  assert.deepEqual(f.calls,[{cmd:'pack_open_free',args:{packId:'welcome'}}]);
+  assert.deepEqual(f.calls,[{cmd:'pack_open_free',args:{packId:'welcome',queue:false}}]);
   assert.equal(f.pack.left.length,0);
 });
 
