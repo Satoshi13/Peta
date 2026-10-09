@@ -182,6 +182,34 @@ html[data-reduce="1"] *, html[data-reduce="1"] *::before, html[data-reduce="1"] 
 .pair .noteview { inset: 8px; padding: 10px 12px; } .pair .noteview .to { font-size: 17px; } .pair .noteview .msg { font-size: 14px; } .pair .noteview .st { width: 46px; }
 .bagt { aspect-ratio: 1.25; } .cv { width: 42px !important; height: 42px !important; } .help { margin-bottom: 8px; }
 .steps button:disabled { opacity: .55; cursor: default; }
+
+/* --- the world: physical things on a desk, a flat system UI around them --- */
+.ruler { position: absolute; z-index: 1; left: 19px; bottom: 44px; width: 432px; height: 30px; border-radius: 3px; background: linear-gradient(180deg, rgba(255,251,236,.9), rgba(240,230,200,.86)); box-shadow: 0 2px 4px rgba(40,25,5,.35), inset 0 0 0 .5px rgba(90,70,30,.35);
+  background-image: repeating-linear-gradient(90deg, rgba(50,38,18,.75) 0 1px, transparent 1px 24px), repeating-linear-gradient(90deg, rgba(50,38,18,.5) 0 1px, transparent 1px 2.4px), linear-gradient(180deg, rgba(255,251,236,.9), rgba(240,230,200,.86)); background-size: 24px 14px, 2.4px 6px, 100% 100%; background-repeat: repeat-x, repeat-x, no-repeat; background-position: 0 0, 0 0, 0 0; pointer-events: none; }
+.ruler span { position: absolute; top: 15px; font: 10px/1 var(--type); color: rgba(50,38,18,.8); } .ruler .u { font-style: italic; }
+.stagepouch { top: 46% !important; } .pouch { filter: drop-shadow(var(--shx, 0px) var(--shy, 14px) 12px rgba(50,35,10,.35)) !important; }
+.stagepouch { --shx: 0px; --shy: 14px; }
+.bench .light { position: absolute; inset: 0; z-index: 5; pointer-events: none; transition: background .6s; }
+.bench[data-light="morning"] .light { background: linear-gradient(100deg, rgba(255,206,130,.38), rgba(255,236,190,.05) 65%); }
+.bench[data-light="evening"] .light { background: linear-gradient(260deg, rgba(255,128,48,.36), rgba(140,60,110,.16) 70%); }
+.bench[data-light="night"] .light { background: radial-gradient(60% 55% at 72% 22%, rgba(255,224,160,.5), transparent 70%), rgba(18,26,66,.55); mix-blend-mode: multiply; }
+.pouch[data-gloss="1"] .sheen { opacity: var(--gloss); } .pouch[data-gloss="1"] .art { z-index: 2; }
+.pouch .dr-box, .pouch .dr-sleeve { position: absolute; inset: 0; background: var(--art) center / 100% 100% no-repeat; pointer-events: none; }
+.pouch .dr-box { z-index: 2; clip-path: inset(0 0 0 66%); } .pouch .dr-sleeve { z-index: 3; clip-path: inset(0 34% 0 0); }
+.toptape[data-t="cream"] { background: #efe4c6; }
+.pouch .thumb { position: absolute; z-index: 8; aspect-ratio: 1.2; border-radius: 50%; background: radial-gradient(closest-side, rgba(70,40,15,.34), transparent); filter: blur(3px); translate: -50% -40%; pointer-events: none; }
+.pouch .disc { position: absolute; z-index: 6; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 1px 2px rgba(40,25,5,.45), inset 0 0 0 1.5px rgba(255,255,255,.28); pointer-events: none; }
+.pouch .knot { position: absolute; z-index: 6; width: 7%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); background: radial-gradient(circle at 35% 30%, #f6ecd2, #d5c293); box-shadow: 0 2px 3px rgba(40,25,5,.4); pointer-events: none; }
+.flyer { position: fixed; z-index: 99; pointer-events: none; filter: drop-shadow(0 6px 6px rgba(40,25,5,.3)); }
+.pouch[data-ls="paper"] .lbl b { font-family: var(--pen); font-weight: 400; color: #27303f; mix-blend-mode: multiply; letter-spacing: .01em; text-shadow: 0 0 .6px rgba(39,48,63,.5); }
+.pouch[data-ls="paper"] .lbl small { font-family: var(--type); font-weight: 400; letter-spacing: .12em; color: #6b6150; mix-blend-mode: multiply; }
+/* flat system UI: no texture, cool neutrals; all colour and grain comes from the objects */
+html[data-ui="flat"] .win { background: #f5f5f3; } html[data-ui="flat"] .side { background: #ececea; box-shadow: inset -1px 0 0 rgba(0,0,0,.07); } html[data-ui="flat"] .side a i { background: #d4d4cf; box-shadow: none; }
+html[data-ui="flat"] .panel, html[data-ui="flat"] .mk { background: #fff; box-shadow: inset 0 0 0 1px #e4e4e0; } html[data-ui="flat"] .mk:hover { box-shadow: inset 0 0 0 1px #d6d6d1, 0 14px 30px rgba(0,0,0,.1); }
+html[data-ui="flat"] .tile, html[data-ui="flat"] .bagt, html[data-ui="flat"] .cv { background: #f1f1ef; box-shadow: inset 0 0 0 1px #e4e4e0; } html[data-ui="flat"] .tile[aria-pressed="true"], html[data-ui="flat"] .bagt[aria-pressed="true"], html[data-ui="flat"] .cv[aria-pressed="true"] { background: #fff; box-shadow: inset 0 0 0 2px var(--ink); }
+html[data-ui="flat"] .steps, html[data-ui="flat"] .seg { background: rgba(0,0,0,.06); } html[data-ui="flat"] .field input, html[data-ui="flat"] .field textarea { background: #f7f7f5; box-shadow: inset 0 0 0 1px #e4e4e0; }
+html[data-ui="flat"] .signed { background: #f1f1ef; box-shadow: inset 0 0 0 1px #e4e4e0; } html[data-ui="flat"] .mk .art { background: #f1f1ef; } html[data-ui="flat"] .mk .for { background: #ececea; color: #55554f; }
+html[data-ui="flat"] .ph .eyebrow, html[data-ui="flat"] .eyebrow { color: #7a7a74; }
 </style>
 </head>
 <body>
@@ -192,8 +220,10 @@ html[data-reduce="1"] *, html[data-reduce="1"] *::before, html[data-reduce="1"] 
   <div class="bar">
     <button class="tog" id="tSnd" aria-pressed="false">音</button>
     <button class="tog" id="tRed" aria-pressed="false">動きを減らす</button>
+    <button class="tog" id="tLight">光: 自動</button>
+    <button class="tog" id="tUI" aria-pressed="true">UI: フラット</button>
     <button class="tog" id="tReset">最初からやり直す</button>
-    <span class="small">袋はドラッグ(傾く・光る)、ステッカーや飾りは袋の上へドラッグ、ホイールで拡大、Shift+ホイールで回転。</span>
+    <span class="small">見どころ: ステッカーを選ぶと袋に飛び込む / 袋ごとに封じ方が違う(Seal) / 袋は実寸の比率で、台の定規は cm / 袋に触れると影が追う / 光は時間帯。</span>
   </div>
 </div></header>
 <main class="wrap"><div class="fit" id="fit"><div class="stage" id="stage">
@@ -201,12 +231,31 @@ html[data-reduce="1"] *, html[data-reduce="1"] *::before, html[data-reduce="1"] 
     <nav class="side" id="side"></nav>
     <div class="page" id="page">
       <div class="ph" id="ph"></div>
-      <div class="work" id="work"><div class="bench" id="bench"><div class="stagepouch" id="sp"></div><div class="cap"><span id="capL"></span><span id="capR"></span></div><div class="flash" id="flash"></div></div><div class="panel" id="panel"></div></div>
+      <div class="work" id="work"><div class="bench" id="bench"><div class="ruler" id="ruler"></div><div class="stagepouch" id="sp"></div><div class="cap"><span id="capL"></span><span id="capR"></span></div><div class="light"></div><div class="flash" id="flash"></div></div><div class="panel" id="panel"></div></div>
       <div class="choose" id="choose" hidden></div>
     </div>
   </div>
 </div></div></main>
 <div class="wrap note">
+  <h2>世界観: 実写の物 × フラットなシステムUI</h2>
+  <p>触れる物は実写、決める部分はシステムUI、と分けています。UIは質感を持たず(右上の「UI」で、紙の質感の今の見た目と見比べられます)、色と質感はすべて物から出ます。</p>
+  <div class="cols">
+    <div class="card"><h3>動き</h3><ul>
+      <li><b>ステッカーが袋に飛び込む</b>(外すと戻る)。袋が少し沈む</li>
+      <li><b>封じ方が包みごとに違う</b>: 金属プレス(ホログラム)/ テープを貼って親指でなぞる(Kraft・Matte・Parcel・Pocket)/ 丸いシールを押す(Glassine・Folded wrap)/ フラップを閉じて親指でなぞる(Photo・Airmail)/ ひもを引き絞る(Cotton)/ スリーブを押し込む(Drawer)</li>
+      <li>封をした袋は、不透明なものは中身が見えなくなる(グラシンと折り包みは透けたまま)。テープやスリーブも付いたまま</li></ul></div>
+    <div class="card"><h3>現実に寄せたところ</h3><ul>
+      <li><b>実寸の比率</b>: 袋ごとに幅(cm)を持ち、台の定規(cm)と合わせて描く。棚の上でも同じ縮尺</li>
+      <li><b>個体差</b>: ラベルの傾き・位置、テープ、表紙、クリップの角度が、パックごとにわずかに違う(名前から決まるので、いつも同じ)</li>
+      <li><b>影が傾きに追従</b>、グラシンや折り包みには光の反射</li>
+      <li><b>光は時間帯</b>(右上の「光」で 朝・昼・夕・夜 を切り替え、既定はいまの時刻)</li>
+      <li><b>Market の見せ方</b>: 吊るもの(Kraft・Matte・Holo・Glassine・Cotton)はレールに、立つもの(封筒・箱・包み)は台に立てかけて表示</li>
+      <li>ラベルの文字は、手書き(ペン)とタイプライターの組み合わせ</li></ul></div>
+    <div class="card"><h3>まだ近似のところ(Codexに頼むと良くなる)</h3><ul>
+      <li>袋は1枚画像なので、封じ方は画像の切り出しや重ねで近似しています。前面・背面・フラップ・留め具を分けた素材があると、剥がす・解く・開ける演出が本物になります</li>
+      <li>袋の厚み(3枚と24枚で変わる)は未対応。厚み3段階の素材が必要です</li>
+      <li>音は仮の合成音。素材ごとの録音(紙・グラシン・布・フォイル)に差し替えたい</li></ul></div>
+  </div>
   <h2>仕様(選ぶだけ・数字は持たない)</h2>
   <p>座標や色相のような自由な数値は持たず、袋・表紙・飾りは「ID」を選ぶだけにしました。位置は包みごとに決まっているので、どの組み合わせでも整い、署名にも入れやすく、受け取った側でも同じ見た目になります。Pack も Gift も「中身 → 見た目 → 封」の3工程です。</p>
   <div class="cols">
@@ -289,6 +338,15 @@ const GEN = [
 const CLASSIC = [["kraft", "Kraft"], ["matte", "Matte"], ["holo", "Holographic"]].map(([id, name]) => ({ id, name, classic: true, W: 3, H: 4, body: [4, 5, 96, 97], lbl: id === "holo" ? [22.5, 38, 77.2, 62.6] : id === "kraft" ? [21, 39, 79, 65.5] : [20, 47.8, 80.5, 72],
   cover: [72, 80, 30, 8], clip: [76, 6, 9, 16], pin: [50, 6, 7] }));
 const BAGS = [...CLASSIC, ...GEN], bagOf = (id) => BAGS.find((b) => b.id === id);
+/* Real-world facts per wrapping: cm = width of the object in centimetres (the bench and the scenes draw everything at one scale),
+   show = how a shop shows it (hang from the rail / stand on a board), lean = how far it leans, seal = how it is closed, see = the paper is translucent so the stickers stay visible, gloss = how much light plays on it */
+const META = {
+  kraft: { cm: 10, show: "hang", seal: "tape" }, matte: { cm: 10, show: "hang", seal: "tape" }, holo: { cm: 10, show: "hang", seal: "press" },
+  glassine: { cm: 9, show: "hang", seal: "seal", disc: "#8fb0d6", see: 1, gloss: .55 }, photo: { cm: 12, show: "stand", lean: -3, seal: "sweep", gloss: .12 },
+  "kraft-parcel": { cm: 11, show: "stand", seal: "tape", gloss: .1 }, pocket: { cm: 12, show: "stand", seal: "tape", gloss: .1 }, airmail: { cm: 16.5, show: "stand", lean: -4, seal: "sweep", gloss: .15 },
+  wrap: { cm: 11, show: "stand", seal: "seal", disc: "#b9443b", see: 1, gloss: .45 }, drawer: { cm: 10.5, show: "stand", seal: "slide", gloss: .12 }, cotton: { cm: 11, show: "hang", seal: "string" },
+};
+BAGS.forEach((b) => Object.assign(b, META[b.id]));
 const PACK_BAGS = ["kraft", "matte", "holo", "glassine", "kraft-parcel", "pocket", "drawer", "cotton"];
 const GIFT_BAGS = ["airmail", "photo", "kraft-parcel", "wrap", "cotton", "glassine"];
 const DECOS = [["none", "なし"], ["clip", "クリップ"], ["pin", "ピン"], ["tape", "テープ"]];
@@ -314,22 +372,33 @@ const oddsLine = (p) => { if (!p.items.length) return "—"; const o = odds(p); 
 
 /* ---------- sound (a tiny synth: the real app reuses Snd) ---------- */
 let ac; const tone = (f, d, v = .08, type = "sine", t0 = 0) => { if (!sound) return; ac ||= new (window.AudioContext || window.webkitAudioContext)(); const t = ac.currentTime + t0, o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02); };
-const sfx = { tap: () => tone(620, .07, .05), pop: () => { tone(420, .09, .07); tone(640, .12, .05, "sine", .05); }, thunk: () => { tone(110, .22, .22, "triangle"); tone(70, .3, .2, "sine"); }, chime: () => { tone(880, .5, .06); tone(1320, .6, .04, "sine", .08); } };
+const noise = (d, v = .05, f = 2500, type = "highpass", t0 = 0) => { if (!sound) return; ac ||= new (window.AudioContext || window.webkitAudioContext)(); const t = ac.currentTime + t0, n = Math.floor(ac.sampleRate * d), buf = ac.createBuffer(1, n, ac.sampleRate), data = buf.getChannelData(0); for (let i = 0; i < n; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / n); const src = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain(); src.buffer = buf; fl.type = type; fl.frequency.value = f; g.gain.value = v; src.connect(fl).connect(g).connect(ac.destination); src.start(t); };   // placeholder foley; the real app would use recorded material sounds
+const sfx = { rip: () => noise(.2, .1, 1800), rustle: () => { noise(.28, .06, 900, "bandpass"); noise(.22, .05, 1500, "bandpass", .14); },  tap: () => tone(620, .07, .05), pop: () => { tone(420, .09, .07); tone(640, .12, .05, "sine", .05); }, thunk: () => { tone(110, .22, .22, "triangle"); tone(70, .3, .2, "sine"); }, chime: () => { tone(880, .5, .06); tone(1320, .6, .04, "sine", .08); } };
 
 /* ================= the wrapped thing: one element for the bench, the shelf, the Market and the recipient's table ================= */
 const artOf = (bag) => (bag.gen ? B(bag.file) : A("pack/pack-" + (bag.id === "holo" ? "holographic" : bag.id) + ".png"));
 const emOf = (text) => [...text].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 1 : .55), 0);
 const fitFor = (text) => Math.min(1, 100 * .9 / (emOf(text) * 13));   // shrink a longer name to fit one line (the label is 100cqw wide)
-function pouch({ w: px = 270, fan = true, d = W() }) {
-  const gift = d === S.gift, bag = bagOf(d.bag), [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0;
-  let boxW = bag.gen ? px * 1.12 / (bw / 100) : px;
-  const ratio = bag.W / bag.H; if (bag.gen && boxW / ratio * bh / 100 > px * 1.3) boxW = px * 1.3 / (bh / 100) * ratio;
+const hash = (str) => { let x = 2166136261; for (const c of str) x = Math.imul(x ^ c.charCodeAt(0), 16777619); return x >>> 0; };
+const rnd = (seed, i) => { const v = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453; return v - Math.floor(v); };
+const tapeRect = (bag) => bag.tape || [12, 5.5, 76, 8, -1.5];
+function tapeEl(bag, kind) {
+  const tp = h("i.toptape", { data: { t: kind } });
+  if (bag.gen) { const [tx, ty, tw, th, tr] = bag.tape; Object.assign(tp.style, { left: tx + "%", right: "auto", width: tw + "%", top: ty + "%", height: th + "%", rotate: tr + "deg" }); }
+  return tp;
+}
+/* k = pixels per centimetre. closed = how it looks once sealed (opaque wrappings hide what is inside; the tape or sleeve is on). */
+function pouch({ k: ppc = 24, fan = true, d = W(), closed, pending = null }) {
+  const gift = d === S.gift, bag = bagOf(d.bag), [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, shut = closed ?? d.sealed;
+  const boxW = bag.cm * ppc / (bw / 100);
   const title = gift ? (d.to.trim() ? "For " + d.to.trim() : "For you") : (d.title.trim() || "Untitled"), sub = gift ? "from Satoshi" : "by Satoshi";
-  const el = h("div.pouch", { style: { "--w": boxW + "px", "--art": `url("${artOf(bag)}")`, aspectRatio: `${bag.W} / ${bag.H}` }, data: { kind: bag.gen ? "gen" : bag.id, ls: "paper", tinted: "0", nolabel: bag.gen && !bag.hasLabel ? "1" : "0" } });
+  const seed = hash((gift ? d.to : d.title) + d.bag), jit = (i, amp) => (rnd(seed, i) - .5) * amp;   // every pack is a little different, the same way every time
+  const el = h("div.pouch", { style: { "--w": boxW + "px", "--art": `url("${artOf(bag)}")`, "--gloss": bag.gloss ?? 0, aspectRatio: `${bag.W} / ${bag.H}` }, data: { kind: bag.gen ? "gen" : bag.id, ls: "paper", tinted: "0", nolabel: bag.gen && !bag.hasLabel ? "1" : "0", gloss: bag.gen && bag.gloss ? "1" : "0" } });
+  if (bag.lean) el.style.rotate = bag.lean + "deg";
   const [l, t, r, b] = bag.lbl;
   if (bag.gen) { el.style.setProperty("--ll", l + "%"); el.style.setProperty("--lt", t + "%"); el.style.setProperty("--lr", 100 - r + "%"); el.style.setProperty("--lb", 100 - b + "%"); el.style.setProperty("--lrot", bag.rot + "deg"); }
-  const items = gift ? [{ id: d.sticker }] : d.items;
-  if (fan && items.length) {
+  const all = gift ? [{ id: d.sticker }] : d.items, items = pending ? all.filter((i) => i.id !== pending) : all;
+  if (fan && items.length && (!shut || bag.see)) {
     const f = h("div.fan"), pk = bag.peek; let sz = 36, spread = 150, cut = false;
     if (bag.gen && pk) {
       Object.assign(f.style, { left: pk.box[0] + "%", right: "auto", width: pk.box[2] + "%", top: pk.box[1] + "%", height: pk.box[3] + "%", zIndex: pk.front ? 4 : 1 });
@@ -339,31 +408,42 @@ function pouch({ w: px = 270, fan = true, d = W() }) {
     items.slice(0, 6).forEach((it, i, a) => { const n = a.length, sp = n === 1 ? 0 : (i / (n - 1) - .5); f.append(h("img", { src: sOf(it.id).src, alt: "", style: { transform: `translateX(-50%) translateX(${sp * spread}%) rotate(${sp * 40}deg) translateY(${-6 - (1 - Math.abs(sp) * 2) * 12}%)`, zIndex: i, width: (n === 1 ? sz * 1.4 : sz) + "%", bottom: cut ? (pk.sink ?? -40) + "%" : "" } })); });
     if (items.length > 6) f.append(h("span.more", {}, "+" + (items.length - 6))); el.append(f);
   }
-  el.append(h("div.art"));
-  if (!bag.gen) el.append(h("div.sheen"));
-  if (d.deco === "tape") { const tp = h("i.toptape", { data: { t: "mint" } }); if (bag.gen) { const [tx, ty, tw, th, tr] = bag.tape; Object.assign(tp.style, { left: tx + "%", right: "auto", width: tw + "%", top: ty + "%", height: th + "%", rotate: tr + "deg" }); } el.append(tp); }
-  const lb = h("b", {}, title); lb.style.fontSize = 13 * fitFor(title) * (bag.gen ? .88 : 1) + "cqw";
-  el.append(h("div.lbl", {}, h("i.cover"), lb, h("small", {}, sub)));
-  if (!gift && d.cover) el.append(fixed(sOf(d.cover).src, "sticker", ...bag.cover));
-  if (d.deco === "clip") el.append(fixed(A("notes/paper-clip.png"), "clip", ...bag.clip));
-  if (d.deco === "pin") el.append(fixed(A("ui/pin-red.png"), "pin", bag.pin[0], bag.pin[1], bag.pin[2], 0));
+  const art = h("div.art"); if (shut && bag.seal === "slide") art.style.opacity = 0; el.append(art);
+  if (shut && bag.seal === "slide") el.append(h("div.dr-box", { style: { transform: "translateX(-29%)" } }), h("div.dr-sleeve"));
+  if ((bag.gen ? bag.gloss : true) && !(shut && bag.seal === "slide")) el.append(h("div.sheen"));
+  if (d.deco === "tape") { const tp = tapeEl(bag, "mint"); if (bag.gen) tp.style.rotate = bag.tape[4] + jit(3, 3) + "deg"; el.append(tp); }
+  else if (shut && bag.seal === "tape") el.append(tapeEl(bag, "cream"));
+  const lb = h("b", {}, title); lb.style.fontSize = 13 * 1.1 * fitFor(title) * (bag.gen ? .88 : 1) + "cqw";
+  const lblEl = h("div.lbl", {}, h("i.cover"), lb, h("small", {}, sub)); lblEl.style.rotate = (bag.rot || 0) + jit(1, 3) + "deg"; lblEl.style.translate = `${jit(2, 1.6)}% ${jit(5, 1.6)}%`; el.append(lblEl);
+  if (!gift && d.cover) el.append(fixed(sOf(d.cover).src, "sticker", bag.cover[0], bag.cover[1], bag.cover[2], bag.cover[3] + jit(4, 6)));
+  if (d.deco === "clip") el.append(fixed(A("notes/paper-clip.png"), "clip", bag.clip[0], bag.clip[1], bag.clip[2], bag.clip[3] + jit(6, 8)));
+  if (d.deco === "pin") el.append(fixed(A("ui/pin-red.png"), "pin", bag.pin[0] + jit(7, 1), bag.pin[1], bag.pin[2], 0));
   return el;
 }
 const fixed = (src, k, x, y, s, r) => h("div.deco" + (k === "sticker" ? ".sticker" : ""), { data: { k }, style: { left: x + "%", top: y + "%", width: s + "%", "--r": r + "deg", cursor: "default" } }, h("img", { src, alt: "" }));
 
 /* ---------- bench ---------- */
 let tiltEl;
+const LIGHTS = { morning: { shx: 16, shy: 9, label: "朝" }, day: { shx: 0, shy: 14, label: "昼" }, evening: { shx: -18, shy: 8, label: "夕" }, night: { shx: 0, shy: 7, label: "夜" } };
+let lightPick = "auto";
+const lightNow = () => { if (lightPick !== "auto") return lightPick; const hr = new Date().getHours(); return hr >= 5 && hr < 10 ? "morning" : hr < 16 ? "day" : hr < 19 ? "evening" : "night"; };
+function applyLight() {
+  const L = lightNow(); $("#bench").dataset.light = L; const sp = $("#sp"); sp.style.setProperty("--shx", LIGHTS[L].shx + "px"); sp.style.setProperty("--shy", LIGHTS[L].shy + "px");
+  $("#tLight").textContent = "光: " + (lightPick === "auto" ? `自動(${LIGHTS[L].label})` : LIGHTS[L].label);
+}
+function buildRuler() { const r = $("#ruler"); if (r.childElementCount) return; for (let c = 0; c <= 15; c += 5) r.append(h("span", { style: { left: c * 24 + 4 + "px" } }, c === 0 ? "0" : String(c))); r.append(h("span.u", { style: { left: "394px" } }, "cm")); }
 function mountPouch() {
-  const sp = $("#sp"); sp.replaceChildren(); if (!S.mode) return; const t = h("div.tilt"); t.append(pouch({ w: 270 })); sp.append(t); tiltEl = t;
+  const sp = $("#sp"); sp.replaceChildren(); if (!S.mode) return; buildRuler(); const t = h("div.tilt"); t.append(pouch({ k: 24, pending: S.pending })); sp.append(t); tiltEl = t; applyLight();
   const d = W(), bag = bagOf(d.bag), n = S.mode === "gift" ? 1 : d.items.length;
-  $("#capL").textContent = `${n} sticker${n > 1 ? "s" : ""} · ${bag.name}`; $("#capR").textContent = d.sealed ? "Sealed ✓" : "Draft";
+  $("#capL").textContent = `${n} sticker${n > 1 ? "s" : ""} · ${bag.name} · ${bag.cm}cm`; $("#capR").textContent = d.sealed ? "Sealed ✓" : "Draft";
 }
 $("#bench").addEventListener("pointermove", (ev) => {
-  if (!tiltEl || S.sealing) return; const r = $("#bench").getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
+  if (!tiltEl || S.sealing) return; const r = $("#bench").getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height, L = LIGHTS[lightNow()], sp = $("#sp");
   if (!reduced()) tiltEl.style.transform = `rotateY(${(x - .5) * 18}deg) rotateX(${-(y - .5) * 14}deg)`;
+  sp.style.setProperty("--shx", L.shx - (x - .5) * 26 + "px"); sp.style.setProperty("--shy", L.shy + (y - .5) * 8 + "px");   // the shadow follows the tilt
   const p = $(".pouch", tiltEl); if (p) { p.style.setProperty("--sx", (100 - x * 100) + "%"); p.style.setProperty("--sy", (100 - y * 100) + "%"); }
 });
-$("#bench").addEventListener("pointerleave", () => { if (tiltEl) tiltEl.style.transform = ""; });
+$("#bench").addEventListener("pointerleave", () => { if (tiltEl) tiltEl.style.transform = ""; if ($("#sp")) applyLight(); });
 
 /* ================= chrome ================= */
 function renderSide() {
@@ -400,7 +480,7 @@ const sec = (label, ...k) => h("div.sec", {}, h("label", {}, label), ...k);
 function packGather() {
   const p = S.pack, by = Object.fromEntries(p.items.map((i) => [i.id, i]));
   const tiles = STK.map((s) => {
-    const it = by[s.id], t = h("button.tile", { "aria-pressed": String(!!it), title: s.name, on: { click: () => toggle(s.id) } }, h("img", { src: s.src, alt: s.name }));
+    const it = by[s.id], t = h("button.tile", { "aria-pressed": String(!!it), title: s.name, on: { click: (e) => toggle(s.id, e) } }, h("img", { src: s.src, alt: s.name }));
     if (it) { const [, label, ab] = RARITY.find((r) => r[0] === it.rarity); t.append(h("span.rar", { data: { r: it.rarity }, role: "button", title: label + " — タップで切り替え", on: { click: (e) => { e.stopPropagation(); cycle(it); } } }, label)); }
     return t;
   });
@@ -412,10 +492,26 @@ function packGather() {
     h("div.scroll", {}, h("div.grid", {}, tiles)),
     foot(false, nextBtn("Next →", canNext(1), () => go(2)))];
 }
-function toggle(id) {
-  const p = S.pack, i = p.items.findIndex((x) => x.id === id); S.hint = "";
-  if (i >= 0) { p.items.splice(i, 1); sfx.tap(); } else if (p.items.length < LIMITS.max) { p.items.push({ id, rarity: "common" }); sfx.pop(); }
-  normalize(p); mount();
+/* a sticker flies from its tile into the bag's mouth (and back out when you un-pick it) */
+function mouth() {
+  const pe = $(".pouch"), bag = bagOf(W().bag), r = pe.getBoundingClientRect(), [x0, y0, x1] = bag.body, pk = bag.peek;
+  const [px, py] = pk ? [pk.box[0] + pk.box[2] / 2, pk.box[1] + pk.box[3] * .55] : [(x0 + x1) / 2, y0 + 6];
+  return { x: r.left + r.width * px / 100, y: r.top + r.height * py / 100 };
+}
+function fly(src, tile, out) {
+  if (reduced() || !tile) return Promise.resolve();
+  const m = mouth(), ax = tile.left + tile.width / 2, ay = tile.top + tile.height / 2, w = tile.width * .86, im = h("img.flyer", { src, alt: "", style: { width: w + "px", left: ax - w / 2 + "px", top: ay - w / 2 + "px" } });
+  document.body.append(im); const dx = m.x - ax, dy = m.y - ay, T = (px, py, sc, rot) => `translate(${px}px, ${py}px) scale(${sc}) rotate(${rot}deg)`;
+  const kf = out ? [{ transform: T(dx, dy, .3, 20), opacity: .9 }, { transform: T(dx * .5, dy * .5 - 70, .8, 8), offset: .5 }, { transform: T(0, 0, 1, 0), opacity: 1 }] : [{ transform: T(0, 0, 1, 0), opacity: 1 }, { transform: T(dx * .5, dy * .5 - 80, .8, 10), offset: .5 }, { transform: T(dx, dy, .3, 20), opacity: .9 }];
+  return im.animate(kf, { duration: out ? 380 : 540, easing: "cubic-bezier(.3,.1,.3,1)", fill: "forwards" }).finished.then(() => im.remove());
+}
+function land() { S.pending = null; mountPouch(); $(".pouch")?.animate([{ transform: "translateY(0)" }, { transform: "translateY(4px) scale(.99)" }, { transform: "translateY(0)" }], { duration: 240, easing: "ease-out" }); sfx.pop(); }
+function toggle(id, ev) {
+  const p = S.pack, i = p.items.findIndex((x) => x.id === id), tile = ev?.currentTarget?.getBoundingClientRect(); S.hint = "";
+  if (i >= 0) { p.items.splice(i, 1); sfx.tap(); normalize(p); mount(); fly(sOf(id).src, tile, true); return; }
+  if (p.items.length >= LIMITS.max) return;
+  p.items.push({ id, rarity: "common" }); normalize(p); S.pending = reduced() ? null : id; sfx.tap(); mount();
+  if (S.pending) fly(sOf(id).src, tile, false).then(land);
 }
 function cycle(it) {
   const p = S.pack, order = ["common", "uncommon", "rare"], next = order[(order.indexOf(it.rarity) + 1) % 3]; S.hint = "";
@@ -451,14 +547,17 @@ const scene = (...k) => h("div.scene", {}, ...k);
 const pair = (a, b) => h("div.pair", {}, a, b);
 const cap = (t) => h("div.scap", {}, t);
 function pairPack() {
-  const p = S.pack, n = p.items.length, shelf = pouch({ w: 92, fan: false }), mk = pouch({ w: 92, fan: false });
-  shelf.style.cssText += "left:50%;bottom:20px;translate:-50% 0;"; mk.style.cssText += "left:50%;top:44px;translate:-50% 0;";
-  const left = h("div", {}, scene(shelf, h("div.plank"), h("span.wallcount", { style: { left: "50%", top: "8px", translate: "-50% 0", rotate: "-1deg" } }, `${n} left`)), cap("Shelf"));
-  const right = h("div", {}, scene(h("div.rod"), h("i.endl"), h("i.endr"), mk, h("i.clip", { style: { left: "50%", top: "14px", translate: "-50% 0" } }), h("span.small", { style: { position: "absolute", left: 0, right: 0, bottom: "8px", textAlign: "center", color: "#38342f", font: "600 12px var(--sys)" } }, "Free")), cap("Market"));
-  return pair(left, right);
+  const p = S.pack, n = p.items.length, bag = bagOf(p.bag), K = 10.5, stand = bag.show === "stand";
+  const a = pouch({ k: K, fan: false, closed: true }), c = pouch({ k: K, fan: false, closed: true }), lean = bag.lean ? `rotate:${bag.lean}deg;` : "";
+  a.style.cssText += "left:50%;bottom:20px;translate:-50% 0;transform-origin:50% 100%;" + lean; 
+  const left = h("div", {}, scene(a, h("div.plank"), h("span.wallcount", { style: { left: "50%", top: "8px", translate: "-50% 0", rotate: "-1deg" } }, `${n} left`)), cap("Shelf"));
+  let right;
+  if (stand) { c.style.cssText += "left:50%;bottom:20px;translate:-50% 0;transform-origin:50% 100%;" + lean; right = scene(c, h("div.plank"), h("span.small", { style: { position: "absolute", left: 0, right: 0, top: "10px", textAlign: "center", color: "#38342f", font: "600 12px var(--sys)" } }, "Free")); }
+  else { c.style.cssText += "left:50%;top:44px;translate:-50% 0;"; right = scene(h("div.rod"), h("i.endl"), h("i.endr"), c, h("i.clip", { style: { left: "50%", top: "14px", translate: "-50% 0" } }), h("span.small", { style: { position: "absolute", left: 0, right: 0, bottom: "8px", textAlign: "center", color: "#38342f", font: "600 12px var(--sys)" } }, "Free")); }
+  return pair(left, h("div", {}, right, cap(stand ? "Market · standing" : "Market · hanging")));
 }
 function pairGift() {
-  const g = S.gift, a = pouch({ w: 96, fan: false }); a.style.cssText += "left:50%;top:26px;translate:-50% 0;";
+  const g = S.gift, a = pouch({ k: 10.5, fan: false, closed: true }); a.style.cssText += "left:50%;top:34px;translate:-50% 0;";
   const left = h("div", {}, scene(a, h("span.small", { style: { position: "absolute", left: 0, right: 0, bottom: "10px", textAlign: "center", color: "#38342f", font: "600 12px var(--sys)" } }, "A gift from Satoshi")), cap("Arrives"));
   const right = h("div", {}, scene(h("div.noteview", {}, h("div.to", {}, "To " + (g.to.trim() || "you") + ","), h("img.st", { src: sOf(g.sticker).src, alt: "" }), h("div.msg", {}, g.note || ""), h("div.from", {}, "from Satoshi · Oct 9"))), cap("Opened"));
   return pair(left, right);
@@ -475,7 +574,7 @@ function packSeal() {
 }
 /* --- gift 1-3 --- */
 function giftChoose() {
-  const g = S.gift, tiles = STK.map((s) => h("button.tile", { "aria-pressed": String(g.sticker === s.id), title: s.name, on: { click: () => { g.sticker = s.id; sfx.pop(); mount(); } } }, h("img", { src: s.src, alt: s.name })));
+  const g = S.gift, tiles = STK.map((s) => h("button.tile", { "aria-pressed": String(g.sticker === s.id), title: s.name, on: { click: (e) => { const tile = e.currentTarget.getBoundingClientRect(); g.sticker = s.id; S.pending = reduced() ? null : s.id; mount(); if (S.pending) fly(s.src, tile, false).then(land); else sfx.pop(); } } }, h("img", { src: s.src, alt: s.name })));
   return [h("h2", {}, "Choose the sticker"), help("渡すのは1枚です。コピーを渡すので、あなたの Collection には残ります。"), h("div.scroll", {}, h("div.grid", {}, tiles)), foot(false, nextBtn("Next →", canNext(1), () => go(2)))];
 }
 function giftDress() {
@@ -498,15 +597,41 @@ function doneBlock(kind, line, actions) {
 }
 function flashMsg(t) { const m = h("div", { style: { position: "absolute", left: "50%", top: "10px", translate: "-50% 0", background: "#1f1b16", color: "#fff", padding: "8px 16px", borderRadius: "99px", font: "600 13px var(--sys)", zIndex: 30 } }, t); $(".win").append(m); setTimeout(() => m.remove(), 1800); }
 
-/* ---------- the sealing: a press crimps the top, the stamp lands ---------- */
+/* ---------- the sealing: every wrapping closes its own way ---------- */
+async function ceremony(p, bag, wait) {
+  const t = bag.seal, dur = (ms) => (reduced() ? 1 : ms * (window.__slow || 1)), mk = (cls, css) => { const e = h("div." + cls); Object.assign(e.style, css); p.append(e); return e; };
+  const squash = () => p.animate([{ transform: "scale(1)" }, { transform: "scale(.975,.955) translateY(5px)" }, { transform: "scale(1.012)" }, { transform: "scale(1)" }], { duration: dur(420), easing: "ease-out" });
+  const thumb = async (x, y, w, x2) => { const th = mk("thumb", { left: x + "%", top: y + "%", width: w + "%" }); th.animate([{ opacity: 0 }, { opacity: 1, offset: .15 }, { left: (x2 ?? x) + "%", opacity: 1, offset: .85 }, { left: (x2 ?? x) + "%", opacity: 0 }], { duration: dur(520), easing: "ease-in-out", fill: "both" }); await wait(420); squash(); await wait(120); th.remove(); };
+  if (t === "press") {
+    const press = h("div.press"); p.append(press);
+    press.animate([{ transform: "translateY(-140%)" }, { transform: "translateY(62%)" }], { duration: dur(520), easing: "cubic-bezier(.5,0,.8,.4)", fill: "forwards" }); await wait(500);
+    sfx.thunk(); squash(); $("#flash").animate([{ opacity: 0 }, { opacity: .75 }, { opacity: 0 }], { duration: dur(520) });
+    if (!reduced()) { const sp = h("div.sparks"); $("#bench").append(sp); const r = p.getBoundingClientRect(), bb = $("#bench").getBoundingClientRect(), kk = 1340 / $("#fit").clientWidth; for (let i = 0; i < 18; i++) { const d = h("i", { style: { left: (r.left - bb.left + r.width * (.2 + Math.random() * .6)) * kk + "px", top: (r.top - bb.top + r.height * .1) * kk + "px", background: ["#ffd877", "#fff", "#f6c6e3", "#bfe3f7"][i % 4] } }); sp.append(d); d.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${(Math.random() - .5) * 160}px,${60 + Math.random() * 90}px) scale(.2)`, opacity: 0 }], { duration: 800 + Math.random() * 400, easing: "cubic-bezier(.2,.7,.3,1)", fill: "forwards" }); } setTimeout(() => sp.remove(), 1400); }
+    await wait(380); press.animate([{ transform: "translateY(62%)" }, { transform: "translateY(-140%)" }], { duration: dur(460), easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" }); await wait(300);
+  } else if (t === "tape") {                    // a strip of tape comes down across the mouth, a thumb smooths it
+    const tp = tapeEl(bag, "cream"), [tx, ty, tw, th] = tapeRect(bag); p.append(tp);
+    tp.animate([{ opacity: 0, transform: "translateY(-70px) rotate(8deg)" }, { opacity: 1, transform: "translateY(0) rotate(0)" }], { duration: dur(320), easing: "cubic-bezier(.5,0,.8,.5)", fill: "both" }); sfx.rip(); await wait(340);
+    await thumb(tx + 6, ty + th / 2, Math.max(9, tw * .22), tx + tw - 8); await wait(150);
+  } else if (t === "seal") {                    // a round paper seal is pressed onto the flap
+    const [cx, cy, cs] = bag.cover, disc = mk("disc", { left: cx + "%", top: cy + "%", width: cs * .92 + "%", background: bag.disc });
+    disc.animate([{ opacity: 0, transform: "translate(-50%,-50%) translateY(-50px) scale(1.5)" }, { opacity: 1, transform: "translate(-50%,-50%) scale(1)" }], { duration: dur(300), easing: "cubic-bezier(.4,0,.9,.5)", fill: "both" }); await wait(300);
+    sfx.tap(); await thumb(cx, cy, cs * 1.4); await wait(120); disc.remove();
+  } else if (t === "sweep") {                   // the flap is folded down and a thumb runs along the edge
+    const [tx, ty, tw, th] = tapeRect(bag); sfx.rustle(); await thumb(tx + 4, ty + th / 2, 13, tx + tw - 4); await wait(200);
+  } else if (t === "string") {                  // the stickers tuck in and the drawstring is pulled tight
+    const f = $(".fan", p); if (f) f.animate([{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(45%)", opacity: 0 }], { duration: dur(420), easing: "ease-in", fill: "both" });
+    sfx.rustle(); await wait(220); p.animate([{ transform: "scale(1)" }, { transform: "scale(.955,1.03)" }, { transform: "scale(1)" }], { duration: dur(560), easing: "ease-in-out" });
+    const kn = mk("knot", { left: "50%", top: bag.pin[1] + "%" }); kn.animate([{ transform: "translate(-50%,-50%) scale(0)" }, { transform: "translate(-50%,-50%) scale(1.25)", offset: .6 }, { transform: "translate(-50%,-50%) scale(1)" }], { duration: dur(420), easing: "ease-out", fill: "both" }); await wait(560); kn.remove();
+  } else if (t === "slide") {                   // the sleeve is pushed over the drawer
+    $(".art", p).style.opacity = 0; const f = $(".fan", p); if (f) f.animate([{ opacity: 1 }, { opacity: 0 }], { duration: dur(160), fill: "both" });
+    const box = h("div.dr-box"), sl = h("div.dr-sleeve"); p.append(box, sl); await wait(120); sfx.rustle();
+    box.animate([{ transform: "translateX(0)" }, { transform: "translateX(-29%)" }], { duration: dur(720), easing: "cubic-bezier(.3,.1,.2,1)", fill: "both" }); await wait(740); squash(); await wait(160);
+  }
+}
 async function sealIt() {
-  if (S.sealing) return; S.sealing = true; mountPouch(); const wait = (ms) => new Promise((r) => setTimeout(r, reduced() ? 1 : ms));
-  const p = $(".pouch"), t = $(".tilt"); t.style.transform = ""; const press = h("div.press"); p.append(press);
-  press.animate([{ transform: "translateY(-140%)" }, { transform: "translateY(62%)" }], { duration: reduced() ? 1 : 520, easing: "cubic-bezier(.5,0,.8,.4)", fill: "forwards" }); await wait(500);
-  sfx.thunk(); p.animate([{ transform: "scale(1)" }, { transform: "scale(.975,.96) translateY(6px)" }, { transform: "scale(1.015)" }, { transform: "scale(1)" }], { duration: reduced() ? 1 : 420, easing: "ease-out" });
-  $("#flash").animate([{ opacity: 0 }, { opacity: .75 }, { opacity: 0 }], { duration: reduced() ? 1 : 520 });
-  if (!reduced()) { const sp = h("div.sparks"); $("#bench").append(sp); const r = p.getBoundingClientRect(), b = $("#bench").getBoundingClientRect(), k = 1340 / $("#fit").clientWidth; for (let i = 0; i < 18; i++) { const d = h("i", { style: { left: (r.left - b.left + r.width * (.2 + Math.random() * .6)) * k + "px", top: (r.top - b.top + r.height * .1) * k + "px", background: ["#ffd877", "#fff", "#f6c6e3", "#bfe3f7"][i % 4] } }); sp.append(d); d.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${(Math.random() - .5) * 160}px,${60 + Math.random() * 90}px) scale(.2)`, opacity: 0 }], { duration: 800 + Math.random() * 400, easing: "cubic-bezier(.2,.7,.3,1)", fill: "forwards" }); } setTimeout(() => sp.remove(), 1400); }
-  await wait(380); press.animate([{ transform: "translateY(62%)" }, { transform: "translateY(-140%)" }], { duration: reduced() ? 1 : 460, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" }); await wait(300);
+  if (S.sealing) return; S.sealing = true; mountPouch(); const wait = (ms) => new Promise((r) => setTimeout(r, reduced() ? 1 : ms * (window.__slow || 1)));   // __slow: slows the whole ceremony down for inspection
+  const p = $(".pouch"), tl = $(".tilt"), bag = bagOf(W().bag); tl.style.transform = "";
+  await ceremony(p, bag, wait);
   const st = h("div.stamp", {}, "SEALED"); $("#bench").append(st); st.animate([{ opacity: 0, transform: "scale(2.2)" }, { opacity: .9, transform: "scale(.94)", offset: .6 }, { opacity: .85, transform: "scale(1)" }], { duration: reduced() ? 1 : 360, easing: "ease-out", fill: "forwards" }); sfx.tap(); await wait(700); sfx.chime();
   W().sealed = true; S.sealing = false; mount(); setTimeout(() => st.remove(), 400);
 }
@@ -524,6 +649,9 @@ mount();
 const fit = $("#fit"), stage = $("#stage"); const rs = () => { const k = fit.clientWidth / 1340; stage.style.transform = `scale(${k})`; fit.style.height = 760 * k + "px"; }; new ResizeObserver(rs).observe(fit); rs();
 $("#tSnd").addEventListener("click", (e) => { sound = !sound; e.currentTarget.setAttribute("aria-pressed", String(sound)); if (sound) sfx.pop(); });
 $("#tRed").addEventListener("click", (e) => { const on = document.documentElement.dataset.reduce !== "1"; document.documentElement.dataset.reduce = on ? "1" : "0"; e.currentTarget.setAttribute("aria-pressed", String(on)); });
+$("#tLight").addEventListener("click", () => { const order = ["auto", "morning", "day", "evening", "night"]; lightPick = order[(order.indexOf(lightPick) + 1) % order.length]; if (S.mode) applyLight(); else $("#tLight").textContent = "光: " + (lightPick === "auto" ? "自動" : LIGHTS[lightPick].label); });
+$("#tUI").addEventListener("click", (e) => { const flat = document.documentElement.dataset.ui !== "flat"; document.documentElement.dataset.ui = flat ? "flat" : "paper"; e.currentTarget.setAttribute("aria-pressed", String(flat)); e.currentTarget.textContent = flat ? "UI: フラット" : "UI: 紙"; });
+document.documentElement.dataset.ui = "flat";
 $("#tReset").addEventListener("click", () => { S = { mode: null, sealing: false, hint: "", pack: newPack(), gift: newGift() }; mount(); });
 </script>
 </body>
