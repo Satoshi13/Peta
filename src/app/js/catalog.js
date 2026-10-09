@@ -16,13 +16,14 @@ const SAMPLE_TITLES = {
   sGoodDay: "Good day", sCassette: "Cassette", sComputer: "Little computer", sScribble: "Purple scribble", sBubble: "Peta!",
 };
 const NAV = [
-  { id: "today", label: "Today", tab: "tab1", icon: "envBack" },
-  { id: "create", group:"Make", label: "Create", tab: "tab3", icon: "chCreate" },
-  { id: "book", group:"Collect", label: "Collection", tab: "tab2", icon: "chCollection" },
-  { id: "packs", label: "Packs", tab: "tab5", icon: "chPack" },
-  { id: "gifts", label: "Gifts", tab: "tab4", icon: "chGift" },
-  { id: "materials", label: "Materials", tab: "tab6", icon: "cardHolo" },
-  { id: "market", group:"Discover", label: "Market", tab: "tab3", icon: "shop" },
+  { id: "today", key: 1, label: "Today", tab: "tab1", icon: "envBack" },
+  { id: "create", key: 2, group:"Make", label: "Create", tab: "tab3", icon: "chCreate" },
+  { id: "studio", label: "Studio", tab: "tab5", icon: "bagGlassine", isNew: true },
+  { id: "book", key: 3, group:"Collect", label: "Collection", tab: "tab2", icon: "chCollection" },
+  { id: "packs", key: 4, label: "Packs", tab: "tab5", icon: "chPack" },
+  { id: "gifts", key: 5, label: "Gifts", tab: "tab4", icon: "chGift" },
+  { id: "materials", key: 6, label: "Materials", tab: "tab6", icon: "cardHolo" },
+  { id: "market", key: 7, group:"Discover", label: "Market", tab: "tab3", icon: "shop" },
   { id: "settings", label: "Settings", tab: "tab6", icon: "gear" },
 ];
 const RARITY_ORDER = ["common", "uncommon", "rare", "special", "archive"];
