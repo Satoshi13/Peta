@@ -621,11 +621,12 @@ html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
 .cs-photo { position:absolute; left:50%; top:50%; translate:-50% -50%; width:min(380px,calc(100% - 64px)); height:min(calc(100% - 150px),420px); padding:14px; border-radius:4px; background:#fdfbf5; box-shadow:0 2px 3px rgba(0,0,0,.22),0 18px 36px rgba(0,0,0,.3); transition:background .3s,box-shadow .3s; }
 .cs-photo[hidden] { display:none; }
 .cs-photo.fall { background:transparent; box-shadow:none; }
-.cs-photo-in { position:relative; width:100%; height:100%; overflow:visible; }
+.cs-photo-in { position:relative; z-index:2; width:100%; height:100%; overflow:visible; } /* above the tape: the scanned sticker flies out of the photo over it, never under it */
 .cs-photo-in > img, .cs-photo-in > canvas { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
 .cs-photo-in > .cut-anim { position:absolute; left:50%; top:50%; translate:-50% -50%; }
 .cs-ghost { pointer-events:none; }
-.cs-tape { position:absolute; left:50%; top:-12px; width:90px; height:26px; margin-left:-45px; rotate:2deg; background:rgba(238,226,190,.82); box-shadow:0 1px 2px rgba(0,0,0,.2); }
+.cs-tape { position:absolute; left:50%; top:-12px; width:90px; height:26px; margin-left:-45px; rotate:2deg; background:rgba(238,226,190,.82); box-shadow:0 1px 2px rgba(0,0,0,.2); z-index:1; transition:opacity .28s ease-out, translate .28s ease-out; }
+.cs-photo.fall .cs-tape { opacity:0; translate:0 -8px; } /* the tape lets go with the photo */
 .cs-scan { position:absolute; left:-14px; right:-14px; top:0; height:20%; z-index:2; pointer-events:none; opacity:0; background:linear-gradient(180deg,transparent,rgba(255,255,255,.7),transparent); mix-blend-mode:overlay; }
 .cs-scan.loop { animation:cs-scan 2.2s ease-in-out infinite; }
 @keyframes cs-scan { 0% { transform:translateY(-110%); opacity:0; } 20% { opacity:.9; } 100% { transform:translateY(520%); opacity:0; } }

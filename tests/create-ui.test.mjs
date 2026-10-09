@@ -15,3 +15,9 @@ test('the Create sliders are a plain black line, not a filled meter, and keep th
   assert.match(block, /::-webkit-slider-thumb \{ margin-top:-12px; \}/); // the knob itself is the global gold one
   assert.doesNotMatch(block, /::-webkit-slider-thumb[^}]*(background|box-shadow|border-radius)/);
 });
+
+test('after the scan the sticker flies out of the photo over its tape, never under it, and the tape lets go with the photo', () => {
+  assert.match(css, /\.cs-photo-in \{ position:relative; z-index:2;/); // the ghost lives in here, above the tape
+  assert.match(css, /\.cs-tape \{[^}]*z-index:1;/);
+  assert.match(css, /\.cs-photo\.fall \.cs-tape \{ opacity:0;/);
+});
