@@ -268,19 +268,33 @@ const STK = [
   ["flower", "blue-flower.png", "Blue Flower"], ["polaroid", "polaroid-mountain.png", "Mountain"], ["bubble", "peta-bubble.png", "Peta"], ["scribble", "purple-scribble.png", "Scribble"],
 ].map(([id, f, name]) => ({ id, src: A("samples/" + f), name }));
 const sOf = (id) => STK.find((s) => s.id === id);
-/* Wrappings. body = the object's box in the picture (%, from Codex's manifest, alpha > 128).
-   lbl = where the paper label sits (% of the picture). The cover sticker sits at the label's lower-right corner, the clip and pin on the top edge: all derived, never chosen. */
+/* Wrappings. Every position below is read off the sample set (the themed originals) and is a % of the picture:
+   lbl   where the paper label sits
+   cover where a cover sticker goes: the spot the original design gave its sticker (the seal on the glassine flap, the lower right of the parcel, the sleeve of the drawer...)
+   clip / pin / tape   where each decoration goes on that wrapping's own edge or fold: [x, y, size, rotation] / [x, y, size] / [x, y, width, height, rotation]
+   peek  where the stickers inside show: through the paper (alpha), out of the notch or pocket (cut: hidden below the line), in the open drawer, or out of the mouth (default)
+   body  the object's box (from the manifest); the default peek rises out of its top edge */
 const GEN = [
-  ["glassine", "Glassine", "01-glassine.webp", 1254, 1254, [182, 147, 1098, 1214], [27, 67, 76, 88], 1, -1],
-  ["photo", "Photo envelope", "02-photo-envelope.webp", 1254, 1254, [166, 220, 1093, 1140], [30, 56, 70, 80], 0, 0],
-  ["kraft-parcel", "Kraft parcel", "03-kraft-parcel.webp", 1254, 1254, [129, 169, 1132, 1146], [29, 41, 82, 59], 1, 0],
-  ["pocket", "Library pocket", "04-library-pocket.webp", 1254, 1254, [172, 125, 1113, 1167], [27, 58, 76, 83], 1, 0],
-  ["airmail", "Airmail", "05-airmail.webp", 1536, 1024, [95, 168, 1438, 876], [26, 39, 76, 64], 1, 0],
-  ["wrap", "Folded wrap", "06-folded-wrap.webp", 1254, 1254, [92, 131, 1174, 1157], [48, 63, 87, 78], 1, 0],
-  ["drawer", "Drawer box", "09-drawer-box.webp", 1536, 1024, [117, 204, 1456, 922], [16, 40, 56, 66], 0, 0],
-  ["cotton", "Cotton pouch", "12-cotton-pouch.webp", 1254, 1254, [70, 132, 1233, 1126], [32, 55, 66, 75], 0, 0],
-].map(([id, name, file, W, H, b, l, hasLabel, rot]) => ({ id, name, file, W, H, gen: true, hasLabel: !!hasLabel, rot, body: [b[0] / W * 100, b[1] / H * 100, b[2] / W * 100, b[3] / H * 100], lbl: l }));
-const CLASSIC = [["kraft", "Kraft"], ["matte", "Matte"], ["holo", "Holographic"]].map(([id, name]) => ({ id, name, classic: true, W: 3, H: 4, body: [4, 5, 96, 97], lbl: id === "holo" ? [22.5, 38, 77.2, 62.6] : id === "kraft" ? [21, 39, 79, 65.5] : [20, 47.8, 80.5, 72] }));
+  { id: "glassine", name: "Glassine", file: "01-glassine.webp", W: 1254, H: 1254, body: [182, 147, 1098, 1214], lbl: [27, 67, 76, 88], hasLabel: 1, rot: -1,
+    cover: [50, 26, 15, 0], clip: [72, 13, 8, 14], pin: [50, 25, 6.5], tape: [30, 11, 40, 4.5, -1], peek: { box: [26, 44, 50, 24], front: 1, alpha: .8, sz: 40 } },
+  { id: "photo", name: "Photo envelope", file: "02-photo-envelope.webp", W: 1254, H: 1254, body: [166, 220, 1093, 1140], lbl: [30, 56, 70, 80], hasLabel: 0, rot: 0,
+    cover: [76, 74, 21, 6], clip: [73, 18, 8, 12], pin: [28, 22, 6], tape: [26, 15, 48, 4, -1], peek: { box: [37, 14, 26, 24], front: 1, cut: 1, sz: 82, spread: 70, sink: -12 } },
+  { id: "kraft-parcel", name: "Kraft parcel", file: "03-kraft-parcel.webp", W: 1254, H: 1254, body: [129, 169, 1132, 1146], lbl: [29, 41, 82, 59], hasLabel: 1, rot: 0,
+    cover: [70, 70, 27, -4], clip: [80, 15, 8, 16], pin: [22, 20, 6.5], tape: [36, 12, 28, 4.5, -2] },
+  { id: "pocket", name: "Library pocket", file: "04-library-pocket.webp", W: 1254, H: 1254, body: [172, 125, 1113, 1167], lbl: [27, 58, 76, 83], hasLabel: 1, rot: 0,
+    cover: [73, 80, 18, 5], clip: [28, 13, 8, 10], pin: [66, 16, 6], tape: [24, 39, 24, 4, -6], peek: { box: [26, 14, 48, 28], front: 1, cut: 1, sz: 40 } },
+  { id: "airmail", name: "Airmail", file: "05-airmail.webp", W: 1536, H: 1024, body: [95, 168, 1438, 876], lbl: [26, 39, 76, 64], hasLabel: 1, rot: 0,
+    cover: [80, 66, 17, 6], clip: [72, 17, 7, 14], pin: [50, 18, 5], tape: [32, 15, 36, 6, -2] },
+  { id: "wrap", name: "Folded wrap", file: "06-folded-wrap.webp", W: 1254, H: 1254, body: [92, 131, 1174, 1157], lbl: [48, 63, 87, 78], hasLabel: 1, rot: 0,
+    cover: [53, 54, 18, -6], clip: [82, 12, 8, 16], pin: [22, 16, 6.5], tape: [28, 11, 40, 4, -1], peek: { box: [24, 22, 52, 26], front: 1, alpha: .8, sz: 40 } },
+  { id: "drawer", name: "Drawer box", file: "09-drawer-box.webp", W: 1536, H: 1024, body: [117, 204, 1456, 922], lbl: [16, 40, 56, 66], hasLabel: 0, rot: 0,
+    cover: [56, 75, 18, -4], clip: [44, 21, 6, 14], pin: [20, 24, 4.5], tape: [14, 20, 32, 5, -1], peek: { box: [66, 30, 22, 42], front: 1, sz: 70, spread: 50 } },
+  { id: "cotton", name: "Cotton pouch", file: "12-cotton-pouch.webp", W: 1254, H: 1254, body: [70, 132, 1233, 1126], lbl: [32, 66, 68, 82], hasLabel: 0, rot: 0,
+    cover: [50, 48, 28, 0], clip: [68, 14, 8, 16], pin: [50, 21, 6], tape: [34, 11, 32, 4.5, -2], peek: { box: [34, 2, 32, 16], sz: 50 } },
+].map((g) => ({ ...g, gen: true, hasLabel: !!g.hasLabel, body: [g.body[0] / g.W * 100, g.body[1] / g.H * 100, g.body[2] / g.W * 100, g.body[3] / g.H * 100] }));
+/* the app's own three pouches keep their sticker-peeking-over-the-top look; one default spot per decoration */
+const CLASSIC = [["kraft", "Kraft"], ["matte", "Matte"], ["holo", "Holographic"]].map(([id, name]) => ({ id, name, classic: true, W: 3, H: 4, body: [4, 5, 96, 97], lbl: id === "holo" ? [22.5, 38, 77.2, 62.6] : id === "kraft" ? [21, 39, 79, 65.5] : [20, 47.8, 80.5, 72],
+  cover: [72, 80, 30, 8], clip: [76, 6, 9, 16], pin: [50, 6, 7] }));
 const BAGS = [...CLASSIC, ...GEN], bagOf = (id) => BAGS.find((b) => b.id === id);
 const PACK_BAGS = ["kraft", "matte", "holo", "glassine", "kraft-parcel", "pocket", "drawer", "cotton"];
 const GIFT_BAGS = ["airmail", "photo", "kraft-parcel", "wrap", "cotton", "glassine"];
@@ -323,18 +337,23 @@ function pouch({ w: px = 270, fan = true, d = W() }) {
   if (bag.gen) { el.style.setProperty("--ll", l + "%"); el.style.setProperty("--lt", t + "%"); el.style.setProperty("--lr", 100 - r + "%"); el.style.setProperty("--lb", 100 - b + "%"); el.style.setProperty("--lrot", bag.rot + "deg"); }
   const items = gift ? [{ id: d.sticker }] : d.items;
   if (fan && items.length) {
-    const f = h("div.fan"); if (bag.gen) { const fw = bw * .74, fh = bh * .34; Object.assign(f.style, { left: (x0 + bw / 2 - fw / 2) + "%", right: "auto", width: fw + "%", top: (y0 + 7 - fh) + "%", height: fh + "%" }); }
-    items.slice(0, 6).forEach((it, i, a) => { const n = a.length, spread = n === 1 ? 0 : (i / (n - 1) - .5); f.append(h("img", { src: sOf(it.id).src, alt: "", style: { transform: `translateX(-50%) translateX(${spread * 150}%) rotate(${spread * 40}deg) translateY(${-6 - (1 - Math.abs(spread) * 2) * 12}%)`, zIndex: i, width: n === 1 ? "52%" : "" } })); });
+    const f = h("div.fan"), pk = bag.peek; let sz = 36, spread = 150, cut = false;
+    if (bag.gen && pk) {
+      Object.assign(f.style, { left: pk.box[0] + "%", right: "auto", width: pk.box[2] + "%", top: pk.box[1] + "%", height: pk.box[3] + "%", zIndex: pk.front ? 4 : 1 });
+      if (pk.alpha) f.style.opacity = pk.alpha; if (pk.cut) f.style.clipPath = "inset(-200% -40% 0 -40%)";
+      sz = pk.sz || 36; spread = pk.spread || 150; cut = !!pk.cut;
+    } else if (bag.gen) { const fw = bw * .74, fh = bh * .34; Object.assign(f.style, { left: (x0 + bw / 2 - fw / 2) + "%", right: "auto", width: fw + "%", top: (y0 + 13 - fh) + "%", height: fh + "%" }); }
+    items.slice(0, 6).forEach((it, i, a) => { const n = a.length, sp = n === 1 ? 0 : (i / (n - 1) - .5); f.append(h("img", { src: sOf(it.id).src, alt: "", style: { transform: `translateX(-50%) translateX(${sp * spread}%) rotate(${sp * 40}deg) translateY(${-6 - (1 - Math.abs(sp) * 2) * 12}%)`, zIndex: i, width: (n === 1 ? sz * 1.4 : sz) + "%", bottom: cut ? (pk.sink ?? -40) + "%" : "" } })); });
     if (items.length > 6) f.append(h("span.more", {}, "+" + (items.length - 6))); el.append(f);
   }
   el.append(h("div.art"));
   if (!bag.gen) el.append(h("div.sheen"));
-  if (d.deco === "tape") { const tp = h("i.toptape", { data: { t: "mint" } }); if (bag.gen) Object.assign(tp.style, { left: x0 + bw * .16 + "%", right: "auto", width: bw * .68 + "%", top: y0 - 1 + "%", height: bh * .075 + "%" }); el.append(tp); }
+  if (d.deco === "tape") { const tp = h("i.toptape", { data: { t: "mint" } }); if (bag.gen) { const [tx, ty, tw, th, tr] = bag.tape; Object.assign(tp.style, { left: tx + "%", right: "auto", width: tw + "%", top: ty + "%", height: th + "%", rotate: tr + "deg" }); } el.append(tp); }
   const lb = h("b", {}, title); lb.style.fontSize = 13 * fitFor(title) * (bag.gen ? .88 : 1) + "cqw";
   el.append(h("div.lbl", {}, h("i.cover"), lb, h("small", {}, sub)));
-  if (!gift && d.cover) el.append(fixed(sOf(d.cover).src, "sticker", r - 3, b + 1, bag.gen ? 19 : 32, 8));
-  if (d.deco === "clip") el.append(fixed(A("notes/paper-clip.png"), "clip", x0 + bw * .76, y0 + 1, 9, 16));
-  if (d.deco === "pin") el.append(fixed(A("ui/pin-red.png"), "pin", x0 + bw * .5, y0 + 3, 8, 0));
+  if (!gift && d.cover) el.append(fixed(sOf(d.cover).src, "sticker", ...bag.cover));
+  if (d.deco === "clip") el.append(fixed(A("notes/paper-clip.png"), "clip", ...bag.clip));
+  if (d.deco === "pin") el.append(fixed(A("ui/pin-red.png"), "pin", bag.pin[0], bag.pin[1], bag.pin[2], 0));
   return el;
 }
 const fixed = (src, k, x, y, s, r) => h("div.deco" + (k === "sticker" ? ".sticker" : ""), { data: { k }, style: { left: x + "%", top: y + "%", width: s + "%", "--r": r + "deg", cursor: "default" } }, h("img", { src, alt: "" }));
