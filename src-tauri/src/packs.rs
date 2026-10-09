@@ -98,7 +98,7 @@ async fn open(app: AppHandle, pack_id: String, free: bool, queue: bool) -> Resul
     };
     today::announce(&app);
     // The ceremony hands it to the print layer after the main window closes.
-    Ok(Opened { sticker_id: remaining.0, pack_title: title, remaining: remaining.1, rarity: stored.as_ref().map(|i|i.rarity.clone()), name:stored.map(|i|i.name) })
+    Ok(Opened { sticker_id: remaining.0, pack_title: title, remaining: remaining.1, rarity: stored.as_ref().map(|i|peta_core::materials::rarity_name(&i.material_id)), name:stored.map(|i|i.name) }) // the rarity of a pull is the rarity of its material
 }
 
 // Free acquisition is separate from the atomic Scraps exchange.
@@ -109,4 +109,25 @@ pub fn pack_install_demo(app: AppHandle, pack_id: String) -> Result<(), String> 
     app.state::<Store>().lock().db_mut().pack_install(p.id,p.title,p.by,p.keys).map_err(|e|e.to_string())?;
     today::announce(&app);
     Ok(())
+}
+
+/// One picture on a pack's card (Studio's "A peek inside"): which item, and what it is called.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PeekItem { pub item_id: i64, pub name: String, pub material: String }
+
+/// Up to three pictures of a signed pack: its cover, then the items that come out most often (the rarest stay a surprise).
+#[tauri::command]
+pub fn pack_peek(store: tauri::State<Store>, pack_id: String) -> Result<Vec<PeekItem>, String> {
+    let lib = store.lock();
+    Ok(peta_core::creator_pack::peek(lib.db(), &pack_id).map_err(|e| e.to_string())?
+        .into_iter().map(|(item_id, name, _path, material)| PeekItem { item_id, name, material }).collect())
+}
+
+/// A small picture of one of those items.
+#[tauri::command]
+pub async fn pack_peek_picture(store: tauri::State<'_, Store>, item_id: i64) -> Result<tauri::ipc::Response, String> {
+    let bytes = { let lib = store.lock(); let item = pack::stored_item(lib.db(), item_id).map_err(|e| e.to_string())?.ok_or("unknown pack item")?; lib.read_asset(&item.png_path).map_err(|e| e.to_string())? };
+    let small = tauri::async_runtime::spawn_blocking(move || peta_core::thumb::thumbnail_png(&bytes, 384)).await.map_err(|e| e.to_string())?.map_err(|e| e.to_string())?;
+    Ok(tauri::ipc::Response::new(small))
 }

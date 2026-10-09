@@ -50,10 +50,43 @@ pub struct GiftHeader {
     pub mask_len: usize,
     #[serde(default,skip_serializing_if="Option::is_none")]
     pub signer: Option<crate::sign::Signer>,
+    /// Studio: how the gift is wrapped (a wrapping id and one decoration) and the name written on the wrapping. All optional; a gift
+    /// made before Studio has none of them.
+    #[serde(default,skip_serializing_if="Option::is_none")]
+    pub bag: Option<String>,
+    #[serde(default,skip_serializing_if="Option::is_none")]
+    pub deco: Option<String>,
+    #[serde(default,skip_serializing_if="Option::is_none")]
+    pub to: Option<String>,
+}
+
+pub const GIFT_BAGS: [&str; 6] = ["airmail", "photo", "kraft-parcel", "wrap", "cotton", "glassine"];
+pub const GIFT_NOTE_MAX: usize = 80;
+pub const GIFT_TO_MAX: usize = 40;
+
+/// How a gift is wrapped. `bag` of None means the plain envelope.
+#[derive(Deserialize, Default, Debug, Clone)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct GiftDress {
+    #[serde(default)] pub bag: Option<String>,
+    #[serde(default)] pub deco: Option<String>,
+}
+fn dress_ok(bag: &Option<String>, deco: &Option<String>, to: &Option<String>) -> bool {
+    bag.as_deref().is_none_or(|b| GIFT_BAGS.contains(&b)) && deco.as_deref().is_none_or(|d| crate::creator_pack::DECOS.contains(&d))
+        && to.as_deref().is_none_or(|t| !t.trim().is_empty() && t.chars().count() <= GIFT_TO_MAX && !t.chars().any(char::is_control))
 }
 
 /// Seal a copy of one of your stickers for `to` (a label only you see: "Nao", "Mom"). Returns the gift id and the file.
 pub fn build_gift(lib: &mut Library, sticker_id: &str, to: &str, note: Option<&str>) -> Result<(String, Vec<u8>)> {
+    build_gift_dressed(lib, sticker_id, to, note, &GiftDress::default())
+}
+
+/// The same, with Studio's wrapping. With a wrapping chosen, the note is at most 80 characters and the name `to` is written on the gift
+/// where the receiver sees it ("For Mika"); without one it stays a label only the sender sees.
+pub fn build_gift_dressed(lib: &mut Library, sticker_id: &str, to: &str, note: Option<&str>, dress: &GiftDress) -> Result<(String, Vec<u8>)> {
+    let dressed = dress.bag.is_some();
+    let wrapped_to = dressed.then(|| to.trim().to_owned());
+    if !dress_ok(&dress.bag, &dress.deco, &wrapped_to) { return Err(Error::Invalid("That wrapping is not available.".into())); }
     let sticker = lib.db().sticker(sticker_id)?.ok_or_else(|| Error::Invalid(format!("unknown sticker {sticker_id}")))?;
     let png = lib.read_rendered(sticker_id)?;
     let mask = match &sticker.mask_asset_path {
@@ -67,7 +100,7 @@ pub fn build_gift(lib: &mut Library, sticker_id: &str, to: &str, note: Option<&s
     let header = GiftHeader {
         gift_id: gift_id.clone(),
         from,
-        note: note.map(str::trim).filter(|n| !n.is_empty()).map(|n| n.chars().take(140).collect()),
+        note: note.map(str::trim).filter(|n| !n.is_empty()).map(|n| n.chars().take(if dressed { GIFT_NOTE_MAX } else { 140 }).collect()),
         sent_at: now(),
         edition,
         origin: Origin {
@@ -80,6 +113,9 @@ pub fn build_gift(lib: &mut Library, sticker_id: &str, to: &str, note: Option<&s
         png_len: png.len(),
         mask_len: mask.len(),
         signer: Some(crate::sign::Signer::Device{public_key:crate::sign::public_key(&key)}),
+        bag: dress.bag.clone(),
+        deco: dress.bag.as_ref().and(dress.deco.clone()),
+        to: wrapped_to,
     };
     let out=crate::sign::seal(MAGIC,VERSION,&header,&[png,mask].concat(),&key)?;
 
@@ -107,7 +143,7 @@ pub fn decode_gift(bytes: &[u8]) -> Result<Decoded<'_>> {
         // The original event remains the package; opening verifies its official signature again.
         let n=13+u32::from_be_bytes(bytes[9..13].try_into().unwrap()) as usize;
         let header=GiftHeader{gift_id:format!("GIFT-E-{}",e.event_id),from:"Peta".into(),note:Some(e.message.clone()),sent_at:e.issued_at.clone(),edition:1,
-            origin:Origin{sticker_id:format!("EVENT-{}",e.event_id),creator_name:Some("Peta".into()),created_at:e.issued_at.clone(),material_id:Some("matte".into()),aspect:{let image=image::load_from_memory(png)?;image.width() as f64/image.height() as f64}},png_len:png.len(),mask_len:mask.len(),signer:Some(e.signer.clone())};
+            origin:Origin{sticker_id:format!("EVENT-{}",e.event_id),creator_name:Some("Peta".into()),created_at:e.issued_at.clone(),material_id:Some("matte".into()),aspect:{let image=image::load_from_memory(png)?;image.width() as f64/image.height() as f64}},png_len:png.len(),mask_len:mask.len(),signer:Some(e.signer.clone()),bag:None,deco:None,to:None};
         return Ok(Decoded{header,png:&bytes[n..n+png.len()],mask:&bytes[n+png.len()..n+png.len()+mask.len()]});
     }
     if bytes.len() < 13 || &bytes[..8] != MAGIC {
@@ -135,7 +171,7 @@ pub fn decode_gift(bytes: &[u8]) -> Result<Decoded<'_>> {
     if body.len() != header.png_len + header.mask_len {
         return Err(bad("damaged contents"));
     }
-    if !header.gift_id.starts_with("GIFT-") || !crate::events::safe_id(&header.gift_id) || header.gift_id.len()>40 || header.from.len()>200 || header.from.trim().is_empty() || header.edition<1 || !header.origin.aspect.is_finite() || header.origin.aspect<=0.0 {
+    if !header.gift_id.starts_with("GIFT-") || !crate::events::safe_id(&header.gift_id) || header.gift_id.len()>40 || header.from.len()>200 || header.from.trim().is_empty() || header.edition<1 || !header.origin.aspect.is_finite() || header.origin.aspect<=0.0 || !dress_ok(&header.bag,&header.deco,&header.to) {
         return Err(bad("damaged header"));
     }
     let (png, mask) = body.split_at(header.png_len);
@@ -156,6 +192,9 @@ pub fn receive_gift(lib: &mut Library, bytes: &[u8]) -> Result<crate::db::Incomi
     let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     let identity=if let Some(crate::sign::Signer::Device{public_key})=&d.header.signer {Some(crate::friends::observe(&tx,public_key,&d.header.from)?)} else {None};
     tx.execute("INSERT INTO gifts_received(gift_id,from_name,note,sent_at,received_at,package) VALUES (?1,?2,?3,?4,?5,?6)",rusqlite::params![d.header.gift_id,identity.as_ref().map(|i|i.name.as_str()).unwrap_or(&d.header.from),d.header.note,d.header.sent_at,now(),rel])?;
+    if d.header.bag.is_some() || d.header.deco.is_some() || d.header.to.is_some() {
+        tx.execute("INSERT INTO gift_dress VALUES (?1,?2,?3,?4)",rusqlite::params![d.header.gift_id,d.header.bag,d.header.deco,d.header.to])?;
+    }
     tx.execute("INSERT INTO gift_signers VALUES (?1,?2,?3,?4)",rusqlite::params![d.header.gift_id,identity.as_ref().map(|i|i.status.as_str()).unwrap_or("unsigned"),identity.as_ref().map(|i|&i.fingerprint),identity.as_ref().map(|i|&i.public_key)])?;
     tx.commit()?;
     lib.db()
@@ -276,6 +315,35 @@ mod tests {
         assert_eq!(b.received_from.as_deref(), Some("Satoshi"));
         assert_eq!(b.edition_number.as_deref(), Some("0001"));
         assert!(open_gift(&mut theirs, &id1).is_err(), "a gift opens once");
+    }
+
+    #[test]
+    fn a_wrapped_gift_carries_its_wrapping_and_the_name_to_the_receiver() {
+        let (mut mine, sticker) = sender_with_sticker();
+        let long = "x".repeat(120);
+        let dress = GiftDress { bag: Some("airmail".into()), deco: Some("clip".into()) };
+        let (_, file) = build_gift_dressed(&mut mine, &sticker.id, "Mika", Some(&long), &dress).unwrap();
+        let d = decode_gift(&file).unwrap();
+        assert_eq!((d.header.bag.as_deref(), d.header.deco.as_deref(), d.header.to.as_deref()), (Some("airmail"), Some("clip"), Some("Mika")));
+        assert_eq!(d.header.note.as_deref().unwrap().chars().count(), GIFT_NOTE_MAX);
+        let mut theirs = lib();
+        let inbox = receive_gift(&mut theirs, &file).unwrap();
+        assert_eq!((inbox.bag.as_deref(), inbox.deco.as_deref(), inbox.to.as_deref()), (Some("airmail"), Some("clip"), Some("Mika")));
+        // an unwrapped gift: no wrapping, the label stays private, the long note keeps its old limit
+        let (_, plain) = build_gift(&mut mine, &sticker.id, "Nao", Some(&long)).unwrap();
+        let p = decode_gift(&plain).unwrap();
+        assert_eq!((p.header.bag, p.header.to), (None, None));
+        assert_eq!(p.header.note.unwrap().chars().count(), 120);
+        assert_eq!(receive_gift(&mut theirs, &plain).unwrap().bag, None);
+    }
+
+    #[test]
+    fn a_wrapping_that_does_not_exist_is_refused_when_sending_and_when_receiving() {
+        let (mut mine, sticker) = sender_with_sticker();
+        for dress in [GiftDress { bag: Some("envelope".into()), deco: None }, GiftDress { bag: Some("airmail".into()), deco: Some("glitter".into()) }] {
+            assert!(build_gift_dressed(&mut mine, &sticker.id, "Mika", None, &dress).is_err());
+        }
+        assert!(build_gift_dressed(&mut mine, &sticker.id, "  ", None, &GiftDress { bag: Some("airmail".into()), deco: None }).is_err()); // a wrapping needs a name
     }
 
     #[test]

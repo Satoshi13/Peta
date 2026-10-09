@@ -18,9 +18,9 @@ impl Rarity {
     /// Rarity is about how hard it is to get — never about power (spec §20).
     pub fn draw_weight(self) -> f64 {
         match self {
-            Rarity::Common => 50.0,
-            Rarity::Uncommon => 32.0,
-            Rarity::Rare => 18.0,
+            Rarity::Common => 60.0,
+            Rarity::Uncommon => 30.0,
+            Rarity::Rare => 10.0,
             Rarity::Special | Rarity::Archive => 0.0,
         }
     }
@@ -178,6 +178,11 @@ pub fn catalog() -> Vec<Material> {
     ]
 }
 
+/// The lowercase name of a material's rarity ("common" ... "archive"); an unknown material reads as common.
+pub fn rarity_name(id: &str) -> String {
+    get(id).and_then(|m| serde_json::to_value(m.rarity).ok()).and_then(|v| v.as_str().map(String::from)).unwrap_or_else(|| "common".into())
+}
+
 pub fn get(id: &str) -> Option<Material> {
     catalog().into_iter().find(|m| m.id == id)
 }
@@ -230,12 +235,12 @@ mod tests {
 
     #[test]
     fn draw_follows_rarity_weights() {
-        // Prototype weights: matte 50, kraft 32, holographic 18.
+        // Weights (owner decision, 2026-10-10): matte 60, kraft 30, holographic 10.
         assert_eq!(draw(0.0, false), "matte");
-        assert_eq!(draw(0.49, false), "matte");
-        assert_eq!(draw(0.51, false), "kraft");
-        assert_eq!(draw(0.81, false), "kraft");
-        assert_eq!(draw(0.83, false), "holographic");
+        assert_eq!(draw(0.59, false), "matte");
+        assert_eq!(draw(0.61, false), "kraft");
+        assert_eq!(draw(0.89, false), "kraft");
+        assert_eq!(draw(0.91, false), "holographic");
         assert_eq!(draw(1.0, false), "holographic"); // clamped
     }
 
@@ -245,8 +250,8 @@ mod tests {
         for i in 0..1000 {
             *counts.entry(draw(i as f64 / 1000.0, false)).or_insert(0) += 1;
         }
-        assert_eq!(counts["matte"], 500);
-        assert_eq!(counts["kraft"], 320);
-        assert_eq!(counts["holographic"], 180);
+        assert_eq!(counts["matte"], 600);
+        assert_eq!(counts["kraft"], 300);
+        assert_eq!(counts["holographic"], 100);
     }
 }

@@ -21,7 +21,7 @@ pub struct Sent {
 
 /// Seal a copy for `to` and ask where to save the file. Cancelling the dialog does nothing (no edition is used up).
 #[tauri::command]
-pub async fn gift_send(window: WebviewWindow, app: AppHandle, sticker_id: String, to: String, note: Option<String>) -> Result<Option<Sent>, String> {
+pub async fn gift_send(window: WebviewWindow, app: AppHandle, sticker_id: String, to: String, note: Option<String>, dress: Option<gift::GiftDress>) -> Result<Option<Sent>, String> {
     let to = to.trim().to_owned();
     if to.is_empty() {
         return Err("who is it for?".into());
@@ -40,7 +40,7 @@ pub async fn gift_send(window: WebviewWindow, app: AppHandle, sticker_id: String
     let (edition, bytes) = {
         let store = app.state::<Store>();
         let mut lib = store.lock();
-        let (id, bytes) = gift::build_gift(&mut lib, &sticker_id, &to, note.as_deref()).map_err(|e| e.to_string())?;
+        let (id, bytes) = gift::build_gift_dressed(&mut lib, &sticker_id, &to, note.as_deref(), &dress.unwrap_or_default()).map_err(|e| e.to_string())?;
         let edition = gift::decode_gift(&bytes).map_err(|e| e.to_string())?.header.edition;
         let _ = id;
         (edition, bytes)
@@ -166,14 +166,25 @@ pub fn creator_pack_decline(app:AppHandle,token:String) {
     let pending=app.state::<PendingPack>();let mut guard=pending.0.lock().unwrap();if guard.as_ref().is_some_and(|(id,_)|id==&token){*guard=None;}
 }
 #[tauri::command]
-pub async fn creator_pack_save(window:WebviewWindow,app:AppHandle,title:String,pouch:String,items:Vec<peta_core::creator_pack::Selection>)->Result<Option<String>,String> {
+pub async fn creator_pack_save(window:WebviewWindow,app:AppHandle,title:String,pouch:String,items:Vec<peta_core::creator_pack::Selection>,dress:Option<peta_core::creator_pack::Dress>)->Result<Option<String>,String> {
     let Some(path)=app.dialog().file().set_parent(&window).add_filter("Peta pack",&["peta"]).set_file_name("My Pack.peta").blocking_save_file().and_then(|p|p.into_path().ok()) else{return Ok(None)};
     let store=app.state::<Store>();let mut lib=store.lock();
-    let (header,bytes)=peta_core::creator_pack::build(&lib,&title,&pouch,&items).map_err(|e|e.to_string())?;
+    let (header,bytes)=peta_core::creator_pack::build(&lib,&title,&pouch,&items,&dress.unwrap_or_default()).map_err(|e|e.to_string())?;
     // Write a complete package before replacing the selected output; a failed write leaves it intact.
     use std::io::Write;
     let temp=path.with_file_name(format!(".peta-{}.tmp",peta_core::ids::new_gift_id()));
     let saved=(||->std::io::Result<()>{let mut file=std::fs::OpenOptions::new().write(true).create_new(true).open(&temp)?;file.write_all(&bytes)?;file.sync_all()?;std::fs::rename(&temp,&path)})();
     if let Err(error)=saved {let _=std::fs::remove_file(&temp);return Err(format!("Could not save this pack: {error}"));}
     peta_core::creator_pack::record_made(&mut lib,&header).map_err(|e|e.to_string())?;Ok(Some(path.display().to_string()))
+}
+
+/// Studio: put a pack you made on your own shelf (the same file you would save, installed here). Returns the pack's shelf id.
+#[tauri::command]
+pub fn creator_pack_shelve(app:AppHandle,title:String,pouch:String,items:Vec<peta_core::creator_pack::Selection>,dress:Option<peta_core::creator_pack::Dress>)->Result<String,String> {
+    let store=app.state::<Store>();let mut lib=store.lock();
+    let (header,bytes)=peta_core::creator_pack::build(&lib,&title,&pouch,&items,&dress.unwrap_or_default()).map_err(|e|e.to_string())?;
+    let verified=peta_core::creator_pack::decode(&bytes).map_err(|e|e.to_string())?;
+    let id=peta_core::creator_pack::install(&mut lib,&verified,true).map_err(|e|e.to_string())?;
+    peta_core::creator_pack::record_made(&mut lib,&header).map_err(|e|e.to_string())?;
+    drop(lib);today::announce(&app);Ok(id)
 }

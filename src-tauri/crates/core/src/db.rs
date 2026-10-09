@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 9;
+pub const SCHEMA_VERSION: i64 = 10;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -116,6 +116,10 @@ pub struct PackSummary {
     pub pouch: Option<String>,
     pub signature_status: Option<String>,
     pub fingerprint: Option<String>,
+    /// Studio: the item key shown on the cover, the one decoration, and the short line for the Market card.
+    pub cover: Option<String>,
+    pub deco: Option<String>,
+    pub blurb: Option<String>,
 }
 
 /// Gifts (spec §34-36): copies of a sticker sent to someone, and gifts received. A gift is a file; where it travels
@@ -190,6 +194,15 @@ CREATE TABLE packs_made (pack_id TEXT PRIMARY KEY, title TEXT NOT NULL, version 
 const MIGRATION_V9: &str = "
 ALTER TABLE stickers ADD COLUMN title TEXT;
 ";
+/// Studio (2026-10-10): how a pack or a gift is dressed, and how likely each pack item is to come out. Separate tables, so the existing
+/// positional inserts into pack_distributions / signed_pack_items keep working. A pack item with no weight row uses its legacy grade
+/// (common 4, uncommon 2, rare 1).
+const MIGRATION_V10: &str = "
+CREATE TABLE pack_item_weights (item_id INTEGER PRIMARY KEY REFERENCES pack_items(id), weight INTEGER NOT NULL);
+CREATE TABLE pack_dress (pack_id TEXT PRIMARY KEY REFERENCES packs(id), cover TEXT, deco TEXT, blurb TEXT);
+CREATE TABLE gift_dress (gift_id TEXT PRIMARY KEY REFERENCES gifts_received(gift_id), bag TEXT, deco TEXT, to_name TEXT);
+";
+
 
 /// A gift waiting in the Inbox (or already opened).
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
@@ -204,6 +217,10 @@ pub struct IncomingGift {
     pub fingerprint: Option<String>,
     pub opened_at: Option<String>,
     pub sticker_id: Option<String>,
+    /// Studio: how the sender wrapped it, and the name on the wrapping.
+    pub bag: Option<String>,
+    pub deco: Option<String>,
+    pub to: Option<String>,
 }
 
 pub struct Database {
@@ -270,6 +287,7 @@ impl Database {
                 tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES(?1,?2)",params![p.id,key])?;
                 let new = tx.last_insert_rowid();
                 tx.execute("INSERT INTO signed_pack_items SELECT ?1,png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?2",params![new,old])?;
+                tx.execute("INSERT INTO pack_item_weights SELECT ?1,weight FROM pack_item_weights WHERE item_id=?2",params![new,old])?;
             }
         }
         tx.commit()?;
@@ -344,6 +362,12 @@ impl Database {
             let tx = self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V9)?;
             tx.pragma_update(None, "user_version", 9)?;
+            tx.commit()?;
+        }
+        if version < 10 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V10)?;
+            tx.pragma_update(None, "user_version", 10)?;
             tx.commit()?;
         }
         Ok(())
@@ -755,13 +779,14 @@ impl Database {
     /// Received gifts, unopened first, newest first.
     pub fn gifts_received(&self) -> Result<Vec<IncomingGift>> {
         let mut stmt = self.conn.prepare(
-            "SELECT g.gift_id, g.from_name, g.note, g.sent_at, g.received_at, g.opened_at, g.sticker_id, COALESCE(s.status,'unsigned'), s.fingerprint FROM gifts_received g LEFT JOIN gift_signers s ON s.gift_id=g.gift_id
+            "SELECT g.gift_id, g.from_name, g.note, g.sent_at, g.received_at, g.opened_at, g.sticker_id, COALESCE(s.status,'unsigned'), s.fingerprint, d.bag, d.deco, d.to_name FROM gifts_received g LEFT JOIN gift_signers s ON s.gift_id=g.gift_id LEFT JOIN gift_dress d ON d.gift_id=g.gift_id
              ORDER BY (g.opened_at IS NOT NULL), g.received_at DESC, g.gift_id",
         )?;
         let rows = stmt.query_map([], |r| {
             Ok(IncomingGift {
                 gift_id: r.get(0)?, from: r.get(1)?, note: r.get(2)?, sent_at: r.get(3)?,
                 received_at: r.get(4)?, opened_at: r.get(5)?, sticker_id: r.get(6)?, signature_status:r.get(7)?,fingerprint:r.get(8)?,
+                bag: r.get(9)?, deco: r.get(10)?, to: r.get(11)?,
             })
         })?;
         Ok(rows.collect::<std::result::Result<Vec<_>, _>>()?)
@@ -799,12 +824,12 @@ impl Database {
 
     pub fn packs(&self) -> Result<Vec<PackSummary>> {
         let mut stmt = self.conn.prepare(
-            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint
-             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id AND NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id) LEFT JOIN pack_distributions d ON d.pack_id=p.id
+            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint, x.cover, x.deco, x.blurb
+             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id AND NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id) LEFT JOIN pack_distributions d ON d.pack_id=p.id LEFT JOIN pack_dress x ON x.pack_id=p.id
              GROUP BY p.id ORDER BY p.created_at, p.id",
         )?;
         let rows = stmt.query_map([], |r| {
-            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, free_openings:0, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)? })
+            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, free_openings:0, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)?,cover:r.get(8)?,deco:r.get(9)?,blurb:r.get(10)? })
         })?;
         let mut packs = rows.collect::<std::result::Result<Vec<_>, _>>()?;
         for pack in &mut packs { pack.free_openings = self.pack_free_openings(&pack.id)?; }
@@ -843,6 +868,7 @@ impl Database {
         tx.execute("INSERT INTO pack_items(pack_id,item_key,opened_at,sticker_id) SELECT pack_id,item_key,?2,?3 FROM pack_items WHERE id=?1", params![template_id,ts,sticker_id])?;
         let bonus_id = tx.last_insert_rowid();
         tx.execute("INSERT INTO signed_pack_items SELECT ?1,png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?2", params![bonus_id,template_id])?;
+        tx.execute("INSERT INTO pack_item_weights SELECT ?1,weight FROM pack_item_weights WHERE item_id=?2", params![bonus_id,template_id])?;
         tx.execute("INSERT INTO meta(key,value) VALUES (?1,?2)", params![format!("pack.free_item.{bonus_id}"),pack_id])?;
         Self::confirm_in(&tx, date, sticker_id, SourceType::Pack, &ts)?;
         tx.commit()?;
@@ -1173,7 +1199,7 @@ mod tests {
             }
             db.update_original_assets("mine","new-render","new-mask",1.5).unwrap();
             assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
-            assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),9);
+            assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),10);
         }
         let mut db = Database::open(&path).unwrap();
         assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
@@ -1365,7 +1391,7 @@ mod tests {
         conn.pragma_update(None, "user_version", 8).unwrap();
         conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect) VALUES ('old','x','o','r','created',1)", []).unwrap();
         let mut db = Database::init(conn).unwrap();
-        assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0)).unwrap(), 9);
+        assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0)).unwrap(), 10);
         assert!(db.sticker("old").unwrap().is_some());
         assert_eq!(db.sticker_title("old").unwrap(), None);
         db.set_sticker_title("old", Some("Still mine")).unwrap();
@@ -1383,7 +1409,7 @@ mod tests {
         conn.execute("INSERT INTO material_stock VALUES ('kraft',4)",[]).unwrap();
         conn.execute("INSERT INTO meta VALUES ('scraps.balance','9')",[]).unwrap();
         let db=Database::init(conn).unwrap();
-        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),9);
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),10);
         assert!(db.sticker("old").unwrap().is_some());assert_eq!(db.material_count("kraft").unwrap(),4);
         assert_eq!(db.packs().unwrap()[0].remaining,1);assert_eq!(db.gifts_received().unwrap()[0].from,"Nao");
         assert_eq!(db.scrap_status().unwrap().balance,9);assert_eq!(db.bonus_envelopes().unwrap(),0);
@@ -1589,7 +1615,7 @@ mod tests {
             assert_eq!((db.packs().unwrap()[0].total,db.packs().unwrap()[0].remaining,db.pack_free_openings("a").unwrap()), (20,0,1));
             assert_eq!(crate::pack::item_name(&db, "free").unwrap().as_deref(), Some("Bonus cat"));
             assert_eq!(db.next_print().unwrap().as_deref(), Some("free"));
-            assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_,i64>(0)).unwrap(), 9);
+            assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_,i64>(0)).unwrap(), 10);
         }
         let _ = std::fs::remove_file(path);
     }
