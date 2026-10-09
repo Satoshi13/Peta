@@ -160,14 +160,14 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
    body, and ::before spreads the whole picture around it (the negative insets are the baked shadow margin, as % of the body). The papers stay
    paper in the night theme, so their ink does not follow --ink. */
 .insp-paper { position: relative; color: #2b2a28; }
-.insp-paper::before { content: ""; position: absolute; inset: var(--pt) var(--pr) var(--pb) var(--pl); background: var(--art) 0 0 / 100% 100% no-repeat; pointer-events: none; }
+.insp-paper::before { content: ""; position: absolute; inset: var(--pt) var(--pr) var(--pb) var(--pl); background: var(--art) 0 0 / 100% 100% no-repeat; pointer-events: none; filter: drop-shadow(0 2px 2px rgba(60, 45, 20, .3)) drop-shadow(0 7px 8px rgba(60, 45, 20, .2)); }
 .insp-paper > * { position: relative; }
 .insp-head, .insp-record, .insp-stamp { --mono: ui-monospace, "SF Mono", Menlo, "Courier New", monospace; }
 /* the label and the ticket lie across the lower edge of the sticker card, the ticket standing a little higher */
 .insp-head { position: relative; z-index: 3; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: -66px 2px 12px 0; }
 /* while the card is turned, the back is the thing to read: the papers step off it */
 .insp-head { transition: margin-top .5s var(--ease-out); } .detail.is-back .insp-head { margin-top: 12px; }
-.insp-label { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; flex: none; width: 188px; aspect-ratio: 991 / 298; display: grid; align-items: center; padding: 0 18px 2px 20px; filter: drop-shadow(0 3px 3px rgba(60, 45, 20, .1)); rotate: -.6deg; margin-left: 4px; }
+.insp-label { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; flex: none; width: 188px; aspect-ratio: 991 / 298; display: grid; align-items: center; padding: 0 18px 2px 20px; rotate: -.6deg; margin-left: 4px; }
 .insp-label b { font: 400 25px/1.1 "Patrick Hand", "Kiwi Maru", "Hiragino Maru Gothic ProN", "Klee One", cursive; letter-spacing: .005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #3a3526; }
 /* the ticket art is already tilted; only its writing is turned to follow it */
 .insp-ticket { --art: var(--a-inspEditionTicket); --pt: -6.18%; --pr: -3.46%; --pb: -7.35%; --pl: -7.69%; flex: none; width: 76px; aspect-ratio: 520 / 599; display: grid; place-content: center; margin-right: 6px; margin-bottom: 4px; }
@@ -191,13 +191,14 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 /* the actions: one torn strip of paper for the main action, then three plain lines */
 .detail .btn.book-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; height: auto; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: #2b2a28; font: 500 15px/1.2 var(--sys); cursor: pointer; }
 .detail .btn.book-action.primary { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; position: relative; width: calc(100% - 8px); margin: 4px 4px 6px 4px; aspect-ratio: 991 / 180; justify-content: flex-start; padding: 0 22px; gap: 16px; font-size: 18px; }
-.detail .btn.book-action.primary::before { content: ""; position: absolute; inset: var(--pt) var(--pr) var(--pb) var(--pl); background: var(--art) 0 0 / 100% 100% no-repeat; filter: drop-shadow(0 3px 3px rgba(60, 45, 20, .1)); pointer-events: none; }
+.detail .btn.book-action.primary::before { content: ""; position: absolute; inset: var(--pt) var(--pr) var(--pb) var(--pl); background: var(--art) 0 0 / 100% 100% no-repeat; filter: drop-shadow(0 2px 2px rgba(60, 45, 20, .3)) drop-shadow(0 7px 8px rgba(60, 45, 20, .2)); pointer-events: none; }
 .detail .btn.book-action.primary > * { position: relative; }
 .detail .btn.book-action.primary .ico { width: 26px; height: 26px; stroke-width: 1.5; }
-.detail .btn.book-action.primary:hover::before { filter: drop-shadow(0 5px 5px rgba(60, 45, 20, .16)); } .detail .btn.book-action.primary:active::before { filter: drop-shadow(0 1px 1px rgba(60, 45, 20, .14)); }
-.detail .btn.book-action-row { gap: 4px; justify-content: space-between; margin: 0 4px; }
-.detail .btn.book-action-row > * { flex: none; padding: 8px 6px; border-radius: 8px; }
-.detail .btn.book-action-row > :hover { background: rgba(60, 45, 20, .07); }
+.detail .btn.book-action.primary:hover::before { filter: drop-shadow(0 3px 3px rgba(60, 45, 20, .32)) drop-shadow(0 10px 11px rgba(60, 45, 20, .22)); } .detail .btn.book-action.primary:active::before { filter: drop-shadow(0 1px 1px rgba(60, 45, 20, .3)) drop-shadow(0 3px 4px rgba(60, 45, 20, .16)); }
+/* the three lines sit together on the left, clear of the curled corner at the bottom right */
+.detail .book-action-row { gap: 20px; justify-content: flex-start; margin: 2px 4px 0 6px; }
+.detail .book-action-row > * { flex: none; padding: 8px 8px; border-radius: 8px; }
+.detail .book-action-row > :hover { background: rgba(60, 45, 20, .07); }
 .detail .btn.book-action { color: #3f3a2a; }
 .detail .btn.book-action.danger { color: #92704f; border: 0; }
 .detail .btn.book-action:focus-visible { outline: 2px solid #527d93; outline-offset: 2px; }
