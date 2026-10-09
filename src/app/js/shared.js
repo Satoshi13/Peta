@@ -44,6 +44,30 @@ function Icon(name) {
   return svg;
 }
 
+/** A peek inside a pack: up to three of its stickers lying on a sheet of paper, held by a strip of tape (art/ui/peek-*.png).
+ *  Each sticker is fitted into a box, so a wide cat and a tall cat look the same size. Stickers whose white die-cut border is already
+ *  in the picture are drawn as they are; the others get the app's border. */
+const PEEK_BAKED = new Set(["sCatSleeping", "sCatSkateboard", "sCatSitting"]);
+const PEEK_SPOTS = {   // centre x, centre y, box width, box height (all % of the sheet), tilt in degrees
+  1: [[50, 52, 52, 66, 0]],
+  2: [[30, 50, 40, 54, -4], [70, 52, 40, 54, 3]],
+  3: [[27, 32, 38, 40, -3], [72, 30, 36, 44, 4], [50, 69, 34, 38, -2]],
+};
+function PackPeek(keys, caption = "A few from this pack") {
+  const list = keys.filter((k) => A[k]).slice(0, 3), sheet = h("div.peek-sheet", h("i.peek-tape"));
+  list.forEach((k, i) => {
+    const [x, y, bw, bh, r] = PEEK_SPOTS[list.length][i], cell = h("div.peek-item", { style: { left: x + "%", top: y + "%", width: bw + "%", height: bh + "%", "--r": r + "deg" } });
+    sheet.append(cell);
+    if (PEEK_BAKED.has(k)) { cell.append(h("img", { src: A[k], alt: "" })); return; }
+    Stk.make(A[k], { border: 10, material: "matte", max: 300 }).then((res) => {
+      if (!cell.isConnected) return;
+      const w = cell.offsetWidth, hh = cell.offsetHeight, fit = res.aspect >= w / hh ? w : hh * res.aspect;
+      cell.append(Stk.el(res, fit));
+    }).catch(() => {});
+  });
+  return list.length ? h("figure.peek-fig", sheet, h("figcaption", caption)) : null;
+}
+
 /** A tray of material cards. Picking marks the material for the next Create without moving the controls. */
 function MaterialTray({ w = 148, onPick, interactive = true, selected = S.chosen } = {}) {
   const tray = h("div.mtray", { role: "radiogroup", "aria-label": "Material" });

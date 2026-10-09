@@ -785,7 +785,7 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 .mkz-card.on { opacity:1; }
 .mkz-card h2 { margin:0; font:700 26px/1.12 var(--sys); letter-spacing:-.022em; }
 .mkz-blurb { margin:6px 0 0; font:400 14px/21px var(--sys); color:var(--ink2); }
-.mkz-peek { margin-top:12px; }
+.mkz-peek { margin-top:12px; margin-bottom:6px; }
 .mkz-x { position:absolute; right:12px; top:12px; width:30px; height:30px; border:0; border-radius:50%; background:var(--w-sunken); color:var(--ink); font:600 13px/30px var(--sys); }
 .mkz-x:focus-visible, .mkz-back:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
 .mkz-buy { margin-top:auto; display:grid; gap:9px; padding-top:12px; }
@@ -996,3 +996,13 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .pk-img > canvas.glint { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; mix-blend-mode:soft-light; }
 /* the zoomed pack tilts toward the pointer: the picture and its label are one layer */
 .mkz-tilt { position:absolute; inset:0; transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); }
+
+/* A peek inside a pack: stickers on a sheet of paper under a strip of tape (js/shared.js PackPeek). The paper's own shadow is part of the art. */
+.peek-fig { margin:2px 0 0; text-align:center; }
+.peek-fig figcaption { margin-top:8px; font:500 12.5px/1.3 var(--sys); color:var(--muted); }
+.peek-sheet { position:relative; width:100%; aspect-ratio:663 / 518; background:var(--a-peekPaper) center / 100% 100% no-repeat; }
+.peek-tape { position:absolute; left:50%; top:-3.5%; width:25%; aspect-ratio:360 / 169; translate:-50% 0; rotate:-1.5deg; background:var(--a-peekTape) center / 100% 100% no-repeat; z-index:3; pointer-events:none; filter:drop-shadow(0 1px 1.5px rgba(60,45,20,.3)); }
+.peek-item { position:absolute; transform:translate(-50%,-50%) rotate(var(--r,0deg)); display:grid; place-items:center; }
+.peek-item > img, .peek-item > .stk { max-width:100%; max-height:100%; filter:drop-shadow(0 3px 4px rgba(60,45,20,.28)); }
+.peek-item > img { width:100%; height:100%; object-fit:contain; }
+.peek-fig.compact .peek-sheet { width:72%; margin:0 auto; }

@@ -29,7 +29,7 @@ pub fn market_pack(id: &str) -> Option<MarketPack> {
         "coffee" => ("coffee", "Coffee Club", "Nao", &["coffee-cup","fried-egg","good-day","film-camera","potted-plant","cat-skateboard"]),
         "plants" => ("plants", "Houseplants", "Mika", &["potted-plant","blue-flower","fried-egg","polaroid-mountain","coffee-cup"]),
         "pixel" => ("pixel", "Pixel Dream", "Ryo", &["retro-computer","cassette-tape","peta-bubble","purple-scribble","film-camera","good-day"]),
-        "cats" => ("cats", "Cats", "Yuki", &["cat-skateboard","purple-scribble","coffee-cup","potted-plant","peta-bubble"]),
+        "cats" => ("cats", "Cats", "Yuki", &["cat-pack-sleeping","cat-pack-skateboard","cat-pack-sitting","cat-skateboard","peta-bubble"]),
         "night" => ("night", "Night Market", "Ren", &["fried-egg","cassette-tape","good-day","polaroid-mountain","film-camera","peta-bubble"]),
         _ => return None,
     };
