@@ -37,8 +37,10 @@ def main():
     used = set(re.findall(r'src/art/([\w\-./]+\.(?:png|jpg))', html))                       # CSS url(...)
     used |= set(re.findall(r'A\("([\w\-./]+\.(?:png|jpg))"', html))                            # A("notes/paper-clip.png")
     used |= {f"samples/{p.name}" for p in (ART / "samples").glob("*.png")}                    # the sticker list holds bare file names
-    used |= {"pack/pack-kraft.png", "pack/pack-matte.png", "pack/pack-holographic.png"}
+    used |= {"pack/pack-kraft.png", "pack/pack-matte.png", "pack/pack-holographic.png", "notes/paper-clip.png", "ui/pin-red.png", "notes/binder-clip.png", "ui/ribbon-bookmark.png"}
     art_map = {rel: encode(rel) for rel in sorted(used)}
+    for f in sorted((UI / "pack-studio-assets").glob("*.webp")):    # Codex's wrapping art, already WebP
+        art_map["bags/" + f.name] = b64(f.read_bytes(), "image/webp")
     print(f"{len(art_map)} images, {sum(len(v) for v in art_map.values()) / 1e6:.2f} MB (base64)")
     html = re.sub(r'url\((["\']?)(?:\.\./)+src/art/([\w\-./]+)\1\)', lambda m: f'url("{art_map[m.group(2)]}")', html)
     latin = "".join(chr(c) for c in range(32, 127)) + "…—–·→←↑↓✓“”’‘"

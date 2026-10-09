@@ -25,10 +25,10 @@ header.top { padding: 56px 0 8px; } h1 { font-size: clamp(30px, 5vw, 50px); line
 .tog { display: inline-flex; align-items: center; gap: 7px; font: 500 12.5px/1 var(--sys); padding: 8px 12px; border-radius: 999px; border: 0; background: rgba(0,0,0,.06); }
 .tog[aria-pressed="true"] { background: #1f1b16; color: #fff; }
 .fit { position: relative; width: 100%; overflow: hidden; border-radius: 22px; box-shadow: var(--sh3); background: #8fa5c9; }
-.stage { position: absolute; left: 0; top: 0; width: 1120px; height: 740px; transform-origin: 0 0; overflow: hidden; background: radial-gradient(900px 600px at 8% 10%, #ffd9bd, transparent 60%), radial-gradient(800px 600px at 95% 90%, #b6c5f0, transparent 60%), linear-gradient(160deg, #f3d3c6, #aab5e6); user-select: none; }
-.win { position: absolute; left: 30px; top: 24px; width: 1060px; height: 692px; border-radius: 18px; overflow: hidden; background: var(--paper) url("../../src/art/book/page-paper.jpg") 0 0 / 520px; box-shadow: 0 0 0 .5px rgba(0,0,0,.2), 0 30px 70px rgba(20,14,40,.35); font: 14px/1.5 var(--sys); }
+.stage { position: absolute; left: 0; top: 0; width: 1340px; height: 760px; transform-origin: 0 0; overflow: hidden; background: radial-gradient(900px 600px at 8% 10%, #ffd9bd, transparent 60%), radial-gradient(800px 600px at 95% 90%, #b6c5f0, transparent 60%), linear-gradient(160deg, #f3d3c6, #aab5e6); user-select: none; }
+.win { position: absolute; left: 30px; top: 24px; width: 1280px; height: 712px; display: grid; grid-template-columns: 200px 1fr; border-radius: 18px; overflow: hidden; background: var(--paper) url("../../src/art/book/page-paper.jpg") 0 0 / 520px; box-shadow: 0 0 0 .5px rgba(0,0,0,.2), 0 30px 70px rgba(20,14,40,.35); font: 14px/1.5 var(--sys); }
 .dots { position: absolute; left: 16px; top: 14px; display: flex; gap: 8px; z-index: 5; } .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; } .dots i:nth-child(1) { background: #ec6a5e; } .dots i:nth-child(2) { background: #f4bf4f; } .dots i:nth-child(3) { background: #61c554; }
-.page { position: absolute; inset: 0; padding: 40px 36px 0; }
+.page { position: relative; padding: 40px 36px 0; min-width: 0; }
 .ph .eyebrow { font-size: 11px; } .ph h1 { font-size: 30px; margin: 8px 0 0; letter-spacing: -.03em; }
 .ph { display: flex; justify-content: space-between; align-items: flex-end; }
 .steps { display: inline-flex; background: rgba(60,45,20,.1); border-radius: 999px; padding: 3px; gap: 2px; }
@@ -39,7 +39,7 @@ header.top { padding: 56px 0 8px; } h1 { font-size: clamp(30px, 5vw, 50px); line
 .saved { font-size: 12px; color: var(--muted); margin-right: 14px; }
 .saved i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #5fb06a; margin-right: 6px; }
 /* workbench */
-.work { position: absolute; left: 36px; right: 36px; top: 108px; bottom: 28px; display: grid; grid-template-columns: 470px 1fr; gap: 18px; }
+.work { position: absolute; left: 36px; right: 36px; top: 108px; bottom: 28px; display: grid; grid-template-columns: 470px minmax(0, 1fr); gap: 18px; }
 .bench { position: relative; border-radius: 22px; overflow: hidden; background: #c9a878 url("../../src/art/book/cover-board.jpg") 0 0 / 420px; box-shadow: inset 0 0 0 3px rgba(90,60,25,.25), inset 0 3px 16px rgba(60,40,10,.35), 0 10px 26px rgba(60,45,20,.18); }
 .bench::after { content: ""; position: absolute; inset: 0; z-index: 0; background: radial-gradient(60% 55% at 50% 48%, rgba(255,246,222,.3), transparent 70%); pointer-events: none; }
 .bench .cap { position: absolute; left: 16px; bottom: 12px; right: 16px; display: flex; justify-content: space-between; font: 12px/1.2 var(--type); letter-spacing: .06em; color: rgba(255,248,230,.85); text-shadow: 0 1px 2px rgba(40,25,5,.5); z-index: 6; }
@@ -136,13 +136,47 @@ header.top { padding: 56px 0 8px; } h1 { font-size: clamp(30px, 5vw, 50px); line
 .tag { display: inline-block; font: 600 11px/1 var(--sys); padding: 4px 8px; border-radius: 99px; background: #e6f1e4; color: #2f5a2f; margin-right: 4px; } .tag.new { background: #f7e6cf; color: #7a4a14; } .tag.art { background: #e4e8f7; color: #35457a; }
 footer { padding: 60px 0 100px; color: var(--muted); font-size: 13px; }
 html[data-reduce="1"] *, html[data-reduce="1"] *::before, html[data-reduce="1"] *::after { animation-duration: .001s !important; transition-duration: .001s !important; }
+
+/* sidebar (a sketch of the real one: the new tab sits under MAKE) */
+.side { padding: 52px 14px 14px; background: rgba(240,231,214,.7); box-shadow: inset -1px 0 0 rgba(120,100,60,.16); display: flex; flex-direction: column; gap: 2px; font: 500 13.5px/1 var(--sys); color: #4a463f; }
+.side .brand { font: 600 26px/1 "Kalam", var(--hand); margin: 0 0 14px 6px; color: #2b2a28; }
+.side .hd { font: 600 10.5px/1 var(--sys); letter-spacing: .1em; color: #8a7f68; margin: 14px 8px 6px; }
+.side a { display: flex; align-items: center; gap: 10px; padding: 8px 8px; border-radius: 10px; color: inherit; text-decoration: none; }
+.side a i { width: 22px; height: 22px; border-radius: 6px; background: #d9c9a6; box-shadow: inset 0 0 0 1px rgba(90,70,30,.2); }
+.side a.on { background: #fffdf8; box-shadow: 0 1px 3px rgba(60,45,20,.18); color: #1f1b16; font-weight: 650; } .side a.on i { background: #1f1b16; }
+.side a .new { margin-left: auto; font: 700 9.5px/1 var(--sys); letter-spacing: .06em; background: #1f1b16; color: #ffd877; padding: 3px 6px; border-radius: 99px; }
+.ph .back { border: 0; background: none; color: var(--muted); font: 500 12.5px/1 var(--sys); padding: 6px 10px; border-radius: 99px; margin-right: 8px; } .ph .back:hover { background: rgba(0,0,0,.06); }
+/* the first choice */
+.choose { position: absolute; left: 36px; right: 36px; top: 108px; bottom: 28px; display: grid; grid-template-rows: auto 1fr; gap: 18px; }
+.choose h2 { margin: 6px 0 0; font-size: 24px; letter-spacing: -.02em; } .choose .sub { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.cards2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-height: 0; }
+.mk { position: relative; text-align: left; border: 0; border-radius: 24px; padding: 22px 24px; overflow: hidden; background: rgba(255,253,248,.84); box-shadow: inset 0 0 0 1px var(--line), 0 6px 18px rgba(60,45,20,.1); transition: transform .3s var(--spring), box-shadow .3s; display: grid; grid-template-rows: 1fr auto; }
+.mk:hover { transform: translateY(-4px); box-shadow: inset 0 0 0 1px var(--line), 0 18px 34px rgba(60,45,20,.18); } .mk:focus-visible { outline: 2px solid #527d93; outline-offset: 3px; }
+.mk .art { position: relative; min-height: 0; display: grid; place-items: center; background: radial-gradient(60% 70% at 50% 55%, rgba(255,240,205,.7), transparent 70%), repeating-linear-gradient(0deg, transparent 0 22px, rgba(120,100,60,.05) 22px 23px); border-radius: 16px; overflow: hidden; }
+.mk .art img { position: absolute; transition: transform .45s var(--spring); filter: drop-shadow(0 8px 8px rgba(50,35,10,.22)); }
+.mk h3 { margin: 14px 0 2px; font-size: 22px; letter-spacing: -.02em; } .mk p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--ink2); } .mk .for { display: inline-block; margin-top: 10px; font: 600 11px/1 var(--sys); letter-spacing: .06em; text-transform: uppercase; color: #7a4a14; background: #f7e6cf; padding: 5px 9px; border-radius: 99px; }
+.mk:hover .art img:nth-child(1) { transform: translate(-6px,-4px) rotate(-3deg); } .mk:hover .art img:nth-child(2) { transform: translateY(-6px) rotate(2deg); } .mk:hover .art img:nth-child(3) { transform: translate(6px,-3px) rotate(4deg); }
+/* wrapping choices */
+.bags { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.bagt { position: relative; aspect-ratio: 1; border: 0; border-radius: 12px; background: #f3ecdb; box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; padding: 6px; transition: transform .18s var(--spring); } .bagt:hover { transform: translateY(-2px); } .bagt img { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; }
+.bagt[aria-pressed="true"] { background: #fffdf6; box-shadow: inset 0 0 0 2px var(--ink); } .bagt span { position: absolute; left: 0; right: 0; bottom: 3px; text-align: center; font: 600 10px/1 var(--sys); color: var(--ink2); text-shadow: 0 0 4px #f3ecdb, 0 0 4px #f3ecdb; }
+.bagt .ph3 { width: 100%; height: 100%; background: var(--a) center / contain no-repeat; }
+.pouch[data-kind="gen"] { filter: none; } .pouch[data-kind="gen"] .art { background-size: 100% 100%; }
+.pouch[data-kind="gen"] .lbl { left: var(--ll); top: var(--lt); right: var(--lr); bottom: var(--lb); rotate: var(--lrot, 0deg); }
+.pouch[data-ls="paper"][data-nolabel="1"] .lbl .cover { display: block; }
+.pouch[data-kind="gen"] .lbl b { font-size: 11.5cqw; } .pouch[data-kind="gen"][data-ls="stamp"] .lbl b, .pouch[data-kind="gen"][data-ls="type"] .lbl b { font-size: 10cqw; } .pouch[data-kind="gen"] .lbl small { font-size: 6cqw; }
+.pouch[data-kind="gen"][data-ls="tape"] .lbl b { font-size: 14cqw; }
+.noteview { position: absolute; inset: 10px 10px 10px 46%; border-radius: 14px; background: #fffdf6 url("../../src/art/book/page-paper.jpg") 0 0 / 300px; box-shadow: 0 0 0 1px var(--line), 0 8px 20px rgba(60,45,20,.18); padding: 14px 16px; display: grid; align-content: start; gap: 6px; }
+.noteview .to { font: 400 22px/1.1 var(--pen); } .noteview .msg { font: 400 17px/1.3 var(--pen); color: #3a342a; } .noteview .from { margin-top: auto; font: 12px/1 var(--type); color: var(--muted); }
+.noteview .st { width: 64px; margin: 2px 0; filter: drop-shadow(0 2px 2px rgba(50,35,10,.3)); }
+[hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap">
   <div class="eyebrow">Peta · Make a Pack</div>
-  <h1>Pack Studio</h1>
-  <p class="lead">いまの「Make a Pack…」はモーダルの2ページ(選ぶ → 名前と袋を決める)で終わります。これを、<b>ページ全体の作業台</b>にして、袋そのものを触りながら作り込めるようにしたプレビューです。左の袋はいつも見えていて、右の道具で変えたことがすぐ袋に出ます。工程は自由に行き来できます。</p>
+  <h1>Studio — Pack & Gift</h1>
+  <p class="lead">Make のタブに「Studio」を追加するプレビューです。最初に <b>Pack</b>(Market・友だち向けのセット)か <b>Gift</b>(1人に渡す1枚)を選び、ページ全体の作業台で、袋そのものを触りながら作り込みます。左の袋はいつも見えていて、右の道具で変えたことがすぐ袋に出ます。</p>
   <div class="bar">
     <button class="tog" id="tSnd" aria-pressed="false">音</button>
     <button class="tog" id="tRed" aria-pressed="false">動きを減らす</button>
@@ -152,34 +186,36 @@ html[data-reduce="1"] *, html[data-reduce="1"] *::before, html[data-reduce="1"] 
 </div></header>
 <main class="wrap"><div class="fit" id="fit"><div class="stage" id="stage">
   <div class="win"><div class="dots"><i></i><i></i><i></i></div>
-    <div class="page">
-      <div class="ph"><div><div class="eyebrow">Make a Pack</div><h1>Pack Studio</h1></div>
-        <div style="display:flex;align-items:center"><span class="saved"><i></i>Draft saved</span><div class="steps" id="steps" role="tablist"></div></div></div>
-      <div class="work"><div class="bench" id="bench"><div class="stagepouch" id="sp"></div><div class="cap"><span id="capL"></span><span id="capR"></span></div><div class="flash" id="flash"></div></div><div class="panel" id="panel"></div></div>
+    <nav class="side" id="side"></nav>
+    <div class="page" id="page">
+      <div class="ph" id="ph"></div>
+      <div class="work" id="work"><div class="bench" id="bench"><div class="stagepouch" id="sp"></div><div class="cap"><span id="capL"></span><span id="capR"></span></div><div class="flash" id="flash"></div></div><div class="panel" id="panel"></div></div>
+      <div class="choose" id="choose" hidden></div>
     </div>
   </div>
 </div></div></main>
 <div class="wrap note">
   <h2>何を変えたか</h2>
   <div class="cols">
-    <div class="card"><h3>今(モーダル)</h3><ul><li>3〜24枚をチェックボックスで選ぶ</li><li>名前・袋の種類(3つ)・各ステッカーの名前とレア度をフォームで入力</li><li>袋が見えるのは、作った後だけ</li><li>全部が「入力して保存」で、作り込む余地がない</li></ul></div>
-    <div class="card"><h3>Pack Studio(このプレビュー)</h3><ul><li><b>袋がずっと見えている。</b>触れる(傾く・光る)し、入れたステッカーが袋の口から覗く</li><li><b>Sort:</b>レア度の棚へステッカーをドラッグ。出やすさは<b>アプリ本物の重み(60/30/10)</b>で計算して、棚の下に実数を出す</li><li><b>Dress:</b>袋・色・ラベルの形・口のテープ・<b>表紙ステッカー</b>・飾り(クリップ/ピン)を袋の上で配置</li><li><b>Seal:</b>棚とMarketでの見え方を確かめてから、封をする演出で完成</li></ul></div>
+    <div class="card"><h3>今</h3><ul><li>Make は「Create」(ステッカーを作る)だけ</li><li>パックは Collection の「Make a Pack…」からモーダルで作る(2ページ、袋は3種)</li><li>ギフトは1枚ずつ、Collection の詳細から「Gift…」</li></ul></div>
+    <div class="card"><h3>Studio(このプレビュー)</h3><ul><li><b>Make に「Studio」を追加。</b>最初に <b>Pack</b> か <b>Gift</b> を選ぶ</li><li><b>Pack</b>(Marketや友だち向け):Gather → Sort → Dress → Seal。レア度の出やすさは本物の重み(60/30/10)</li><li><b>Gift</b>(1人向け):Choose → Wrap → Write → Seal。宛名と一言を書き、受け取り側の見え方も確かめる</li><li>袋は <b>Codex の汎用素材12種 + 今の3種</b>。ラベルは各素材の空白の紙の位置に載る</li></ul></div>
   </div>
-  <h2>実装に必要なもの(今のアプリで足りないもの)</h2>
+  <h2>実装に必要なもの</h2>
   <div class="cols">
-    <div class="card"><h3>そのまま使える <span class="tag">今ある</span></h3><ul><li>タイトル(40文字)、袋の種類3つ、3〜24枚、各ステッカーの名前とレア度、署名つきの保存</li><li>レア度の出やすさ(common 60 / uncommon 30 / rare 10、空の等級は残りで按分)</li></ul></div>
-    <div class="card"><h3>パックの形式に項目を足す <span class="tag new">データ</span></h3><ul><li>色(hue)、ラベルの形、口のテープ、表紙ステッカー、飾りの位置、紹介文(Marketのカードに出す)</li><li>どれも署名の対象に含める(受け取った側で見た目が変わらないように)</li></ul></div>
-    <div class="card"><h3>素材の追加 <span class="tag art">アート</span></h3><ul><li>ラベルの形(スタンプ・マスキングテープ・タイプライター)を紙の画像で</li><li>口のテープ数種(マスキングテープ)、飾り数種(クリップ・ピン・しおり・小さな札)</li><li>封をする金属の押さえ(今回は仮の絵)</li></ul></div>
+    <div class="card"><h3>今のまま使える <span class="tag">今ある</span></h3><ul><li>パック:タイトル・袋の種類・3〜24枚・各名前とレア度・署名つき保存、ギフト:宛名・一言・署名つきファイル</li></ul></div>
+    <div class="card"><h3>形式に足す <span class="tag new">データ</span></h3><ul><li>袋の種類を3つ → 15種に(素材ID)、色、ラベルの形、口のテープ、表紙、飾りの位置、紹介文</li><li>ギフトにも包みの種類・飾りを持たせ、受け取る側で同じ見た目にする(署名の対象)</li></ul></div>
+    <div class="card"><h3>素材 <span class="tag art">アート</span></h3><ul><li>12種の汎用素材は届いた(位置は manifest から)。<b>1枚画像なので、袋の前面/背面の重なりや、口から覗く演出は近似</b>です</li><li>ラベル/マステ/飾りの種類は、あとで素材を足す</li></ul></div>
   </div>
-  <p>まず Gather → Sort → Dress → Seal の順で触って、「ここは要らない」「ここをもっと作り込みたい」を教えてください。次のどれから実装するかを決められます。</p>
+  <p>Pack と Gift を同じ作業台にするのは、Seal・Dress が共通だからです。違うのは、中身(複数 or 1枚)と、渡し方(Market・棚 or ファイル)だけです。実際に触って、「Pack/Gift の分け方」や「素材の合わせ方」の感触を教えてください。</p>
 </div>
-<footer><div class="wrap">Pack Studio preview · 画像はアプリ本物の素材(src/art)、数字は本物の重み。保存・署名・シールの音は仮です。</div></footer>
+<footer><div class="wrap">Studio preview · 袋は Codex の汎用素材(docs/ui-proposals/pack-studio-assets)とアプリの素材(src/art)、数字は本物の重み。保存・署名・音は仮です。</div></footer>
 
 <script>
 const ART = "../../src/art/";
 const A = (rel) => (window.ART_MAP && window.ART_MAP[rel]) || ART + rel;   // the standalone build embeds the images in ART_MAP
+const B = (file) => (window.ART_MAP && window.ART_MAP["bags/" + file]) || "pack-studio-assets/" + file;   // Codex's generic wrapping art
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const h = (t, a = {}, ...k) => { const [tag, ...cl] = t.split("."); const e = document.createElement(tag || "div"); if (cl.length) e.className = cl.join(" "); for (const [n, v] of Object.entries(a || {})) { if (n === "on") for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (n === "style") { for (const [k, x] of Object.entries(v)) k.startsWith("--") ? e.style.setProperty(k, x) : (e.style[k] = x); } else if (n === "data") Object.assign(e.dataset, v); else if (v === true) e.setAttribute(n, ""); else if (v !== false && v != null) e.setAttribute(n, v); } for (const c of k.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
+const h = (t, a = {}, ...k) => { const [tag, ...cl] = t.split("."); const e = document.createElement(tag || "div"); if (cl.length) e.className = cl.join(" "); for (const [n, v] of Object.entries(a || {})) { if (n === "on") for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (n === "style") { for (const [k2, x] of Object.entries(v)) k2.startsWith("--") ? e.style.setProperty(k2, x) : (e.style[k2] = x); } else if (n === "data") Object.assign(e.dataset, v); else if (v === true) e.setAttribute(n, ""); else if (v !== false && v != null) e.setAttribute(n, v); } for (const c of k.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const reduced = () => document.documentElement.dataset.reduce === "1";
 
@@ -192,40 +228,83 @@ const STK = [
 const sOf = (id) => STK.find((s) => s.id === id);
 const WEIGHTS = { common: 60, uncommon: 30, rare: 10 };   // creator_pack::RARITY_WEIGHTS
 const TIERS = [["rare", "Rare", "r"], ["uncommon", "Uncommon", "u"], ["common", "Common", ""]];
-const KINDS = [["kraft", "Kraft", "pack-kraft.png"], ["matte", "Matte", "pack-matte.png"], ["holo", "Holographic", "pack-holographic.png"]];
+/* The wrapping. body = the object's own box in the picture (px, from Codex's manifest, alpha > 128); lbl = where text can go (% of the picture); hasLabel = the picture already has a blank paper label there. */
+const GEN = [
+  ["glassine", "Glassine", "01-glassine.webp", 1254, 1254, [182, 147, 1098, 1214], [27, 67, 76, 88], 1, -1],
+  ["photo", "Photo envelope", "02-photo-envelope.webp", 1254, 1254, [166, 220, 1093, 1140], [30, 56, 70, 80], 0, 0],
+  ["kraft-parcel", "Kraft parcel", "03-kraft-parcel.webp", 1254, 1254, [129, 169, 1132, 1146], [29, 41, 82, 59], 1, 0],
+  ["pocket", "Library pocket", "04-library-pocket.webp", 1254, 1254, [172, 125, 1113, 1167], [27, 58, 76, 83], 1, 0],
+  ["airmail", "Airmail", "05-airmail.webp", 1536, 1024, [95, 168, 1438, 876], [26, 39, 76, 64], 1, 0],
+  ["wrap", "Folded wrap", "06-folded-wrap.webp", 1254, 1254, [92, 131, 1174, 1157], [48, 63, 87, 78], 1, 0],
+  ["foil", "Foil", "07-foil.webp", 1254, 1254, [245, 103, 1015, 1159], [34, 37, 63, 59], 1, 12],
+  ["cello", "Cellophane", "08-cellophane.webp", 1254, 1254, [159, 132, 1095, 1154], [32, 46, 70, 70], 0, 0],
+  ["drawer", "Drawer box", "09-drawer-box.webp", 1536, 1024, [117, 204, 1456, 922], [16, 40, 56, 66], 0, 0],
+  ["band", "Belly band", "10-belly-band.webp", 1254, 1254, [179, 89, 1078, 1158], [32, 42, 68, 59], 0, 0],
+  ["folio", "Mini folio", "11-mini-folio.webp", 1254, 1254, [305, 178, 997, 1113], [32, 38, 62, 58], 0, 0],
+  ["cotton", "Cotton pouch", "12-cotton-pouch.webp", 1254, 1254, [70, 132, 1233, 1126], [32, 55, 66, 75], 0, 0],
+].map(([id, name, file, W, H, b, l, hasLabel, rot]) => ({ id, name, file, W, H, gen: true, hasLabel: !!hasLabel, rot, body: [b[0] / W * 100, b[1] / H * 100, b[2] / W * 100, b[3] / H * 100], lbl: l }));
+const CLASSIC = [["kraft", "Kraft", "pack-kraft.png"], ["matte", "Matte", "pack-matte.png"], ["holo", "Holographic", "pack-holographic.png"]].map(([id, name, f]) => ({ id, name, file: f, classic: true, W: 3, H: 4, body: [4, 5, 96, 97] }));
+const BAGS = [...CLASSIC, ...GEN], bagOf = (id) => BAGS.find((b) => b.id === id);
+const GIFT_BAGS = ["airmail", "photo", "glassine", "kraft-parcel", "wrap", "cotton", "drawer", "folio", "band", "pocket"];
 const CHARMS = [["clip", "Paper clip", A("notes/paper-clip.png"), 12], ["pin", "Pin", A("ui/pin-red.png"), 11], ["bind", "Binder clip", A("notes/binder-clip.png"), 20], ["ribbon", "Bookmark", A("ui/ribbon-bookmark.png"), 16]];
 const TAPES = ["none", "mint", "pink", "sky", "stripe", "dot"];
 const LABELS = [["paper", "Paper"], ["stamp", "Stamp"], ["tape", "Tape"], ["type", "Typed"]];
-const STEPS = ["Gather", "Sort", "Dress", "Seal"];
-const fresh = () => ({ step: 1, kind: "kraft", hue: 200, title: "Sunny Pack", blurb: "Small things that make a morning.", ls: "paper", tape: "none", items: ["cat", "coffee", "plant", "camera", "egg"].map((id, i) => ({ id, name: sOf(id).name, rarity: i === 3 ? "uncommon" : i === 4 ? "rare" : "common" })), cover: null, charms: [], sel: null, sealed: false, ctx: "shelf", visited: new Set([1]) });
+const STEPS = { pack: ["Gather", "Sort", "Dress", "Seal"], gift: ["Choose", "Wrap", "Write", "Seal"] };
+const dressed = (o) => ({ ls: "paper", tape: "none", hue: 200, cover: null, charms: [], sealed: false, ...o });
+const fresh = () => ({
+  mode: null, step: 1, sel: null, sealing: false, ctx: "shelf", visited: new Set([1]),
+  ...dressed({ bag: "kraft", title: "Sunny Pack", blurb: "Small things that make a morning.", items: ["cat", "coffee", "plant", "camera", "egg"].map((id, i) => ({ id, name: sOf(id).name, rarity: i === 3 ? "uncommon" : i === 4 ? "rare" : "common" })) }),
+  g: dressed({ bag: "airmail", to: "Mika", note: "Thanks for the coffee this morning!", sticker: "coffee", step: 1, visited: new Set([1]), ls: "paper" }),
+});
 let S = fresh(), sound = false;
+const W = () => (S.mode === "gift" ? S.g : S);          // the thing being made
+const stepOf = () => (S.mode === "gift" ? S.g.step : S.step);
 
-/* ---------- sound (a tiny synth: a real one would reuse Snd) ---------- */
+/* ---------- sound (a tiny synth: the real app reuses Snd) ---------- */
 let ac; const tone = (f, d, v = .08, type = "sine", t0 = 0) => { if (!sound) return; ac ||= new (window.AudioContext || window.webkitAudioContext)(); const t = ac.currentTime + t0, o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02); };
 const sfx = { tap: () => tone(620, .07, .05), pop: () => { tone(420, .09, .07); tone(640, .12, .05, "sine", .05); }, thunk: () => { tone(110, .22, .22, "triangle"); tone(70, .3, .2, "sine"); }, chime: () => { tone(880, .5, .06); tone(1320, .6, .04, "sine", .08); } };
 
-/* ---------- the pouch (the same element is used on the bench, on the shelf and on the rail) ---------- */
+/* ---------- the wrapped thing: one element for the bench, the shelf, the rail and the recipient's table ---------- */
+const bodyOf = (w) => bagOf(w.bag).body;
+const toBox = (w, d) => { const [x0, y0, x1, y1] = bodyOf(w); return { x: x0 + d.x / 100 * (x1 - x0), y: y0 + d.y / 100 * (y1 - y0), s: d.s * (x1 - x0) / 100 }; };   // body-relative → picture %
+function view() {
+  const w = W();
+  if (S.mode === "gift") return { w, items: [{ id: w.sticker }], title: w.to ? "For " + w.to : "For you", sub: "from Satoshi", noNames: true };
+  return { w, items: w.items, title: w.title || "Untitled", sub: "by Satoshi" };
+}
 function pouch(opts) {
-  const { w = 270, fan = true, interactive = false } = opts;
-  const el = h("div.pouch", { style: { "--w": w + "px", "--hue": S.hue + "deg", "--art": `url("${A(`pack/pack-${S.kind === "holo" ? "holographic" : S.kind}.png`)}")` }, data: { kind: S.kind, ls: S.ls, tinted: S.hue !== 200 ? "1" : "0" } });
-  if (fan) { const f = h("div.fan"); S.items.slice(0, 6).forEach((it, i, a) => { const n = a.length, spread = n === 1 ? 0 : (i / (n - 1) - .5); f.append(h("img", { src: sOf(it.id).src, alt: "", style: { transform: `translateX(-50%) translateX(${spread * 150}%) rotate(${spread * 40}deg) translateY(${-6 - (1 - Math.abs(spread) * 2) * 12}%)`, zIndex: i } })); }); if (S.items.length > 6) f.append(h("span.more", {}, "+" + (S.items.length - 6))); el.append(f); }
-  el.append(h("div.art"), h("div.sheen"));
-  if (S.tape !== "none") el.append(h("i.toptape", { data: { t: S.tape } }));
-  el.append(h("div.lbl", {}, h("i.cover"), h("b", {}, S.title || "Untitled"), h("small", {}, "by Satoshi")));
-  if (S.cover) el.append(deco(S.cover, "sticker", interactive));
-  S.charms.forEach((c) => el.append(deco(c, c.k, interactive)));
+  const { w: px = 270, fan = true, interactive = false } = opts, v = view(), w = v.w, bag = bagOf(w.bag), [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0;
+  // the picture's box is sized so the object inside is about as big as a classic pouch
+  let boxW = bag.gen ? px * 1.12 / (bw / 100) : px;
+  const ratio = bag.W / bag.H; if (bag.gen && boxW / ratio * bh / 100 > px * 1.3) boxW = px * 1.3 / (bh / 100) * ratio;
+  const art = bag.gen ? B(bag.file) : A("pack/pack-" + (bag.id === "holo" ? "holographic" : bag.id) + ".png");
+  const el = h("div.pouch", { style: { "--w": boxW + "px", "--hue": w.hue + "deg", "--art": `url("${art}")`, aspectRatio: `${bag.W} / ${bag.H}` }, data: { kind: bag.gen ? "gen" : bag.id, ls: w.ls, tinted: w.hue !== 200 ? "1" : "0", nolabel: bag.gen && !bag.hasLabel ? "1" : "0" } });
+  if (bag.gen) { const [l, t, r, b] = bag.lbl; el.style.setProperty("--ll", l + "%"); el.style.setProperty("--lt", t + "%"); el.style.setProperty("--lr", 100 - r + "%"); el.style.setProperty("--lb", 100 - b + "%"); el.style.setProperty("--lrot", (bag.rot + (w.ls === "stamp" ? -3 : 0)) + "deg"); }
+  if (fan && v.items.length) {
+    const f = h("div.fan"); if (bag.gen) { const fw = bw * .74, fh = bh * .34; Object.assign(f.style, { left: (x0 + bw / 2 - fw / 2) + "%", right: "auto", width: fw + "%", top: (y0 + 7 - fh) + "%", height: fh + "%" }); }
+    const shown = v.items.slice(0, 6); shown.forEach((it, i, a) => { const n = a.length, spread = n === 1 ? 0 : (i / (n - 1) - .5); f.append(h("img", { src: sOf(it.id).src, alt: "", style: { transform: `translateX(-50%) translateX(${spread * 150}%) rotate(${spread * 40}deg) translateY(${-6 - (1 - Math.abs(spread) * 2) * 12}%)`, zIndex: i, width: n === 1 ? "52%" : "" } })); });
+    if (v.items.length > 6) f.append(h("span.more", {}, "+" + (v.items.length - 6))); el.append(f);
+  }
+  el.append(h("div.art"));
+  if (!bag.gen) el.append(h("div.sheen"));
+  if (w.tape !== "none") { const t = h("i.toptape", { data: { t: w.tape } }); if (bag.gen) Object.assign(t.style, { left: x0 + bw * .16 + "%", right: "auto", width: bw * .68 + "%", top: y0 - 1 + "%", height: bh * .075 + "%" }); el.append(t); }
+  el.append(h("div.lbl", {}, h("i.cover"), h("b", {}, v.title), h("small", {}, v.sub)));
+  if (w.cover) el.append(deco(w.cover, "sticker", interactive));
+  w.charms.forEach((c) => el.append(deco(c, c.k, interactive)));
   return el;
 }
 function deco(d, k, interactive) {
-  const src = k === "sticker" ? sOf(d.id).src : CHARMS.find((c) => c[0] === k)[2];
-  const e = h("div.deco" + (k === "sticker" ? ".sticker" : "") + (interactive && S.sel === d ? ".sel" : ""), { data: { k }, style: { left: d.x + "%", top: d.y + "%", width: d.s + "%", "--r": d.r + "deg" } }, h("img", { src, alt: "" }));
-  if (interactive) { e.addEventListener("pointerdown", (ev) => dragDeco(ev, d, e)); e.addEventListener("dblclick", () => { if (k === "sticker") S.cover = null; else S.charms = S.charms.filter((c) => c !== d); S.sel = null; mount(); sfx.tap(); }); }
+  const w = W(), p = toBox(w, d), src = k === "sticker" ? sOf(d.id).src : CHARMS.find((c) => c[0] === k)[2];
+  const e = h("div.deco" + (k === "sticker" ? ".sticker" : "") + (interactive && S.sel === d ? ".sel" : ""), { data: { k }, style: { left: p.x + "%", top: p.y + "%", width: p.s + "%", "--r": d.r + "deg" } }, h("img", { src, alt: "" }));
+  if (interactive) { e.addEventListener("pointerdown", (ev) => dragDeco(ev, d, e)); e.addEventListener("dblclick", () => { if (k === "sticker") w.cover = null; else w.charms = w.charms.filter((c) => c !== d); S.sel = null; mount(); sfx.tap(); }); }
   return e;
 }
 function dragDeco(ev, d, e) {
   ev.preventDefault(); ev.stopPropagation(); S.sel = d; $$(".deco").forEach((x) => x.classList.toggle("sel", x === e));
-  const box = e.parentElement.getBoundingClientRect(), k = 1120 / $("#fit").clientWidth; const sx = ev.clientX, sy = ev.clientY, x0 = d.x, y0 = d.y;
-  const mv = (m) => { d.x = clamp(x0 + (m.clientX - sx) * k / box.width * 100 * (1 / (box.width / e.parentElement.offsetWidth)), -10, 110); d.y = clamp(y0 + (m.clientY - sy) * k / box.height * 100 * (1 / (box.height / e.parentElement.offsetHeight)), -10, 110); e.style.left = d.x + "%"; e.style.top = d.y + "%"; };
+  const pouchEl = e.parentElement, [x0, , x1, y1v] = bodyOf(W()), y0 = bodyOf(W())[1], k = 1340 / $("#fit").clientWidth;
+  const scaleX = pouchEl.getBoundingClientRect().width / pouchEl.offsetWidth, bodyW = pouchEl.offsetWidth * (x1 - x0) / 100 * scaleX / k, bodyH = pouchEl.offsetHeight * (y1v - y0) / 100 * scaleX / k;
+  const sx = ev.clientX, sy = ev.clientY, px = d.x, py = d.y;
+  const mv = (m) => { d.x = clamp(px + (m.clientX - sx) / bodyW * 100 * 1, -15, 115); d.y = clamp(py + (m.clientY - sy) / bodyH * 100, -15, 115); const p = toBox(W(), d); e.style.left = p.x + "%"; e.style.top = p.y + "%"; };
   const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); sfx.pop(); renderPanel(); }; addEventListener("pointermove", mv); addEventListener("pointerup", up);
 }
 $("#bench").addEventListener("wheel", (ev) => { const d = S.sel; if (!d) return; ev.preventDefault(); if (ev.shiftKey) d.r = Math.round(d.r + ev.deltaY * .15); else d.s = clamp(d.s * (1 - ev.deltaY * .0016), 8, 90); mountPouch(); renderPanel(); }, { passive: false });
@@ -233,8 +312,9 @@ $("#bench").addEventListener("wheel", (ev) => { const d = S.sel; if (!d) return;
 /* ---------- bench ---------- */
 let tiltEl;
 function mountPouch() {
-  const sp = $("#sp"); sp.replaceChildren(); const t = h("div.tilt"); t.append(pouch({ w: 270, interactive: true })); sp.append(t); tiltEl = t;
-  $("#capL").textContent = `${S.items.length} stickers · ${S.kind === "holo" ? "Holographic" : S.kind[0].toUpperCase() + S.kind.slice(1)}`; $("#capR").textContent = S.sealed ? "Sealed ✓" : "Draft";
+  const sp = $("#sp"); sp.replaceChildren(); if (!S.mode) return; const t = h("div.tilt"); t.append(pouch({ w: 270, interactive: true })); sp.append(t); tiltEl = t;
+  const v = view(), bag = bagOf(v.w.bag);
+  $("#capL").textContent = S.mode === "gift" ? `1 sticker · ${bag.name}` : `${v.items.length} stickers · ${bag.name}`; $("#capR").textContent = v.w.sealed ? "Sealed ✓" : "Draft";
 }
 $("#bench").addEventListener("pointermove", (ev) => {
   if (!tiltEl || S.sealing) return; const r = $("#bench").getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
@@ -244,23 +324,41 @@ $("#bench").addEventListener("pointermove", (ev) => {
 $("#bench").addEventListener("pointerleave", () => { if (tiltEl) tiltEl.style.transform = ""; });
 $("#bench").addEventListener("pointerdown", (ev) => { if (!ev.target.closest(".deco") && S.sel) { S.sel = null; $$(".deco").forEach((x) => x.classList.remove("sel")); renderPanel(); } });
 
-/* ---------- steps ---------- */
-function renderSteps() {
-  const st = $("#steps"); st.replaceChildren(...STEPS.map((n, i) => h("button", { role: "tab", class: S.visited.has(i + 1) && i + 1 !== S.step ? "done" : "", "aria-current": S.step === i + 1 ? "step" : "false", on: { click: () => go(i + 1) } }, h("b", {}, i + 1), n)));
+/* ---------- chrome: sidebar, header, steps ---------- */
+function renderSide() {
+  $("#side").replaceChildren(h("div.brand", {}, "Peta"), h("a", {}, h("i"), "Today"), h("div.hd", {}, "MAKE"), h("a", {}, h("i"), "Create"), h("a.on", { href: "#", on: { click: (e) => { e.preventDefault(); S.mode = null; S.sel = null; mount(); } } }, h("i"), "Studio", h("span.new", {}, "NEW")),
+    h("div.hd", {}, "COLLECT"), h("a", {}, h("i"), "Collection"), h("a", {}, h("i"), "Packs"), h("a", {}, h("i"), "Gifts"), h("a", {}, h("i"), "Materials"), h("div.hd", {}, "DISCOVER"), h("a", {}, h("i"), "Market"));
 }
-function go(n) { S.step = n; S.visited.add(n); S.sel = null; sfx.tap(); mount(); }
+function renderHead() {
+  const names = STEPS[S.mode || "pack"], cur = stepOf(), g = S.mode === "gift", vis = g ? S.g.visited : S.visited;
+  const steps = h("div.steps", { role: "tablist" }, S.mode ? names.map((n, i) => h("button", { role: "tab", class: vis.has(i + 1) && i + 1 !== cur ? "done" : "", "aria-current": cur === i + 1 ? "step" : "false", on: { click: () => go(i + 1) } }, h("b", {}, i + 1), n)) : []);
+  $("#ph").replaceChildren(h("div", {}, h("div.eyebrow", {}, S.mode === "gift" ? "Studio · Gift" : S.mode === "pack" ? "Studio · Pack" : "Make"), h("h1", {}, S.mode ? (S.mode === "gift" ? "Gift Studio" : "Pack Studio") : "Studio")),
+    h("div", { style: { display: "flex", alignItems: "center" } }, S.mode ? [h("button.back", { on: { click: () => { S.mode = null; S.sel = null; sfx.tap(); mount(); } } }, "← Change"), h("span.saved", {}, h("i"), "Draft saved"), steps] : null));
+}
+function go(n) { if (S.mode === "gift") { S.g.step = n; S.g.visited.add(n); } else { S.step = n; S.visited.add(n); } S.sel = null; sfx.tap(); mount(); }
 const total = () => S.items.length;
 const canNext = () => total() >= 3;
 
+/* ---------- the first choice ---------- */
+function chooser() {
+  const imgs = (list) => list.map(([f, st]) => h("img", { src: B(f), alt: "", style: st }));
+  const card = (mode, title, text, forWho, art) => h("button.mk", { on: { click: () => { S.mode = mode; sfx.pop(); mount(); } } }, h("div.art", {}, art), h("div", {}, h("h3", {}, title), h("p", {}, text), h("span.for", {}, forWho)));
+  const packArt = imgs([["03-kraft-parcel.webp", { width: "34%", left: "7%", top: "14%", rotate: "-5deg" }], ["07-foil.webp", { width: "34%", left: "33%", top: "6%" }], ["12-cotton-pouch.webp", { width: "36%", left: "58%", top: "16%", rotate: "5deg" }]]);
+  const giftArt = [h("img", { src: B("05-airmail.webp"), alt: "", style: { width: "62%", left: "6%", top: "24%", rotate: "-4deg" } }), h("img", { src: sOf("flower").src, alt: "", style: { width: "30%", left: "38%", top: "6%", rotate: "6deg" } }), h("img", { src: B("01-glassine.webp"), alt: "", style: { width: "40%", left: "52%", top: "34%", rotate: "4deg" } })];
+  $("#choose").replaceChildren(h("div", {}, h("h2", {}, "What are you making?"), h("p.sub", {}, "どちらも「包んで、封をして、署名する」ものです。違うのは、誰に渡すか。")),
+    h("div.cards2", {}, card("pack", "A Pack", "ステッカーを3〜24枚そろえて、レア度を決め、袋に入れます。開けるたびにランダムに1枚出る、遊べるセットです。", "For the Market & friends", packArt),
+      card("gift", "A Gift", "1枚のステッカーを選んで、包みと一言を添えます。受け取った人は、開けて、自分のCollectionに迎えます。", "For one person", giftArt)));
+}
+
 /* ---------- panels ---------- */
-function foot(back, next, nextLabel, disabled) { return h("div.foot", {}, back ? h("button.btn.quiet", { on: { click: () => go(S.step - 1) } }, "Back") : h("span"), next ? h("button.btn", { disabled, on: { click: next } }, nextLabel) : h("span")); }
+const foot = (back, next, label, disabled) => h("div.foot", {}, back ? h("button.btn.quiet", { on: { click: () => go(stepOf() - 1) } }, "Back") : h("span"), next ? h("button.btn", { disabled, on: { click: next } }, label) : h("span"));
 function gather() {
   const sel = new Set(S.items.map((i) => i.id));
   const tiles = STK.map((s) => h("button.tile", { "aria-pressed": String(sel.has(s.id)), title: s.name, on: { click: () => toggle(s.id) } }, h("img", { src: s.src, alt: s.name })));
   return [h("h2", {}, "Gather your stickers"), h("p.sub", {}, "袋に入れるステッカーを選びます。選ぶと袋の口から覗きます。"),
     h("div.count", {}, h("b", {}, total()), h("span", {}, "of 24 · at least 3")), h("div.meter", {}, h("i", { style: { width: Math.min(100, total() / 24 * 100) + "%" } })),
-    h("div.scroll", {}, h("div.grid", {}, tiles), h("div.hintbox", {}, "Collection のステッカーがここに並びます(プレビューは見本の12枚)。", h("br"), "「Gather」は Collection を直接見ながら、検索や素材の絞り込みも使えるようにします。")),
-    h("div.foot", {}, h("div", {}, h("button.btn.quiet", { on: { click: () => { S.items = STK.slice(0, 12).map((s, i) => S.items.find((x) => x.id === s.id) || { id: s.id, name: s.name, rarity: "common" }); sfx.pop(); mount(); } } }, "Add all"), h("button.btn.quiet", { on: { click: () => { S.items = []; S.cover = null; mount(); } } }, "Clear")), h("button.btn", { disabled: !canNext(), on: { click: () => go(2) } }, "Sort them →"))];
+    h("div.scroll", {}, h("div.grid", {}, tiles), h("div.hintbox", {}, "Collection のステッカーがここに並びます(プレビューは見本の12枚)。", h("br"), "本番では Collection と同じ検索・素材の絞り込みを使えるようにします。")),
+    h("div.foot", {}, h("div", {}, h("button.btn.quiet", { on: { click: () => { S.items = STK.slice(0, 12).map((s) => S.items.find((x) => x.id === s.id) || { id: s.id, name: s.name, rarity: "common" }); sfx.pop(); mount(); } } }, "Add all"), h("button.btn.quiet", { on: { click: () => { S.items = []; S.cover = null; mount(); } } }, "Clear")), h("button.btn", { disabled: !canNext(), on: { click: () => go(2) } }, "Sort them →"))];
 }
 function toggle(id) {
   const i = S.items.findIndex((x) => x.id === id);
@@ -275,17 +373,12 @@ function oddsOf() {
 }
 function sort() {
   const o = oddsOf(), pct = (v) => (v * 100 < 10 ? (v * 100).toFixed(1) : Math.round(v * 100)) + "%";
-  const rows = TIERS.map(([k, label, dot]) => {
-    const row = h("div.tier", { data: { tier: k } }, h("div.th", {}, h("b", {}, h("span.seal-dot" + (dot ? "." + dot : "")), label), h("span.pct", {}, o.by[k].length ? `${pct(o.tier[k])} of pulls` : "empty — skipped")),
-      h("div.chips", {}, o.by[k].map((it) => chip(it, o))));
-    return row;
-  });
+  const rows = TIERS.map(([k, label, dot]) => h("div.tier", { data: { tier: k } }, h("div.th", {}, h("b", {}, h("span.seal-dot" + (dot ? "." + dot : "")), label), h("span.pct", {}, o.by[k].length ? `${pct(o.tier[k])} of pulls` : "empty — skipped")), h("div.chips", {}, o.by[k].map((it) => chip(it, o)))));
   const rare = o.by.rare.length, n = total();
   const feel = rare === 0 ? ["Flat", "レアがないので、残りの等級でそのまま按分されます。"] : o.tier.rare >= .1 && rare / n > .35 ? ["Generous", "レアがたくさん。袋を開けるたびに特別感が出ます。"] : rare === 1 && n >= 5 ? ["Chase", `レアは1枚だけ。引けたら ${pct(o.tier.rare)}、という狙う楽しさがあります。`] : ["Balanced", "ちょうどよい配分です。"];
   return [h("h2", {}, "Sort by rarity"), h("p.sub", {}, "ステッカーを棚にドラッグ。出やすさは、アプリの本当の重み(Common 60・Uncommon 30・Rare 10)で計算します。空の棚は飛ばして残りで按分します。"),
     h("div.scroll", {}, h("div.odds", {}, TIERS.slice().reverse().map(([k]) => h("i", { style: { flex: `0 0 ${o.tier[k] * 100}%`, background: k === "common" ? "#cfc6b0" : k === "uncommon" ? "#a9cfa6" : "linear-gradient(90deg,#f6c6e3,#c9c3f5,#bfe3f7)" } }))),
-      h("div.tiers", {}, rows), h("div.feel", {}, h("b", {}, feel[0]), " — ", feel[1])),
-    foot(true, () => go(3), "Dress it →", !canNext())];
+      h("div.tiers", {}, rows), h("div.feel", {}, h("b", {}, feel[0]), " — ", feel[1])), foot(true, () => go(3), "Dress it →", !canNext())];
 }
 function chip(it, o) {
   const c = h("div.chip", { title: `${it.name} · ${(o.each(it) * 100).toFixed(1)}% per pull` }, h("div.im", {}, h("img", { src: sOf(it.id).src, alt: "" })), h("input", { value: it.name, maxlength: 40, "aria-label": "Name", on: { input: (e) => { it.name = e.target.value; }, pointerdown: (e) => e.stopPropagation() } }));
@@ -296,65 +389,110 @@ function dragChip(ev, it, c) {
   ev.preventDefault(); const ghost = h("img.ghost", { src: sOf(it.id).src }); let moved = false;
   const place = (e) => { ghost.style.left = e.clientX - 27 + "px"; ghost.style.top = e.clientY - 27 + "px"; };
   const mv = (e) => { if (!moved) { moved = true; document.body.append(ghost); c.classList.add("dragging"); } place(e); $$(".tier").forEach((t) => { const r = t.getBoundingClientRect(); t.classList.toggle("over", e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom); }); };
-  const up = (e) => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); ghost.remove(); const t = $$(".tier").find((t) => t.classList.contains("over")); if (moved && t) { it.rarity = t.dataset.tier; sfx.pop(); } else if (!moved) { const order = ["common", "uncommon", "rare"]; it.rarity = order[(order.indexOf(it.rarity) + 1) % 3]; sfx.tap(); } renderPanel(); };
+  const up = () => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); ghost.remove(); const t = $$(".tier").find((t) => t.classList.contains("over")); if (moved && t) { it.rarity = t.dataset.tier; sfx.pop(); } else if (!moved) { const order = ["common", "uncommon", "rare"]; it.rarity = order[(order.indexOf(it.rarity) + 1) % 3]; sfx.tap(); } renderPanel(); };
   addEventListener("pointermove", mv); addEventListener("pointerup", up);
 }
-function dress() {
-  const kinds = h("div.kinds", {}, KINDS.map(([k, n, f]) => h("button.kind", { "aria-pressed": String(S.kind === k), on: { click: () => { S.kind = k; sfx.tap(); mount(); } } }, h("div.ph2", { style: { "--a": `url(${A("pack/" + f)})` } }), n)));
-  const hue = h("input.hue", { type: "range", min: 0, max: 360, value: S.hue, "aria-label": "Tint", on: { input: (e) => { S.hue = +e.target.value; mountPouch(); } } });
-  const title = h("input", { value: S.title, maxlength: 40, "aria-label": "Pack name", on: { input: (e) => { S.title = e.target.value; const b = $(".pouch .lbl b"); if (b) b.textContent = S.title || "Untitled"; } } });
-  const labels = h("div.seg", {}, LABELS.map(([k, n]) => h("button", { "aria-pressed": String(S.ls === k), on: { click: () => { S.ls = k; sfx.tap(); mount(); } } }, n)));
-  const tapes = h("div.swatches", {}, TAPES.map((t) => h("button.sw" + (t === "none" ? ".none" : ""), { "aria-pressed": String(S.tape === t), "aria-label": "Top tape " + t, style: t === "none" ? {} : { background: { mint: "#bfe6d3", pink: "#f3c4d2", sky: "#bcd9f0", stripe: "repeating-linear-gradient(45deg,#f6efe0 0 5px,#e9a3a3 5px 10px)", dot: "radial-gradient(circle,#8fb9d6 1.6px,transparent 2px) 0 0/8px 8px,#f6f1e2" }[t] }, on: { click: () => { S.tape = t; sfx.tap(); mount(); } } })));
-  const covers = h("div.covers", {}, h("button.cv.none", { "aria-pressed": String(!S.cover), on: { click: () => { S.cover = null; mount(); } } }, "None"), S.items.map((it) => h("button.cv", { "aria-pressed": String(S.cover?.id === it.id), title: it.name, on: { click: () => { S.cover = { id: it.id, x: 50, y: 70, s: 34, r: -6 }; S.sel = S.cover; sfx.pop(); mount(); } } }, h("img", { src: sOf(it.id).src, alt: "" }))));
-  const charms = h("div.charms", {}, CHARMS.map(([k, n, src, w]) => h("button.charm", { title: n, on: { click: () => { const c = { k, x: 30 + S.charms.length * 14, y: k === "ribbon" ? 22 : 12, s: w, r: k === "clip" ? 16 : 0 }; S.charms.push(c); S.sel = c; sfx.pop(); mount(); } } }, h("img", { src, alt: n }))));
-  const ctl = S.sel ? h("div.hintbox", {}, "選択中:", h("input.rng", { type: "range", min: 8, max: 90, value: S.sel.s, "aria-label": "Size", on: { input: (e) => { S.sel.s = +e.target.value; mountPouch(); } } }), h("input.rng", { type: "range", min: -45, max: 45, value: S.sel.r, "aria-label": "Rotate", on: { input: (e) => { S.sel.r = +e.target.value; mountPouch(); } } }), h("span.small", {}, "袋の上でドラッグ / ダブルクリックで外す")) : null;
-  return [h("h2", {}, "Dress the pouch"), h("p.sub", {}, "袋を見ながら、素材・色・ラベル・表紙・飾りを決めます。"),
-    h("div.scroll", {}, h("div.sec", {}, h("label", {}, "Wrapper"), kinds),
-      (S.kind !== "kraft") ? h("div.sec", {}, h("label", {}, S.kind === "holo" ? "Tint" : "Paper tone"), hue) : null,
-      h("div.sec", {}, h("label", {}, "Name"), h("div.field", {}, title), h("div.lb", {}, "Label"), labels),
-      h("div.sec", {}, h("label", {}, "Top tape"), tapes),
-      h("div.sec", {}, h("label", {}, "Cover sticker"), covers),
-      h("div.sec", {}, h("label", {}, "Charms"), charms, ctl)),
-    foot(true, () => go(4), "Seal it →", false)];
+/* dress tools shared by Pack and Gift: wrapping, tint, label, top tape, charms */
+function wrapPicker(w, list) {
+  const bagBtn = (b) => h("button.bagt", { "aria-pressed": String(w.bag === b.id), title: b.name, on: { click: () => { w.bag = b.id; if (w.cover) w.cover = { ...w.cover, x: 50, y: 62, s: 40 }; sfx.tap(); mount(); } } }, h("div.ph3", { style: { "--a": `url(${b.gen ? B(b.file) : A("pack/pack-" + (b.id === "holo" ? "holographic" : b.id) + ".png")})` } }), h("span", {}, b.name));
+  return h("div.bags", {}, list.map(bagBtn));
 }
-function seal() {
-  if (S.sealed) return [h("div.done", {}, h("h2", {}, "Sealed. 「" + (S.title || "Untitled") + "」"), h("p", {}, `${total()} stickers · signed as Satoshi`), h("div.signed", {}, h("i", {}, "✓ SIGNED"), "fingerprint 3F9A · 7C21 · B0D4 — 改ざんされると開けません"), h("p.small", {}, "共有ファイル(.petapack)を保存するか、自分の棚に置けます。"), h("div", { style: { display: "flex", gap: "10px", justifyContent: "center", marginTop: "12px" } }, h("button.btn", { on: { click: () => { sfx.chime(); flashMsg("Saved to Desktop"); } } }, "Save pack file…"), h("button.btn.paper", { on: { click: () => { S.ctx = "shelf"; sfx.tap(); renderPanel(); } } }, "Put on my shelf")), h("button.btn.quiet", { style: { marginTop: "8px" }, on: { click: () => { S.sealed = false; mount(); } } }, "Reopen to keep editing"))].concat([sceneBlock()]);
+function tintBox(w) { const bag = bagOf(w.bag); return bag.classic && bag.id !== "kraft" ? h("div.sec", {}, h("label", {}, bag.id === "holo" ? "Tint" : "Paper tone"), h("input.hue", { type: "range", min: 0, max: 360, value: w.hue, "aria-label": "Tint", on: { input: (e) => { w.hue = +e.target.value; mountPouch(); } } })) : null; }
+function labelSeg(w) { return h("div.seg", {}, LABELS.map(([k, n]) => h("button", { "aria-pressed": String(w.ls === k), on: { click: () => { w.ls = k; sfx.tap(); mount(); } } }, n))); }
+function tapeRow(w) { return h("div.swatches", {}, TAPES.map((t) => h("button.sw" + (t === "none" ? ".none" : ""), { "aria-pressed": String(w.tape === t), "aria-label": "Top tape " + t, style: t === "none" ? {} : { background: { mint: "#bfe6d3", pink: "#f3c4d2", sky: "#bcd9f0", stripe: "repeating-linear-gradient(45deg,#f6efe0 0 5px,#e9a3a3 5px 10px)", dot: "radial-gradient(circle,#8fb9d6 1.6px,transparent 2px) 0 0/8px 8px,#f6f1e2" }[t] }, on: { click: () => { w.tape = t; sfx.tap(); mount(); } } }))); }
+function charmRow(w) {
+  const ctl = S.sel ? h("div.hintbox", {}, "選択中:", h("input.rng", { type: "range", min: 8, max: 90, value: S.sel.s, "aria-label": "Size", on: { input: (e) => { S.sel.s = +e.target.value; mountPouch(); } } }), h("input.rng", { type: "range", min: -45, max: 45, value: S.sel.r, "aria-label": "Rotate", on: { input: (e) => { S.sel.r = +e.target.value; mountPouch(); } } }), h("span.small", {}, "袋の上でドラッグ / ダブルクリックで外す")) : null;
+  return [h("div.charms", {}, CHARMS.map(([k, n, src, sz]) => h("button.charm", { title: n, on: { click: () => { const c = { k, x: 22 + w.charms.length * 16, y: k === "ribbon" ? 14 : 6, s: sz, r: k === "clip" ? 16 : 0 }; w.charms.push(c); S.sel = c; sfx.pop(); mount(); } } }, h("img", { src, alt: n })))), ctl];
+}
+function dress() {
+  const w = S, bag = bagOf(w.bag);
+  const covers = h("div.covers", {}, h("button.cv.none", { "aria-pressed": String(!w.cover), on: { click: () => { w.cover = null; mount(); } } }, "None"), w.items.map((it) => h("button.cv", { "aria-pressed": String(w.cover?.id === it.id), title: it.name, on: { click: () => { w.cover = { id: it.id, x: 52, y: 66, s: 36, r: -6 }; S.sel = w.cover; sfx.pop(); mount(); } } }, h("img", { src: sOf(it.id).src, alt: "" }))));
+  const title = h("input", { value: w.title, maxlength: 40, "aria-label": "Pack name", on: { input: (e) => { w.title = e.target.value; const b = $(".pouch .lbl b"); if (b) b.textContent = w.title || "Untitled"; } } });
+  return [h("h2", {}, "Dress the pouch"), h("p.sub", {}, "包みを選んで、色・ラベル・表紙・飾りを決めます。袋を見ながら。"),
+    h("div.scroll", {}, h("div.sec", {}, h("label", {}, "Wrapping"), wrapPicker(w, BAGS)), tintBox(w),
+      h("div.sec", {}, h("label", {}, "Name"), h("div.field", {}, title), h("div.lb", {}, "Label"), labelSeg(w)), h("div.sec", {}, h("label", {}, "Top tape"), tapeRow(w)),
+      h("div.sec", {}, h("label", {}, "Cover sticker"), covers), h("div.sec", {}, h("label", {}, "Charms"), charmRow(w))), foot(true, () => go(4), "Seal it →", false)];
+}
+function sealPack() {
+  if (S.sealed) return [doneBlock(S, `「${S.title || "Untitled"}」 · ${total()} stickers`, "共有ファイル(.petapack)を保存するか、自分の棚に置けます。", [["Save pack file…", "Saved to Desktop"], ["Put on my shelf", null]]), sceneBlock()];
   const o = oddsOf();
   return [h("h2", {}, "Check it, then seal it"), h("p.sub", {}, "棚とMarketでどう見えるかを確かめます。封をすると署名されて、中身は変えられなくなります。"),
     h("div.scroll", {}, sceneBlock(), h("div.sec", {}, h("label", {}, "About this pack"), h("div.field", {}, h("textarea", { rows: 2, maxlength: 90, "aria-label": "Description", on: { input: (e) => { S.blurb = e.target.value; const p = $(".mcard p"); if (p) p.textContent = S.blurb; } } }, S.blurb))),
       h("div.signed", {}, h("i", {}, "SIGN"), `Satoshi · ${total()} stickers · rare ${(o.tier.rare * 100).toFixed(0)}%`)),
     h("div.foot", {}, h("button.btn.quiet", { on: { click: () => go(3) } }, "Back"), h("button.btn", { disabled: !canNext(), on: { click: sealIt } }, "Seal the pack"))];
 }
+function doneBlock(w, line, hint, actions) {
+  return h("div.done", {}, h("h2", {}, "Sealed. " + line), h("div.signed", {}, h("i", {}, "✓ SIGNED"), "fingerprint 3F9A · 7C21 · B0D4 — 改ざんされると開けません"), h("p.small", {}, hint),
+    h("div", { style: { display: "flex", gap: "10px", justifyContent: "center", margin: "10px 0" } }, actions.map(([t, msg], i) => h("button.btn" + (i ? ".paper" : ""), { on: { click: () => { if (msg) { sfx.chime(); flashMsg(msg); } else { S.ctx = "shelf"; sfx.tap(); renderPanel(); } } } }, t))),
+    h("button.btn.quiet", { on: { click: () => { w.sealed = false; mount(); } } }, "Reopen to keep editing"));
+}
+/* ----- gift ----- */
+function giftChoose() {
+  const g = S.g, tiles = STK.map((s) => h("button.tile", { "aria-pressed": String(g.sticker === s.id), title: s.name, on: { click: () => { g.sticker = s.id; sfx.pop(); mount(); } } }, h("img", { src: s.src, alt: s.name })));
+  return [h("h2", {}, "Choose the sticker"), h("p.sub", {}, "渡すのは1枚。コピーを渡すので、あなたの Collection には残ります。"), h("div.scroll", {}, h("div.grid", {}, tiles), h("div.hintbox", {}, "いまのギフトの形式は「1枚＋名前＋一言」です。複数枚を1つの包みに入れる場合は、形式を拡張する必要があります。")), foot(false, () => go(2), "Wrap it →", !g.sticker)];
+}
+function giftWrap() {
+  const g = S.g, list = GIFT_BAGS.map(bagOf);
+  return [h("h2", {}, "Wrap it"), h("p.sub", {}, "渡す相手に合う包みを選びます。"), h("div.scroll", {}, h("div.sec", {}, h("label", {}, "Wrapping"), wrapPicker(g, list)), h("div.sec", {}, h("label", {}, "Top tape"), tapeRow(g)), h("div.sec", {}, h("label", {}, "Charms"), charmRow(g))), foot(true, () => go(3), "Write the note →", false)];
+}
+function giftWrite() {
+  const g = S.g, to = h("input", { value: g.to, maxlength: 40, placeholder: "Who is it for?", "aria-label": "To", on: { input: (e) => { g.to = e.target.value; const b = $(".pouch .lbl b"); if (b) b.textContent = g.to ? "For " + g.to : "For you"; } } });
+  const note = h("textarea", { rows: 3, maxlength: 140, placeholder: "A few words (optional)", "aria-label": "Note", on: { input: (e) => { g.note = e.target.value; } } }, g.note);
+  return [h("h2", {}, "Write the note"), h("p.sub", {}, "包みの宛名と、中に入れる一言です。一言は、開けた人にだけ見えます。"), h("div.scroll", {}, h("div.sec", {}, h("label", {}, "To"), h("div.field", {}, to), h("label", {}, "A few words"), h("div.field", {}, note)), h("div.sec", {}, h("label", {}, "Label"), labelSeg(g))), foot(true, () => go(4), "Seal it →", !g.to.trim())];
+}
+function giftSeal() {
+  const g = S.g;
+  if (g.sealed) return [doneBlock(g, `For ${g.to}`, "ギフトのファイル(.petagift)を保存して、メッセージなどで渡します。受け取った人が開くと、封筒の演出から始まります。", [["Save gift file…", "Saved to Desktop"], ["Make another", null]]), recipientBlock()];
+  return [h("h2", {}, "Check it, then seal it"), h("p.sub", {}, "渡した相手に、どう見えるかを確かめます。"), h("div.scroll", {}, recipientBlock(), h("div.signed", {}, h("i", {}, "SIGN"), `from Satoshi · to ${g.to || "—"} · 1 sticker · your photo is never inside`)),
+    h("div.foot", {}, h("button.btn.quiet", { on: { click: () => go(3) } }, "Back"), h("button.btn", { disabled: !g.to.trim(), on: { click: sealIt } }, "Seal the gift"))];
+}
+function recipientBlock() {
+  const g = S.g, seg = h("div.seg.ctxs", {}, [["wrapped", "Arrives"], ["open", "Opened"]].map(([k, n]) => h("button", { "aria-pressed": String((S.rc || "wrapped") === k), on: { click: () => { S.rc = k; sfx.tap(); renderPanel(); } } }, n)));
+  const sc = h("div.scene"), a = pouch({ w: 130, fan: false });
+  if ((S.rc || "wrapped") === "wrapped") { a.style.cssText += "left:50%;top:6px;translate:-50% 0;"; sc.append(a, h("span.small", { style: { position: "absolute", left: 0, right: 0, bottom: "8px", textAlign: "center", color: "#38342f", font: "600 13px var(--sys)" } }, "A gift from Satoshi")); }
+  else { a.style.cssText += "left:16px;top:20px;"; sc.append(a, h("div.noteview", {}, h("div.to", {}, "To " + (g.to || "you") + ","), h("img.st", { src: sOf(g.sticker).src, alt: "" }), h("div.msg", {}, g.note || ""), h("div.from", {}, "from Satoshi · Oct 9"))); }
+  return h("div", {}, seg, sc);
+}
 function sceneBlock() {
   const seg = h("div.seg.ctxs", {}, [["shelf", "Shelf"], ["market", "Market"], ["card", "Card"]].map(([k, n]) => h("button", { "aria-pressed": String(S.ctx === k), on: { click: () => { S.ctx = k; sfx.tap(); renderPanel(); } } }, n)));
-  const sc = h("div.scene"), left = S.items.length, w = 116;
-  if (S.ctx === "shelf") { const a = pouch({ w, fan: false }); a.style.cssText += `left:50%;bottom:20px;translate:-50% 0;`; const b = h("div.pouch", { style: { "--w": "92px", "--art": `url(${A("pack/pack-matte.png")})`, left: "10%", bottom: "20px", position: "absolute", opacity: .55 }, data: { kind: "matte", ls: "paper" } }, h("div.art")), c = h("div.pouch", { style: { "--w": "92px", "--art": `url(${A("pack/pack-holographic.png")})`, right: "10%", bottom: "20px", position: "absolute", opacity: .55, "--hue": "120deg" }, data: { kind: "holo", ls: "paper" } }, h("div.art")); sc.append(b, c, a, h("div.plank"), h("span.wallcount", { style: { left: "50%", top: "6px", translate: "-50% 0", rotate: "-1deg" } }, `${left} left`)); }
-  else if (S.ctx === "market") { sc.append(h("div.rod"), h("i.endl"), h("i.endr")); const a = pouch({ w, fan: false }); a.style.cssText += "left:50%;top:44px;translate:-50% 0;"; sc.append(a, h("i.clip", { style: { left: "50%", top: "14px", translate: "-50% 0" } }), h("span.small", { style: { position: "absolute", left: 0, right: 0, bottom: "8px", textAlign: "center", color: "#38342f", font: "600 13px var(--sys)" } }, "Free · ✓ Owned")); }
-  else { const a = pouch({ w: 120, fan: false }); a.style.cssText += "left:22px;top:20px;"; sc.append(a, h("div.mcard", {}, h("div.eyebrow", { style: { fontSize: "10px" } }, "by Satoshi · " + left + " stickers"), h("h3", {}, S.title || "Untitled"), h("p", {}, S.blurb), h("div.row", {}, S.items.slice(0, 3).map((it) => h("i", {}, h("img", { src: sOf(it.id).src, alt: "" }))), left > 3 ? h("i", {}, "?") : null))); }
+  const sc = h("div.scene"), left = S.items.length, w = 112;
+  if (S.ctx === "shelf") {
+    const a = pouch({ w, fan: false }); a.style.cssText += "left:50%;bottom:16px;translate:-50% 0;";
+    const side = (kind, art, left2) => h("div.pouch", { style: { "--w": "86px", "--art": `url(${A("pack/pack-" + art + ".png")})`, [left2 ? "left" : "right"]: "9%", bottom: "16px", position: "absolute", opacity: .55, "--hue": "120deg", aspectRatio: "3 / 4" }, data: { kind, ls: "paper" } }, h("div.art"));
+    sc.append(side("matte", "matte", true), side("holo", "holographic", false), a, h("div.plank"), h("span.wallcount", { style: { left: "50%", top: "6px", translate: "-50% 0", rotate: "-1deg" } }, `${left} left`));
+  } else if (S.ctx === "market") { sc.append(h("div.rod"), h("i.endl"), h("i.endr")); const a = pouch({ w, fan: false }); a.style.cssText += "left:50%;top:40px;translate:-50% 0;"; sc.append(a, h("i.clip", { style: { left: "50%", top: "14px", translate: "-50% 0" } }), h("span.small", { style: { position: "absolute", left: 0, right: 0, bottom: "8px", textAlign: "center", color: "#38342f", font: "600 13px var(--sys)" } }, "Free · ✓ Owned")); }
+  else { const a = pouch({ w: 120, fan: false }); a.style.cssText += "left:18px;top:12px;"; sc.append(a, h("div.mcard", {}, h("div.eyebrow", { style: { fontSize: "10px" } }, "by Satoshi · " + left + " stickers"), h("h3", {}, S.title || "Untitled"), h("p", {}, S.blurb), h("div.row", {}, S.items.slice(0, 3).map((it) => h("i", {}, h("img", { src: sOf(it.id).src, alt: "" }))), left > 3 ? h("i", {}, "?") : null))); }
   return h("div", {}, seg, sc);
 }
 function flashMsg(t) { const m = h("div", { style: { position: "absolute", left: "50%", top: "10px", translate: "-50% 0", background: "#1f1b16", color: "#fff", padding: "8px 16px", borderRadius: "99px", font: "600 13px var(--sys)", zIndex: 30 } }, t); $(".win").append(m); setTimeout(() => m.remove(), 1800); }
 
-/* ---------- the sealing: a press crimps the top; the pack is signed ---------- */
+/* ---------- the sealing: a press crimps the top; the thing is signed ---------- */
 async function sealIt() {
   if (S.sealing) return; S.sealing = true; S.sel = null; mountPouch(); const wait = (ms) => new Promise((r) => setTimeout(r, reduced() ? 1 : ms));
   const p = $(".pouch"), t = $(".tilt"); t.style.transform = ""; const press = h("div.press"); p.append(press);
   press.animate([{ transform: "translateY(-140%)" }, { transform: "translateY(62%)" }], { duration: reduced() ? 1 : 520, easing: "cubic-bezier(.5,0,.8,.4)", fill: "forwards" }); await wait(500);
   sfx.thunk(); p.animate([{ transform: "scale(1)" }, { transform: "scale(.975,.96) translateY(6px)" }, { transform: "scale(1.015)" }, { transform: "scale(1)" }], { duration: reduced() ? 1 : 420, easing: "ease-out" });
-  const fl = $("#flash"); fl.animate([{ opacity: 0 }, { opacity: .75 }, { opacity: 0 }], { duration: reduced() ? 1 : 520 });
-  if (!reduced()) { const sp = h("div.sparks"); $("#bench").append(sp); const r = $(".pouch").getBoundingClientRect(), b = $("#bench").getBoundingClientRect(), k = 1120 / $("#fit").clientWidth; for (let i = 0; i < 18; i++) { const d = h("i", { style: { left: (r.left - b.left + r.width * (.2 + Math.random() * .6)) * k + "px", top: (r.top - b.top + r.height * .1) * k + "px", background: ["#ffd877", "#fff", "#f6c6e3", "#bfe3f7"][i % 4] } }); sp.append(d); d.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${(Math.random() - .5) * 160}px,${60 + Math.random() * 90}px) scale(.2)`, opacity: 0 }], { duration: 800 + Math.random() * 400, easing: "cubic-bezier(.2,.7,.3,1)", fill: "forwards" }); } setTimeout(() => sp.remove(), 1400); }
+  $("#flash").animate([{ opacity: 0 }, { opacity: .75 }, { opacity: 0 }], { duration: reduced() ? 1 : 520 });
+  if (!reduced()) { const sp = h("div.sparks"); $("#bench").append(sp); const r = p.getBoundingClientRect(), b = $("#bench").getBoundingClientRect(), k = 1340 / $("#fit").clientWidth; for (let i = 0; i < 18; i++) { const d = h("i", { style: { left: (r.left - b.left + r.width * (.2 + Math.random() * .6)) * k + "px", top: (r.top - b.top + r.height * .1) * k + "px", background: ["#ffd877", "#fff", "#f6c6e3", "#bfe3f7"][i % 4] } }); sp.append(d); d.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: `translate(${(Math.random() - .5) * 160}px,${60 + Math.random() * 90}px) scale(.2)`, opacity: 0 }], { duration: 800 + Math.random() * 400, easing: "cubic-bezier(.2,.7,.3,1)", fill: "forwards" }); } setTimeout(() => sp.remove(), 1400); }
   await wait(380); press.animate([{ transform: "translateY(62%)" }, { transform: "translateY(-140%)" }], { duration: reduced() ? 1 : 460, easing: "cubic-bezier(.3,.7,.3,1)", fill: "forwards" }); await wait(300);
   const st = h("div.stamp", {}, "SEALED"); $("#bench").append(st); st.animate([{ opacity: 0, transform: "scale(2.2)" }, { opacity: .9, transform: "scale(.94)", offset: .6 }, { opacity: .85, transform: "scale(1)" }], { duration: reduced() ? 1 : 360, easing: "ease-out", fill: "forwards" }); sfx.tap(); await wait(700); sfx.chime();
-  S.sealed = true; S.sealing = false; S.ctx = "shelf"; mount(); setTimeout(() => st.remove(), 400);
+  W().sealed = true; S.sealing = false; S.ctx = "shelf"; S.rc = "wrapped"; mount(); setTimeout(() => st.remove(), 400);
 }
 
 /* ---------- mount ---------- */
-function renderPanel() { const p = $("#panel"); const body = { 1: gather, 2: sort, 3: dress, 4: seal }[S.step](); p.replaceChildren(...[].concat(body)); }
-function mount() { renderSteps(); mountPouch(); renderPanel(); }
+function renderPanel() {
+  const g = S.mode === "gift", n = stepOf(); if (!S.mode) return;
+  const body = g ? { 1: giftChoose, 2: giftWrap, 3: giftWrite, 4: giftSeal }[n]() : { 1: gather, 2: sort, 3: dress, 4: sealPack }[n]();
+  $("#panel").replaceChildren(...[].concat(body));
+}
+function mount() {
+  const on = !!S.mode; $("#work").hidden = !on; $("#choose").hidden = on;
+  renderSide(); renderHead(); if (on) { mountPouch(); renderPanel(); } else chooser();
+}
 mount();
 
 /* ---------- page chrome ---------- */
-const fit = $("#fit"), stage = $("#stage"); const rs = () => { const k = fit.clientWidth / 1120; stage.style.transform = `scale(${k})`; fit.style.height = 740 * k + "px"; }; new ResizeObserver(rs).observe(fit); rs();
+const fit = $("#fit"), stage = $("#stage"); const rs = () => { const k = fit.clientWidth / 1340; stage.style.transform = `scale(${k})`; fit.style.height = 760 * k + "px"; }; new ResizeObserver(rs).observe(fit); rs();
 $("#tSnd").addEventListener("click", (e) => { sound = !sound; e.currentTarget.setAttribute("aria-pressed", String(sound)); if (sound) sfx.pop(); });
 $("#tRed").addEventListener("click", (e) => { const on = document.documentElement.dataset.reduce !== "1"; document.documentElement.dataset.reduce = on ? "1" : "0"; e.currentTarget.setAttribute("aria-pressed", String(on)); });
 $("#tReset").addEventListener("click", () => { S = fresh(); mount(); });
