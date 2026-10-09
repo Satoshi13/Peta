@@ -162,28 +162,34 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .insp-paper { position: relative; color: #2b2a28; }
 .insp-paper::before { content: ""; position: absolute; inset: var(--pt) var(--pr) var(--pb) var(--pl); background: var(--art) 0 0 / 100% 100% no-repeat; pointer-events: none; }
 .insp-paper > * { position: relative; }
-.insp-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 2px 4px 10px 2px; }
-.insp-label { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; flex: none; width: 184px; aspect-ratio: 991 / 298; display: grid; align-items: center; padding: 0 18px 2px 20px; filter: drop-shadow(0 3px 3px rgba(60, 45, 20, .1)); rotate: -.6deg; }
-.insp-label b { font: 400 24px/1.1 "Patrick Hand", "Kiwi Maru", "Hiragino Maru Gothic ProN", "Klee One", cursive; letter-spacing: .005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.insp-ticket { --art: var(--a-inspEditionTicket); --pt: -6.18%; --pr: -3.46%; --pb: -7.35%; --pl: -7.69%; flex: none; width: 74px; aspect-ratio: 520 / 599; display: grid; place-content: center; text-align: center; gap: 1px; rotate: -9deg; margin-right: 6px; }
-.insp-ticket small { font: 400 12px/1 "Special Elite", "Courier New", monospace; color: #5b5547; }
-.insp-ticket b { font: 400 19px/1.1 "Special Elite", "Courier New", monospace; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
-.insp-record { --art: var(--a-inspMaterialRecord); --pt: -18.66%; --pr: -3.64%; --pb: -16.42%; --pl: -3.15%; width: 262px; aspect-ratio: 1017 / 268; margin: 0 0 6px 6px; display: flex; align-items: center; gap: 12px; padding: 0 22px 0 18px; }
+.insp-head, .insp-record, .insp-stamp { --mono: ui-monospace, "SF Mono", Menlo, "Courier New", monospace; }
+/* the label and the ticket lie across the lower edge of the sticker card, the ticket standing a little higher */
+.insp-head { position: relative; z-index: 3; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: -66px 2px 12px 0; }
+.insp-label { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; flex: none; width: 188px; aspect-ratio: 991 / 298; display: grid; align-items: center; padding: 0 18px 2px 20px; filter: drop-shadow(0 3px 3px rgba(60, 45, 20, .1)); rotate: -.6deg; margin-left: 4px; }
+.insp-label b { font: 400 25px/1.1 "Patrick Hand", "Kiwi Maru", "Hiragino Maru Gothic ProN", "Klee One", cursive; letter-spacing: .005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #3a3526; }
+/* the ticket art is already tilted; only its writing is turned to follow it */
+.insp-ticket { --art: var(--a-inspEditionTicket); --pt: -6.18%; --pr: -3.46%; --pb: -7.35%; --pl: -7.69%; flex: none; width: 76px; aspect-ratio: 520 / 599; display: grid; place-content: center; margin-right: 6px; margin-bottom: 4px; }
+.insp-ticket .t { display: grid; justify-items: center; gap: 2px; rotate: -7deg; translate: 1px 1px; }
+.insp-ticket small { font: 400 11px/1 var(--mono); color: #5b5547; }
+.insp-ticket b { font: 400 22px/1 var(--mono); letter-spacing: .02em; font-variant-numeric: tabular-nums; color: #2f2c25; }
+.insp-record { --art: var(--a-inspMaterialRecord); --pt: -18.66%; --pr: -3.64%; --pb: -16.42%; --pl: -3.15%; width: 266px; aspect-ratio: 1017 / 268; margin: 0 0 16px 8px; display: flex; align-items: center; gap: 9px; padding: 0 18px 0 16px; }
 .insp-swatch { position: relative; flex: none; }
 .insp-swatch .material-swatch { width: 38px; height: 38px; border-radius: 4px; box-shadow: 0 1px 2px rgba(60, 45, 20, .3); }
-.insp-swatch .tape { width: 34px; filter: drop-shadow(0 1px 1px rgba(60, 45, 20, .3)); }
+/* two strips of tape hold the swatch: one down its left side, one under it, hanging over the edge of the paper */
+.insp-swatch .tape { z-index: 2; width: 44px; filter: drop-shadow(0 1px 1.5px rgba(60, 45, 20, .4)) sepia(.3) saturate(1.3) brightness(.96); }
+.insp-swatch .tape:nth-of-type(1) { left: -24px; top: 6px; rotate: -84deg; }
+.insp-swatch .tape:nth-of-type(2) { left: -3px; top: 36px; width: 50px; rotate: 2deg; }
 /* a smaller sticker card, so the whole note still fits in the window */
-.detail .flip-stage { padding: 4px 0 2px; } .detail .flip-inner { width: 140px; }
+.detail .flip-stage { padding: 4px 0 2px; } .detail .flip-inner { width: 152px; }
 .detail .history { margin-bottom: 8px; font-size: 11.5px; } .detail .history li { padding: 3px 0; }
-.insp-swatch .tape:nth-of-type(1) { left: -20px; top: 9px; rotate: -88deg; } .insp-swatch .tape:nth-of-type(2) { left: 0; top: 36px; rotate: 3deg; }
-.insp-col { display: grid; gap: 1px; min-width: 0; }
-.insp-col small { font: 400 11px/1.2 "Special Elite", "Courier New", monospace; color: #5b5547; }
-.insp-col b { font: 400 13.5px/1.25 "Special Elite", "Courier New", monospace; white-space: nowrap; }
-.insp-vr { align-self: stretch; width: 1px; margin: 14px 0; background: rgba(43, 42, 40, .55); }
-.insp-stamp { display: inline-block; margin: 4px 0 2px 6px; padding: 4px 9px 3px; border: 2px solid rgba(70, 66, 44, .62); border-radius: 5px; color: rgba(70, 66, 44, .72); font: 400 12.5px/1 "Special Elite", "Courier New", monospace; letter-spacing: .09em; text-transform: uppercase; rotate: -3deg; mix-blend-mode: multiply; }
+.insp-col { display: grid; gap: 2px; min-width: 0; }
+.insp-col small { font: 400 10.5px/1.2 var(--mono); color: #5b5547; }
+.insp-col b { font: 400 12px/1.25 var(--mono); letter-spacing: -.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #2f2c25; }
+.insp-vr { align-self: stretch; width: 1px; margin: 13px 0; background: rgba(43, 42, 40, .5); }
+.insp-stamp { display: inline-block; margin: 4px 0 2px 6px; padding: 4px 9px 3px; border: 2px solid rgba(70, 66, 44, .6); border-radius: 5px; color: rgba(70, 66, 44, .74); font: 500 12px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; rotate: -3deg; mix-blend-mode: multiply; }
 /* the actions: one torn strip of paper for the main action, then three plain lines */
 .detail .btn.book-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; height: auto; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: #2b2a28; font: 500 15px/1.2 var(--sys); cursor: pointer; }
-.detail .btn.book-action.primary { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; position: relative; width: calc(100% - 8px); margin: 4px 4px 6px 4px; aspect-ratio: 991 / 215; justify-content: flex-start; padding: 0 20px; gap: 14px; font-size: 17px; }
+.detail .btn.book-action.primary { --art: var(--a-inspNameLabel); --pt: -14.77%; --pr: -3.63%; --pb: -8.72%; --pl: -4.04%; position: relative; width: calc(100% - 8px); margin: 4px 4px 6px 4px; aspect-ratio: 991 / 180; justify-content: flex-start; padding: 0 22px; gap: 16px; font-size: 18px; }
 .detail .btn.book-action.primary::before { content: ""; position: absolute; inset: var(--pt) var(--pr) var(--pb) var(--pl); background: var(--art) 0 0 / 100% 100% no-repeat; filter: drop-shadow(0 3px 3px rgba(60, 45, 20, .1)); pointer-events: none; }
 .detail .btn.book-action.primary > * { position: relative; }
 .detail .btn.book-action.primary .ico { width: 26px; height: 26px; stroke-width: 1.5; }
@@ -191,7 +197,8 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .detail .btn.book-action-row { gap: 4px; justify-content: space-between; margin: 0 4px; }
 .detail .btn.book-action-row > * { flex: none; padding: 8px 6px; border-radius: 8px; }
 .detail .btn.book-action-row > :hover { background: rgba(60, 45, 20, .07); }
-.detail .btn.book-action.danger { color: #96533f; border: 0; }
+.detail .btn.book-action { color: #3f3a2a; }
+.detail .btn.book-action.danger { color: #92704f; border: 0; }
 .detail .btn.book-action:focus-visible { outline: 2px solid #527d93; outline-offset: 2px; }
 /* the close mark is drawn on the paper: no circle, just the cross, like a pencil mark */
 .detail > button.close-control { top: 14px; right: 18px; width: 30px; height: 30px; min-width: 30px; background: none; color: #4a4632; }

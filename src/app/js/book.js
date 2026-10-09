@@ -76,7 +76,7 @@ function renderBackFallback() {
 function BackCard(entry) { const card = entry.back ? renderBackCard(entry.back) : renderBackFallback(); card.dataset.mat=entry.material; if (!entry.back) Bridge.invoke("sticker_back", {stickerId:entry.id}).then(b=>{ if(b) { entry.back=b; const next=renderBackCard(b); next.dataset.mat=entry.material; card.replaceWith(next); }}).catch(e=>Shell.toast(String(e))); return card; }
 async function BackingFront(entry) {
   const res = await resOf(entry, { max: 420 });
-  const el = h("div.backing", { data: { mat: entry.material } }, h("i.tape.t3"), Stk.el(res, res.aspect >= 1 ? 140 : 140 * res.aspect));
+  const el = h("div.backing", { data: { mat: entry.material } }, h("i.tape.t3"), Stk.el(res, res.aspect >= 1 ? 152 : 152 * res.aspect));
   return el;
 }
 
@@ -237,7 +237,7 @@ Pages.book = {
       // The name, the number, and the material are three small pieces of paper, as on a real sticker sheet.
       h("div.insp-head",
         h("div.insp-label.insp-paper", h("b", { title: name, style: { fontSize: Math.max(13, Math.min(24, 148 / Math.max(nameWidth, 1))) + "px" } }, name)),
-        h("div.insp-ticket.insp-paper", h("small", e.kind === "received" ? "Edition" : "No."), number)),
+        h("div.insp-ticket.insp-paper", h("div.t", h("small", e.kind === "received" ? "Edition" : "No."), number))),
       h("div.insp-record.insp-paper",
         h("div.insp-swatch", MaterialSwatch({ id: mat.id || e.material, sw: mat.sw, card: mat.card }), h("i.tape"), h("i.tape")),
         h("div.insp-col", h("small", "Material"), h("b", mat.name)), h("i.insp-vr"),
