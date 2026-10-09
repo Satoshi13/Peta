@@ -10,7 +10,8 @@
     "check:mac": "cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin",
     "dev:developer": "tauri dev --features developer --config src-tauri/tauri.developer.conf.json",
     "build:developer": "tauri build --features developer --config src-tauri/tauri.developer.conf.json",
-    "check:mac:developer": "cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin --features developer"
+    "check:mac:developer": "cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin --features developer",
+    "clean:target": "python3 scripts/clean-target.py"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"
