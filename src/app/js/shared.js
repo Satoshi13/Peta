@@ -156,7 +156,7 @@ const Scraps = {
   selection: null, inFlight: false,
   material(id) { return S.scraps.materials.find(m => m.id === id); },
   pack(id) { return S.scraps.packs.find(p => p.id === id); },
-  badge() { return h("span.scraps-count", {"aria-label":`${S.scraps.balance.toLocaleString("en-US")} Scraps`}, h("span", "Scraps"), h("b", S.scraps.balance.toLocaleString("en-US"))); },
+  badge() { return h("span.scraps-count", {"aria-label":`${S.scraps.balance.toLocaleString("en-US")} Scraps`}, h("i.sc-ico", {"aria-hidden":"true"}), h("span", "Scraps"), h("b", S.scraps.balance.toLocaleString("en-US"))); },
   button(kind, id, label, disabled = false) {
     return h("button.btn.paper.small.scrap-action", { disabled:disabled || this.inFlight, data:{scrapKind:kind,scrapItem:id}, on:{click:() => {
       if(this.inFlight) return;

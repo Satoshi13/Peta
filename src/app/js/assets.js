@@ -43,6 +43,7 @@ const P = {
   btnLabel: "ui/button-label.png", btnLabelDown: "ui/button-label-pressed.png", trayBox: "ui/material-tray.png", cardLocked: "ui/card-locked.png", dateStamp: "ui/date-stamp.png",
   memoTorn: "ui/memo-torn.png", tagKraft: "ui/tag-kraft.png", paperClip: "notes/paper-clip.png", binderClip: "ui/binder-clip.png", indexCard: "notes/note-index-card-blank.png", indexRuled: "ui/index-card-ruled.png",
   nameTagPaper: "ui/name-tag-paper.png",
+  weekTicket: "ui/week-ticket.png", redeemPaper: "ui/redeem-paper.png", redeemTicket: "ui/redeem-ticket.png", scrapsIcon: "ui/scraps-icon.png",
   coverBoard: "book/cover-board.jpg",
   bagGlassine: "bags/glassine.webp", bagPhoto: "bags/photo-envelope.webp", bagKraftParcel: "bags/kraft-parcel.webp", bagPocket: "bags/library-pocket.webp",
   bagAirmail: "bags/airmail.webp", bagWrap: "bags/folded-wrap.webp", bagDrawer: "bags/drawer-box.webp", bagCotton: "bags/cotton-pouch.webp",

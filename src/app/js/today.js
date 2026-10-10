@@ -59,10 +59,12 @@ Pages.today = {
       h("div.t-cta", h("button.btn.t-make", { on: { click: (e) => { Snd.tap(); Shell.go("create", { origin: e.currentTarget, via: "object" }); } } }, n ? "Make another" : "Make today's Peta")));
     return h("div.t-hero", slot, info);
   },
-  /* The last seven days as a row of dots: filled where something was stuck, today ringed. No counting up, no shame for gaps. */
+  /* The last seven days on a paper ticket: the weekday over a dot, filled where something was stuck, empty where not. No counting up, no shame for gaps. */
   streak() {
     const days = PetaMath.recentDays(S.lib.map((e) => PetaMath.bookDateKey(e.date)), S.today), n = days.filter((d) => d.filled).length;
-    return h("div.t-chain", { role: "img", "aria-label": `${n} of the last 7 days` }, h("span.dots", days.map((d) => h("i", { class: (d.filled ? "f" : "") + (d.today ? " t" : "") }))), h("small", `${n} of the last 7 days`));
+    const name = (key) => { const [y, m, d] = key.split("-").map(Number); return fmtDate(new Date(y, m - 1, d, 12), { weekday: "short" }); };
+    return h("div.t-chain", { role: "img", "aria-label": `${n} of the last 7 days` },
+      h("div.wk-days", days.map((d) => h("div.wk-day" + (d.today ? ".today" : ""), h("span", name(d.key)), h("i", { class: d.filled ? "f" : "" })))), h("i.wk-rule"), h("small", `${n} of the last 7 days`));
   },
   fillSlot(slot, entries) {
     const wrap = h("div.t-landed"), stamp = h("span.datestamp.t-stamp", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" })), ripple = h("i.t-ripple");

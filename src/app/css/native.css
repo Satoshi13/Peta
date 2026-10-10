@@ -264,8 +264,9 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .bookpage .bk-main { width:100%; }
 
 /* Scraps stays a quiet paper label; confirmation controls never move under the pointer. */
-.scraps-count { display:inline-flex; align-items:baseline; gap:10px; padding:9px 13px; border-radius:7px; background:rgba(255,253,249,.85); box-shadow:0 1px 3px rgba(60,45,20,.14); color:var(--muted); font:12px/1 var(--type); white-space:nowrap; }
-.scraps-count b { min-width:3ch; text-align:right; color:var(--ink); font-size:15px; }
+.scraps-count { display:inline-flex; align-items:center; gap:10px; padding:7px 16px 7px 10px; border-radius:14px; background:rgba(255,253,249,.92); box-shadow:inset 0 0 0 1px var(--w-line), 0 1px 4px rgba(60,45,20,.12); color:var(--muted); font:500 15px/1 var(--sys); white-space:nowrap; }
+.scraps-count .sc-ico { flex:none; width:32px; height:30px; background:var(--a-scrapsIcon) center / contain no-repeat; filter:drop-shadow(0 1px 1.5px rgba(60,45,20,.28)); }
+.scraps-count b { min-width:2ch; text-align:right; color:var(--ink); font:700 17px/1 var(--sys); font-variant-numeric:tabular-nums; }
 .material-entry { display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:0; }
 .material-entry .mbook { width:100%; flex:1; }
 .material-tools { min-height:34px; display:flex; justify-content:center; align-items:center; }
@@ -344,8 +345,8 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .lead, .empty-note, .addnote, .cr-cutting p { font-family:var(--sys); }
 .empty-note { font:400 14px/21px var(--sys); color:var(--muted); }
 .datestamp, .envelope-clock, .calendar-complete { font:400 13px/1.4 var(--type); letter-spacing:.04em; }
-.scraps-count { font:var(--meta); }
-.scraps-count b, .scrap-summary b { font-family:var(--type); font-size:16px; }
+.scraps-count { font:500 15px/1 var(--sys); }
+.scrap-summary b { font-family:var(--type); font-size:16px; }
 .scrap-summary input { font:500 16px/20px var(--sys); }
 .seal { font-size:11px; }
 .mcard .lab b { font-size:max(11px,calc(var(--w) * .08)); }
@@ -729,12 +730,14 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 .t-others[data-fade-end="true"] { -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent); }
 .t-others[data-fade-start="true"] { -webkit-mask-image:linear-gradient(90deg,transparent,#000 34px); mask-image:linear-gradient(90deg,transparent,#000 34px); }
 .t-others[data-fade-start="true"][data-fade-end="true"] { -webkit-mask-image:linear-gradient(90deg,transparent,#000 34px,#000 calc(100% - 34px),transparent); mask-image:linear-gradient(90deg,transparent,#000 34px,#000 calc(100% - 34px),transparent); }
-.t-chain { display:flex; align-items:center; gap:10px; margin-top:4px; }
-.t-chain .dots { display:inline-flex; gap:6px; }
-.t-chain .dots i { width:11px; height:11px; border-radius:50%; background:var(--w-sunken); box-shadow:inset 0 0 0 1px var(--w-line); }
-.t-chain .dots i.f { background:var(--ink); box-shadow:none; }
-.t-chain .dots i.t { box-shadow:0 0 0 2px var(--w-surface),0 0 0 3.5px var(--ink); }
-.t-chain small { font:var(--meta); color:var(--muted); }
+/* the week ticket (art/ui/week-ticket.png): weekdays over their dots, a rule, and how many of the seven */
+.t-chain { position:relative; display:flex; align-items:center; gap:10px; width:min(100%,500px); aspect-ratio:1100 / 197; margin-top:6px; padding:0 5% 0 6%; background:var(--a-weekTicket) 0 0 / 100% 100% no-repeat; color:#2b2a28; }
+.t-chain .wk-days { display:flex; gap:clamp(5px,1.6vw,13px); flex:none; }
+.t-chain .wk-day { display:grid; justify-items:center; gap:6px; font:500 11.5px/1 var(--sys); color:#3a362a; } .t-chain .wk-day.today span { font-weight:700; }
+.t-chain .wk-day i { width:15px; height:15px; border-radius:50%; background:none; box-shadow:inset 0 0 0 1.5px #4a463f; }
+.t-chain .wk-day i.f { background:#3b3a30; box-shadow:inset 0 0 0 1.5px #2b2a28, inset 0 1.5px 2px rgba(255,255,255,.18); }
+.t-chain .wk-rule { align-self:stretch; width:1px; margin:16px 0; background:rgba(43,42,40,.55); flex:none; }
+.t-chain small { flex:1; min-width:0; font:400 13.5px/1.25 var(--sys); color:#3a362a; text-align:center; text-wrap:balance; }
 .t-slot[data-state="stuck"] { padding-bottom:40px; }
 
 /* Packs and Market: one pouch per pack, with its title and author printed on the pouch's own label. */
@@ -1008,3 +1011,22 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 /* a gift that arrived in a Studio wrapping: the wrapping itself, with the name it was written for */
 .g-env.g-bag { display: grid; justify-items: center; min-height: 150px; align-content: end; filter: none; }
 .g-env.g-bag .bagpic { filter: drop-shadow(0 10px 10px rgba(60,40,10,.28)); }
+
+/* Redeem code: a sheet of deckled paper with the code on its own ticket (art/ui/redeem-*.png). It stays paper in the night theme, so its ink is fixed. */
+dialog.rd-dialog { border:0; padding:0; background:none; box-shadow:none; overflow:visible; max-width:calc(100% - 32px); color:#2b2a28; }
+dialog.rd-dialog::backdrop { background:rgba(30,24,14,.32); }
+.rd-paper { position:relative; display:grid; grid-template-columns:minmax(0,1fr); justify-items:center; width:min(440px,calc(100vw - 48px)); aspect-ratio:620 / 640; padding:9% 11% 7%; align-content:start; gap:0; background:var(--a-redeemPaper) 0 0 / 100% 100% no-repeat; filter:drop-shadow(0 18px 28px rgba(40,30,15,.3)); box-sizing:border-box; }
+.rd-paper h2 { margin:5% 0 0; font:700 31px/1.15 var(--sys); letter-spacing:-.02em; color:#2b2a28; }
+.rd-sub { margin:10px 0 0; font:400 15.5px/1.4 var(--sys); color:#4a463f; text-align:center; }
+.rd-ticket { position:relative; width:104%; margin-top:6%; aspect-ratio:760 / 238; background:var(--a-redeemTicket) 0 0 / 100% 100% no-repeat; display:grid; align-items:center; padding:0 11% 3% 12%; filter:drop-shadow(0 2px 2px rgba(60,45,20,.2)); }
+.rd-ticket input { width:100%; border:0; background:none; font:400 21px/1.2 var(--sys); color:#2b2a28; caret-color:#2b2a28; outline:none; letter-spacing:.01em; }
+.rd-ticket input::placeholder { color:#8a8374; opacity:1; }
+.rd-ticket:focus-within { filter:drop-shadow(0 2px 2px rgba(60,45,20,.2)) drop-shadow(0 0 0 #527d93); }
+.rd-ticket:focus-within::after { content:""; position:absolute; left:12%; right:11%; bottom:24%; height:2px; background:#527d93; border-radius:2px; opacity:.7; }
+.rd-status { min-height:16px; margin:4px 0 4px; color:#934238; text-align:center; font-size:13px; }
+.rd-paper .rd-go { width:92%; height:48px; margin-top:2px; border-radius:26px; background:#2b2a28; color:#fff; font:600 17px/1 var(--sys); box-shadow:0 2px 0 rgba(0,0,0,.4), 0 8px 14px rgba(40,30,15,.2); }
+.rd-paper .rd-go:disabled { opacity:.5; }
+.rd-cancel { margin-top:10px; font:500 16px/1 var(--sys); color:#2b2a28; text-decoration:underline; text-underline-offset:4px; background:none; border:0; cursor:pointer; }
+.rd-note { margin-top:10px; font:400 11px/1.35 var(--sys); color:#7a7466; text-align:center; }
+dialog.rd-dialog button.close-control.rd-x { top:7%; right:7%; background:none; color:#2b2a28; width:34px; height:34px; }
+dialog.rd-dialog button.close-control.rd-x:hover { background:rgba(60,45,20,.08); }
