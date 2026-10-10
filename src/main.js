@@ -123,9 +123,9 @@ function reflectFrame(now) {
 }
 function syncReflection() {
   const {w,h}=layerSize();
-  const active=!reduced() && Array.from(nodes.values()).some(n=>{
-    const b=boxOf(n); return REFLECTIVE_MATERIALS.has(n.el.dataset.material) && !n.peeled && !n.flipped && b.cx+b.w/2>0 && b.cx-b.w/2<w && b.cy+b.h/2>0 && b.cy-b.h/2<h;
-  });
+  const onScreen=(n)=>{ const b=boxOf(n); return !n.peeled && !n.flipped && b.cx+b.w/2>0 && b.cx-b.w/2<w && b.cy+b.h/2>0 && b.cy-b.h/2<h; };
+  const active=(!reduced() && Array.from(nodes.values()).some(n=>REFLECTIVE_MATERIALS.has(n.el.dataset.material) && onScreen(n)))
+    || Array.from(nodes.values()).some(n=>tagged.has(n.placement.stickerId) && onScreen(n)); // a tagged sticker needs the cursor stream too (even with reduced motion)
   if(active!==reflectionActive) { reflectionActive=active; if(!active) reflectionCursor=null; reflectionQueue=reflectionQueue.then(()=>invoke("set_reflection_active",{active})).catch(console.error); }
 }
 function cursorReflect(cursor) {
@@ -553,8 +553,35 @@ function peelUnderPointer() {
 
 // ---- edit mode + boot ----
 
+// ---- link tags: a tagged sticker opens its target when it is clicked on the desktop ----
+// The layer is click-through. While the pointer is over a tagged sticker (found from the cursor stream Rust already sends for reflections),
+// the layer takes the mouse; the moment the pointer leaves it is given back. Edit Mode is untouched (Rust refuses to capture then).
+let tagged = new Set(), tagHover = null, captured = false;
+async function loadTags() {
+  try { const st = await invoke("link_tag_status"); tagged = new Set(st.tags.map((t) => t.stickerId)); } catch { tagged = new Set(); }
+  if (!tagged.size) setCapture(false, null);
+  syncReflection();
+}
+function setCapture(on, node) {
+  tagHover = on ? node : null; layer.dataset.link = on ? "1" : "";
+  if (captured === on) return; captured = on;
+  invoke("layer_capture", { on }).catch(() => { captured = false; });
+}
+function tagCursor(cursor) {
+  if (editing || !tagged.size) { if (captured) setCapture(false, null); return; }
+  if (!cursor.inside) { setCapture(false, null); return; }
+  const node = pick(cursor.x, cursor.y);
+  setCapture(!!node && tagged.has(node.placement.stickerId), node);
+}
+layer.addEventListener("click", () => {
+  const node = tagHover; if (editing || !node) return;
+  invoke("link_tag_open", { stickerId: node.placement.stickerId }).catch((e) => console.error("link tag", e));
+  if (!reduced()) node.body.animate([{ transform: "scale(1)" }, { transform: "scale(.94)", offset: .4 }, { transform: "scale(1)" }], { duration: 220, easing: "ease-out" });
+});
+
 function setEditMode(on) {
   editing = on;
+  if (on) setCapture(false, null);
   layer.classList.toggle("editing", on);
   hint.hidden = !on;
   if (!on) {
@@ -606,7 +633,8 @@ async function wireFileDrop() {
 }
 
 async function boot() {
-  await listen("cursor-reflect",e=>cursorReflect(e.payload));
+  await listen("cursor-reflect",e=>{ cursorReflect(e.payload); tagCursor(e.payload); });
+  await loadTags(); await listen("link-tags-changed", () => loadTags());
   const info = await invoke("layer_info");
   setEditMode(info.editMode);
   await reconcile();

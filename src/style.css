@@ -79,3 +79,6 @@ html, body {
   font: inherit; color: #1c1c1e; background: #fff; border: 0; border-radius: 999px; padding: 3px 12px; cursor: pointer;
 }
 #edit-hint small { opacity: 0.55; margin-right: 4px; }
+
+/* a tagged sticker under the pointer: it can be clicked */
+#layer[data-link="1"], [data-link="1"] { cursor: pointer; }
