@@ -1,6 +1,6 @@
 /* Snapshot fixture for the real native UI; no user database or native commands run. */
 (() => {
-  window.reviewCalls=[]; window.reviewEvents={}; window.reviewOpened=true;
+  window.reviewCalls=[]; window.reviewTags=[]; window.reviewEvents={}; window.reviewOpened=true;
   localStorage.setItem('peta.preferences', JSON.stringify({shell:'studio',sound:false,haptics:false,motion:'full',closeOutside:false}));
   const ids=['matte','kraft','holographic','gold','riso','vintage','clear','pixel','washi','sakura'];
   const entries=Array.from({length:8},(_,i)=>({stickerId:'review-'+i,date:'2026-10-0'+(5+i%3),createdAt:'2026-10-07T12:00:00Z',originalNumber:i+1,materialId:ids[i%3],sourceType:'created',aspect:1,onDesktop:false,canManage:true,packName:'Sticker '+(i+1)}));
@@ -20,6 +20,8 @@
       case 'print_pending':case 'creator_pack_pending':return null;
       case 'scrap_status':return {balance:60,materials:ids.map(id=>({id,exchange:2,dismantle:1})),packs:packs.map(p=>({id:p.id,exchange:12,stickers:6}))};
       case 'sticker_asset':return [...new Uint8Array(await (await fetch('/src/art/samples/good-day.png')).arrayBuffer())];
+      case 'link_tag_status':return {stock:{owned:window.reviewTags?.length||0,attached:window.reviewTags?.length||0,available:0},tags:window.reviewTags||[]};
+      case 'link_tag_icon':return new Uint8Array();
       case 'redeem_code':if(window.reviewRedeemError)throw Error('invalid_signature: Example error');window.reviewBonus=1;return {result:'Code received.'};
       case 'window_vibrancy':return false;
       default:throw new Error('Unexpected fixture command: '+cmd);

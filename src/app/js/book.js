@@ -164,7 +164,7 @@ Pages.book = {
     this.lazySticker(holder, e, 128);
     return h("button.tile", { data: { sticker: e.id, late: i >= 12 ? "1" : "0" }, "aria-pressed": String(BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date)), style: { "--i": Math.min(i, 8) }, on: { click: () => select(e) } },
       h("span.tile-date", fmtDate(e.date,{month:"short",day:"numeric"})),
-      holder, h("span.tile-footer", h("b", titleOf(e)), h("small", `${MAT[e.material].name} · ${e.kind === "received" ? "Received" : "No. "+pad4(e.no)}`)),
+      holder, (() => { const lt = ltTag(e.id); return lt && lt.showInCollection ? h("span.tile-link", { title: `Opens ${lt.label}` }, ltGlyph(lt.kind), lt.label) : null; })(), h("span.tile-footer", h("b", titleOf(e)), h("small", `${MAT[e.material].name} · ${e.kind === "received" ? "Received" : "No. "+pad4(e.no)}`)),
       onDesk ? h("i.on-desk", "On desktop") : null, e.kind === "received" ? h("i.recv", "Gift") : null);
   },
   /* Search, material and order for the list. The values live in BK so they survive picking a sticker and coming back to the page. */
@@ -234,11 +234,12 @@ Pages.book = {
     return h("aside.detail" + (stay ? ".stay" : ""), { role: "dialog", "aria-label": "Sticker details" },
       CloseButton("Close", {on: { click: () => { BK.sel = null; BK.deleteId = null; paint(); } }}, ".x"),
       many ? h("small.det-count", { "aria-live": "polite" }, `${at + 1} / ${list.length}`) : null,
-      stage,
+      h("div.det-stagewrap", stage, (() => { const lt = ltTag(e.id); return lt && lt.showInCollection ? h("span.det-hang", LinkTagPic({ stickerId: e.id, tag: lt, size: 44 })) : null; })()),
       h("div.det-label", h("b", { title: name, style: { fontSize: Math.max(14, Math.min(26, 190 / Math.max(nameWidth, 1))) + "px" } }, name)),
       h("div.det-info",
         h("div", h("small", "Material"), h("span.det-mat", MaterialSwatch({ id: mat.id || e.material, sw: mat.sw, card: mat.card }), h("b", mat.name))),
         h("div", h("small", "Made"), h("b", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })))),
+      LinkTags.row(e, paint),
       (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions", main,
         h("div.book-action-row", act("det-link", "gift", Icon("gift"), "Gift", () => { BK.deleteId = null; StudioOpen("gift", e.id); }),
           e.canManage ? act("det-link.quiet2", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,

@@ -129,6 +129,8 @@ Pages.studio = {
           sec("Cover sticker", covers), sec("Decoration", decoSeg(p))),
         foot(true, nextBtn("Next →", !!p.title.trim(), () => go(3)))];
     };
+    /* a link tag on a sticker that is being sealed into a gift or a pack goes back to you (its target is never in the file) */
+    const tagNote = (ids) => { const n = ids.filter((id) => ltTag(id)).length; return n ? h("div.st-tagnote", LinkTagPic({ size: 20 }), ST.mode === "gift" ? "Link tag returns to you. Where it opens is not sent to them." : `${n} link tag${n === 1 ? "" : "s"} return${n === 1 ? "s" : ""} to you when you seal the pack. Where they open is not part of the pack.`) : null; };
     const sealScenes = () => {
       const d = D(), bag = BAGS[d.bag];
       const wrap = (caption, scene) => h("div", scene, h("div.st-scap", caption));
@@ -150,7 +152,7 @@ Pages.studio = {
       const p = ST.pack;
       if(p.sealed) return [doneBlock("pack"), sealScenes()];
       return [h("h2", "Check it, then seal it"), h("p.st-help", "How it looks on your shelf and in the Market. Once sealed, it is signed with your key and can't be changed."),
-        h("div.st-scroll", sealScenes(), sec("Description (shown on the Market card)", field(p.blurb, STUDIO.limits.blurb, "Description", (v) => { p.blurb = v; stSave(); })),
+        h("div.st-scroll", tagNote(p.sel.map((x) => x.id)), sealScenes(), sec("Description (shown on the Market card)", field(p.blurb, STUDIO.limits.blurb, "Description", (v) => { p.blurb = v; stSave(); })),
           h("div.st-signed", h("i", "SIGN"), `${p.title.trim()} · ${p.sel.length} stickers · ${stOddsLine(p.sel)}`)),
         foot(true, nextBtn("Seal the pack", true, seal))];
     };
@@ -170,7 +172,7 @@ Pages.studio = {
       const g = ST.gift;
       if(g.sealed) return [doneBlock("gift"), sealScenes()];
       return [h("h2", "Check it, then seal it"), h("p.st-help", "How it looks when it arrives and when it is opened. Once sealed, it can't be changed."),
-        h("div.st-scroll", sealScenes(), h("div.st-signed", h("i", "SIGN"), `For ${g.to.trim()} · 1 sticker · your photo is never inside`)), foot(true, nextBtn("Seal the gift", true, seal))];
+        h("div.st-scroll", tagNote([g.sticker]), sealScenes(), h("div.st-signed", h("i", "SIGN"), `For ${g.to.trim()} · 1 sticker · your photo is never inside`)), foot(true, nextBtn("Seal the gift", true, seal))];
     };
     const doneBlock = (kind) => {
       const again = () => { if(kind === "pack") Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, sel: [], cover: null, title: "", blurb: "" }); else Object.assign(ST.gift, { step: 1, seen: new Set([1]), sealed: false, sticker: null, to: "", note: "" }); stSave(); Snd.tap(); paint(); };

@@ -1,0 +1,78 @@
+/* Link tags (js/linktag.js). The tag art (art/ui/link-tag.png) is blank: the clip, the string and a plain paper tag. What it opens is drawn on the paper. */
+.lt-pic { position: relative; display: block; width: var(--w, 44px); aspect-ratio: 380 / 538; background: var(--a-linkTag) 0 0 / 100% 100% no-repeat; filter: drop-shadow(0 2px 2px rgba(60,45,20,.28)); flex: none; }
+.lt-face { position: absolute; left: 58%; top: 66%; width: 36%; aspect-ratio: 1; translate: -50% -50%; rotate: -14deg; display: grid; place-items: center; }
+.lt-face img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 1px 1px rgba(60,45,20,.3)); }
+.lt-face .lt-glyph, .lt-glyph { width: 100%; height: 100%; fill: none; stroke: #4a463f; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+/* the Collection's details */
+.det-stagewrap { position: relative; }
+.det-hang { position: absolute; left: calc(50% + 62px); top: 2px; z-index: 5; pointer-events: none; transform-origin: 20% 5%; animation: lt-settle .9s var(--ease-out) 1; }
+@keyframes lt-settle { from { transform: rotate(9deg); } 60% { transform: rotate(-3deg); } to { transform: none; } }
+.detail.stay .det-hang { animation: none; }
+.det-tag { margin: 0 0 12px; font-family: var(--sys); }
+.det-tag > .det-link { display: inline-flex; align-items: center; gap: 9px; width: 100%; justify-content: flex-start; padding: 9px 8px; border: 0; background: none; border-radius: 10px; cursor: pointer; color: #655e51; font: 500 14px/1.2 var(--sys); }
+.det-tag > .det-link:hover { background: rgba(60,45,20,.07); } .det-tag > .det-link .ico { width: 18px; height: 18px; stroke: currentColor; }
+.det-tag > .det-link small { margin-left: auto; font: 12px/1 var(--sys); color: #7a7466; }
+.det-tag.on { padding: 10px 12px; border-radius: 14px; background: rgba(255,253,246,.7); box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 8px; }
+.det-tag-head { display: flex; align-items: center; gap: 10px; }
+.det-tag-head > div { min-width: 0; flex: 1; } .det-tag-head b { display: block; font: 600 15px/1.2 var(--sys); color: #2b2a28; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.det-tag-head small { display: block; margin-top: 2px; font: 12px/1.2 var(--sys); color: #7a7466; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.det-tag-ico { flex: none; width: 36px; height: 36px; border-radius: 9px; background: #fffdf6; box-shadow: inset 0 0 0 1px var(--line); display: grid; place-items: center; }
+.det-tag-ico .lt-face { position: static; translate: none; rotate: none; width: 24px; }
+.det-tag-go { flex: none; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; display: grid; place-items: center; color: #3a362a; } .det-tag-go:hover { background: rgba(60,45,20,.08); } .det-tag-go svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.det-tag-actions { display: flex; gap: 6px; } .det-tag-actions .btn { flex: 1; padding: 7px 8px; font-size: 13px; background: #fffdf9; box-shadow: inset 0 0 0 1px var(--line); border-radius: 9px; color: #2b2a28; }
+.det-tag-show, .lt-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font: 500 13px/1.3 var(--sys); color: #3a362a; }
+.det-tag-show input, .lt-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.lt-sw { position: relative; flex: none; width: 40px; height: 24px; border-radius: 99px; background: rgba(60,45,20,.22); transition: background .18s; }
+.lt-sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .18s var(--ease-spring); }
+input:checked + .lt-sw { background: #4f7a4a; } input:checked + .lt-sw::after { transform: translateX(16px); } input:focus-visible + .lt-sw { outline: 2px solid #527d93; outline-offset: 2px; }
+.bk-grid .tile-link { position: absolute; left: 10px; bottom: 74px; z-index: 1; max-width: calc(100% - 20px); display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 6px; border-radius: 6px; background: var(--w-surface); box-shadow: inset 0 0 0 1px var(--w-line); font: 600 11.5px/16px var(--sys); color: var(--ink2); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.tile-link .lt-glyph { width: 13px; height: 13px; flex: none; stroke: currentColor; }
+
+/* the attach dialog: a sheet of paper with the tag on the left */
+dialog.lt-dialog { border: 0; padding: 0; background: none; overflow: visible; max-width: calc(100% - 32px); color: #2b2a28; }
+dialog.lt-dialog::backdrop { background: rgba(30,24,14,.34); }
+.lt-card { position: relative; display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 0; width: min(640px, calc(100vw - 48px)); padding: 26px 26px 20px 8px; border-radius: 20px; background: #f6f1e6 var(--a-paperCream) 0 0 / 420px; box-shadow: 0 0 0 1px rgba(90,80,55,.14), 0 24px 54px rgba(40,30,15,.34); box-sizing: border-box; }
+.lt-card.lt-narrow { width: min(460px, calc(100vw - 48px)); grid-template-columns: 110px minmax(0, 1fr); }
+.lt-left { display: grid; justify-items: center; align-content: start; gap: 6px; padding: 8px 0 0 12px; text-align: center; } .lt-left small { font: 12.5px/1.3 var(--sys); color: #4a463f; } .lt-left small.muted { color: #7a7466; }
+.lt-right { min-width: 0; padding-left: 14px; border-left: 1px solid rgba(60,45,20,.16); }
+.lt-right h2 { margin: 2px 0 4px; font: 700 26px/1.15 var(--sys); letter-spacing: -.02em; } .lt-right .eyebrow { margin: 0; font: 11px/1 var(--sys); letter-spacing: .08em; text-transform: uppercase; color: #655e51; max-width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lt-sub { margin: 0 0 12px; font: 400 14.5px/1.45 var(--sys); color: #4a463f; }
+.lt-tabs { display: flex; background: rgba(60,45,20,.1); border-radius: 12px; padding: 3px; margin-bottom: 10px; }
+.lt-tabs button { flex: 1; border: 0; background: none; padding: 8px 6px; border-radius: 9px; font: 500 14px/1 var(--sys); color: #4a463f; cursor: pointer; } .lt-tabs button[aria-selected="true"] { background: #fffdf6; color: #2b2a28; font-weight: 650; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.lt-what { display: grid; gap: 8px; padding: 12px; margin-bottom: 8px; border-radius: 12px; background: rgba(255,253,246,.75); box-shadow: inset 0 0 0 1px var(--line); }
+.lt-what label { display: grid; gap: 4px; font: 600 11.5px/1 var(--sys); letter-spacing: .06em; text-transform: uppercase; color: #655e51; }
+.lt-what input, .lt-label input { width: 100%; padding: 9px 12px; border: 0; border-radius: 10px; background: #fffdf9; box-shadow: inset 0 0 0 1px var(--line); font: 500 14.5px/1.3 var(--sys); color: #2b2a28; text-transform: none; letter-spacing: 0; box-sizing: border-box; }
+.lt-what input:focus, .lt-label input:focus { outline: 2px solid #527d93; outline-offset: 1px; }
+.lt-what small { font: 12px/1.4 var(--sys); color: #7a7466; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.lt-chosen { display: grid; grid-template-columns: 30px 1fr; column-gap: 10px; align-items: center; } .lt-chosen .lt-glyph { grid-row: span 2; width: 28px; height: 28px; } .lt-chosen b { font: 600 15px/1.2 var(--sys); } .lt-chosen small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lt-none { margin: 0; font: 14px/1.4 var(--sys); color: #7a7466; }
+.lt-label { display: grid; gap: 4px; margin: 0 0 8px; font: 600 11.5px/1 var(--sys); letter-spacing: .06em; text-transform: uppercase; color: #655e51; }
+.lt-toggle { padding: 4px 0 6px; } .lt-toggle b { display: block; font: 600 14px/1.3 var(--sys); color: #2b2a28; } .lt-toggle small { display: block; font: 12px/1.35 var(--sys); color: #7a7466; font-weight: 400; }
+.lt-status { min-height: 16px; margin: 2px 0 2px; color: #934238; font: 13px/1.3 var(--sys); }
+.lt-note { display: block; margin: 0 0 10px; font: 12px/1.4 var(--sys); color: #7a7466; }
+.lt-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 12px; border-top: 1px solid rgba(60,45,20,.14); }
+dialog.lt-dialog button.close-control.lt-x { top: 14px; right: 14px; background: none; color: #2b2a28; } dialog.lt-dialog button.close-control.lt-x:hover { background: rgba(60,45,20,.08); }
+
+/* Market > Tools */
+.mk-tools { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: stretch; margin-top: 4px; }
+.mk-tool, .mk-stock { position: relative; border-radius: 22px; padding: 20px 22px 18px; background: var(--w-surface); box-shadow: inset 0 0 0 1px var(--w-line), var(--sh1); display: flex; flex-direction: column; gap: 6px; }
+.mk-tool-art { position: relative; height: 210px; border-radius: 16px; background: var(--a-paperCream) 0 0 / 420px, var(--w-surface2); overflow: hidden; display: grid; place-items: center; }
+.mk-tool-art .lt-pic { --w: 120px; rotate: 6deg; filter: drop-shadow(0 8px 8px rgba(60,45,20,.28)); }
+.mk-tool h3, .mk-stock h3 { margin: 8px 0 0; font: 700 28px/1.15 var(--sys); letter-spacing: -.02em; }
+.mk-tool p, .mk-stock p { margin: 0; font: 400 15.5px/1.5 var(--sys); color: var(--ink2); }
+.mk-tool .facts { color: var(--muted); font-size: 13.5px; }
+.mk-buy { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.mk-price { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; height: 48px; border-radius: 12px; background: var(--w-surface2); box-shadow: inset 0 0 0 1px var(--w-line); font: 600 17px/1 var(--sys); }
+.mk-buy .btn { flex: 1; height: 48px; font-size: 16px; }
+.mk-stock .count { display: grid; gap: 2px; margin: 4px 0 8px; font: 500 16px/1.4 var(--sys); } .mk-stock .count b { font-size: 22px; }
+.mk-stock-art { flex: 1; min-height: 120px; display: grid; place-items: center; } .mk-stock-art .lt-pic { --w: 70px; rotate: -4deg; }
+.mk-stock .link { align-self: flex-start; margin-top: 4px; font: 500 15px/1 var(--sys); }
+.mk-tools-note { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--w-line2); color: var(--muted); font: 13.5px/1.4 var(--sys); }
+@media (max-width: 900px) { .mk-tools { grid-template-columns: 1fr; } }
+
+/* a note in Studio's seal step: link tags come back when the thing is sealed */
+.st-tagnote { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; padding: 8px 12px; border-radius: 12px; background: var(--w-surface2); box-shadow: inset 0 0 0 1px var(--w-line); font: 500 12.5px/1.35 var(--sys); color: var(--ink2); }
+.st-tagnote .lt-pic { --w: 20px; filter: none; }
+.mk-tools-note .lt-glyph { width: 20px; height: 20px; flex: none; }
+.mk-toolspage { display: grid; gap: 12px; }

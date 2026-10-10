@@ -111,11 +111,23 @@ Pages.market = {
     const paint = () => {
       root.replaceChildren(
         PageHead("Market", "Packs, materials and creators", Scraps.badge()),
-        h("div.seg.mk-seg", ["packs", "materials", "creators"].map((t) => SegButton(t[0].toUpperCase() + t.slice(1), { "aria-pressed": String(MK.tab === t), on: { click: () => { MK.tab = t; Snd.tap(); paint(); if (t === "packs") Pages.market.sway(root); } } }))),
-        MK.tab === "packs" ? this.packs(paint) : MK.tab === "materials" ? this.materials(paint) : this.creators(paint));
+        h("div.seg.mk-seg", ["packs", "materials", "creators", "tools"].map((t) => SegButton(t[0].toUpperCase() + t.slice(1), { "aria-pressed": String(MK.tab === t), on: { click: () => { MK.tab = t; Snd.tap(); paint(); if (t === "packs") Pages.market.sway(root); } } }))),
+        MK.tab === "packs" ? this.packs(paint) : MK.tab === "materials" ? this.materials(paint) : MK.tab === "tools" ? this.tools(paint) : this.creators(paint));
       const form = Scraps.form(); if(form) root.insertBefore(form, root.children[2]);
     };
     paint(); return root;
+  },
+  /* Small tools for your Peta. The link tag is reusable: it comes back to you when you take it off or seal the sticker into a gift or a pack. */
+  tools(paint) {
+    const stock = LinkTags.stock(), price = LT_PRICE(), cannot = !S.developer && S.scraps.balance < price;
+    return h("div.mk-toolspage", h("p.muted.lede", "Small tools for your Peta."), h("div.mk-tools",
+      h("section.mk-tool", h("div.mk-tool-art", LinkTagPic({ size: 120 })), h("h3", "Link tag"), h("p", "Let any Peta open an app, a website or a folder."),
+        h("p.facts", "Reusable · Visible in Collection · Hidden on the desktop"),
+        h("div.mk-buy", h("span.mk-price", S.developer ? "Free (developer)" : ScrapAmt(price)), h("button.btn", { disabled: cannot, on: { click: () => LinkTags.buy(paint) } }, cannot ? "Not enough Scraps" : "Get a tag")),
+        h("small.muted", "Remove it whenever you like. It returns to you.")),
+      h("aside.mk-stock", h("h3", "Your link tags"), h("div.count", h("span", h("b", String(stock.available)), " available"), h("span", h("b", String(stock.attached)), " attached")),
+        h("div.mk-stock-art", LinkTagPic({ size: 70 })), h("button.link", { type: "button", on: { click: () => Shell.go("book") } }, "Manage in Collection →")),
+      h("div.mk-tools-note", ltGlyph("open", "ico"), "Tags return automatically when gifting or packing.")));
   },
   packs(paint) {
     const feat = MARKET_PACKS[0];

@@ -1,0 +1,36 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+
+test('every link tag command the pages and the layer call is registered and granted', () => {
+  const ui = read('src/app/js/linktag.js') + read('src/app/js/bridge.js') + read('src/app/js/book.js') + read('src/main.js');
+  const called = [...new Set([...ui.matchAll(/(?:invoke|Bridge\.invoke)\(["'](link_tag_[a-z_]+|layer_capture)["']/g)].map((m) => m[1]))];
+  assert.ok(called.length >= 6, called.join());
+  const lib = read('src-tauri/src/lib.rs'), perms = read('src-tauri/permissions/desktop-effects.toml');
+  for (const c of called) { assert.match(lib, new RegExp(`\\b${c}\\b`), `${c} is not registered`); assert.match(perms, new RegExp(`"${c}"`), `${c} is not granted`); }
+});
+
+test('the kinds a tag may have are the same in the dialog and in Rust, and the Rust side only ever opens (no commands)', () => {
+  const kinds = [...read('src/app/js/linktag.js').match(/LT_KINDS = \[(.*?)\];/s)[1].matchAll(/\["(\w+)"/g)].map((m) => m[1]);
+  const rs = read('src-tauri/crates/core/src/link_tag.rs');
+  assert.deepEqual(kinds, [...rs.match(/KINDS: \[&str; 3\] = \[(.*?)\]/)[1].matchAll(/"(\w+)"/g)].map((m) => m[1]));
+  const opener = read('src-tauri/src/link_tags.rs');
+  assert.match(opener, /Command::new\("\/usr\/bin\/open"\)/);
+  assert.doesNotMatch(opener.replace(/\/\/.*$/gm, ''), /Command::new\("(?!\/usr\/bin\/(open|plutil|sips))/); // nothing else is ever run
+  assert.match(opener, /link_tag::validate\(&tag\.kind, &tag\.target, &tag\.label\)/); // re-checked from the saved record before opening
+});
+
+test('sealing a gift or a pack takes the tags off, only after the file is written, and the target is never in the file', () => {
+  const g = read('src-tauri/src/gifts.rs');
+  assert.ok(g.indexOf('could not save the gift') < g.indexOf('link_tag_release'), 'the gift releases after writing');
+  assert.ok(g.indexOf('record_made') < g.indexOf('link_tag_release(&items'), 'the pack releases after it is saved');
+  for (const f of ['src-tauri/crates/core/src/gift.rs', 'src-tauri/crates/core/src/creator_pack.rs']) assert.doesNotMatch(read(f), /link_tag|LinkTag/, `${f} must not know about tags`);
+});
+
+test('the desktop layer only captures the mouse for a tagged sticker, never in Edit Mode, and hands it back', () => {
+  const m = read('src/main.js');
+  assert.match(m, /if \(editing \|\| !tagged\.size\) \{ if \(captured\) setCapture\(false, null\); return; \}/);
+  assert.match(m, /setCapture\(!!node && tagged\.has\(node\.placement\.stickerId\), node\)/);
+  assert.match(read('src-tauri/src/layers.rs'), /if st\.edit_mode \|\| info\.edit_mode \|\| \(st\.print && info\.is_primary\) \{ return Ok\(\(\)\); \}/);
+});
