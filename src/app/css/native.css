@@ -1030,3 +1030,10 @@ dialog.rd-dialog::backdrop { background:rgba(30,24,14,.32); }
 .rd-note { margin-top:10px; font:400 11px/1.35 var(--sys); color:#7a7466; text-align:center; }
 dialog.rd-dialog button.close-control.rd-x { top:7%; right:7%; background:none; color:#2b2a28; width:34px; height:34px; }
 dialog.rd-dialog button.close-control.rd-x:hover { background:rgba(60,45,20,.08); }
+
+/* an amount of Scraps wherever one is shown: the offcuts, then the number */
+.sc-amt { display:inline-flex; align-items:center; gap:.3em; vertical-align:middle; white-space:nowrap; }
+.sc-amt .sc-ico { flex:none; width:1.5em; height:1.4em; background:var(--a-scrapsIcon) center / contain no-repeat; filter:drop-shadow(0 1px 1px rgba(60,45,20,.28)); }
+.sc-amt .sc-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+.scrap-action .sc-amt .sc-ico { width:1.35em; height:1.25em; }
+.mkz-buy .have, .mkz-buy small.muted .sc-amt { justify-content:center; }

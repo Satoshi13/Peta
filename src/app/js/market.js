@@ -22,7 +22,7 @@ const Market = {
   price(pack) { const rate = Scraps.pack(pack.id); return pack.price === "Free" && !this.own(pack.id) ? "Free" : rate ? `${rate.exchange} Scraps` : "Coming later"; },
   exchange(pack) {
     const rate = Scraps.pack(pack.id), own = this.own(pack.id);
-    return Scraps.button("pack", pack.id, !rate ? "Coming later" : this.full(pack) ? "The bag is full" : `${own ? "Add another set" : "Exchange"} — ${rate.exchange} Scraps`, !rate || this.full(pack) || !S.developer && S.scraps.balance < rate.exchange);
+    return Scraps.button("pack", pack.id, !rate ? "Coming later" : this.full(pack) ? "The bag is full" : [`${own ? "Add another set" : "Exchange"} — `, ScrapAmt(rate.exchange)], !rate || this.full(pack) || !S.developer && S.scraps.balance < rate.exchange);
   },
   /* Free packs are taken straight away; anything else (including a second set of a pack you already have) goes through the exchange. */
   async get(pack) {
@@ -53,10 +53,10 @@ const Market = {
       const total = unit * qty;
       out.textContent = String(qty); minus.disabled = busy || qty <= 1; plus.disabled = busy || qty >= max;
       adds.textContent = rate ? `${n(qty * rate.stickers)} sealed stickers` : "—";
-      costs.textContent = S.developer ? "No Scraps (developer)" : `${n(total)} Scraps`;
-      afterRow.hidden = S.developer; after.textContent = max < 1 ? "—" : n(S.scraps.balance - total);
-      perSet.textContent = S.developer ? "Free (developer)" : rate ? `${n(rate.exchange)} Scraps` : "Coming later";
-      have.textContent = S.developer ? "" : `You have ${n(S.scraps.balance)} Scraps`; have.hidden = S.developer;
+      if(S.developer) costs.textContent = "No Scraps (developer)"; else costs.replaceChildren(ScrapAmt(n(total)));
+      afterRow.hidden = S.developer; if(max < 1) after.textContent = "—"; else after.replaceChildren(ScrapAmt(n(S.scraps.balance - total)));
+      if(S.developer) perSet.textContent = "Free (developer)"; else if(rate) perSet.replaceChildren(ScrapAmt(n(rate.exchange))); else perSet.textContent = "Coming later";
+      if(S.developer) have.textContent = ""; else have.replaceChildren("You have ", ScrapAmt(n(S.scraps.balance))); have.hidden = S.developer;
       buy.disabled = busy || max < 1; buy.textContent = max < 1 ? (rate ? "Can't buy right now" : "Coming later") : `Buy ${qty} ${qty === 1 ? "set" : "sets"}`;
       if (!stop.dataset.error) stop.textContent = max < 1 || qty >= max ? why : ""; stop.hidden = !stop.textContent;
       note.textContent = own ? "Sets go into the same bag. Stickers you have already opened stay in your Collection." : "Adds this pack to your Packs shelf. What's inside stays a surprise until you tear it.";
@@ -198,7 +198,7 @@ Pages.market = {
       h("div.mgrid", items.map((m, i) => h("div.mbook.mk-mat", { style: { "--i": i } },
         h("div.mc", MatCard({ ...m, id: m.id }, 176)), h("div.mmeta", h("b", m.name), h("span.seal", { data: { rarity: m.rarity } }, m.rarity), h("small.recipe", m.recipe),
           h("small", m.locked ? "Not in your book yet" : `${S.stock[m.id] || 0} sheets in stock`),
-          Scraps.material(m.id)?.exchange != null ? Scraps.button("material", m.id, `Exchange — ${Scraps.material(m.id).exchange} Scraps`, !S.developer && S.scraps.balance < Scraps.material(m.id).exchange)
+          Scraps.material(m.id)?.exchange != null ? Scraps.button("material", m.id, ["Exchange — ", ScrapAmt(Scraps.material(m.id).exchange)], !S.developer && S.scraps.balance < Scraps.material(m.id).exchange)
             : h("button.btn.paper.small.scrap-action", {disabled:true}, m.id === "sakura" ? "Spring edition" : "Coming later"))))));
   },
   creators(paint) {

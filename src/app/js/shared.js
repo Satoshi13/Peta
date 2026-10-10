@@ -152,6 +152,12 @@ function EnvelopeTicket() {
 }
 
 /* A single confirmation flow for unused sheets and the local Market. Prices come from Rust. */
+/** An amount of Scraps: the offcuts icon and the number (read as "N Scraps" by a screen reader). */
+function ScrapAmt(n) {
+  const v = typeof n === "number" ? n.toLocaleString("en-US") : String(n);
+  return h("span.sc-amt", h("i.sc-ico", { "aria-hidden": "true" }), h("span", v), h("span.sc-sr", v === "1" ? " Scrap" : " Scraps"));
+}
+
 const Scraps = {
   selection: null, inFlight: false,
   material(id) { return S.scraps.materials.find(m => m.id === id); },
@@ -187,9 +193,9 @@ const Scraps = {
       const valid = retry || (count.value !== "" && Number.isInteger(q) && q >= 1 && q <= max);
       sel.quantity = q; submit.disabled = !valid || this.inFlight;
       submit.textContent = retry ? "Retry" : dismantle ? "Dismantle" : "Exchange"; cancel.textContent = retry ? "Close" : "Cancel";
-      receive.textContent = valid ? dismantle ? `${q*price} ${q*price===1 ? "Scrap" : "Scraps"}` : pack ? `${rate.stickers} stickers` : `${q} ${q===1 ? "sheet" : "sheets"}` : "—";
-      cost.textContent = valid ? `${q*price} Scraps` : "—";
-      remaining.textContent = valid ? ((retry ? sel.balanceBefore : S.scraps.balance) + (dismantle ? 1 : -1)*q*price).toLocaleString("en-US") : "—";
+      if(valid && dismantle) receive.replaceChildren(ScrapAmt(q*price)); else receive.textContent = valid ? pack ? `${rate.stickers} stickers` : `${q} ${q===1 ? "sheet" : "sheets"}` : "—";
+      if(valid) cost.replaceChildren(ScrapAmt(q*price)); else cost.textContent = "—";
+      if(valid) remaining.replaceChildren(ScrapAmt(((retry ? sel.balanceBefore : S.scraps.balance) + (dismantle ? 1 : -1)*q*price).toLocaleString("en-US"))); else remaining.textContent = "—";
       stock.textContent = S.developer ? (dismantle ? "Developer materials never run out." : "Developer stock is unlimited. No Scraps are spent.") : retry ? "Retry checks the same request without spending twice." : pack ? (S.owned[sel.itemId] ? `Adds ${rate.stickers} sealed stickers to the same bag. Opened stickers stay in your Collection.` : "Adds this pack to your Packs shelf.") : valid ? `${S.stock[sel.itemId] + (dismantle ? -q : q)} ${name} sheets left after ${dismantle ? "dismantling" : "exchange"}.` : `Choose ${max ? `1–${max} sheets` : "a different material or collect more Scraps"}.`;
     };
     count.addEventListener("input", update); update();
@@ -208,7 +214,7 @@ const Scraps = {
         } catch(e) { sel.error = String(e); error.textContent = sel.error; }
         finally { this.inFlight = false; Bridge.busy = false; count.disabled = !!sel.error; cancel.disabled = false; update(); }
       }
-    }}, h("div.scrap-trade-head", h("h2", `${dismantle ? "Dismantle" : owned ? "Add another set of" : "Exchange for"} ${name}`), h("small.muted", `${price} ${price===1 ? "Scrap" : "Scraps"} ${pack ? "per pack" : "per sheet"}`)),
+    }}, h("div.scrap-trade-head", h("h2", `${dismantle ? "Dismantle" : owned ? "Add another set of" : "Exchange for"} ${name}`), h("small.muted", ScrapAmt(price), ` ${pack ? "per pack" : "per sheet"}`)),
       h("div.scrap-summary" + (dismantle ? "" : ".has-cost"), pack ? h("div", h("span.muted.small", "Pack"), h("b", "1 pack")) : h("label", "Sheets", count),
         h("div", h("span.muted.small", "Receive"), receive), dismantle ? null : h("div", h("span.muted.small", "Spend"), cost), h("div", h("span.muted.small", "Scraps after"), remaining)), stock, error,
       h("div.scrap-actions", cancel, submit));
