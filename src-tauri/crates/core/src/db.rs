@@ -120,6 +120,8 @@ pub struct PackSummary {
     pub cover: Option<String>,
     pub deco: Option<String>,
     pub blurb: Option<String>,
+    /// Studio: where the label, the cover and the accents sit (the JSON of `creator_pack::Layout`), when the maker moved them.
+    pub layout: Option<String>,
 }
 
 /// Gifts (spec §34-36): copies of a sticker sent to someone, and gifts received. A gift is a file; where it travels
@@ -840,10 +842,10 @@ impl Database {
              GROUP BY p.id ORDER BY p.created_at, p.id",
         )?;
         let rows = stmt.query_map([], |r| {
-            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, free_openings:0, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)?,cover:r.get(8)?,deco:r.get(9)?,blurb:r.get(10)? })
+            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, free_openings:0, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)?,cover:r.get(8)?,deco:r.get(9)?,blurb:r.get(10)?,layout:None })
         })?;
         let mut packs = rows.collect::<std::result::Result<Vec<_>, _>>()?;
-        for pack in &mut packs { pack.free_openings = self.pack_free_openings(&pack.id)?; }
+        for pack in &mut packs { pack.free_openings = self.pack_free_openings(&pack.id)?; pack.layout = self.conn.query_row("SELECT value FROM meta WHERE key=?1", [format!("pack.layout.{}", pack.id)], |r| r.get(0)).optional()?; }
         Ok(packs)
     }
 

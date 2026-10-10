@@ -16,7 +16,7 @@ const PackArt = {
   /** The wrapped pack for a shelf cell, standing on the ledge; `cover` is a picture url or null. Scales with its box, so the zoom can enlarge it. */
   shelf(p, cover) {
     const b = BAGS[p.bag], [x0, , x1, y1] = b.body, bw = x1 - x0, obj = Math.min(b.cm * 15, 166);
-    const pic = BagPic({ bag: p.bag, title: p.title, sub: "by " + p.by, cover, deco: p.deco || "none", k: 15, fit: 166, shut: true, id: p.id });
+    const pic = BagPic({ bag: p.bag, title: p.title, sub: "by " + p.by, cover, deco: p.deco || "none", layout: p.layout, k: 15, fit: 166, shut: true, id: p.id });
     pic.style.width = (obj / (bw / 100) / 168 * 100) + "%"; pic.style.left = "50%"; pic.style.bottom = "0"; pic.style.translate = `-50% ${100 - y1}%`; pic.style.position = "absolute";
     return pic;
   },

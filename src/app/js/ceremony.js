@@ -150,7 +150,7 @@ const Cer = (() => {
     const bag = BAGS[pack.bag], [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, ratio = (bh * bag.H) / (bw * bag.W);
     let PW = Math.min(300, stage.clientWidth * .5); if (PW * ratio > stage.clientHeight * .5) PW = stage.clientHeight * .5 / ratio;
     const PH = PW * ratio, picW = PW / (bw / 100), picH = picW * bag.H / bag.W;
-    const pic = BagPic({ bag: pack.bag, title: pack.title, sub: "by " + pack.by, cover, deco: pack.deco || "none", fit: PW, k: 99, id: pack.id });
+    const pic = BagPic({ bag: pack.bag, title: pack.title, sub: "by " + pack.by, cover, deco: pack.deco || "none", layout: pack.layout, fit: PW, k: 99, id: pack.id });
     Object.assign(pic.style, { position: "absolute", left: -(x0 / 100) * picW + "px", top: -(y0 / 100) * picH + "px", zIndex: 4 });
     const pouch = h("div.bagrig", { style: { width: PW + "px", height: PH + "px" }, tabIndex: 0, role: "button", "aria-label": "Open the pack" }, content, pic);
     const wrapper = h("div.pk-wrap", pouch); stage.append(wrapper);

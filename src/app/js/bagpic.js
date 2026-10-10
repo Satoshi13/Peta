@@ -16,9 +16,11 @@ const bagEm = (text) => [...text].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 
  * @param fit    when set, the object is at most this wide in px
  * @param items  urls of stickers peeking out of it (up to six); left empty on a shelf
  * @param shut   closed: opaque wrappings hide what is inside (glassine and the folded wrap stay see-through)
+ * @param layout where the maker put the cover and up to two accents ({comp, cover, accents:[{kind,x,y}]}); every place is clamped to the wrapping (ui-math.js bagResolveLayout)
  */
-function BagPic({ bag: id, title = "", sub = "", cover = null, deco = "none", k = 15, fit = 0, items = [], shut = false, id: key = "" } = {}) {
+function BagPic({ bag: id, title = "", sub = "", cover = null, deco = "none", k = 15, fit = 0, items = [], shut = false, id: key = "", layout = null } = {}) {
   const bag = BAGS[id] || BAGS.kraft, [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, seed = bagHash(title + bag.id + key), jit = (i, amp) => (bagRnd(seed, i) - .5) * amp;
+  const lay = layout ? PetaMath.bagResolveLayout(bag, layout) : null; if (lay) deco = "none";   // a layout carries its own accents
   let boxW = bag.cm * k / (bw / 100); if (fit) boxW = Math.min(boxW, fit / (bw / 100));
   const el = h("div.bagpic", { data: { kind: bag.gen ? "gen" : bag.id, bag: bag.id, gloss: bag.gen && bag.gloss && !(shut && bag.seal === "slide") ? "1" : "0", nolabel: bag.gen && !bag.hasLabel ? "1" : "0" },
     style: { "--w": boxW + "px", "--art": `var(--a-${bag.art})`, "--gloss": bag.gloss ?? 0, aspectRatio: `${bag.W} / ${bag.H}` } });
@@ -44,10 +46,21 @@ function BagPic({ bag: id, title = "", sub = "", cover = null, deco = "none", k 
   const fitName = Math.min(1, 100 * .9 / (bagEm(title) * 13)), name = h("b", {}, title);
   name.style.fontSize = 13 * 1.1 * fitName * (bag.gen ? .88 : 1) + "cqw";
   const lbl = h("div.bp-lbl", {}, h("i.bp-cover"), name, sub ? h("small", {}, sub) : null);
-  lbl.style.translate = `${jit(2, 1.6)}% ${jit(5, 1.6)}%`; el.append(lbl);
-  if (cover) el.append(bagThing(cover, "sticker", bag.cover[0], bag.cover[1], bag.cover[2], bag.cover[3] + jit(4, 6)));
+  lbl.style.translate = `${jit(2, 1.6)}% ${jit(5, 1.6)}%`; el.append(lbl);   // the label is printed on the wrapping: a layout never moves it
+  if (cover) { const c = lay ? lay.cover : bag.cover; const t = bagThing(cover, "sticker", c[0], c[1], bag.cover[2], bag.cover[3] + jit(4, 6)); t.dataset.part = "cover"; el.append(t); }
+  for (const a of lay ? lay.accents : []) {
+    let t;
+    if (a.kind === "tape") { t = h("i.bp-tape"); const [, , tw, th, tr] = bag.tape; Object.assign(t.style, { width: tw + "%", height: th + "%", rotate: tr + jit(3, 3) + "deg" }); bagPlace(t, bag, "tape", [a.x, a.y]); }
+    else t = a.kind === "pin" ? bagThing(A.pinRed, "pin", a.x, a.y, bag.pin[2], 0) : bagThing(A.paperClip, "clip", a.x, a.y, bag.clip[2], bag.clip[3] + jit(6, 8));
+    t.dataset.part = "accent"; t.dataset.kind = a.kind; el.append(t);
+  }
   if (deco === "clip") el.append(bagThing(A.paperClip, "clip", bag.clip[0], bag.clip[1], bag.clip[2], bag.clip[3] + jit(6, 8)));
   if (deco === "pin") el.append(bagThing(A.pinRed, "pin", bag.pin[0] + jit(7, 1), bag.pin[1], bag.pin[2], 0));
   return el;
 }
 const bagThing = (src, kind, x, y, size, rot) => h("div.bp-deco" + (kind === "sticker" ? ".sticker" : ""), { data: { k: kind }, style: { left: x + "%", top: y + "%", width: size + "%", "--r": rot + "deg" } }, h("img", { src, alt: "" }));
+/** Move one part to a centre (percent of the picture). Used when the picture is drawn and while a part is being dragged. */
+function bagPlace(el, bag, part, [x, y]) {
+  if (part === "tape") { const { w, h } = PetaMath.bagPartSize(bag, "tape"); Object.assign(el.style, { left: x - w / 2 + "%", top: y - h / 2 + "%" }); }
+  else Object.assign(el.style, { left: x + "%", top: y + "%" });
+}

@@ -150,3 +150,55 @@ export function sheetCell({stageWidth, stageHeight, footer, count, gap = 12, max
   const width = Math.floor(Math.max(32, Math.min(maxWidth, byWidth, byHeight)));
   return {cols, rows, width, height:Math.round(width * 1.08), gap};
 }
+
+/* ---- Studio: where the label, the cover sticker and the accents sit on a wrapping ----
+   Everything is in percent of the wrapping's picture, as centres. The same rules draw a pack everywhere and hold the maker's hand while dragging:
+   the cover sticker stays wholly inside the wrapping's body, an accent's centre stays inside it (a clip may overhang an edge it is clipped to).
+   The label is printed on the wrapping itself: it is always there, in the wrapping's own place, and cannot be moved or taken off. */
+const mid = (lo, hi) => (lo + hi) / 2;
+const clampTo = (v, lo, hi) => (lo > hi ? mid(lo, hi) : Math.min(hi, Math.max(lo, Number.isFinite(v) ? v : mid(lo, hi))));
+export const BAG_ACCENTS = ['clip', 'pin', 'tape'], BAG_MAX_ACCENTS = 2, BAG_COMPOSITIONS = ['center', 'corner', 'band'];
+/** The size of a part in percent of the picture: {w, h}. */
+export function bagPartSize(bag, part) {
+  const square = s => ({ w: s, h: s * bag.W / bag.H });
+  if (part === 'label') return { w: bag.lbl[2] - bag.lbl[0], h: bag.lbl[3] - bag.lbl[1] };
+  if (part === 'cover') return square(bag.cover[2]);
+  if (part === 'clip') return square(bag.clip[2]);
+  if (part === 'pin') return square(bag.pin[2]);
+  return { w: bag.tape[2], h: bag.tape[3] };
+}
+/** Where an accent of this kind goes when it is first added: the place the wrapping gives it. */
+export function bagAccentDefault(bag, kind) {
+  if (kind === 'tape') return [bag.tape[0] + bag.tape[2] / 2, bag.tape[1] + bag.tape[3] / 2];
+  const at = kind === 'pin' ? bag.pin : bag.clip; return [at[0], at[1]];
+}
+/** Put a part's centre where it can be: the label and the cover wholly inside the body, an accent's centre inside it. */
+export function bagClampPart(bag, part, [x, y]) {
+  const [x0, y0, x1, y1] = bag.body, { w, h } = bagPartSize(bag, part);
+  const inBody = (px, py) => [clampTo(px, x0 + w / 2, x1 - w / 2), clampTo(py, y0 + h / 2, y1 - h / 2)];
+  if (part === 'label') return inBody(x, y);
+  if (part !== 'cover') return [clampTo(x, x0 + 2, x1 - 2), clampTo(y, y0 + 2, y1 - 2)];
+  /* the cover sticker never sits on the name: if it would, it goes to the nearest free side of the label (up, down, left or right) that is still on the wrapping */
+  const [l, t, r, b] = bag.lbl, over = ([px, py]) => Math.max(0, Math.min(px + w / 2, r) - Math.max(px - w / 2, l)) * Math.max(0, Math.min(py + h / 2, b) - Math.max(py - h / 2, t));
+  const at = inBody(x, y); if (over(at) <= 1e-9) return at;
+  const options = [[at[0], t - h / 2], [at[0], b + h / 2], [l - w / 2, at[1]], [r + w / 2, at[1]]].map(c => inBody(c[0], c[1]));
+  return options.sort((p, q) => over(p) - over(q) || Math.hypot(p[0] - at[0], p[1] - at[1]) - Math.hypot(q[0] - at[0], q[1] - at[1]))[0];
+}
+/** The cover's place for a composition, from the label that stays where the wrapping prints it (the maker's own place wins over it). */
+export function bagComposition(bag, comp) {
+  const lbl = bagPartSize(bag, 'label'), cov = bagPartSize(bag, 'cover'), home = [mid(bag.lbl[0], bag.lbl[2]), mid(bag.lbl[1], bag.lbl[3])], [x0, y0, x1, y1] = bag.body;
+  let label = home, cover = [bag.cover[0], bag.cover[1]];
+  if (comp === 'center') cover = [home[0], home[1] + lbl.h / 2 + cov.h / 2 - 3];
+  else if (comp === 'band') cover = [home[0] + lbl.w / 2 - cov.w * .25, home[1]];
+  return { label, cover: bagClampPart(bag, 'cover', cover) };
+}
+/** Everything the picture needs from a layout, every place clamped: {comp, label:[x,y], cover:[x,y], accents:[{kind,x,y}]}. */
+export function bagResolveLayout(bag, layout = {}) {
+  const comp = BAG_COMPOSITIONS.includes(layout.comp) || layout.comp === 'free' ? layout.comp : 'corner', base = bagComposition(bag, BAG_COMPOSITIONS.includes(comp) ? comp : 'corner');
+  const accents = [], seen = new Set();
+  for (const a of layout.accents || []) {
+    if (accents.length >= BAG_MAX_ACCENTS || !BAG_ACCENTS.includes(a?.kind) || seen.has(a.kind)) continue;
+    seen.add(a.kind); const [x, y] = bagClampPart(bag, a.kind, [a.x, a.y]); accents.push({ kind: a.kind, x, y });
+  }
+  return { comp, label: base.label, cover: bagClampPart(bag, 'cover', layout.cover || base.cover), accents };
+}

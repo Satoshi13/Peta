@@ -168,12 +168,6 @@ const Shell = (() => {
       if(page) { e.preventDefault(); go(page, {via:"nav"}); }
     });
     document.addEventListener("keydown", e => { if(e.key === "Escape" && !e.defaultPrevented && !$(".cer") && !e.target.closest("input")) close(); });
-    // the keys the sidebar shows: ⌘1… for the pages, ⌘, for Settings
-    document.addEventListener("keydown", e => {
-      if(!e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || e.defaultPrevented || $(".cer") || document.querySelector("dialog[open]")) return;
-      const n = e.key === "," ? NAV.find((x) => x.id === "settings") : NAV.find((x) => x.key && String(x.key) === e.key);
-      if(n) { e.preventDefault(); go(n.id); }
-    });
   }
   function setShell(name) {
     if (!["studio", "desk"].includes(name)) return;

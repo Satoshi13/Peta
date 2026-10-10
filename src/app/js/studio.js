@@ -12,7 +12,7 @@ const stClip = (text, max) => { let v = text; while (stEm(v) > max) v = v.slice(
 
 const ST = {
   mode: null, sealing: false, urls: new Map(), ctx: "shelf", find: { q: "", mat: "all" },
-  pack: { step: 1, seen: new Set([1]), sealed: false, dest: "shelf", result: null, sel: [], bag: "kraft", deco: "none", cover: null, title: "", blurb: "" },
+  pack: { step: 1, seen: new Set([1]), sealed: false, dest: "shelf", result: null, sel: [], bag: "kraft", deco: "none", layout: { comp: "corner", label: null, cover: null, accents: [] }, cover: null, title: "", blurb: "" },
   gift: { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, bag: "airmail", deco: "none", to: "", note: "" },
 };
 const stDraftKey = "peta.studio";
@@ -21,6 +21,7 @@ function stLoad() {
     const d = JSON.parse(localStorage.getItem(stDraftKey) || "null"); if(!d) return;
     const known = new Set(S.lib.map((e) => e.id));
     if(d.pack) { const p = ST.pack; p.sel = (d.pack.sel || []).filter((x) => known.has(x.id) && STUDIO.weights.includes(x.weight)).slice(0, STUDIO.limits.max); p.bag = PACK_BAG_IDS.includes(d.pack.bag) ? d.pack.bag : "kraft"; p.deco = ["none", "clip", "pin", "tape"].includes(d.pack.deco) ? d.pack.deco : "none";
+      p.layout = stCleanLayout(d.pack.layout, p.bag);
       p.cover = p.sel.some((x) => x.id === d.pack.cover) ? d.pack.cover : null; p.title = stClip(String(d.pack.title || ""), STUDIO.limits.name); p.blurb = String(d.pack.blurb || "").slice(0, STUDIO.limits.blurb); }
     if(d.gift) { const g = ST.gift; g.sticker = known.has(d.gift.sticker) ? d.gift.sticker : null; g.bag = GIFT_BAG_IDS.includes(d.gift.bag) ? d.gift.bag : "airmail"; g.deco = ["none", "clip", "pin", "tape"].includes(d.gift.deco) ? d.gift.deco : "none";
       g.to = stClip(String(d.gift.to || ""), STUDIO.limits.to); g.note = String(d.gift.note || "").slice(0, STUDIO.limits.note); }
@@ -28,7 +29,54 @@ function stLoad() {
 }
 function stSave() {
   const p = ST.pack, g = ST.gift;
-  try { localStorage.setItem(stDraftKey, JSON.stringify({ pack: { sel: p.sel, bag: p.bag, deco: p.deco, cover: p.cover, title: p.title, blurb: p.blurb }, gift: { sticker: g.sticker, bag: g.bag, deco: g.deco, to: g.to, note: g.note } })); } catch {}
+  try { localStorage.setItem(stDraftKey, JSON.stringify({ pack: { sel: p.sel, bag: p.bag, deco: p.deco, layout: p.layout, cover: p.cover, title: p.title, blurb: p.blurb }, gift: { sticker: g.sticker, bag: g.bag, deco: g.deco, to: g.to, note: g.note } })); } catch {}
+}
+/** A saved layout, made safe: a known composition, places that are numbers, at most two different accents. The picture clamps the places again when it draws. */
+function stCleanLayout(l, bagId) {
+  const out = { comp: "corner", label: null, cover: null, accents: [] }; if(!l || typeof l !== "object") return out;
+  if(PetaMath.BAG_COMPOSITIONS.includes(l.comp) || l.comp === "free") out.comp = l.comp;
+  const spot = (v) => (Array.isArray(v) && v.length === 2 && v.every((n) => Number.isFinite(n)) ? [v[0], v[1]] : null);
+  out.label = spot(l.label); out.cover = spot(l.cover);
+  for(const a of Array.isArray(l.accents) ? l.accents : []) if(out.accents.length < PetaMath.BAG_MAX_ACCENTS && PetaMath.BAG_ACCENTS.includes(a?.kind) && !out.accents.some((x) => x.kind === a.kind) && Number.isFinite(a.x) && Number.isFinite(a.y)) out.accents.push({ kind: a.kind, x: a.x, y: a.y });
+  return out;
+}
+/** Another wrapping has other places: the label and the cover go back to the composition's, and each accent to the place its wrapping gives it. */
+function stResetPlaces(p) {
+  const bag = BAGS[p.bag]; p.layout.cover = null;
+  p.layout.accents = p.layout.accents.map((a) => { const [x, y] = PetaMath.bagAccentDefault(bag, a.kind); return { kind: a.kind, x, y }; });
+}
+/** What goes to Rust: every place resolved and clamped, the first accent also as the old single decoration. */
+function stLayoutArgs(p) {
+  const r = PetaMath.bagResolveLayout(BAGS[p.bag], p.layout);
+  return { comp: r.comp, label: null, cover: p.cover ? r.cover : null, accents: r.accents };
+}
+/** Dress step: the cover sticker and the accents on the bench can be dragged (or moved with the arrow keys). Every move is clamped to the wrapping, so nothing can be
+ *  put outside it. The label is printed on the wrapping: it stays, and cannot be taken off. `note` is called when a move is done. */
+function stEdit(pic, p, note) {
+  const bag = BAGS[p.bag], names = { cover: "The cover sticker", clip: "The clip", pin: "The pin", tape: "The tape" };
+  const posOf = (el) => { const r = PetaMath.bagResolveLayout(bag, p.layout); if(el.dataset.part === "cover") return r.cover; const a = r.accents.find((x) => x.kind === el.dataset.kind); return a ? [a.x, a.y] : null; };
+  const store = (el, part, pos) => {
+    const at = PetaMath.bagClampPart(bag, part, pos);
+    if(p.layout.comp !== "free") { p.layout.cover = PetaMath.bagResolveLayout(bag, p.layout).cover; p.layout.comp = "free"; }   // from now on the places are the maker's own: keep where the cover is
+    if(part === "cover") p.layout.cover = at;
+    else { const a = p.layout.accents.find((x) => x.kind === part); if(a) { a.x = at[0]; a.y = at[1]; } }
+    bagPlace(el, bag, part, at);
+  };
+  for(const el of pic.querySelectorAll("[data-part]")) {
+    const part = el.dataset.kind || el.dataset.part; el.tabIndex = 0; el.setAttribute("role", "button"); el.setAttribute("aria-label", `${names[part]}: drag it, or use the arrow keys`);
+    el.addEventListener("pointerdown", (ev) => {
+      if(ev.button) return; ev.preventDefault(); ev.stopPropagation();
+      const box = pic.getBoundingClientRect(), from = posOf(el), x0 = ev.clientX, y0 = ev.clientY; if(!from) return;
+      el.setPointerCapture(ev.pointerId); el.classList.add("grab");
+      const move = (e) => store(el, part, [from[0] + (e.clientX - x0) / box.width * 100, from[1] + (e.clientY - y0) / box.height * 100]);
+      const up = () => { el.classList.remove("grab"); el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", up); stSave(); note(); };
+      el.addEventListener("pointermove", move); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+    });
+    el.addEventListener("keydown", (ev) => {
+      const step = ev.shiftKey ? 5 : 1, d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[ev.key]; if(!d) return;
+      ev.preventDefault(); const f = posOf(el); if(!f) return; store(el, part, [f[0] + d[0], f[1] + d[1]]); stSave(); note();
+    });
+  }
 }
 const stEntries = () => PetaMath.newestBookEntries(S.lib);
 const stEntry = (id) => S.lib.find((e) => e.id === id);
@@ -65,7 +113,7 @@ const stName = () => S.name.trim() || "You";
 function stBag({ k = 22, fit = 0, shut = false, open = false, d = stDraft(), mode = ST.mode } = {}) {   // the stickers are not shown peeking out of the bag: the count is in the caption
   if(mode === "gift") { const url = d.sticker ? stUrl(d.sticker) : null; return BagPic({ bag: d.bag, title: d.to.trim() ? "For " + d.to.trim() : "For you", sub: "from " + stName(), deco: d.deco, k, fit, shut, items: open && url ? [url] : [], id: "gift" }); }
   const urls = d.sel.map((x) => stUrl(x.id)).filter(Boolean), cover = d.cover ? stUrl(d.cover) : null;
-  return BagPic({ bag: d.bag, title: d.title.trim() || "Untitled", sub: "by " + stName(), cover, deco: d.deco, k, fit, shut, items: open ? urls.slice(0, 6) : [], id: "pack" });
+  return BagPic({ bag: d.bag, title: d.title.trim() || "Untitled", sub: "by " + stName(), cover, layout: d.layout, k, fit, shut, items: open ? urls.slice(0, 6) : [], id: "pack" });
 }
 
 Pages.studio = {
@@ -73,7 +121,7 @@ Pages.studio = {
   build() {
     const root = h("div.page-in.studiopage"); stLoad();
     const head = h("div.st-head"), work = h("div.st-work"), choose = h("div.st-choose");
-    const bench = h("div.st-bench", h("div.st-ruler"), h("div.st-stage"), h("div.st-cap", h("span.l"), h("span.r")), h("i.st-flash"), h("i.st-tape.a"), h("i.st-tape.b")), panel = h("div.st-panel");
+    const bench = h("div.st-bench", h("div.st-ruler"), h("div.st-stage"), h("div.st-cap", h("span.l"), h("span.r")), h("p.st-movehint", "Move the sticker or an accent."), h("i.st-flash"), h("i.st-tape.a"), h("i.st-tape.b")), panel = h("div.st-panel");
     work.append(bench, panel); root.append(head, choose, work);
     const stage = $(".st-stage", bench), capL = $(".l", bench), capR = $(".r", bench), ruler = $(".st-ruler", bench);
     for(let c = 0; c <= 15; c += 5) ruler.append(h("span", { style: { left: c * 18 + 4 + "px" } }, c === 0 ? "0" : String(c))); ruler.append(h("span.u", { style: { left: "292px" } }, "cm"));
@@ -83,11 +131,13 @@ Pages.studio = {
     const paintBench = () => {
       stage.replaceChildren(); if(!ST.mode) return;
       const d = D(), bag = BAGS[d.bag] || BAGS.kraft, pic = stBag({ k: 18, fit: 228, shut: d.sealed }); stage.append(h("div.st-tilt", pic));
+      const editing = ST.mode === "pack" && d.step === 2 && !d.sealed && !ST.sealing; stage.classList.toggle("editing", editing); bench.classList.toggle("editing", editing);
+      if(editing) stEdit(pic, d, () => { capL.textContent = `${count()} sticker${count() === 1 ? "" : "s"} · ${bag.name} · ${bag.cm}cm`; });
       capL.textContent = `${count()} sticker${count() === 1 ? "" : "s"} · ${bag.name} · ${bag.cm}cm`; capR.textContent = d.sealed ? "Sealed ✓" : "Draft";
     };
     this.repaintBench = () => { if(root.isConnected) paintBench(); };
     bench.addEventListener("pointermove", (ev) => {
-      const t = $(".st-tilt", bench); if(!t || ST.sealing || reduced()) return; const r = bench.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
+      const t = $(".st-tilt", bench); if(!t || ST.sealing || reduced() || bench.classList.contains("editing")) return; const r = bench.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
       t.style.transform = `perspective(900px) rotateY(${(x - .5) * 14}deg) rotateX(${-(y - .5) * 10}deg)`; bench.style.setProperty("--shx", -(x - .5) * 22 + "px");
     });
     bench.addEventListener("pointerleave", () => { const t = $(".st-tilt", bench); if(t) t.style.transform = ""; });
@@ -119,7 +169,7 @@ Pages.studio = {
       const i = h("input", { value, maxLength: em ? 40 : max, placeholder: ph || "", "aria-label": label, autocomplete: "off", spellcheck: false, on: { input: (e) => { if(em) e.target.value = stClip(e.target.value, max); onInput(e.target.value); c.textContent = used(e.target.value); } } });
       return h("div.st-field", i, c);
     };
-    const bagPicker = (d, ids) => h("div.st-bags", ids.map((id) => h("button.st-bagt", { "aria-pressed": String(d.bag === id), title: BAGS[id].name, on: { click: () => { d.bag = id; stSave(); Snd.tap(); paint(); } } }, h("i", { style: { backgroundImage: `var(--a-${BAGS[id].art})` } }), h("span", BAGS[id].name))));
+    const bagPicker = (d, ids) => h("div.st-bags", ids.map((id) => h("button.st-bagt", { "aria-pressed": String(d.bag === id), title: BAGS[id].name, on: { click: () => { if(d.bag !== id) { d.bag = id; if(d === ST.pack) stResetPlaces(d); } stSave(); Snd.tap(); paint(); } } }, h("i", { style: { backgroundImage: `var(--a-${BAGS[id].art})` } }), h("span", BAGS[id].name))));
     const decoSeg = (d) => h("div.seg.st-seg", STUDIO.decos.map(([k, n]) => SegButton(n, { type: "button", "aria-pressed": String(d.deco === k), on: { click: () => { d.deco = k; stSave(); Snd.tap(); paint(); } } })));
     const tile = (e, props, extra, size = 56) => { const t = h("button.st-tile", { title: `${titleOf(e)} · ${MAT[e.material]?.name || ""}`, data: { rarity: MAT[e.material]?.rarity || "common" }, ...props }, extra || null); thumbOf(e).then((res) => { if(t.isConnected) t.prepend(Stk.el(res, res.aspect >= 1 ? size : size * res.aspect)); }).catch(() => {}); return t; };
 
@@ -159,12 +209,28 @@ Pages.studio = {
       fill(); return body;
     };
     const packDress = () => {
-      const p = ST.pack, next = stNext("Next →", () => go(3)), need = "Give the pack a name to continue.";
+      const p = ST.pack, bag = BAGS[p.bag], next = stNext("Next →", () => go(3)), need = "Give the pack a name to continue.", ids = p.sel.map((x) => x.id);
+      const coverUrl = p.cover ? stUrl(p.cover) : ids[0] ? stUrl(ids[0]) : null;
+      /* start from a composition (the label and the cover go to its places), then move things on the bench */
+      const comps = h("div.st-comps", [["center", "Center"], ["corner", "Corner"], ["band", "Band"]].map(([c, n]) => h("button.st-comp", { type: "button", "aria-pressed": String(p.layout.comp === c), on: { click: () => { p.layout.comp = c; p.layout.cover = null; stSave(); Snd.tap(); paint(); } } },
+        h("div.st-comp-pic", BagPic({ bag: p.bag, title: p.title.trim() || "Name", cover: coverUrl, layout: { comp: c, accents: [] }, k: 4, fit: 52, id: "comp" + c })), h("span", n))));
+      const first = ids.slice(0, 5), shown = ST.coverAll ? ids : [...first, ...(p.cover && !first.includes(p.cover) ? [p.cover] : [])];
       const covers = h("div.st-covers", h("button.st-cv.none", { "aria-pressed": String(!p.cover), on: { click: () => { p.cover = null; stSave(); paint(); } } }, "None"),
-        p.sel.map((x) => { const e = stEntry(x.id); return e ? tile(e, { class: "st-cv", "aria-pressed": String(p.cover === x.id), on: { click: () => { p.cover = x.id; stSave(); Snd.tap(); paint(); } } }, null, 34) : null; }));
-      const body = [h("h2", "Dress the pack"), h("p.st-help", "Just choose. Each wrapping has its own places for the label, the cover sticker and the decoration."),
-        h("div.st-scroll", sec("Wrapping", bagPicker(p, PACK_BAG_IDS)), sec("Name (required)", field(p.title, STUDIO.limits.name, "Pack name", (v) => { p.title = v; stSave(); paintBench(); next.set(!!v.trim(), need); }, "", true)),
-          sec("Cover sticker", covers), sec("Decoration", decoSeg(p))),
+        shown.map((id) => { const e = stEntry(id); return e ? tile(e, { class: "st-cv", "aria-pressed": String(p.cover === id), on: { click: () => { p.cover = id; stSave(); Snd.tap(); paint(); } } }, null, 34) : null; }),
+        ids.length > 5 ? h("button.st-cv.more", { type: "button", on: { click: () => { ST.coverAll = !ST.coverAll; paint(); } } }, ST.coverAll ? "Fewer" : "Choose…") : null);
+      const has = (k) => p.layout.accents.some((a) => a.kind === k);
+      const accent = (k) => {
+        if(k === "none") p.layout.accents = [];
+        else if(has(k)) p.layout.accents = p.layout.accents.filter((a) => a.kind !== k);
+        else if(p.layout.accents.length >= PetaMath.BAG_MAX_ACCENTS) { Shell.toast("Up to 2 small accents."); return; }
+        else { const [x, y] = PetaMath.bagAccentDefault(bag, k); p.layout.accents.push({ kind: k, x, y }); }
+        stSave(); Snd.tap(); paint();
+      };
+      const accents = h("div.st-accs", [["none", "None", null], ["clip", "Clip", A.paperClip], ["pin", "Pin", A.pinRed], ["tape", "Tape", null]].map(([k, n, img]) => h("button.st-acc", { type: "button", "aria-pressed": String(k === "none" ? !p.layout.accents.length : has(k)), on: { click: () => accent(k) } },
+        h("i", img ? { style: { backgroundImage: `url("${img}")` } } : { class: k === "tape" ? "strip" : "none" }), h("span", n))));
+      const body = [h("h2", "Dress the pack"), h("p.st-help", "Start with a layout, then drag the cover sticker or an accent on the bench. The name stays on the wrapping."),
+        h("div.st-scroll", sec("Wrapping", bagPicker(p, PACK_BAG_IDS)), sec("Composition", comps), sec("Name (required)", field(p.title, STUDIO.limits.name, "Pack name", (v) => { p.title = v; stSave(); paintBench(); next.set(!!v.trim(), need); }, "", true)),
+          sec("Cover sticker", covers), sec("Accent", accents, h("p.st-fine", "Up to 2 small accents."))),
         foot(true, next.el)];
       next.set(!!p.title.trim(), need); return body;
     };
@@ -227,7 +293,7 @@ Pages.studio = {
     };
     const doneBlock = (kind) => {
       const d = kind === "pack" ? ST.pack : ST.gift, r = d.result || {};
-      const again = () => { if(kind === "pack") Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], cover: null, title: "", blurb: "" }); else Object.assign(ST.gift, { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, to: "", note: "" }); stSave(); Snd.tap(); paint(); };
+      const again = () => { if(kind === "pack") Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], cover: null, title: "", blurb: "", layout: { comp: "corner", label: null, cover: null, accents: [] } }); else Object.assign(ST.gift, { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, to: "", note: "" }); stSave(); Snd.tap(); paint(); };
       const msg = (t) => { const m = h("div.st-toast", t); root.append(m); setTimeout(() => m.remove(), 2200); };
       const act = (label, fn, cls = "") => h("button.btn" + cls, { on: { click: async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await fn(msg); } catch(err) { Shell.toast(Distribution?.error ? Distribution.error(err) : String(err)); } finally { b.disabled = false; } } } }, label);
       const more = [];
@@ -239,7 +305,7 @@ Pages.studio = {
       return h("div.st-done", h("h2", kind === "pack" ? `Sealed. ${ST.pack.title.trim()} · ${ST.pack.sel.length} stickers` : `Sealed. For ${ST.gift.to.trim()}`), h("p.muted", line), r.path ? h("p.muted.st-path", { title: r.path }, r.path) : null,
         h("div.st-done-actions", ...more, h("button.btn.quiet", { on: { click: again } }, "Make another")));
     };
-    const packArgs = () => { const p = ST.pack; return { title: p.title.trim(), pouch: p.bag, items: p.sel.map((x) => ({ stickerId: x.id, name: titleOf(stEntry(x.id)), weight: x.weight })), dress: { cover: p.cover || null, deco: p.deco === "none" ? null : p.deco, blurb: p.blurb.trim() || null } }; };
+    const packArgs = () => { const p = ST.pack, lay = stLayoutArgs(p); return { title: p.title.trim(), pouch: p.bag, items: p.sel.map((x) => ({ stickerId: x.id, name: titleOf(stEntry(x.id)), weight: x.weight })), dress: { cover: p.cover || null, deco: lay.accents[0]?.kind || null, blurb: p.blurb.trim() || null, layout: lay } }; };
     const giftArgs = () => { const g = ST.gift; return { stickerId: g.sticker, to: g.to.trim(), note: g.note.trim() || null, dress: { bag: g.bag, deco: g.deco === "none" ? null : g.deco } }; };
 
     /* ---------- sealing: it signs and writes first (a cancelled save dialog makes nothing), then the wrapping closes its own way ---------- */
@@ -309,7 +375,7 @@ const StudioSeal = {
 /** Open Studio from elsewhere (the Collection's "Make a Pack…" and "Gift…"): `sticker` is chosen already. */
 function StudioOpen(mode, sticker) {
   stLoad(); ST.mode = mode;
-  if(mode === "pack" && ST.pack.sealed) Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], cover: null, title: "", blurb: "" });
+  if(mode === "pack" && ST.pack.sealed) Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], cover: null, title: "", blurb: "", layout: { comp: "corner", label: null, cover: null, accents: [] } });
   if(sticker) { if(mode === "gift") Object.assign(ST.gift, { sticker, step: 1, sealed: false }); else if(!ST.pack.sel.some((x) => x.id === sticker)) ST.pack.sel.push({ id: sticker, weight: 4 }); }
   Shell.go("studio");
 }

@@ -77,7 +77,9 @@ test('Studio sends exactly what the Rust commands accept', () => {
   const src = read('src/app/js/studio.js'), rs = read('src-tauri/crates/core/src/creator_pack.rs');
   assert.match(src, /stickerId: x\.id, name: titleOf\(stEntry\(x\.id\)\), weight: x\.weight/);   // Selection { sticker_id, name, weight }
   assert.match(rs, /pub struct Selection \{pub sticker_id:String,pub name:String,#\[serde\(default\)\] pub weight:Option<u32>\}/);
-  assert.match(src, /dress: \{ cover: p\.cover \|\| null, deco: p\.deco === "none" \? null : p\.deco, blurb:/);
+  assert.match(src, /dress: \{ cover: p\.cover \|\| null, deco: lay\.accents\[0\]\?\.kind \|\| null, blurb: p\.blurb\.trim\(\) \|\| null, layout: lay \}/);   // Dress { cover, deco, blurb, layout }
+  assert.match(rs, /pub struct Layout \{pub comp:String,#\[serde\(default\)\] pub label:Option<\[f64;2\]>,#\[serde\(default\)\] pub cover:Option<\[f64;2\]>,#\[serde\(default\)\] pub accents:Vec<Accent>\}/);
+  assert.match(src, /return \{ comp: r\.comp, label: null, cover: p\.cover \? r\.cover : null, accents: r\.accents \};/);   // Layout { comp, label, cover, accents:[{kind,x,y}] }
   assert.match(src, /dress: \{ bag: g\.bag, deco: g\.deco === "none" \? null : g\.deco \}/);
   const perms = read('src-tauri/permissions/desktop-effects.toml');
   for (const cmd of ['creator_pack_save', 'creator_pack_shelve', 'gift_send', 'pack_peek', 'pack_peek_picture']) assert.match(perms, new RegExp(`"${cmd}"`));
