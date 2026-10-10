@@ -1,5 +1,4 @@
 /* Studio: make a Pack or a Gift (js/studio.js). A workbench with the wrapped thing on the left and one panel on the right. */
-.ni-new { margin-left: auto; padding: 3px 6px; border-radius: 99px; background: #2b2a28; color: #ffd877; font: 700 9.5px/1 var(--sys); letter-spacing: .06em; }
 .studiopage { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 14px; min-height: 0; }
 .st-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
 .st-head .ph { margin: 0; }

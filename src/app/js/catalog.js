@@ -18,7 +18,7 @@ const SAMPLE_TITLES = {
 const NAV = [
   { id: "today", key: 1, label: "Today", tab: "tab1", icon: "envBack" },
   { id: "create", key: 2, group:"Make", label: "Create", tab: "tab3", icon: "chCreate" },
-  { id: "studio", label: "Studio", tab: "tab5", icon: "bagGlassine", isNew: true },
+  { id: "studio", label: "Studio", tab: "tab5", icon: "bagGlassine" },
   { id: "book", key: 3, group:"Collect", label: "Collection", tab: "tab2", icon: "chCollection" },
   { id: "packs", key: 4, label: "Packs", tab: "tab5", icon: "chPack" },
   { id: "gifts", key: 5, label: "Gifts", tab: "tab4", icon: "chGift" },

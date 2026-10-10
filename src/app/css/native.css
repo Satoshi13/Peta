@@ -574,7 +574,7 @@ html[data-motion="reduce"] :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.
 .material-envelope .mcard:focus-visible { outline:2px solid #527d93; outline-offset:3px; border-radius:6px; }
 .cer[data-kind="material"] .rv-info { gap:6px; }
 .rv-rays { animation:none; }
-[data-shell] .nav-item:hover .ni-icon { transform:translateY(-1px); }
+[data-shell] .nav-item:hover .ni-icon, [data-shell="studio"] .nav-item:hover .ni-icon { transform:none; } /* the sidebar icons stay put on hover; only the row lights up */
 html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
 @media(prefers-reduced-motion:reduce) { [data-shell] .nav-item:hover .ni-icon { transform:none; } }
 

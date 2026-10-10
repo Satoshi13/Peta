@@ -30,7 +30,7 @@ const Shell = (() => {
         h("span.ni-tile", h("span.ni-icon", { style: { backgroundImage: `var(--a-${n.icon})` } })),
         h("span.ni-label", n.label),
         count ? h("i.ni-badge", String(count)) : dot ? h("i.ni-dot", {"aria-label":"New envelope"}) : null,
-        n.isNew ? h("i.ni-new", "NEW") : null, n.key || n.id === "settings" ? h("span.ni-key", {"aria-hidden":"true"}, n.id === "settings" ? "⌘," : `⌘${n.key}`) : null);
+        n.key || n.id === "settings" ? h("span.ni-key", {"aria-hidden":"true"}, n.id === "settings" ? "⌘," : `⌘${n.key}`) : null);
       (n.id === "settings" ? foot : top).append(button);
     });
     const name = S.name.trim() || "You";
