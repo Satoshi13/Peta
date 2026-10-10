@@ -354,5 +354,8 @@ pub fn layer_capture(window: WebviewWindow, layers: tauri::State<Layers>, on: bo
         let info = st.by_label.get(window.label()).ok_or("unknown layer")?;
         if st.edit_mode || info.edit_mode || (st.print && info.is_primary) { return Ok(()); }
     }
-    window.set_ignore_cursor_events(!on).map_err(|e| e.to_string())
+    // A resting layer sits below Finder's desktop icons, which cover the whole screen and take every click first: ignoring-or-not is not enough.
+    // While the pointer is over a tagged sticker the layer is lifted to the Edit Mode level (above the icons, still below every app window) and takes the mouse; it goes back the moment the pointer leaves.
+    let target = window.clone();
+    window.app_handle().run_on_main_thread(move || apply_mode(&target, on)).map_err(|e| e.to_string())
 }
