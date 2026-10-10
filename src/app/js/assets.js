@@ -54,6 +54,7 @@ const P = {
   wallInkGrain: "ui/wall-ink-grain.png",
   marketCork: "market/cork-board.png", marketMemo: "market/memo-card-blank.png", marketClip: "market/paper-clip-silver.png",
   marketRail: "market/rail-bar.png", marketRailClip: "market/rail-clip.png", marketRailEndL: "market/rail-end-left.png", marketRailEndR: "market/rail-end-right.png",
+  toolsPaper: "market/tools-paper.webp", toolsTape: "market/tools-tape.webp", toolsCard: "market/tools-card.webp", toolsPocket: "market/tools-pocket.webp", toolsTicket: "market/tools-ticket.webp", toolsEgg: "market/tools-egg.webp",
   sBlueFlower: "samples/blue-flower.png", sCassette: "samples/cassette-tape.png", sCat: "samples/cat-skateboard.png", sCoffee: "samples/coffee-cup.png",
   sCamera: "samples/film-camera.png", sEgg: "samples/fried-egg.png", sGoodDay: "samples/good-day.png", sBubble: "samples/peta-bubble.png",
   sPolaroid: "samples/polaroid-mountain.png", sPlant: "samples/potted-plant.png", sScribble: "samples/purple-scribble.png", sComputer: "samples/retro-computer.png",

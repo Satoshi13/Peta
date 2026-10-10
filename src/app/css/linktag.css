@@ -1,13 +1,14 @@
 /* Link tags (js/linktag.js). The tag art (art/ui/link-tag.png) is blank: the clip, the string and a plain paper tag. What it opens is drawn on the paper. */
 .lt-pic { position: relative; display: block; width: var(--w, 44px); aspect-ratio: 380 / 538; background: var(--a-linkTag) 0 0 / 100% 100% no-repeat; filter: drop-shadow(0 2px 2px rgba(60,45,20,.28)); flex: none; }
-.lt-face { position: absolute; left: 58%; top: 66%; width: 36%; aspect-ratio: 1; translate: -50% -50%; rotate: -14deg; display: grid; place-items: center; }
+.lt-face { position: absolute; left: 57%; top: 66%; width: 54%; aspect-ratio: 1; translate: -50% -50%; rotate: -14deg; display: grid; place-items: center; }
 .lt-face img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 1px 1px rgba(60,45,20,.3)); }
 .lt-face .lt-glyph, .lt-glyph { width: 100%; height: 100%; fill: none; stroke: #4a463f; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 /* the Collection's details */
-.det-stagewrap { position: relative; }
-.det-hang { position: absolute; left: calc(50% + 62px); top: 2px; z-index: 5; pointer-events: none; transform-origin: 20% 5%; animation: lt-settle .9s var(--ease-out) 1; }
-@keyframes lt-settle { from { transform: rotate(9deg); } 60% { transform: rotate(-3deg); } to { transform: none; } }
+.det-hang { --hw: 52px; position: absolute; left: calc(100% - var(--hw) * .185 + 3px); top: 4px; z-index: 5; pointer-events: none; transform-origin: 18.5% 6%; animation: lt-settle .9s var(--ease-out) 1; --s: 1; }
+.det-hang.mirror { --s: -1; left: auto; right: calc(100% - var(--hw) * .185 + 3px); transform-origin: 81.5% 6%; }
+.det-hang.mirror .lt-pic { transform: scaleX(-1); } .det-hang.mirror .lt-face { scale: -1 1; }
+@keyframes lt-settle { from { transform: rotate(calc(9deg * var(--s))); } 60% { transform: rotate(calc(-3deg * var(--s))); } to { transform: none; } }
 .detail.stay .det-hang { animation: none; }
 .det-tag { margin: 0 0 12px; font-family: var(--sys); }
 .det-tag > .det-link { display: inline-flex; align-items: center; gap: 9px; width: 100%; justify-content: flex-start; padding: 9px 8px; border: 0; background: none; border-radius: 10px; cursor: pointer; color: #655e51; font: 500 14px/1.2 var(--sys); }
@@ -28,24 +29,26 @@
 input:checked + .lt-sw { background: #4f7a4a; } input:checked + .lt-sw::after { transform: translateX(16px); } input:focus-visible + .lt-sw { outline: 2px solid #527d93; outline-offset: 2px; }
 .bk-grid .tile-link { position: absolute; left: 10px; bottom: 74px; z-index: 1; max-width: calc(100% - 20px); display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 6px; border-radius: 6px; background: var(--w-surface); box-shadow: inset 0 0 0 1px var(--w-line); font: 600 11.5px/16px var(--sys); color: var(--ink2); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .tile-link .lt-glyph { width: 13px; height: 13px; flex: none; stroke: currentColor; }
+.lt-mark { display: inline-grid; place-items: center; width: 16px; height: 16px; flex: none; } .lt-mark img { width: 100%; height: 100%; object-fit: contain; }
 
 /* the attach dialog: a sheet of paper with the tag on the left */
 dialog.lt-dialog { border: 0; padding: 0; background: none; overflow: visible; max-width: calc(100% - 32px); color: #2b2a28; }
 dialog.lt-dialog::backdrop { background: rgba(30,24,14,.34); }
-.lt-card { position: relative; display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 0; width: min(640px, calc(100vw - 48px)); padding: 26px 26px 20px 8px; border-radius: 20px; background: #f6f1e6 var(--a-paperCream) 0 0 / 420px; box-shadow: 0 0 0 1px rgba(90,80,55,.14), 0 24px 54px rgba(40,30,15,.34); box-sizing: border-box; }
+.lt-card { position: relative; display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 0; width: min(640px, calc(100vw - 48px)); padding: 26px 26px 20px 8px; border-radius: 20px; background: linear-gradient(rgba(252,250,243,.9), rgba(252,250,243,.9)), var(--a-paperCream) 0 0 / 420px, #fbf8f0; box-shadow: 0 0 0 1px rgba(90,80,55,.12), 0 24px 54px rgba(40,30,15,.3); box-sizing: border-box; }
 .lt-card.lt-narrow { width: min(460px, calc(100vw - 48px)); grid-template-columns: 110px minmax(0, 1fr); }
 .lt-left { display: grid; justify-items: center; align-content: start; gap: 6px; padding: 8px 0 0 12px; text-align: center; } .lt-left small { font: 12.5px/1.3 var(--sys); color: #4a463f; } .lt-left small.muted { color: #7a7466; }
 .lt-right { min-width: 0; padding-left: 14px; border-left: 1px solid rgba(60,45,20,.16); }
 .lt-right h2 { margin: 2px 0 4px; font: 700 26px/1.15 var(--sys); letter-spacing: -.02em; } .lt-right .eyebrow { margin: 0; font: 11px/1 var(--sys); letter-spacing: .08em; text-transform: uppercase; color: #655e51; max-width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lt-sub { margin: 0 0 12px; font: 400 14.5px/1.45 var(--sys); color: #4a463f; }
-.lt-tabs { display: flex; background: rgba(60,45,20,.1); border-radius: 12px; padding: 3px; margin-bottom: 10px; }
+.lt-tabs { display: flex; background: rgba(60,45,20,.07); border-radius: 12px; padding: 3px; margin-bottom: 10px; }
 .lt-tabs button { flex: 1; border: 0; background: none; padding: 8px 6px; border-radius: 9px; font: 500 14px/1 var(--sys); color: #4a463f; cursor: pointer; } .lt-tabs button[aria-selected="true"] { background: #fffdf6; color: #2b2a28; font-weight: 650; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
-.lt-what { display: grid; gap: 8px; padding: 12px; margin-bottom: 8px; border-radius: 12px; background: rgba(255,253,246,.75); box-shadow: inset 0 0 0 1px var(--line); }
+.lt-what { display: grid; gap: 8px; padding: 12px; margin-bottom: 8px; border-radius: 12px; background: #fff; box-shadow: inset 0 0 0 1px rgba(60,45,20,.12); }
 .lt-what label { display: grid; gap: 4px; font: 600 11.5px/1 var(--sys); letter-spacing: .06em; text-transform: uppercase; color: #655e51; }
 .lt-what input, .lt-label input { width: 100%; padding: 9px 12px; border: 0; border-radius: 10px; background: #fffdf9; box-shadow: inset 0 0 0 1px var(--line); font: 500 14.5px/1.3 var(--sys); color: #2b2a28; text-transform: none; letter-spacing: 0; box-sizing: border-box; }
 .lt-what input:focus, .lt-label input:focus { outline: 2px solid #527d93; outline-offset: 1px; }
 .lt-what small { font: 12px/1.4 var(--sys); color: #7a7466; text-transform: none; letter-spacing: 0; font-weight: 400; }
-.lt-chosen { display: grid; grid-template-columns: 30px 1fr; column-gap: 10px; align-items: center; } .lt-chosen .lt-glyph { grid-row: span 2; width: 28px; height: 28px; } .lt-chosen b { font: 600 15px/1.2 var(--sys); } .lt-chosen small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lt-chosen { display: grid; grid-template-columns: 30px 1fr; column-gap: 12px; align-items: center; } .lt-chosen .lt-glyph, .lt-chosen .lt-icon { grid-row: span 2; width: 30px; height: 30px; } .lt-chosen .lt-icon { object-fit: contain; } .lt-chosen b { font: 600 15px/1.2 var(--sys); } .lt-chosen small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lt-what .btn.lt-pick { justify-self: start; padding: 7px 14px; font-size: 13px; background: #fffdf9; box-shadow: inset 0 0 0 1px rgba(60,45,20,.18); border-radius: 9px; color: #2b2a28; }
 .lt-none { margin: 0; font: 14px/1.4 var(--sys); color: #7a7466; }
 .lt-label { display: grid; gap: 4px; margin: 0 0 8px; font: 600 11.5px/1 var(--sys); letter-spacing: .06em; text-transform: uppercase; color: #655e51; }
 .lt-toggle { padding: 4px 0 6px; } .lt-toggle b { display: block; font: 600 14px/1.3 var(--sys); color: #2b2a28; } .lt-toggle small { display: block; font: 12px/1.35 var(--sys); color: #7a7466; font-weight: 400; }
@@ -54,25 +57,35 @@ dialog.lt-dialog::backdrop { background: rgba(30,24,14,.34); }
 .lt-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 12px; border-top: 1px solid rgba(60,45,20,.14); }
 dialog.lt-dialog button.close-control.lt-x { top: 14px; right: 14px; background: none; color: #2b2a28; } dialog.lt-dialog button.close-control.lt-x:hover { background: rgba(60,45,20,.08); }
 
-/* Market > Tools */
-.mk-tools { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: stretch; margin-top: 4px; }
-.mk-tool, .mk-stock { position: relative; border-radius: 22px; padding: 20px 22px 18px; background: var(--w-surface); box-shadow: inset 0 0 0 1px var(--w-line), var(--sh1); display: flex; flex-direction: column; gap: 6px; }
-.mk-tool-art { position: relative; height: 210px; border-radius: 16px; background: var(--a-paperCream) 0 0 / 420px, var(--w-surface2); overflow: hidden; display: grid; place-items: center; }
-.mk-tool-art .lt-pic { --w: 120px; rotate: 6deg; filter: drop-shadow(0 8px 8px rgba(60,45,20,.28)); }
-.mk-tool h3, .mk-stock h3 { margin: 8px 0 0; font: 700 28px/1.15 var(--sys); letter-spacing: -.02em; }
-.mk-tool p, .mk-stock p { margin: 0; font: 400 15.5px/1.5 var(--sys); color: var(--ink2); }
-.mk-tool .facts { color: var(--muted); font-size: 13.5px; }
-.mk-buy { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
-.mk-price { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; height: 48px; border-radius: 12px; background: var(--w-surface2); box-shadow: inset 0 0 0 1px var(--w-line); font: 600 17px/1 var(--sys); }
-.mk-buy .btn { flex: 1; height: 48px; font-size: 16px; }
-.mk-stock .count { display: grid; gap: 2px; margin: 4px 0 8px; font: 500 16px/1.4 var(--sys); } .mk-stock .count b { font-size: 22px; }
-.mk-stock-art { flex: 1; min-height: 120px; display: grid; place-items: center; } .mk-stock-art .lt-pic { --w: 70px; rotate: -4deg; }
-.mk-stock .link { align-self: flex-start; margin-top: 4px; font: 500 15px/1 var(--sys); }
-.mk-tools-note { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--w-line2); color: var(--muted); font: 13.5px/1.4 var(--sys); }
-@media (max-width: 900px) { .mk-tools { grid-template-columns: 1fr; } }
+/* Market > Tools: the approved catalogue-paper design, laid out on a 1339 x 750 stage and scaled as a whole (--u = one design pixel), so it keeps its proportions and never needs to scroll.
+   Art: art/market/tools-*.webp. Positions are the design's own (the page's content box is its 1339px). */
+.mk-toolspage { container-type: inline-size; display: block; }
+.mk-tools { --u: min(calc(100cqw / 1339), calc((100vh - 264px) / 750)); position: relative; width: calc(var(--u) * 1339); height: calc(var(--u) * 750); margin-top: 3px; font-family: var(--sys); color: #2b2a28; }
+.mk-tools > * { margin: 0; }
+.mk-tools i { display: block; background-repeat: no-repeat; background-size: 100% 100%; }
+.mk-paper { position: absolute; left: calc(var(--u) * 0); top: calc(var(--u) * 22); width: calc(var(--u) * 806); height: calc(var(--u) * 730); background-image: var(--a-toolsPaper); }
+.mk-tape { position: absolute; left: calc(var(--u) * 314); top: calc(var(--u) * -1); width: calc(var(--u) * 166); height: calc(var(--u) * 52); background-image: var(--a-toolsTape); rotate: -1deg; }
+.mk-spec-card { position: absolute; left: calc(var(--u) * 243); top: calc(var(--u) * 214); width: calc(var(--u) * 277); height: calc(var(--u) * 291); background-image: var(--a-toolsCard); }
+.mk-spec-egg { position: absolute; left: calc(var(--u) * 262); top: calc(var(--u) * 266); width: calc(var(--u) * 233); height: calc(var(--u) * 213); background-image: var(--a-toolsEgg); }
+.mk-hang-tag { position: absolute; left: calc(var(--u) * 478); top: calc(var(--u) * 218); width: calc(var(--u) * 194); z-index: 2; pointer-events: none; }
+.mk-hang-tag .lt-pic { --w: calc(var(--u) * 194) !important; filter: drop-shadow(0 calc(var(--u) * 5) calc(var(--u) * 6) rgba(60,45,20,.26)); }
+.mk-cap { position: absolute; left: calc(var(--u) * 243); top: calc(var(--u) * 514); width: calc(var(--u) * 300); text-align: center; font: 400 calc(var(--u) * 19)/calc(var(--u) * 24) var(--sys); letter-spacing: .02em; color: #6f6859; }
+.mk-t1 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 84); font: 700 calc(var(--u) * 56)/calc(var(--u) * 62) var(--sys); letter-spacing: -.025em; white-space: nowrap; }
+.mk-t2 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 154); font: 400 calc(var(--u) * 29)/calc(var(--u) * 40) var(--sys); white-space: nowrap; }
+.mk-t3 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 554); font: 400 calc(var(--u) * 26)/calc(var(--u) * 34) var(--sys); color: #6f6859; white-space: nowrap; }
+.mk-price { position: absolute; left: calc(var(--u) * 504); top: calc(var(--u) * 604); width: calc(var(--u) * 250); height: calc(var(--u) * 66); display: flex; align-items: center; font: 600 calc(var(--u) * 24)/1.2 var(--sys); color: #6f6859; white-space: nowrap; }
+.mk-get { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 604); width: calc(var(--u) * 420); height: calc(var(--u) * 66); min-width: 0; padding: 0; border-radius: 99px; background: #26272a; color: #fff; box-shadow: 0 calc(var(--u) * 4) calc(var(--u) * 8) rgba(30,25,15,.28); font: 600 calc(var(--u) * 27)/1 var(--sys); }
+.mk-t4 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 680); font: 400 calc(var(--u) * 22)/calc(var(--u) * 30) var(--sys); color: #6f6859; white-space: nowrap; }
+.mk-t5 { position: absolute; left: calc(var(--u) * 859); top: calc(var(--u) * 84); font: 700 calc(var(--u) * 56)/calc(var(--u) * 62) var(--sys); letter-spacing: -.025em; white-space: nowrap; }
+.mk-pocket { position: absolute; left: calc(var(--u) * 919); top: calc(var(--u) * 235); width: calc(var(--u) * 360); height: calc(var(--u) * 248); background: var(--a-toolsPocket) 0 0 / 100% 100% no-repeat; color: #6b6354; text-align: center; }
+.mk-pocket small { position: absolute; left: 0; right: 0; top: calc(var(--u) * 140); font: 600 calc(var(--u) * 19)/calc(var(--u) * 24) var(--sys); letter-spacing: .14em; text-transform: uppercase; }
+.mk-pocket b { position: absolute; left: 0; right: 0; top: calc(var(--u) * 166); font: 600 calc(var(--u) * 42)/calc(var(--u) * 48) var(--sys); }
+.mk-ticket { position: absolute; left: calc(var(--u) * 853); top: calc(var(--u) * 538); width: calc(var(--u) * 486); height: calc(var(--u) * 95); background: var(--a-toolsTicket) 0 0 / 100% 100% no-repeat; }
+.mk-att { position: absolute; left: calc(var(--u) * 46); top: 0; bottom: 0; display: flex; align-items: center; font: 400 calc(var(--u) * 28)/1 var(--sys); white-space: pre; } .mk-att b { font: 500 calc(var(--u) * 36)/1 var(--sys); margin-right: calc(var(--u) * 10); }
+.mk-ticket .link { position: absolute; left: calc(var(--u) * 241); right: calc(var(--u) * 36); top: calc(var(--u) * 17); bottom: calc(var(--u) * 17); border: 0; border-left: 1px solid rgba(60,45,20,.25); background: none; padding: 0; cursor: pointer; font: 500 calc(var(--u) * 28)/1 var(--sys); color: #2b2a28; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 10); } .mk-ticket .link i { font-style: normal; }
+.mk-note { position: absolute; left: calc(var(--u) * 861); top: calc(var(--u) * 652); width: calc(var(--u) * 470); font: 400 calc(var(--u) * 22.5)/calc(var(--u) * 33) var(--sys); color: #7a7466; }
 
 /* a note in Studio's seal step: link tags come back when the thing is sealed */
 .st-tagnote { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; padding: 8px 12px; border-radius: 12px; background: var(--w-surface2); box-shadow: inset 0 0 0 1px var(--w-line); font: 500 12.5px/1.35 var(--sys); color: var(--ink2); }
 .st-tagnote .lt-pic { --w: 20px; filter: none; }
-.mk-tools-note .lt-glyph { width: 20px; height: 20px; flex: none; }
 .mk-toolspage { display: grid; gap: 12px; }

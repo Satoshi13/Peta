@@ -35,3 +35,9 @@
 - 位置合わせの数値は [anchors.json](anchors.json)（棒の中心、リングの中心など）。CSS は `src/app/css/native.css` の「Market:」の節
 - 棒の太さは表示10px、端の筒の太さもそれに合わせて縮小（元の約550px → 40px）
 - 再書き出しが必要なときは、元サイズの納品から同じ手順で作り直す
+
+## Tools タブの素材（2026-10-10）
+
+Market > Tools の紙カタログ画面用。Codex の `peta-market-tools-assets` から、各 PNG を見える範囲で切り出して WebP に縮小したもの（元は 1,100〜2,200px）。
+
+`tools-paper`（カタログの紙）、`tools-tape`（上端のマスキングテープ）、`tools-card`（見本の台紙）、`tools-egg`（見本の目玉焼き）、`tools-pocket`（在庫の紙ポケット。AVAILABLE と数はUIで重ねる）、`tools-ticket`（装着数と Manage のチケット。文字と区切り線はUIで重ねる）。

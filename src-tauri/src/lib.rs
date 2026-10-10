@@ -218,6 +218,7 @@ pub fn run() {
             link_tags::link_tag_pick,
             link_tags::link_tag_open,
             link_tags::link_tag_icon,
+            link_tags::link_tag_app_icon,
             layers::layer_capture,
             gifts::event_inbox,
             gifts::gift_open,

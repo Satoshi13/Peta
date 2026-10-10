@@ -89,8 +89,20 @@ Pages.book = {
   leave() { this.observer?.disconnect(); this.observer = null; },
   build() {
     const root = h("div.page-in.bookpage");
-    const select = (e) => { BK.sel = BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date) ? null : e.id; BK.day = PetaMath.bookDateKey(e.date); BK.deleteId = null; Snd.tap(); paint(); };
-    const paint = () => {
+    const select = (e) => { BK.sel = BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date) ? null : e.id; BK.day = PetaMath.bookDateKey(e.date); BK.deleteId = null; Snd.tap(); paint(true); };
+    this.settled = false; setTimeout(() => { this.settled = true; }, 800);   // the tiles slide in once, when the page opens; picking a sticker or typing in the filter must not replay it
+    /* paint(true) = only the selection changed: the list keeps its tiles (and their pictures), and just the highlight and the details card change. */
+    const paint = (selectionOnly) => {
+      if(selectionOnly === true && S.bookView !== "calendar" && root.querySelector(".bk-grid")) {
+        const items = PetaMath.newestBookEntries(S.lib), sel = items.find(e => e.id === BK.sel && PetaMath.bookDateKey(e.date) === BK.day) || items.find(e => e.id === BK.sel);
+        const bk = $(".bk", root);
+        if(bk) {
+          for(const t of bk.querySelectorAll(".tile")) t.setAttribute("aria-pressed", String(!!sel && t.dataset.sticker === sel.id));
+          bk.querySelector(":scope > .detail")?.remove(); bk.classList.toggle("has-detail", !!sel);
+          if(sel) { const shown = PetaMath.filterBookEntries(items, { query: BK.q, material: BK.mat, sort: BK.sort, materialIds: Object.keys(MAT), nameOf: id => MAT[id]?.name || id }); bk.append(this.detail(sel, paint, shown.some(x => x.id === sel.id) ? shown : items)); }
+          return;
+        }
+      }
       this.leave();
       this.observer = new IntersectionObserver(records => {
         for(const record of records) if(record.isIntersecting) { this.observer?.unobserve(record.target); record.target._load?.(); }
@@ -162,9 +174,9 @@ Pages.book = {
   tile(e, i, select) {
     const holder = h("div.tile-stk"), onDesk = S.desk.some(d => d.id === e.id);
     this.lazySticker(holder, e, 128);
-    return h("button.tile", { data: { sticker: e.id, late: i >= 12 ? "1" : "0" }, "aria-pressed": String(BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date)), style: { "--i": Math.min(i, 8) }, on: { click: () => select(e) } },
+    return h("button.tile", { data: { sticker: e.id, late: i >= 12 || this.settled ? "1" : "0" }, "aria-pressed": String(BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date)), style: { "--i": Math.min(i, 8) }, on: { click: () => select(e) } },
       h("span.tile-date", fmtDate(e.date,{month:"short",day:"numeric"})),
-      holder, (() => { const lt = ltTag(e.id); return lt && lt.showInCollection ? h("span.tile-link", { title: `Opens ${lt.label}` }, ltGlyph(lt.kind), lt.label) : null; })(), h("span.tile-footer", h("b", titleOf(e)), h("small", `${MAT[e.material].name} · ${e.kind === "received" ? "Received" : "No. "+pad4(e.no)}`)),
+      holder, (() => { const lt = ltTag(e.id); return lt && lt.showInCollection ? h("span.tile-link", { title: `Opens ${lt.label}` }, ltMark(e.id, lt), lt.label) : null; })(), h("span.tile-footer", h("b", titleOf(e)), h("small", `${MAT[e.material].name} · ${e.kind === "received" ? "Received" : "No. "+pad4(e.no)}`)),
       onDesk ? h("i.on-desk", "On desktop") : null, e.kind === "received" ? h("i.recv", "Gift") : null);
   },
   /* Search, material and order for the list. The values live in BK so they survive picking a sticker and coming back to the page. */
@@ -214,7 +226,8 @@ Pages.book = {
   },
   detail(e, paint, list = [e]) {
     const mat = MAT[e.material], onDesk = S.desk.some((d) => d.id === e.id), flip = h("div.flip-inner"), front = h("div.flip-face.f-front"), back = h("div.flip-face.f-back", BackCard(e));
-    BackingFront(e).then((el) => front.append(el)); flip.append(front, back);
+    BackingFront(e).then((el) => front.prepend(el)); flip.append(front, back);
+    const lt = ltTag(e.id); if(lt && lt.showInCollection) { front.append(LinkTags.hang(e, lt)); back.append(LinkTags.hang(e, lt, true)); }
     let turned = false;
     const turn = h("button.flip-stage.book-flip", { type: "button", "aria-label": "Show sticker back", "aria-pressed": "false", on: { click: () => {
       turned = !turned; Snd.flip(); flip.classList.toggle("turned", turned);
@@ -226,15 +239,15 @@ Pages.book = {
       : act("det-main", "stick", Icon("desk"), "Stick on desktop", () => this.stick(e));
     // paging through the collection: arrows either side of the card, and where this one is in the list
     const at = list.findIndex((p) => p.id === e.id), many = list.length > 1 && at >= 0;
-    const go = (step) => { const next = list[(at + step + list.length) % list.length]; Snd.tap(); BK.sel = next.id; BK.day = PetaMath.bookDateKey(next.date); if(S.bookView === "calendar") S.bookMonth = monthKey(next.date); BK.deleteId = null; BK.stay = true; paint(); };
+    const go = (step) => { const next = list[(at + step + list.length) % list.length]; Snd.tap(); BK.sel = next.id; BK.day = PetaMath.bookDateKey(next.date); if(S.bookView === "calendar") S.bookMonth = monthKey(next.date); BK.deleteId = null; BK.stay = true; paint(S.bookView !== "calendar"); };
     const arrow = (dir, label) => h("button.det-arrow." + (dir < 0 ? "prev" : "next"), { type: "button", "aria-label": label, on: { click: () => go(dir) } }, Icon(dir < 0 ? "left" : "right"));
     const stage = many ? h("div.det-pager", { role: "group", "aria-label": "Stickers in your Collection", on: { keydown: (ev) => { if(ev.key === "ArrowLeft") { ev.preventDefault(); go(-1); } else if(ev.key === "ArrowRight") { ev.preventDefault(); go(1); } } } },
       arrow(-1, "Previous sticker"), turn, arrow(1, "Next sticker")) : turn;
     const stay = BK.stay; BK.stay = false; // moving between stickers keeps the card where it is instead of sliding it in again
     return h("aside.detail" + (stay ? ".stay" : ""), { role: "dialog", "aria-label": "Sticker details" },
-      CloseButton("Close", {on: { click: () => { BK.sel = null; BK.deleteId = null; paint(); } }}, ".x"),
+      CloseButton("Close", {on: { click: () => { BK.sel = null; BK.deleteId = null; paint(S.bookView !== "calendar"); } }}, ".x"),
       many ? h("small.det-count", { "aria-live": "polite" }, `${at + 1} / ${list.length}`) : null,
-      h("div.det-stagewrap", stage, (() => { const lt = ltTag(e.id); return lt && lt.showInCollection ? h("span.det-hang", LinkTagPic({ stickerId: e.id, tag: lt, size: 44 })) : null; })()),
+      stage,
       h("div.det-label", h("b", { title: name, style: { fontSize: Math.max(14, Math.min(26, 190 / Math.max(nameWidth, 1))) + "px" } }, name)),
       h("div.det-info",
         h("div", h("small", "Material"), h("span.det-mat", MaterialSwatch({ id: mat.id || e.material, sw: mat.sw, card: mat.card }), h("b", mat.name))),

@@ -17,7 +17,8 @@ test('the kinds a tag may have are the same in the dialog and in Rust, and the R
   assert.deepEqual(kinds, [...rs.match(/KINDS: \[&str; 3\] = \[(.*?)\]/)[1].matchAll(/"(\w+)"/g)].map((m) => m[1]));
   const opener = read('src-tauri/src/link_tags.rs');
   assert.match(opener, /Command::new\("\/usr\/bin\/open"\)/);
-  assert.doesNotMatch(opener.replace(/\/\/.*$/gm, ''), /Command::new\("(?!\/usr\/bin\/(open|plutil|sips))/); // nothing else is ever run
+  assert.doesNotMatch(opener.replace(/\/\/.*$/gm, ''), /Command::new\("(?!\/usr\/bin\/(open|osascript))/); // nothing else is ever run
+  assert.match(opener, /args\(\["-l", "JavaScript", "-e", ICON_JXA\]\)/); // osascript only runs the fixed icon script; the app's path is an argument, never part of the script
   assert.match(opener, /link_tag::validate\(&tag\.kind, &tag\.target, &tag\.label\)/); // re-checked from the saved record before opening
 });
 

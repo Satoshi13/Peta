@@ -121,13 +121,14 @@ Pages.market = {
   tools(paint) {
     const stock = LinkTags.stock(), price = LT_PRICE(), cannot = !S.developer && S.scraps.balance < price;
     return h("div.mk-toolspage", h("p.muted.lede", "Small tools for your Peta."), h("div.mk-tools",
-      h("section.mk-tool", h("div.mk-tool-art", LinkTagPic({ size: 120 })), h("h3", "Link tag"), h("p", "Let any Peta open an app, a website or a folder."),
-        h("p.facts", "Reusable · Visible in Collection · Hidden on the desktop"),
-        h("div.mk-buy", h("span.mk-price", S.developer ? "Free (developer)" : ScrapAmt(price)), h("button.btn", { disabled: cannot, on: { click: () => LinkTags.buy(paint) } }, cannot ? "Not enough Scraps" : "Get a tag")),
-        h("small.muted", "Remove it whenever you like. It returns to you.")),
-      h("aside.mk-stock", h("h3", "Your link tags"), h("div.count", h("span", h("b", String(stock.available)), " available"), h("span", h("b", String(stock.attached)), " attached")),
-        h("div.mk-stock-art", LinkTagPic({ size: 70 })), h("button.link", { type: "button", on: { click: () => Shell.go("book") } }, "Manage in Collection →")),
-      h("div.mk-tools-note", ltGlyph("open", "ico"), "Tags return automatically when gifting or packing.")));
+      h("i.mk-paper"), h("i.mk-tape"), h("i.mk-spec-card"), h("i.mk-spec-egg"), h("span.mk-hang-tag", LinkTagPic()), h("small.mk-cap", "Fits any Peta"),
+      h("h3.mk-t1", "Link tag"), h("p.mk-t2", "Open an app, website or folder from any Peta."), h("p.mk-t3", "Reusable · Hidden on desktop"),
+      h("button.btn.mk-get", { disabled: cannot, on: { click: () => LinkTags.buy(paint) } }, cannot ? "Not enough Scraps" : "Get a tag"), h("span.mk-price", S.developer ? "Free · Developer" : ScrapAmt(price)),
+      h("small.mk-t4", "Returns to you when removed."),
+      h("h3.mk-t5", "Your link tags"),
+      h("div.mk-pocket", h("small", "Available"), h("b", String(stock.available))),
+      h("div.mk-ticket", h("span.mk-att", h("b", String(stock.attached)), " attached"), h("button.link", { type: "button", on: { click: () => Shell.go("book") } }, "Manage ", h("i", "→"))),
+      h("small.mk-note", "Tags return automatically when gifting or packing.")));
   },
   packs(paint) {
     const feat = MARKET_PACKS[0];

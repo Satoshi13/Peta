@@ -80,7 +80,7 @@ fn open(tag: &LinkTag) -> std::io::Result<()> {
 #[cfg(not(target_os = "macos"))]
 fn open(_tag: &LinkTag) -> std::io::Result<()> { Err(std::io::Error::other("link tags open things on a Mac only")) }
 
-/// The icon of a tagged app, as a small PNG (made once from the app's own .icns and kept under `<library>/tag-icons`). Empty for websites, folders and apps without one.
+/// The icon of a tagged app, as a small PNG (the one Finder shows, made once and kept under `<library>/tag-icons`). Empty for websites, folders and apps without one.
 #[tauri::command]
 pub async fn link_tag_icon(app: AppHandle, sticker_id: String) -> Result<tauri::ipc::Response, String> {
     let (tag, dir) = { let store = app.state::<Store>(); let lib = store.lock(); (lib.db().link_tag(&sticker_id).map_err(|e| e.to_string())?, lib.root().join("tag-icons")) };
@@ -89,21 +89,38 @@ pub async fn link_tag_icon(app: AppHandle, sticker_id: String) -> Result<tauri::
     Ok(tauri::ipc::Response::new(png.unwrap_or_default()))
 }
 
+/// The same picture for an app that has just been chosen in the attach dialog, before any tag is saved.
+#[tauri::command]
+pub async fn link_tag_app_icon(app: AppHandle, target: String) -> Result<tauri::ipc::Response, String> {
+    link_tag::validate("app", &target, "x").map_err(|e| e.to_string())?;
+    let dir = { let store = app.state::<Store>(); let lib = store.lock(); lib.root().join("tag-icons") };
+    let png = tauri::async_runtime::spawn_blocking(move || app_icon_png(&target, &dir)).await.map_err(|e| e.to_string())?;
+    Ok(tauri::ipc::Response::new(png.unwrap_or_default()))
+}
+
+/// Asks the system for the app's icon, so apps that keep it in an asset catalog (not an .icns) and the current look both come out right.
+#[cfg(target_os = "macos")]
+const ICON_JXA: &str = r#"ObjC.import('AppKit');
+function run(a) {
+  const img = $.NSWorkspace.sharedWorkspace.iconForFile(a[0]), n = 160;
+  const rep = $.NSBitmapImageRep.alloc.initWithBitmapDataPlanesPixelsWidePixelsHighBitsPerSampleSamplesPerPixelHasAlphaIsPlanarColorSpaceNameBytesPerRowBitsPerPixel($(), n, n, 8, 4, true, false, $.NSDeviceRGBColorSpace, 0, 0);
+  $.NSGraphicsContext.saveGraphicsState;
+  $.NSGraphicsContext.setCurrentContext($.NSGraphicsContext.graphicsContextWithBitmapImageRep(rep));
+  img.drawInRectFromRectOperationFraction($.NSMakeRect(0, 0, n, n), $.NSZeroRect, $.NSCompositingOperationSourceOver, 1);
+  $.NSGraphicsContext.restoreGraphicsState;
+  rep.representationUsingTypeProperties($.NSBitmapImageFileTypePNG, $()).writeToFileAtomically(a[1], true);
+}"#;
+
 #[cfg(target_os = "macos")]
 fn app_icon_png(app: &str, dir: &std::path::Path) -> Option<Vec<u8>> {
     use std::{path::Path, process::Command};
+    if !Path::new(app).is_dir() { return None; }
     let key: String = app.bytes().fold(0xcbf29ce484222325u64, |h, b| (h ^ b as u64).wrapping_mul(0x100000001b3)).to_string();
-    let out = dir.join(format!("{key}.png"));
+    let out = dir.join(format!("{key}-v2.png"));
     if let Ok(hit) = std::fs::read(&out) { return Some(hit); }
-    let plist = Path::new(app).join("Contents/Info.plist");
-    let name = Command::new("/usr/bin/plutil").args(["-extract", "CFBundleIconFile", "raw", "-o", "-"]).arg(&plist).output().ok().filter(|o| o.status.success())?;
-    let mut icon = String::from_utf8_lossy(&name.stdout).trim().to_string();
-    if icon.is_empty() || icon.contains('/') || icon.contains("..") { return None; }
-    if !icon.ends_with(".icns") { icon.push_str(".icns"); }
-    let icns = Path::new(app).join("Contents/Resources").join(icon);
     std::fs::create_dir_all(dir).ok()?;
-    let ok = Command::new("/usr/bin/sips").args(["-s", "format", "png", "-Z", "128"]).arg(&icns).arg("--out").arg(&out).output().ok()?.status.success();
-    if ok { std::fs::read(&out).ok() } else { None }
+    let ok = Command::new("/usr/bin/osascript").args(["-l", "JavaScript", "-e", ICON_JXA]).arg(app).arg(&out).output().ok()?.status.success();
+    if ok { std::fs::read(&out).ok().filter(|b| !b.is_empty()) } else { None }
 }
 #[cfg(not(target_os = "macos"))]
 fn app_icon_png(_app: &str, _dir: &std::path::Path) -> Option<Vec<u8>> { None }
