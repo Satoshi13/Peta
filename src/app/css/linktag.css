@@ -57,33 +57,33 @@ dialog.lt-dialog::backdrop { background: rgba(30,24,14,.34); }
 .lt-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 12px; border-top: 1px solid rgba(60,45,20,.14); }
 dialog.lt-dialog button.close-control.lt-x { top: 14px; right: 14px; background: none; color: #2b2a28; } dialog.lt-dialog button.close-control.lt-x:hover { background: rgba(60,45,20,.08); }
 
-/* Market > Tools: the approved catalogue-paper design, laid out on a 1339 x 750 stage and scaled as a whole (--u = one design pixel), so it keeps its proportions and never needs to scroll.
+/* Market > Tools: the approved catalogue-paper design, laid out on a 1339 x 750 stage and scaled as a whole (--u = one design pixel), so it keeps its proportions and never needs to scroll. When the window is wider than the design needs (--x), the paper takes 55% of the extra and the right column moves over by all of it.
    Art: art/market/tools-*.webp. Positions are the design's own (the page's content box is its 1339px). */
 .mk-toolspage { container-type: inline-size; display: block; }
-.mk-tools { --u: min(calc(100cqw / 1339), calc((100vh - 264px) / 750)); position: relative; width: calc(var(--u) * 1339); height: calc(var(--u) * 750); margin-top: 3px; font-family: var(--sys); color: #2b2a28; }
+.mk-tools { --u: min(calc(100cqw / 1339), calc((100vh - 264px) / 750)); --x: max(0px, calc(100cqw - var(--u) * 1339)); position: relative; width: 100cqw; height: calc(var(--u) * 750); margin-top: 3px; font-family: var(--sys); color: #2b2a28; }
 .mk-tools > * { margin: 0; }
 .mk-tools i { display: block; background-repeat: no-repeat; background-size: 100% 100%; }
-.mk-paper { position: absolute; left: calc(var(--u) * 0); top: calc(var(--u) * 22); width: calc(var(--u) * 806); height: calc(var(--u) * 730); background-image: var(--a-toolsPaper); }
-.mk-tape { position: absolute; left: calc(var(--u) * 314); top: calc(var(--u) * -1); width: calc(var(--u) * 166); height: calc(var(--u) * 52); background-image: var(--a-toolsTape); rotate: -1deg; }
-.mk-spec-card { position: absolute; left: calc(var(--u) * 243); top: calc(var(--u) * 214); width: calc(var(--u) * 277); height: calc(var(--u) * 291); background-image: var(--a-toolsCard); }
-.mk-spec-egg { position: absolute; left: calc(var(--u) * 262); top: calc(var(--u) * 266); width: calc(var(--u) * 233); height: calc(var(--u) * 213); background-image: var(--a-toolsEgg); }
-.mk-hang-tag { position: absolute; left: calc(var(--u) * 478); top: calc(var(--u) * 218); width: calc(var(--u) * 194); z-index: 2; pointer-events: none; }
+.mk-paper { position: absolute; left: calc(var(--u) * 0); top: calc(var(--u) * 22); width: calc(var(--u) * 806 + var(--x) * .55); height: calc(var(--u) * 730); background-image: var(--a-toolsPaper); }
+.mk-tape { position: absolute; left: calc(var(--u) * 314 + var(--x) * 0.275); top: calc(var(--u) * -1); width: calc(var(--u) * 166); height: calc(var(--u) * 52); background-image: var(--a-toolsTape); rotate: -1deg; }
+.mk-spec-card { position: absolute; left: calc(var(--u) * 243 + var(--x) * 0.275); top: calc(var(--u) * 222); width: calc(var(--u) * 277); height: calc(var(--u) * 291); background-image: var(--a-toolsCard); }
+.mk-spec-egg { position: absolute; left: calc(var(--u) * 262 + var(--x) * 0.275); top: calc(var(--u) * 274); width: calc(var(--u) * 233); height: calc(var(--u) * 213); background-image: var(--a-toolsEgg); }
+.mk-hang-tag { position: absolute; left: calc(var(--u) * 478 + var(--x) * 0.275); top: calc(var(--u) * 226); width: calc(var(--u) * 194); z-index: 2; pointer-events: none; }
 .mk-hang-tag .lt-pic { --w: calc(var(--u) * 194) !important; filter: drop-shadow(0 calc(var(--u) * 5) calc(var(--u) * 6) rgba(60,45,20,.26)); }
-.mk-cap { position: absolute; left: calc(var(--u) * 243); top: calc(var(--u) * 514); width: calc(var(--u) * 300); text-align: center; font: 400 calc(var(--u) * 19)/calc(var(--u) * 24) var(--sys); letter-spacing: .02em; color: #6f6859; }
+.mk-cap { position: absolute; left: calc(var(--u) * 243 + var(--x) * 0.275); top: calc(var(--u) * 522); width: calc(var(--u) * 300); text-align: center; font: 400 calc(var(--u) * 19)/calc(var(--u) * 24) var(--sys); letter-spacing: .02em; color: #6f6859; }
 .mk-t1 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 84); font: 700 calc(var(--u) * 56)/calc(var(--u) * 62) var(--sys); letter-spacing: -.025em; white-space: nowrap; }
-.mk-t2 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 154); font: 400 calc(var(--u) * 29)/calc(var(--u) * 40) var(--sys); white-space: nowrap; }
-.mk-t3 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 554); font: 400 calc(var(--u) * 26)/calc(var(--u) * 34) var(--sys); color: #6f6859; white-space: nowrap; }
-.mk-price { position: absolute; left: calc(var(--u) * 504); top: calc(var(--u) * 604); width: calc(var(--u) * 250); height: calc(var(--u) * 66); display: flex; align-items: center; font: 600 calc(var(--u) * 24)/1.2 var(--sys); color: #6f6859; white-space: nowrap; }
-.mk-get { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 604); width: calc(var(--u) * 420); height: calc(var(--u) * 66); min-width: 0; padding: 0; border-radius: 99px; background: #26272a; color: #fff; box-shadow: 0 calc(var(--u) * 4) calc(var(--u) * 8) rgba(30,25,15,.28); font: 600 calc(var(--u) * 27)/1 var(--sys); }
-.mk-t4 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 680); font: 400 calc(var(--u) * 22)/calc(var(--u) * 30) var(--sys); color: #6f6859; white-space: nowrap; }
-.mk-t5 { position: absolute; left: calc(var(--u) * 859); top: calc(var(--u) * 84); font: 700 calc(var(--u) * 56)/calc(var(--u) * 62) var(--sys); letter-spacing: -.025em; white-space: nowrap; }
-.mk-pocket { position: absolute; left: calc(var(--u) * 919); top: calc(var(--u) * 235); width: calc(var(--u) * 360); height: calc(var(--u) * 248); background: var(--a-toolsPocket) 0 0 / 100% 100% no-repeat; color: #6b6354; text-align: center; }
+.mk-t2 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 164); font: 400 calc(var(--u) * 29)/calc(var(--u) * 40) var(--sys); white-space: nowrap; }
+.mk-t3 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 558); font: 400 calc(var(--u) * 26)/calc(var(--u) * 34) var(--sys); color: #6f6859; white-space: nowrap; }
+.mk-price { position: absolute; left: calc(var(--u) * 504); top: calc(var(--u) * 608); width: calc(var(--u) * 250); height: calc(var(--u) * 66); display: flex; align-items: center; font: 600 calc(var(--u) * 24)/1.2 var(--sys); color: #6f6859; white-space: nowrap; }
+.mk-get { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 608); width: calc(var(--u) * 420); height: calc(var(--u) * 66); min-width: 0; padding: 0; border-radius: 99px; background: #26272a; color: #fff; box-shadow: 0 calc(var(--u) * 4) calc(var(--u) * 8) rgba(30,25,15,.28); font: 600 calc(var(--u) * 27)/1 var(--sys); }
+.mk-t4 { position: absolute; left: calc(var(--u) * 56); top: calc(var(--u) * 684); font: 400 calc(var(--u) * 22)/calc(var(--u) * 30) var(--sys); color: #6f6859; white-space: nowrap; }
+.mk-t5 { position: absolute; left: calc(var(--u) * 859 + var(--x) * 1); top: calc(var(--u) * 84); font: 700 calc(var(--u) * 56)/calc(var(--u) * 62) var(--sys); letter-spacing: -.025em; white-space: nowrap; }
+.mk-pocket { position: absolute; left: calc(var(--u) * 919 + var(--x) * 1); top: calc(var(--u) * 243); width: calc(var(--u) * 360); height: calc(var(--u) * 248); background: var(--a-toolsPocket) 0 0 / 100% 100% no-repeat; color: #6b6354; text-align: center; }
 .mk-pocket small { position: absolute; left: 0; right: 0; top: calc(var(--u) * 140); font: 600 calc(var(--u) * 19)/calc(var(--u) * 24) var(--sys); letter-spacing: .14em; text-transform: uppercase; }
 .mk-pocket b { position: absolute; left: 0; right: 0; top: calc(var(--u) * 166); font: 600 calc(var(--u) * 42)/calc(var(--u) * 48) var(--sys); }
-.mk-ticket { position: absolute; left: calc(var(--u) * 853); top: calc(var(--u) * 538); width: calc(var(--u) * 486); height: calc(var(--u) * 95); background: var(--a-toolsTicket) 0 0 / 100% 100% no-repeat; }
+.mk-ticket { position: absolute; left: calc(var(--u) * 853 + var(--x) * 1); top: calc(var(--u) * 546); width: calc(var(--u) * 486); height: calc(var(--u) * 95); background: var(--a-toolsTicket) 0 0 / 100% 100% no-repeat; }
 .mk-att { position: absolute; left: calc(var(--u) * 46); top: 0; bottom: 0; display: flex; align-items: center; font: 400 calc(var(--u) * 28)/1 var(--sys); white-space: pre; } .mk-att b { font: 500 calc(var(--u) * 36)/1 var(--sys); margin-right: calc(var(--u) * 10); }
 .mk-ticket .link { position: absolute; left: calc(var(--u) * 241); right: calc(var(--u) * 36); top: calc(var(--u) * 17); bottom: calc(var(--u) * 17); border: 0; border-left: 1px solid rgba(60,45,20,.25); background: none; padding: 0; cursor: pointer; font: 500 calc(var(--u) * 28)/1 var(--sys); color: #2b2a28; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 10); } .mk-ticket .link i { font-style: normal; }
-.mk-note { position: absolute; left: calc(var(--u) * 861); top: calc(var(--u) * 652); width: calc(var(--u) * 470); font: 400 calc(var(--u) * 22.5)/calc(var(--u) * 33) var(--sys); color: #7a7466; }
+.mk-note { position: absolute; left: calc(var(--u) * 861 + var(--x) * 1); top: calc(var(--u) * 660); width: calc(var(--u) * 470); font: 400 calc(var(--u) * 22.5)/calc(var(--u) * 33) var(--sys); color: #7a7466; }
 
 /* a note in Studio's seal step: link tags come back when the thing is sealed */
 .st-tagnote { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; padding: 8px 12px; border-radius: 12px; background: var(--w-surface2); box-shadow: inset 0 0 0 1px var(--w-line); font: 500 12.5px/1.35 var(--sys); color: var(--ink2); }
