@@ -63,7 +63,8 @@ body[data-shell="studio"] { --studio-paper: linear-gradient(rgba(251, 249, 244, 
 [data-shell="studio"] .nav-item { gap: 11px; height: 42px; padding: 0 12px; border-radius: 11px; transition: background .18s, box-shadow .18s, transform .18s; font: 500 14px var(--sys); }
 [data-shell="studio"] .nav-item .ni-icon { width: 28px; height: 28px; filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); transition: transform .25s var(--ease-spring); }
 [data-shell="studio"] .nav-item:hover { background: rgba(255, 255, 255, .55); } [data-shell="studio"] .nav-item:hover .ni-icon { transform: rotate(-6deg) scale(1.08); }
-[data-shell="studio"] .nav-item[aria-current="page"] { background: #fffdf9; font-weight: 600; box-shadow: 0 0 0 .5px rgba(80, 60, 20, .18), 0 1px 3px rgba(60, 45, 20, .2), 0 6px 14px rgba(60, 45, 20, .08); }
+/* the plate behind the current row is .nav-pill, which slides between rows (shell.js placePill) */
+[data-shell="studio"] .nav-item[aria-current="page"] { font-weight: 500; }
 [data-shell="studio"] .nav-item .ni-badge { margin-left: auto; }
 [data-shell="studio"] .book { position: absolute; left: 204px; right: 0; top: 0; bottom: 0; padding-top: 0; }
 [data-shell="studio"] .viewport { inset: 0; overflow: hidden; }
@@ -94,12 +95,19 @@ body[data-shell="studio"] { --studio-paper: linear-gradient(rgba(251, 249, 244, 
 [data-shell="studio"] .nav-top { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:2px; }
 [data-shell="studio"] .nav-top { padding:4px 8px 10px; margin:-4px -8px 0; } /* room for the active row's shadow and corners: overflow:auto would clip them at the edge */
 [data-shell="studio"] .nav-item { flex:none; height:38px; padding:0 10px 0 6px; color:var(--ink2); }
-[data-shell="studio"] .nav-item[aria-current="page"] { background:var(--w-surface); color:var(--ink); }
+[data-shell="studio"] .nav-item[aria-current="page"] { color:var(--ink); }
+.nav-pill { display:none; }
+[data-shell="studio"] .nav-top { position:relative; }
+[data-shell="studio"] .nav-pill { display:block; position:absolute; top:0; left:0; z-index:0; border-radius:11px; background:var(--w-surface); box-shadow:0 0 0 .5px rgba(80,60,20,.18), 0 1px 3px rgba(60,45,20,.2), 0 6px 14px rgba(60,45,20,.08); opacity:0; pointer-events:none; will-change:transform; transition:transform .38s var(--ease-out), height .38s var(--ease-out), opacity .2s; }
+@media (prefers-reduced-motion: reduce) { [data-shell="studio"] .nav-pill { transition:opacity .2s; } }
 [data-shell="studio"] .nav-group { font:600 10.5px/14px var(--sys); letter-spacing:.09em; text-transform:uppercase; color:var(--muted); padding:0 12px; margin:14px 0 6px; }
 [data-shell="studio"] .ni-tile { width:30px; height:30px; border-radius:9px; background:rgba(255,255,255,.62); box-shadow:inset 0 0 0 1px rgba(60,45,20,.07); display:grid; place-items:center; flex:none; }
 [data-shell="studio"] .nav-item .ni-icon { width:22px; height:22px; }
 [data-shell="studio"] .nav-foot { margin-top:auto; border-top:1px solid var(--w-line); padding-top:10px; display:flex; flex-direction:column; gap:2px; }
-.nav-account { border:0; background:none; display:flex; align-items:center; gap:10px; padding:8px; min-height:46px; text-align:left; color:var(--muted); }
+/* Settings opens from the account row; its own row only comes back where the account row is hidden (the icon rail, a narrow window) */
+[data-shell="studio"] .nav-item[data-page="settings"] { display:none; }
+[data-shell="studio"] .nav-account:hover { background:rgba(255,255,255,.5); } [data-shell="studio"] .nav-account[aria-current="page"] { background:var(--w-surface); }
+.nav-account { border:0; border-radius:11px; transition:background .18s, box-shadow .18s; background:none; display:flex; align-items:center; gap:10px; padding:8px; min-height:46px; text-align:left; color:var(--muted); }
 .nav-account .creator-icon { width:30px; height:30px; border-radius:50%; background:var(--w-sunken); overflow:hidden; }
 .nav-account .creator-icon > span { font-size:18px; }
 .nav-account > span:last-child { min-width:0; }
@@ -116,7 +124,8 @@ body[data-shell="studio"] { --studio-paper: linear-gradient(rgba(251, 249, 244, 
 [data-shell="desk"] .ni-dot { position:absolute; right:12px; top:8px; }
 @media (max-width:880px) {
   [data-shell] .nav-top, [data-shell] .nav-foot { display:contents; }
-  [data-shell] .nav-group, [data-shell] .nav-account, [data-shell] .ni-key { display:none; }
+  [data-shell] .nav-group, [data-shell] .nav-account, [data-shell] .ni-key, [data-shell] .nav-pill { display:none; }
+  [data-shell] .nav-item[data-page="settings"] { display:flex; }
   [data-shell] .ni-tile { background:none; box-shadow:none; width:28px; height:28px; }
   [data-shell] .ni-dot { position:absolute; right:8px; top:6px; }
 }

@@ -20,7 +20,7 @@ const Shell = (() => {
   }
   function renderNav() {
     const nav = $("#nav"), b = badges();
-    const top = h("div.nav-top"), foot = h("div.nav-foot");
+    const top = h("div.nav-top", h("i.nav-pill", { "aria-hidden": "true" })), foot = h("div.nav-foot");
     NAV.forEach((n, i) => {
       const count = n.id === "gifts" ? b.gifts : 0, dot = n.id === "today" && b.today;
       if(n.group) top.append(h("span.nav-group", n.group));
@@ -34,12 +34,25 @@ const Shell = (() => {
       (n.id === "settings" ? foot : top).append(button);
     });
     const name = S.name.trim() || "You";
-    foot.append(h("button.nav-account", {"aria-label":`Account: ${name}. Open Settings`,on:{click:()=>go("settings")}},
+    foot.append(h("button.nav-account", {"aria-label":`Account: ${name}. Open Settings`,title:"Settings (⌘,)","aria-current":S.page === "settings" ? "page" : null,on:{click:()=>go("settings")}},
       CreatorIcon.image(), h("span", h("b", name), h("small", `${S.developer ? "Developer · " : ""}${S.lib.length} sticker${S.lib.length===1 ? "" : "s"}`))));
     nav.replaceChildren(top, foot);
+    placePill(false);
+  }
+  /** The white plate behind the current row is one element that slides to the new row (a transform, so it keeps moving even while the next page is being built).
+   *  It is only used where the rows are in a list (the Studio sidebar); other layouts style the current row itself. */
+  function placePill(animate) {
+    const pill = $(".nav-pill"); if(!pill) return;
+    const row = $(".nav-top .nav-item[aria-current='page']");
+    if(!row || !row.offsetHeight) { pill.style.opacity = "0"; return; }
+    const first = pill.style.opacity !== "1";
+    if(!animate || first) pill.style.transition = "none";
+    pill.style.width = row.offsetWidth + "px"; pill.style.height = row.offsetHeight + "px"; pill.style.left = row.offsetLeft + "px"; pill.style.transform = `translateY(${row.offsetTop}px)`; pill.style.opacity = "1";
+    if(!animate || first) { pill.offsetWidth; pill.style.transition = ""; }
   }
 
-  function markNav() { document.body.dataset.page = S.page; $$(".nav-item").forEach((b) => b.toggleAttribute("aria-current", b.dataset.page === S.page)); $$(".nav-item[aria-current]").forEach((b) => b.setAttribute("aria-current", "page")); }
+  /** Mark the current row. `id` previews another row while that page is still waiting its turn (a click during a transition). */
+  function markNav(id = S.page) { document.body.dataset.page = S.page; $$(".nav-account").forEach((b) => b.toggleAttribute("aria-current", id === "settings")); $$(".nav-account[aria-current]").forEach((b) => b.setAttribute("aria-current", "page")); $$(".nav-item").forEach((b) => b.toggleAttribute("aria-current", b.dataset.page === id)); $$(".nav-item[aria-current]").forEach((b) => b.setAttribute("aria-current", "page")); placePill(true); }
 
   function build(id) {
     const wrap = h("section.page", { data: { page: id, art: "page-" + id } });
@@ -101,8 +114,11 @@ const Shell = (() => {
     },
   };
 
+  let queued = null;   // a page asked for while another was still arriving: the last ask wins and runs when the current one lands
   async function go(id, o = {}) {
-    if (!Pages[id] || navigating) return;
+    if (!Pages[id]) return;
+    if (navigating) { queued = id === S.page ? null : { id, o }; markNav(queued ? id : S.page); return; }
+    queued = null;
     const vp = viewport();
     if (current && S.page === id && !o.force) { PackZoom.dispose(true); return; }
     const oldIdx = NAV.findIndex((n) => n.id === S.page), newIdx = NAV.findIndex((n) => n.id === id);
@@ -118,6 +134,7 @@ const Shell = (() => {
     Pages[id].arrive?.(next, { ...o, dir });
     try { await TRANS[document.body.dataset.shell](vp, current, next, dir, o); } finally { navigating = false; }
     current = next; Pages[id].enter?.(next, o);
+    if (queued) { const q = queued; queued = null; go(q.id, q.o); }
   }
   /** Rebuild the current page in place (after state changes), no transition. */
   function refresh() {
@@ -137,7 +154,7 @@ const Shell = (() => {
   }
   async function close() { S.windowOpen = false; Pages[S.page]?.suspend?.(); await Bridge.window.hide(); }
   function initChrome() {
-    new ResizeObserver(sizeBookBinding).observe(viewport());
+    new ResizeObserver(sizeBookBinding).observe(viewport()); new ResizeObserver(() => placePill(false)).observe($("#nav"));
     $("#wc-close").addEventListener("click", close);
     $("#wc-min").addEventListener("click", () => { S.windowOpen = false; Pages[S.page]?.suspend?.(); Bridge.window.minimize(); });
     $("#wc-zoom").addEventListener("click", () => Bridge.window.toggleMaximize());

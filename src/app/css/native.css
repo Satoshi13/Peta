@@ -803,8 +803,9 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 .material-preview > button.close-control { top:12px; right:12px; background:var(--w-sunken); color:var(--ink2); }
 .material-preview > button.close-control:hover { background:var(--w-line); color:var(--ink); }
 [data-theme="night"] [data-shell="studio"] .nav-item:hover { background:var(--w-surface); color:var(--ink); }
-[data-theme="night"] [data-shell="studio"] .nav-item[aria-current="page"] { background:var(--w-surface2); color:var(--ink); box-shadow:inset 0 0 0 1px var(--w-line); }
-[data-theme="night"] [data-shell="studio"] .nav-item[aria-current="page"]:hover { background:var(--w-surface); }
+[data-theme="night"] [data-shell="studio"] .nav-item[aria-current="page"] { color:var(--ink); }
+[data-theme="night"] [data-shell="studio"] .nav-pill { background:var(--w-surface2); box-shadow:inset 0 0 0 1px var(--w-line); }
+[data-theme="night"] [data-shell="studio"] .nav-account[aria-current="page"] { background:var(--w-surface2); box-shadow:inset 0 0 0 1px var(--w-line); }
 
 /* Sticker reveals take a palette once the committed sticker is visible. (Today's material no longer gets a frame: its light is in the .cer-exp / .cer-aura layers below.) */
 .cer { --cer-center:#71604c; --cer-edge:#211a13; }
