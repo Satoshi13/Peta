@@ -92,6 +92,7 @@ body[data-shell="studio"] { --studio-paper: linear-gradient(rgba(251, 249, 244, 
 .nav-foot { flex:none; }
 [data-shell="studio"] .nav { background:var(--w-side); }
 [data-shell="studio"] .nav-top { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:2px; }
+[data-shell="studio"] .nav-top { padding:4px 8px 10px; margin:-4px -8px 0; } /* room for the active row's shadow and corners: overflow:auto would clip them at the edge */
 [data-shell="studio"] .nav-item { flex:none; height:38px; padding:0 10px 0 6px; color:var(--ink2); }
 [data-shell="studio"] .nav-item[aria-current="page"] { background:var(--w-surface); color:var(--ink); }
 [data-shell="studio"] .nav-group { font:600 10.5px/14px var(--sys); letter-spacing:.09em; text-transform:uppercase; color:var(--muted); padding:0 12px; margin:14px 0 6px; }
