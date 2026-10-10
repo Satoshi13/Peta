@@ -11,9 +11,9 @@ const stEm = (text) => [...text].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 1
 const stClip = (text, max) => { let v = text; while (stEm(v) > max) v = v.slice(0, -1); return v; };
 
 const ST = {
-  mode: null, sealing: false, urls: new Map(), ctx: "shelf",
-  pack: { step: 1, seen: new Set([1]), sealed: false, sel: [], bag: "kraft", deco: "none", cover: null, title: "", blurb: "" },
-  gift: { step: 1, seen: new Set([1]), sealed: false, sticker: null, bag: "airmail", deco: "none", to: "", note: "" },
+  mode: null, sealing: false, urls: new Map(), ctx: "shelf", find: { q: "", mat: "all" },
+  pack: { step: 1, seen: new Set([1]), sealed: false, dest: "shelf", result: null, sel: [], bag: "kraft", deco: "none", cover: null, title: "", blurb: "" },
+  gift: { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, bag: "airmail", deco: "none", to: "", note: "" },
 };
 const stDraftKey = "peta.studio";
 function stLoad() {
@@ -40,6 +40,20 @@ function stUrl(id) {
   thumbOf(e).then((res) => { ST.urls.set(id, res.url); if(S.page === "studio") Pages.studio.repaintBench?.(); }).catch(() => ST.urls.delete(id));
   return null;
 }
+/** What was just sealed is made: its draft does not come back when Studio is opened again. */
+function stForget(kind) { try { const d = JSON.parse(localStorage.getItem(stDraftKey) || "{}"); delete d[kind]; localStorage.setItem(stDraftKey, JSON.stringify(d)); } catch {} }
+/** The stickers the pickers show: the search and the material (or "On desktop") above the list. */
+const stShown = () => { const f = ST.find; return PetaMath.filterBookEntries(stEntries(), { query: f.q, material: f.mat, sort: "newest", materialIds: Object.keys(MAT), nameOf: (id) => MAT[id]?.name || id }); };
+function stFind(fill) {
+  const f = ST.find, counts = {}; for(const e of S.lib) counts[e.material] = (counts[e.material] || 0) + 1;
+  const onDesk = S.lib.filter((e) => e.onDesktop).length;
+  if(f.mat !== "all" && !(f.mat === "desktop" ? onDesk : counts[f.mat])) f.mat = "all";
+  const input = h("input", { type: "search", placeholder: "Search stickers", value: f.q, autocomplete: "off", spellcheck: false, "aria-label": "Search stickers", on: { input: () => { f.q = input.value; fill(); } } });
+  const options = [["all", "All materials"], ...(onDesk ? [["desktop", `On desktop (${onDesk})`]] : []), ...Object.keys(MAT).filter((id) => counts[id]).map((id) => [id, `${MAT[id].name} (${counts[id]})`])];
+  const select = h("select", { "aria-label": "Material", on: { change: () => { f.mat = select.value; Snd.tap(); fill(); } } }, options.map(([v, t]) => h("option", { value: v, selected: v === f.mat }, t)));
+  return h("div.st-find", h("label.st-search", input), h("label.st-selectw", select));
+}
+
 /** The odds: an item's weight over all the weights. */
 const stOdds = (sel) => { const sum = sel.reduce((s, x) => s + x.weight, 0) || 1; return sel.map((x) => x.weight / sum); };
 const stPct = (v) => (v < .1 ? (v * 100).toFixed(1) : Math.round(v * 100)) + "%";
@@ -47,7 +61,7 @@ const stOddsLine = (sel) => { if(!sel.length) return ""; const odds = stOdds(sel
 const stName = () => S.name.trim() || "You";
 
 /** What the bag on the bench looks like right now. */
-function stBag({ k = 22, fit = 0, shut = false, open = true, d = stDraft(), mode = ST.mode } = {}) {
+function stBag({ k = 22, fit = 0, shut = false, open = false, d = stDraft(), mode = ST.mode } = {}) {   // the stickers are not shown peeking out of the bag: the count is in the caption
   if(mode === "gift") { const url = d.sticker ? stUrl(d.sticker) : null; return BagPic({ bag: d.bag, title: d.to.trim() ? "For " + d.to.trim() : "For you", sub: "from " + stName(), deco: d.deco, k, fit, shut, items: open && url ? [url] : [], id: "gift" }); }
   const urls = d.sel.map((x) => stUrl(x.id)).filter(Boolean), cover = d.cover ? stUrl(d.cover) : null;
   return BagPic({ bag: d.bag, title: d.title.trim() || "Untitled", sub: "by " + stName(), cover, deco: d.deco, k, fit, shut, items: open ? urls.slice(0, 6) : [], id: "pack" });
@@ -96,7 +110,8 @@ Pages.studio = {
 
     /* ---------- the panels ---------- */
     const foot = (back, next) => h("div.st-foot", back ? h("button.btn.quiet", { on: { click: () => go(D().step - 1) } }, "Back") : h("span"), next);
-    const nextBtn = (label, ok, fn) => h("button.btn", { disabled: !ok, on: { click: fn } }, label);
+    /** The main button of a step, with the reason it is not ready written beside it, so a grey button never has to be guessed at. */
+    const stNext = (label, fn) => { const why = h("span.st-why", { role: "status" }), b = h("button.btn", { disabled: true, on: { click: fn } }, label); return { el: h("div.st-nextwrap", why, b), set(ok, reason = "") { b.disabled = !ok || ST.sealing; why.textContent = ok ? "" : reason; } }; };
     const sec = (label, ...k) => h("div.st-sec", h("label", label), ...k);
     const field = (value, max, label, onInput, ph, em) => {
       const used = (v) => (em ? `${Math.ceil(stEm(v))}/${max}` : `${v.length}/${max}`), c = h("span.cnt", used(value));
@@ -108,29 +123,52 @@ Pages.studio = {
     const tile = (e, props, extra, size = 56) => { const t = h("button.st-tile", { title: titleOf(e), ...props }, extra || null); thumbOf(e).then((res) => { if(t.isConnected) t.prepend(Stk.el(res, res.aspect >= 1 ? size : size * res.aspect)); }).catch(() => {}); return t; };
 
     const packGather = () => {
-      const p = ST.pack, by = new Map(p.sel.map((x) => [x.id, x])), odds = stOdds(p.sel), n = p.sel.length;
-      const tiles = stEntries().map((e) => {
-        const it = by.get(e.id);
-        const t = tile(e, { "aria-pressed": String(!!it), on: { click: () => { const at = p.sel.findIndex((x) => x.id === e.id); if(at >= 0) { p.sel.splice(at, 1); if(p.cover === e.id) p.cover = null; Snd.tap(); } else if(p.sel.length < STUDIO.limits.max) { p.sel.push({ id: e.id, weight: 4 }); Snd.tap(); } stSave(); paint(); } } },
-          it ? h("span.st-weight", { role: "button", title: "How likely it is to come out: tap to change", "data-w": it.weight, on: { click: (ev) => { ev.stopPropagation(); it.weight = STUDIO.weights[(STUDIO.weights.indexOf(it.weight) + 1) % STUDIO.weights.length]; stSave(); Snd.tap(); paint(); } } }, stPct(odds[p.sel.indexOf(it)])) : null);
-        return t;
-      });
-      return [h("h2", "Choose the stickers"), h("p.st-help", `${STUDIO.limits.min}–${STUDIO.limits.max} stickers. Tap the percentage on a chosen one to change how likely it is to come out.`),
-        h("div.st-count", h("b", String(n)), h("span", `of ${STUDIO.limits.max} · at least ${STUDIO.limits.min}`)),
-        h("div.st-odds", n >= STUDIO.limits.min ? stOddsLine(p.sel) : `${STUDIO.limits.min - n} more to go`),
-        h("div.st-scroll", tiles.length ? h("div.st-grid", tiles) : h("p.muted", "Your Collection is empty. Make a few stickers first.")),
-        foot(false, nextBtn("Next →", n >= STUDIO.limits.min, () => go(2)))];
+      const p = ST.pack, L = STUDIO.limits, tiles = new Map();
+      const count = h("div.st-count", h("b"), h("span")), odds = h("div.st-odds"), grid = h("div.st-grid"), next = stNext("Next →", () => go(2));
+      const weigh = (id) => { const it = p.sel.find((x) => x.id === id); if(!it) return; it.weight = STUDIO.weights[(STUDIO.weights.indexOf(it.weight) + 1) % STUDIO.weights.length]; stSave(); Snd.tap(); sync(); };
+      const toggle = (id) => {
+        const at = p.sel.findIndex((x) => x.id === id);
+        if(at >= 0) { p.sel.splice(at, 1); if(p.cover === id) p.cover = null; Snd.tap(); }
+        else if(p.sel.length < L.max) { p.sel.push({ id, weight: 4 }); Snd.tap(); }
+        else { Shell.toast(`A pack holds up to ${L.max} stickers.`); return; }
+        stSave(); sync();
+      };
+      /* a tap changes the chosen tiles, the numbers and the bench in place: the list keeps its scroll position and the search keeps its focus */
+      const sync = () => {
+        const n = p.sel.length, o = stOdds(p.sel), more = L.min - n;
+        count.firstChild.textContent = String(n); count.lastChild.textContent = `of ${L.max} · at least ${L.min}`;
+        odds.textContent = n >= L.min ? stOddsLine(p.sel) : `${more} more to go`;
+        next.set(n >= L.min, `Choose ${more} more sticker${more === 1 ? "" : "s"} to continue.`);
+        for(const [id, t] of tiles) {
+          const i = p.sel.findIndex((x) => x.id === id), badge = t.querySelector(".st-weight");
+          t.setAttribute("aria-pressed", String(i >= 0));
+          if(i < 0) { badge?.remove(); continue; }
+          const w = badge || t.appendChild(h("span.st-weight", { role: "button", title: "How likely it is to come out: tap to change", on: { click: (ev) => { ev.stopPropagation(); weigh(id); } } }));
+          w.textContent = stPct(o[i]); w.dataset.w = p.sel[i].weight;
+        }
+        paintBench();
+      };
+      const fill = () => {
+        const shown = stShown(); tiles.clear();
+        grid.replaceChildren(...(shown.length ? shown.map((e) => { const t = tile(e, { "aria-pressed": "false", on: { click: () => toggle(e.id) } }); tiles.set(e.id, t); return t; })
+          : [h("p.muted.st-none", S.lib.length ? "No stickers match." : "Your Collection is empty. Make a few stickers first.")]));
+        sync();
+      };
+      const body = [h("h2", "Choose the stickers"), h("p.st-help", `${L.min}–${L.max} stickers. Tap the percentage on a chosen one to change how likely it is to come out.`), count, odds, stFind(fill), h("div.st-scroll", grid), foot(false, next.el)];
+      fill(); return body;
     };
     const packDress = () => {
-      const p = ST.pack, covers = h("div.st-covers", h("button.st-cv.none", { "aria-pressed": String(!p.cover), on: { click: () => { p.cover = null; stSave(); paint(); } } }, "None"),
+      const p = ST.pack, next = stNext("Next →", () => go(3)), need = "Give the pack a name to continue.";
+      const covers = h("div.st-covers", h("button.st-cv.none", { "aria-pressed": String(!p.cover), on: { click: () => { p.cover = null; stSave(); paint(); } } }, "None"),
         p.sel.map((x) => { const e = stEntry(x.id); return e ? tile(e, { class: "st-cv", "aria-pressed": String(p.cover === x.id), on: { click: () => { p.cover = x.id; stSave(); Snd.tap(); paint(); } } }, null, 34) : null; }));
-      return [h("h2", "Dress the pack"), h("p.st-help", "Just choose. Each wrapping has its own places for the label, the cover sticker and the decoration."),
-        h("div.st-scroll", sec("Wrapping", bagPicker(p, PACK_BAG_IDS)), sec("Name", field(p.title, STUDIO.limits.name, "Pack name", (v) => { p.title = v; stSave(); paintBench(); const b = $(".st-foot .btn:not(.quiet)", panel); if(b) b.disabled = !p.title.trim(); }, "", true)),
+      const body = [h("h2", "Dress the pack"), h("p.st-help", "Just choose. Each wrapping has its own places for the label, the cover sticker and the decoration."),
+        h("div.st-scroll", sec("Wrapping", bagPicker(p, PACK_BAG_IDS)), sec("Name (required)", field(p.title, STUDIO.limits.name, "Pack name", (v) => { p.title = v; stSave(); paintBench(); next.set(!!v.trim(), need); }, "", true)),
           sec("Cover sticker", covers), sec("Decoration", decoSeg(p))),
-        foot(true, nextBtn("Next →", !!p.title.trim(), () => go(3)))];
+        foot(true, next.el)];
+      next.set(!!p.title.trim(), need); return body;
     };
     /* a link tag on a sticker that is being sealed into a gift or a pack goes back to you (its target is never in the file) */
-    const tagNote = (ids) => { const n = ids.filter((id) => ltTag(id)).length; return n ? h("div.st-tagnote", LinkTagPic({ size: 20 }), ST.mode === "gift" ? "Link tag returns to you. Where it opens is not sent to them." : `${n} link tag${n === 1 ? "" : "s"} return${n === 1 ? "s" : ""} to you when you seal the pack. Where they open is not part of the pack.`) : null; };
+    const tagNote = (ids) => { const n = ids.filter((id) => ltTag(id)).length; return n ? h("div.st-tagnote", LinkTagPic({ size: 20 }), ST.mode === "gift" ? "Link tag returns to you. Where it opens is not sent to them." : `${n} link tag${n === 1 ? "" : "s"} return${n === 1 ? "s" : ""} to you once the pack is sealed. Where they open is not part of the pack.`) : null; };
     const sealScenes = () => {
       const d = D(), bag = BAGS[d.bag];
       const wrap = (caption, scene) => h("div", scene, h("div.st-scap", caption));
@@ -148,54 +186,78 @@ Pages.studio = {
       else { c.style.cssText += "left:50%;top:46px;translate:-50% 0;"; market = h("div.st-scene", h("div.st-rod"), h("i.st-endl"), h("i.st-endr"), c, h("i.st-rclip", { style: { left: "50%", top: "16px", translate: "-50% 0" } }), h("span.st-small", "Free")); }
       return h("div.st-pair", wrap("Shelf", shelf), wrap(stand ? "Market · standing" : "Market · hanging", market));
     };
+    /* the button that seals: sealing is the real thing (it signs, and writes the shelf entry or the file), so it is also what asks where it goes */
+    const sealButton = (label) => { const b = stNext(ST.sealing ? "Sealing…" : label, seal); b.set(true); return b; };
     const packSeal = () => {
       const p = ST.pack;
       if(p.sealed) return [doneBlock("pack"), sealScenes()];
-      return [h("h2", "Check it, then seal it"), h("p.st-help", "How it looks on your shelf and in the Market. Once sealed, it is signed with your key and can't be changed."),
-        h("div.st-scroll", tagNote(p.sel.map((x) => x.id)), sealScenes(), sec("Description (shown on the Market card)", field(p.blurb, STUDIO.limits.blurb, "Description", (v) => { p.blurb = v; stSave(); })),
+      const dest = sec("Where does it go?", h("div.st-seg", [["shelf", "My shelf"], ["file", "A file to share"]].map(([k, n]) => h("button", { type: "button", "aria-pressed": String(p.dest === k), disabled: ST.sealing, on: { click: () => { p.dest = k; Snd.tap(); paint(); } } }, n))));
+      return [h("h2", "Check it, then seal it"), h("p.st-help", "How it looks on your shelf and in the Market. Sealing signs it with your key, and then it can't be changed."),
+        h("div.st-scroll", tagNote(p.sel.map((x) => x.id)), sealScenes(), sec("Description (shown on the Market card)", field(p.blurb, STUDIO.limits.blurb, "Description", (v) => { p.blurb = v; stSave(); })), dest,
           h("div.st-signed", h("i", "SIGN"), `${p.title.trim()} · ${p.sel.length} stickers · ${stOddsLine(p.sel)}`)),
-        foot(true, nextBtn("Seal the pack", true, seal))];
+        foot(true, sealButton(p.dest === "file" ? "Seal and save…" : "Seal the pack").el)];
     };
     const giftChoose = () => {
-      const g = ST.gift, tiles = stEntries().map((e) => tile(e, { "aria-pressed": String(g.sticker === e.id), on: { click: () => { g.sticker = e.id; stSave(); Snd.tap(); paint(); } } }));
-      return [h("h2", "Choose the sticker"), h("p.st-help", "One sticker. You give a copy; yours stays in your Collection."), h("div.st-scroll", tiles.length ? h("div.st-grid", tiles) : h("p.muted", "Your Collection is empty. Make a sticker first.")), foot(false, nextBtn("Next →", !!g.sticker, () => go(2)))];
+      const g = ST.gift, tiles = new Map(), grid = h("div.st-grid"), next = stNext("Next →", () => go(2));
+      const sync = () => { for(const [id, t] of tiles) t.setAttribute("aria-pressed", String(g.sticker === id)); next.set(!!g.sticker, "Choose a sticker to continue."); paintBench(); };
+      const fill = () => {
+        const shown = stShown(); tiles.clear();
+        grid.replaceChildren(...(shown.length ? shown.map((e) => { const t = tile(e, { "aria-pressed": "false", on: { click: () => { g.sticker = e.id; stSave(); Snd.tap(); sync(); } } }); tiles.set(e.id, t); return t; })
+          : [h("p.muted.st-none", S.lib.length ? "No stickers match." : "Your Collection is empty. Make a sticker first.")]));
+        sync();
+      };
+      const body = [h("h2", "Choose the sticker"), h("p.st-help", "One sticker. You give a copy; yours stays in your Collection."), stFind(fill), h("div.st-scroll", grid), foot(false, next.el)];
+      fill(); return body;
     };
     const giftDress = () => {
-      const g = ST.gift;
+      const g = ST.gift, next = stNext("Next →", () => go(3)), need = "Write who it is for to continue.";
       const note = h("textarea", { rows: 2, maxLength: STUDIO.limits.note, "aria-label": "Note", on: { input: (e) => { g.note = e.target.value; cnt.textContent = `${g.note.length}/${STUDIO.limits.note}`; stSave(); } } }, g.note), cnt = h("span.cnt", `${g.note.length}/${STUDIO.limits.note}`);
-      return [h("h2", "Dress the gift"), h("p.st-help", "Choose a wrapping, write who it is for, and a few words only they will see."),
-        h("div.st-scroll", sec("Wrapping", bagPicker(g, GIFT_BAG_IDS)), sec("To", field(g.to, STUDIO.limits.to, "To", (v) => { g.to = v; stSave(); paintBench(); const b = $(".st-foot .btn:not(.quiet)", panel); if(b) b.disabled = !g.to.trim(); }, "Who is it for?", true)),
+      const body = [h("h2", "Dress the gift"), h("p.st-help", "Choose a wrapping, write who it is for, and a few words only they will see."),
+        h("div.st-scroll", sec("Wrapping", bagPicker(g, GIFT_BAG_IDS)), sec("To (required)", field(g.to, STUDIO.limits.to, "To", (v) => { g.to = v; stSave(); paintBench(); next.set(!!v.trim(), need); }, "Who is it for?", true)),
           sec("A few words", h("div.st-field", note, cnt)), sec("Decoration", decoSeg(g))),
-        foot(true, nextBtn("Next →", !!g.to.trim(), () => go(3)))];
+        foot(true, next.el)];
+      next.set(!!g.to.trim(), need); return body;
     };
     const giftSeal = () => {
       const g = ST.gift;
       if(g.sealed) return [doneBlock("gift"), sealScenes()];
-      return [h("h2", "Check it, then seal it"), h("p.st-help", "How it looks when it arrives and when it is opened. Once sealed, it can't be changed."),
-        h("div.st-scroll", tagNote([g.sticker]), sealScenes(), h("div.st-signed", h("i", "SIGN"), `For ${g.to.trim()} · 1 sticker · your photo is never inside`)), foot(true, nextBtn("Seal the gift", true, seal))];
+      return [h("h2", "Check it, then seal it"), h("p.st-help", "How it looks when it arrives and when it is opened. Sealing signs it and asks where to save the file; then it can't be changed."),
+        h("div.st-scroll", tagNote([g.sticker]), sealScenes(), h("div.st-signed", h("i", "SIGN"), `For ${g.to.trim()} · 1 sticker · your photo is never inside`)), foot(true, sealButton("Seal and save…").el)];
     };
     const doneBlock = (kind) => {
-      const again = () => { if(kind === "pack") Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, sel: [], cover: null, title: "", blurb: "" }); else Object.assign(ST.gift, { step: 1, seen: new Set([1]), sealed: false, sticker: null, to: "", note: "" }); stSave(); Snd.tap(); paint(); };
+      const d = kind === "pack" ? ST.pack : ST.gift, r = d.result || {};
+      const again = () => { if(kind === "pack") Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], cover: null, title: "", blurb: "" }); else Object.assign(ST.gift, { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, to: "", note: "" }); stSave(); Snd.tap(); paint(); };
       const msg = (t) => { const m = h("div.st-toast", t); root.append(m); setTimeout(() => m.remove(), 2200); };
       const act = (label, fn, cls = "") => h("button.btn" + cls, { on: { click: async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await fn(msg); } catch(err) { Shell.toast(Distribution?.error ? Distribution.error(err) : String(err)); } finally { b.disabled = false; } } } }, label);
-      const actions = kind === "pack"
-        ? [act("Save pack file…", async (m) => { const path = await Bridge.invoke("creator_pack_save", packArgs()); if(path) { Snd.chime(2, 740); m("Saved."); } }),
-           act("Put on my shelf", async (m) => { await Bridge.invoke("creator_pack_shelve", packArgs()); await Bridge.reload(); Shell.renderNav(); Snd.chime(2, 740); m("It's on your Packs shelf."); }, ".paper")]
-        : [act("Save gift file…", async (m) => { const sent = await Bridge.invoke("gift_send", giftArgs()); if(sent) { await Bridge.reload(); Snd.chime(2, 740); m("Saved."); } })];
-      return h("div.st-done", h("h2", kind === "pack" ? `Sealed. ${ST.pack.title.trim()} · ${ST.pack.sel.length} stickers` : `Sealed. For ${ST.gift.to.trim()}`), h("p.muted", kind === "pack" ? "Save the file to share it, or put it on your own shelf." : "Save the file and send it any way you like."),
-        h("div.st-done-actions", ...actions, h("button.btn.quiet", { on: { click: again } }, "Make another")));
+      const more = [];
+      if(kind === "pack") {
+        if(r.where === "shelf") more.push(act("Also save a file…", async (m) => { const path = await Bridge.invoke("creator_pack_save", packArgs()); if(path) { await Bridge.reload(); Snd.chime(2, 740); m("Saved."); } }));
+        else more.push(act("Also put on my shelf", async (m) => { await Bridge.invoke("creator_pack_shelve", packArgs()); await Bridge.reload(); Shell.renderNav(); Snd.chime(2, 740); m("It's on your Packs shelf."); }, ".paper"));
+      }
+      const line = r.where === "shelf" ? "It's on your Packs shelf." : kind === "pack" ? "The file is saved. Share it any way you like." : "The file is saved. Send it any way you like.";
+      return h("div.st-done", h("h2", kind === "pack" ? `Sealed. ${ST.pack.title.trim()} · ${ST.pack.sel.length} stickers` : `Sealed. For ${ST.gift.to.trim()}`), h("p.muted", line), r.path ? h("p.muted.st-path", { title: r.path }, r.path) : null,
+        h("div.st-done-actions", ...more, h("button.btn.quiet", { on: { click: again } }, "Make another")));
     };
     const packArgs = () => { const p = ST.pack; return { title: p.title.trim(), pouch: p.bag, items: p.sel.map((x) => ({ stickerId: x.id, name: titleOf(stEntry(x.id)), weight: x.weight })), dress: { cover: p.cover || null, deco: p.deco === "none" ? null : p.deco, blurb: p.blurb.trim() || null } }; };
     const giftArgs = () => { const g = ST.gift; return { stickerId: g.sticker, to: g.to.trim(), note: g.note.trim() || null, dress: { bag: g.bag, deco: g.deco === "none" ? null : g.deco } }; };
 
-    /* ---------- sealing: every wrapping closes its own way ---------- */
+    /* ---------- sealing: it signs and writes first (a cancelled save dialog makes nothing), then the wrapping closes its own way ---------- */
+    const sealPack = async () => {
+      if(ST.pack.dest === "file") { const path = await Bridge.invoke("creator_pack_save", packArgs()); if(!path) return null; await Bridge.reload(); return { where: "file", path }; }
+      await Bridge.invoke("creator_pack_shelve", packArgs()); await Bridge.reload(); Shell.renderNav(); return { where: "shelf" };
+    };
+    const sealGift = async () => { const sent = await Bridge.invoke("gift_send", giftArgs()); if(!sent) return null; await Bridge.reload(); return { where: "file", path: sent.savedTo }; };
     const seal = async () => {
-      if(ST.sealing) return; const d = D(); ST.sealing = true;
+      if(ST.sealing) return; const d = D(); ST.sealing = true; paint();
+      let result = null;
+      try { result = ST.mode === "gift" ? await sealGift() : await sealPack(); }
+      catch(err) { ST.sealing = false; paint(); Shell.toast(Distribution?.error ? Distribution.error(err) : String(err)); return; }
+      if(!result) { ST.sealing = false; paint(); return; }
       const wait = (ms) => new Promise((r) => setTimeout(r, reduced() ? 1 : ms)), tilt = $(".st-tilt", bench); if(tilt) tilt.style.transform = "";
       const open = BAGS[d.bag]; const p = $(".bagpic", bench);
       try { if(p) await StudioSeal.run(p, open, bench, wait); } catch {}
       const st = h("div.st-stamp", "SEALED"); bench.append(st); st.animate([{ opacity: 0, transform: "scale(2.2)" }, { opacity: .9, transform: "scale(.94)", offset: .6 }, { opacity: .85, transform: "scale(1)" }], { duration: reduced() ? 1 : 360, easing: "ease-out", fill: "forwards" }); Snd.tap(); await wait(700); Snd.chime(2, 880);
-      d.sealed = true; ST.sealing = false; paint(); setTimeout(() => st.remove(), 400);
+      d.sealed = true; d.result = result; ST.sealing = false; stForget(ST.mode); paint(); setTimeout(() => st.remove(), 400);
     };
 
     const paintPanel = () => {
@@ -245,6 +307,7 @@ const StudioSeal = {
 /** Open Studio from elsewhere (the Collection's "Make a Pack…" and "Gift…"): `sticker` is chosen already. */
 function StudioOpen(mode, sticker) {
   stLoad(); ST.mode = mode;
+  if(mode === "pack" && ST.pack.sealed) Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], cover: null, title: "", blurb: "" });
   if(sticker) { if(mode === "gift") Object.assign(ST.gift, { sticker, step: 1, sealed: false }); else if(!ST.pack.sel.some((x) => x.id === sticker)) ST.pack.sel.push({ id: sticker, weight: 4 }); }
   Shell.go("studio");
 }
