@@ -944,8 +944,8 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 /* Create: the rail ends with room to spare. The tray was being shrunk to fit the rail, so its cards spilled out of it and the last one sat on the
    rounded edge when scrolled to the end; nothing in the rail shrinks now, and a spacer closes it. */
 .cs-rail > * { flex:none; }
-.cs-rail::after { content:""; flex:none; height:6px; }
-.cs-rail { scroll-padding-bottom:20px; }
+.cs-rail::after { content:none; } /* no spacer: the last card ends close to the rail's rounded edge, so there is little to scroll past */
+.cs-rail { scroll-padding-bottom:0; padding-bottom:4px; }
 
 /* Create: the sliders are a plain black line instead of a filled meter; the knob stays the gold one (polish.css). */
 .cs-refine input[type="range"], .cs-dock input[type="range"] { height:26px; background:none; }
