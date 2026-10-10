@@ -344,3 +344,15 @@ pub fn forget_reflection(app: &AppHandle, label: &str) {
     if st.reflection.is_empty() { st.reflection_cursor = None; st.reflection_moved = false; }
     layers.1.notify_all();
 }
+
+/// A link-tagged sticker is under the pointer on a layer that is otherwise click-through: let this layer take the click, and give it back
+/// the moment the pointer leaves. Never touches a layer that is in Edit Mode or waiting at the print slot (those take the mouse anyway).
+#[tauri::command]
+pub fn layer_capture(window: WebviewWindow, layers: tauri::State<Layers>, on: bool) -> Result<(), String> {
+    {
+        let st = layers.0.lock().unwrap();
+        let info = st.by_label.get(window.label()).ok_or("unknown layer")?;
+        if st.edit_mode || info.edit_mode || (st.print && info.is_primary) { return Ok(()); }
+    }
+    window.set_ignore_cursor_events(!on).map_err(|e| e.to_string())
+}

@@ -46,6 +46,8 @@ pub async fn gift_send(window: WebviewWindow, app: AppHandle, sticker_id: String
         (edition, bytes)
     };
     std::fs::write(&path, bytes).map_err(|e| format!("could not save the gift: {e}"))?;
+    // the file is safely written: the sticker's link tag (never in the file) goes back to the owner
+    if app.state::<Store>().lock().db_mut().link_tag_release(&[sticker_id.clone()]).unwrap_or(0) > 0 { let _ = app.emit("link-tags-changed", ()); }
     Ok(Some(Sent { saved_to: path.display().to_string(), edition }))
 }
 
@@ -175,7 +177,9 @@ pub async fn creator_pack_save(window:WebviewWindow,app:AppHandle,title:String,p
     let temp=path.with_file_name(format!(".peta-{}.tmp",peta_core::ids::new_gift_id()));
     let saved=(||->std::io::Result<()>{let mut file=std::fs::OpenOptions::new().write(true).create_new(true).open(&temp)?;file.write_all(&bytes)?;file.sync_all()?;std::fs::rename(&temp,&path)})();
     if let Err(error)=saved {let _=std::fs::remove_file(&temp);return Err(format!("Could not save this pack: {error}"));}
-    peta_core::creator_pack::record_made(&mut lib,&header).map_err(|e|e.to_string())?;Ok(Some(path.display().to_string()))
+    peta_core::creator_pack::record_made(&mut lib,&header).map_err(|e|e.to_string())?;
+    if lib.db_mut().link_tag_release(&items.iter().map(|i|i.sticker_id.clone()).collect::<Vec<_>>()).unwrap_or(0)>0 {let _=app.emit("link-tags-changed",());}
+    Ok(Some(path.display().to_string()))
 }
 
 /// Studio: put a pack you made on your own shelf (the same file you would save, installed here). Returns the pack's shelf id.
@@ -186,5 +190,6 @@ pub fn creator_pack_shelve(app:AppHandle,title:String,pouch:String,items:Vec<pet
     let verified=peta_core::creator_pack::decode(&bytes).map_err(|e|e.to_string())?;
     let id=peta_core::creator_pack::install(&mut lib,&verified,true).map_err(|e|e.to_string())?;
     peta_core::creator_pack::record_made(&mut lib,&header).map_err(|e|e.to_string())?;
+    if lib.db_mut().link_tag_release(&items.iter().map(|i|i.sticker_id.clone()).collect::<Vec<_>>()).unwrap_or(0)>0 {let _=app.emit("link-tags-changed",());}
     drop(lib);today::announce(&app);Ok(id)
 }

@@ -17,6 +17,7 @@ pub mod models;
 pub mod segment;
 pub mod scraps;
 pub mod sticker;
+pub mod link_tag;
 pub mod thumb;
 
 pub use back::StickerBack;

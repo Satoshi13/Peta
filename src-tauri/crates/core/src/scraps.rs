@@ -31,10 +31,15 @@ const PACKS: [(&str, i64); 6] = [("tokyo",16),("coffee",12),("plants",10),("pixe
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Status { pub balance: i64, pub materials: Vec<MaterialRate>, pub packs: Vec<PackRate> }
+pub struct Status { pub balance: i64, pub materials: Vec<MaterialRate>, pub packs: Vec<PackRate>, pub tools: Vec<ToolRate> }
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolRate { pub id: &'static str, pub exchange: i64 }
+/// The link tag's price is provisional (owner has not fixed it).
+const TOOLS: [ToolRate; 1] = [ToolRate { id: "link-tag", exchange: 2 }];
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum Kind { Dismantle, Material, Pack }
+pub enum Kind { Dismantle, Material, Pack, Tool }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Trade { pub kind: Kind, pub item_id: String, pub quantity: i64 }
@@ -50,7 +55,7 @@ fn balance(conn: &Connection) -> Result<i64> {
     Ok(n)
 }
 pub(crate) fn status(conn: &Connection) -> Result<Status> {
-    Ok(Status { balance:balance(conn)?, materials:MATERIALS.to_vec(), packs:PACKS.iter().map(|(id,exchange)| PackRate { id, exchange:*exchange, stickers:pack::market_pack(id).unwrap().keys.len() }).collect() })
+    Ok(Status { balance:balance(conn)?, materials:MATERIALS.to_vec(), packs:PACKS.iter().map(|(id,exchange)| PackRate { id, exchange:*exchange, stickers:pack::market_pack(id).unwrap().keys.len() }).collect(), tools:TOOLS.to_vec() })
 }
 
 pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, unrestricted: bool) -> Result<Receipt> {
@@ -73,6 +78,7 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
             // Sets are bought together: one price per set, all added to the same bag in one transaction.
             -PACKS.iter().find(|(id,_)| *id==request.item_id).ok_or_else(|| invalid("This pack is not available to exchange."))?.1 * request.quantity
         }
+        Kind::Tool => -TOOLS.iter().find(|t| t.id==request.item_id).ok_or_else(|| invalid("This tool is not available."))?.exchange * request.quantity,
     };
     let delta = if unrestricted && delta<0 { 0 } else { delta };
     let next = balance(&tx)?.checked_add(delta).ok_or_else(|| invalid("Scraps balance is out of range."))?;
@@ -89,6 +95,11 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
             if held>MAX_SAFE_COUNT-request.quantity { return Err(invalid("Material stock is out of range.")); }
             tx.execute("INSERT INTO material_stock(material_id,count) VALUES(?1,?2) ON CONFLICT(material_id) DO UPDATE SET count=count+excluded.count", params![request.item_id,request.quantity])?;
             tx.execute("INSERT OR IGNORE INTO material_unlocks(material_id,unlocked_at) VALUES(?1,?2)", params![request.item_id,chrono::Utc::now().to_rfc3339()])?;
+        }
+        Kind::Tool => {
+            let owned: i64 = tx.query_row("SELECT value FROM meta WHERE key=?1", [crate::link_tag::OWNED_KEY], |r| r.get::<_,String>(0)).optional()?.and_then(|v| v.parse().ok()).unwrap_or(0);
+            let next_owned = owned.checked_add(request.quantity).filter(|v| *v<=1_000_000).ok_or_else(|| invalid("Link tag count is out of range."))?;
+            tx.execute("INSERT INTO meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![crate::link_tag::OWNED_KEY,next_owned.to_string()])?;
         }
         Kind::Pack => {
             let own: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM packs WHERE id=?1)", [&request.item_id], |r| r.get(0))?;
@@ -168,6 +179,16 @@ mod tests {
         assert_eq!(db.scrap_trade(&request(Kind::Dismantle,"sakura",1),"gifted-sakura").unwrap().balance,before+4);
     }
 
+    #[test]
+    fn a_link_tag_is_bought_with_scraps_once_per_request_and_adds_to_stock() {
+        let mut db=funded();let before=db.scrap_status().unwrap().balance;
+        let r=db.scrap_trade(&request(Kind::Tool,"link-tag",2),"tags").unwrap();
+        assert_eq!((r.delta,db.scrap_status().unwrap().balance,db.link_tag_stock().unwrap().owned),(-4,before-4,2));
+        assert_eq!(db.scrap_trade(&request(Kind::Tool,"link-tag",2),"tags").unwrap(),r);assert_eq!(db.link_tag_stock().unwrap().owned,2); // a retry never buys twice
+        assert!(db.scrap_trade(&request(Kind::Tool,"unknown",1),"x").is_err());
+        let mut poor=Database::open_in_memory().unwrap();assert!(poor.scrap_trade(&request(Kind::Tool,"link-tag",1),"p").is_err());assert_eq!(poor.link_tag_stock().unwrap().owned,0);
+        assert_eq!(db.scrap_status().unwrap().tools[0].exchange,2);
+    }
     #[test]
     fn retries_return_the_saved_receipt_without_spending_again_and_changed_requests_are_rejected() {
         let mut db=funded();let req=request(Kind::Material,"kraft",2);

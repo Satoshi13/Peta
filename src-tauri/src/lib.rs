@@ -5,6 +5,7 @@ mod arrival_window;
 mod collection;
 mod creator;
 mod gifts;
+mod link_tags;
 mod layers;
 mod packs;
 mod platform;
@@ -210,6 +211,14 @@ pub fn run() {
             gifts::creator_pack_decline,
             gifts::creator_pack_save,
             gifts::creator_pack_shelve,
+            link_tags::link_tag_status,
+            link_tags::link_tag_attach,
+            link_tags::link_tag_set_show,
+            link_tags::link_tag_remove,
+            link_tags::link_tag_pick,
+            link_tags::link_tag_open,
+            link_tags::link_tag_icon,
+            layers::layer_capture,
             gifts::event_inbox,
             gifts::gift_open,
             packs::pack_install_demo,

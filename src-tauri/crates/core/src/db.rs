@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 10;
+pub const SCHEMA_VERSION: i64 = 11;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -194,6 +194,11 @@ CREATE TABLE packs_made (pack_id TEXT PRIMARY KEY, title TEXT NOT NULL, version 
 const MIGRATION_V9: &str = "
 ALTER TABLE stickers ADD COLUMN title TEXT;
 ";
+/// Link tags (2026-10-10): what a tagged sticker opens. The tag stock itself is a count in meta (link_tags.owned).
+const MIGRATION_V11: &str = "
+CREATE TABLE link_tags (sticker_id TEXT PRIMARY KEY REFERENCES stickers(id) ON DELETE CASCADE, kind TEXT NOT NULL, target TEXT NOT NULL, label TEXT NOT NULL, show_in_collection INTEGER NOT NULL DEFAULT 1, attached_at TEXT NOT NULL);
+";
+
 /// Studio (2026-10-10): how a pack or a gift is dressed, and how likely each pack item is to come out. Separate tables, so the existing
 /// positional inserts into pack_distributions / signed_pack_items keep working. A pack item with no weight row uses its legacy grade
 /// (common 4, uncommon 2, rare 1).
@@ -368,6 +373,12 @@ impl Database {
             let tx = self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V10)?;
             tx.pragma_update(None, "user_version", 10)?;
+            tx.commit()?;
+        }
+        if version < 11 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V11)?;
+            tx.pragma_update(None, "user_version", 11)?;
             tx.commit()?;
         }
         Ok(())
@@ -1199,7 +1210,7 @@ mod tests {
             }
             db.update_original_assets("mine","new-render","new-mask",1.5).unwrap();
             assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
-            assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),10);
+            assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),11);
         }
         let mut db = Database::open(&path).unwrap();
         assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
@@ -1391,7 +1402,7 @@ mod tests {
         conn.pragma_update(None, "user_version", 8).unwrap();
         conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect) VALUES ('old','x','o','r','created',1)", []).unwrap();
         let mut db = Database::init(conn).unwrap();
-        assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0)).unwrap(), 10);
+        assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0)).unwrap(), 11);
         assert!(db.sticker("old").unwrap().is_some());
         assert_eq!(db.sticker_title("old").unwrap(), None);
         db.set_sticker_title("old", Some("Still mine")).unwrap();
@@ -1409,7 +1420,7 @@ mod tests {
         conn.execute("INSERT INTO material_stock VALUES ('kraft',4)",[]).unwrap();
         conn.execute("INSERT INTO meta VALUES ('scraps.balance','9')",[]).unwrap();
         let db=Database::init(conn).unwrap();
-        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),10);
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),11);
         assert!(db.sticker("old").unwrap().is_some());assert_eq!(db.material_count("kraft").unwrap(),4);
         assert_eq!(db.packs().unwrap()[0].remaining,1);assert_eq!(db.gifts_received().unwrap()[0].from,"Nao");
         assert_eq!(db.scrap_status().unwrap().balance,9);assert_eq!(db.bonus_envelopes().unwrap(),0);
@@ -1615,7 +1626,7 @@ mod tests {
             assert_eq!((db.packs().unwrap()[0].total,db.packs().unwrap()[0].remaining,db.pack_free_openings("a").unwrap()), (20,0,1));
             assert_eq!(crate::pack::item_name(&db, "free").unwrap().as_deref(), Some("Bonus cat"));
             assert_eq!(db.next_print().unwrap().as_deref(), Some("free"));
-            assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_,i64>(0)).unwrap(), 10);
+            assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_,i64>(0)).unwrap(), 11);
         }
         let _ = std::fs::remove_file(path);
     }
