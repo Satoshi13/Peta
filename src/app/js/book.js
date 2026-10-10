@@ -92,7 +92,11 @@ Pages.book = {
     const select = (e) => { BK.sel = BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date) ? null : e.id; BK.day = PetaMath.bookDateKey(e.date); BK.deleteId = null; Snd.tap(); paint(true); };
     this.settled = false; setTimeout(() => { this.settled = true; }, 800);   // the tiles slide in once, when the page opens; picking a sticker or typing in the filter must not replay it
     /* paint(true) = only the selection changed: the list keeps its tiles (and their pictures), and just the highlight and the details card change. */
+    let painted = false;
     const paint = (selectionOnly) => {
+      // a repaint asked for by a card (after peeling, say) can arrive after the page was already rebuilt by a state change: it must not touch the new page's picture loader
+      if(painted && !root.isConnected) return;
+      painted = true;
       if(selectionOnly === true && S.bookView !== "calendar" && root.querySelector(".bk-grid")) {
         const items = PetaMath.newestBookEntries(S.lib), sel = items.find(e => e.id === BK.sel && PetaMath.bookDateKey(e.date) === BK.day) || items.find(e => e.id === BK.sel);
         const bk = $(".bk", root);
@@ -127,7 +131,7 @@ Pages.book = {
           count.replaceChildren(...[filtered ? `${shown.length} of ${items.length} sticker${items.length === 1 ? "" : "s"}` : `${items.length} sticker${items.length === 1 ? "" : "s"}`,
             filtered ? h("button.link.bk-clear", { type: "button", on: { click: () => { BK.q = ""; BK.mat = "all"; Snd.tap(); paint(); $(".bk-search input")?.focus({ preventScroll: true }); } } }, "Clear") : null].filter(Boolean));
           results.replaceChildren(shown.length ? h("div.bk-grid", shown.map((e, i) => this.tile(e, i, select)))
-            : h("p.empty-note", BK.q.trim() ? `No stickers match “${BK.q.trim()}”.` : "No stickers in this material yet."));
+            : h("p.empty-note", BK.q.trim() ? `No stickers match “${BK.q.trim()}”.` : BK.mat === "desktop" ? "Nothing is stuck on your desktop right now." : "No stickers in this material yet."));
         };
         main.append(count, items.length ? this.filters(items, fill) : null, items.length ? results : h("p.empty-note", "Your Collection is waiting for its first sticker."));
         if (items.length) fill();
@@ -182,7 +186,8 @@ Pages.book = {
   /* Search, material and order for the list. The values live in BK so they survive picking a sticker and coming back to the page. */
   filters(items, fill) {
     const counts = {}; for (const e of items) counts[e.material] = (counts[e.material] || 0) + 1;
-    if (BK.mat !== "all" && !counts[BK.mat]) BK.mat = "all";
+    const onDesk = items.filter((e) => e.onDesktop).length;   // "On desktop" sits beside the materials in the same menu
+    if (BK.mat !== "all" && !(BK.mat === "desktop" ? onDesk : counts[BK.mat])) BK.mat = "all";
     const search = h("input", { type: "search", placeholder: "Search stickers", value: BK.q, autocomplete: "off", spellcheck: false, "aria-label": "Search stickers", enterkeyhint: "search" });
     search.addEventListener("input", () => { BK.q = search.value; fill(); });
     search.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && search.value) { ev.preventDefault(); ev.stopPropagation(); search.value = ""; BK.q = ""; fill(); } });
@@ -191,7 +196,7 @@ Pages.book = {
       return h("label.bk-select", select);
     };
     return h("div.bk-filter", { role: "search" }, h("label.bk-search", search),
-      pick("Material", BK.mat, [["all", "All materials"], ...Object.keys(MAT).filter(id => counts[id]).map(id => [id, `${MAT[id].name} (${counts[id]})`])], v => { BK.mat = v; }),
+      pick("Material", BK.mat, [["all", "All materials"], ...(onDesk ? [["desktop", `On desktop (${onDesk})`]] : []), ...Object.keys(MAT).filter(id => counts[id]).map(id => [id, `${MAT[id].name} (${counts[id]})`])], v => { BK.mat = v; }),
       pick("Sort by", BK.sort, BOOK_SORTS, v => { BK.sort = v; }));
   },
   calendar(items, select, root, paint) {

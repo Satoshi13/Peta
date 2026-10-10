@@ -28,6 +28,7 @@ test('every word of a search must match: name, material, number, date, origin', 
   assert.equal(run({ query: 'kraft cats' }), 'd');
   assert.equal(run({ query: 'nothing like this' }), '');
 });
+test('"desktop" keeps only what is stuck on the desktop, and works with search and order', () => { assert.equal(run({ material: 'desktop' }), 'c'); assert.equal(run({ material: 'desktop', query: 'kraft' }), ''); assert.equal(run({ material: 'desktop', sort: 'oldest' }), 'c'); });
 test('search and material work together', () => assert.equal(run({ query: 'received', material: 'kraft', sort: 'oldest' }), 'db'));
 test('name order is A to Z with numbers in order; material order follows the material list; ties fall back to newest', () => {
   assert.equal(run({ sort: 'name' }), 'dbac');      // Cats, Coffee Club, Good Day, Sticker 3

@@ -27,10 +27,10 @@ export function bookSearchText(entry, materialName = entry.material) {
   return fold(words.join(' '));
 }
 const pad4 = n => String(n).padStart(4, '0');
-/* Search (every word must match), one material or all, and an order. Newest first is the default and the tie-break of every other order. */
+/* Search (every word must match), one material or all (or 'desktop': only what is stuck on the desktop), and an order. Newest first is the default and the tie-break of every other order. */
 export function filterBookEntries(entries, { query = '', material = 'all', sort = 'newest', materialIds = [], nameOf = id => id } = {}) {
   const words = fold(query).split(/\s+/).filter(Boolean);
-  const kept = entries.filter(e => (material === 'all' || e.material === material) && (!words.length || words.every(w => bookSearchText(e, nameOf(e.material)).includes(w))));
+  const kept = entries.filter(e => (material === 'all' || (material === 'desktop' ? !!e.onDesktop : e.material === material)) && (!words.length || words.every(w => bookSearchText(e, nameOf(e.material)).includes(w))));
   const newest = newestBookEntries(kept);
   if (sort === 'oldest') return newest.reverse();
   const rank = new Map(newest.map((e, i) => [e.id, i]));
