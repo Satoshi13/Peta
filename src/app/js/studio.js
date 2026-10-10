@@ -51,7 +51,8 @@ function stFind(fill) {
   const input = h("input", { type: "search", placeholder: "Search stickers", value: f.q, autocomplete: "off", spellcheck: false, "aria-label": "Search stickers", on: { input: () => { f.q = input.value; fill(); } } });
   const options = [["all", "All materials"], ...(onDesk ? [["desktop", `On desktop (${onDesk})`]] : []), ...Object.keys(MAT).filter((id) => counts[id]).map((id) => [id, `${MAT[id].name} (${counts[id]})`])];
   const select = h("select", { "aria-label": "Material", on: { change: () => { f.mat = select.value; Snd.tap(); fill(); } } }, options.map(([v, t]) => h("option", { value: v, selected: v === f.mat }, t)));
-  return h("div.st-find", h("label.st-search", input), h("label.st-selectw", select));
+  const legend = h("div.st-legend", { "aria-hidden": "true" }, ["common", "uncommon", "rare", "special", "archive"].map((r) => h("span", { data: { rarity: r } }, h("i"), r[0].toUpperCase() + r.slice(1))));
+  return h("div.st-findwrap", h("div.st-find", h("label.st-search", input), h("label.st-selectw", select)), legend);
 }
 
 /** The odds: an item's weight over all the weights. */
@@ -72,13 +73,13 @@ Pages.studio = {
   build() {
     const root = h("div.page-in.studiopage"); stLoad();
     const head = h("div.st-head"), work = h("div.st-work"), choose = h("div.st-choose");
-    const bench = h("div.st-bench", h("div.st-ruler"), h("div.st-stage"), h("div.st-cap", h("span.l"), h("span.r")), h("i.st-flash")), panel = h("div.st-panel");
+    const bench = h("div.st-bench", h("div.st-ruler"), h("div.st-stage"), h("div.st-cap", h("span.l"), h("span.r")), h("i.st-flash"), h("i.st-tape.a"), h("i.st-tape.b")), panel = h("div.st-panel");
     work.append(bench, panel); root.append(head, choose, work);
     const stage = $(".st-stage", bench), capL = $(".l", bench), capR = $(".r", bench), ruler = $(".st-ruler", bench);
     for(let c = 0; c <= 15; c += 5) ruler.append(h("span", { style: { left: c * 18 + 4 + "px" } }, c === 0 ? "0" : String(c))); ruler.append(h("span.u", { style: { left: "292px" } }, "cm"));
     const D = () => stDraft(), count = () => (ST.mode === "gift" ? (ST.gift.sticker ? 1 : 0) : ST.pack.sel.length);
     const canGo = (to) => { const d = D(); if(to > 1 && (ST.mode === "gift" ? !d.sticker : d.sel.length < STUDIO.limits.min)) return false; if(to > 2 && !(ST.mode === "gift" ? d.to.trim() : d.title.trim())) return false; return true; };
-    const go = (to) => { const d = D(); if(d.sealed || ST.sealing || !canGo(to)) return; d.step = to; d.seen.add(to); Snd.tap(); paint(); };
+    const go = (to) => { const d = D(); if(d.sealed || ST.sealing || !canGo(to)) return; ST.enter = to !== d.step; d.step = to; d.seen.add(to); Snd.tap(); paint(); };
     const paintBench = () => {
       stage.replaceChildren(); if(!ST.mode) return;
       const d = D(), bag = BAGS[d.bag] || BAGS.kraft, pic = stBag({ k: 18, fit: 228, shut: d.sealed }); stage.append(h("div.st-tilt", pic));
@@ -94,18 +95,18 @@ Pages.studio = {
     /* ---------- the header ---------- */
     const paintHead = () => {
       const d = ST.mode ? D() : null, names = STUDIO.steps[ST.mode || "pack"];
-      const steps = ST.mode ? h("div.st-steps", { role: "tablist" }, names.map((n, i) => h("button", { role: "tab", disabled: d.sealed, class: d.seen.has(i + 1) && i + 1 !== d.step ? "done" : "", "aria-current": d.step === i + 1 ? "step" : "false", on: { click: () => go(i + 1) } }, h("b", String(i + 1)), n))) : null;
+      const steps = ST.mode ? h("div.seg.st-steps", { role: "group", "aria-label": "Steps" }, names.map((n, i) => SegButton(`${i + 1}  ${n}${d.seen.has(i + 1) && i + 1 !== d.step ? " ✓" : ""}`, { type: "button", disabled: d.sealed, "aria-pressed": String(d.step === i + 1), "aria-label": `Step ${i + 1}: ${n}`, on: { click: () => go(i + 1) } }))) : null;
       head.replaceChildren(PageHead(ST.mode === "gift" ? "Gift Studio" : ST.mode === "pack" ? "Pack Studio" : "Studio", ST.mode ? (ST.mode === "gift" ? "Make · Gift" : "Make · Pack") : "Make"),
         h("div.st-head-r", ST.mode ? [h("button.btn.quiet.small", { on: { click: () => { if(ST.sealing) return; ST.mode = null; Snd.tap(); paint(); } } }, "← Change"), steps] : null));
     };
 
     /* ---------- the first choice ---------- */
     const paintChoose = () => {
-      const card = (mode, title, text, who, art) => h("button.st-card", { on: { click: () => { ST.mode = mode; Snd.tap(); paint(); } } }, h("div.st-card-art", art), h("h3", title), h("p", text), h("span.st-for", who));
+      const card = (mode, title, text, who, art) => h("button.st-card", { on: { click: () => { ST.mode = mode; ST.enter = true; Snd.tap(); paint(); } } }, h("div.st-card-art", art), h("h3", title), h("p", text), h("span.st-for", who));
       const pic = (id, css) => { const b = BAGS[id]; return h("i", { style: { backgroundImage: `var(--a-${b.art})`, ...css } }); };
       choose.replaceChildren(h("div", h("h2", "What are you making?"), h("p.muted", "Both are three steps: choose what goes in, dress it, seal it. The difference is who it is for.")),
         h("div.st-cards", card("pack", "A Pack", `Collect ${STUDIO.limits.min}–${STUDIO.limits.max} stickers, decide how likely each one is, and put them in a wrapping. Every opening gives one at random.`, "For the Market and friends", [pic("kraft-parcel", { left: "6%", top: "18%", width: "34%", rotate: "-5deg" }), pic("glassine", { left: "33%", top: "8%", width: "34%" }), pic("cotton", { left: "58%", top: "20%", width: "36%", rotate: "5deg" })]),
-          card("gift", "A Gift", "One sticker, a wrapping and a few words, for one person. They open it and it joins their Collection.", "For one person", [pic("airmail", { left: "4%", top: "26%", width: "62%", rotate: "-4deg" }), pic("glassine", { left: "52%", top: "36%", width: "40%", rotate: "4deg" })])));
+          card("gift", "A Gift", "One sticker, a wrapping and a few words, for one person. They open it and it joins their Collection.", "For one person", [pic("airmail", { left: "2%", top: "6%", width: "58%", rotate: "-4deg" }), pic("glassine", { left: "52%", top: "14%", width: "40%", rotate: "4deg" })])));
     };
 
     /* ---------- the panels ---------- */
@@ -119,8 +120,8 @@ Pages.studio = {
       return h("div.st-field", i, c);
     };
     const bagPicker = (d, ids) => h("div.st-bags", ids.map((id) => h("button.st-bagt", { "aria-pressed": String(d.bag === id), title: BAGS[id].name, on: { click: () => { d.bag = id; stSave(); Snd.tap(); paint(); } } }, h("i", { style: { backgroundImage: `var(--a-${BAGS[id].art})` } }), h("span", BAGS[id].name))));
-    const decoSeg = (d) => h("div.st-seg", STUDIO.decos.map(([k, n]) => h("button", { "aria-pressed": String(d.deco === k), on: { click: () => { d.deco = k; stSave(); Snd.tap(); paint(); } } }, n)));
-    const tile = (e, props, extra, size = 56) => { const t = h("button.st-tile", { title: titleOf(e), ...props }, extra || null); thumbOf(e).then((res) => { if(t.isConnected) t.prepend(Stk.el(res, res.aspect >= 1 ? size : size * res.aspect)); }).catch(() => {}); return t; };
+    const decoSeg = (d) => h("div.seg.st-seg", STUDIO.decos.map(([k, n]) => SegButton(n, { type: "button", "aria-pressed": String(d.deco === k), on: { click: () => { d.deco = k; stSave(); Snd.tap(); paint(); } } })));
+    const tile = (e, props, extra, size = 56) => { const t = h("button.st-tile", { title: `${titleOf(e)} · ${MAT[e.material]?.name || ""}`, data: { rarity: MAT[e.material]?.rarity || "common" }, ...props }, extra || null); thumbOf(e).then((res) => { if(t.isConnected) t.prepend(Stk.el(res, res.aspect >= 1 ? size : size * res.aspect)); }).catch(() => {}); return t; };
 
     const packGather = () => {
       const p = ST.pack, L = STUDIO.limits, tiles = new Map();
@@ -173,17 +174,17 @@ Pages.studio = {
       const d = D(), bag = BAGS[d.bag];
       const wrap = (caption, scene) => h("div", scene, h("div.st-scap", caption));
       if(ST.mode === "gift") {
-        const a = stBag({ k: 9.5, shut: true, open: false }); a.style.cssText += "left:50%;top:30px;translate:-50% 0;";
+        const a = stBag({ k: 7.6, shut: true, open: false }); a.style.cssText += "left:50%;top:30px;translate:-50% 0;";
         const url = d.sticker ? stUrl(d.sticker) : null;
         return h("div.st-pair", wrap("Arrives", h("div.st-scene", a, h("span.st-small", `A gift from ${stName()}`))),
           wrap("Opened", h("div.st-scene", h("div.st-note", h("div.to", "To " + (d.to.trim() || "you") + ","), url ? h("img", { src: url, alt: "" }) : null, h("div.msg", d.note), h("div.from", `from ${stName()}`)))));
       }
-      const stand = bag.show === "stand", a = stBag({ k: 9.5, shut: true, open: false }), c = stBag({ k: 9.5, shut: true, open: false });
+      const stand = bag.show === "stand", a = stBag({ k: 7.6, shut: true, open: false }), c = stBag({ k: 7.6, shut: true, open: false });
       a.style.cssText += "left:50%;bottom:22px;translate:-50% 0;transform-origin:50% 100%;";
       const shelf = h("div.st-scene", a, h("div.st-plank"), h("span.st-count-hand", `${d.sel.length} left`));
       let market;
       if(stand) { c.style.cssText += "left:50%;bottom:22px;translate:-50% 0;transform-origin:50% 100%;"; market = h("div.st-scene", c, h("div.st-plank"), h("span.st-small.top", "Free")); }
-      else { c.style.cssText += "left:50%;top:46px;translate:-50% 0;"; market = h("div.st-scene", h("div.st-rod"), h("i.st-endl"), h("i.st-endr"), c, h("i.st-rclip", { style: { left: "50%", top: "16px", translate: "-50% 0" } }), h("span.st-small", "Free")); }
+      else { c.style.cssText += "left:50%;top:34px;translate:-50% 0;"; market = h("div.st-scene", h("div.st-rod"), h("i.st-endl"), h("i.st-endr"), c, h("i.st-rclip", { style: { left: "50%", top: "16px", translate: "-50% 0" } }), h("span.st-small", "Free")); }
       return h("div.st-pair", wrap("Shelf", shelf), wrap(stand ? "Market · standing" : "Market · hanging", market));
     };
     /* the button that seals: sealing is the real thing (it signs, and writes the shelf entry or the file), so it is also what asks where it goes */
@@ -191,7 +192,7 @@ Pages.studio = {
     const packSeal = () => {
       const p = ST.pack;
       if(p.sealed) return [doneBlock("pack"), sealScenes()];
-      const dest = sec("Where does it go?", h("div.st-seg", [["shelf", "My shelf"], ["file", "A file to share"]].map(([k, n]) => h("button", { type: "button", "aria-pressed": String(p.dest === k), disabled: ST.sealing, on: { click: () => { p.dest = k; Snd.tap(); paint(); } } }, n))));
+      const dest = sec("Where does it go?", h("div.seg.st-seg", [["shelf", "My shelf"], ["file", "A file to share"]].map(([k, n]) => SegButton(n, { type: "button", "aria-pressed": String(p.dest === k), disabled: ST.sealing, on: { click: () => { p.dest = k; Snd.tap(); paint(); } } }))));
       return [h("h2", "Check it, then seal it"), h("p.st-help", "How it looks on your shelf and in the Market. Sealing signs it with your key, and then it can't be changed."),
         h("div.st-scroll", tagNote(p.sel.map((x) => x.id)), sealScenes(), sec("Description (shown on the Market card)", field(p.blurb, STUDIO.limits.blurb, "Description", (v) => { p.blurb = v; stSave(); })), dest,
           h("div.st-signed", h("i", "SIGN"), `${p.title.trim()} · ${p.sel.length} stickers · ${stOddsLine(p.sel)}`)),
@@ -264,6 +265,7 @@ Pages.studio = {
       if(!ST.mode) { panel.replaceChildren(); return; }
       const n = D().step, body = (ST.mode === "gift" ? [giftChoose, giftDress, giftSeal] : [packGather, packDress, packSeal])[n - 1]();
       panel.replaceChildren(...[].concat(body));
+      if(ST.enter) { ST.enter = false; if(!reduced()) [...panel.children].forEach((c, i) => c.animate([{ opacity: 0, transform: "translateX(14px)" }, { opacity: 1, transform: "none" }], { duration: 300, delay: i * 35, easing: EASE.out, fill: "backwards" })); }
     };
     const paint = () => { const on = !!ST.mode; work.hidden = !on; choose.hidden = on; paintHead(); if(on) { paintBench(); paintPanel(); } else paintChoose(); };
     paint(); return root;
