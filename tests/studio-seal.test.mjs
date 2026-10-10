@@ -13,7 +13,7 @@ test('sealing is the real thing: it signs and writes first, and only then marks 
 });
 test('the pickers have a search, and a tap does not rebuild the list (so it keeps its scroll and focus)', () => {
   assert.match(js, /function stFind\(fill\)/);
-  const gather = js.slice(js.indexOf('const packGather = () =>'), js.indexOf('const packDress = () =>'));
+  const gather = js.slice(js.indexOf('const packGather = () =>'), js.indexOf('const packChances = () =>'));
   assert.match(gather, /stFind\(fill\)/);
   assert.doesNotMatch(gather.slice(gather.indexOf('const toggle')), /\bpaint\(\)/);
 });
