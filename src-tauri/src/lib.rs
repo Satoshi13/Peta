@@ -236,7 +236,6 @@ pub fn run() {
             collection::book_page,
             collection::sticker_back,
             collection::sticker_delete_original,
-            collection::sticker_duplicate,
             collection::material_book,
             collection::scrap_status,
             collection::scrap_trade,

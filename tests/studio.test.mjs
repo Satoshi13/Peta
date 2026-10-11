@@ -60,8 +60,8 @@ test('the odds are copies over all remaining copies and prize slots', () => {
   [0.1, 0.1, 0.8].forEach((v, i) => close(stOdds([{ copies: 1 }, { copies: 1 }, { copies: 8 }])[i], v));
   close(stOdds([{ copies: 4 }, { copies: 4 }]).reduce((a, b) => a + b), 1);
   assert.equal(stPct(0.333), '33%'); assert.equal(stPct(0.05), '5.0%');
-  assert.match(stOddsLine([{ copies: 4 }, { copies: 4 }, { copies: 4 }]), /12 copies/);
-  assert.match(stOddsLine([{ copies: 1 }, { copies: 4 }, { copies: 16 }]), /21 copies/);   // finite design count
+  assert.match(stOddsLine([{ copies: 4 }, { copies: 4 }, { copies: 4 }]), /12 editions/);
+  assert.match(stOddsLine([{ copies: 1 }, { copies: 4 }, { copies: 16 }]), /21 editions/);   // finite design count
   assert.equal(stOddsLine([]), '');
 });
 

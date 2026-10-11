@@ -10,23 +10,27 @@ test('Studio excludes copies and restores only real draft selections',()=>{
  assert.match(src,/new Set\(S.lib.filter\(e => e.lineage !== "copy"\)/);
  assert.match(src,/stEntry\(sticker\)\?\.lineage !== "copy"/);
 });
-test('Duplicate exposes only the remaining allowance and copies stay local',()=>{
- const src=read('src/app/js/book.js'),ctx=vm.createContext({});
- vm.runInContext(src.split('\n').find(l=>l.startsWith('const copyRoom ='))+';this.room=copyRoom;',ctx);
- for(const [copies,room] of [[0,10],[3,7],[10,0],[12,0]])assert.equal(ctx.room({copies,copyLimit:10}),room);
- assert.match(src,/Array.from\(\{length:room\}/);assert.match(src,/Stays on this Mac/);assert.match(src,/e.lineage !== "copy" \? act\("det-link", "gift"/);
+test('existing copies remain selectable without a duplicate operation',()=>{
+ const src=read('src/app/js/book.js'),ctx=vm.createContext({S:{lib:[{id:'old-copy',copyOf:'real',copyNo:2,date:'2026-10-11'},{id:'other-copy',copyOf:'other'}]},BK:{},PetaMath:{newestBookEntries:x=>x,bookDateKey:x=>x},h:(tag,...children)=>({tag,children}),paint:selectionOnly=>{ctx.painted=selectionOnly;}});
+ const method=src.slice(src.indexOf('  existingCopies('),src.indexOf('  deleteForm('));
+ vm.runInContext('this.book={'+method+'};this.row=book.existingCopies({id:"real"},paint);',ctx);
+ const buttons=ctx.row.children[1];assert.equal(buttons.length,1);assert.equal(buttons[0].children[1],'Copy #2');
+ buttons[0].children[0].on.click();assert.equal(ctx.BK.sel,'old-copy');assert.equal(ctx.BK.day,'2026-10-11');assert.equal(ctx.painted,true);
+ assert.equal(ctx.book.existingCopies({id:'without-copies'},ctx.paint),null);
+ for(const path of ['src/app/js/book.js','src-tauri/src/collection.rs','src-tauri/src/lib.rs','src-tauri/permissions/desktop-effects.toml'])assert.doesNotMatch(read(path),/sticker_duplicate/);
+ assert.match(src,/Stays on this Mac/);assert.match(src,/e.lineage !== "copy" \? act\("det-link", "gift"/);
 });
 test('Gift requires an explicit transfer confirmation before invoking the command',()=>{
  const src=read('src/app/js/studio.js');assert.match(src,/This leaves your Collection\./);assert.match(src,/if\(!await stConfirmTransfer\(\)\) return null/);
 });
-test('Copies panel fixes foreign stickers to one and reports odds including prizes',()=>{
+test('Editions panel fixes foreign stickers to one and reports odds including prizes',()=>{
  const src=read('src/app/js/studio.js'),ctx=vm.createContext({S:{packLimits:{copiesPerDesign:30}}});
  const pick=n=>src.split('\n').find(l=>l.startsWith(`const ${n} =`));
  vm.runInContext(['stCopyMax','stSlots','stOdds'].map(pick).join('\n')+';this.out={stCopyMax,stSlots,stOdds};',ctx);
  assert.equal(ctx.out.stCopyMax({canPress:true}),30);assert.equal(ctx.out.stCopyMax({canPress:false}),1);
  assert.equal(ctx.out.stSlots({sel:[{copies:3},{copies:1}],prizes:[{count:2}]}),6);
  assert.deepEqual(Array.from(ctx.out.stOdds([{copies:3},{copies:1}],[{count:2}])),[.5,1/6]);
- assert.match(src,/Made by someone else: one copy/);assert.match(src,/disabled:!!e.pressed/);assert.match(src,/ids = p.sel.filter\(x=>stEntry\(x.id\)\?\.canPress\)/);
+ assert.match(src,/Made by someone else: one sticker/);assert.match(src,/heading\("Editions"/);assert.match(src,/disabled:!!e.pressed/);assert.match(src,/ids = p.sel.filter\(x=>stEntry\(x.id\)\?\.canPress\)/);
 });
 test('own packs have no opening controls and prize awards never load a sticker asset',()=>{
  const src=read('src/app/js/packs.js');assert.match(src,/const one = p.own \? null/);assert.match(src,/Your own pack: friends open it/);

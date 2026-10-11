@@ -5,7 +5,6 @@ use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use crate::{db::now, Error, Result, Sticker, Database, sign};
-pub const MAX_COPIES: u32 = 10;
 fn invalid(reason: &str) -> Error { Error::Invalid(format!("The history of this sticker does not add up. {reason}")) }
 pub fn digest(bytes: &[u8]) -> String { Sha256::digest(bytes).iter().map(|b|format!("{b:02x}")).collect() }
 fn json(value: &impl Serialize) -> Result<Vec<u8>> { serde_json::to_vec(value).map_err(|e|invalid(&e.to_string())) }
@@ -35,16 +34,15 @@ mod tests {
         wrong.transfers[1].at="2999-01-01T00:00:00Z".into();wrong.transfers[1].sig=signed(&b,&wrong.transfers[1].bytes().unwrap());assert!(sticker_chain_verify(&wrong,b"png").is_err());
     }
     #[test]
-    fn copies_share_assets_resolve_the_root_and_do_not_spend_stock() {
+    fn existing_copies_share_assets_stay_local_and_are_cleaned_up() {
         let mut db=Database::open_in_memory().unwrap();db.create_sticker(new("real")).unwrap();
-        let stock=db.material_count("matte").unwrap();let first=db.sticker_duplicate("real",2).unwrap();
+        let stock=db.material_count("matte").unwrap();let first=db.seed_legacy_copies("real",2).unwrap();
         assert_eq!(first[0].rendered_asset_path,"render.png");assert_eq!(first[0].mask_asset_path.as_deref(),Some("mask.png"));assert_eq!(first[0].copy_no,Some(2));
         assert_eq!(first[0].provenance[0].kind,crate::ProvenanceKind::Duplicated);
-        db.sticker_duplicate(&first[0].id,8).unwrap();assert_eq!(db.copies("real").unwrap(),10);
-        assert!(matches!(db.sticker_duplicate("real",1),Err(Error::Invalid(s)) if s=="copy_limit"));
+        assert_eq!(db.copies("real").unwrap(),2);
         assert!(matches!(require_real(&first[0]),Err(Error::Invalid(s)) if s=="copies_stay_home"));
         assert_eq!(db.material_count("matte").unwrap(),stock);
-        db.delete_original(&first[0].id).unwrap();assert_eq!(db.copies("real").unwrap(),9);
+        db.delete_original(&first[0].id).unwrap();assert_eq!(db.copies("real").unwrap(),1);
         db.delete_original("real").unwrap();assert_eq!(db.sticker_count().unwrap(),0);
     }
     #[test]
@@ -55,7 +53,7 @@ mod tests {
         db.delete_original("a").unwrap();
         assert!(!db.create_signed_sticker(new("b"),b"source",b"different finish",&key,&NoReferee).unwrap().new_image);
         assert!(db.create_signed_sticker(new("c"),b"other source",b"png",&key,&NoReferee).unwrap().new_image);
-        db.sticker_duplicate("c",1).unwrap();
+        db.seed_legacy_copies("c",1).unwrap();
         crate::scraps::NEW_STICKER_CALLS.with(|c|assert_eq!(*c.borrow(),vec![("a".into(),true),("b".into(),false),("c".into(),true)]));
     }
     #[test] fn refused_registration_does_not_record_a_source_or_a_sticker() {
@@ -164,22 +162,19 @@ pub(crate) fn release_local(conn:&Connection,id:&str)->Result<()> {
 }
 pub fn require_real(s:&Sticker)->Result<()> {if s.lineage=="copy" {Err(Error::Invalid("copies_stay_home".into()))} else if s.state!="held" {Err(Error::Invalid("That sticker is no longer in your Collection.".into()))} else {Ok(())}}
 impl Database {
-    pub fn copies(&self,id:&str)->Result<u32>{Ok(self.conn.query_row("SELECT COUNT(*) FROM stickers WHERE copy_of=?1",[id],|r|r.get(0))?)}
-    pub fn sticker_duplicate(&mut self,id:&str,count:u32)->Result<Vec<Sticker>> {
-        let s=self.held_sticker(id)?.ok_or_else(||Error::Invalid("Sticker not found.".into()))?;let root=s.copy_of.as_deref().unwrap_or(&s.id).to_owned();
-        let original=self.held_sticker(&root)?.ok_or_else(||Error::Invalid("The real sticker is no longer here.".into()))?;require_real(&original)?;
-        let tx=self.conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-        if !tx.query_row("SELECT EXISTS(SELECT 1 FROM stickers WHERE id=?1 AND state='held' AND lineage='real')",[&root],|r|r.get::<_,bool>(0))? {return Err(invalid("Real sticker left this device."));}
-        let existing:u32=tx.query_row("SELECT COUNT(*) FROM stickers WHERE copy_of=?1",[&root],|r|r.get(0))?;
-        if count==0||count>MAX_COPIES||existing+count>MAX_COPIES {return Err(Error::Invalid("copy_limit".into()));}
-        let mut ids=Vec::new();let mut used=std::collections::HashSet::new();
-        {let mut stmt=tx.prepare("SELECT copy_no FROM stickers WHERE copy_of=?1")?;for n in stmt.query_map([&root],|r|r.get::<_,u32>(0))? {used.insert(n?);}}
-        for _ in 0..count {
-            let no=(2..=MAX_COPIES+1).find(|n|!used.contains(n)).unwrap();used.insert(no);let id=crate::ids::new_sticker_id();
-            tx.execute("INSERT INTO stickers(id,creator_id,creator_name,created_at,original_asset_path,rendered_asset_path,mask_asset_path,material_id,source_type,aspect,lineage,copy_of,copy_no,title) SELECT ?2,creator_id,creator_name,?3,original_asset_path,rendered_asset_path,mask_asset_path,material_id,'collection',aspect,'copy',id,?4,title FROM stickers WHERE id=?1 AND state='held'",params![root,id,now(),no])?;
-            provenance(&tx,&id,"duplicated",Some(&root),&now())?;ids.push(id);
+    #[cfg(test)]
+    pub(crate) fn copies(&self,id:&str)->Result<u32>{Ok(self.conn.query_row("SELECT COUNT(*) FROM stickers WHERE copy_of=?1",[id],|r|r.get(0))?)}
+    /// Fixture for compatibility checks; production has no local-copy creation API.
+    #[cfg(test)]
+    pub(crate) fn seed_legacy_copies(&mut self,id:&str,count:u32)->Result<Vec<Sticker>> {
+        let tx=self.conn.transaction()?;let mut ids=Vec::new();
+        let next:u32=tx.query_row("SELECT COALESCE(MAX(copy_no),1)+1 FROM stickers WHERE copy_of=?1",[id],|r|r.get(0))?;
+        for no in next..next+count {
+            let copy=crate::ids::new_sticker_id();
+            tx.execute("INSERT INTO stickers(id,creator_id,creator_name,created_at,original_asset_path,rendered_asset_path,mask_asset_path,material_id,source_type,aspect,lineage,copy_of,copy_no,title) SELECT ?2,creator_id,creator_name,?3,original_asset_path,rendered_asset_path,mask_asset_path,material_id,'collection',aspect,'copy',id,?4,title FROM stickers WHERE id=?1",params![id,copy,now(),no])?;
+            provenance(&tx,&copy,"duplicated",Some(id),&now())?;ids.push(copy);
         }
-        tx.commit()?;ids.into_iter().map(|id|self.sticker(&id)?.ok_or_else(||invalid("Copy vanished."))).collect()
+        tx.commit()?;ids.into_iter().map(|id|self.sticker(&id)?.ok_or_else(||invalid("Legacy copy fixture missing."))).collect()
     }
     pub fn held_sticker(&self,id:&str)->Result<Option<Sticker>> {Ok(self.sticker(id)?.filter(|s|s.state=="held"))}
 }

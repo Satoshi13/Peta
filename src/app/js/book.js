@@ -1,6 +1,5 @@
 /* Sticker Book: a list or local-date calendar, a detail card you can turn over, peel / gift / stick-as-today. */
 const BK = { sel: null, anim: false, deleteId: null, day: null, completed: new Set(), q: "", mat: "all", sort: "newest" };
-const copyRoom = (e) => Math.max(0, (e.copyLimit || 0) - (e.copies || 0));
 const BOOK_SORTS = [["newest", "Newest first"], ["oldest", "Oldest first"], ["name", "Name A–Z"], ["material", "By material"]];
 
 /** First weekday of the device locale (0 = Sunday); Sunday when the engine cannot say. */
@@ -182,7 +181,7 @@ Pages.book = {
     this.lazySticker(holder, e, 128);
     return h("button.tile", { data: { sticker: e.id, late: i >= 12 || this.settled ? "1" : "0" }, "aria-pressed": String(BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date)), style: { "--i": Math.min(i, 8) }, on: { click: () => select(e) } },
       h("span.tile-date", fmtDate(e.date,{month:"short",day:"numeric"})),
-      holder, (() => { const lt = ltTag(e.id); return lt && lt.showInCollection ? h("span.tile-link", { title: `Opens ${lt.label}` }, ltMark(e.id, lt), lt.label) : null; })(), h("span.tile-footer", h("b", titleOf(e)), e.copies ? h("small", "×"+(e.copies+1)) : null, e.verified === false && e.lineage !== "copy" ? h("small", "Unverified") : null, h("small", `${MAT[e.material].name} · ${e.kind === "received" ? "Received" : "No. "+pad4(e.no)}`)),
+      holder, (() => { const lt = ltTag(e.id); return lt && lt.showInCollection ? h("span.tile-link", { title: `Opens ${lt.label}` }, ltMark(e.id, lt), lt.label) : null; })(), h("span.tile-footer", h("b", titleOf(e)), e.verified === false && e.lineage !== "copy" ? h("small", "Unverified") : null, h("small", `${MAT[e.material].name} · ${e.kind === "received" ? "Received" : "No. "+pad4(e.no)}`)),
       onDesk ? h("i.on-desk", "On desktop") : null, e.kind === "received" ? h("i.recv", "Gift") : null);
   },
   /* Search, material and order for the list. The values live in BK so they survive picking a sticker and coming back to the page. */
@@ -259,20 +258,17 @@ Pages.book = {
       h("div.det-info",
         h("div", h("small", "Material"), h("span.det-mat", MaterialSwatch({ id: mat.id || e.material, sw: mat.sw, card: mat.card }), h("b", mat.name))),
         h("div", h("small", "Made"), h("b", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })))),
-      e.lineage === "copy" ? h("p",`Copy #${e.copyNo} of ${titleOf(S.lib.find(x=>x.id===e.copyOf) || e)} · Stays on this Mac`) : h("p",`Copies: ${e.copies || 0}${e.pressed ? " · Already pressed" : ""}`),
-      e.lineage !== "copy" ? this.copyControls(e,paint) : null,
+      e.lineage === "copy" ? h("p",`Existing copy #${e.copyNo} of ${titleOf(S.lib.find(x=>x.id===e.copyOf) || e)} · Stays on this Mac`) : e.pressed ? h("p","Already pressed") : null,
+      e.lineage !== "copy" ? this.existingCopies(e,paint) : null,
       LinkTags.row(e, paint),
       (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions", main,
         h("div.book-action-row", e.lineage !== "copy" ? act("det-link", "gift", Icon("gift"), "Gift", () => { BK.deleteId = null; StudioOpen("gift", e.id); }) : null,
           e.canManage && e.lineage !== "copy" ? act("det-link.quiet2", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,
           e.canManage ? act("det-link.quiet2.danger", "delete", Icon("trash"), "Delete", () => { BK.deleteId = e.id; paint(); }) : null))));
   },
-  copyControls(e,paint) {
-    const room=copyRoom(e),select=h("select",{"aria-label":"Number of copies",disabled:!room},Array.from({length:room},(_,i)=>h("option",{value:i+1},String(i+1))));
+  existingCopies(e,paint) {
     const copies=PetaMath.newestBookEntries(S.lib).filter(x=>x.copyOf===e.id);
-    return h("div.book-copies",select,h("button.btn.secondary",{disabled:!room,on:{click:async()=>{
-      try {await Bridge.invoke("sticker_duplicate",{stickerId:e.id,count:Number(select.value)});await Bridge.reload();paint();}catch(err){Shell.toast(String(err));}
-    }}},"Duplicate"),h("small",`${room} copies available`),copies.map(copy=>h("button.btn.quiet.small",{on:{click:()=>{BK.sel=copy.id;BK.day=PetaMath.bookDateKey(copy.date);paint(true);}}},`Copy #${copy.copyNo}`)));
+    return copies.length ? h("div.book-copies",h("small","Existing copies"),copies.map(copy=>h("button.btn.quiet.small",{on:{click:()=>{BK.sel=copy.id;BK.day=PetaMath.bookDateKey(copy.date);paint(true);}}},`Copy #${copy.copyNo}`))) : null;
   },
   deleteForm(e, paint) {
     return h("div.book-delete", { role: "group", "aria-label": "Confirm sticker deletion" },

@@ -58,7 +58,7 @@ fn build(lib:&Library,title:&str,pouch:&str,selection:&[Selection],prizes:&[Priz
         let s=lib.db().held_sticker(&selected.sticker_id)?.ok_or_else(||invalid("Sticker is no longer held here."))?;o::require_real(&s)?;
         let minted=can_press(&s,&public);
         if s.pressed {return Err(invalid("already_pressed"));}
-        if !minted&&selected.copies!=1 {return Err(invalid("Made by someone else: one copy."));}
+        if !minted&&selected.copies!=1 {return Err(invalid("Made by someone else: one sticker."));}
         if h.cover.as_deref()==Some(&s.id)&&!minted{return Err(invalid("Choose your own design for the cover."));}
         let png=lib.read_rendered(&s.id)?;let mask=s.mask_asset_path.as_ref().map(|p|lib.read_asset(p)).transpose()?.unwrap_or_default();
         let mut histories=Vec::new();
@@ -237,7 +237,7 @@ pub fn open(lib:&mut Library,id:&str,roll:f64,free:bool,date:&str,queue:bool,ref
         huge[6].copies=20;let (_,max)=build(&mine,"Maximum","kraft",&huge,&[],&Dress::default()).unwrap();assert_eq!(slots(creator_pack::decode(&max).unwrap().header()),200);
     }
     #[test] fn pressing_and_claiming_finite_slots_share_images_and_preserve_origins() {
-        let (mut mine,selection)=fixture(3,2);let copy=mine.db_mut().sticker_duplicate(&selection[0].sticker_id,1).unwrap().remove(0);
+        let (mut mine,selection)=fixture(3,2);let copy=mine.db_mut().seed_legacy_copies(&selection[0].sticker_id,1).unwrap().remove(0);
         mine.db_mut().add_material("kraft",4).unwrap();mine.db_mut().link_tag_add_stock(2).unwrap();
         let bytes=export(&mut mine,&selection,&[Prize::Material{material_id:"kraft".into(),count:2},Prize::Tag{count:1}]);
         assert_eq!(mine.db().material_count("kraft").unwrap(),2);assert_eq!(mine.db().link_tag_stock().unwrap().owned,1);
@@ -277,13 +277,13 @@ pub fn open(lib:&mut Library,id:&str,roll:f64,free:bool,date:&str,queue:bool,ref
         assert_eq!(friend.db().sticker_count().unwrap(),0);assert_eq!(friend.db().material_count("kraft").unwrap(),0);assert_eq!(friend.db().link_tag_stock().unwrap().owned,0);assert_eq!(friend.db().packs().unwrap()[0].remaining,8);
     }
     #[test] fn copies_foreign_multiplication_and_attached_prizes_are_rejected() {
-        let (mut mine,mut selection)=fixture(3,1);let copy=mine.db_mut().sticker_duplicate(&selection[0].sticker_id,1).unwrap().remove(0);let original=selection[0].sticker_id.clone();selection[0].sticker_id=copy.id;
+        let (mut mine,mut selection)=fixture(3,1);let copy=mine.db_mut().seed_legacy_copies(&selection[0].sticker_id,1).unwrap().remove(0);let original=selection[0].sticker_id.clone();selection[0].sticker_id=copy.id;
         assert!(matches!(build(&mine,"Copies","kraft",&selection,&[],&Dress::default()),Err(crate::Error::Invalid(e)) if e=="copies_stay_home"));selection[0].sticker_id=original.clone();
         mine.db_mut().link_tag_add_stock(1).unwrap();mine.db_mut().link_tag_attach(&original,"website","https://example.com","Site",true).unwrap();
         assert!(press(&mut mine,"Prizes","kraft",&selection,&[Prize::Tag{count:1}],&Dress::default(),false,&o::NoReferee,|_,_|Ok(())).is_err());
         assert!(matches!(press(&mut mine,"Materials","kraft",&selection,&[Prize::Material{material_id:"gold".into(),count:1}],&Dress::default(),false,&o::NoReferee,|_,_|Ok(())),Err(crate::Error::Invalid(e)) if e=="not_enough_material"));
         let (mut author,other)=fixture(3,1);let (gift,file)=crate::gift::build_gift(&mut author,&other[0].sticker_id,"Maker",None).unwrap();crate::gift::receive_gift(&mut mine,&file).unwrap();let foreign=crate::gift::open_gift(&mut mine,&gift).unwrap();
-        let foreign_copy=mine.db_mut().sticker_duplicate(&foreign.id,1).unwrap().remove(0);selection[0].sticker_id=foreign.id.clone();selection[0].copies=2;
+        let foreign_copy=mine.db_mut().seed_legacy_copies(&foreign.id,1).unwrap().remove(0);selection[0].sticker_id=foreign.id.clone();selection[0].copies=2;
         assert!(build(&mine,"Foreign","kraft",&selection,&[],&Dress::default()).is_err());selection[0].copies=1;
         press(&mut mine,"Foreign","kraft",&selection,&[],&Dress::default(),true,&o::NoReferee,|_,_|Ok(())).unwrap();
         assert_eq!(mine.db().sticker(&foreign.id).unwrap().unwrap().state,"gone");assert!(mine.db().sticker(&foreign_copy.id).unwrap().is_none());

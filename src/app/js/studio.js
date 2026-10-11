@@ -122,7 +122,7 @@ function stFind(fill) {
 /** Display odds from remaining copies and prize slots. */
 const stOdds = (sel, prizes = []) => { const sum = sel.reduce((s, x) => s + x.copies, 0) + prizes.reduce((s,x)=>s+x.count,0) || 1; return sel.map((x) => x.copies / sum); };
 const stPct = (v) => (v < .1 ? (v * 100).toFixed(1) : Math.round(v * 100)) + "%";
-const stOddsLine = (sel, prizes = []) => { if(!sel.length) return ""; return `${sel.reduce((s,x)=>s+x.copies,0)} copies · ${prizes.reduce((s,x)=>s+x.count,0)} prizes · Chances follow the remaining slots.`; };
+const stOddsLine = (sel, prizes = []) => { if(!sel.length) return ""; return `${sel.reduce((s,x)=>s+x.copies,0)} editions · ${prizes.reduce((s,x)=>s+x.count,0)} prizes · Chances follow the remaining slots.`; };
 const stName = () => S.name.trim() || "You";
 
 /** What the bag on the bench looks like right now. */
@@ -236,7 +236,7 @@ Pages.studio = {
       const sync = () => {
         const n = p.sel.length, short = L.min - n, same = new Set(p.sel.map((x) => x.copies)).size <= 1;
         count.children[0].textContent = String(n); count.children[1].textContent = "selected"; count.children[2].textContent = `of ${L.max}`;
-        chance.replaceChildren(h("i.ico", { "aria-hidden": "true" }), h("span", h("b", "Copies"), n >= L.min && !same ? h("small", stOddsLine(p.sel,p.prizes)) : null));
+        chance.replaceChildren(h("i.ico", { "aria-hidden": "true" }), h("span", h("b", "Editions"), n >= L.min && !same ? h("small", stOddsLine(p.sel,p.prizes)) : null));
         more.disabled = n < 1;
         next.set(n >= L.min && stSlots(p)<=S.packLimits.packSlots, `Choose ${short} more sticker${short === 1 ? "" : "s"} to continue.`, `${n} sticker${n === 1 ? "" : "s"} selected`);
         for(const [id, t] of tiles) t.setAttribute("aria-pressed", String(p.sel.some((x) => x.id === id)));
@@ -258,9 +258,9 @@ Pages.studio = {
       for(const x of p.sel) {
         const e=stEntry(x.id),max=stCopyMax(e),pct=h("b.pct");
         const change=d=>{x.copies=clamp(x.copies+d,1,max);stSave();sync();};
-        const minus=h("button",{"aria-label":`Fewer copies: ${titleOf(e)}`,on:{click:()=>change(-1)}},"−"),plus=h("button",{"aria-label":`More copies: ${titleOf(e)}`,on:{click:()=>change(1)}},"+");
+        const minus=h("button",{"aria-label":`Fewer editions: ${titleOf(e)}`,on:{click:()=>change(-1)}},"−"),plus=h("button",{"aria-label":`More editions: ${titleOf(e)}`,on:{click:()=>change(1)}},"+");
         pcts.set(x.id,pct);steppers.push(()=>{minus.disabled=x.copies<=1;plus.disabled=x.copies>=max||stSlots(p)>=S.packLimits.packSlots;});
-        list.append(h("div.st-crow",h("b.nm",titleOf(e)),!e.canPress ? h("small","Made by someone else: one copy") : null,h("div.st-step",minus,pct,plus)));
+        list.append(h("div.st-crow",h("b.nm",titleOf(e)),!e.canPress ? h("small","Made by someone else: one sticker") : null,h("div.st-step",minus,pct,plus)));
       }
       const prizeRows=h("div.st-crows");
       const prizeCount=(kind,materialId)=>p.prizes.find(x=>x.kind===kind&&x.materialId===materialId)?.count || 0;
@@ -275,7 +275,7 @@ Pages.studio = {
       for(const [id,stock] of Object.entries(S.prizeStock || {}))prizeRow("material",id,MAT[id].name,stock);
       prizeRow("tag",undefined,"Link tag",S.tagStock?.available || 0);
       const done=h("button.btn",{on:{click:()=>{ST.chances=false;paint();}}},"Done");
-      const body=[heading("Copies","Set the number of editions. Originals stay with you; each design can be pressed once."),summary,list,heading("Prizes",`Move up to ${S.packLimits.prizes} sheets or unattached tags from your stock.`),prizeRows,done];sync();return body;
+      const body=[heading("Editions","Set the number of editions. Originals stay with you; each design can be pressed once."),summary,list,heading("Prizes",`Move up to ${S.packLimits.prizes} sheets or unattached tags from your stock.`),prizeRows,done];sync();return body;
     };
 
     /* ----- Dress (a pack): what is chosen now; "Change…" opens the choices ----- */
@@ -316,7 +316,7 @@ Pages.studio = {
       if(p.sealed) return [doneBlock("pack")];
       const note = h("div.st-field", h("textarea", { rows: 2, maxLength: STUDIO.limits.blurb, placeholder: "A few words about this pack…", "aria-label": "Description", on: { input: (e) => { p.blurb = e.target.value; cnt.textContent = `${p.blurb.length}/${STUDIO.limits.blurb}`; stSave(); } } }, p.blurb)), cnt = h("span.cnt", `${p.blurb.length}/${STUDIO.limits.blurb}`); note.append(cnt);
       return [heading("Ready to seal", "Check the details before finishing."),
-        h("div.st-scroll", h("div.st-sum", h("b", p.title.trim()), h("span", `${p.sel.length} designs · ${p.sel.reduce((s,x)=>s+x.copies,0)} copies · ${p.prizes.reduce((s,x)=>s+x.count,0)} prizes`), h("small", stOddsLine(p.sel,p.prizes))), sec("Description", note, h("small.st-fine", "Shown on the Market card.")),
+        h("div.st-scroll", h("div.st-sum", h("b", p.title.trim()), h("span", `${p.sel.length} designs · ${p.sel.reduce((s,x)=>s+x.copies,0)} editions · ${p.prizes.reduce((s,x)=>s+x.count,0)} prizes`), h("small", stOddsLine(p.sel,p.prizes))), sec("Description", note, h("small.st-fine", "Shown on the Market card.")),
           sec("Destination", pills([["shelf", "My shelf"], ["file", "File to share"]], p.dest, (k) => { p.dest = k; Snd.tap(); paint(); }, ST.sealing)), tagNote(p.sel.filter(x=>!stEntry(x.id)?.canPress).map((x) => x.id))),
         foot(true, sealButton(p.dest === "file" ? "Seal and save…" : "Seal the pack").el, "Originals stay with you and can be pressed once. Received stickers and prizes leave your Collection / stock and move into the pack. It cannot be edited afterward.")];
     };
@@ -435,7 +435,8 @@ const StudioSeal = {
 function stConfirmTransfer() {
   return new Promise(resolve => {
     const dialog=h("dialog", {"aria-label":"Confirm sticker transfer",on:{cancel:()=>resolve(false),close:()=>dialog.remove()}},
-      h("h2","This leaves your Collection."),h("p","The real sticker moves to its recipient. Its copies also disappear from this Mac."),
+      h("h2","This leaves your Collection."),h("p","The sticker moves to its recipient."),
+      S.lib.some(e=>e.copyOf===ST.gift.sticker) ? h("p","Existing copies also disappear from this Mac.") : null,
       h("button.btn.secondary",{on:{click:()=>{resolve(false);dialog.close();}}},"Cancel"),
       h("button.btn",{on:{click:()=>{resolve(true);dialog.close();}}},"Transfer and save…"));
     document.body.append(dialog);dialog.showModal();

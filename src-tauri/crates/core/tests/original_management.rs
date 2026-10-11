@@ -15,6 +15,15 @@ fn fixture() -> (PathBuf, Library, Session, String) {
     let id=lib.add_made_with_editor(&rendered,&bytes,"png","kraft",&state).unwrap().id;
     (dir,lib,session,id)
 }
+/// Load pre-removal copy rows without exposing a creation API in the application.
+fn legacy_copies(lib:&Library,id:&str,count:u32)->Vec<peta_core::Sticker> {
+    let mut conn=rusqlite::Connection::open(lib.root().join("peta.db")).unwrap();let tx=conn.transaction().unwrap();let mut ids=Vec::new();
+    for no in 2..count+2 {
+        let copy=ids::new_sticker_id();
+        tx.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,mask_asset_path,material_id,source_type,aspect,lineage,copy_of,copy_no) SELECT ?2,created_at,original_asset_path,rendered_asset_path,mask_asset_path,material_id,'collection',aspect,'copy',id,?3 FROM stickers WHERE id=?1",rusqlite::params![id,copy,no]).unwrap();ids.push(copy);
+    }
+    tx.commit().unwrap();ids.into_iter().map(|id|lib.db().sticker(&id).unwrap().unwrap()).collect()
+}
 #[test]
 fn editor_roundtrip_keeps_saved_brushwork_and_new_undo_returns_to_it() {
     let bytes=original(); let mut session=Session::new(&bytes,None).unwrap();
@@ -36,7 +45,7 @@ fn edit_keeps_identity_stock_print_queue_position_and_copies_across_restart() {
     lib.db_mut().unlock_material("kraft").unwrap();lib.db_mut().add_material("kraft",1).unwrap();lib.db_mut().consume_material("kraft").unwrap();
     let sticker=lib.db().sticker(&id).unwrap().unwrap();let placement=lib.stick_new(&sticker,"display",0.3,0.6).unwrap();
     daily::confirm(lib.db_mut(),"2026-10-03",&id,SourceType::Created,0.5).unwrap();
-    let old_png=lib.read_rendered(&id).unwrap();let copies=lib.db_mut().sticker_duplicate(&id,1).unwrap();
+    let old_png=lib.read_rendered(&id).unwrap();let copies=legacy_copies(&lib,&id,1);
     session.stroke(&[(50.0,40.0)],12.0,false,true);
     let rendered=session.render(&params()).unwrap();let state=EditorState::capture(&session,20.0,0.3,0.5);
     lib.update_original(&id,&rendered,&state).unwrap();
@@ -62,7 +71,7 @@ fn failed_revision_write_preserves_previous_files_and_database_pointer() {
 fn delete_clears_book_desktop_queue_copies_and_assets_without_reclaiming_stock() {
     let (dir,mut lib,session,id)=fixture();let s=lib.db().sticker(&id).unwrap().unwrap();
     lib.stick_new(&s,"display",0.4,0.5).unwrap();daily::confirm(lib.db_mut(),"2026-10-03",&id,SourceType::Created,0.5).unwrap();
-    lib.db_mut().sticker_duplicate(&id,2).unwrap();
+    legacy_copies(&lib,&id,2);
     lib.delete_original(&id).unwrap();assert!(lib.db().sticker(&id).unwrap().is_none());assert!(lib.db().next_print().unwrap().is_none());
     assert!(lib.db().on_desktop().unwrap().is_empty());assert!(lib.db().book_rows().unwrap().is_empty());assert!(!dir.join("assets/stickers").join(&id).exists());
     assert_eq!(lib.db().material_count("kraft").unwrap(),0);

@@ -254,7 +254,7 @@ pub fn peek(db:&crate::Database,pack_id:&str)->Result<Vec<(i64,String,String,Str
     #[test] fn a_pack_you_made_can_go_on_your_own_shelf_dressed_and_weighted() {
         let mut mine=lib();mine.db_mut().set_display_name("Nao").unwrap();let rendered=crate::pack::render_pack_sticker(&png()).unwrap();let mut selections=Vec::new();
         for i in 0..4{let sticker=mine.add_made(&rendered,b"orig","jpg",None,"holographic").unwrap();selections.push(LegacySelection{sticker_id:sticker.id,name:format!("Drawing {i}"),weight:Some([1,2,4,16][i])});}
-        let copy=mine.db_mut().sticker_duplicate(&selections[0].sticker_id,1).unwrap().remove(0);
+        let copy=mine.db_mut().seed_legacy_copies(&selections[0].sticker_id,1).unwrap().remove(0);
         let mut invalid=selections.clone();invalid[0].sticker_id=copy.id;
         assert!(matches!(build_legacy(&mine,"No copies","cotton",&invalid,&Dress::default()),Err(crate::Error::Invalid(e)) if e=="copies_stay_home"));
         let dress=Dress{cover:Some(selections[2].sticker_id.clone()),deco:Some("pin".into()),blurb:Some("Small things.".into()),layout:None};

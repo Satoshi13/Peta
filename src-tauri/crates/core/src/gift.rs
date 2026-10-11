@@ -327,7 +327,7 @@ mod tests {
     }
     #[test]
     fn failed_writes_and_referee_rejections_leave_the_whole_holder_state_intact() {
-        let (mut mine,s)=sender_with_sticker();let copies=mine.db_mut().sticker_duplicate(&s.id,1).unwrap();
+        let (mut mine,s)=sender_with_sticker();let copies=mine.db_mut().seed_legacy_copies(&s.id,1).unwrap();
         mine.stick_new(&copies[0],"display",0.5,0.5).unwrap();
         mine.db_mut().link_tag_add_stock(2).unwrap();
         for id in [&s.id,&copies[0].id] {mine.db_mut().link_tag_attach(id,"website","https://example.com","Site",true).unwrap();}
@@ -367,7 +367,7 @@ mod tests {
     #[test]
     fn a_real_gift_moves_and_returns_with_the_same_identity() {
         let (mut mine,sticker)=sender_with_sticker();
-        let copies=mine.db_mut().sticker_duplicate(&sticker.id,2).unwrap();
+        let copies=mine.db_mut().seed_legacy_copies(&sticker.id,2).unwrap();
         mine.stick_new(&copies[0],"display",0.5,0.5).unwrap();
         let (id,file)=build_gift(&mut mine,&sticker.id,"Nao",Some("  for you  ")).unwrap();
         assert_eq!(file[8],3);assert_eq!(decode_gift(&file).unwrap().header.edition,None);
