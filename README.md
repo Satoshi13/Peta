@@ -174,7 +174,7 @@ Today の **Create**、またはデスクトップへの画像ドロップで開
 - 元から**透明な背景の PNG**は、モデルを使わずにそのまま使います(フチと素材だけ付きます)。
 - スマホ写真の**向き(EXIF)**は自動で直します。
 - 背景除去は **Apple Vision の前景抽出**を使います。macOS **14.0 以上**が必要です。モデルの同梱・選択・ダウンロードはありません。解析はバックグラウンドで行い、輪郭・ブラシの仕上げは従来どおりです。初回は OS のモデル初期化に時間がかかる場合があります。計測と比較は [Vision の報告](docs/vision-cutout-report.md) に記録します。
-- **Holographic／Goldの光沢**はmacOSのグローバルカーソルに追従します。帯の位置・角度だけが変わり、ステッカーの傾き・影・大きさは変えません。カーソルが未移動／層の外なら従来の位置・回転による反射へ戻ります。補間は収束で停止し、反射対象0枚／Reduce motionでは33msのカーソル取得も停止します。反射対象は `REFLECTIVE_MATERIALS` に集約。`reflection_status` の activeLayers / timerRunning / cursorReads とdebugログで停止を確認できます。Windows／Linuxのグローバル取得は未提供です。
+- **Holographic／Goldの光沢**はmacOSのグローバルカーソルに追従します。帯の位置・角度だけが変わり、ステッカーの傾き・影・大きさは変えません。カーソルが未移動／層の外なら従来の位置・回転による反射へ戻ります。補間は収束で停止し、反射対象0枚／Reduce motionでは33msのカーソル取得も停止します。反射対象は `REFLECTIVE_MATERIALS` に集約。`reflection_status` の activeLayers / timerRunning / cursorReads とdebugログで停止を確認できます。対応 OS は macOS 14 以上です。
 
 ### ステッカーの裏面(裏返す)
 
@@ -219,12 +219,12 @@ Option＋引き離しは、引く方向と反対側の端からめくれ、手�
 
 ## 検証チェックリスト(仕様 §87 の Spike 順)
 
-実機で確認して ✅ を付けてください。macOS固有の操作は実機確認が必要です。LinuxでのRust/JSテストと実Tauri画面の検証は [検証記録](docs/port-spec/compare/upgrade-2026-10-04/README.md)、今回追加した実機項目は [macOSチェックリスト](docs/port-spec/macos-checklist.md) を参照してください。
+実機で確認して ✅ を付けてください。macOS固有の操作は実機確認が必要です。過去の移植検証は [検証記録](docs/port-spec/compare/upgrade-2026-10-04/README.md)、今回追加した実機項目は [macOSチェックリスト](docs/port-spec/macos-checklist.md) を参照してください。
 
 | # | 項目 | 見るポイント | 状態 |
 |---|---|---|---|
 | 01 | macOSでDesktop Layerを表示 | 壁紙の上に猫が出る。窓の枠・影・背景色がない | ☐ |
-| 02 | Windows | 今回はスコープ外(`platform/windows.rs` はスタブ) | — |
+| 02 | 対応 OS | macOS 14 以上専用 | — |
 | 03 | PNGを1枚表示 | 白フチの猫がきれいに(透過で)表示される | ☐ |
 | 04 | click-through | 猫の上でも Finder / デスクトップアイコンを普通に操作できる | ☐ |
 | 05 | Edit Mode | メニューで ON → 猫を掴める。OFF → また透過に戻る | ☐ |
@@ -256,7 +256,7 @@ src/                 フロントエンド(ビルド不要の素のJS)
   creator.html/js/css  Cutting Mat(機能するプレースホルダー)
   collection.html/js/css  Sticker Book(機能するプレースホルダー)
   back-card.js/css     ステッカーの裏面カード(デスクトップと Collection で共有)
-src-tauri/crates/core/ peta-core: OS・UIに依存しない中核(Linuxでも cargo test できる)
+src-tauri/crates/core/ peta-core: UIから独立した中核と Apple Vision の前景抽出
   db.rs                SQLite(stickers / provenance / placements)
   library.rs           DB + 画像ファイルの管理
   image_import.rs      画像の取り込み(EXIF向き・余白トリミング・縮小・PNG化)
@@ -285,7 +285,7 @@ src-tauri/src/
 ```sh
 npm test             # 座標計算の単体テスト(JS)
 cargo test -p peta-core --manifest-path src-tauri/Cargo.toml   # ライブラリ層の単体テスト(Rust)
-npm run check:mac    # Linux等から macOS 向けRustの型検査(要 rustup target add aarch64-apple-darwin。ObjC依存のため CC のダミー指定が必要)
+npm run check:mac    # macOS 上で Apple Silicon 向け Rust の型検査
 ```
 
 ### 画面整理（2026-10-05）

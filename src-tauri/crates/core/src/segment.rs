@@ -21,16 +21,12 @@ pub fn foreground_mask(image: &RgbaImage) -> Result<GrayImage> {
             (image.height() as f64 * scale).round().max(1.0) as u32, FilterType::Lanczos3);
         &small
     } else { image };
-    #[cfg(target_os = "macos")]
     let mask = native::mask(input)?;
-    #[cfg(not(target_os = "macos"))]
-    let mask: GrayImage = { let _ = input; return Err(Error::Model("Cutting out needs macOS 14 or later.".into())); };
     if mask.dimensions() == image.dimensions() { Ok(mask) }
     else { Ok(image::imageops::resize(&mask, image.width(), image.height(), FilterType::Triangle)) }
 }
 fn no_subject() -> Error { Error::Model("Nothing was cut out. Try another picture.".into()) }
 
-#[cfg(target_os = "macos")]
 mod native {
     use super::*;
     use objc2::{rc::autoreleasepool, AnyThread};

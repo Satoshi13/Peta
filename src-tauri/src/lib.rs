@@ -257,7 +257,6 @@ pub fn run() {
         })
         .setup(|app| {
             // Menu-bar-only app: no Dock icon, no app menu.
-            #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             app.state::<Store>().open(app.handle())?;
@@ -275,13 +274,8 @@ pub fn run() {
         .expect("error while building Peta");
 
     app.run(|app, event| {
-        #[cfg(any(target_os="macos",target_os="ios"))]
         if let tauri::RunEvent::Opened {urls}=&event {
             for url in urls {if let Ok(path)=url.to_file_path(){if !creator::open_image_file(app,&path){gifts::open_external(app,&path);}}}
-        }
-        #[cfg(not(any(target_os="macos",target_os="ios")))]
-        if matches!(event,tauri::RunEvent::Ready) {
-            for path in std::env::args_os().skip(1).map(std::path::PathBuf::from).filter(|p|p.extension().is_some_and(|e|e=="peta")){gifts::open_external(app,&path);}
         }
         if matches!(event, tauri::RunEvent::Exit) { layers::stop_reflection(app); }
         // Layers are destroyed/recreated on display changes; that must not quit the app.

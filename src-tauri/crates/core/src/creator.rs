@@ -487,7 +487,6 @@ mod tests {
         assert!(matches!(Session::new(&jpeg, None), Err(Error::Model(_))));
     }
 
-    #[cfg(target_os = "macos")]
     #[test]
     fn vision_finds_the_cat_in_a_busy_photo() {
         let (jpeg, truth, (w, h)) = cat_on_background();
@@ -506,7 +505,6 @@ mod tests {
         assert!(iou > 0.80, "IoU {iou}");
     }
 
-    #[cfg(target_os = "macos")]
     #[test]
     fn vision_mask_is_bounded_repeatable_and_uses_exif_orientation() {
         let (jpeg, _, (w, h)) = cat_on_background();
@@ -533,7 +531,6 @@ mod tests {
         }
     }
 
-    #[cfg(target_os = "macos")]
     #[test]
     fn cutout_adjust_and_brush_edits_change_the_result() {
         let (jpeg, _, _) = cat_on_background();

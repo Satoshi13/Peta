@@ -40,3 +40,11 @@ API 確認: [Apple の request](https://developer.apple.com/documentation/vision
 - `CARGO_INCREMENTAL=0 npm run build -- --debug`: **Peta.app 71.98 MiB**、成功。Tauri が既存の `Graphics` カテゴリを拒否したため、対応する `Graphics and Design` に修正した。完成したバンドルに ONNX ファイルはない。変更前の `.app` が保存されていなかったため、同条件の `.app` サイズ差は未計測（モデル本体4.5MBと tract の依存は削除済み）。release サイズは、この debug 計測とは別。
 
 実機操作の項目は `docs/port-spec/macos-checklist.md` に追加した。
+
+## Mac 専用化（別コミット）
+
+- Windows の platform スタブ、非Macの link tag 代替処理、Windows の起動・コンソール設定、OS 分岐を削除。Vision の native モジュールと依存は Mac 前提に整理した。
+- README の現在の対応 OS・検査コマンドを更新。`docs/port-spec/README.md` の冒頭で、過去の非Mac記述は参考資料と明示した。
+- `CARGO_INCREMENTAL=0 npm run check:mac` は成功。
+- Mac 専用化後にも `cargo test --workspace`（core 151件ほか）と `npm test`（129件）を再実行し、全成功。
+- `.app` の Info.plist の `LSMinimumSystemVersion` は **14.0**。

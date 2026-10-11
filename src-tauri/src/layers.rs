@@ -273,12 +273,11 @@ pub struct ReflectionStatus { active_layers: usize, timer_running: bool, cursor_
 #[tauri::command]
 pub fn reflection_status(layers: tauri::State<Layers>) -> ReflectionStatus {
     let st = layers.0.lock().unwrap();
-    ReflectionStatus { active_layers: st.reflection.len(), timer_running: cfg!(target_os = "macos") && !st.reflection.is_empty() && !st.reflection_stop, cursor_reads: st.cursor_reads }
+    ReflectionStatus { active_layers: st.reflection.len(), timer_running: !st.reflection.is_empty() && !st.reflection_stop, cursor_reads: st.cursor_reads }
 }
 
 /// One worker sleeps without a timeout while no layer needs reflection; reads stay on the main thread.
 pub fn spawn_reflection_watcher(app: AppHandle) {
-    if !cfg!(target_os = "macos") { return; }
     thread::spawn(move || loop {
         let layers = app.state::<Layers>();
         let mut st = layers.0.lock().unwrap();

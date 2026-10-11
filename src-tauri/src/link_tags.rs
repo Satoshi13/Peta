@@ -65,7 +65,6 @@ pub fn link_tag_open(store: State<Store>, sticker_id: String) -> Result<(), Stri
     open(&tag).map_err(|e| format!("Could not open {}: {e}", tag.label))
 }
 
-#[cfg(target_os = "macos")]
 fn open(tag: &LinkTag) -> std::io::Result<()> {
     use std::{path::Path, process::Command};
     let mut cmd = Command::new("/usr/bin/open");
@@ -77,8 +76,6 @@ fn open(tag: &LinkTag) -> std::io::Result<()> {
     let status = cmd.status()?;
     if status.success() { Ok(()) } else { Err(std::io::Error::other("the system could not open it")) }
 }
-#[cfg(not(target_os = "macos"))]
-fn open(_tag: &LinkTag) -> std::io::Result<()> { Err(std::io::Error::other("link tags open things on a Mac only")) }
 
 /// The icon of a tagged app, as a small PNG (the one Finder shows, made once and kept under `<library>/tag-icons`). Empty for websites, folders and apps without one.
 #[tauri::command]
@@ -99,7 +96,6 @@ pub async fn link_tag_app_icon(app: AppHandle, target: String) -> Result<tauri::
 }
 
 /// Asks the system for the app's icon, so apps that keep it in an asset catalog (not an .icns) and the current look both come out right.
-#[cfg(target_os = "macos")]
 const ICON_JXA: &str = r#"ObjC.import('AppKit');
 function run(a) {
   const img = $.NSWorkspace.sharedWorkspace.iconForFile(a[0]), n = 160;
@@ -111,7 +107,6 @@ function run(a) {
   rep.representationUsingTypeProperties($.NSBitmapImageFileTypePNG, $()).writeToFileAtomically(a[1], true);
 }"#;
 
-#[cfg(target_os = "macos")]
 fn app_icon_png(app: &str, dir: &std::path::Path) -> Option<Vec<u8>> {
     use std::{path::Path, process::Command};
     if !Path::new(app).is_dir() { return None; }
@@ -122,5 +117,3 @@ fn app_icon_png(app: &str, dir: &std::path::Path) -> Option<Vec<u8>> {
     let ok = Command::new("/usr/bin/osascript").args(["-l", "JavaScript", "-e", ICON_JXA]).arg(app).arg(&out).output().ok()?.status.success();
     if ok { std::fs::read(&out).ok().filter(|b| !b.is_empty()) } else { None }
 }
-#[cfg(not(target_os = "macos"))]
-fn app_icon_png(_app: &str, _dir: &std::path::Path) -> Option<Vec<u8>> { None }

@@ -1,4 +1,4 @@
-//! Peta core — everything that is true regardless of OS or UI.
+//! Peta core — sticker rules and persistence, plus macOS Vision foreground extraction.
 
 pub mod back;
 pub mod book;
