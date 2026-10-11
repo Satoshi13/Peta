@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 11;
+pub const SCHEMA_VERSION: i64 = 12;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -211,6 +211,24 @@ CREATE TABLE gift_dress (gift_id TEXT PRIMARY KEY REFERENCES gifts_received(gift
 ";
 
 
+const MIGRATION_V12: &str = "
+ALTER TABLE stickers ADD COLUMN lineage TEXT NOT NULL DEFAULT 'real' CHECK(lineage IN ('real','copy'));
+ALTER TABLE stickers ADD COLUMN copy_of TEXT REFERENCES stickers(id) ON DELETE CASCADE;
+ALTER TABLE stickers ADD COLUMN copy_no INTEGER;
+ALTER TABLE stickers ADD COLUMN source_hash TEXT;
+ALTER TABLE stickers ADD COLUMN creator_sig TEXT;
+ALTER TABLE stickers ADD COLUMN creator_public_key TEXT;
+ALTER TABLE stickers ADD COLUMN image_digest TEXT;
+ALTER TABLE stickers ADD COLUMN creation_record TEXT;
+ALTER TABLE stickers ADD COLUMN state TEXT NOT NULL DEFAULT 'held' CHECK(state IN ('held','gone'));
+ALTER TABLE stickers ADD COLUMN verified INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE stickers ADD COLUMN new_image INTEGER NOT NULL DEFAULT 0;
+CREATE UNIQUE INDEX copy_numbers ON stickers(copy_of,copy_no) WHERE lineage='copy';
+CREATE TABLE transfers(sticker_id TEXT NOT NULL REFERENCES stickers(id) ON DELETE CASCADE, seq INTEGER NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('release','claim')), actor_key TEXT NOT NULL, ref TEXT NOT NULL, at TEXT NOT NULL, sig TEXT NOT NULL, PRIMARY KEY(sticker_id,seq));
+CREATE TABLE seen_sources(hash TEXT PRIMARY KEY,first_at TEXT NOT NULL);
+CREATE TABLE gift_claims(gift_id TEXT PRIMARY KEY REFERENCES gifts_received(gift_id),sticker_id TEXT NOT NULL UNIQUE,chain TEXT NOT NULL);
+";
+
 /// A gift waiting in the Inbox (or already opened).
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -383,6 +401,10 @@ impl Database {
             tx.pragma_update(None, "user_version", 11)?;
             tx.commit()?;
         }
+        if version < 12 {
+            let tx=self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V12)?;tx.pragma_update(None,"user_version",12)?;tx.commit()?;
+        }
         Ok(())
     }
 
@@ -413,18 +435,18 @@ impl Database {
     }
 
     pub fn sticker_count(&self) -> Result<i64> {
-        Ok(self.conn.query_row("SELECT COUNT(*) FROM stickers", [], |r| r.get(0))?)
+        Ok(self.conn.query_row("SELECT COUNT(*) FROM stickers WHERE state='held'", [], |r| r.get(0))?)
     }
 
     pub fn update_original_assets(&mut self, id: &str, rendered: &str, mask: &str, aspect: f64) -> Result<()> {
-        let n = self.conn.execute("UPDATE stickers SET rendered_asset_path=?2, mask_asset_path=?3, aspect=?4 WHERE id=?1 AND source_type='created'", params![id, rendered, mask, aspect])?;
+        let n = self.conn.execute("UPDATE stickers SET rendered_asset_path=?2, mask_asset_path=?3, aspect=?4 WHERE id=?1 AND source_type='created' AND lineage='real' AND state='held'", params![id, rendered, mask, aspect])?;
         if n != 1 { return Err(Error::Invalid("only your original stickers can be edited".into())); }
         Ok(())
     }
 
     pub fn delete_original(&mut self, id: &str) -> Result<()> {
         let tx = self.conn.transaction()?;
-        let n = tx.execute("DELETE FROM stickers WHERE id=?1 AND source_type='created'", [id])?;
+        let n = tx.execute("DELETE FROM stickers WHERE id=?1 AND state='held' AND (source_type='created' OR lineage='copy')", [id])?;
         if n != 1 { return Err(Error::Invalid("only your original stickers can be deleted".into())); }
         tx.execute("DELETE FROM meta WHERE key='profile.icon_sticker_id' AND value=?1", [id])?;
         tx.commit()?;
@@ -444,8 +466,14 @@ impl Database {
     }
 
     /// Insert a sticker. Stickers the user made (`Created`) get the next `ORIGINAL` number.
-    pub fn create_sticker(&mut self, new: NewSticker) -> Result<Sticker> {
+    pub fn create_sticker(&mut self, new: NewSticker) -> Result<Sticker> { self.create_sticker_full(new,None) }
+    pub fn create_signed_sticker(&mut self,new:NewSticker,source:&[u8],png:&[u8],key:&ed25519_dalek::SigningKey,referee:&dyn crate::ownership::Referee)->Result<Sticker> {
+        self.create_sticker_full(new,Some((source,png,key,referee)))
+    }
+    fn create_sticker_full(&mut self,mut new:NewSticker,signing:Option<(&[u8],&[u8],&ed25519_dalek::SigningKey,&dyn crate::ownership::Referee)>)->Result<Sticker> {
         let created_at = now();
+        let creation=signing.map(|(_,png,key,_)|crate::ownership::Creation::new(&new.id,new.creator_name.clone(),&created_at,png,key)).transpose()?;
+        if let Some(c)=&creation {new.creator_id=c.creator_public_key.clone();}
         let tx = self.conn.transaction()?;
 
         let original_number = if new.source_type == SourceType::Created {
@@ -488,7 +516,16 @@ impl Database {
             "INSERT INTO provenance (sticker_id, seq, type, user_id, timestamp) VALUES (?1, 0, 'created', ?2, ?3)",
             params![new.id, new.creator_id, created_at],
         )?;
+        let mut new_image=false;
+        if let Some((source,_,_,referee))=signing {
+            let c=creation.as_ref().unwrap();referee.register(&new.id,c.creator_sig.as_deref().unwrap())?;
+            crate::ownership::store_creation(&tx,c)?;
+            let hash=crate::ownership::digest(source);
+            new_image=tx.execute("INSERT OR IGNORE INTO seen_sources VALUES (?1,?2)",params![hash,created_at])?>0;
+            tx.execute("UPDATE stickers SET source_hash=?2,new_image=?3 WHERE id=?1",params![new.id,hash,new_image])?;
+        }
         tx.commit()?;
+        if signing.is_some() {crate::scraps::on_new_sticker(self,&new.id,new_image)?;}
         self.sticker(&new.id)?.ok_or_else(|| Error::Invalid("sticker vanished after insert".into()))
     }
 
@@ -497,7 +534,7 @@ impl Database {
             .conn
             .query_row(
                 "SELECT id, creator_id, created_at, original_asset_path, rendered_asset_path, mask_asset_path,
-                        material_id, original_number, edition_number, source_type, parent_sticker_id, aspect, creator_name
+                        material_id, original_number, edition_number, source_type, parent_sticker_id, aspect, creator_name, lineage,state,copy_of,copy_no,source_hash,creator_sig,creator_public_key,verified,new_image
                  FROM stickers WHERE id = ?1",
                 [id],
                 |r| {
@@ -516,6 +553,7 @@ impl Database {
                         aspect: r.get(11)?,
                         creator_name: r.get(12)?,
                         provenance: Vec::new(),
+                        lineage:r.get(13)?,state:r.get(14)?,copy_of:r.get(15)?,copy_no:r.get(16)?,source_hash:r.get(17)?,creator_sig:r.get(18)?,creator_public_key:r.get(19)?,verified:r.get::<_,bool>(20)?,new_image:r.get::<_,bool>(21)?,
                     })
                 },
             )
@@ -567,7 +605,7 @@ impl Database {
     pub fn profile_icon(&self) -> Result<Option<String>> {
         Ok(self.conn.query_row(
             "SELECT s.id FROM meta m JOIN stickers s ON s.id=m.value
-             WHERE m.key='profile.icon_sticker_id' AND s.source_type='created'",
+             WHERE m.key='profile.icon_sticker_id' AND s.source_type='created' AND s.state='held' AND s.lineage='real'",
             [], |r| r.get(0),
         ).optional()?)
     }
@@ -575,7 +613,7 @@ impl Database {
     pub fn set_profile_icon(&mut self, id: Option<&str>) -> Result<()> {
         let tx = self.conn.transaction()?;
         if let Some(id) = id {
-            let original = tx.query_row("SELECT 1 FROM stickers WHERE id=?1 AND source_type='created'", [id], |_| Ok(())).optional()?.is_some();
+            let original = tx.query_row("SELECT 1 FROM stickers WHERE id=?1 AND source_type='created' AND state='held' AND lineage='real'", [id], |_| Ok(())).optional()?.is_some();
             if !original { return Err(Error::Invalid("Choose an original sticker from your Book.".into())); }
             tx.execute("INSERT INTO meta VALUES ('profile.icon_sticker_id',?1)
                 ON CONFLICT(key) DO UPDATE SET value=excluded.value", [id])?;
@@ -614,12 +652,13 @@ impl Database {
              FROM history d
              JOIN stickers s ON s.id = d.sticker_id
              LEFT JOIN placements p ON p.sticker_id = s.id
+             WHERE s.state='held'
              UNION ALL
              SELECT NULL, s.id, s.original_number, s.material_id, s.source_type, s.aspect, s.created_at,
                     COALESCE(p.is_on_desktop, 0)
              FROM stickers s
              LEFT JOIN placements p ON p.sticker_id = s.id
-             WHERE s.id NOT IN (SELECT sticker_id FROM history)",
+             WHERE s.state='held' AND s.id NOT IN (SELECT sticker_id FROM history)",
         )?;
         let rows = stmt
             .query_map([], |r| {
@@ -659,6 +698,7 @@ impl Database {
         if p.placed_at.is_empty() {
             p.placed_at = now();
         }
+        if self.held_sticker(&p.sticker_id)?.is_none() {return Err(Error::Invalid("Sticker not held here.".into()));}
         let tx = self.conn.transaction()?;
         let z: i64 = tx.query_row("SELECT COALESCE(MAX(z), 0) + 1 FROM placements", [], |r| r.get(0))?;
         tx.execute(
@@ -705,7 +745,7 @@ impl Database {
         let ids: Vec<String> = {
             let mut stmt = self.conn.prepare(
                 "SELECT s.id FROM stickers s LEFT JOIN placements p ON p.sticker_id = s.id
-                 WHERE p.sticker_id IS NULL OR p.is_on_desktop = 0
+                 WHERE s.state='held' AND (p.sticker_id IS NULL OR p.is_on_desktop = 0)
                  ORDER BY s.created_at DESC, s.id",
             )?;
             let rows = stmt.query_map([], |r| r.get(0))?.collect::<std::result::Result<_, _>>()?;
@@ -1018,7 +1058,8 @@ impl Database {
         Ok(())
     }
 
-    fn confirm_in(tx: &rusqlite::Transaction<'_>, date: &str, sticker_id: &str, source: SourceType, ts: &str) -> Result<()> {
+    pub(crate) fn confirm_in(tx: &rusqlite::Transaction<'_>, date: &str, sticker_id: &str, source: SourceType, ts: &str) -> Result<()> {
+        if !tx.query_row("SELECT EXISTS(SELECT 1 FROM stickers WHERE id=?1 AND state='held')",[sticker_id],|r|r.get::<_,bool>(0))? {return Err(Error::Invalid("Sticker is not held here.".into()));}
         tx.execute("INSERT OR IGNORE INTO print_queue(sticker_id,queued_at) VALUES (?1,?2)",params![sticker_id,ts])?;
         tx.execute("INSERT INTO sticker_events(date,sticker_id,source_type) VALUES (?1,?2,?3) ON CONFLICT(date,sticker_id) DO UPDATE SET source_type=excluded.source_type",params![date,sticker_id,source.as_str()])?;
         tx.execute("UPDATE daily_records SET sticker_id=?2,source_type=?3,confirmed_at=?4,used_at=NULL WHERE date=?1",params![date,sticker_id,source.as_str(),ts])?;
@@ -1212,7 +1253,7 @@ mod tests {
             }
             db.update_original_assets("mine","new-render","new-mask",1.5).unwrap();
             assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
-            assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),11);
+            assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),SCHEMA_VERSION);
         }
         let mut db = Database::open(&path).unwrap();
         assert_eq!(db.profile_icon().unwrap().as_deref(),Some("mine"));
@@ -1398,13 +1439,27 @@ mod tests {
         assert_eq!(db.sticker_title("nope").unwrap(), None);
     }
     #[test]
+    fn v11_to_v12_keeps_legacy_records_and_marks_all_as_real() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8,MIGRATION_V9,MIGRATION_V10,MIGRATION_V11] {conn.execute_batch(migration).unwrap();}
+        conn.pragma_update(None,"user_version",11).unwrap();
+        conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect,title,edition_number) VALUES ('old','2026-01-01T00:00:00Z','o','r','gift',1.5,'Old gift',7)",[]).unwrap();
+        conn.execute("INSERT INTO material_stock VALUES ('kraft',4)",[]).unwrap();
+        conn.execute("INSERT INTO meta VALUES ('scraps.balance','9')",[]).unwrap();
+        let db=Database::init(conn).unwrap();let s=db.sticker("old").unwrap().unwrap();
+        assert_eq!((s.lineage.as_str(),s.state.as_str(),s.verified),("real","held",false));
+        assert_eq!(s.edition_number,Some(7));assert_eq!(s.aspect,1.5);assert_eq!(s.rendered_asset_path,"r");
+        assert_eq!(db.sticker_title("old").unwrap().as_deref(),Some("Old gift"));assert_eq!(db.material_count("kraft").unwrap(),4);assert_eq!(db.scrap_status().unwrap().balance,9);
+    }
+
+    #[test]
     fn v8_to_v9_adds_the_name_column_and_keeps_everything() {
         let conn = Connection::open_in_memory().unwrap();
         for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8] { conn.execute_batch(migration).unwrap(); }
         conn.pragma_update(None, "user_version", 8).unwrap();
         conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect) VALUES ('old','x','o','r','created',1)", []).unwrap();
         let mut db = Database::init(conn).unwrap();
-        assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0)).unwrap(), 11);
+        assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0)).unwrap(), SCHEMA_VERSION);
         assert!(db.sticker("old").unwrap().is_some());
         assert_eq!(db.sticker_title("old").unwrap(), None);
         db.set_sticker_title("old", Some("Still mine")).unwrap();
@@ -1422,7 +1477,7 @@ mod tests {
         conn.execute("INSERT INTO material_stock VALUES ('kraft',4)",[]).unwrap();
         conn.execute("INSERT INTO meta VALUES ('scraps.balance','9')",[]).unwrap();
         let db=Database::init(conn).unwrap();
-        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),11);
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),SCHEMA_VERSION);
         assert!(db.sticker("old").unwrap().is_some());assert_eq!(db.material_count("kraft").unwrap(),4);
         assert_eq!(db.packs().unwrap()[0].remaining,1);assert_eq!(db.gifts_received().unwrap()[0].from,"Nao");
         assert_eq!(db.scrap_status().unwrap().balance,9);assert_eq!(db.bonus_envelopes().unwrap(),0);
@@ -1628,7 +1683,7 @@ mod tests {
             assert_eq!((db.packs().unwrap()[0].total,db.packs().unwrap()[0].remaining,db.pack_free_openings("a").unwrap()), (20,0,1));
             assert_eq!(crate::pack::item_name(&db, "free").unwrap().as_deref(), Some("Bonus cat"));
             assert_eq!(db.next_print().unwrap().as_deref(), Some("free"));
-            assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_,i64>(0)).unwrap(), 11);
+            assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_,i64>(0)).unwrap(), SCHEMA_VERSION);
         }
         let _ = std::fs::remove_file(path);
     }

@@ -68,7 +68,7 @@ impl Database {
     pub fn link_tag_attach(&mut self, sticker_id: &str, kind: &str, target: &str, label: &str, show: bool) -> Result<LinkTag> {
         validate(kind, target, label)?;
         let tx = self.conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-        if tx.query_row("SELECT COUNT(*) FROM stickers WHERE id=?1", [sticker_id], |r| r.get::<_, i64>(0))? == 0 { return Err(Error::Invalid("That sticker is not in your Collection.".into())); }
+        if tx.query_row("SELECT COUNT(*) FROM stickers WHERE id=?1 AND state='held'", [sticker_id], |r| r.get::<_, i64>(0))? == 0 { return Err(Error::Invalid("That sticker is not in your Collection.".into())); }
         let attached_here: bool = tx.query_row("SELECT COUNT(*) FROM link_tags WHERE sticker_id=?1", [sticker_id], |r| r.get::<_, i64>(0))? > 0;
         if !attached_here {
             let owned: i64 = tx.query_row("SELECT value FROM meta WHERE key=?1", [OWNED_KEY], |r| r.get::<_, String>(0)).optional()?.and_then(|v| v.parse().ok()).unwrap_or(0);

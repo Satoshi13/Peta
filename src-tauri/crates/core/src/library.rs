@@ -35,7 +35,9 @@ pub struct Library {
 impl Library {
     pub fn open(dir: &Path) -> Result<Self> {
         fs::create_dir_all(dir.join("assets"))?;
-        Ok(Library { db: Database::open(&dir.join("peta.db"))?, assets_dir: dir.join("assets") })
+        let db=Database::open(&dir.join("peta.db"))?;
+        crate::export::recover(dir,&db)?;
+        Ok(Library { db, assets_dir: dir.join("assets") })
     }
 
     pub fn root(&self) -> &Path { self.assets_dir.parent().expect("library root") }
@@ -67,7 +69,8 @@ impl Library {
         self.write_asset(&original_rel, original)?;
         self.write_asset(&rendered_rel, &processed.png)?;
 
-        let created = self.db.create_sticker(NewSticker {
+        let key=crate::device_key::load_or_create(self.root())?;
+        let created = self.db.create_signed_sticker(NewSticker {
             id: id.clone(),
             creator_id: creator_id.map(str::to_owned),
             creator_name: Some(self.db.display_name()?),
@@ -77,7 +80,7 @@ impl Library {
             material_id: material_id.map(str::to_owned),
             source_type: SourceType::Created,
             aspect: processed.aspect(),
-        });
+        },original,&processed.png,&key,&crate::ownership::NoReferee);
         if created.is_err() {
             let _ = fs::remove_dir_all(self.assets_dir.join("stickers").join(&id)); // don't leave orphans
         }
@@ -105,7 +108,7 @@ impl Library {
 
     pub fn original_for_edit(&self, id: &str) -> Result<(Sticker, Vec<u8>, Option<Vec<u8>>, Option<crate::creator::EditorState>)> {
         let sticker = self.db.sticker(id)?.ok_or_else(|| Error::Invalid("sticker not found".into()))?;
-        if sticker.source_type != SourceType::Created { return Err(Error::Invalid("only your original stickers can be edited".into())); }
+        if sticker.source_type != SourceType::Created || sticker.lineage!="real" || sticker.state!="held" { return Err(Error::Invalid("only your original stickers can be edited".into())); }
         let original = self.read_asset(&sticker.original_asset_path)?;
         let mask = sticker.mask_asset_path.as_ref().map(|p| self.read_asset(p)).transpose()?;
         let path = Path::new(&sticker.rendered_asset_path).parent().unwrap().join("editor.json");
@@ -125,7 +128,11 @@ impl Library {
         let result = (|| {
             self.write_asset(&png, &rendered.sticker_png)?; self.write_asset(&mask, &rendered.mask_png)?;
             self.write_asset(&format!("{dir}/editor.json"), &serde_json::to_vec(editor).map_err(|e| Error::Invalid(e.to_string()))?)?;
-            self.db.update_original_assets(id, &png, &mask, rendered.aspect())
+            let key=crate::device_key::load_or_create(self.root())?;
+            let creation=crate::ownership::Creation::new(id,sticker.creator_name.clone(),&sticker.created_at,&rendered.sticker_png,&key)?;
+            let tx=self.db.conn.transaction()?;
+            tx.execute("UPDATE stickers SET rendered_asset_path=?2,mask_asset_path=?3,aspect=?4 WHERE id=?1 OR copy_of=?1",rusqlite::params![id,png,mask,rendered.aspect()])?;
+            crate::ownership::store_creation(&tx,&creation)?;tx.commit()?;Ok(())
         })();
         if result.is_err() { let _ = fs::remove_dir_all(self.assets_dir.join(dir)); }
         result
@@ -199,7 +206,7 @@ impl Library {
         if let Some(editor) = editor {
             self.write_asset(&format!("stickers/{id}/editor.json"), &serde_json::to_vec(editor).map_err(|e| Error::Invalid(e.to_string()))?)?;
         }
-        let created = self.db.create_sticker(NewSticker {
+        let new = NewSticker {
             id: id.clone(),
             creator_id: creator_id.map(str::to_owned),
             creator_name,
@@ -209,7 +216,11 @@ impl Library {
             material_id: Some(material_id.to_owned()),
             source_type,
             aspect: rendered.aspect(),
-        });
+        };
+        let created=if source_type==SourceType::Created {
+            let key=crate::device_key::load_or_create(self.root())?;
+            self.db.create_signed_sticker(new,original,&rendered.sticker_png,&key,&crate::ownership::NoReferee)
+        } else {self.db.create_sticker(new)};
         if created.is_err() {
             let _ = fs::remove_dir_all(self.assets_dir.join("stickers").join(&id));
         }

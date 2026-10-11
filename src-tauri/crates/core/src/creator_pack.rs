@@ -26,7 +26,7 @@ pub struct Verified {header:Header,items:Vec<(Vec<u8>,Vec<u8>)>,bytes:Vec<u8>}
 #[derive(Clone,Serialize)]
 #[serde(rename_all="camelCase")]
 pub struct Preview {pub pack_id:String,pub title:String,pub version:i64,pub count:usize,pub identity:Identity}
-#[derive(Deserialize)]
+#[derive(Clone,Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
 pub struct Selection {pub sticker_id:String,pub name:String,#[serde(default)] pub weight:Option<u32>}
 /// How the pack is dressed (all optional): the sticker shown on the cover, one decoration, and a line for the Market card.
@@ -124,6 +124,7 @@ pub fn build(lib:&Library,title:&str,pouch:&str,selection:&[Selection],dress:&Dr
     for item in selection {
         if !ids.insert(&item.sticker_id){return Err(invalid("Choose each sticker only once."));}
         let sticker=lib.db().sticker(&item.sticker_id)?.ok_or_else(||invalid("A selected sticker is no longer in your Book."))?;
+        crate::ownership::require_real(&sticker)?;
         let png=lib.read_rendered(&item.sticker_id)?;let mask=sticker.mask_asset_path.as_ref().map(|p|lib.read_asset(p)).transpose()?.unwrap_or_default();
         let material_id=sticker.material_id.unwrap_or_else(||"matte".into());
         header.items.push(Item{key:item.sticker_id.clone(),name:item.name.clone(),rarity:crate::materials::rarity_name(&material_id),material_id,aspect:sticker.aspect,png_len:png.len(),mask_len:mask.len(),weight:Some(item.weight.unwrap_or(4))});body.extend(png);body.extend(mask);
@@ -246,6 +247,9 @@ pub fn peek(db:&crate::Database,pack_id:&str)->Result<Vec<(i64,String,String,Str
     #[test] fn a_pack_you_made_can_go_on_your_own_shelf_dressed_and_weighted() {
         let mut mine=lib();mine.db_mut().set_display_name("Nao").unwrap();let rendered=crate::pack::render_pack_sticker(&png()).unwrap();let mut selections=Vec::new();
         for i in 0..4{let sticker=mine.add_made(&rendered,b"orig","jpg",None,"holographic").unwrap();selections.push(Selection{sticker_id:sticker.id,name:format!("Drawing {i}"),weight:Some([1,2,4,16][i])});}
+        let copy=mine.db_mut().sticker_duplicate(&selections[0].sticker_id,1).unwrap().remove(0);
+        let mut invalid=selections.clone();invalid[0].sticker_id=copy.id;
+        assert!(matches!(build(&mine,"No copies","cotton",&invalid,&Dress::default()),Err(crate::Error::Invalid(e)) if e=="copies_stay_home"));
         let dress=Dress{cover:Some(selections[2].sticker_id.clone()),deco:Some("pin".into()),blurb:Some("Small things.".into()),layout:None};
         let (h,bytes)=build(&mine,"My Desk","cotton",&selections,&dress).unwrap();
         assert!(h.items.iter().all(|i|i.rarity=="rare"&&i.material_id=="holographic")); // the grade written down is the material's

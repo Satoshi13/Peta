@@ -325,11 +325,11 @@ Pages.create = {
     CR.flushStroke?.(); CR.finishing = true; Bridge.busy = true;
     $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=true; });
     if(CR.editing) {
-      try { await CR.queue; const id=await Bridge.invoke("creator_save_original",{materialId:CR.editMaterial,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,name:CR.name}); crReset(); BK.sel=id; await Bridge.reload(); await Shell.open("book"); Shell.toast("Changes saved."); }
+      try { await CR.queue; const made=await Bridge.invoke("creator_save_original",{materialId:CR.editMaterial,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,name:CR.name}); console.debug("newImage",made.newImage); crReset(); BK.sel=made.stickerId; await Bridge.reload(); await Shell.open("book"); Shell.toast("Changes saved."); }
       catch(e) { Shell.toast(String(e)); $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=false; }); } finally { CR.finishing=false; Bridge.busy=false; }
       return;
     }
-    try { await CR.queue; await Bridge.printAction("creator_finish",{materialId:S.chosen,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,name:CR.name}); crReset(); await Bridge.reload(); Shell.refresh(); }
+    try { await CR.queue; const made=await Bridge.printAction("creator_finish",{materialId:S.chosen,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,name:CR.name}); console.debug("newImage",made.newImage); crReset(); await Bridge.reload(); Shell.refresh(); }
     catch(e) { Shell.toast(String(e)); $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=false; }); } finally { CR.finishing=false; Bridge.busy=false; }
   },
 };

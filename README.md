@@ -313,3 +313,12 @@ npm run check:mac    # macOS 上で Apple Silicon 向け Rust の型検査
 通常版は`npm run dev`／`npm run build`。開発者版は`npm run dev:developer`／`npm run build:developer`。ビルド時のRust featureで分け、Settingsのスイッチでは切り替えません。buildは配布用releaseビルドです。
 
 Peta Developerは`app.peta.developer`、通常版は`app.peta.desktop`。アプリ名・在庫・Scraps・Collection・署名鍵・設定の保存先を分離します。開発者版は新素材を含む実装済み10素材を利用可能にし、素材消費・Scraps支払い・封筒／Welcome回数・袋の枯渇を解除。空袋は元の項目と署名済み素材情報を複製して補充し、開封済み履歴を残します。Settingsに封筒の再開封・Next Day・Re-sync Displaysを表示します。署名検証・所有権・ファイル仕様／サイズの検証は両版共通です。未実装の素材や共有Marketを追加する機能ではありません。モデレーターは依頼者の回答により後回しにします。
+# 本物・複製・Gift（2026-10-11）
+
+本物は ID と作者の署名・作成時刻・完成画像の SHA-256・移動の連鎖を持つ記録です。Gift は PETAGIFT v3 の譲渡です。保存が成功すると送り手の Collection から本物が離れ、配置・印刷待ち・リンクタグ・その本物の複製が整理されます。旧 v1/v2 は受け取れますが作者は未検証です。送り返された本物は元の ID で戻ります。
+
+Duplicate は無料の飾り用複製です。本物ごとに最大10枚で、画像を共有します。貼る・剥がす・リンクタグ・削除はできますが、Gift・Pack・Studio の選択には使えません。原本の編集は複製にも反映されます。
+
+作成時の元ファイルの SHA-256 を端末の `seen_sources` に保存し、削除後も同じ画像の `newImage` は false です。Scraps の支払いは未実装で、`on_new_sticker` の口だけあります。
+
+**審判がない間は、同じファイルを2人が受け取る不正を防げません。連鎖は証拠で、強制ではありません。** `Referee` は将来のサーバーの差し込み口です。署名が確認できても実在する人物の身元は保証しません。

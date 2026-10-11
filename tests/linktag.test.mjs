@@ -22,11 +22,13 @@ test('the kinds a tag may have are the same in the dialog and in Rust, and the R
   assert.match(opener, /link_tag::validate\(&tag\.kind, &tag\.target, &tag\.label\)/); // re-checked from the saved record before opening
 });
 
-test('sealing a gift or a pack takes the tags off, only after the file is written, and the target is never in the file', () => {
-  const g = read('src-tauri/src/gifts.rs');
-  assert.ok(g.indexOf('could not save the gift') < g.indexOf('link_tag_release'), 'the gift releases after writing');
-  assert.ok(g.indexOf('record_made') < g.indexOf('link_tag_release(&items'), 'the pack releases after it is saved');
-  for (const f of ['src-tauri/crates/core/src/gift.rs', 'src-tauri/crates/core/src/creator_pack.rs']) assert.doesNotMatch(read(f), /link_tag|LinkTag/, `${f} must not know about tags`);
+test('a Gift transaction releases tags and its serialized envelope never carries a target', () => {
+  const core=read('src-tauri/crates/core/src/gift.rs'), ownership=read('src-tauri/crates/core/src/ownership.rs');
+  assert.ok(core.indexOf('o::release_local') < core.indexOf('persist(&bytes)?;tx.commit()'));
+  assert.match(ownership,/\["placements","link_tags","print_queue"\]/);
+  const header=core.slice(core.indexOf('pub struct GiftHeader'),core.indexOf('pub const GIFT_BAGS'));
+  assert.doesNotMatch(header,/pub (target|link_tag)/);
+  assert.match(read('src-tauri/src/gifts.rs'),/export::Export::publish/);
 });
 
 test('the desktop layer only captures the mouse for a tagged sticker, never in Edit Mode, and hands it back', () => {

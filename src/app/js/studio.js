@@ -19,7 +19,7 @@ const stDraftKey = "peta.studio";
 function stLoad() {
   try {
     const d = JSON.parse(localStorage.getItem(stDraftKey) || "null"); if(!d) return;
-    const known = new Set(S.lib.map((e) => e.id));
+    const known = new Set(S.lib.filter(e => e.lineage !== "copy").map((e) => e.id));
     if(d.pack) { const p = ST.pack; p.sel = (d.pack.sel || []).filter((x) => known.has(x.id) && STUDIO.weights.includes(x.weight)).slice(0, STUDIO.limits.max); p.bag = PACK_BAG_IDS.includes(d.pack.bag) ? d.pack.bag : "kraft"; p.deco = ["none", "clip", "pin", "tape"].includes(d.pack.deco) ? d.pack.deco : "none";
       p.layout = stCleanLayout(d.pack.layout, p.bag);
       p.cover = p.sel.some((x) => x.id === d.pack.cover) ? d.pack.cover : null; p.title = stClip(String(d.pack.title || ""), STUDIO.limits.name); p.blurb = String(d.pack.blurb || "").slice(0, STUDIO.limits.blurb); }
@@ -78,7 +78,7 @@ function stEdit(pic, p, note) {
     });
   }
 }
-const stEntries = () => PetaMath.newestBookEntries(S.lib);
+const stEntries = () => PetaMath.newestBookEntries(S.lib).filter(e => e.lineage !== "copy");
 const stEntry = (id) => S.lib.find((e) => e.id === id);
 const stDraft = () => (ST.mode === "gift" ? ST.gift : ST.pack);
 /* a sticker's small picture for the bag and the tiles; the bench is drawn again when one arrives */
@@ -345,7 +345,7 @@ Pages.studio = {
       if(ST.pack.dest === "file") { const path = await Bridge.invoke("creator_pack_save", packArgs()); if(!path) return null; await Bridge.reload(); return { where: "file", path }; }
       await Bridge.invoke("creator_pack_shelve", packArgs()); await Bridge.reload(); Shell.renderNav(); return { where: "shelf" };
     };
-    const sealGift = async () => { const sent = await Bridge.invoke("gift_send", giftArgs()); if(!sent) return null; await Bridge.reload(); return { where: "file", path: sent.savedTo }; };
+    const sealGift = async () => { if(!await stConfirmTransfer()) return null; const sent = await Bridge.invoke("gift_send", giftArgs()); if(!sent) return null; await Bridge.reload(); return { where: "file", path: sent.savedTo }; };
     const seal = async () => {
       if(ST.sealing) return; const d = D(); ST.sealing = true; ST.view = "pack"; paint();   // the sealing is played on the wrapped thing itself
       let result = null;
@@ -404,10 +404,20 @@ const StudioSeal = {
   },
 };
 
+function stConfirmTransfer() {
+  return new Promise(resolve => {
+    const dialog=h("dialog", {"aria-label":"Confirm sticker transfer",on:{cancel:()=>resolve(false),close:()=>dialog.remove()}},
+      h("h2","This leaves your Collection."),h("p","The real sticker moves to its recipient. Its copies also disappear from this Mac."),
+      h("button.btn.secondary",{on:{click:()=>{resolve(false);dialog.close();}}},"Cancel"),
+      h("button.btn",{on:{click:()=>{resolve(true);dialog.close();}}},"Transfer and save…"));
+    document.body.append(dialog);dialog.showModal();
+  });
+}
+
 /** Open Studio from elsewhere (the Collection's "Make a Pack…" and "Gift…"): `sticker` is chosen already. */
 function StudioOpen(mode, sticker) {
   stLoad(); ST.mode = mode;
   if(mode === "pack" && ST.pack.sealed) Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], cover: null, title: "", blurb: "", layout: { comp: "corner", label: null, cover: null, accents: [] } });
-  if(sticker) { if(mode === "gift") Object.assign(ST.gift, { sticker, step: 1, sealed: false }); else if(!ST.pack.sel.some((x) => x.id === sticker)) ST.pack.sel.push({ id: sticker, weight: 4 }); }
+  if(sticker && stEntry(sticker)?.lineage !== "copy") { if(mode === "gift") Object.assign(ST.gift, { sticker, step: 1, sealed: false }); else if(!ST.pack.sel.some((x) => x.id === sticker)) ST.pack.sel.push({ id: sticker, weight: 4 }); }
   Shell.go("studio");
 }

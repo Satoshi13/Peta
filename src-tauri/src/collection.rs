@@ -27,17 +27,28 @@ pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookI
     let entries = book::entries_local(lib.db()).map_err(|e| e.to_string())?;
     book::page(&entries, year, month).into_iter().map(|entry| {
         let sticker = lib.db().sticker(&entry.sticker_id).map_err(|e| e.to_string())?;
-        let can_manage = sticker.as_ref().is_some_and(|s| s.source_type == peta_core::SourceType::Created);
+        let can_manage = sticker.as_ref().is_some_and(|s| s.source_type == peta_core::SourceType::Created || s.lineage=="copy");
+        let lineage=sticker.as_ref().map(|s|s.lineage.clone()).unwrap_or_else(||"real".into());
+        let copy_of=sticker.as_ref().and_then(|s|s.copy_of.clone());
+        let copy_no=sticker.as_ref().and_then(|s|s.copy_no);
+        let verified=sticker.as_ref().is_some_and(|s|s.verified);
+        let copies=lib.db().copies(copy_of.as_deref().unwrap_or(&entry.sticker_id)).map_err(|e|e.to_string())?;
         let created_at = sticker.map(|s| s.created_at);
         let pack_name=peta_core::pack::item_name(lib.db(),&entry.sticker_id).map_err(|e|e.to_string())?;
         let title = lib.db().sticker_title(&entry.sticker_id).map_err(|e| e.to_string())?;
-        Ok(BookItem { entry, can_manage, created_at, pack_name, title })
+        Ok(BookItem { entry, can_manage, created_at, pack_name, title, lineage, copy_of, copy_no, copies, verified, copy_limit:peta_core::ownership::MAX_COPIES })
     }).collect()
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool, created_at: Option<String>, pack_name: Option<String>, /** the name the person gave it */ title: Option<String> }
+pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool, created_at: Option<String>, pack_name: Option<String>, /** the name the person gave it */ title: Option<String>, lineage:String, copy_of:Option<String>,copy_no:Option<u32>,copies:u32,verified:bool,copy_limit:u32 }
+
+#[tauri::command]
+pub fn sticker_duplicate(app:AppHandle,store:State<Store>,sticker_id:String,count:u32)->Result<Vec<peta_core::Sticker>,String> {
+    let copies=store.lock().db_mut().sticker_duplicate(&sticker_id,count).map_err(|e|e.to_string())?;
+    let _=app.emit("sticker-updated",&sticker_id);crate::today::announce(&app);Ok(copies)
+}
 
 #[tauri::command]
 pub fn sticker_delete_original(app: AppHandle, store: State<Store>, sticker_id: String) -> Result<(), String> {

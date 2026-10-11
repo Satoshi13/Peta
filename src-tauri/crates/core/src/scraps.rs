@@ -360,3 +360,11 @@ mod tests {
         drop(conn);drop(db);std::fs::remove_dir_all(dir).unwrap();
     }
 }
+
+/// Future creation reward seam. Exact input-file novelty is computed by the creation transaction.
+/// This intentionally grants no Scraps, in either production or developer builds.
+pub fn on_new_sticker(_db: &crate::Database, _sticker_id: &str, _new_image: bool) -> Result<()> {
+    #[cfg(test)] NEW_STICKER_CALLS.with(|calls| calls.borrow_mut().push((_sticker_id.to_owned(),_new_image)));
+    Ok(())
+}
+#[cfg(test)] thread_local! {pub(crate) static NEW_STICKER_CALLS:std::cell::RefCell<Vec<(String,bool)>>=const {std::cell::RefCell::new(Vec::new())};}

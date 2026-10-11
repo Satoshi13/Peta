@@ -327,20 +327,24 @@ impl History {
     }
 }
 
+#[derive(serde::Serialize)]
+#[serde(rename_all="camelCase")]
+pub struct Made { pub sticker_id:String,pub new_image:bool }
+
 /// "Make this Peta": render at full size, keep it in the library, consume one material (except Matte), and enqueue it for printing.
 #[tauri::command]
 /// `name` is what the person called it (optional). It is checked before anything is made, so a refused name makes nothing.
-pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: Option<f32>, name: Option<String>) -> Result<(), String> {
+pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: Option<f32>, name: Option<String>) -> Result<Made, String> {
     let title = match name.as_deref() { Some(n) => peta_core::clean_title(n).map_err(|e| e.to_string())?, None => None };
     let app2 = app.clone();
-    tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth, outline, title.as_deref()))
+    let result=tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth, outline, title.as_deref()))
         .await
         .map_err(|e| e.to_string())??;
     clear(&app);
-    Ok(())
+    Ok(result)
 }
 
-fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outline: Option<f32>, title: Option<&str>) -> Result<(), String> {
+fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outline: Option<f32>, title: Option<&str>) -> Result<Made, String> {
     let creator = app.state::<Creator>();
     let (rendered, original, ext, target, editor) = {
         let active = creator.active.lock().unwrap();
@@ -355,12 +359,14 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
     let date = app.state::<today::Today>().date();
     let store = app.state::<Store>();
     let mut made_id = None;
+    let result;
     {
         let mut lib = store.lock();
         if target.counts_for_today && !lib.db().has_material(&material).map_err(|e| e.to_string())? {
             return Err(peta_core::Error::MaterialUnavailable.to_string()); // used up elsewhere while the Cutting Mat was open
         }
         let sticker = lib.add_made_with_editor(&rendered, &original, ext, &material, &editor).map_err(|e| e.to_string())?;
+        result=Made{sticker_id:sticker.id.clone(),new_image:sticker.new_image};
         if !target.counts_for_today {
             // developer tools: no daily rule, no print — straight onto the desktop
             lib.stick_new(&sticker, &target.display_id, target.x, target.y).map_err(|e| e.to_string())?;
@@ -380,7 +386,7 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
     if made_id.is_some() {
         print::begin(app);
     }
-    Ok(())
+    Ok(result)
 }
 
 /// Reopen the original source and saved cutout, keeping its identity and material.
@@ -418,7 +424,7 @@ pub async fn creator_edit_original(app: AppHandle, sticker_id: String) -> Result
 
 #[tauri::command]
 /// `name`: `None` leaves the name as it is; `Some("")` takes it away.
-pub async fn creator_save_original(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: f32, name: Option<String>) -> Result<String, String> {
+pub async fn creator_save_original(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: f32, name: Option<String>) -> Result<Made, String> {
     let rename = match name.as_deref() { Some(n) => Some(peta_core::clean_title(n).map_err(|e| e.to_string())?), None => None };
     if !strength.is_finite() || !(0.0..=1.0).contains(&strength) || !smooth.is_finite() || !(0.0..=1.0).contains(&smooth) || !outline.is_finite() || !(4.0..=64.0).contains(&outline) {
         return Err("invalid cutout settings".into());
@@ -440,7 +446,7 @@ pub async fn creator_save_original(app: AppHandle, material_id: String, strength
         Ok(id)
     }).await.map_err(|e| e.to_string())??;
     clear(&app); let _ = app.emit("sticker-updated", &id); today::announce(&app);
-    Ok(id)
+    Ok(Made{sticker_id:id,new_image:false})
 }
 
 /// Cancel: close the window, keep everything as it was.

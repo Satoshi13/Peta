@@ -38,6 +38,8 @@ pub enum ProvenanceKind {
     Gifted,
     Received,
     PackOpened,
+    Duplicated,
+    Released,
 }
 
 impl ProvenanceKind {
@@ -47,6 +49,8 @@ impl ProvenanceKind {
             ProvenanceKind::Gifted => "gifted",
             ProvenanceKind::Received => "received",
             ProvenanceKind::PackOpened => "pack_opened",
+            ProvenanceKind::Duplicated => "duplicated",
+            ProvenanceKind::Released => "released",
         }
     }
     pub fn parse(s: &str) -> Option<Self> {
@@ -55,6 +59,8 @@ impl ProvenanceKind {
             "gifted" => ProvenanceKind::Gifted,
             "received" => ProvenanceKind::Received,
             "pack_opened" => ProvenanceKind::PackOpened,
+            "duplicated" => ProvenanceKind::Duplicated,
+            "released" => ProvenanceKind::Released,
             _ => return None,
         })
     }
@@ -91,6 +97,15 @@ pub struct Sticker {
     /// width / height of the rendered image.
     pub aspect: f64,
     pub provenance: Vec<ProvenanceEntry>,
+    pub lineage: String,
+    pub state: String,
+    pub copy_of: Option<String>,
+    pub copy_no: Option<u32>,
+    pub source_hash: Option<String>,
+    pub creator_sig: Option<String>,
+    pub creator_public_key: Option<String>,
+    pub verified: bool,
+    pub new_image: bool,
 }
 
 /// Everything needed to insert a sticker; `id` and counters are assigned by the library.

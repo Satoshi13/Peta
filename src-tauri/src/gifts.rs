@@ -1,9 +1,9 @@
-//! Gift (Phase 7, without accounts): send a copy of a sticker as a sealed `.peta` file, and receive one.
+//! Gift (Phase 7, without accounts): transfer a real sticker as a sealed `.peta` file, and receive one.
 //! The rules, the file format and the provenance live in `peta_core::gift`; this module owns the dialogs and the
 //! hand-off to the same Print -> Grab -> Paste flow as every other new Peta. Accounts and a server would only change
 //! how the file travels, not what is in it.
 
-use peta_core::{daily, gift, events, ids::random_unit, IncomingGift, SourceType};
+use peta_core::{gift, events, IncomingGift};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 use tauri_plugin_dialog::DialogExt;
@@ -16,10 +16,10 @@ const EXT: &str = "peta";
 #[serde(rename_all = "camelCase")]
 pub struct Sent {
     pub saved_to: String,
-    pub edition: i64,
+    pub edition: Option<i64>,
 }
 
-/// Seal a copy for `to` and ask where to save the file. Cancelling the dialog does nothing (no edition is used up).
+/// Transfer a real sticker to `to` and ask where to save the file. Cancelling the dialog changes nothing.
 #[tauri::command]
 pub async fn gift_send(window: WebviewWindow, app: AppHandle, sticker_id: String, to: String, note: Option<String>, dress: Option<gift::GiftDress>) -> Result<Option<Sent>, String> {
     let to = to.trim().to_owned();
@@ -37,17 +37,17 @@ pub async fn gift_send(window: WebviewWindow, app: AppHandle, sticker_id: String
     else {
         return Ok(None);
     };
-    let (edition, bytes) = {
-        let store = app.state::<Store>();
-        let mut lib = store.lock();
-        let (id, bytes) = gift::build_gift_dressed(&mut lib, &sticker_id, &to, note.as_deref(), &dress.unwrap_or_default()).map_err(|e| e.to_string())?;
-        let edition = gift::decode_gift(&bytes).map_err(|e| e.to_string())?.header.edition;
-        let _ = id;
-        (edition, bytes)
-    };
-    std::fs::write(&path, bytes).map_err(|e| format!("could not save the gift: {e}"))?;
-    // the file is safely written: the sticker's link tag (never in the file) goes back to the owner
-    if app.state::<Store>().lock().db_mut().link_tag_release(&[sticker_id.clone()]).unwrap_or(0) > 0 { let _ = app.emit("link-tags-changed", ()); }
+    let store = app.state::<Store>();
+    let mut lib = store.lock();
+    let root=lib.root().to_owned();let mut publication=None;
+    let (_,bytes)=gift::transfer_gift(&mut lib,&sticker_id,&to,note.as_deref(),&dress.unwrap_or_default(),&peta_core::ownership::NoReferee,|bytes| {
+        let id=gift::decode_gift(bytes)?.header.gift_id;
+        publication=Some(peta_core::export::Export::publish(&root,&path,bytes,&id)?);Ok(())
+    }).map_err(|e|format!("Could not save the gift: {e}"))?;
+    if let Some(publication)=publication {publication.finish();}
+    let edition=gift::decode_gift(&bytes).map_err(|e|e.to_string())?.header.edition;
+    drop(lib);let _=app.emit("sticker-updated",&sticker_id);let _=app.emit("link-tags-changed",());
+    today::announce(&app);let _=crate::layers::sync(&app);
     Ok(Some(Sent { saved_to: path.display().to_string(), edition }))
 }
 
@@ -127,8 +127,7 @@ pub async fn gift_open(app: AppHandle, gift_id: String) -> Result<String, String
     let sticker_id = {
         let store = app.state::<Store>();
         let mut lib = store.lock();
-        let sticker = gift::open_gift(&mut lib, &gift_id).map_err(|e| e.to_string())?;
-        daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Gift, random_unit()).map_err(|e| e.to_string())?;
+        let sticker = gift::open_gift_print(&mut lib, &gift_id,&date).map_err(|e| e.to_string())?;
         sticker.id
     };
     today::announce(&app);
