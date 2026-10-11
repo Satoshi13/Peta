@@ -2,6 +2,9 @@
   "productName": "Peta Developer",
   "identifier": "app.peta.developer",
   "bundle": {
-    "fileAssociations": []
+    "fileAssociations": [],
+    "macOS": {
+      "minimumSystemVersion": "14.0"
+    }
   }
 }

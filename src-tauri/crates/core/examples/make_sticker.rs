@@ -5,8 +5,7 @@ use peta_core::{creator::{self, Params, Session}, materials};
 fn main() {
     let a: Vec<String> = std::env::args().collect();
     let bytes = std::fs::read(&a[1]).unwrap();
-    let model = concat!(env!("CARGO_MANIFEST_DIR"), "/../../models/u2netp.onnx");
-    let seg = creator::load_segmenter(&[], &std::fs::read(model).unwrap()).unwrap();
+    let seg = peta_core::segment::Segmenter;
     let t = std::time::Instant::now();
     let session = Session::new(&bytes, Some(&seg)).unwrap();
     let analyze = t.elapsed();

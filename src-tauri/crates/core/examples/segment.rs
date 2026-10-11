@@ -1,15 +1,14 @@
-//! `cargo run --release -p peta-core --example segment -- <model.onnx> <spec> <in.jpg> <out.png>`
-//! Cuts the subject out of a photo with the given model (spec: u2netp | silueta | isnet).
-use peta_core::segment::{Segmenter, ISNET, SILUETA, U2NETP};
-
+//! `cargo run -p peta-core --example segment -- <in.jpg> <out.png>`
+//! Measures Apple Vision and writes a transparent cutout.
 fn main() {
     let a: Vec<String> = std::env::args().collect();
-    let spec = match a[2].as_str() { "silueta" => SILUETA, "isnet" => ISNET, _ => U2NETP };
-    let seg = Segmenter::from_onnx_bytes(&std::fs::read(&a[1]).unwrap(), spec).unwrap();
-    let mut img = image::open(&a[3]).unwrap().to_rgba8();
-    let t = std::time::Instant::now();
-    let alpha = seg.matte(&img).unwrap();
-    eprintln!("{} {:?} matte in {:?}", a[3], spec.name, t.elapsed());
-    for (x, y, p) in img.enumerate_pixels_mut() { p.0[3] = alpha.get_pixel(x, y).0[0]; }
-    img.save(&a[4]).unwrap();
+    let bytes = std::fs::read(&a[1]).unwrap();
+    let (mut img, _) = peta_core::image_import::decode_oriented(&bytes).unwrap();
+    for run in 0..3 {
+        let t = std::time::Instant::now();
+        let mask = peta_core::segment::foreground_mask(&img).unwrap();
+        eprintln!("Vision run {}: {:?}, {}x{}", run + 1, t.elapsed(), mask.width(), mask.height());
+        if run == 2 { for (x,y,p) in img.enumerate_pixels_mut() { p.0[3] = mask.get_pixel(x,y).0[0]; } }
+    }
+    img.save(&a[2]).unwrap();
 }

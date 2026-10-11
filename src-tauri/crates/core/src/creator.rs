@@ -7,8 +7,6 @@
 //! `Session::new`; everything after it (cutout adjust, brush edits, material change) is fast enough
 //! to re-render live while a slider moves.
 
-use std::path::PathBuf;
-
 use image::{
     codecs::{jpeg::JpegEncoder, png::{CompressionType, FilterType as PngFilter, PngEncoder}},
     imageops::FilterType,
@@ -20,7 +18,7 @@ use crate::{
     error::{Error, Result},
     image_import::decode_oriented,
     materials::MaterialRecipe,
-    segment::{Segmenter, KNOWN_MODELS, U2NETP},
+    segment::Segmenter,
     sticker,
 };
 
@@ -31,23 +29,6 @@ pub const WORK_EDGE: u32 = 940;
 pub const DEFAULT_STRENGTH: f32 = 0.5;
 /// Smoother than the model's raw edge by default: bumpy die-cut outlines look cheap.
 pub const DEFAULT_SMOOTH: f32 = 0.7;
-
-/// Pick a segmentation model. `PETA_MODEL=<name>` (u2netp | silueta | isnet-general-use) selects another
-/// one if its `.onnx` file sits in one of `dirs`; otherwise the bundled u2netp is used. Pure-Rust inference
-/// makes the bigger models several times slower, which is why u2netp is the default.
-pub fn load_segmenter(dirs: &[PathBuf], bundled_u2netp: &[u8]) -> Result<Segmenter> {
-    if let Ok(wanted) = std::env::var("PETA_MODEL") {
-        if let Some(spec) = KNOWN_MODELS.iter().find(|m| m.name == wanted) {
-            for dir in dirs {
-                let path = dir.join(format!("{}.onnx", spec.name));
-                if let Ok(bytes) = std::fs::read(&path) {
-                    return Segmenter::from_onnx_bytes(&bytes, *spec);
-                }
-            }
-        }
-    }
-    Segmenter::from_onnx_bytes(bundled_u2netp, U2NETP)
-}
 
 /// The photo, downscaled, plus the (edge-snapped) subject probability.
 #[derive(Clone)]
@@ -205,7 +186,7 @@ impl Analysis {
             }
             (matte, opaque)
         } else {
-            let seg = segmenter.ok_or_else(|| Error::Model("no segmentation model is loaded".into()))?;
+            let seg = segmenter.ok_or_else(|| Error::Model("Cutting out needs macOS 14 or later.".into()))?;
             let mut opaque = work_rgba;
             for p in opaque.pixels_mut() {
                 // flatten any faint alpha onto white before the model sees it
@@ -217,7 +198,7 @@ impl Analysis {
             }
             let raw = seg.matte(&opaque)?;
             let raw: Vec<f32> = raw.pixels().map(|p| p.0[0] as f32 / 255.0).collect();
-            // the network sees a 320px version: snap its soft edge to the real edge in the photo
+            // Snap the soft foreground mask to the real edge in the photo
             let r = (w.max(h) / 110).max(4);
             (cutout::guided_filter(&luma_plane(&opaque), &raw, w, h, r, 2e-3), opaque)
         };
@@ -448,14 +429,13 @@ mod tests {
     use crate::materials;
 
     const CAT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../../assets-src/cat-original.png");
-    const MODEL: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../models/u2netp.onnx");
 
     fn params(material: &str) -> Params {
         Params { strength: DEFAULT_STRENGTH, smooth: DEFAULT_SMOOTH, recipe: materials::get(material).unwrap().recipe }
     }
 
     fn segmenter() -> Segmenter {
-        load_segmenter(&[], &std::fs::read(MODEL).expect("bundled u2netp model")).unwrap()
+        Segmenter
     }
 
     /// The (transparent) sample cat pasted onto a busy synthetic photo background.
@@ -507,8 +487,9 @@ mod tests {
         assert!(matches!(Session::new(&jpeg, None), Err(Error::Model(_))));
     }
 
+    #[cfg(target_os = "macos")]
     #[test]
-    fn the_model_finds_the_cat_in_a_busy_photo() {
+    fn vision_finds_the_cat_in_a_busy_photo() {
         let (jpeg, truth, (w, h)) = cat_on_background();
         let session = Session::new(&jpeg, Some(&segmenter())).unwrap();
         assert!(!session.analysis.had_alpha);
@@ -525,6 +506,34 @@ mod tests {
         assert!(iou > 0.80, "IoU {iou}");
     }
 
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn vision_mask_is_bounded_repeatable_and_uses_exif_orientation() {
+        let (jpeg, _, (w, h)) = cat_on_background();
+        let (image, _) = decode_oriented(&jpeg).unwrap();
+        let first = Segmenter.matte(&image).unwrap();
+        assert_eq!(first, Segmenter.matte(&image).unwrap());
+        let area = first.pixels().filter(|p| p.0[0] > 127).count() as f64 / (w * h) as f64;
+        assert!((0.05..0.95).contains(&area), "area {area}");
+        assert!(first.rows().next().unwrap().any(|p| p.0[0] < 255));
+        let exif = b"Exif\0\0MM\0*\0\0\0\x08\0\x01\x01\x12\0\x03\0\0\0\x01\0\x06\0\0\0\0\0\0";
+        let mut rotated = vec![0xff, 0xd8, 0xff, 0xe1];
+        rotated.extend_from_slice(&((exif.len() + 2) as u16).to_be_bytes());
+        rotated.extend_from_slice(exif); rotated.extend_from_slice(&jpeg[2..]);
+        let session = Session::new(&rotated, Some(&Segmenter)).unwrap();
+        assert_eq!(session.size(), (h as usize, w as usize));
+        assert!(session.render(&params("matte")).unwrap().coverage > 0.05);
+    }
+
+    #[test]
+    fn uniform_pictures_have_a_clear_no_subject_error() {
+        for color in [0, 255] {
+            let image = RgbaImage::from_pixel(128, 128, image::Rgba([color, color, color, 255]));
+            assert!(matches!(Segmenter.matte(&image), Err(Error::Model(message)) if message.contains("Nothing was cut out")));
+        }
+    }
+
+    #[cfg(target_os = "macos")]
     #[test]
     fn cutout_adjust_and_brush_edits_change_the_result() {
         let (jpeg, _, _) = cat_on_background();

@@ -3,8 +3,7 @@
 //! session and the commands the window calls. Nothing is spent until "Make this Peta".
 
 use std::{
-    path::PathBuf,
-    sync::{atomic::{AtomicU64, Ordering}, Arc, Mutex, OnceLock},
+    sync::{atomic::{AtomicU64, Ordering}, Mutex},
 };
 
 use peta_core::{
@@ -20,9 +19,6 @@ use tauri::{ipc::Response, AppHandle, Emitter, Manager, State};
 
 use crate::{print, store::Store, today};
 
-
-/// u2netp, 4.5 MB: bundled so cutting out works offline from the first launch.
-const BUNDLED_MODEL: &[u8] = include_bytes!("../models/u2netp.onnx");
 
 /// Where the finished sticker goes, and whether it is today's Peta.
 #[derive(Clone)]
@@ -55,34 +51,16 @@ struct Active {
 pub struct Creator {
     phase: Mutex<Phase>,
     active: Mutex<Option<Active>>,
-    segmenter: OnceLock<Result<Arc<Segmenter>, String>>,
     generation: AtomicU64,
 }
 
 impl Default for Creator {
     fn default() -> Self {
-        Creator { phase: Mutex::new(Phase::Idle), active: Mutex::new(None), segmenter: OnceLock::new(), generation: AtomicU64::new(0) }
+        Creator { phase: Mutex::new(Phase::Idle), active: Mutex::new(None), generation: AtomicU64::new(0) }
     }
 }
 
 impl Creator {
-    /// Loaded on first use (a second or so), then kept.
-    fn segmenter(&self, app: &AppHandle) -> Result<Arc<Segmenter>, String> {
-        self.segmenter
-            .get_or_init(|| {
-                let mut dirs: Vec<PathBuf> = Vec::new();
-                if let Ok(d) = app.path().app_data_dir() {
-                    dirs.push(d.join("models"));
-                }
-                if let Ok(d) = app.path().resource_dir() {
-                    dirs.push(d.join("models"));
-                }
-                dirs.push(PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/models")));
-                creator::load_segmenter(&dirs, BUNDLED_MODEL).map(Arc::new).map_err(|e| e.to_string())
-            })
-            .clone()
-    }
-
     fn set_phase(&self, app: &AppHandle, phase: Phase) {
         *self.phase.lock().unwrap() = phase;
         let _ = app.emit("creator-changed", ());
@@ -114,9 +92,7 @@ pub fn begin(app: &AppHandle, bytes: Vec<u8>, target: Target) -> Result<(), Stri
     let app2 = app.clone();
     tauri::async_runtime::spawn_blocking(move || {
         let creator = app2.state::<Creator>();
-        let outcome = creator
-            .segmenter(&app2)
-            .and_then(|seg| Session::new(&bytes, Some(seg.as_ref())).map_err(|e| e.to_string()));
+        let outcome = Session::new(&bytes, Some(&Segmenter)).map_err(|e| e.to_string());
         let mut active = creator.active.lock().unwrap();
         if creator.generation.load(Ordering::SeqCst) != generation { return; }
         match outcome {
@@ -419,8 +395,7 @@ pub async fn creator_edit_original(app: AppHandle, sticker_id: String) -> Result
     tauri::async_runtime::spawn_blocking(move || {
         let creator = app2.state::<Creator>();
         let outcome = (|| -> Result<Active, String> {
-            let seg = creator.segmenter(&app2)?;
-            let mut session = Session::new(&bytes, Some(seg.as_ref())).map_err(|e| e.to_string())?;
+            let mut session = Session::new(&bytes, Some(&Segmenter)).map_err(|e| e.to_string())?;
             let settings = if let Some(editor) = editor {
                 editor.restore(&mut session).map_err(|e| e.to_string())?;
                 (editor.outline, editor.smooth, editor.strength)

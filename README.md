@@ -173,8 +173,7 @@ Today の **Create**、またはデスクトップへの画像ドロップで開
 
 - 元から**透明な背景の PNG**は、モデルを使わずにそのまま使います(フチと素材だけ付きます)。
 - スマホ写真の**向き(EXIF)**は自動で直します。
-- 背景除去は**同梱の u2netp(4.5MB)**を純Rust(tract)で実行します。**初回の解析に 1〜3 秒**かかります(Mac の方が速いはずです)。
-  大きいモデル(silueta など)は `PETA_MODEL=silueta` で切り替えられます。細い部分に強いですが数倍遅いです → [src-tauri/models/README.md](src-tauri/models/README.md)。
+- 背景除去は **Apple Vision の前景抽出**を使います。macOS **14.0 以上**が必要です。モデルの同梱・選択・ダウンロードはありません。解析はバックグラウンドで行い、輪郭・ブラシの仕上げは従来どおりです。初回は OS のモデル初期化に時間がかかる場合があります。計測と比較は [Vision の報告](docs/vision-cutout-report.md) に記録します。
 - **Holographic／Goldの光沢**はmacOSのグローバルカーソルに追従します。帯の位置・角度だけが変わり、ステッカーの傾き・影・大きさは変えません。カーソルが未移動／層の外なら従来の位置・回転による反射へ戻ります。補間は収束で停止し、反射対象0枚／Reduce motionでは33msのカーソル取得も停止します。反射対象は `REFLECTIVE_MATERIALS` に集約。`reflection_status` の activeLayers / timerRunning / cursorReads とdebugログで停止を確認できます。Windows／Linuxのグローバル取得は未提供です。
 
 ### ステッカーの裏面(裏返す)
@@ -215,7 +214,7 @@ Option＋引き離しは、引く方向と反対側の端からめくれ、手�
 操作を離した時点で自動保存されます。触ったステッカーは最前面に来ます。
 印刷から1枚貼り終えると給紙を止め、そのステッカーの編集へ戻ります。残りの印刷待ちは保存した順に残し、続きはトレイのResume printingで次の1枚を出します。新しく作る／Stickを押す操作でも既存の印刷待ちが先なら、その順序は維持します。起動・日付更新での既存の再開処理は維持します。
 剥がしたステッカーは**デスクトップから外れるだけでライブラリには残ります**(Bookで確認できます)。再起動しても戻りません。
-透明PNGはモデルなしで使えます。JPEG等の背景除去にはONNXモデルが必要です。
+透明PNGはその透明度を使い、JPEG等の背景除去は macOS 標準の Vision で行います。
 編集バーには、直近のドラッグの描画性能(fps / 最悪フレーム時間)が出ます。カクつき調査用です。
 
 ## 検証チェックリスト(仕様 §87 の Spike 順)
@@ -261,7 +260,7 @@ src-tauri/crates/core/ peta-core: OS・UIに依存しない中核(Linuxでも ca
   db.rs                SQLite(stickers / provenance / placements)
   library.rs           DB + 画像ファイルの管理
   image_import.rs      画像の取り込み(EXIF向き・余白トリミング・縮小・PNG化)
-  segment.rs           背景除去(ONNX モデルを tract で実行)
+  segment.rs           背景除去(Apple Vision、macOS 14 以上)
   cutout.rs            マスクの道具(エッジ吸着・ゴミ取り・穴埋め・距離場・ダイカット輪郭)
   sticker.rs           素材の描画(Matte / Kraft / Holographic)
   creator.rs           Cutting Mat のパイプラインとセッション(ブラシ補正・半解像度プレビュー)
