@@ -55,6 +55,8 @@ import { average, advise, DEFAULTS, SHEET } from "../scripts/economy-sim.mjs";
 const GROUPS = [
   ["人と期間", [
     ["players", "人数", 3, 40, 1, "友達の数"], ["days", "日数", 30, 365, 5, ""], ["startScraps", "最初の Scraps", 0, 60, 1, "いまは 0 から始まる。0 で試すと立ち上がりが分かる"] ]],
+  ["Scraps の入り口", [
+    ["makeBonus", "ステッカーを作った日のボーナス", 0, 10, .5, "デイリーミッション。1日1回、新しく作ると入る（Scraps = 切り抜きの切れ端）"], ["streakEvery", "連続ボーナスの間隔（日）", 0, 14, 1, "0 = なし。n日連続で作るたびに"], ["streakBonus", "連続ボーナスの量", 0, 20, 1, ""] ]],
   ["値段と取り分", [
     ["price", "1回の値段", 1, 30, 1, "開けるときに払う Scraps"], ["sellerShare", "売り手の取り分", .1, 1, .05, "残りは消える（Scraps が増えすぎない歯止め）", (v) => Math.round(v * 100) + "%"] ]],
   ["パック（売り手が決める）", [
@@ -99,6 +101,7 @@ function run() {
     card("開けられた回数", s.pulls.toFixed(0), `${cfg.days}日 · ${cfg.players}人`),
     card("売り切れたパック", (s.soldOutShare * 100).toFixed(0) + "%", s.soldOut >= 1 ? `平均 ${s.daysToSellOut.toFixed(0)} 日で` : "売り切れなし", tone(s.soldOutShare > .5, s.soldOutShare > .2)),
     card("Scraps の増え方", (s.scrapsDrift >= 0 ? "+" : "") + (s.scrapsDrift * 100).toFixed(0) + "%", `1人 ${s.scrapsPerPlayer.toFixed(1)}`, tone(Math.abs(s.scrapsDrift) < .3, Math.abs(s.scrapsDrift) < .6)),
+    card("1人1日の Scraps 収入", s.inflowPerPlayerDay.toFixed(2), `うちミッション ${(s.missionShare * 100).toFixed(0)}%`),
     card("何か開けられた日", (s.liveShare * 100).toFixed(0) + "%", `出品 ${s.runs.toFixed(0)} 回 · 転売 ${s.resales.toFixed(0)} 回`, tone(s.liveShare > .85, s.liveShare > .6)),
   ].join("");
   $("advice").innerHTML = advise(s, res.params).map((a) => `<li class="${a.tone}">${a.text}</li>`).join("");
@@ -106,7 +109,7 @@ function run() {
   line($("c1"), per, "perPlayer", css("--good")); line($("c2"), per, "openSlots", css("--warn")); line($("c3"), per, "pulls", css("--accent"));
 }
 const sel = $("sweepKey"); for (const [k, v] of Object.entries(NAMES)) sel.add(new Option(v, k)); sel.value = "price";
-const SUGG = { price: "2,4,6,8,10,14", sellerShare: ".4,.55,.7,.85,1", editions: "1,3,5,10,20", copySheets: "0,.2,.5,1", prizeMaterials: "0,1,2,4", players: "4,8,16,30", startScraps: "0,6,12,30", appetite: ".2,.4,.6,.8,1", makeProb: ".2,.4,.6,.8", designsPerPack: "2,4,6,8" };
+const SUGG = { makeBonus: "0,1,2,3,5", streakBonus: "0,3,5,10", streakEvery: "0,3,5,7", price: "2,4,6,8,10,14", sellerShare: ".4,.55,.7,.85,1", editions: "1,3,5,10,20", copySheets: "0,.2,.5,1", prizeMaterials: "0,1,2,4", players: "4,8,16,30", startScraps: "0,6,12,30", appetite: ".2,.4,.6,.8,1", makeProb: ".2,.4,.6,.8", designsPerPack: "2,4,6,8" };
 const sugg = () => { $("sweepList").value = SUGG[sel.value] || ""; }; sel.onchange = sugg; sugg();
 $("sweepGo").onclick = () => {
   const key = sel.value, vals = $("sweepList").value.split(",").map(Number).filter((v) => Number.isFinite(v));

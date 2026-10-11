@@ -26,3 +26,9 @@ test('with nothing worth pulling at, nobody lists (the market never starts), and
   const r = average({ price: 2, sellerShare: .5 }, 6); assert.equal(r.summary.runs, 0);
   assert.ok(advise(r.summary, r.params).some((x) => x.tone === 'bad' && /誰も出品/.test(x.text)));
 });
+test('the daily mission and the welcome Scraps come in from the world, are counted in the books, and keep the market moving', () => {
+  const base = average({ startScraps: 0 }, 8).summary, fed = average({ startScraps: 20, makeBonus: 2 }, 8).summary;
+  assert.ok(fed.inflowPerPlayerDay > base.inflowPerPlayerDay && fed.missionShare > 0 && base.missionShare === 0);
+  assert.ok(fed.pulls > base.pulls);
+  for (const over of [{ makeBonus: 3, startScraps: 20 }, { makeBonus: 1, streakEvery: 7, streakBonus: 10 }]) { const { summary: s } = simulate({ seed: 5, ...over }); assert.ok(Math.abs(s.scrapsEnd - s.books) < 1e-6); }
+});
