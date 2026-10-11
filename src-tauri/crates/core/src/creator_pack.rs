@@ -12,7 +12,7 @@ pub const LEGACY_WEIGHTS:[(&str,u32);3]=[("common",4),("uncommon",2),("rare",1)]
 pub const MAX_WEIGHT:u32=16;
 const GRADES:[&str;5]=["common","uncommon","rare","special","archive"];
 pub const BAGS:[&str;8]=["kraft","matte","holo","glassine","kraft-parcel","pocket","drawer","cotton"];
-pub const DECOS:[&str;3]=["clip","pin","tape"];
+pub const DECOS:[&str;4]=["clip","pin","tape","seal"];
 const MAX_PICTURE:usize=2*1024*1024;
 #[derive(Clone,Debug,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]

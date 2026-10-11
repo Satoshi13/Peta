@@ -31,6 +31,9 @@ function CloseButton(label, props = {}, className = "") {
 
 /** Small line icons for paper actions: one stroke, no fill, so they take the text colour. */
 const ICONS = {
+  pack: "M5 3h14v18H5zM5 7h14M9 11h6v5H9z",
+  stock: "M4 6h16v14H4zM3 3h18v3H3zM9 10h6",
+  transfer: "M4 12h16M14 6l6 6-6 6",
   peel: "M4 19C8 11 13 8 20 7M15 3l5 4-4 5",
   stick: "M4 5c4 8 9 11 16 12M16 12l4 5-5 4",
   gift: "M4 9h16v4H4zM5 13h14v8H5zM12 9v12M12 9C9.5 9 8 8 8 6.5S10 4 12 9c2-5 4-3.5 4-2.5S14.5 9 12 9z",

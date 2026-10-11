@@ -4,6 +4,13 @@
    surprise). Fetched once and kept. */
 const PackArt = {
   cache: new Map(),
+  covers: new Map(),
+  decorated(p) { return !!BAGS[p.bag] && (BAGS[p.bag].gen || p.signed); },
+  cover(p) {
+    if(!p.cover || !p.signed) return Promise.resolve(null);
+    if(!this.covers.has(p.id)) this.covers.set(p.id, Bridge.invoke("pack_cover_picture",{packId:p.id}).then(bytes=>URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:"image/png"}))).catch(()=>null));
+    return this.covers.get(p.id);
+  },
   /** [{ src, baked: true }] for a signed pack; [] for the packs that ship with the app. */
   peek(p) {
     if(!p.signed) return Promise.resolve([]);
@@ -175,11 +182,11 @@ Pages.packs = {
   build() {
     const root = h("div.page-in.packspage");
     root.append(PageHead("Packs", "Open one at random", h("span.quota", { "aria-live": "polite" }, h("b", "Welcome Pack"), ` ${S.packAvailable ? 0 : 1} of 1 today`, h("small", "resets at midnight · other packs open any time"))));
-    const total = S.packs.reduce((a, p) => a + p.left.length, 0);
-    const items = S.packs.map((p) => ({ ...p, empty: !p.left.length }));
-    root.append(h("p.muted.lede", "Choose a pack to look closer, then open one sticker at a time or ten at once. Each is picked at random. The Welcome Pack opens once a day; packs you get from the Market or friends open any time."));
-    root.append(this.shelf(items));
-    root.append(h("p.shelf-note.muted", total ? `${total} sticker${total === 1 ? "" : "s"} still sealed.` : "Every pack is open."));
+    const items = S.packs.map((p) => ({ ...p, empty: !p.left.length })), stored=items.filter(p=>p.own), received=items.filter(p=>!p.own);
+    if(stored.length) root.append(h("h2.pk-section-title","My shelf"),h("p.muted.lede","Finished packs kept for another season. Save the same signed file whenever you want to share one again."),this.shelf(stored));
+    if(received.length) root.append(stored.length ? h("h2.pk-section-title","Packs to open") : null,h("p.muted.lede","Choose a pack to look closer and open a random sticker. The Welcome Pack opens once a day; packs from friends open any time."),this.shelf(received));
+    const total=received.reduce((n,p)=>n+p.left.length,0);
+    root.append(h("p.shelf-note.muted", received.length ? `${total} slots still sealed in packs to open.` : "Your finished packs are stored on My shelf."));
     return root;
   },
   /* The pouches stand on shelf boards, as many to a row as fit; every row gets its own board. The cards are kept and only moved between rows,
@@ -200,10 +207,10 @@ Pages.packs = {
     return shelf;
   },
   pack(p, i) {
-    const gen = p.bag && BAGS[p.bag]?.gen;
+    const gen = PackArt.decorated(p);
     const img = gen ? null : h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } });
     const stack = h("div.pk-stack", {data:{empty:p.empty, gen: gen ? "1" : "0"}}, gen ? PackArt.shelf(p, null) : img, gen ? null : PackLabel(p));
-    if(gen && p.cover) PackArt.peek(p).then((items) => { const first = items[0]; if(first && stack.isConnected) { $(".bagpic", stack)?.replaceWith(PackArt.shelf(p, first.src)); } });
+    if(gen && p.cover) PackArt.cover(p).then((cover) => { if(cover && stack.isConnected) $(".bagpic", stack)?.replaceWith(PackArt.shelf(p, cover)); });
     const light = gen ? { aim() {}, rest() {} } : SurfaceLight.attach(img, p.kind || "holo"); // the glint is lit over the pack's own surface, not slid across it
     const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
       stack, (() => { const ink = WallInk.write(`${p.left.length} left`, p.id); return h("span.pk-count", { "aria-hidden": "true", style: { "--tilt": ink.tilt, "--dx": ink.dx } }, ...ink.nodes); })()); // written on the wall behind the pouch, so it stays put when the pouch lifts
@@ -220,7 +227,7 @@ Pages.packs = {
     const left = p.left.length, many = Math.min(10, left), more = left >= 2 && !p.daily;
     const available = p.freeOpenings || 0, progress = available ? 10 : Math.max(0, p.total - left) % 10;
     /* A ready free opening always comes first: while one is waiting, it is the only thing the card offers. */
-    const rule = p.own ? "Your own pack: friends open it" : available ? `${available === 1 ? "A free opening is" : "Free openings are"} ready. ${available === 1 ? "It comes" : "They come"} first.` : p.empty ? "No regular openings left." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "";
+    const rule = p.own ? "Stored on My shelf. Export this finished pack whenever you want to share it again." : available ? `${available === 1 ? "A free opening is" : "Free openings are"} ready. ${available === 1 ? "It comes" : "They come"} first.` : p.empty ? "No regular openings left." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "";
     const listed = MARKET_PACKS.find((m) => m.id === p.id), blurb = listed?.blurb || p.blurb;
     // the packs that ship with the app show shipped pictures; a pack made in Studio shows its own (the cover first, the rarest kept hidden)
     const peekHost = h("div.peek-host"), shipped = listed ? listed.keys : p.id === "welcome" ? ["sCat", "sEgg", "sBlueFlower"] : [];
@@ -228,19 +235,20 @@ Pages.packs = {
     else PackArt.peek(p).then((items) => { const fig = PackPeek(items, ""); if(fig) peekHost.replaceChildren(fig); });
     const peek = peekHost;
     const go = (fn) => () => { PackZoom.dispose(); fn(); };
+    const exportPack=p.own ? h("button.btn.mkz-primary",{type:"button",on:{click:async ev=>{const b=ev.currentTarget;b.disabled=true;try {const path=await Bridge.invoke("creator_pack_export",{packId:p.id});if(path)Shell.toast("Saved the finished pack.");}catch(err){Shell.toast(String(err));}finally{b.disabled=false;}}}},"Save file…") : null;
     const one = p.own ? null : h("button.btn.mkz-act", { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
     const free = available && !p.own ? h("button.btn.mkz-act", {type:"button",on:{click:go(()=>{Snd.tap();Cer.openPack(p,{free:true});})}}, "Open free") : null;
     const ten = more && !p.own ? h("button.btn.paper.mkz-act", { type: "button", on: { click: go(() => { Snd.tap(); Cer.openPackMany(p, many); }) } }, many === 10 ? "Open 10" : `Open all ${many}`) : null;
     return h("aside.mkz-card", CloseButton("Back to the shelf", {}, ".mkz-x"),
       h("p.eyebrow", `by ${p.by}${p.signatureStatus ? " ✓" : ""}`), h("h2", p.title), blurb ? h("p.mkz-blurb", blurb) : null,
       p.fingerprint ? h("p.mkz-fp.muted", `${p.fingerprint}${p.signatureStatus === "mine" ? " · Made by you" : p.signatureStatus === "new" ? " · New friend" : p.signatureStatus === "warning" ? " · Same name, different key" : ""}`) : null,
-      h("p.mkz-own", h("b", `${left} ${left === 1 ? "opening" : "openings"} left`)),
+      h("p.mkz-own", h("b", p.own ? `${left} sealed slots` : `${left} ${left === 1 ? "opening" : "openings"} left`)),
       p.own ? null : h("div.mkz-reward", h("p.small.muted", available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} / 10 toward a free opening`),
         h("div.mkz-pips", {role:"progressbar","aria-label":"Free opening progress","aria-valuemin":0,"aria-valuemax":10,"aria-valuenow":progress,"aria-valuetext":available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} of 10 openings`}, Array.from({length:10}, (_, i) => h("i" + (i < progress ? "" : ".o"))))),
       peek,
       h("div.mkz-buy", rule ? h("p.mkz-rule", rule) : null,
-        free,
-        available ? null : p.empty ? h("button.btn.mkz-act", { type: "button", on: { click: () => Shell.go("market") } }, "Find more in the Market") : [one, ten],
+        exportPack, free,
+        p.own || available ? null : p.empty ? h("button.btn.mkz-act", { type: "button", on: { click: () => Shell.go("market") } }, "Find more in the Market") : [one, ten],
         h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
   },
 };

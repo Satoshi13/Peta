@@ -51,4 +51,14 @@ pub(crate) fn recover(root:&Path,db:&Database)->Result<()> {
         db.conn.execute("INSERT INTO meta VALUES ('export.receipt','1')",[]).unwrap();recover(&root,&db).unwrap();assert_eq!(fs::read(&target).unwrap(),b"committed");
         fs::remove_dir_all(root).unwrap();
     }
+    #[test] fn an_old_receipt_cannot_commit_a_new_publication_interrupted_between_renames() {
+        let root=std::env::temp_dir().join(crate::ids::new_gift_id());fs::create_dir_all(&root).unwrap();
+        let target=root.join("pack.peta");fs::write(&target,b"old pack").unwrap();let db=Database::open_in_memory().unwrap();
+        db.conn.execute("INSERT INTO meta VALUES ('export.old-operation','1')",[]).unwrap();
+        let interrupted=Export::publish(&root,&target,b"new pack","new-operation").unwrap();
+        // Return to the crash point after target -> backup, before temp -> target.
+        fs::rename(&target,&interrupted.entry.temp).unwrap();std::mem::forget(interrupted);
+        recover(&root,&db).unwrap();assert_eq!(fs::read(&target).unwrap(),b"old pack");
+        assert_eq!(fs::read_dir(root.join("exports")).unwrap().count(),0);fs::remove_dir_all(root).unwrap();
+    }
 }

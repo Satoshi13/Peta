@@ -81,11 +81,12 @@ const Cer = (() => {
 
   /* One tearable wrapper, used by Packs (the sticker comes out) and by Today's material (the card comes out).
      `content` sits inside, behind the front of the wrapper; `onTear(rig)` runs once, the moment the top is torn off. */
-  function buildRig(cer, stage, { kind, hue, content, onTear, label }) {
+  function buildRig(cer, stage, { kind, hue, content, onTear, label, decoration }) {
     const K = PACK_KINDS[kind] || PACK_KINDS.holo, PW = Math.min(310, stage.clientHeight * .48, stage.clientWidth * .55), PH = PW * 4 / 3, CUT = K.cut;
     const jag = jagged(26, CUT), tint = K.foil && hue ? ".tinted" : "";
     const mk = (cls, clip) => h("div.pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--hue": (hue || 0) + "deg" } }, K.foil ? h("i.sheen") : null);
     const body = mk("pk-body", polyBody(jag)), topStrip = mk("pk-top", polyTop(jag)), inside = h("div.pk-inside");
+    if(decoration) { body.append(decoration); topStrip.append(decoration.cloneNode(true)); }
     const tab = h("i.pk-tab", h("b", "tear")), line = h("i.pk-line");
     const pouch = h("div.pouch", { data: { kind: kind || "holo" }, style: { width: PW + "px", height: PH + "px", "--pk": packVar(kind) } }, inside, content, body, label || null, topStrip, line, tab);
     line.style.top = CUT + "%"; tab.style.top = CUT - 3.6 + "%";
@@ -427,10 +428,12 @@ const Cer = (() => {
       } });
     };
     // a pouch is torn along its top; every other wrapping (Studio) is simply opened
-    const generic = !!(pack.bag && BAGS[pack.bag]?.gen), peeked = generic && pack.cover ? await PackArt.peek(pack) : [];
+    const generic = !!(pack.bag && BAGS[pack.bag]?.gen), cover = pack.bag && PackArt.decorated(pack) ? await PackArt.cover(pack) : null;
+    const decoration = !generic && pack.bag && PackArt.decorated(pack) ? BagPic({bag:pack.bag,title:pack.title,sub:"by "+pack.by,cover,deco:pack.deco||"none",layout:pack.layout,id:pack.id,shut:true}) : null;
+    if(decoration) { decoration.querySelector(".bp-art")?.remove(); decoration.classList.add("pk-dress"); }
     if (generic) cer.hint("Open it.");
-    const rig = generic ? buildBagRig(cer, stage, { pack, content: sleeve, cover: peeked[0]?.src || null, onTear })
-      : buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, label: PackLabel({ ...pack, kind: pack.kind || "holo" }), onTear });
+    const rig = generic ? buildBagRig(cer, stage, { pack, content: sleeve, cover, onTear })
+      : buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, label: decoration ? null : PackLabel({ ...pack, kind: pack.kind || "holo" }), decoration, onTear });
     sleeve.style.cssText = rig.sleeveCss || `width:${rig.PW * .72}px;left:${rig.PW * .14}px;top:${rig.cutY - rig.PW * .72 * .12}px`;
     // A pull is already in the Collection. "Stick it" sends it to the desktop the same way the Collection's "Stick on desktop" does;
     // "Keep in Collection" (or Esc) just closes, and nothing is left waiting at the print slot.

@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
 import { bagResolveLayout, bagClampPart, bagComposition, bagAccentDefault, bagPartSize } from '../src/ui-math.js';
 
 const kraft = { W: 3, H: 4, body: [4, 5, 96, 97], lbl: [21, 39, 79, 65.5], cover: [72, 80, 30, 8], clip: [76, 6, 9, 16], pin: [50, 6, 7], tape: [12, 5.5, 76, 8, -1.5] };
@@ -16,11 +18,22 @@ test('the cover sticker never sits on the name: dropped on it, it goes to a free
 });
 test('an accent keeps its centre on the wrapping', () => {
   const [x, y] = bagClampPart(kraft, 'clip', [-20, 300]); assert.ok(x >= kraft.body[0] && y <= kraft.body[3]);
-  assert.deepEqual(bagAccentDefault(kraft, 'clip'), [76, 6]); assert.deepEqual(bagAccentDefault(kraft, 'tape'), [50, 9.5]);
+  const clip=bagAccentDefault(kraft,'clip'); assert.equal(clip[0],76); assert.ok(clip[1]>kraft.body[1] && clip[1]<kraft.body[1]+bagPartSize(kraft,'clip').h/2); assert.deepEqual(bagAccentDefault(kraft, 'tape'), [50, 9.5]);
 });
 test('every composition keeps the cover inside, and none of them moves the label', () => {
   for (const comp of ['center', 'corner', 'band']) { const c = bagComposition(kraft, comp); assert.ok(inside(kraft, 'cover', c.cover), comp); assert.deepEqual(c.label, [50, 52.25], comp); }
   assert.notDeepEqual(bagComposition(kraft, 'band').cover, bagComposition(kraft, 'center').cover);
+});
+test('the three cover presets are visibly different on every pack wrapping', () => {
+  const ctx=vm.createContext({A:new Proxy({},{get:()=>''})});
+  vm.runInContext(fs.readFileSync(new URL('../src/app/js/catalog.js',import.meta.url),'utf8')+';this.catalog={BAGS,PACK_BAG_IDS};',ctx);
+  for(const id of ctx.catalog.PACK_BAG_IDS) {
+    const bag=ctx.catalog.BAGS[id],positions=['center','corner','band'].map(comp=>bagComposition(bag,comp).cover);
+    for(const [i,p] of positions.entries()) {
+      assert.ok(inside(bag,'cover',p),`${id}: cover outside the wrapping`);
+      for(const q of positions.slice(i+1)) assert.ok(Math.hypot(q[0]-p[0],q[1]-p[1])>10,`${id}: cover presets look the same`);
+    }
+  }
 });
 test('a layout always has a label; at most two accents, one of each kind, only the known ones', () => {
   const r = bagResolveLayout(kraft, { comp: 'free', accents: [{ kind: 'clip', x: 10, y: 10 }, { kind: 'clip', x: 20, y: 20 }, { kind: 'pin', x: 50, y: 50 }, { kind: 'tape', x: 1, y: 1 }, { kind: 'glitter', x: 1, y: 1 }] });

@@ -39,7 +39,7 @@ test('the app and the Rust core agree on which wrappings exist', () => {
   assert.deepEqual([...PACK_BAG_IDS].sort(), list(rs, 'BAGS').sort());
   assert.deepEqual([...GIFT_BAG_IDS].sort(), list(gift, 'GIFT_BAGS').sort());
   for (const id of [...PACK_BAG_IDS, ...GIFT_BAG_IDS]) assert.ok(BAGS[id], id);
-  assert.equal(list(rs, 'DECOS').join(), 'clip,pin,tape');
+  assert.equal(list(rs, 'DECOS').join(), 'clip,pin,tape,seal');
 });
 
 test('a pack is made of eight wrappings and a gift of six; only the three pouches are torn open', () => {

@@ -69,7 +69,7 @@ function stLayoutArgs(p) {
 /** Dress step: the cover sticker and the accents on the bench can be dragged (or moved with the arrow keys). Every move is clamped to the wrapping, so nothing can be
  *  put outside it. The label is printed on the wrapping: it stays, and cannot be taken off. `note` is called when a move is done. */
 function stEdit(pic, p, note) {
-  const bag = BAGS[p.bag], names = { cover: "The cover sticker", clip: "The clip", pin: "The pin", tape: "The tape" };
+  const bag = BAGS[p.bag], names = { cover: "The cover sticker", clip: "The clip", pin: "The pin", tape: "The tape", seal: "The wax seal" };
   const posOf = (el) => { const r = PetaMath.bagResolveLayout(bag, p.layout); if(el.dataset.part === "cover") return r.cover; const a = r.accents.find((x) => x.kind === el.dataset.kind); return a ? [a.x, a.y] : null; };
   const store = (el, part, pos) => {
     const at = PetaMath.bagClampPart(bag, part, pos);
@@ -115,8 +115,7 @@ function stFind(fill) {
   const input = h("input", { type: "search", placeholder: "Search stickers", value: f.q, autocomplete: "off", spellcheck: false, "aria-label": "Search stickers", on: { input: () => { f.q = input.value; fill(); } } });
   const options = [["all", "All materials"], ...(onDesk ? [["desktop", `On desktop (${onDesk})`]] : []), ...Object.keys(MAT).filter((id) => counts[id]).map((id) => [id, `${MAT[id].name} (${counts[id]})`])];
   const select = h("select", { "aria-label": "Material", on: { change: () => { f.mat = select.value; Snd.tap(); fill(); } } }, options.map(([v, t]) => h("option", { value: v, selected: v === f.mat }, t)));
-  const legend = h("div.st-legend", { "aria-hidden": "true" }, ["common", "uncommon", "rare", "special", "archive"].map((r) => h("span", { data: { rarity: r } }, h("i"), r[0].toUpperCase() + r.slice(1))));
-  return h("div.st-findwrap", h("div.st-find", h("label.st-search", input), h("label.st-selectw", select)), legend);
+  return h("div.st-findwrap", h("div.st-find", h("label.st-search", input), h("label.st-selectw", select)));
 }
 
 /** Display odds from remaining copies and prize slots. */
@@ -222,7 +221,7 @@ Pages.studio = {
     const packGather = () => {
       const p = ST.pack, L = STUDIO.limits, tiles = new Map();
       if(ST.chances) return packChances();
-      const count = h("div.st-count", h("b"), h("span"), h("span.of")), grid = h("div.st-grid"), next = stNext("Next →", () => go(2)), chance = h("div.st-chance"), more = h("button.btn.quiet.small", { type: "button", on: { click: () => { ST.chances = true; ST.enter = true; paint(); } } }, "Copies…");
+      const count = h("div.st-count", h("b"), h("span"), h("span.of")), grid = h("div.st-grid"), next = stNext("Next →", () => go(2)), chance = h("div.st-chance"), more = h("button.btn.quiet.small", { type: "button", on: { click: () => { ST.chances = true; ST.enter = true; paint(); } } }, "Editions…");
       next.el.classList.add("wide");
       const toggle = (id) => {
         if(stEntry(id)?.pressed) return;
@@ -251,31 +250,38 @@ Pages.studio = {
       const body = [heading("Choose stickers", `Choose ${L.min}–${L.max} stickers for your pack.`), count, stFind(fill), h("div.st-scroll", grid), h("div.st-chancebar", chance, more), foot(false, next.el)];
       fill(); return body;
     };
-    /* Reuse the former chances panel for finite copies and prizes. */
+    /* Editions and inventory prizes share a compact, scrollable list. */
     const packChances = () => {
-      const p=ST.pack,list=h("div.st-crows"),summary=h("p.st-oddsline"),pcts=new Map(),steppers=[];
-      const sync=()=>{const odds=stOdds(p.sel,p.prizes);p.sel.forEach((x,i)=>{pcts.get(x.id).textContent=`${x.copies} · ${stPct(odds[i])}`;});steppers.forEach(f=>f());summary.textContent=`${stSlots(p)} / ${S.packLimits.packSlots} slots · ${stOddsLine(p.sel,p.prizes)}`;paintBench();};
+      const p=ST.pack,list=h("div.st-crows"),summary=h("div.st-slot-summary"),updates=[];
+      const sync=()=>{updates.forEach(f=>f());summary.replaceChildren(Icon("pack"),h("b",`${stSlots(p)} / ${S.packLimits.packSlots}`),h("span","slots"));paintBench();};
+      const step=(name,get,min,max,set)=>{
+        const out=h("output"),change=d=>{set(clamp(get()+d,min,max()));stSave();sync();};
+        const minus=h("button",{type:"button","aria-label":`Fewer: ${name}`,on:{click:()=>change(-1)}},"−"),plus=h("button",{type:"button","aria-label":`More: ${name}`,on:{click:()=>change(1)}},"+");
+        updates.push(()=>{out.textContent=String(get());minus.disabled=get()<=min;plus.disabled=get()>=max();});
+        return h("div.st-step",minus,out,plus);
+      };
       for(const x of p.sel) {
-        const e=stEntry(x.id),max=stCopyMax(e),pct=h("b.pct");
-        const change=d=>{x.copies=clamp(x.copies+d,1,max);stSave();sync();};
-        const minus=h("button",{"aria-label":`Fewer editions: ${titleOf(e)}`,on:{click:()=>change(-1)}},"−"),plus=h("button",{"aria-label":`More editions: ${titleOf(e)}`,on:{click:()=>change(1)}},"+");
-        pcts.set(x.id,pct);steppers.push(()=>{minus.disabled=x.copies<=1;plus.disabled=x.copies>=max||stSlots(p)>=S.packLimits.packSlots;});
-        list.append(h("div.st-crow",h("b.nm",titleOf(e)),!e.canPress ? h("small","Made by someone else: one sticker") : null,h("div.st-step",minus,pct,plus)));
+        const e=stEntry(x.id),odds=h("small.st-row-odds"),max=stCopyMax(e),name=titleOf(e);
+        const thumb=swatch(stUrl(x.id),MAT[e.material]?.rarity);
+        if(!thumb.firstChild) thumbOf(e).then(res=>{if(thumb.isConnected)thumb.append(h("img",{src:res.url,alt:""}));}).catch(()=>{});
+        const quantity=e.canPress?step(name,()=>x.copies,1,()=>Math.min(max,x.copies+S.packLimits.packSlots-stSlots(p)),n=>x.copies=n):h("span.st-fixed",{title:"Received sticker: moves into the pack once","aria-label":"One received sticker; moves into the pack"},Icon("transfer"),h("b","1"));
+        updates.push(()=>{odds.textContent=stPct(x.copies/(stSlots(p)||1));});
+        list.append(h("div.st-crow",thumb,h("div.st-item-info",h("b.nm",{title:name},name),odds),quantity));
       }
       const prizeRows=h("div.st-crows");
-      const prizeCount=(kind,materialId)=>p.prizes.find(x=>x.kind===kind&&x.materialId===materialId)?.count || 0;
+      const prizeCount=(kind,materialId)=>p.prizes.find(x=>x.kind===kind&&x.materialId===materialId)?.count||0;
       const prizeRow=(kind,materialId,name,stock)=>{
-        if(!stock && !prizeCount(kind,materialId))return;
-        const value=prizeCount(kind,materialId),field=h("input",{type:"number",min:0,max:Math.min(stock,S.packLimits.prizes),value,"aria-label":name+" prize count",on:{change:()=>{
-          const current=prizeCount(kind,materialId),others=p.prizes.reduce((n,x)=>n+x.count,0)-current;
-          const count=clamp(Math.trunc(Number(field.value)||0),0,Math.max(0,Math.min(stock,S.packLimits.prizes-others,S.packLimits.packSlots-stSlots(p)+current)));
-          p.prizes=p.prizes.filter(x=>!(x.kind===kind&&x.materialId===materialId));if(count)p.prizes.push(kind==="tag"?{kind,count}:{kind,materialId,count});field.value=count;stSave();sync();
-        }}});prizeRows.append(h("label.st-crow",h("b",name),h("small",`${stock} available`),field));
+        if(!stock&&!prizeCount(kind,materialId))return;
+        const get=()=>prizeCount(kind,materialId),max=()=>Math.max(0,Math.min(stock,S.packLimits.prizes-p.prizes.reduce((n,x)=>n+x.count,0)+get(),S.packLimits.packSlots-stSlots(p)+get()));
+        const set=count=>{p.prizes=p.prizes.filter(x=>!(x.kind===kind&&x.materialId===materialId));if(count)p.prizes.push(kind==="tag"?{kind,count}:{kind,materialId,count});};
+        const thumb=h("span.st-sw.plain",kind==="tag"?LinkTagPic({size:30}):MaterialSwatch(MAT[materialId]));
+        const stockLabel=h("small.st-stock",{title:`${stock} in stock`,"aria-label":`${stock} in stock`},Icon("stock"),String(stock));
+        prizeRows.append(h("div.st-crow",thumb,h("div.st-item-info",h("b.nm",{title:name},name),stockLabel),step(name,get,0,max,set)));
       };
-      for(const [id,stock] of Object.entries(S.prizeStock || {}))prizeRow("material",id,MAT[id].name,stock);
-      prizeRow("tag",undefined,"Link tag",S.tagStock?.available || 0);
+      for(const [id,stock] of Object.entries(S.prizeStock||{}))prizeRow("material",id,MAT[id].name,stock);
+      prizeRow("tag",undefined,"Link tag",S.tagStock?.available||0);
       const done=h("button.btn",{on:{click:()=>{ST.chances=false;paint();}}},"Done");
-      const body=[heading("Editions","Set the number of editions. Originals stay with you; each design can be pressed once."),summary,list,heading("Prizes",`Move up to ${S.packLimits.prizes} sheets or unattached tags from your stock.`),prizeRows,done];sync();return body;
+      const body=[heading("Editions","Originals stay with you."),summary,h("div.st-scroll",list,h("div.st-prize-head",Icon("gift"),h("h3","Prizes"),h("small",`up to ${S.packLimits.prizes}`)),prizeRows),h("div.st-foot",done)];sync();return body;
     };
 
     /* ----- Dress (a pack): what is chosen now; "Change…" opens the choices ----- */
@@ -291,19 +297,19 @@ Pages.studio = {
       };
       const coverE = p.cover ? stEntry(p.cover) : null, coverUrl = p.cover ? stUrl(p.cover) : null;
       const bagSw = h("span.st-bagsw", { style: { backgroundImage: `var(--a-${bag.art})` } });
-      const layout = pills([["center", "Center"], ["corner", "Corner"], ["band", "Band"]], p.layout.comp, (c) => { p.layout.comp = c; p.layout.cover = null; stSave(); Snd.tap(); paint(); });
+      const layout = pills([["center", "Center"], ["corner", "Corner"], ["band", "Top"]], p.layout.comp, (c) => { p.layout.comp = c; p.layout.cover = null; if(!p.cover) p.cover=ids[0]||null; stSave(); Snd.tap(); paint(); }, !ids.length);
       const coverBody = h("div.st-covers", h("button.st-cv.none", { type: "button", "aria-pressed": String(!p.cover), on: { click: () => { p.cover = null; ST.open = null; stSave(); paint(); } } }, "None"),
         ids.map((id) => { const e = stEntry(id); return e ? tile(e, { class: "st-cv", "aria-pressed": String(p.cover === id), on: { click: () => { p.cover = id; ST.open = null; stSave(); Snd.tap(); paint(); } } }, null, 38) : null; }));
-      const accentBody = h("div.st-accs", [["none", "None", null], ["clip", "Clip", A.paperClip], ["pin", "Pin", A.pinRed], ["tape", "Tape", null]].map(([k, n, img]) => h("button.st-acc", { type: "button", "aria-pressed": String(k === "none" ? !p.layout.accents.length : has(k)), on: { click: () => accent(k) } },
+      const accentBody = h("div.st-accs", [["none", "None", null], ["clip", "Silver clip", A.marketClip], ["seal", "Wax seal", A.waxSeal], ["tape", "Tape", null]].map(([k, n, img]) => h("button.st-acc", { type: "button", "aria-pressed": String(k === "none" ? !p.layout.accents.length : has(k)), on: { click: () => accent(k) } },
         h("i", img ? { style: { backgroundImage: `url("${img}")` } } : { class: k === "tape" ? "strip" : "none" }), h("span", n))));
-      const accentName = p.layout.accents.length ? p.layout.accents.map((a) => a.kind[0].toUpperCase() + a.kind.slice(1)).join(", ") : "None";
-      const accentThumb = h("span.st-sw.plain", p.layout.accents[0] ? h("i", { class: p.layout.accents[0].kind === "tape" ? "strip" : "", style: p.layout.accents[0].kind === "tape" ? {} : { backgroundImage: `url("${p.layout.accents[0].kind === "pin" ? A.pinRed : A.paperClip}")` } }) : null);
+      const accentName = p.layout.accents.length ? p.layout.accents.map((a) => ({clip:"Silver clip",seal:"Wax seal",pin:"Pin",tape:"Paper tape"})[a.kind]).join(", ") : "None";
+      const accentThumb = h("span.st-sw.plain", p.layout.accents[0] ? h("i", { class: p.layout.accents[0].kind === "tape" ? "strip" : "", style: p.layout.accents[0].kind === "tape" ? {} : { backgroundImage: `url("${p.layout.accents[0].kind === "seal" ? A.waxSeal : p.layout.accents[0].kind === "pin" ? A.pinRed : A.marketClip}")` } }) : null);
       const body = [heading("Dress your pack", "A few details. Make it yours."),
         h("div.st-scroll", row("wrap", "Wrapping", bagSw, bag.name, "Change…", bagPicker(p, PACK_BAG_IDS)),
           sec("Name label", field(p.title, STUDIO.limits.name, "Pack name", (v) => { p.title = v; stSave(); paintBench(); next.set(!!v.trim(), need); }, "", true)),
-          sec("Layout", layout),
+          sec("Cover position", layout, !p.cover ? h("small.st-fine", ids.length ? "Choose a position to add a cover sticker." : "A cover needs one of your own designs.") : null),
           row("cover", "Cover sticker", swatch(coverUrl, coverE ? MAT[coverE.material]?.rarity : null), coverE ? titleOf(coverE) : "None", "Choose…", coverBody),
-          row("accent", "Accent", accentThumb, accentName, "Change…", accentBody), h("p.st-fine", "Up to 2 accents.")),
+          row("accent", "Accent", accentThumb, accentName, "Change…", accentBody), h("p.st-fine", "Up to 2 accents. Drag them onto a fold or edge.")),
         foot(true, next.el, "Drag the sticker or an accent in the preview.")];
       next.set(!!p.title.trim(), need); return body;
     };
@@ -317,7 +323,7 @@ Pages.studio = {
       const note = h("div.st-field", h("textarea", { rows: 2, maxLength: STUDIO.limits.blurb, placeholder: "A few words about this pack…", "aria-label": "Description", on: { input: (e) => { p.blurb = e.target.value; cnt.textContent = `${p.blurb.length}/${STUDIO.limits.blurb}`; stSave(); } } }, p.blurb)), cnt = h("span.cnt", `${p.blurb.length}/${STUDIO.limits.blurb}`); note.append(cnt);
       return [heading("Ready to seal", "Check the details before finishing."),
         h("div.st-scroll", h("div.st-sum", h("b", p.title.trim()), h("span", `${p.sel.length} designs · ${p.sel.reduce((s,x)=>s+x.copies,0)} editions · ${p.prizes.reduce((s,x)=>s+x.count,0)} prizes`), h("small", stOddsLine(p.sel,p.prizes))), sec("Description", note, h("small.st-fine", "Shown on the Market card.")),
-          sec("Destination", pills([["shelf", "My shelf"], ["file", "File to share"]], p.dest, (k) => { p.dest = k; Snd.tap(); paint(); }, ST.sealing)), tagNote(p.sel.filter(x=>!stEntry(x.id)?.canPress).map((x) => x.id))),
+          sec("Destination", pills([["shelf", "My shelf"], ["file", "File to share"]], p.dest, (k) => { p.dest = k; Snd.tap(); paint(); }, ST.sealing)), p.dest === "shelf" ? h("p.st-fine", "Keep this finished pack here and export it whenever you want to share it again.") : null, tagNote(p.sel.filter(x=>!stEntry(x.id)?.canPress).map((x) => x.id))),
         foot(true, sealButton(p.dest === "file" ? "Seal and save…" : "Seal the pack").el, "Originals stay with you and can be pressed once. Received stickers and prizes leave your Collection / stock and move into the pack. It cannot be edited afterward.")];
     };
 
@@ -331,7 +337,7 @@ Pages.studio = {
           : [h("p.muted.st-none", S.lib.length ? "No stickers match." : "Your Collection is empty. Make a sticker first.")]));
         sync();
       };
-      const body = [heading("Choose the sticker", "One sticker. You give a copy; yours stays in your Collection."), stFind(fill), h("div.st-scroll", grid), foot(false, next.el)];
+      const body = [heading("Choose the sticker", "One sticker. It moves from your Collection to your friend."), stFind(fill), h("div.st-scroll", grid), foot(false, next.el)];
       fill(); return body;
     };
     const giftDress = () => {
@@ -357,8 +363,8 @@ Pages.studio = {
       const act = (label, fn, cls = "") => h("button.btn" + cls, { on: { click: async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await fn(msg); } catch(err) { Shell.toast(Distribution?.error ? Distribution.error(err) : String(err)); } finally { b.disabled = false; } } } }, label);
       const more = [];
       if(kind === "pack") {
-        if(r.where === "shelf") more.push(act("Also save a file…", async (m) => { const path = await Bridge.invoke("creator_pack_save", packArgs()); if(path) { await Bridge.reload(); Snd.chime(2, 740); m("Saved."); } }));
-        else more.push(act("Also put on my shelf", async (m) => { await Bridge.invoke("creator_pack_shelve", packArgs()); await Bridge.reload(); Shell.renderNav(); Snd.chime(2, 740); m("It's on your Packs shelf."); }, ".paper"));
+        if(r.where === "shelf") more.push(act("Also save a file…", async (m) => { const path = await Bridge.invoke("creator_pack_export", {packId:r.packId}); if(path) { await Bridge.reload(); Snd.chime(2, 740); m("Saved."); } }));
+        else more.push(act("Also put on my shelf", async (m) => { await Bridge.invoke("creator_pack_store", {packId:r.packId}); await Bridge.reload(); Shell.renderNav(); r.where="shelf"; paint(); Snd.chime(2, 740); m("It's on your Packs shelf."); }, ".paper"));
       }
       const line = r.where === "shelf" ? "It's on your Packs shelf." : kind === "pack" ? "The file is saved. Share it any way you like." : "The file is saved. Send it any way you like.";
       return h("div.st-done", h("i.st-check", { "aria-hidden": "true" }), h("h2", kind === "pack" ? `Sealed. ${ST.pack.title.trim()}` : `Sealed. For ${ST.gift.to.trim()}`), h("p.muted", kind === "pack" ? `${ST.pack.sel.length} stickers · ${line}` : line), r.path ? h("p.muted.st-path", { title: r.path }, r.path) : null,
@@ -370,8 +376,8 @@ Pages.studio = {
     /* ---------- sealing: it signs and writes first (a cancelled save dialog makes nothing), then the wrapping closes its own way ---------- */
     const sealPack = async () => {
       if(stSlots(ST.pack)>S.packLimits.packSlots) throw new Error("Too many slots.");
-      if(ST.pack.dest === "file") { const path = await Bridge.invoke("creator_pack_save", packArgs()); if(!path) return null; await Bridge.reload(); return { where: "file", path }; }
-      await Bridge.invoke("creator_pack_shelve", packArgs()); await Bridge.reload(); Shell.renderNav(); return { where: "shelf" };
+      if(ST.pack.dest === "file") { const saved = await Bridge.invoke("creator_pack_save", packArgs()); if(!saved) return null; await Bridge.reload(); return { where: "file", path:saved.path, packId:saved.packId }; }
+      const packId=await Bridge.invoke("creator_pack_shelve", packArgs()); await Bridge.reload(); Shell.renderNav(); return { where: "shelf", packId };
     };
     const sealGift = async () => { if(!await stConfirmTransfer()) return null; const sent = await Bridge.invoke("gift_send", giftArgs()); if(!sent) return null; await Bridge.reload(); return { where: "file", path: sent.savedTo }; };
     const seal = async () => {

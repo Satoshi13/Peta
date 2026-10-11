@@ -157,19 +157,22 @@ export function sheetCell({stageWidth, stageHeight, footer, count, gap = 12, max
    The label is printed on the wrapping itself: it is always there, in the wrapping's own place, and cannot be moved or taken off. */
 const mid = (lo, hi) => (lo + hi) / 2;
 const clampTo = (v, lo, hi) => (lo > hi ? mid(lo, hi) : Math.min(hi, Math.max(lo, Number.isFinite(v) ? v : mid(lo, hi))));
-export const BAG_ACCENTS = ['clip', 'pin', 'tape'], BAG_MAX_ACCENTS = 2, BAG_COMPOSITIONS = ['center', 'corner', 'band'];
+export const BAG_ACCENTS = ['clip', 'pin', 'tape', 'seal'], BAG_MAX_ACCENTS = 2, BAG_COMPOSITIONS = ['center', 'corner', 'band'];
 /** The size of a part in percent of the picture: {w, h}. */
 export function bagPartSize(bag, part) {
   const square = s => ({ w: s, h: s * bag.W / bag.H });
   if (part === 'label') return { w: bag.lbl[2] - bag.lbl[0], h: bag.lbl[3] - bag.lbl[1] };
   if (part === 'cover') return square(bag.cover[2]);
-  if (part === 'clip') return square(bag.clip[2]);
+  if (part === 'clip') { const w=bag.clip[2]*.65; return {w,h:w*2.7*bag.W/bag.H}; }
   if (part === 'pin') return square(bag.pin[2]);
+  if (part === 'seal') return square(16);
   return { w: bag.tape[2], h: bag.tape[3] };
 }
 /** Where an accent of this kind goes when it is first added: the place the wrapping gives it. */
 export function bagAccentDefault(bag, kind) {
   if (kind === 'tape') return [bag.tape[0] + bag.tape[2] / 2, bag.tape[1] + bag.tape[3] / 2];
+  if (kind === 'seal') return bag.seal==='seal' ? [bag.cover[0],bag.cover[1]] : [50, bag.body[1] + 10];
+  if (kind === 'clip') return [bag.clip[0],bag.body[1]+bagPartSize(bag,'clip').h*.35];
   const at = kind === 'pin' ? bag.pin : bag.clip; return [at[0], at[1]];
 }
 /** Put a part's centre where it can be: the label and the cover wholly inside the body, an accent's centre inside it. */
@@ -187,9 +190,9 @@ export function bagClampPart(bag, part, [x, y]) {
 /** The cover's place for a composition, from the label that stays where the wrapping prints it (the maker's own place wins over it). */
 export function bagComposition(bag, comp) {
   const lbl = bagPartSize(bag, 'label'), cov = bagPartSize(bag, 'cover'), home = [mid(bag.lbl[0], bag.lbl[2]), mid(bag.lbl[1], bag.lbl[3])], [x0, y0, x1, y1] = bag.body;
-  let label = home, cover = [bag.cover[0], bag.cover[1]];
-  if (comp === 'center') cover = [home[0], home[1] + lbl.h / 2 + cov.h / 2 - 3];
-  else if (comp === 'band') cover = [home[0] + lbl.w / 2 - cov.w * .25, home[1]];
+  let label = home, cover = [x1 - cov.w / 2 - 4, y1 - cov.h / 2 - 4];
+  if (comp === 'center') { const below=bag.lbl[3]+cov.h/2+2; cover = below+cov.h/2<=y1 ? [home[0],below] : [mid(x0,x1),mid(y0,y1)]; }
+  else if (comp === 'band') cover = [bag.seal==='seal' ? x0+(x1-x0)*.24 : mid(x0,x1), y0 + cov.h / 2 + 4];   // leave the wrapping's centre seal visible
   return { label, cover: bagClampPart(bag, 'cover', cover) };
 }
 /** Everything the picture needs from a layout, every place clamped: {comp, label:[x,y], cover:[x,y], accents:[{kind,x,y}]}. */

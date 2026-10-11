@@ -166,18 +166,22 @@ pub fn creator_pack_pending(app:AppHandle)->Result<Option<PackOffer>,String> {
 pub fn creator_pack_decline(app:AppHandle,token:String) {
     let pending=app.state::<PendingPack>();let mut guard=pending.0.lock().unwrap();if guard.as_ref().is_some_and(|(id,_)|id==&token){*guard=None;}
 }
+#[derive(serde::Serialize)]
+#[serde(rename_all="camelCase")]
+pub struct SavedPack {pub pack_id:String,pub path:String}
+
 #[tauri::command]
-pub async fn creator_pack_save(window:WebviewWindow,app:AppHandle,title:String,pouch:String,items:Vec<peta_core::creator_pack::Selection>,prizes:Vec<peta_core::creator_pack::Prize>,dress:Option<peta_core::creator_pack::Dress>)->Result<Option<String>,String> {
+pub async fn creator_pack_save(window:WebviewWindow,app:AppHandle,title:String,pouch:String,items:Vec<peta_core::creator_pack::Selection>,prizes:Vec<peta_core::creator_pack::Prize>,dress:Option<peta_core::creator_pack::Dress>)->Result<Option<SavedPack>,String> {
     let Some(path)=app.dialog().file().set_parent(&window).add_filter("Peta pack",&["peta"]).set_file_name("My Pack.peta").blocking_save_file().and_then(|p|p.into_path().ok()) else{return Ok(None)};
     let store=app.state::<Store>();let mut lib=store.lock();let root=lib.root().to_owned();let mut publication=None;
-    peta_core::creator_pack::press(&mut lib,&title,&pouch,&items,&prizes,&dress.unwrap_or_default(),false,&peta_core::ownership::NoReferee,|h,bytes| {
+    let id=peta_core::creator_pack::press(&mut lib,&title,&pouch,&items,&prizes,&dress.unwrap_or_default(),false,&peta_core::ownership::NoReferee,|h,bytes| {
         publication=Some(peta_core::export::Export::publish(&root,&path,bytes,&h.pack_id)?);Ok(())
     }).map_err(|e|e.to_string())?;
     if let Some(publication)=publication {publication.finish();}
-    drop(lib);press_announced(&app);Ok(Some(path.display().to_string()))
+    drop(lib);press_announced(&app);Ok(Some(SavedPack{pack_id:id,path:path.display().to_string()}))
 }
 
-/// Own shelf entries are stock samples; only friends can open them.
+/// My shelf keeps finished packs for later export; only friends can open them.
 #[tauri::command]
 pub fn creator_pack_shelve(app:AppHandle,title:String,pouch:String,items:Vec<peta_core::creator_pack::Selection>,prizes:Vec<peta_core::creator_pack::Prize>,dress:Option<peta_core::creator_pack::Dress>)->Result<String,String> {
     let store=app.state::<Store>();let mut lib=store.lock();
@@ -185,3 +189,16 @@ pub fn creator_pack_shelve(app:AppHandle,title:String,pouch:String,items:Vec<pet
     drop(lib);press_announced(&app);Ok(id)
 }
 fn press_announced(app:&AppHandle) {let _=app.emit("sticker-updated",());let _=app.emit("link-tags-changed",());let _=crate::layers::sync(app);today::announce(app);}
+
+/// Export immutable signed bytes from My shelf, without pressing or consuming stock.
+#[tauri::command]
+pub async fn creator_pack_export(window:WebviewWindow,app:AppHandle,pack_id:String)->Result<Option<String>,String> {
+    let Some(path)=app.dialog().file().set_parent(&window).add_filter("Peta pack",&["peta"]).set_file_name("My Pack.peta").blocking_save_file().and_then(|p|p.into_path().ok()) else{return Ok(None)};
+    let store=app.state::<Store>();let mut lib=store.lock();
+    peta_core::edition_pack::export_archived(&mut lib,&pack_id,&path).map_err(|e|e.to_string())?;Ok(Some(path.display().to_string()))
+}
+#[tauri::command]
+pub fn creator_pack_store(app:AppHandle,pack_id:String)->Result<String,String> {
+    let id=peta_core::edition_pack::store_archived(&mut app.state::<Store>().lock(),&pack_id).map_err(|e|e.to_string())?;
+    today::announce(&app);Ok(id)
+}

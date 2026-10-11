@@ -30,10 +30,10 @@ test('Editions panel fixes foreign stickers to one and reports odds including pr
  assert.equal(ctx.out.stCopyMax({canPress:true}),30);assert.equal(ctx.out.stCopyMax({canPress:false}),1);
  assert.equal(ctx.out.stSlots({sel:[{copies:3},{copies:1}],prizes:[{count:2}]}),6);
  assert.deepEqual(Array.from(ctx.out.stOdds([{copies:3},{copies:1}],[{count:2}])),[.5,1/6]);
- assert.match(src,/Made by someone else: one sticker/);assert.match(src,/heading\("Editions"/);assert.match(src,/disabled:!!e.pressed/);assert.match(src,/ids = p.sel.filter\(x=>stEntry\(x.id\)\?\.canPress\)/);
+ assert.match(src,/Received sticker: moves into the pack once/);assert.match(src,/heading\("Editions"/);assert.match(src,/disabled:!!e.pressed/);assert.match(src,/ids = p.sel.filter\(x=>stEntry\(x.id\)\?\.canPress\)/);
 });
 test('own packs have no opening controls and prize awards never load a sticker asset',()=>{
- const src=read('src/app/js/packs.js');assert.match(src,/const one = p.own \? null/);assert.match(src,/Your own pack: friends open it/);
+ const src=read('src/app/js/packs.js');assert.match(src,/const one = p.own \? null/);assert.match(src,/Stored on My shelf/);
  assert.match(read('src/app/js/catalog.js'),/packOpenable = p => !p.own/);
  const bridge=read('src/app/js/bridge.js');assert.match(bridge,/opened.kind !== "sticker"/);assert.match(bridge,/id:null,prize:true/);
  assert.match(read('src/app/js/ceremony.js'),/if\(entry.prize\).*Added to your stock/s);

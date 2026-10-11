@@ -24,3 +24,9 @@
 .bp-drbox, .bp-drsleeve { position: absolute; inset: 0; background: var(--art) center / 100% 100% no-repeat; pointer-events: none; }
 .bp-drbox { z-index: 2; clip-path: inset(0 0 0 66%); transform: translateX(-29%); } .bp-drsleeve { z-index: 3; clip-path: inset(0 34% 0 0); }
 .bagpic .bp-fan { z-index: 4; }
+
+/* Real stationery art keeps accents readable at both workbench and shelf scales. */
+.bp-tape:not(.cream) { background: var(--a-tape2) center / 100% 100% no-repeat; clip-path: none; box-shadow: none; filter: drop-shadow(0 1px 1px rgba(60,45,20,.2)); }
+.bp-deco[data-k="seal"] { z-index: 7; }
+.bp-deco[data-k="clip"] img, .bp-deco[data-k="seal"] img { filter: drop-shadow(0 1px 1px rgba(50,35,10,.3)); }
+.pk-layer .pk-dress { position: absolute; inset: 0; width: 100%; height: 100%; filter: none; pointer-events: none; }

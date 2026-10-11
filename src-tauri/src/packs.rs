@@ -147,3 +147,10 @@ pub async fn pack_peek_picture(store: tauri::State<'_, Store>, item_id: i64) -> 
     let small = tauri::async_runtime::spawn_blocking(move || peta_core::thumb::thumbnail_png(&bytes, 384)).await.map_err(|e| e.to_string())?.map_err(|e| e.to_string())?;
     Ok(tauri::ipc::Response::new(small))
 }
+
+#[tauri::command]
+pub async fn pack_cover_picture(store:tauri::State<'_,Store>,pack_id:String)->Result<tauri::ipc::Response,String> {
+    let bytes={let lib=store.lock();peta_core::edition_pack::cover_picture(&lib,&pack_id).map_err(|e|e.to_string())?.ok_or("No cover sticker")?};
+    let small=tauri::async_runtime::spawn_blocking(move||peta_core::thumb::thumbnail_png(&bytes,512)).await.map_err(|e|e.to_string())?.map_err(|e|e.to_string())?;
+    Ok(tauri::ipc::Response::new(small))
+}
