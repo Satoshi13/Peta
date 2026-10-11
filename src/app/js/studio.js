@@ -147,7 +147,7 @@ Pages.studio = {
       if(!last) ST.view = "pack";
       if(last && !ST.sealing) views.append(...VIEWS[ST.mode].map(([k, n]) => h("button", { type: "button", "aria-pressed": String(ST.view === k), on: { click: () => { ST.view = k; Snd.tap(); paintBench(); } } }, n)));
       stage.classList.toggle("scene", last && ST.view !== "pack");
-      const note = () => `${count()} sticker${count() === 1 ? "" : "s"} · ${bag.name} · ${bag.cm} cm${d.sealed ? " · Sealed ✓" : ""}`;
+      const note = () => `${count()} sticker${count() === 1 ? "" : "s"} · ${bag.name}${d.sealed ? " · Sealed ✓" : ""}`;
       if(last && ST.view !== "pack") stage.append(scene(ST.view));
       else {
         /* the wrapped thing is as large as the stage allows (its own proportions decide which side limits it) */
