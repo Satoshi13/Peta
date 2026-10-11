@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peta market simulator</title>
+<style>
+  :root { --bg: #f6f1e6; --card: #fffdf9; --ink: #2b2a28; --muted: #6f6859; --line: #e3dac7; --good: #456a40; --warn: #a8741a; --bad: #a4382d; --accent: #2b2a28; color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1f1c17; --card: #2a2620; --ink: #f1ebdc; --muted: #b8ad98; --line: #3d372d; --good: #8ec27f; --warn: #e0b25a; --bad: #e88a7d; --accent: #f1ebdc; color-scheme: dark; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 -apple-system, "Hiragino Sans", system-ui, sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; padding: 28px 20px 60px; display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 22px; }
+  h1 { grid-column: 1 / -1; margin: 0; font-size: 26px; letter-spacing: -.02em; } .lede { grid-column: 1 / -1; margin: -14px 0 0; color: var(--muted); }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+  .controls { align-self: start; position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
+  fieldset { border: 0; padding: 0; margin: 0 0 14px; } legend { padding: 0; margin-bottom: 6px; font: 600 11px/1 inherit; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .row { display: grid; grid-template-columns: 1fr 58px; gap: 4px 10px; align-items: center; margin: 7px 0; } .row label { font-size: 13.5px; } .row output { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .row input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); } .row small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; line-height: 1.3; margin-top: -2px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; } .card small { display: block; color: var(--muted); font-size: 12px; } .card b { display: block; font-size: 24px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; } .card span { font-size: 12px; color: var(--muted); }
+  .good b { color: var(--good); } .bad b { color: var(--bad); } .warn b { color: var(--warn); }
+  .advice { margin: 0 0 14px; padding: 0; list-style: none; display: grid; gap: 6px; } .advice li { padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); font-size: 14px; display: flex; gap: 8px; }
+  .advice li::before { content: "●"; flex: none; } .advice .good::before { color: var(--good); } .advice .warn::before { color: var(--warn); } .advice .bad::before { color: var(--bad); } .advice .info::before { color: var(--muted); }
+  .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; } .chart h3 { margin: 0 0 6px; font-size: 13px; color: var(--muted); font-weight: 600; } canvas { width: 100%; height: 170px; display: block; }
+  .sweep { margin-top: 14px; } .sweep .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; } select, button { font: inherit; padding: 6px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+  button.primary { background: var(--accent); color: var(--bg); border-color: transparent; cursor: pointer; } table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; } th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--line); } th:first-child, td:first-child { text-align: left; } th { color: var(--muted); font-weight: 600; }
+  .note { color: var(--muted); font-size: 12.5px; margin-top: 10px; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } .controls { position: static; max-height: none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Peta market simulator</h1>
+  <p class="lede">友達の間のマーケット（版を刷るガチャ）が回るかを、数字を動かして見る道具です。12回の乱数の平均を出します。単位は Scraps、時間は日。</p>
+  <section class="panel controls" id="controls" aria-label="Settings"></section>
+  <section>
+    <div class="cards" id="cards"></div>
+    <ul class="advice" id="advice"></ul>
+    <div class="charts">
+      <div class="panel chart"><h3>1人あたりの Scraps（平均）</h3><canvas id="c1"></canvas></div>
+      <div class="panel chart"><h3>棚に残っている景品の数</h3><canvas id="c2"></canvas></div>
+      <div class="panel chart"><h3>1日に開けられた回数</h3><canvas id="c3"></canvas></div>
+    </div>
+    <div class="panel sweep">
+      <div class="bar"><b>1つの数字を振ってみる</b>
+        <select id="sweepKey"></select><span>を</span><input id="sweepList" size="22" aria-label="values"><button class="primary" id="sweepGo" type="button">比べる</button></div>
+      <div id="sweepOut"></div>
+    </div>
+    <p class="note">これは判断の材料で、予言ではありません。身内の人数が少ないと、実際は数字より「誰が見ているか」が効きます。初期値の素材の割合・分解の値は、アプリの数字（docs/decisions.md）に合わせています。</p>
+  </section>
+</main>
+<script type="module">
+import { average, advise, DEFAULTS, SHEET } from "../scripts/economy-sim.mjs";
+
+const GROUPS = [
+  ["人と期間", [
+    ["players", "人数", 3, 40, 1, "友達の数"], ["days", "日数", 30, 365, 5, ""], ["startScraps", "最初の Scraps", 0, 60, 1, "いまは 0 から始まる。0 で試すと立ち上がりが分かる"] ]],
+  ["値段と取り分", [
+    ["price", "1回の値段", 1, 30, 1, "開けるときに払う Scraps"], ["sellerShare", "売り手の取り分", .1, 1, .05, "残りは消える（Scraps が増えすぎない歯止め）", (v) => Math.round(v * 100) + "%"] ]],
+  ["パック（売り手が決める）", [
+    ["designsPerPack", "ステッカーの種類", 1, 12, 1, ""], ["editions", "1種あたりの枚数（版）", 1, 30, 1, "刷る数。多いほど売り切れにくい"],
+    ["copySheets", "1枚増やすのに要る素材", 0, 1, .05, "0 = 刷るのはタダ、1 = 1枚ごとに素材1枚"], ["prizeMaterials", "景品の素材", 0, 8, 1, "売り手の手持ちから入れる"], ["prizeTags", "景品のリンクタグ", 0, 5, 1, ""], ["tagCost", "リンクタグの値段", 0, 8, 1, ""], ["minMargin", "出品に要る儲けの余裕", 0, 1, .05, "見込みが費用の何%上回れば出す", (v) => Math.round(v * 100) + "%"] ]],
+  ["人の動き", [
+    ["makeProb", "毎日ステッカーを作る確率", 0, 1, .05, "素材を使って作る。残りは分解か保管", (v) => Math.round(v * 100) + "%"], ["appetite", "開けたい度", 0, 1, .05, "Scraps があるとき、1日に開ける確率", (v) => Math.round(v * 100) + "%"], ["maxPullsPerDay", "1日に開ける最大回数", 1, 10, 1, ""],
+    ["resellProb", "転売する確率（1日）", 0, 1, .05, "手に入れたものを自分のパックに入れ直す", (v) => Math.round(v * 100) + "%"], ["resellMin", "転売に要る枚数", 1, 10, 1, ""] ]],
+];
+const cfg = { ...DEFAULTS }, $ = (id) => document.getElementById(id), root = $("controls"), fmtDef = (v) => (Number.isInteger(v) ? String(v) : v.toFixed(2));
+const NAMES = {}; for (const [, rows] of GROUPS) for (const r of rows) NAMES[r[0]] = r[1];
+for (const [title, rows] of GROUPS) {
+  const fs = document.createElement("fieldset"); fs.innerHTML = `<legend>${title}</legend>`;
+  for (const [key, label, min, max, step, hint, fmt = fmtDef] of rows) {
+    const row = document.createElement("div"); row.className = "row";
+    row.innerHTML = `<label for="${key}">${label}</label><output id="o-${key}">${fmt(cfg[key])}</output><input id="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${cfg[key]}">${hint ? `<small>${hint}</small>` : ""}`;
+    row.querySelector("input").addEventListener("input", (e) => { cfg[key] = Number(e.target.value); $("o-" + key).textContent = fmt(cfg[key]); schedule(); });
+    fs.append(row);
+  }
+  root.append(fs);
+}
+const reset = document.createElement("button"); reset.type = "button"; reset.textContent = "初期値に戻す"; reset.onclick = () => { Object.assign(cfg, DEFAULTS); for (const [, rows] of GROUPS) for (const [key, , , , , , fmt = fmtDef] of rows) { $(key).value = cfg[key]; $("o-" + key).textContent = fmt(cfg[key]); } schedule(); }; root.append(reset);
+const note = document.createElement("p"); note.className = "note"; note.textContent = `素材1枚の平均: 分解 ${SHEET.dismantle.toFixed(2)} / 買うと ${SHEET.buy.toFixed(2)} Scraps（アプリの数字）。`; root.append(note);
+
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function line(canvas, series, key, color) {
+  const dpr = devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight; canvas.width = w * dpr; canvas.height = h * dpr;
+  const g = canvas.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, w, h);
+  const vals = series.map((s) => s[key]), max = Math.max(1, ...vals) * 1.1, L = 38, B = 20, T = 6, R = 6;
+  g.strokeStyle = css("--line"); g.fillStyle = css("--muted"); g.font = "11px system-ui"; g.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) { const y = T + (h - T - B) * (1 - i / 4); g.beginPath(); g.moveTo(L, y); g.lineTo(w - R, y); g.stroke(); g.fillText(String(Math.round(max * i / 4)), 2, y + 4); }
+  g.fillText("day " + series.length, w - 54, h - 4); g.fillText("1", L, h - 4);
+  g.strokeStyle = color; g.lineWidth = 2; g.beginPath(); vals.forEach((v, i) => { const x = L + (w - L - R) * i / Math.max(1, vals.length - 1), y = T + (h - T - B) * (1 - v / max); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+}
+const card = (label, value, sub, tone = "") => `<div class="card ${tone}"><small>${label}</small><b>${value}</b><span>${sub}</span></div>`;
+let timer;
+function schedule() { clearTimeout(timer); timer = setTimeout(run, 60); }
+function run() {
+  const res = average(cfg, 12), s = res.summary, tone = (ok, warn) => (ok ? "good" : warn ? "warn" : "bad");
+  $("cards").innerHTML = [
+    card("売り手の儲け / パック", (s.sellerNetPerRun >= 0 ? "+" : "") + s.sellerNetPerRun.toFixed(1), `黒字のパック ${(s.profitableShare * 100).toFixed(0)}%`, tone(s.sellerNetPerRun > 0 && s.profitableShare > .75, s.sellerNetPerRun > 0)),
+    card("開けられた回数", s.pulls.toFixed(0), `${cfg.days}日 · ${cfg.players}人`),
+    card("売り切れたパック", (s.soldOutShare * 100).toFixed(0) + "%", s.soldOut >= 1 ? `平均 ${s.daysToSellOut.toFixed(0)} 日で` : "売り切れなし", tone(s.soldOutShare > .5, s.soldOutShare > .2)),
+    card("Scraps の増え方", (s.scrapsDrift >= 0 ? "+" : "") + (s.scrapsDrift * 100).toFixed(0) + "%", `1人 ${s.scrapsPerPlayer.toFixed(1)}`, tone(Math.abs(s.scrapsDrift) < .3, Math.abs(s.scrapsDrift) < .6)),
+    card("何か開けられた日", (s.liveShare * 100).toFixed(0) + "%", `出品 ${s.runs.toFixed(0)} 回 · 転売 ${s.resales.toFixed(0)} 回`, tone(s.liveShare > .85, s.liveShare > .6)),
+  ].join("");
+  $("advice").innerHTML = advise(s, res.params).map((a) => `<li class="${a.tone}">${a.text}</li>`).join("");
+  const per = res.series.map((x) => ({ ...x, perPlayer: x.scraps / cfg.players }));
+  line($("c1"), per, "perPlayer", css("--good")); line($("c2"), per, "openSlots", css("--warn")); line($("c3"), per, "pulls", css("--accent"));
+}
+const sel = $("sweepKey"); for (const [k, v] of Object.entries(NAMES)) sel.add(new Option(v, k)); sel.value = "price";
+const SUGG = { price: "2,4,6,8,10,14", sellerShare: ".4,.55,.7,.85,1", editions: "1,3,5,10,20", copySheets: "0,.2,.5,1", prizeMaterials: "0,1,2,4", players: "4,8,16,30", startScraps: "0,6,12,30", appetite: ".2,.4,.6,.8,1", makeProb: ".2,.4,.6,.8", designsPerPack: "2,4,6,8" };
+const sugg = () => { $("sweepList").value = SUGG[sel.value] || ""; }; sel.onchange = sugg; sugg();
+$("sweepGo").onclick = () => {
+  const key = sel.value, vals = $("sweepList").value.split(",").map(Number).filter((v) => Number.isFinite(v));
+  const rows = vals.map((v) => { const s = average({ ...cfg, [key]: v }, 12).summary; return `<tr><td>${v}</td><td>${s.pulls.toFixed(0)}</td><td>${s.runs.toFixed(1)}</td><td>${(s.soldOutShare * 100).toFixed(0)}%</td><td>${(s.sellerNetPerRun >= 0 ? "+" : "") + s.sellerNetPerRun.toFixed(1)}</td><td>${(s.profitableShare * 100).toFixed(0)}%</td><td>${(s.scrapsDrift * 100).toFixed(0)}%</td><td>${(s.liveShare * 100).toFixed(0)}%</td></tr>`; }).join("");
+  $("sweepOut").innerHTML = `<table><thead><tr><th>${NAMES[key]}</th><th>開けた</th><th>出品</th><th>売り切れ</th><th>売り手の儲け</th><th>黒字</th><th>Scraps増減</th><th>稼働日</th></tr></thead><tbody>${rows}</tbody></table>`;
+};
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", run); addEventListener("resize", schedule);
+run();
+</script>
+</body>
+</html>
