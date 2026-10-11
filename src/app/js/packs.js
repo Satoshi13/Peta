@@ -235,7 +235,7 @@ Pages.packs = {
     else PackArt.peek(p).then((items) => { const fig = PackPeek(items, ""); if(fig) peekHost.replaceChildren(fig); });
     const peek = peekHost;
     const go = (fn) => () => { PackZoom.dispose(); fn(); };
-    const exportPack=p.own ? h("button.btn.mkz-primary",{type:"button",on:{click:async ev=>{const b=ev.currentTarget;b.disabled=true;try {const path=await Bridge.invoke("creator_pack_export",{packId:p.id});if(path)Shell.toast("Saved the finished pack.");}catch(err){Shell.toast(String(err));}finally{b.disabled=false;}}}},"Save file…") : null;
+    const exportPack=p.own ? h("button.btn.mkz-primary",{type:"button",on:{click:async ev=>{const b=ev.currentTarget;b.disabled=true;try {const path=await Bridge.fileDialog("creator_pack_export",{packId:p.id});if(path)Shell.toast("Saved the finished pack.");}catch(err){Shell.toast(String(err));}finally{b.disabled=false;}}}},"Save file…") : null;
     const one = p.own ? null : h("button.btn.mkz-act", { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
     const free = available && !p.own ? h("button.btn.mkz-act", {type:"button",on:{click:go(()=>{Snd.tap();Cer.openPack(p,{free:true});})}}, "Open free") : null;
     const ten = more && !p.own ? h("button.btn.paper.mkz-act", { type: "button", on: { click: go(() => { Snd.tap(); Cer.openPackMany(p, many); }) } }, many === 10 ? "Open 10" : `Open all ${many}`) : null;

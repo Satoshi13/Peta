@@ -40,5 +40,6 @@ pub mod creator_pack;
 pub mod ownership;
 
 pub mod export;
+mod asset_writes;
 
 pub mod edition_pack;

@@ -1,6 +1,10 @@
 /* Ceremonies: opening a Pack (tear -> pull out -> unwrap -> reveal), opening a Gift (break the seal -> ...), sealing a gift.
    The point: every step is something you do with your hand, and the last one is yours to play with (tilt the sticker). */
 const fix = (el, tf) => { el.getAnimations().forEach((a) => a.cancel()); el.style.transform = tf; };
+async function closeCommittedPreview(cer,message) {
+  try {await Bridge.reload();} catch {}
+  Bridge.busy=false;await cer.close();Shell.refresh();Shell.renderNav();Shell.toast(message);
+}
 const Cer = (() => {
   const RAR_FX = { common: { n: 0, chime: 1 }, uncommon: { n: 16, chime: 3 }, rare: { n: 46, chime: 6 }, special: { n: 60, chime: 7 }, archive: { n: 30, chime: 4 } };
 
@@ -17,7 +21,7 @@ const Cer = (() => {
     }}},"Skip ⏭");
     root.append(h("i.cer-bg"), top, stage, skip); $("#overlay").append(root);
     anim(root, [{ opacity: 0 }, { opacity: 1 }], { duration: 420 });
-    const close = ({keepScene=false} = {}) => closing ||= (async()=>{for(const done of [...waits])done();await anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 }); root.remove(); if(!keepScene) await Bridge.leaveCeremony(); document.removeEventListener("keydown", onKey);})();
+    const close = ({keepScene=false} = {}) => closing ||= (async()=>{for(const done of [...waits])done();try {await anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 });} finally {root.remove();document.removeEventListener("keydown", onKey);if(!keepScene) await Bridge.leaveCeremony();}})();
     const onKey = (e) => { if (e.key === "Escape") root._esc && root._esc(); };
     document.addEventListener("keydown", onKey);
     return { root, stage, close, get skipped(){return skipped;},
@@ -368,7 +372,7 @@ const Cer = (() => {
     const env = h("div.env-wrap", { style: { width: EW + "px", height: EH + "px", "--ew": EW + "px" } }, inside, sleeve, note, body, flap, wax);
     const sc = h("div.gift-scene", env); stage.append(sc);
     anim(sc, [{ opacity: 0, transform: "translateY(50px) rotate(-6deg) scale(.88)" }, { opacity: 1, transform: "none" }], { duration: 700, easing: EASE.spring });
-    let opened = false, entry = null;
+    let opened = false, entry = null, settling=false;
     const crack = async () => {
       if (opened) return; opened = true; cer.hint(""); Snd.crack(); Haptic.tap("seal");
       wax.classList.add("cracked");
@@ -387,8 +391,12 @@ const Cer = (() => {
       sleeve.classList.add("out");
       await anim(sleeve, [{ transform: "translateY(0)" }, { transform: `translateY(-${EH * .34}px) rotate(1.5deg)` }], { duration: 640, easing: EASE.out });
       fix(sleeve, `translateY(-${EH * .34}px) rotate(1.5deg)`);
-      try { Bridge.busy = true; const id=await Bridge.invoke("gift_open", {giftId:gift.id}); entry=await Bridge.entry(id); await Bridge.reload(); }
+      let id;
+      try { Bridge.busy = true; id=await Bridge.invoke("gift_open", {giftId:gift.id}); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
+      gift.opened=true;const savedGift=S.gifts.find(g=>g.id===gift.id);if(savedGift)savedGift.opened=true;
+      try {entry=await Bridge.entry(id);await Bridge.reload();}
+      catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; resume printing from the Peta menu.');return;}
       let pulled = false; const base = sleeve.style.transform;
       drag(sleeve, {
         down: () => !pulled,
@@ -402,29 +410,36 @@ const Cer = (() => {
         anim(env, [{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(200px) rotate(4deg)", opacity: 0 }], { duration: 700, easing: "cubic-bezier(.5,0,.8,.4)", delay: 120 });
         const r = sleeve.getBoundingClientRect(), sr = stage.getBoundingClientRect();
         stage.append(sleeve); sleeve.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;`;
-        await unwrapAndReveal({ cer, stage, sleeve, entry, source: `Gift from ${gift.from}`, onKeep: keep, onLater: later });
+        try {await unwrapAndReveal({ cer, stage, sleeve, entry, source: `Gift from ${gift.from}`, onKeep: keep, onLater: later });}
+        catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; resume printing from the Peta menu.');}
       }
     };
-    const keep = async () => { Bridge.busy=false; await cer.close(); Shell.refresh(); Shell.toast("A gift from " + gift.from + "."); await Desktop.print(entry); };
-    const later = async () => { Bridge.busy=false; await Bridge.invoke("print_later"); await cer.close(); Shell.refresh(); Shell.toast("Waiting at the print slot — open the Peta menu."); Shell.renderNav(); };
+    const keep = async () => { if(settling)return;settling=true;Bridge.busy=false;await cer.close();Shell.refresh();try {await Desktop.print(entry);Shell.toast("A gift from " + gift.from + ".");} catch {Shell.toast('Gift saved. Resume printing from the Peta menu.');} };
+    const later = async () => { if(settling)return;settling=true;try {await Bridge.invoke("print_later");} catch {await closeCommittedPreview(cer,'Gift saved. Resume printing from the Peta menu.');return;}Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast("Waiting at the print slot — open the Peta menu.");Shell.renderNav(); };
     wax.addEventListener("click", crack); wax.addEventListener("pointerdown", () => Snd.tap()); wax.tabIndex = 0; wax.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && crack());
-    wax.style.cursor = "pointer"; cer.root._esc = () => { if (!opened) cer.close(); };
+    wax.style.cursor = "pointer"; cer.root._esc = () => { if (!opened) cer.close(); else if(entry)later(); };
   }
 
   async function openPack(pack, { free = false } = {}) {
     if (free ? !packHasFreeOpening(pack) : (!packOpenable(pack) || packHasFreeOpening(pack))) return; // a ready free opening always comes first
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
-    const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null;
+    const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null, settling=false;
     const onTear = async (rig) => {
-      try { Bridge.busy = true; const opened=await Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false}); entry=await Bridge.packEntry(opened); pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
+      let opened;
+      try { Bridge.busy = true; opened=await Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false}); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
+      pack.left=Array(opened.remaining).fill(null);if(free)pack.freeOpenings=Math.max(0,(pack.freeOpenings||0)-1);else if(pack.daily)S.packAvailable=false;
+      const savedPack=S.packs.find(p=>p.id===pack.id);if(savedPack){savedPack.left=pack.left;if(free)savedPack.freeOpenings=pack.freeOpenings;}
+      try {entry=await Bridge.packEntry(opened);await Bridge.reload();Shell.renderNav();}
+      catch {await closeCommittedPreview(cer,'Opened and saved to your Collection / stock. The preview could not load.');return;}
       await anim(sleeve, [{ transform: sleeve.style.transform }, { transform: `translateY(${-rig.PH * (rig.rise ?? .3)}px) rotate(-1.5deg)` }], { duration: 760, easing: EASE.out });
       fix(sleeve, `translateY(${-rig.PH * (rig.rise ?? .3)}px) rotate(-1.5deg)`); sleeve.classList.add("out"); cer.hint("Pull it out.");
       rig.pullable(sleeve, { onPull: async () => {
         rig.linger();
         const r = sleeve.getBoundingClientRect(), sr = stage.getBoundingClientRect();
         stage.append(sleeve); sleeve.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;`;
-        await unwrapAndReveal({ cer, stage, sleeve, entry, source: `${pack.title} · ${pack.left.length} left`, onKeep: keep, onLater: leave, laterLabel: entry.prize ? "Done" : "Keep in Collection" });
+        try {await unwrapAndReveal({ cer, stage, sleeve, entry, source: `${pack.title} · ${pack.left.length} left`, onKeep: keep, onLater: leave, laterLabel: entry.prize ? "Done" : "Keep in Collection" });}
+        catch {await closeCommittedPreview(cer,'Opened and saved to your Collection / stock. The preview could not load.');}
       } });
     };
     // a pouch is torn along its top; every other wrapping (Studio) is simply opened
@@ -438,13 +453,14 @@ const Cer = (() => {
     // A pull is already in the Collection. "Stick it" sends it to the desktop the same way the Collection's "Stick on desktop" does;
     // "Keep in Collection" (or Esc) just closes, and nothing is left waiting at the print slot.
     const keep = async () => {
+      if(settling)return;settling=true;
       if(entry.prize) {Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast("Added to your stock.");return;}
       try { await Bridge.printAction("daily_stick_from_collection", { stickerId: entry.id }); }
-      catch (e) { Shell.toast(String(e)); return; }
-      Bridge.busy=false; await cer.close(); Shell.refresh(); Shell.toast("It's yours."); await Desktop.print(entry);
+      catch {await closeCommittedPreview(cer,'Kept in your Collection. Could not place it on the desktop.');return;}
+      Bridge.busy=false;await cer.close();Shell.refresh();try {await Desktop.print(entry);Shell.toast("It's yours.");} catch {Shell.toast('Sticker saved. Resume printing from the Peta menu.');}
     };
-    const leave = async () => { Bridge.busy=false; await cer.close(); Shell.refresh(); Shell.toast(entry.prize ? "Added to your stock." : "Kept in your Collection."); };
-    cer.root._esc = () => { if (!rig.done) cer.close(); else leave(); };
+    const leave = async () => { if(settling)return;settling=true;Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast(entry.prize ? "Added to your stock." : "Kept in your Collection."); };
+    cer.root._esc = () => { if (!rig.done) cer.close(); else if(entry)leave(); };
     rig.focus();
   }
 

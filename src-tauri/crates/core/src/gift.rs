@@ -194,7 +194,7 @@ pub fn receive_gift_with_referee(lib: &mut Library, bytes: &[u8],referee:&dyn cr
     use sha2::{Digest,Sha256};
     let content_id=Sha256::digest(bytes).iter().map(|b|format!("{b:02x}")).collect::<String>();
     let rel = format!("gifts/{content_id}.peta");
-    lib.write_asset(&rel, bytes)?;
+    let mut writes=crate::asset_writes::AssetWrites::new(lib);writes.write(&rel, bytes)?;
     let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     if let Some(chain)=&incoming {
         if tx.query_row("SELECT EXISTS(SELECT 1 FROM stickers WHERE id=?1 AND state='held')",[&chain.creation.sticker_id],|r|r.get::<_,bool>(0))? {return Err(bad("sticker already held"));}
@@ -207,7 +207,7 @@ pub fn receive_gift_with_referee(lib: &mut Library, bytes: &[u8],referee:&dyn cr
     }
     tx.execute("INSERT INTO gift_signers VALUES (?1,?2,?3,?4)",rusqlite::params![d.header.gift_id,identity.as_ref().map(|i|i.status.as_str()).unwrap_or("unsigned"),identity.as_ref().map(|i|&i.fingerprint),identity.as_ref().map(|i|&i.public_key)])?;
     if let Some(chain)=incoming {tx.execute("INSERT INTO gift_claims VALUES (?1,?2,?3)",rusqlite::params![d.header.gift_id,chain.creation.sticker_id,serde_json::to_string(&chain).map_err(|_|bad("could not save history"))?])?;}
-    tx.commit()?;
+    writes.commit(tx)?;
     lib.db()
         .gifts_received()?
         .into_iter()
@@ -236,10 +236,10 @@ fn open_gift_inner(lib: &mut Library, gift_id: &str,date:Option<&str>) -> Result
         }
     };
     let rendered_rel = format!("stickers/{id}/rendered.png");
-    lib.write_asset(&rendered_rel, d.png)?;
+    let mut writes=crate::asset_writes::AssetWrites::new(lib);writes.write(&rendered_rel, d.png)?;
     let mask_rel = if d.mask.is_empty() { None } else {
         let rel = format!("stickers/{id}/mask.png");
-        lib.write_asset(&rel, d.mask)?;
+        writes.write(&rel, d.mask)?;
         Some(rel)
     };
     let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
@@ -249,7 +249,7 @@ fn open_gift_inner(lib: &mut Library, gift_id: &str,date:Option<&str>) -> Result
     crate::ownership::provenance(&tx,&id,"received",Some(&h.from),&now())?;
     if tx.execute("UPDATE gifts_received SET opened_at=?2,sticker_id=?3 WHERE gift_id=?1 AND opened_at IS NULL",rusqlite::params![gift_id,now(),id])?!=1 {return Err(bad("gift already opened"));}
     if let Some(date)=date {crate::daily::ensure_today_in(&tx,date,crate::ids::random_unit())?;crate::Database::confirm_in(&tx,date,&id,SourceType::Gift,&now())?;}
-    tx.commit()?;lib.db().sticker(&id)?.ok_or_else(||bad("sticker vanished"))
+    writes.commit(tx)?;lib.db().sticker(&id)?.ok_or_else(||bad("sticker vanished"))
 }
 
 fn open_transfer(lib:&mut Library,gift_id:&str,d:&Decoded<'_>,date:Option<&str>)->Result<Sticker> {
@@ -260,8 +260,9 @@ fn open_transfer(lib:&mut Library,gift_id:&str,d:&Decoded<'_>,date:Option<&str>)
     let original=d.header.history.as_ref().unwrap();
     if chain.creation!=original.creation||chain.transfers.len()!=original.transfers.len()+1||!chain.transfers.starts_with(&original.transfers) {return Err(bad("damaged claim"));}
     let id=&chain.creation.sticker_id;
-    let rendered=format!("stickers/{id}/received-{}.png",o::digest(d.png));lib.write_asset(&rendered,d.png)?;
-    let mask=if d.mask.is_empty(){None}else{let rel=format!("stickers/{id}/received-{}-mask.png",o::digest(d.mask));lib.write_asset(&rel,d.mask)?;Some(rel)};
+    let mut writes=crate::asset_writes::AssetWrites::new(lib);
+    let rendered=format!("stickers/{id}/received-{}.png",o::digest(d.png));writes.write(&rendered,d.png)?;
+    let mask=if d.mask.is_empty(){None}else{let rel=format!("stickers/{id}/received-{}-mask.png",o::digest(d.mask));writes.write(&rel,d.mask)?;Some(rel)};
     let h=&d.header;let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     let state:Option<String>=tx.query_row("SELECT state FROM stickers WHERE id=?1",[id],|r|r.get(0)).optional()?;
     match state.as_deref() {
@@ -277,7 +278,7 @@ fn open_transfer(lib:&mut Library,gift_id:&str,d:&Decoded<'_>,date:Option<&str>)
     o::provenance(&tx,id,"received",Some(&h.from),&now())?;
     if tx.execute("UPDATE gifts_received SET opened_at=?2,sticker_id=?3 WHERE gift_id=?1 AND opened_at IS NULL",rusqlite::params![gift_id,now(),id])?!=1 {return Err(bad("gift already opened"));}
     if let Some(date)=date {crate::daily::ensure_today_in(&tx,date,crate::ids::random_unit())?;crate::Database::confirm_in(&tx,date,id,SourceType::Gift,&now())?;}
-    tx.execute("DELETE FROM gift_claims WHERE gift_id=?1",[gift_id])?;tx.commit()?;
+    tx.execute("DELETE FROM gift_claims WHERE gift_id=?1",[gift_id])?;writes.commit(tx)?;
     lib.db().sticker(id)?.ok_or_else(||bad("sticker vanished"))
 }
 
@@ -341,6 +342,7 @@ mod tests {
         assert!(matches!(build_gift(&mut mine,&copies[0].id,"Nao",None),Err(Error::Invalid(e)) if e=="copies_stay_home"));
         let (_,file)=build_gift(&mut mine,&s.id,"Nao",None).unwrap();assert_eq!(mine.db().link_tag_stock().unwrap().available,2);
         let mut theirs=lib();assert!(receive_gift_with_referee(&mut theirs,&file,&Refuse).is_err());assert!(theirs.db().gifts_received().unwrap().is_empty());
+        assert_eq!(std::fs::read_dir(theirs.root().join("assets/gifts")).unwrap().count(),0);
     }
     #[test]
     fn legacy_v1_and_v2_open_as_unverified_real_stickers() {
@@ -361,6 +363,7 @@ mod tests {
         friend.db().conn.execute_batch("CREATE TRIGGER fail_print BEFORE INSERT ON print_queue BEGIN SELECT RAISE(ABORT,'test'); END;").unwrap();
         assert!(open_gift_print(&mut friend,&id,"2026-10-11").is_err());assert!(friend.db().daily_get("2026-10-11").unwrap().is_none());assert!(friend.db().next_print().unwrap().is_none());assert_eq!(friend.db().sticker_count().unwrap(),0);
         assert!(friend.db().gifts_received().unwrap()[0].opened_at.is_none());
+        let dir=friend.root().join("assets/stickers").join(&s.id);assert_eq!(std::fs::read_dir(dir).unwrap().count(),0);
         friend.db().conn.execute_batch("DROP TRIGGER fail_print;").unwrap();open_gift_print(&mut friend,&id,"2026-10-11").unwrap();assert!(friend.db().next_print().unwrap().is_some());
     }
 

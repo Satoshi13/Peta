@@ -21,7 +21,7 @@ test('existing copies remain selectable without a duplicate operation',()=>{
  assert.match(src,/Stays on this Mac/);assert.match(src,/e.lineage !== "copy" \? act\("det-link", "gift"/);
 });
 test('Gift requires an explicit transfer confirmation before invoking the command',()=>{
- const src=read('src/app/js/studio.js');assert.match(src,/This leaves your Collection\./);assert.match(src,/if\(!await stConfirmTransfer\(\)\) return null/);
+ const src=read('src/app/js/studio.js');assert.match(src,/This leaves your Collection\./);assert.match(src,/if\(!await stConfirmTransfer\(\)\)\s*return null/);
 });
 test('Editions panel fixes foreign stickers to one and reports odds including prizes',()=>{
  const src=read('src/app/js/studio.js'),ctx=vm.createContext({S:{packLimits:{copiesPerDesign:30}}});

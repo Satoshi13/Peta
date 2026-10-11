@@ -10,7 +10,7 @@ const stEm = (text) => [...text].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 1
 const stClip = (text, max) => { let v = text; while (stEm(v) > max) v = v.slice(0, -1); return v; };
 
 const ST = {
-  mode: null, sealing: false, urls: new Map(), ctx: "shelf", find: { q: "", mat: "all" }, view: "pack", open: null, chances: false,
+  mode: null, sealing: false, urls: new Map(), urlRequests: new Map(), ctx: "shelf", find: { q: "", mat: "all" }, view: "pack", open: null, chances: false,
   pack: { step: 1, seen: new Set([1]), sealed: false, dest: "shelf", result: null, sel: [], prizes:[], bag: "kraft", deco: "none", layout: { comp: "corner", label: null, cover: null, accents: [] }, cover: null, title: "", blurb: "" },
   gift: { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, bag: "airmail", deco: "none", to: "", note: "" },
 };
@@ -32,20 +32,21 @@ function stCleanPrizes(prizes, copies) {
 }
 const stDraftKey = "peta.studio";
 function stLoad() {
+  if(ST.sealing)return;
   try {
     const d = JSON.parse(localStorage.getItem(stDraftKey) || "null"); if(!d) return;
     const known = new Set(S.lib.filter(e => e.lineage !== "copy").map((e) => e.id));
-    if(d.pack) { const p = ST.pack; p.sel = (d.pack.sel || []).filter((x) => known.has(x.id) && !stEntry(x.id)?.pressed && Number.isInteger(x.copies) && x.copies >= 1 && x.copies <= stCopyMax(stEntry(x.id))).slice(0, STUDIO.limits.max); p.bag = PACK_BAG_IDS.includes(d.pack.bag) ? d.pack.bag : "kraft"; p.deco = ["none", "clip", "pin", "tape"].includes(d.pack.deco) ? d.pack.deco : "none";
+    if(d.pack&&!ST.pack.sealed) { const p = ST.pack; p.sel = (Array.isArray(d.pack.sel)?d.pack.sel:[]).filter((x) => x && known.has(x.id) && !stEntry(x.id)?.pressed && Number.isInteger(x.copies) && x.copies >= 1 && x.copies <= stCopyMax(stEntry(x.id))).slice(0, STUDIO.limits.max); p.bag = PACK_BAG_IDS.includes(d.pack.bag) ? d.pack.bag : "kraft"; p.deco = ["none", "clip", "pin", "tape"].includes(d.pack.deco) ? d.pack.deco : "none";
       p.prizes=stCleanPrizes(d.pack.prizes,p.sel.reduce((n,x)=>n+x.copies,0));
       p.layout = stCleanLayout(d.pack.layout, p.bag);
       p.cover = p.sel.some((x) => x.id === d.pack.cover && stEntry(x.id)?.canPress) ? d.pack.cover : null; p.title = stClip(String(d.pack.title || ""), STUDIO.limits.name); p.blurb = String(d.pack.blurb || "").slice(0, STUDIO.limits.blurb); }
-    if(d.gift) { const g = ST.gift; g.sticker = known.has(d.gift.sticker) ? d.gift.sticker : null; g.bag = GIFT_BAG_IDS.includes(d.gift.bag) ? d.gift.bag : "airmail"; g.deco = ["none", "clip", "pin", "tape"].includes(d.gift.deco) ? d.gift.deco : "none";
+    if(d.gift&&!ST.gift.sealed) { const g = ST.gift; g.sticker = known.has(d.gift.sticker) ? d.gift.sticker : null; g.bag = GIFT_BAG_IDS.includes(d.gift.bag) ? d.gift.bag : "airmail"; g.deco = ["none", "clip", "pin", "tape"].includes(d.gift.deco) ? d.gift.deco : "none";
       g.to = stClip(String(d.gift.to || ""), STUDIO.limits.to); g.note = String(d.gift.note || "").slice(0, STUDIO.limits.note); }
   } catch {}
 }
 function stSave() {
   const p = ST.pack, g = ST.gift;
-  try { localStorage.setItem(stDraftKey, JSON.stringify({ pack: { sel: p.sel, prizes:p.prizes, bag: p.bag, deco: p.deco, layout: p.layout, cover: p.cover, title: p.title, blurb: p.blurb }, gift: { sticker: g.sticker, bag: g.bag, deco: g.deco, to: g.to, note: g.note } })); } catch {}
+  try { localStorage.setItem(stDraftKey, JSON.stringify({ ...(p.sealed?{}:{pack: { sel: p.sel, prizes:p.prizes, bag: p.bag, deco: p.deco, layout: p.layout, cover: p.cover, title: p.title, blurb: p.blurb }}), ...(g.sealed?{}:{gift: { sticker: g.sticker, bag: g.bag, deco: g.deco, to: g.to, note: g.note }}) })); } catch {}
 }
 /** A saved layout, made safe: a known composition, places that are numbers, at most two different accents. The picture clamps the places again when it draws. */
 function stCleanLayout(l, bagId) {
@@ -100,12 +101,31 @@ const stDraft = () => (ST.mode === "gift" ? ST.gift : ST.pack);
 /* a sticker's small picture for the bag and the tiles; the bench is drawn again when one arrives */
 function stUrl(id) {
   if(ST.urls.has(id)) return ST.urls.get(id);
-  ST.urls.set(id, null); const e = stEntry(id); if(!e) return null;
-  thumbOf(e).then((res) => { ST.urls.set(id, res.url); if(S.page === "studio") Pages.studio.repaintBench?.(); }).catch(() => ST.urls.delete(id));
+  const e = stEntry(id); if(!e) return null;ST.urls.set(id, null);
+  const request=Symbol();ST.urlRequests.set(id,request);
+  thumbOf(e).then((res) => { if(ST.urlRequests.get(id)!==request)return; ST.urls.set(id, res.url); if(S.page === "studio") Pages.studio.repaintBench?.(); }).catch(() => {if(ST.urlRequests.get(id)===request)ST.urls.delete(id);});
   return null;
 }
 /** What was just sealed is made: its draft does not come back when Studio is opened again. */
 function stForget(kind) { try { const d = JSON.parse(localStorage.getItem(stDraftKey) || "{}"); delete d[kind]; localStorage.setItem(stDraftKey, JSON.stringify(d)); } catch {} }
+/** Record a successful native save before fetching any UI state. A refresh failure never repeats the transfer or press. */
+async function stCommitSeal(mode,d,args) {
+  const busy=!!Bridge.busy;Bridge.busy=true;
+  try {
+    let result;
+    if(mode==='gift') {
+      if(!await stConfirmTransfer())return null;
+      const sent=await Bridge.fileDialog('gift_send',args);if(!sent)return null;
+      result={where:'file',path:sent.savedTo};
+    } else if(d.dest==='file') {
+      const saved=await Bridge.fileDialog('creator_pack_save',args);if(!saved)return null;
+      result={where:'file',path:saved.path,packId:saved.packId};
+    } else result={where:'shelf',packId:await Bridge.invoke('creator_pack_shelve',args)};
+    d.sealed=true;d.result=result;stForget(mode);
+    try {await Bridge.reload();Shell.renderNav();} catch {Shell.toast('Sealed and saved. The display could not refresh.');}
+    return result;
+  } finally {Bridge.busy=busy;}
+}
 /** The stickers the pickers show: the search and the material (or "On desktop") above the list. */
 const stShown = () => { const f = ST.find; return PetaMath.filterBookEntries(stEntries(), { query: f.q, material: f.mat, sort: "newest", materialIds: Object.keys(MAT), nameOf: (id) => MAT[id]?.name || id }); };
 function stFind(fill) {
@@ -132,6 +152,7 @@ function stBag({ k = 22, fit = 0, shut = false, open = false, d = stDraft(), mod
 }
 
 Pages.studio = {
+  invalidateAsset(id) { ST.urls.delete(id); ST.urlRequests.delete(id); },
   repaintBench: null,
   build() {
     const root = h("div.page-in.studiopage"); stLoad();
@@ -363,8 +384,8 @@ Pages.studio = {
       const act = (label, fn, cls = "") => h("button.btn" + cls, { on: { click: async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await fn(msg); } catch(err) { Shell.toast(Distribution?.error ? Distribution.error(err) : String(err)); } finally { b.disabled = false; } } } }, label);
       const more = [];
       if(kind === "pack") {
-        if(r.where === "shelf") more.push(act("Also save a file…", async (m) => { const path = await Bridge.invoke("creator_pack_export", {packId:r.packId}); if(path) { await Bridge.reload(); Snd.chime(2, 740); m("Saved."); } }));
-        else more.push(act("Also put on my shelf", async (m) => { await Bridge.invoke("creator_pack_store", {packId:r.packId}); await Bridge.reload(); Shell.renderNav(); r.where="shelf"; paint(); Snd.chime(2, 740); m("It's on your Packs shelf."); }, ".paper"));
+        if(r.where === "shelf") more.push(act("Also save a file…", async (m) => { const path = await Bridge.fileDialog("creator_pack_export", {packId:r.packId}); if(path) { Snd.chime(2, 740); m("Saved."); } }));
+        else more.push(act("Also put on my shelf", async (m) => { await Bridge.invoke("creator_pack_store", {packId:r.packId}); r.where="shelf"; paint(); try {await Bridge.reload();Shell.renderNav();} catch {m("Stored on My shelf. The display could not refresh.");return;} Snd.chime(2, 740); m("It's on your Packs shelf."); }, ".paper"));
       }
       const line = r.where === "shelf" ? "It's on your Packs shelf." : kind === "pack" ? "The file is saved. Share it any way you like." : "The file is saved. Send it any way you like.";
       return h("div.st-done", h("i.st-check", { "aria-hidden": "true" }), h("h2", kind === "pack" ? `Sealed. ${ST.pack.title.trim()}` : `Sealed. For ${ST.gift.to.trim()}`), h("p.muted", kind === "pack" ? `${ST.pack.sel.length} stickers · ${line}` : line), r.path ? h("p.muted.st-path", { title: r.path }, r.path) : null,
@@ -374,23 +395,18 @@ Pages.studio = {
     const giftArgs = () => { const g = ST.gift; return { stickerId: g.sticker, to: g.to.trim(), note: g.note.trim() || null, dress: { bag: g.bag, deco: g.deco === "none" ? null : g.deco } }; };
 
     /* ---------- sealing: it signs and writes first (a cancelled save dialog makes nothing), then the wrapping closes its own way ---------- */
-    const sealPack = async () => {
-      if(stSlots(ST.pack)>S.packLimits.packSlots) throw new Error("Too many slots.");
-      if(ST.pack.dest === "file") { const saved = await Bridge.invoke("creator_pack_save", packArgs()); if(!saved) return null; await Bridge.reload(); return { where: "file", path:saved.path, packId:saved.packId }; }
-      const packId=await Bridge.invoke("creator_pack_shelve", packArgs()); await Bridge.reload(); Shell.renderNav(); return { where: "shelf", packId };
-    };
-    const sealGift = async () => { if(!await stConfirmTransfer()) return null; const sent = await Bridge.invoke("gift_send", giftArgs()); if(!sent) return null; await Bridge.reload(); return { where: "file", path: sent.savedTo }; };
     const seal = async () => {
-      if(ST.sealing) return; const d = D(); ST.sealing = true; ST.view = "pack"; paint();   // the sealing is played on the wrapped thing itself
-      let result = null;
-      try { result = ST.mode === "gift" ? await sealGift() : await sealPack(); }
-      catch(err) { ST.sealing = false; paint(); Shell.toast(Distribution?.error ? Distribution.error(err) : String(err)); return; }
-      if(!result) { ST.sealing = false; paint(); return; }
+      if(ST.sealing) return; const mode=ST.mode,d=D(),args=mode==='gift'?giftArgs():packArgs(); ST.sealing = true; ST.view = "pack"; paint();
+      try {
+      if(mode==='pack'&&stSlots(d)>S.packLimits.packSlots)throw new Error('Too many slots.');
+      const result=await stCommitSeal(mode,d,args);if(!result)return;
       const wait = (ms) => new Promise((r) => setTimeout(r, reduced() ? 1 : ms)), tilt = $(".st-tilt", bench); if(tilt) tilt.style.transform = "";
       const open = BAGS[d.bag]; const p = $(".bagpic", bench);
       try { if(p) await StudioSeal.run(p, open, bench, wait); } catch {}
       const st = h("div.st-stamp", "SEALED"); bench.append(st); st.animate([{ opacity: 0, transform: "scale(2.2)" }, { opacity: .9, transform: "scale(.94)", offset: .6 }, { opacity: .85, transform: "scale(1)" }], { duration: reduced() ? 1 : 360, easing: "ease-out", fill: "forwards" }); Snd.tap(); await wait(700); Snd.chime(2, 880);
-      d.sealed = true; d.result = result; ST.sealing = false; stForget(ST.mode); paint(); setTimeout(() => st.remove(), 400);
+      setTimeout(() => st.remove(), 400);
+      } catch(err) {Shell.toast(d.sealed ? 'Sealed and saved. The preview could not finish.' : (Distribution?.error ? Distribution.error(err) : String(err)));}
+      finally {ST.sealing=false;paint();}
     };
 
     const paintPanel = () => {
@@ -451,6 +467,7 @@ function stConfirmTransfer() {
 
 /** Open Studio from elsewhere (the Collection's "Make a Pack…" and "Gift…"): `sticker` is chosen already. */
 function StudioOpen(mode, sticker) {
+  if(ST.sealing)return;
   stLoad(); ST.mode = mode;
   if(mode === "pack" && ST.pack.sealed) Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], prizes:[], cover: null, title: "", blurb: "", layout: { comp: "corner", label: null, cover: null, accents: [] } });
   if(sticker && stEntry(sticker)?.lineage !== "copy" && (mode !== "pack" || !stEntry(sticker)?.pressed)) { if(mode === "gift") Object.assign(ST.gift, { sticker, step: 1, sealed: false }); else if(!ST.pack.sel.some((x) => x.id === sticker)) ST.pack.sel.push({ id: sticker, copies: 1 }); }

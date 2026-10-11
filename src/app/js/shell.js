@@ -116,6 +116,7 @@ const Shell = (() => {
 
   let queued = null;   // a page asked for while another was still arriving: the last ask wins and runs when the current one lands
   async function go(id, o = {}) {
+    if(typeof ST!=='undefined'&&ST.sealing)return;
     if (!Pages[id]) return;
     if (navigating) { queued = id === S.page ? null : { id, o }; markNav(queued ? id : S.page); return; }
     queued = null;

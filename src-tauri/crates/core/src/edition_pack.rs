@@ -81,12 +81,12 @@ fn build(lib:&Library,title:&str,pouch:&str,selection:&[Selection],prizes:&[Priz
     let bytes=creator_pack::encode(&h,&body,&key)?;creator_pack::decode(&bytes)?;Ok((h,bytes))
 }
 type Paths=Vec<(String,Option<String>)>;
-fn write_assets(lib:&Library,p:&Verified)->Result<Paths> {
-    let content=o::digest(&p.bytes);let mut paths=Vec::new();
+fn write_assets(lib:&Library,p:&Verified)->Result<(Paths,crate::asset_writes::AssetWrites)> {
+    let content=o::digest(&p.bytes);let mut paths=Vec::new();let mut writes=crate::asset_writes::AssetWrites::new(lib);
     for (item,(png,mask)) in p.header.items.iter().zip(&p.items) {
-        let path=format!("packs/{content}/{}.png",item.key);lib.write_asset(&path,png)?;
-        let mask_path=if mask.is_empty(){None}else{let path=format!("packs/{content}/{}-mask.png",item.key);lib.write_asset(&path,mask)?;Some(path)};paths.push((path,mask_path));
-    }Ok(paths)
+        let path=format!("packs/{content}/{}.png",item.key);writes.write(&path,png)?;
+        let mask_path=if mask.is_empty(){None}else{let path=format!("packs/{content}/{}-mask.png",item.key);writes.write(&path,mask)?;Some(path)};paths.push((path,mask_path));
+    }Ok((paths,writes))
 }
 fn install_in(conn:&Connection,p:&Verified,paths:&Paths,own:&str)->Result<String> {
     let h=&p.header;let id=creator_pack::internal_id(h)?;let public=creator_pack::public(h)?;
@@ -115,8 +115,8 @@ fn install_in(conn:&Connection,p:&Verified,paths:&Paths,own:&str)->Result<String
     if let Some(layout)=&h.layout {conn.execute("INSERT INTO meta VALUES (?1,?2)",params![format!("pack.layout.{id}"),serde_json::to_string(layout).map_err(|e|invalid(&e.to_string()))?])?;}Ok(id)
 }
 pub fn install(lib:&mut Library,p:&Verified)->Result<String> {
-    let own=sign::public_key(&crate::device_key::load_or_create(lib.root())?);let paths=write_assets(lib,p)?;
-    let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;let id=install_in(&tx,p,&paths,&own)?;tx.commit()?;Ok(id)
+    let own=sign::public_key(&crate::device_key::load_or_create(lib.root())?);let (paths,writes)=write_assets(lib,p)?;
+    let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;let id=install_in(&tx,p,&paths,&own)?;writes.commit(tx)?;Ok(id)
 }
 /// A finished pack is archived as its exact signed bytes, never pressed again.
 fn archive_path(digest:&str)->Result<String> {
@@ -183,7 +183,7 @@ pub fn cover_picture(lib:&Library,id:&str)->Result<Option<Vec<u8>>> {
 }
 pub fn press(lib:&mut Library,title:&str,pouch:&str,items:&[Selection],prizes:&[Prize],dress:&Dress,shelf:bool,referee:&dyn Referee,persist:impl FnOnce(&Header,&[u8])->Result<()>)->Result<String> {
     let (h,bytes)=build(lib,title,pouch,items,prizes,dress)?;let verified=creator_pack::decode(&bytes)?;
-    let key=crate::device_key::load_or_create(lib.root())?;let own=sign::public_key(&key);let paths=if shelf {write_assets(lib,&verified)?}else{vec![]};
+    let key=crate::device_key::load_or_create(lib.root())?;let own=sign::public_key(&key);let (paths,writes)=if shelf {write_assets(lib,&verified)?}else{(vec![],crate::asset_writes::AssetWrites::new(lib))};
     let snapshots=h.items.iter().map(|i|lib.db().held_sticker(&i.key)?.ok_or_else(||invalid("Sticker left this device."))).collect::<Result<Vec<_>>>()?;
     let (digest,receipt,archive)=publish_archive(lib,&bytes)?;
     let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
@@ -210,7 +210,7 @@ pub fn press(lib:&mut Library,title:&str,pouch:&str,items:&[Selection],prizes:&[
     tx.execute("INSERT INTO packs_made VALUES (?1,?2,?3,?4)",params![h.pack_id,h.title,h.version,h.made_at])?;
     tx.execute("INSERT INTO meta VALUES (?1,'1')",[format!("export.{}",h.pack_id)])?;
     let id=if shelf {install_in(&tx,&verified,&paths,&own)?}else{creator_pack::internal_id(&h)?};
-    record_archive(&tx,&id,&digest,&receipt)?;persist(&h,&bytes)?;tx.commit()?;archive.finish();Ok(id)
+    record_archive(&tx,&id,&digest,&receipt)?;persist(&h,&bytes)?;writes.commit(tx)?;archive.finish();Ok(id)
 }
 pub fn is_v2(db:&Database,id:&str)->Result<bool> {Ok(db.conn.query_row("SELECT EXISTS(SELECT 1 FROM edition_pack_frames WHERE pack_id=?1)",[id],|r|r.get(0))?)}
 pub fn ensure_can_open(lib:&Library,id:&str)->Result<()> {
@@ -370,6 +370,7 @@ pub fn open(lib:&mut Library,id:&str,roll:f64,free:bool,date:&str,queue:bool,ref
         let (mut mine,selection)=fixture(3,1);let file=export(&mut mine,&selection,&[]);let package=creator_pack::decode(&file).unwrap();let id=creator_pack::internal_id(&package.header).unwrap();
         mine.db().conn.execute_batch("CREATE TRIGGER fail_slot BEFORE INSERT ON edition_pack_slots BEGIN SELECT RAISE(ABORT,'test'); END;").unwrap();
         assert!(store_archived(&mut mine,&id).is_err());assert!(mine.db().packs().unwrap().is_empty());assert_eq!(archived_bytes(&mut mine,&id).unwrap(),file);
+        for dir in std::fs::read_dir(mine.root().join("assets/packs")).unwrap() {assert_eq!(std::fs::read_dir(dir.unwrap().path()).unwrap().count(),0);}
         mine.db().conn.execute_batch("DROP TRIGGER fail_slot;").unwrap();store_archived(&mut mine,&id).unwrap();
         let digest=o::digest(&file);let path=mine.root().join("assets").join(archive_path(&digest).unwrap());std::fs::write(&path,b"damaged").unwrap();assert!(archived_bytes(&mut mine,&id).is_err());std::fs::write(&path,&file).unwrap();
         mine.db().conn.execute("INSERT INTO meta VALUES ('pack.archive.wrong',?1)",[&digest]).unwrap();assert!(archived_bytes(&mut mine,"wrong").is_err());
@@ -385,6 +386,7 @@ pub fn open(lib:&mut Library,id:&str,roll:f64,free:bool,date:&str,queue:bool,ref
         assert!(press(&mut mine,"Fail","kraft",&selection,&[Prize::Material{material_id:"kraft".into(),count:1}],&Dress::default(),true,&o::NoReferee,|_,_|Ok(())).is_err());
         assert_eq!(mine.db().material_count("kraft").unwrap(),2);assert!(mine.db().packs().unwrap().is_empty());assert!(!mine.db().sticker(&selection[0].sticker_id).unwrap().unwrap().pressed);
         assert_eq!(std::fs::read_dir(mine.root().join("assets/creator-packs")).unwrap().count(),0);
+        let pack_root=mine.root().join("assets/packs");if pack_root.exists() {for dir in std::fs::read_dir(pack_root).unwrap() {assert_eq!(std::fs::read_dir(dir.unwrap().path()).unwrap().count(),0);}}
         assert_eq!(mine.db().conn.query_row("SELECT COUNT(*) FROM meta WHERE key LIKE 'pack.archive.%' OR key LIKE 'export.archive-write.%'",[],|r|r.get::<_,u32>(0)).unwrap(),0);
     }
     #[test] fn cover_is_the_chosen_design_even_when_rare_or_already_drawn() {

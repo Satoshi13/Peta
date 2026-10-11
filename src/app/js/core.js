@@ -12,6 +12,14 @@ const EASE = {
 };
 const reduced = () => document.documentElement.dataset.motion === "reduce" || matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/** A damaged preference store must not prevent the shell or desktop layers from starting. */
+function readPreferences() {
+  try {
+    const value = JSON.parse(localStorage.getItem("peta.preferences") || "{}");
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  } catch { return {}; }
+}
+
 /** h("div.cls#id", {attrs, on:{click}}, ...children) */
 function h(sel, props, ...kids) {
   const m = sel.match(/^([a-z0-9-]*)((?:[.#][\w-]+)*)$/i);

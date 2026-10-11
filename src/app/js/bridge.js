@@ -1,5 +1,5 @@
 /* Rust is the source of truth. S contains only the last command snapshot and UI selections. */
-const prefs = JSON.parse(localStorage.getItem('peta.preferences') || '{}');
+const prefs = readPreferences();
 const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, appearance: ['day','night','auto'].includes(prefs.appearance) ? prefs.appearance : 'day', bookView: prefs.bookView === 'calendar' ? 'calendar' : 'list', motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
   developer:false, envelopeDeadline: null, name: '', iconStickerId: null, today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], events: [], packOffer:null, packs: [],
   bonusEnvelopes: 0, extraEnvelope: false, pending: null, stuckToday: [], packAvailable: false, scraps: {balance:0, materials:[], packs:[]}, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
@@ -8,9 +8,14 @@ const Bridge = (() => {
   const invoke = (cmd, args) => api.core.invoke(cmd, args);
   const windowApi = api.window.getCurrentWindow();
   const assets = new Map();
+  async function fileDialog(cmd,args) {
+    const previous=!!Bridge.dialogOpen;Bridge.dialogOpen=true;
+    try { return await invoke(cmd,args); }
+    finally { Bridge.dialogOpen=previous || !!document.querySelector('dialog[open]'); }
+  }
   const savePreferences = () => {
     const p = { shell:S.shell, sound:S.sound, haptics:S.haptics, appearance:S.appearance, bookView:S.bookView, motion:S.motion, closeOutside:S.closeOutside };
-    localStorage.setItem('peta.preferences', JSON.stringify(p));
+    try { localStorage.setItem('peta.preferences', JSON.stringify(p)); } catch {}
     document.documentElement.dataset.motion = S.motion;
     Appearance.apply();
     Snd.on = S.sound; Haptic.on = S.haptics;
@@ -38,7 +43,10 @@ const Bridge = (() => {
     S.packs = packs.packs.map(p=>({id:p.id, title:p.title, by:p.by, total:p.total, left:Array(p.remaining).fill(null), freeOpenings:p.freeOpenings || 0, daily:p.id==='welcome', signatureStatus:p.signatureStatus,own:p.signatureStatus==="mine", fingerprint:p.fingerprint, kind:isPouch(p.pouch) ? p.pouch : (p.pouch && BAGS[p.pouch]) ? 'kraft' : p.pouch || ({coffee:'kraft',plants:'kraft',cats:'matte'})[p.id] || 'holo', bag:BAGS[p.pouch] ? p.pouch : null, cover:p.cover || null, deco:p.deco || null, layout:(() => { try { return p.layout ? JSON.parse(p.layout) : null; } catch { return null; } })(), blurb:p.blurb || '', signed:!!p.fingerprint, hue:({tokyo:200,pixel:120,night:245})[p.id] || 0})).sort((a,b)=>(({'welcome':0,'tokyo':1,'coffee':2})[a.id]??3)-(({'welcome':0,'tokyo':1,'coffee':2})[b.id]??3));
   }
   async function asset(id) {
-    if (!assets.has(id)) assets.set(id, invoke('sticker_asset', {stickerId:id}).then(bytes => URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type:'image/png'}))));
+    if (!assets.has(id)) {
+      const request=invoke('sticker_asset', {stickerId:id}).then(bytes => URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type:'image/png'})));
+      assets.set(id,request);request.catch(()=>{if(assets.get(id)===request)assets.delete(id);});
+    }
     return assets.get(id);
   }
   /* A smaller picture for lists (the Collection's tiles and calendar): about a tenth of the bytes to send and decode. At most a few are fetched
@@ -48,15 +56,21 @@ const Bridge = (() => {
   const thumbDone = () => { thumbBusy--; thumbWaiting.shift()?.(); };
   async function thumb(id, max = 384) {
     const key = id + ":" + max;
-    if (!thumbs.has(key)) thumbs.set(key, (async () => {
+    if (!thumbs.has(key)) { const request=(async () => {
       await thumbSlot();
       try { const bytes = await invoke('sticker_thumb', {stickerId:id, max}); return URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type:'image/png'})); }
       catch { return asset(id); } // no thumbnail (an older core, an odd file): the full picture still works
       finally { thumbDone(); }
-    })());
+    })();thumbs.set(key,request);request.catch(()=>{if(thumbs.get(key)===request)thumbs.delete(key);}); }
     return thumbs.get(key);
   }
-  function invalidateAsset(id) { const old = assets.get(id); assets.delete(id); for(const key of stickerResources.keys()) if(key.startsWith(id+":")) stickerResources.delete(key); old?.then(URL.revokeObjectURL).catch(()=>{}); for(const key of [...thumbs.keys()]) if(key.startsWith(id+":")) { thumbs.get(key).then(u => { if(u !== assets.get(id)) URL.revokeObjectURL(u); }).catch(()=>{}); thumbs.delete(key); } }
+  function invalidateAsset(id) {
+    const revoked=new Set(),revoke=p=>p?.then(url=>{if(!revoked.has(url)){revoked.add(url);URL.revokeObjectURL(url);}}).catch(()=>{});
+    revoke(assets.get(id));assets.delete(id);
+    for(const key of stickerResources.keys()) if(key.startsWith(id+":")) stickerResources.delete(key);
+    for(const key of [...thumbs.keys()]) if(key.startsWith(id+":")) {revoke(thumbs.get(key));thumbs.delete(key);}
+    Pages.studio?.invalidateAsset?.(id);
+  }
   async function entry(id) {
     const back = await invoke('sticker_back', {stickerId:id});
     return { id, material:back.material?.id || 'matte', kind:back.kind, from:back.receivedFrom, no:back.originalNumber == null ? null : Number(back.originalNumber), edition:back.editionNumber == null ? null : Number(back.editionNumber), editionTotal:back.editionTotal, date:new Date(), back, title:'Sticker' };
@@ -65,7 +79,7 @@ const Bridge = (() => {
     if(opened.kind && opened.kind !== "sticker") return {id:null,prize:true,prizeKind:opened.kind,material:opened.materialId || "matte",title:opened.name,rarity:opened.rarity || "common",aspect:1};
     const e=await entry(opened.stickerId);return {...e,rarity:opened.rarity,title:opened.name || e.title};
   }
-  async function changed() { try { await reload(); Shell.renderNav(); if (!Bridge.busy && !document.querySelector('.cer') && S.page !== 'create') { if (typeof PackZoom !== 'undefined' && PackZoom.current) PackZoom.stale(); else Shell.refresh(); } if(S.packOffer) Distribution.offer(S.packOffer); } catch(e) { Shell.toast(String(e)); } }
+  async function changed() { try { await reload(); Shell.renderNav(); if (!Bridge.busy && !(typeof ST !== 'undefined' && ST.sealing) && !document.querySelector('.cer') && S.page !== 'create') { if (typeof PackZoom !== 'undefined' && PackZoom.current) PackZoom.stale(); else Shell.refresh(); } if(S.packOffer) Distribution.offer(S.packOffer); } catch(e) { Shell.toast(String(e)); } }
   function enterCeremony() {
     document.body.dataset.scene='ceremony';
     if(S.page==='today') Pages.today.suspend();
@@ -81,24 +95,24 @@ const Bridge = (() => {
     try { return await invoke(cmd, args); }
     catch(e) { Bridge.printFocusTransfer=false; throw e; }
   }
-  return { invoke, printAction, enterCeremony, leaveCeremony, window:windowApi, reload, asset, thumb, invalidateAsset, entry, packEntry, savePreferences, changed, listen:api.event.listen };
+  return { invoke, fileDialog, printAction, enterCeremony, leaveCeremony, window:windowApi, reload, asset, thumb, invalidateAsset, entry, packEntry, savePreferences, changed, listen:api.event.listen };
 })();
 const stickerResources = new Map();
 async function resOf(entry) {
   const key = entry.id + ":" + entry.material;
-  if (!stickerResources.has(key)) stickerResources.set(key, (async () => {
+  if (!stickerResources.has(key)) {const request=(async () => {
     const url = await Bridge.asset(entry.id), i = await Stk.load(url);
     return { url, w:i.naturalWidth, h:i.naturalHeight, aspect:i.naturalWidth/i.naturalHeight, material:entry.material, mask:['holographic','gold'].includes(entry.material) ? url : null };
-  })().catch(err => { stickerResources.delete(key); throw err; }));
+  })().catch(err => { if(stickerResources.get(key)===request)stickerResources.delete(key); throw err; });stickerResources.set(key,request);}
   return stickerResources.get(key);
 }
 /* The same as resOf, from the thumbnail: for tiles. */
 async function thumbOf(entry) {
   const key = entry.id + ":" + entry.material + ":thumb";
-  if (!stickerResources.has(key)) stickerResources.set(key, (async () => {
+  if (!stickerResources.has(key)) {const request=(async () => {
     const url = await Bridge.thumb(entry.id), i = await Stk.load(url);
     return { url, w:i.naturalWidth, h:i.naturalHeight, aspect:i.naturalWidth/i.naturalHeight, material:entry.material, mask:['holographic','gold'].includes(entry.material) ? url : null };
-  })().catch(err => { stickerResources.delete(key); throw err; }));
+  })().catch(err => { if(stickerResources.get(key)===request)stickerResources.delete(key); throw err; });stickerResources.set(key,request);}
   return stickerResources.get(key);
 }
 // Desktop rendering and placement belong to the existing layer windows.

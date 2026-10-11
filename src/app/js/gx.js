@@ -178,7 +178,17 @@ const Gx = (() => {
     kraft: { cut: 23.5, xl: .105, xr: .895, inside: "linear-gradient(180deg,#4a3320,#7b5a38 60%,#b39466)" },
     matte: { cut: 23.5, xl: .10, xr: .90, inside: "linear-gradient(180deg,#6a6254,#a49a88 60%,#d6cebd)" },
   };
-  function pouch(run, host, pack, { pw = 250, x = 480, y = 330 } = {}) {
+  function wrappedBag(run,host,pack,{pw,x,y,cover}) {
+    const bag=BAGS[pack.bag],[x0,y0,x1,y1]=bag.body,bw=x1-x0,bh=y1-y0,ratio=bh*bag.H/(bw*bag.W);
+    const PW=Math.min(pw,330/ratio),PH=PW*ratio,picW=PW/(bw/100),picH=picW*bag.H/bag.W;
+    const pic=BagPic({bag:pack.bag,title:pack.title,sub:'by '+pack.by,cover,deco:pack.deco||'none',layout:pack.layout,fit:PW,k:99,id:pack.id,shut:true});
+    Object.assign(pic.style,{position:'absolute',left:-x0/100*picW+'px',top:-y0/100*picH+'px'});
+    const pouch=h('div.gx-bag',{style:{position:'relative',width:PW+'px',height:PH+'px'}},pic);
+    const wrap=h('div.gx-pk-wrap',{style:{left:x-PW/2+'px',top:y-PH/2+'px'}},pouch);host.append(wrap);
+    return {wrap,pouch,PW,PH,generic:true};
+  }
+  function pouch(run, host, pack, { pw = 250, x = 480, y = 330, cover=null } = {}) {
+    if(BAGS[pack.bag]?.gen)return wrappedBag(run,host,pack,{pw,x,y,cover});
     const kind = PK[pack.kind] ? pack.kind : "holo", C = PK[kind], PW = pw, PH = pw * 4 / 3, cut = C.cut, rnd = rng(7), jag = Array.from({ length: 27 }, (_, i) => [i * 100 / 26, cut + (rnd() - .5) * 1.5]);
     const jagY = (xp) => { const i = clamp(Math.floor(xp / (100 / 26)), 0, 25), a = jag[i], b = jag[i + 1], t = (xp - a[0]) / (b[0] - a[0]); return lerp(a[1], b[1], t); };
     const jagRange = (a, b) => { const pts = [[a, jagY(a)]]; jag.forEach((p) => { if (p[0] > a && p[0] < b) pts.push(p); }); pts.push([b, jagY(b)]); return pts; };
@@ -187,7 +197,12 @@ const Gx = (() => {
     const tint = PACK_KINDS[kind].foil && pack.hue ? ".tinted" : "";
     const mk = (cls, clip) => h("div.gx-pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--hue": (pack.hue || 0) + "deg" } }, PACK_KINDS[kind].foil ? h("i.gx-sheen") : null);
     const body = mk("gx-pk-body", polyBody()), topL = mk("gx-pk-top", polyTop(0, 0.01)), topR = mk("gx-pk-top", polyTop(0.01, 100)), inside = h("div.gx-pk-inside", { style: { background: C.inside } });
-    const line = h("i.gx-pk-line"), tab = h("i.gx-pk-tab", h("b", "tear")), slit = h("i.gx-slit"), label = PackLabel({ ...pack, kind, by: pack.by || "Peta" });
+    let label=PackLabel({ ...pack, kind, by: pack.by || "Peta" });
+    if(PackArt.decorated(pack)) {
+      const dress=BagPic({bag:pack.bag,title:pack.title,sub:'by '+pack.by,cover,deco:pack.deco||'none',layout:pack.layout,id:pack.id,shut:true});dress.querySelector('.bp-art')?.remove();dress.classList.add('pk-dress');
+      body.append(dress);topR.append(dress.cloneNode(true));topL.append(dress.cloneNode(true));label=null;
+    }
+    const line = h("i.gx-pk-line"), tab = h("i.gx-pk-tab", h("b", "tear")), slit = h("i.gx-slit");
     const pouchEl = h("div.gx-pouch", { style: { width: PW + "px", height: PH + "px", "--pk": packVar(kind) } }, inside, body, topR, topL, label, line, tab, slit);
     const wrap = h("div.gx-pk-wrap", { style: { left: x - PW / 2 + "px", top: y - PH / 2 + "px" } }, pouchEl); host.append(wrap);
     line.style.cssText += `;left:${C.xl * 100}%;right:${(1 - C.xr) * 100}%;top:${cut}%`; tab.style.cssText += `;left:${C.xl * 100 - 3}%;top:${cut - 3.8}%`;
@@ -208,7 +223,16 @@ const Gx = (() => {
   }
   /** The light in the tear: before anything is known, a warm neutral. */
   const SLIT = { bg: "linear-gradient(90deg, rgba(255,240,205,0), rgba(255,240,205,.95) 20%, rgba(255,240,205,.95) 80%, rgba(255,240,205,0))", glow: "0 0 18px 4px rgba(255,236,190,.55)" };
+  function openBagGesture(run,rig,kit) {
+    return new Promise(resolve=>{
+      let done=false;
+      const finish=()=>{if(done)return;done=true;st.done();kit.say('');kit.showSkip();Sfx.crinkleTick(.8);Hap.fire('snap');run.anim(rig.pouch,[{transform:'none'},{transform:'translateY(-5px) rotate(-1.4deg) scale(1.025)',offset:.4},{transform:'none'}],{duration:420,easing:EASE.out}).then(resolve,resolve);};
+      const st=step(run,finish);dragIn(run,rig.pouch,{down:()=>!done,move:(dx,dy)=>{if(Math.hypot(dx,dy)>16)finish();},up:(_e,moved)=>{if(!moved)finish();}});activate(run,rig.pouch,finish);
+      rig.pouch.setAttribute('role','button');rig.pouch.setAttribute('aria-label','Open the pack');
+    });
+  }
   function tearGesture(run, rig, kit) {
+    if(rig.generic)return openBagGesture(run,rig,kit);
     return new Promise((resolve) => {
       let done = false, marks = 0, lastSnd = 0; const pouchEl = rig.pouch, wrap = rig.wrap; rig.slit.style.background = SLIT.bg; rig.slit.style.boxShadow = SLIT.glow; pouchEl.style.transformOrigin = "50% 100%";
       const apply = (p) => { rig.setTear(p); rig.slit.style.opacity = smooth(p / .45) * .5; const j = Math.sin(performance.now() / 26) * p * 1.4; wrap.style.transform = `translate(${j}px, ${Math.cos(performance.now() / 31) * p * .9}px) rotate(${j * .06}deg)`; };
@@ -307,12 +331,14 @@ const Gx = (() => {
     const got = []; let phase = "wrapped", choosing = false, previewFailed = false; root.dataset.phase = phase;
     const slotsData = [];
     const finishWith = async (fn) => { if (choosing) return; choosing = true; await fn(); };
-    const rig = pouch(run, host, pack, { pw: 250, x: 480, y: 330 });
+    const cover=PackArt.decorated(pack) ? await PackArt.cover(pack) : null;
+    const rig = pouch(run, host, pack, { pw: 250, x: 480, y: 330,cover });
     cer.root._esc = () => { if (phase === "sealed" || phase === "finished") finishWith(keepIt); else run.skip(); };
     run.play(async () => {
       await run.anim(rig.wrap, [{ opacity: 0, transform: "translateY(60px) rotate(6deg) scale(.9)" }, { opacity: 1, transform: "none" }], { duration: 760, easing: EASE.spring });
-      say(`Tear along the top.  ${n} stickers inside.`); rig.pouch.focus({ preventScroll: true });
+      say(`${rig.generic?'Open it.':'Tear along the top.'}  ${n} stickers inside.`); rig.pouch.focus({ preventScroll: true });
       await tearGesture(run, rig, kit);
+      run.check();
       // ---- the tear is the commit: ten pack_open calls, one atomic step each. Everything below is presentation.
       phase = "loading"; Bridge.busy = true; root.dataset.phase = phase; say("Here they come."); Sfx.slide(.5, 1);
       const cols = 5, cw = 132, ch = 136, gx = 22, gy = 14, gw = cols * cw + (cols - 1) * gx, x0 = (W - gw) / 2, y0 = 112;
@@ -328,7 +354,7 @@ const Gx = (() => {
         const sx = 480 - c.cx, sy = 330 - c.cy; Sfx.slide(.18, .6);
         run.anim(el, [{ transform: `translate(${sx}px, ${sy - 30}px) scale(.5) rotate(${rand(-30, 30)}deg)`, opacity: 0 }, { transform: `translate(${sx * .45}px, ${Math.min(sy, 0) - 90}px) scale(1.04) rotate(${rand(-9, 9)}deg)`, opacity: 1, offset: .5 }, { transform: "translate(0,0) scale(1) rotate(0)", opacity: 1 }], { duration: 640, easing: EASE.inOut });
         if (!pouchGone) { pouchGone = true; run.to(rig.pouch, [{ transform: "none", opacity: 1 }, { transform: `translate(${-rig.PW * 1.5}px, ${rig.PH * .42}px) rotate(-14deg) scale(.5)`, opacity: 0 }], { duration: 900, easing: EASE.inOut, delay: 500 }); }
-        (async () => { try { const entry = await Bridge.packEntry(opened); one.entry = { ...entry, rarity: opened.rarity, title: opened.name || entry.title }; one.res = entry.prize ? {aspect:1,prize:true} : await resOf(one.entry); } catch { previewFailed = true; } })();
+        (async () => { try { const entry = await Bridge.packEntry(opened); if(run.dead)return;const preview={...entry,rarity:opened.rarity,title:opened.name || entry.title};const res=entry.prize ? {aspect:1,prize:true} : await resOf(preview);if(run.dead)return;one.entry=preview;one.res=res; } catch { if(!run.dead)previewFailed = true; } })();
         await run.wait(70);
       }
       for (const c of cells.slice(got.length)) c.slot.remove();

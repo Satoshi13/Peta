@@ -14,7 +14,8 @@ impl Export {
         let entry=Journal{target:target.to_owned(),backup:target.with_file_name(format!(".peta-{token}.backup")),temp:target.with_file_name(format!(".peta-{token}.tmp")),receipt:receipt.into(),existed:target.exists()};
         let mut file=fs::OpenOptions::new().write(true).create_new(true).open(&entry.temp)?;
         if let Err(e)=file.write_all(bytes).and_then(|_|file.sync_all()) {let _=fs::remove_file(&entry.temp);return Err(e.into());}
-        let mut saved=fs::File::create(&journal)?;saved.write_all(&serde_json::to_vec(&entry).map_err(|e|crate::Error::Invalid(e.to_string()))?)?;saved.sync_all()?;
+        let save_journal=(||->Result<()> {let mut saved=fs::File::create(&journal)?;saved.write_all(&serde_json::to_vec(&entry).map_err(|e|crate::Error::Invalid(e.to_string()))?)?;saved.sync_all()?;Ok(())})();
+        if let Err(e)=save_journal {let _=fs::remove_file(&journal);let _=fs::remove_file(&entry.temp);return Err(e);}
         let guard=Self{journal,entry,complete:false};
         if guard.entry.existed {fs::rename(&guard.entry.target,&guard.entry.backup)?;}
         fs::rename(&guard.entry.temp,&guard.entry.target)?;
@@ -40,6 +41,14 @@ pub(crate) fn recover(root:&Path,db:&Database)->Result<()> {
 
 #[cfg(test)] mod tests {
     use super::*;
+    #[cfg(unix)]
+    #[test] fn journal_failure_does_not_leave_a_temp_file_or_touch_the_target() {
+        use std::os::unix::fs::PermissionsExt;
+        let root=std::env::temp_dir().join(crate::ids::new_gift_id());let dir=root.join("exports");fs::create_dir_all(&dir).unwrap();let target=root.join("pack.peta");fs::write(&target,b"previous").unwrap();
+        fs::set_permissions(&dir,fs::Permissions::from_mode(0o500)).unwrap();let result=Export::publish(&root,&target,b"new","failure");fs::set_permissions(&dir,fs::Permissions::from_mode(0o700)).unwrap();
+        assert!(result.is_err());assert_eq!(fs::read(&target).unwrap(),b"previous");
+        assert_eq!(fs::read_dir(&root).unwrap().count(),2);assert_eq!(fs::read_dir(dir).unwrap().count(),0);fs::remove_dir_all(root).unwrap();
+    }
     #[test] fn publication_rolls_back_and_recovers_both_sides_of_a_commit() {
         let root=std::env::temp_dir().join(crate::ids::new_gift_id());fs::create_dir_all(&root).unwrap();
         let target=root.join("gift.peta");fs::write(&target,b"previous").unwrap();let db=Database::open_in_memory().unwrap();
