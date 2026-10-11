@@ -20,14 +20,16 @@ const avg = (key) => MATERIALS.reduce((s, m) => s + m.p * m[key], 0) / MATERIALS
 export const SHEET = { dismantle: avg('dismantle'), buy: avg('buy') };
 
 export const DEFAULTS = {
-  players: 8, days: 90, seed: 1, startScraps: 12,
+  players: 8, days: 90, seed: 1, startScraps: 20,
   makeProb: .55,            // a day's sheet becomes a sticker with this chance (otherwise it is dismantled, or kept)
-  makeBonus: 0,             // the daily mission: Scraps for making a new sticker that day (once a day; the leftovers of the cut-out are what Scraps are)
-  streakEvery: 0, streakBonus: 0,   // and an extra bonus every this-many days in a row (0 = none)
+  makeBonus: 2,             // the daily mission: Scraps for making a new sticker that day (once a day; the leftovers of the cut-out are what Scraps are)
+  streakEvery: 7, streakBonus: 5,   // and an extra bonus every this-many days in a row (0 = none)
+  lazyShare: .2,            // players who make a sticker every day only for the bonus (the same picture again and again)
+  protect: 1,               // 1 = the bonus is only for a new picture, so a repeat earns nothing (0 = no check)
   keepProb: .1,             // ...or kept as a sheet
   appetite: .6,             // chance per day that a player with enough Scraps pulls; and again for each extra pull
   maxPullsPerDay: 3,
-  price: 10, sellerShare: .7,   // Scraps per pull; the seller's part of it (the rest is burned)
+  price: 6, sellerShare: .7,   // Scraps per pull; the seller's part of it (the rest is burned)
   designsPerPack: 4, editions: 5,   // designs in a pack, numbered copies of each
   copySheets: .2,           // extra sheets one more copy costs (a run of E copies costs 1 + copySheets*(E-1) sheets per design)
   prizeMaterials: 2, prizeTags: 1, tagCost: 2, tagDismantle: 1,
@@ -45,7 +47,7 @@ export function simulate(over = {}) {
   const players = Array.from({ length: P.players }, (_, i) => ({ i, scraps: P.startScraps, sheets: 0, designs: 0, stickers: 0, made: 0, streak: 0 }));
   const grant = P.players * P.startScraps;   // the welcome Scraps are part of what came in from the world
   const packs = [];   // { seller, slots: [{kind, id}], listedDay, soldOutDay, income, cost, relist }
-  const led = { faucet: grant, mission: 0, faucet0: grant, sink: 0, minted: 0, listed: 0, relists: 0, pulls: 0, stickersPulled: 0, prizeMaterials: 0, prizeTags: 0, restocks: 0 };
+  const led = { faucet: grant, mission: 0, farmed: 0, faucet0: grant, sink: 0, minted: 0, listed: 0, relists: 0, pulls: 0, stickersPulled: 0, prizeMaterials: 0, prizeTags: 0, restocks: 0 };
   let nextSticker = 1; const owner = new Map();   // sticker id -> holder: one holder at a time (nothing is ever duplicated)
   const series = [];
   const avgRun = (E) => 1 + P.copySheets * (E - 1);
@@ -62,12 +64,14 @@ export function simulate(over = {}) {
 
   for (let day = 1; day <= P.days; day++) {
     const sheet = pickMaterial(r);
+    const lazyN = Math.round(P.lazyShare * P.players);
     for (const p of players) {
-      const x = r();
+      const lazy = p.i < lazyN, x = lazy ? 0 : r();   // a lazy player makes one every day
       if (x < P.makeProb) {
         p.designs++; p.made++; p.streak++;
-        let bonus = P.makeBonus; if (P.streakEvery > 0 && p.streak % P.streakEvery === 0) bonus += P.streakBonus;
-        p.scraps += bonus; led.faucet += bonus; led.mission += bonus;
+        const earns = !lazy || !P.protect;   // a repeat of the same picture earns nothing when it is checked
+        let bonus = earns ? P.makeBonus : 0; if (earns && P.streakEvery > 0 && p.streak % P.streakEvery === 0) bonus += P.streakBonus;
+        p.scraps += bonus; led.faucet += bonus; led.mission += bonus; if (lazy) led.farmed += bonus;
       } else {
         p.streak = 0;
         if (x < P.makeProb + P.keepProb) p.sheets++; else { p.scraps += sheet.dismantle; led.faucet += sheet.dismantle; }
@@ -124,7 +128,7 @@ export function simulate(over = {}) {
     pulls: led.pulls, runs: runs.length, resales: led.relists, restocks: led.restocks, minted: led.minted,
     soldOut: done.length, soldOutShare: runs.length ? done.length / runs.length : 0, daysToSellOut: mean(sold),
     sellerNetPerRun: mean(profit), profitableShare: runs.length ? profit.filter((v) => v > 0).length / runs.length : 0,
-    scrapsStart: 0, inflowPerPlayerDay: led.faucet / (P.players * P.days), missionShare: led.faucet ? led.mission / led.faucet : 0, scrapsEnd: series.at(-1).scraps, scrapsPerPlayer: series.at(-1).scraps / P.players,
+    scrapsStart: 0, inflowPerPlayerDay: led.faucet / (P.players * P.days), missionShare: led.faucet ? led.mission / led.faucet : 0, farmedShare: led.faucet ? led.farmed / led.faucet : 0, streaks: led.mission, scrapsEnd: series.at(-1).scraps, scrapsPerPlayer: series.at(-1).scraps / P.players,
     scrapsDrift: (last - first) / first,                       // how much the average pile grew between week 2 and the end (+ = it runs away)
     faucet: led.faucet, sink: led.sink, burnedPerPull: P.price * (1 - P.sellerShare),
     liveShare: liveDays / P.days, pullDaysShare: pullDays / P.days, openSlotsEnd: series.at(-1).openSlots,

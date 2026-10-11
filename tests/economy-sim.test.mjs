@@ -27,8 +27,12 @@ test('with nothing worth pulling at, nobody lists (the market never starts), and
   assert.ok(advise(r.summary, r.params).some((x) => x.tone === 'bad' && /誰も出品/.test(x.text)));
 });
 test('the daily mission and the welcome Scraps come in from the world, are counted in the books, and keep the market moving', () => {
-  const base = average({ startScraps: 0 }, 8).summary, fed = average({ startScraps: 20, makeBonus: 2 }, 8).summary;
+  const base = average({ startScraps: 0, makeBonus: 0, streakBonus: 0 }, 8).summary, fed = average({ startScraps: 20, makeBonus: 2 }, 8).summary;
   assert.ok(fed.inflowPerPlayerDay > base.inflowPerPlayerDay && fed.missionShare > 0 && base.missionShare === 0);
   assert.ok(fed.pulls > base.pulls);
   for (const over of [{ makeBonus: 3, startScraps: 20 }, { makeBonus: 1, streakEvery: 7, streakBonus: 10 }]) { const { summary: s } = simulate({ seed: 5, ...over }); assert.ok(Math.abs(s.scrapsEnd - s.books) < 1e-6); }
+});
+test('checking for a repeated picture stops the bonus being farmed, and what it earns is only for new pictures', () => {
+  const open = average({ protect: 0, lazyShare: .4 }, 10).summary, shut = average({ protect: 1, lazyShare: .4 }, 10).summary;
+  assert.ok(open.farmedShare > .1); assert.equal(shut.farmedShare, 0); assert.ok(open.inflowPerPlayerDay > shut.inflowPerPlayerDay);
 });
