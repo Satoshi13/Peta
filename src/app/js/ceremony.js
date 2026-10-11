@@ -35,13 +35,13 @@ const Cer = (() => {
   /* After the sleeve is pulled out: unwrap it, reveal the sticker, let the person play with it. */
   async function unwrapAndReveal({ cer, stage, sleeve, entry, source, onKeep, onLater, laterLabel = "Later" }) {
     cer.hint("Tilt it to catch the light.");
-    const res = await resOf(entry, { max: 560 }), mat = MAT[entry.material], fx = RAR_FX[entry.rarity || mat.rarity];
+    const res = entry.prize ? {aspect:1} : await resOf(entry, { max: 560 }), mat = MAT[entry.material], fx = RAR_FX[entry.rarity || mat.rarity];
     if(cer.root.dataset.kind==="pack") { revealTheme(cer,entry.material,entry.rarity || mat.rarity,"sticker");cer.allowSkip(); }
     const W = stage.clientWidth, Hh = stage.clientHeight;
     const holder = h("div.rv-holder");
     const max = Math.min(280, W * .45, Hh * .4);
     const sw = max * Math.min(1, res.aspect);
-    const stk = Stk.el(res, sw); holder.append(stk);
+    const stk = entry.prize ? PrizeCard(entry,sw) : Stk.el(res, sw); holder.append(stk);
     const glow = h("i.rv-glow", { data: { m: entry.material } }), rays = h("i.rv-rays", { data: { m: entry.material } });
     stage.append(glow, rays, holder); holder.style.opacity = 0;
     // sleeve glides to the middle and gets a little crumpled
@@ -66,8 +66,8 @@ const Cer = (() => {
     cer.hint("Tilt it to catch the light.");
     // who/what is it
     const info = h("div.rv-info", h("p.eyebrow", source), h("h2", titleOf(entry)),
-      h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: entry.rarity || mat.rarity } }, mat.name + " · " + (entry.rarity || mat.rarity)), h("span.no", entry.kind === "received" && entry.edition != null ? `Edition #${pad4(entry.edition)}` : "")),
-      h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, "Stick it"), onLater ? h("button.btn.paper", { on: { click: onLater } }, laterLabel) : null));
+      h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: entry.rarity || mat.rarity } }, mat.name + " · " + (entry.rarity || mat.rarity)), h("span.no", entry.kind === "received" && entry.edition != null ? `Edition #${entry.edition}${entry.editionTotal ? "/"+entry.editionTotal : ""}` : "")),
+      h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, entry.prize ? "Done" : "Stick it"), onLater ? h("button.btn.paper", { on: { click: onLater } }, laterLabel) : null));
     stage.append(info);
     anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
     const seal = $(".seal", info); await cer.wait(260); Snd.seal();
@@ -415,7 +415,7 @@ const Cer = (() => {
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
     const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null;
     const onTear = async (rig) => {
-      try { Bridge.busy = true; const opened=await Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false}); entry=await Bridge.entry(opened.stickerId); entry.rarity=opened.rarity; entry.title=opened.name || entry.title; pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
+      try { Bridge.busy = true; const opened=await Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false}); entry=await Bridge.packEntry(opened); pack.left=Array(opened.remaining).fill(null); await Bridge.reload(); Shell.renderNav(); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
       await anim(sleeve, [{ transform: sleeve.style.transform }, { transform: `translateY(${-rig.PH * (rig.rise ?? .3)}px) rotate(-1.5deg)` }], { duration: 760, easing: EASE.out });
       fix(sleeve, `translateY(${-rig.PH * (rig.rise ?? .3)}px) rotate(-1.5deg)`); sleeve.classList.add("out"); cer.hint("Pull it out.");
@@ -423,7 +423,7 @@ const Cer = (() => {
         rig.linger();
         const r = sleeve.getBoundingClientRect(), sr = stage.getBoundingClientRect();
         stage.append(sleeve); sleeve.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;`;
-        await unwrapAndReveal({ cer, stage, sleeve, entry, source: `${pack.title} · ${pack.left.length} left`, onKeep: keep, onLater: leave, laterLabel: "Keep in Collection" });
+        await unwrapAndReveal({ cer, stage, sleeve, entry, source: `${pack.title} · ${pack.left.length} left`, onKeep: keep, onLater: leave, laterLabel: entry.prize ? "Done" : "Keep in Collection" });
       } });
     };
     // a pouch is torn along its top; every other wrapping (Studio) is simply opened
@@ -435,11 +435,12 @@ const Cer = (() => {
     // A pull is already in the Collection. "Stick it" sends it to the desktop the same way the Collection's "Stick on desktop" does;
     // "Keep in Collection" (or Esc) just closes, and nothing is left waiting at the print slot.
     const keep = async () => {
+      if(entry.prize) {Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast("Added to your stock.");return;}
       try { await Bridge.printAction("daily_stick_from_collection", { stickerId: entry.id }); }
       catch (e) { Shell.toast(String(e)); return; }
       Bridge.busy=false; await cer.close(); Shell.refresh(); Shell.toast("It's yours."); await Desktop.print(entry);
     };
-    const leave = async () => { Bridge.busy=false; await cer.close(); Shell.refresh(); Shell.toast("Kept in your Collection."); };
+    const leave = async () => { Bridge.busy=false; await cer.close(); Shell.refresh(); Shell.toast(entry.prize ? "Added to your stock." : "Kept in your Collection."); };
     cer.root._esc = () => { if (!rig.done) cer.close(); else leave(); };
     rig.focus();
   }
@@ -455,7 +456,8 @@ const Cer = (() => {
     // Ten stickers never queue ten prints: they go straight to the Collection and nothing waits at the print slot.
     const keepIt = async () => {
       await cer.close(); Bridge.busy = false; Shell.refresh(); Shell.renderNav();
-      Shell.toast(`${sheet?.got.length || n} stickers are in your Collection.`);
+      const prizes=sheet?.got.filter(x=>x.entry.prize).length || 0;
+      Shell.toast(`${(sheet?.got.length || n)-prizes} stickers in Collection · ${prizes} prizes added to stock.`);
     };
     sheet = await Gx.sheet(cer, pack, n, { keepIt });
   }

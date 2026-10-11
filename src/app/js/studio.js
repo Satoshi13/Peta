@@ -3,7 +3,6 @@
    thing sits is fixed per wrapping (js/catalog.js BAGS), so every combination looks right and the same on every screen. */
 const STUDIO = {
   limits: { min: 3, max: 24, name: 14, blurb: 60, to: 14, note: 80 },   // name / to are measured in full-width characters
-  weights: [1, 2, 4, 8, 16],                                                 // how likely an item is to come out (relative); 4 is the usual
   decos: [["none", "None"], ["clip", "Clip"], ["pin", "Pin"], ["tape", "Tape"]],
   steps: { pack: ["Gather", "Dress", "Seal"], gift: ["Choose", "Dress", "Seal"] },
 };
@@ -12,24 +11,41 @@ const stClip = (text, max) => { let v = text; while (stEm(v) > max) v = v.slice(
 
 const ST = {
   mode: null, sealing: false, urls: new Map(), ctx: "shelf", find: { q: "", mat: "all" }, view: "pack", open: null, chances: false,
-  pack: { step: 1, seen: new Set([1]), sealed: false, dest: "shelf", result: null, sel: [], bag: "kraft", deco: "none", layout: { comp: "corner", label: null, cover: null, accents: [] }, cover: null, title: "", blurb: "" },
+  pack: { step: 1, seen: new Set([1]), sealed: false, dest: "shelf", result: null, sel: [], prizes:[], bag: "kraft", deco: "none", layout: { comp: "corner", label: null, cover: null, accents: [] }, cover: null, title: "", blurb: "" },
   gift: { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, bag: "airmail", deco: "none", to: "", note: "" },
 };
+const stCopyMax = e => e?.canPress ? S.packLimits.copiesPerDesign : 1;
+const stSlots = p => p.sel.reduce((sum,x)=>sum+x.copies,0)+(p.prizes || []).reduce((sum,x)=>sum+x.count,0);
+function stCleanPrizes(prizes, copies) {
+  const out=[], seen=new Set(); let room=Math.max(0,Math.min(S.packLimits.prizes,S.packLimits.packSlots-copies));
+  for(const x of Array.isArray(prizes) ? prizes : []) {
+    if(!x || !Number.isInteger(x.count) || x.count<=0)continue;
+    const tag=x.kind==="tag", material=x.kind==="material" && MAT[x.materialId];
+    if(!tag && !material)continue;
+    const key=tag ? "tag" : `material:${x.materialId}`;
+    if(seen.has(key))continue;seen.add(key);
+    const stock=tag ? S.tagStock?.available || 0 : S.prizeStock?.[x.materialId] || 0;
+    const count=Math.min(x.count,stock,room);
+    if(count>0){out.push(tag ? {kind:"tag",count} : {kind:"material",materialId:x.materialId,count});room-=count;}
+  }
+  return out;
+}
 const stDraftKey = "peta.studio";
 function stLoad() {
   try {
     const d = JSON.parse(localStorage.getItem(stDraftKey) || "null"); if(!d) return;
     const known = new Set(S.lib.filter(e => e.lineage !== "copy").map((e) => e.id));
-    if(d.pack) { const p = ST.pack; p.sel = (d.pack.sel || []).filter((x) => known.has(x.id) && STUDIO.weights.includes(x.weight)).slice(0, STUDIO.limits.max); p.bag = PACK_BAG_IDS.includes(d.pack.bag) ? d.pack.bag : "kraft"; p.deco = ["none", "clip", "pin", "tape"].includes(d.pack.deco) ? d.pack.deco : "none";
+    if(d.pack) { const p = ST.pack; p.sel = (d.pack.sel || []).filter((x) => known.has(x.id) && !stEntry(x.id)?.pressed && Number.isInteger(x.copies) && x.copies >= 1 && x.copies <= stCopyMax(stEntry(x.id))).slice(0, STUDIO.limits.max); p.bag = PACK_BAG_IDS.includes(d.pack.bag) ? d.pack.bag : "kraft"; p.deco = ["none", "clip", "pin", "tape"].includes(d.pack.deco) ? d.pack.deco : "none";
+      p.prizes=stCleanPrizes(d.pack.prizes,p.sel.reduce((n,x)=>n+x.copies,0));
       p.layout = stCleanLayout(d.pack.layout, p.bag);
-      p.cover = p.sel.some((x) => x.id === d.pack.cover) ? d.pack.cover : null; p.title = stClip(String(d.pack.title || ""), STUDIO.limits.name); p.blurb = String(d.pack.blurb || "").slice(0, STUDIO.limits.blurb); }
+      p.cover = p.sel.some((x) => x.id === d.pack.cover && stEntry(x.id)?.canPress) ? d.pack.cover : null; p.title = stClip(String(d.pack.title || ""), STUDIO.limits.name); p.blurb = String(d.pack.blurb || "").slice(0, STUDIO.limits.blurb); }
     if(d.gift) { const g = ST.gift; g.sticker = known.has(d.gift.sticker) ? d.gift.sticker : null; g.bag = GIFT_BAG_IDS.includes(d.gift.bag) ? d.gift.bag : "airmail"; g.deco = ["none", "clip", "pin", "tape"].includes(d.gift.deco) ? d.gift.deco : "none";
       g.to = stClip(String(d.gift.to || ""), STUDIO.limits.to); g.note = String(d.gift.note || "").slice(0, STUDIO.limits.note); }
   } catch {}
 }
 function stSave() {
   const p = ST.pack, g = ST.gift;
-  try { localStorage.setItem(stDraftKey, JSON.stringify({ pack: { sel: p.sel, bag: p.bag, deco: p.deco, layout: p.layout, cover: p.cover, title: p.title, blurb: p.blurb }, gift: { sticker: g.sticker, bag: g.bag, deco: g.deco, to: g.to, note: g.note } })); } catch {}
+  try { localStorage.setItem(stDraftKey, JSON.stringify({ pack: { sel: p.sel, prizes:p.prizes, bag: p.bag, deco: p.deco, layout: p.layout, cover: p.cover, title: p.title, blurb: p.blurb }, gift: { sticker: g.sticker, bag: g.bag, deco: g.deco, to: g.to, note: g.note } })); } catch {}
 }
 /** A saved layout, made safe: a known composition, places that are numbers, at most two different accents. The picture clamps the places again when it draws. */
 function stCleanLayout(l, bagId) {
@@ -103,10 +119,10 @@ function stFind(fill) {
   return h("div.st-findwrap", h("div.st-find", h("label.st-search", input), h("label.st-selectw", select)), legend);
 }
 
-/** The odds: an item's weight over all the weights. */
-const stOdds = (sel) => { const sum = sel.reduce((s, x) => s + x.weight, 0) || 1; return sel.map((x) => x.weight / sum); };
+/** Display odds from remaining copies and prize slots. */
+const stOdds = (sel, prizes = []) => { const sum = sel.reduce((s, x) => s + x.copies, 0) + prizes.reduce((s,x)=>s+x.count,0) || 1; return sel.map((x) => x.copies / sum); };
 const stPct = (v) => (v < .1 ? (v * 100).toFixed(1) : Math.round(v * 100)) + "%";
-const stOddsLine = (sel) => { if(!sel.length) return ""; const odds = stOdds(sel), min = Math.min(...odds), same = Math.max(...odds) - min < 1e-9; return same ? `Every sticker has the same chance (1 in ${sel.length}).` : `The hardest to get comes out 1 time in ${Math.round(1 / min)}.`; };
+const stOddsLine = (sel, prizes = []) => { if(!sel.length) return ""; return `${sel.reduce((s,x)=>s+x.copies,0)} copies · ${prizes.reduce((s,x)=>s+x.count,0)} prizes · Chances follow the remaining slots.`; };
 const stName = () => S.name.trim() || "You";
 
 /** What the bag on the bench looks like right now. */
@@ -206,54 +222,65 @@ Pages.studio = {
     const packGather = () => {
       const p = ST.pack, L = STUDIO.limits, tiles = new Map();
       if(ST.chances) return packChances();
-      const count = h("div.st-count", h("b"), h("span"), h("span.of")), grid = h("div.st-grid"), next = stNext("Next →", () => go(2)), chance = h("div.st-chance"), more = h("button.btn.quiet.small", { type: "button", on: { click: () => { ST.chances = true; ST.enter = true; paint(); } } }, "Edit chances…");
+      const count = h("div.st-count", h("b"), h("span"), h("span.of")), grid = h("div.st-grid"), next = stNext("Next →", () => go(2)), chance = h("div.st-chance"), more = h("button.btn.quiet.small", { type: "button", on: { click: () => { ST.chances = true; ST.enter = true; paint(); } } }, "Copies…");
       next.el.classList.add("wide");
       const toggle = (id) => {
+        if(stEntry(id)?.pressed) return;
         const at = p.sel.findIndex((x) => x.id === id);
         if(at >= 0) { p.sel.splice(at, 1); if(p.cover === id) p.cover = null; Snd.tap(); }
-        else if(p.sel.length < L.max) { p.sel.push({ id, weight: 4 }); Snd.tap(); }
+        else if(p.sel.length < L.max) { p.sel.push({ id, copies: 1 }); Snd.tap(); }
         else { Shell.toast(`A pack holds up to ${L.max} stickers.`); return; }
         stSave(); sync();
       };
       /* a tap changes the chosen tiles, the numbers and the preview in place: the list keeps its scroll position and the search keeps its focus */
       const sync = () => {
-        const n = p.sel.length, short = L.min - n, same = new Set(p.sel.map((x) => x.weight)).size <= 1;
+        const n = p.sel.length, short = L.min - n, same = new Set(p.sel.map((x) => x.copies)).size <= 1;
         count.children[0].textContent = String(n); count.children[1].textContent = "selected"; count.children[2].textContent = `of ${L.max}`;
-        chance.replaceChildren(h("i.ico", { "aria-hidden": "true" }), h("span", h("b", same ? "Equal chances" : "Custom chances"), n >= L.min && !same ? h("small", stOddsLine(p.sel)) : null));
+        chance.replaceChildren(h("i.ico", { "aria-hidden": "true" }), h("span", h("b", "Copies"), n >= L.min && !same ? h("small", stOddsLine(p.sel,p.prizes)) : null));
         more.disabled = n < 1;
-        next.set(n >= L.min, `Choose ${short} more sticker${short === 1 ? "" : "s"} to continue.`, `${n} sticker${n === 1 ? "" : "s"} selected`);
+        next.set(n >= L.min && stSlots(p)<=S.packLimits.packSlots, `Choose ${short} more sticker${short === 1 ? "" : "s"} to continue.`, `${n} sticker${n === 1 ? "" : "s"} selected`);
         for(const [id, t] of tiles) t.setAttribute("aria-pressed", String(p.sel.some((x) => x.id === id)));
         paintBench();
       };
       const fill = () => {
         const shown = stShown(); tiles.clear();
-        grid.replaceChildren(...(shown.length ? shown.map((e) => { const t = tile(e, { "aria-pressed": "false", on: { click: () => toggle(e.id) } }); tiles.set(e.id, t); return t; })
+        grid.replaceChildren(...(shown.length ? shown.map((e) => { const t = tile(e, { disabled:!!e.pressed, "aria-label":titleOf(e)+(e.pressed ? " · Already pressed" : ""), "aria-pressed": "false", on: { click: () => toggle(e.id) } }); tiles.set(e.id, t); return t; })
           : [h("p.muted.st-none", S.lib.length ? "No stickers match." : "Your Collection is empty. Make a few stickers first.")]));
         sync();
       };
       const body = [heading("Choose stickers", `Choose ${L.min}–${L.max} stickers for your pack.`), count, stFind(fill), h("div.st-scroll", grid), h("div.st-chancebar", chance, more), foot(false, next.el)];
       fill(); return body;
     };
-    /* the chances: how likely each chosen sticker is to come out of the pack (a step up or down in weight; the percentages follow) */
+    /* Reuse the former chances panel for finite copies and prizes. */
     const packChances = () => {
-      const p = ST.pack, list = h("div.st-crows"), summary = h("p.st-oddsline"), W = STUDIO.weights;
-      const pcts = new Map(), steppers = [];
-      const sync = () => { const o = stOdds(p.sel); p.sel.forEach((x, i) => { const el = pcts.get(x.id); if(el) el.textContent = stPct(o[i]); }); for(const f of steppers) f(); const same = new Set(p.sel.map((x) => x.weight)).size <= 1; summary.textContent = same ? `Every sticker has the same chance (1 in ${p.sel.length}).` : stOddsLine(p.sel); reset.disabled = same; paintBench(); };
-      const reset = h("button.btn.quiet", { type: "button", on: { click: () => { p.sel.forEach((x) => { x.weight = 4; }); stSave(); Snd.tap(); sync(); } } }, "Equal chances");
+      const p=ST.pack,list=h("div.st-crows"),summary=h("p.st-oddsline"),pcts=new Map(),steppers=[];
+      const sync=()=>{const odds=stOdds(p.sel,p.prizes);p.sel.forEach((x,i)=>{pcts.get(x.id).textContent=`${x.copies} · ${stPct(odds[i])}`;});steppers.forEach(f=>f());summary.textContent=`${stSlots(p)} / ${S.packLimits.packSlots} slots · ${stOddsLine(p.sel,p.prizes)}`;paintBench();};
       for(const x of p.sel) {
-        const e = stEntry(x.id); if(!e) continue; const pct = h("b.pct"), minus = h("button", { type: "button", "aria-label": `Less likely: ${titleOf(e)}`, on: { click: () => { const i = W.indexOf(x.weight); if(i > 0) { x.weight = W[i - 1]; stSave(); Snd.tap(); sync(); } } } }, "−"), plus = h("button", { type: "button", "aria-label": `More likely: ${titleOf(e)}`, on: { click: () => { const i = W.indexOf(x.weight); if(i < W.length - 1) { x.weight = W[i + 1]; stSave(); Snd.tap(); sync(); } } } }, "+");
-        const sw = swatch(null, MAT[e.material]?.rarity); thumbOf(e).then((res) => { if(sw.isConnected) sw.append(Stk.el(res, res.aspect >= 1 ? 34 : 34 * res.aspect)); }).catch(() => {});
-        pcts.set(x.id, pct); steppers.push(() => { minus.disabled = W.indexOf(x.weight) <= 0; plus.disabled = W.indexOf(x.weight) >= W.length - 1; });
-        list.append(h("div.st-crow", sw, h("b.nm", titleOf(e)), h("div.st-step", minus, pct, plus)));
+        const e=stEntry(x.id),max=stCopyMax(e),pct=h("b.pct");
+        const change=d=>{x.copies=clamp(x.copies+d,1,max);stSave();sync();};
+        const minus=h("button",{"aria-label":`Fewer copies: ${titleOf(e)}`,on:{click:()=>change(-1)}},"−"),plus=h("button",{"aria-label":`More copies: ${titleOf(e)}`,on:{click:()=>change(1)}},"+");
+        pcts.set(x.id,pct);steppers.push(()=>{minus.disabled=x.copies<=1;plus.disabled=x.copies>=max||stSlots(p)>=S.packLimits.packSlots;});
+        list.append(h("div.st-crow",h("b.nm",titleOf(e)),!e.canPress ? h("small","Made by someone else: one copy") : null,h("div.st-step",minus,pct,plus)));
       }
-      const done = h("button.btn", { type: "button", on: { click: () => { ST.chances = false; ST.enter = true; paint(); } } }, "Done");
-      const body = [h("div.st-ph", h("button.st-back", { type: "button", on: { click: () => { ST.chances = false; ST.enter = true; paint(); } } }, "← Stickers"), h("h2", "Chances"), h("p.st-help", "How likely each sticker is to come out of the pack. A higher number comes out more often.")), summary, h("div.st-scroll", list), h("div.st-footrow.two", reset, done)];
-      sync(); return body;
+      const prizeRows=h("div.st-crows");
+      const prizeCount=(kind,materialId)=>p.prizes.find(x=>x.kind===kind&&x.materialId===materialId)?.count || 0;
+      const prizeRow=(kind,materialId,name,stock)=>{
+        if(!stock && !prizeCount(kind,materialId))return;
+        const value=prizeCount(kind,materialId),field=h("input",{type:"number",min:0,max:Math.min(stock,S.packLimits.prizes),value,"aria-label":name+" prize count",on:{change:()=>{
+          const current=prizeCount(kind,materialId),others=p.prizes.reduce((n,x)=>n+x.count,0)-current;
+          const count=clamp(Math.trunc(Number(field.value)||0),0,Math.max(0,Math.min(stock,S.packLimits.prizes-others,S.packLimits.packSlots-stSlots(p)+current)));
+          p.prizes=p.prizes.filter(x=>!(x.kind===kind&&x.materialId===materialId));if(count)p.prizes.push(kind==="tag"?{kind,count}:{kind,materialId,count});field.value=count;stSave();sync();
+        }}});prizeRows.append(h("label.st-crow",h("b",name),h("small",`${stock} available`),field));
+      };
+      for(const [id,stock] of Object.entries(S.prizeStock || {}))prizeRow("material",id,MAT[id].name,stock);
+      prizeRow("tag",undefined,"Link tag",S.tagStock?.available || 0);
+      const done=h("button.btn",{on:{click:()=>{ST.chances=false;paint();}}},"Done");
+      const body=[heading("Copies","Set the number of editions. Originals stay with you; each design can be pressed once."),summary,list,heading("Prizes",`Move up to ${S.packLimits.prizes} sheets or unattached tags from your stock.`),prizeRows,done];sync();return body;
     };
 
     /* ----- Dress (a pack): what is chosen now; "Change…" opens the choices ----- */
     const packDress = () => {
-      const p = ST.pack, bag = BAGS[p.bag], next = stNext("Next →", () => go(3)), need = "Give the pack a name to continue.", ids = p.sel.map((x) => x.id);
+      const p = ST.pack, bag = BAGS[p.bag], next = stNext("Next →", () => go(3)), need = "Give the pack a name to continue.", ids = p.sel.filter(x=>stEntry(x.id)?.canPress).map((x) => x.id);
       const has = (k) => p.layout.accents.some((a) => a.kind === k);
       const accent = (k) => {
         if(k === "none") p.layout.accents = [];
@@ -289,9 +316,9 @@ Pages.studio = {
       if(p.sealed) return [doneBlock("pack")];
       const note = h("div.st-field", h("textarea", { rows: 2, maxLength: STUDIO.limits.blurb, placeholder: "A few words about this pack…", "aria-label": "Description", on: { input: (e) => { p.blurb = e.target.value; cnt.textContent = `${p.blurb.length}/${STUDIO.limits.blurb}`; stSave(); } } }, p.blurb)), cnt = h("span.cnt", `${p.blurb.length}/${STUDIO.limits.blurb}`); note.append(cnt);
       return [heading("Ready to seal", "Check the details before finishing."),
-        h("div.st-scroll", h("div.st-sum", h("b", p.title.trim()), h("span", `${p.sel.length} stickers · ${bag.name}`), h("small", stOddsLine(p.sel))), sec("Description", note, h("small.st-fine", "Shown on the Market card.")),
-          sec("Destination", pills([["shelf", "My shelf"], ["file", "File to share"]], p.dest, (k) => { p.dest = k; Snd.tap(); paint(); }, ST.sealing)), tagNote(p.sel.map((x) => x.id))),
-        foot(true, sealButton(p.dest === "file" ? "Seal and save…" : "Seal the pack").el, "Sealing signs the pack. It cannot be edited afterward.")];
+        h("div.st-scroll", h("div.st-sum", h("b", p.title.trim()), h("span", `${p.sel.length} designs · ${p.sel.reduce((s,x)=>s+x.copies,0)} copies · ${p.prizes.reduce((s,x)=>s+x.count,0)} prizes`), h("small", stOddsLine(p.sel,p.prizes))), sec("Description", note, h("small.st-fine", "Shown on the Market card.")),
+          sec("Destination", pills([["shelf", "My shelf"], ["file", "File to share"]], p.dest, (k) => { p.dest = k; Snd.tap(); paint(); }, ST.sealing)), tagNote(p.sel.filter(x=>!stEntry(x.id)?.canPress).map((x) => x.id))),
+        foot(true, sealButton(p.dest === "file" ? "Seal and save…" : "Seal the pack").el, "Originals stay with you and can be pressed once. Received stickers and prizes leave your Collection / stock and move into the pack. It cannot be edited afterward.")];
     };
 
     /* ----- a gift is one sticker for one person: choose it, dress it, seal it ----- */
@@ -300,7 +327,7 @@ Pages.studio = {
       const sync = () => { for(const [id, t] of tiles) t.setAttribute("aria-pressed", String(g.sticker === id)); next.set(!!g.sticker, "Choose a sticker to continue."); paintBench(); };
       const fill = () => {
         const shown = stShown(); tiles.clear();
-        grid.replaceChildren(...(shown.length ? shown.map((e) => { const t = tile(e, { "aria-pressed": "false", on: { click: () => { g.sticker = e.id; stSave(); Snd.tap(); sync(); } } }); tiles.set(e.id, t); return t; })
+        grid.replaceChildren(...(shown.length ? shown.map((e) => { const t = tile(e, { disabled:!!e.pressed, "aria-label":titleOf(e)+(e.pressed ? " · Already pressed" : ""), "aria-pressed": "false", on: { click: () => { g.sticker = e.id; stSave(); Snd.tap(); sync(); } } }); tiles.set(e.id, t); return t; })
           : [h("p.muted.st-none", S.lib.length ? "No stickers match." : "Your Collection is empty. Make a sticker first.")]));
         sync();
       };
@@ -325,7 +352,7 @@ Pages.studio = {
     };
     const doneBlock = (kind) => {
       const d = kind === "pack" ? ST.pack : ST.gift, r = d.result || {};
-      const again = () => { if(kind === "pack") Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], cover: null, title: "", blurb: "", layout: { comp: "corner", label: null, cover: null, accents: [] } }); else Object.assign(ST.gift, { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, to: "", note: "" }); stSave(); Snd.tap(); paint(); };
+      const again = () => { if(kind === "pack") Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], prizes:[], cover: null, title: "", blurb: "", layout: { comp: "corner", label: null, cover: null, accents: [] } }); else Object.assign(ST.gift, { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, to: "", note: "" }); stSave(); Snd.tap(); paint(); };
       const msg = (t) => { const m = h("div.st-toast", t); root.append(m); setTimeout(() => m.remove(), 2200); };
       const act = (label, fn, cls = "") => h("button.btn" + cls, { on: { click: async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await fn(msg); } catch(err) { Shell.toast(Distribution?.error ? Distribution.error(err) : String(err)); } finally { b.disabled = false; } } } }, label);
       const more = [];
@@ -337,11 +364,12 @@ Pages.studio = {
       return h("div.st-done", h("i.st-check", { "aria-hidden": "true" }), h("h2", kind === "pack" ? `Sealed. ${ST.pack.title.trim()}` : `Sealed. For ${ST.gift.to.trim()}`), h("p.muted", kind === "pack" ? `${ST.pack.sel.length} stickers · ${line}` : line), r.path ? h("p.muted.st-path", { title: r.path }, r.path) : null,
         h("div.st-done-actions", ...more, h("button.btn.quiet", { on: { click: again } }, "Make another")));
     };
-    const packArgs = () => { const p = ST.pack, lay = stLayoutArgs(p); return { title: p.title.trim(), pouch: p.bag, items: p.sel.map((x) => ({ stickerId: x.id, name: titleOf(stEntry(x.id)), weight: x.weight })), dress: { cover: p.cover || null, deco: lay.accents[0]?.kind || null, blurb: p.blurb.trim() || null, layout: lay } }; };
+    const packArgs = () => { const p = ST.pack, lay = stLayoutArgs(p); return { title: p.title.trim(), pouch: p.bag, items: p.sel.map((x) => ({ stickerId: x.id, name: titleOf(stEntry(x.id)), copies: x.copies })), prizes:p.prizes, dress: { cover: p.cover || null, deco: lay.accents[0]?.kind || null, blurb: p.blurb.trim() || null, layout: lay } }; };
     const giftArgs = () => { const g = ST.gift; return { stickerId: g.sticker, to: g.to.trim(), note: g.note.trim() || null, dress: { bag: g.bag, deco: g.deco === "none" ? null : g.deco } }; };
 
     /* ---------- sealing: it signs and writes first (a cancelled save dialog makes nothing), then the wrapping closes its own way ---------- */
     const sealPack = async () => {
+      if(stSlots(ST.pack)>S.packLimits.packSlots) throw new Error("Too many slots.");
       if(ST.pack.dest === "file") { const path = await Bridge.invoke("creator_pack_save", packArgs()); if(!path) return null; await Bridge.reload(); return { where: "file", path }; }
       await Bridge.invoke("creator_pack_shelve", packArgs()); await Bridge.reload(); Shell.renderNav(); return { where: "shelf" };
     };
@@ -417,7 +445,7 @@ function stConfirmTransfer() {
 /** Open Studio from elsewhere (the Collection's "Make a Pack…" and "Gift…"): `sticker` is chosen already. */
 function StudioOpen(mode, sticker) {
   stLoad(); ST.mode = mode;
-  if(mode === "pack" && ST.pack.sealed) Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], cover: null, title: "", blurb: "", layout: { comp: "corner", label: null, cover: null, accents: [] } });
-  if(sticker && stEntry(sticker)?.lineage !== "copy") { if(mode === "gift") Object.assign(ST.gift, { sticker, step: 1, sealed: false }); else if(!ST.pack.sel.some((x) => x.id === sticker)) ST.pack.sel.push({ id: sticker, weight: 4 }); }
+  if(mode === "pack" && ST.pack.sealed) Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], prizes:[], cover: null, title: "", blurb: "", layout: { comp: "corner", label: null, cover: null, accents: [] } });
+  if(sticker && stEntry(sticker)?.lineage !== "copy" && (mode !== "pack" || !stEntry(sticker)?.pressed)) { if(mode === "gift") Object.assign(ST.gift, { sticker, step: 1, sealed: false }); else if(!ST.pack.sel.some((x) => x.id === sticker)) ST.pack.sel.push({ id: sticker, copies: 1 }); }
   Shell.go("studio");
 }

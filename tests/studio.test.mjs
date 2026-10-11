@@ -55,13 +55,13 @@ test('Studio is in the nav under Make with no shortcut of its own, and the other
   assert.deepEqual(['today', 'create', 'book', 'packs', 'gifts', 'materials', 'market'].map((id) => by[id].key), [1, 2, 3, 4, 5, 6, 7]);
 });
 
-test('the odds are the weights over their sum, and the line says how hard the hardest one is', () => {
+test('the odds are copies over all remaining copies and prize slots', () => {
   const { stOdds, stPct, stOddsLine } = helpers(), close = (a, b) => assert.ok(Math.abs(a - b) < 1e-12, `${a} != ${b}`);
-  [0.1, 0.1, 0.8].forEach((v, i) => close(stOdds([{ weight: 1 }, { weight: 1 }, { weight: 8 }])[i], v));
-  close(stOdds([{ weight: 4 }, { weight: 4 }]).reduce((a, b) => a + b), 1);
+  [0.1, 0.1, 0.8].forEach((v, i) => close(stOdds([{ copies: 1 }, { copies: 1 }, { copies: 8 }])[i], v));
+  close(stOdds([{ copies: 4 }, { copies: 4 }]).reduce((a, b) => a + b), 1);
   assert.equal(stPct(0.333), '33%'); assert.equal(stPct(0.05), '5.0%');
-  assert.match(stOddsLine([{ weight: 4 }, { weight: 4 }, { weight: 4 }]), /same chance \(1 in 3\)/);
-  assert.match(stOddsLine([{ weight: 1 }, { weight: 4 }, { weight: 16 }]), /1 time in 21/);   // 1 / (1 / 21)
+  assert.match(stOddsLine([{ copies: 4 }, { copies: 4 }, { copies: 4 }]), /12 copies/);
+  assert.match(stOddsLine([{ copies: 1 }, { copies: 4 }, { copies: 16 }]), /21 copies/);   // finite design count
   assert.equal(stOddsLine([]), '');
 });
 
@@ -74,9 +74,10 @@ test('names are measured in full-width characters and cut to fit, so a label sta
 });
 
 test('Studio sends exactly what the Rust commands accept', () => {
-  const src = read('src/app/js/studio.js'), rs = read('src-tauri/crates/core/src/creator_pack.rs');
-  assert.match(src, /stickerId: x\.id, name: titleOf\(stEntry\(x\.id\)\), weight: x\.weight/);   // Selection { sticker_id, name, weight }
-  assert.match(rs, /pub struct Selection \{pub sticker_id:String,pub name:String,#\[serde\(default\)\] pub weight:Option<u32>\}/);
+  const src = read('src/app/js/studio.js'), rs = read('src-tauri/crates/core/src/creator_pack.rs'), edition = read('src-tauri/crates/core/src/edition_pack.rs');
+  assert.match(src, /stickerId: x\.id, name: titleOf\(stEntry\(x\.id\)\), copies: x\.copies/);   // Selection { sticker_id, name, copies }
+  assert.match(edition, /pub struct Selection \{pub sticker_id:String,pub name:String,pub copies:u32\}/);
+  assert.match(src,/prizes:p.prizes/);
   assert.match(src, /dress: \{ cover: p\.cover \|\| null, deco: lay\.accents\[0\]\?\.kind \|\| null, blurb: p\.blurb\.trim\(\) \|\| null, layout: lay \}/);   // Dress { cover, deco, blurb, layout }
   assert.match(rs, /pub struct Layout \{pub comp:String,#\[serde\(default\)\] pub label:Option<\[f64;2\]>,#\[serde\(default\)\] pub cover:Option<\[f64;2\]>,#\[serde\(default\)\] pub accents:Vec<Accent>\}/);
   assert.match(src, /return \{ comp: r\.comp, label: null, cover: p\.cover \? r\.cover : null, accents: r\.accents \};/);   // Layout { comp, label, cover, accents:[{kind,x,y}] }

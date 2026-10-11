@@ -48,6 +48,8 @@ pub struct StickerBack {
     pub original_number: Option<String>,
     /// "0042" for `Edition #0042`.
     pub edition_number: Option<String>,
+    pub edition_total:Option<u32>,
+    pub edition_verified:bool,
     pub created_by: String,
     pub created_on: String,
     pub material: Option<BackMaterial>,
@@ -112,6 +114,7 @@ pub fn sticker_back(db: &Database, id: &str, fallback_name: &str, ymd: &dyn Fn(&
         id_code: sticker.id.clone(),
         kind: if received { BackKind::Received } else { BackKind::Original },
         original_number: if received { None } else { sticker.original_number.map(four) },
+        edition_total:sticker.edition_total,edition_verified:sticker.edition_verified,
         edition_number: sticker.edition_number.map(four),
         created_by: sticker.creator_name.clone().unwrap_or_else(|| fallback_name.to_owned()),
         created_on,

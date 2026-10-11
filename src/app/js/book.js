@@ -53,8 +53,9 @@ function renderBackCard(back) {
   const number = back.originalNumber
     ? `No. ${back.originalNumber}`
     : back.editionNumber
-      ? `Edition #${back.editionNumber}`
+      ? `Edition #${back.editionNumber}${back.editionTotal ? "/"+back.editionTotal : ""}`
       : "";
+  if(back.editionTotal && !back.editionVerified) face.append(backElement("small","code","Edition numbers are not checked by a server yet"));
   if (number) face.append(backElement("div", "number", number));
 
   const mark = backElement("div", "peta-mark", "Peta");
@@ -258,7 +259,7 @@ Pages.book = {
       h("div.det-info",
         h("div", h("small", "Material"), h("span.det-mat", MaterialSwatch({ id: mat.id || e.material, sw: mat.sw, card: mat.card }), h("b", mat.name))),
         h("div", h("small", "Made"), h("b", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })))),
-      e.lineage === "copy" ? h("p",`Copy #${e.copyNo} of ${titleOf(S.lib.find(x=>x.id===e.copyOf) || e)} · Stays on this Mac`) : h("p",`Copies: ${e.copies || 0}`),
+      e.lineage === "copy" ? h("p",`Copy #${e.copyNo} of ${titleOf(S.lib.find(x=>x.id===e.copyOf) || e)} · Stays on this Mac`) : h("p",`Copies: ${e.copies || 0}${e.pressed ? " · Already pressed" : ""}`),
       e.lineage !== "copy" ? this.copyControls(e,paint) : null,
       LinkTags.row(e, paint),
       (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions", main,

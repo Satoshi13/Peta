@@ -215,10 +215,9 @@ pub fn receive_gift_with_referee(lib: &mut Library, bytes: &[u8],referee:&dyn cr
         .ok_or_else(|| Error::Invalid("gift vanished after receiving".into()))
 }
 
-/// Break the seal: the sticker becomes yours (source Gift, a copy with its edition number and lineage).
+/// Break the seal: claim the transferred real sticker, or receive an unverified legacy gift.
 pub fn open_gift(lib:&mut Library,gift_id:&str)->Result<Sticker> {open_gift_inner(lib,gift_id,None)}
 pub fn open_gift_print(lib:&mut Library,gift_id:&str,date:&str)->Result<Sticker> {
-    crate::daily::ensure_today(lib.db_mut(),date,crate::ids::random_unit())?;
     open_gift_inner(lib,gift_id,Some(date))
 }
 fn open_gift_inner(lib: &mut Library, gift_id: &str,date:Option<&str>) -> Result<Sticker> {
@@ -249,7 +248,7 @@ fn open_gift_inner(lib: &mut Library, gift_id: &str,date:Option<&str>) -> Result
     crate::ownership::provenance(&tx,&id,"gifted",Some(&h.from),&h.sent_at)?;
     crate::ownership::provenance(&tx,&id,"received",Some(&h.from),&now())?;
     if tx.execute("UPDATE gifts_received SET opened_at=?2,sticker_id=?3 WHERE gift_id=?1 AND opened_at IS NULL",rusqlite::params![gift_id,now(),id])?!=1 {return Err(bad("gift already opened"));}
-    if let Some(date)=date {crate::Database::confirm_in(&tx,date,&id,SourceType::Gift,&now())?;}
+    if let Some(date)=date {crate::daily::ensure_today_in(&tx,date,crate::ids::random_unit())?;crate::Database::confirm_in(&tx,date,&id,SourceType::Gift,&now())?;}
     tx.commit()?;lib.db().sticker(&id)?.ok_or_else(||bad("sticker vanished"))
 }
 
@@ -272,11 +271,12 @@ fn open_transfer(lib:&mut Library,gift_id:&str,d:&Decoded<'_>,date:Option<&str>)
         _=>return Err(bad("invalid held state")),
     }
     o::store_creation(&tx,&chain.creation)?;
+    tx.execute("UPDATE stickers SET edition_number=?2,edition_total=?3 WHERE id=?1",rusqlite::params![id,chain.creation.edition_no,chain.creation.edition_total])?;
     let existing:usize=tx.query_row("SELECT COUNT(*) FROM transfers WHERE sticker_id=?1",[id],|r|r.get(0))?;
     for transfer in chain.transfers.iter().skip(existing) {o::store_transfer(&tx,transfer)?;}
     o::provenance(&tx,id,"received",Some(&h.from),&now())?;
     if tx.execute("UPDATE gifts_received SET opened_at=?2,sticker_id=?3 WHERE gift_id=?1 AND opened_at IS NULL",rusqlite::params![gift_id,now(),id])?!=1 {return Err(bad("gift already opened"));}
-    if let Some(date)=date {crate::Database::confirm_in(&tx,date,id,SourceType::Gift,&now())?;}
+    if let Some(date)=date {crate::daily::ensure_today_in(&tx,date,crate::ids::random_unit())?;crate::Database::confirm_in(&tx,date,id,SourceType::Gift,&now())?;}
     tx.execute("DELETE FROM gift_claims WHERE gift_id=?1",[gift_id])?;tx.commit()?;
     lib.db().sticker(id)?.ok_or_else(||bad("sticker vanished"))
 }
@@ -355,6 +355,13 @@ mod tests {
             assert!(!opened.verified);assert_eq!(opened.lineage,"real");assert_eq!(opened.edition_number,Some(7));
             let (_,forwarded)=build_gift(&mut theirs,&opened.id,"Friend",None).unwrap();assert!(!decode_gift(&forwarded).unwrap().header.history.unwrap().creation.verified());
         }
+    }
+    #[test] fn failed_print_initialization_keeps_the_gift_sealed_and_the_day_unchanged() {
+        let (mut sender,s)=sender_with_sticker();let (id,file)=build_gift(&mut sender,&s.id,"Friend",None).unwrap();let mut friend=lib();receive_gift(&mut friend,&file).unwrap();
+        friend.db().conn.execute_batch("CREATE TRIGGER fail_print BEFORE INSERT ON print_queue BEGIN SELECT RAISE(ABORT,'test'); END;").unwrap();
+        assert!(open_gift_print(&mut friend,&id,"2026-10-11").is_err());assert!(friend.db().daily_get("2026-10-11").unwrap().is_none());assert!(friend.db().next_print().unwrap().is_none());assert_eq!(friend.db().sticker_count().unwrap(),0);
+        assert!(friend.db().gifts_received().unwrap()[0].opened_at.is_none());
+        friend.db().conn.execute_batch("DROP TRIGGER fail_print;").unwrap();open_gift_print(&mut friend,&id,"2026-10-11").unwrap();assert!(friend.db().next_print().unwrap().is_some());
     }
 
     #[test]

@@ -74,5 +74,5 @@ const dayLabel = () => fmtDate(S.today, { weekday:"short", month:"short", day:"n
 /* Mirrors MAX_SEALED_PER_PACK in scraps.rs: one bag never holds more sealed stickers than this. */
 const PACK_SEALED_CAP = 100;
 const packsLeftToday = () => S.packAvailable ? 1 : 0;
-const packOpenable = p => p.left.length > 0 && (!p.daily || S.packAvailable);
-const packHasFreeOpening = p => (p.freeOpenings || 0) > 0;
+const packOpenable = p => !p.own && p.signatureStatus !== "mine" && p.left.length > 0 && (!p.daily || S.packAvailable);
+const packHasFreeOpening = p => !p.own && p.signatureStatus !== "mine" && (p.freeOpenings || 0) > 0;

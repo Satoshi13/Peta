@@ -1,5 +1,5 @@
-//! Device-signed creator packs only add a shelf pack. They never grant stock, envelopes or
-//! money. TOFU is key continuity, not identity; distribution limits/revocation need a server.
+//! Device-signed packs: legacy weighted designs and finite numbered editions with inventory prizes.
+//! Money and envelopes are never granted. TOFU is key continuity, not identity; spent slots need a server.
 use ed25519_dalek::SigningKey;
 use rusqlite::{params,OptionalExtension};
 use serde::{Deserialize,Serialize};
@@ -16,19 +16,20 @@ pub const DECOS:[&str;3]=["clip","pin","tape"];
 const MAX_PICTURE:usize=2*1024*1024;
 #[derive(Clone,Debug,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
-pub struct Item {pub key:String,pub name:String,pub rarity:String,pub material_id:String,pub aspect:f64,pub png_len:usize,pub mask_len:usize,#[serde(default,skip_serializing_if="Option::is_none")] pub weight:Option<u32>}
+pub struct Item {#[serde(default,skip_serializing_if="Option::is_none")] pub copies:Option<u32>,#[serde(default,skip_serializing_if="Vec::is_empty")] pub histories:Vec<crate::ownership::Chain>,#[serde(default,skip_serializing_if="std::ops::Not::not")] pub minted:bool,pub key:String,pub name:String,pub rarity:String,pub material_id:String,pub aspect:f64,pub png_len:usize,pub mask_len:usize,#[serde(default,skip_serializing_if="Option::is_none")] pub weight:Option<u32>}
 #[derive(Clone,Debug,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
-pub struct Header {pub pack_id:String,pub version:i64,pub title:String,pub author:String,pub pouch:String,pub made_at:String,pub items:Vec<Item>,pub signer:Signer,
+pub struct Header {#[serde(default,skip_serializing_if="Vec::is_empty")] pub prizes:Vec<crate::edition_pack::Prize>,pub pack_id:String,pub version:i64,pub title:String,pub author:String,pub pouch:String,pub made_at:String,pub items:Vec<Item>,pub signer:Signer,
     #[serde(default,skip_serializing_if="Option::is_none")] pub layout:Option<Layout>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub cover:Option<String>,#[serde(default,skip_serializing_if="Option::is_none")] pub deco:Option<String>,#[serde(default,skip_serializing_if="Option::is_none")] pub blurb:Option<String>}
-pub struct Verified {header:Header,items:Vec<(Vec<u8>,Vec<u8>)>,bytes:Vec<u8>}
+pub struct Verified {pub(crate) header:Header,pub(crate) items:Vec<(Vec<u8>,Vec<u8>)>,pub(crate) bytes:Vec<u8>,pub(crate) format:u8}
 #[derive(Clone,Serialize)]
 #[serde(rename_all="camelCase")]
 pub struct Preview {pub pack_id:String,pub title:String,pub version:i64,pub count:usize,pub identity:Identity}
+#[cfg(test)]
 #[derive(Clone,Deserialize)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
-pub struct Selection {pub sticker_id:String,pub name:String,#[serde(default)] pub weight:Option<u32>}
+struct LegacySelection {pub sticker_id:String,pub name:String,#[serde(default)] pub weight:Option<u32>}
 /// How the pack is dressed (all optional): the sticker shown on the cover, one decoration, and a line for the Market card.
 #[derive(Deserialize,Default,Debug)]
 #[serde(rename_all="camelCase",deny_unknown_fields)]
@@ -50,7 +51,7 @@ fn layout_ok(l:&Layout)->bool {
 }
 impl Verified {pub fn header(&self)->&Header {&self.header}}
 fn digest(bytes:&[u8])->String {Sha256::digest(bytes).iter().map(|b|format!("{b:02x}")).collect()}
-fn public(header:&Header)->Result<&str>{match &header.signer{Signer::Device{public_key}=>Ok(public_key),_=>Err(invalid("Creator packs need a device signature."))}}
+pub(crate) fn public(header:&Header)->Result<&str>{match &header.signer{Signer::Device{public_key}=>Ok(public_key),_=>Err(invalid("Creator packs need a device signature."))}}
 fn validate(header:&Header)->Result<()> {
     if !safe_id(&header.pack_id) || header.version<1 || !text(&header.title,40) || !text(&header.author,40) || header.author.trim().eq_ignore_ascii_case("peta") || !BAGS.contains(&header.pouch.as_str()) || !(3..=24).contains(&header.items.len()){return Err(invalid("This creator pack has invalid details. It needs 3–24 stickers and a personal author name."));}
     public(header)?;crate::events::validate_date(&header.made_at)?;
@@ -64,27 +65,29 @@ fn validate(header:&Header)->Result<()> {
     if let Some(blurb)=&header.blurb {if blurb.chars().count()>60||blurb.chars().any(char::is_control){return Err(invalid("The pack description is too long."));}}
     Ok(())
 }
-pub fn encode(header:&Header,body:&[u8],key:&SigningKey)->Result<Vec<u8>> {validate(header)?;sign::seal(MAGIC,1,header,body,key)}
+pub fn encode(header:&Header,body:&[u8],key:&SigningKey)->Result<Vec<u8>> {validate(header)?;let version=if header.items.iter().any(|i|i.copies.is_some()){2}else{1};if version==2 {crate::edition_pack::validate(header)?;sign::seal_large(MAGIC,2,header,body,key)}else{sign::seal(MAGIC,1,header,body,key)}}
 pub fn decode(bytes:&[u8])->Result<Verified> {
-    let (header,body)=sign::unseal(bytes,MAGIC,1)?;let header:Header=serde_json::from_value(header).map_err(|_|invalid("This pack has a damaged header."))?;validate(&header)?;
+    let format=bytes.get(8).copied().unwrap_or(0);let (header,body)=match format {1=>sign::unseal(bytes,MAGIC,1)?,2=>sign::unseal_large(bytes,MAGIC,2)?,_=>return Err(invalid("This pack needs a newer Peta."))};let header:Header=serde_json::from_value(header).map_err(|_|invalid("This pack has a damaged header."))?;validate(&header)?;if format==2{crate::edition_pack::validate(&header)?;}else if !header.prizes.is_empty()||header.items.iter().any(|i|i.copies.is_some()||!i.histories.is_empty()||i.minted){return Err(invalid("Legacy pack claims new editions."));}
     let mut rest=body;let mut items=Vec::new();
     for item in &header.items {
         let n=item.png_len.checked_add(item.mask_len).ok_or_else(||invalid("Invalid attachment length."))?;
         if rest.len()<n{return Err(invalid("This pack is truncated."));}
         let (part,tail)=rest.split_at(n);rest=tail;let (png,mask)=part.split_at(item.png_len);
         validate_png(png,MAX_PICTURE)?;if !mask.is_empty(){validate_png(mask,MAX_PICTURE)?;}
+        if format==2 {crate::edition_pack::verify_item(&header,item,png)?;}
         items.push((png.to_vec(),mask.to_vec()));
     }
-    if !rest.is_empty(){return Err(invalid("This pack has unexpected attachments."));}Ok(Verified{header,items,bytes:bytes.to_vec()})
+    if !rest.is_empty(){return Err(invalid("This pack has unexpected attachments."));}Ok(Verified{header,items,bytes:bytes.to_vec(),format})
 }
-fn internal_id(header:&Header)->Result<String>{Ok(format!("creator:{}:{}",digest(sign::parse_public(public(header)?)?.as_bytes()),header.pack_id))}
+pub(crate) fn internal_id(header:&Header)->Result<String>{Ok(format!("creator:{}:{}",digest(sign::parse_public(public(header)?)?.as_bytes()),header.pack_id))}
 pub fn preview(lib:&Library,pack:&Verified)->Result<Preview> {
     let h=&pack.header;let identity=friends::preview(&lib.db().conn,public(h)?,&h.author)?;
-    Ok(Preview{pack_id:h.pack_id.clone(),title:h.title.clone(),version:h.version,count:h.items.len(),identity})
+    Ok(Preview{pack_id:h.pack_id.clone(),title:h.title.clone(),version:h.version,count:if pack.format==2{crate::edition_pack::slots(h) as usize}else{h.items.len()},identity})
 }
 pub fn install(lib:&mut Library,pack:&Verified,consent:bool)->Result<String> {
     if !consent{return Err(invalid("Pack import cancelled."));}
-    let h=&pack.header;let id=internal_id(h)?;let lib_root=lib.root().to_path_buf();
+    if pack.format==2 {return crate::edition_pack::install(lib,pack);}
+    let h=&pack.header;let id=internal_id(h)?;if crate::edition_pack::is_v2(lib.db(),&id)? {return Err(invalid("Editions cannot be replenished."));}let lib_root=lib.root().to_path_buf();
     let existing=lib.db().conn.query_row("SELECT version FROM pack_distributions WHERE pack_id=?1",[&id],|r|r.get::<_,i64>(0)).optional()?;
     if existing.is_some_and(|v|v>=h.version){return Err(invalid("This version is already on your shelf."));}
     let content=digest(&pack.bytes);let mut paths=Vec::new();
@@ -105,7 +108,7 @@ pub fn install(lib:&mut Library,pack:&Verified,consent:bool)->Result<String> {
         if tx.query_row("SELECT 1 FROM pack_items WHERE pack_id=?1 AND item_key=?2",params![id,item.key],|_|Ok(())).optional()?.is_some(){continue;}
         tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES (?1,?2)",params![id,item.key])?;
         let item_id=tx.last_insert_rowid();
-        tx.execute("INSERT INTO signed_pack_items VALUES (?1,?2,?3,?4,?5,?6,?7,1)",params![item_id,path,mask_path,item.material_id,item.aspect,item.name,item.rarity])?;
+        tx.execute("INSERT INTO signed_pack_items(item_id,png_path,mask_path,material_id,aspect,name,rarity,finished) VALUES (?1,?2,?3,?4,?5,?6,?7,1)",params![item_id,path,mask_path,item.material_id,item.aspect,item.name,item.rarity])?;
         if let Some(w)=item.weight {tx.execute("INSERT INTO pack_item_weights VALUES (?1,?2)",params![item_id,w])?;}
     }
     match &h.layout {Some(layout)=>{tx.execute("INSERT INTO meta(key,value) VALUES (?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value",params![format!("pack.layout.{id}"),serde_json::to_string(layout).map_err(|e|invalid(&e.to_string()))?])?;},None=>{tx.execute("DELETE FROM meta WHERE key=?1",params![format!("pack.layout.{id}")])?;}}
@@ -113,21 +116,22 @@ pub fn install(lib:&mut Library,pack:&Verified,consent:bool)->Result<String> {
     tx.commit()?;Ok(id)
 }
 /// Preview/export does not mutate DB. Record the revision only after the user saved successfully.
-pub fn build(lib:&Library,title:&str,pouch:&str,selection:&[Selection],dress:&Dress)->Result<(Header,Vec<u8>)> {
+#[cfg(test)]
+fn build_legacy(lib:&Library,title:&str,pouch:&str,selection:&[LegacySelection],dress:&Dress)->Result<(Header,Vec<u8>)> {
     let title=title.trim();
     if !(3..=24).contains(&selection.len()) || !text(title,40){return Err(invalid("Choose 3–24 stickers and a title up to 40 characters."));}
     let key=crate::device_key::load_or_create(lib.root())?;let author=lib.db().display_name()?;
     let slug:String=title.chars().filter(|c|c.is_ascii_alphanumeric()).take(16).flat_map(char::to_lowercase).collect();
     let pack_id=format!("{}-{}-{}",sign::fingerprint(&key.verifying_key()).replace('-',""),if slug.is_empty(){"pack"}else{&slug},&digest(title.as_bytes())[..16]);
     let version=lib.db().conn.query_row("SELECT version FROM packs_made WHERE pack_id=?1",[&pack_id],|r|r.get::<_,i64>(0)).optional()?.unwrap_or(0).checked_add(1).ok_or_else(||invalid("Pack version is too large."))?;
-    let mut header=Header{pack_id,version,title:title.trim().into(),author,pouch:pouch.into(),made_at:now(),items:Vec::new(),signer:Signer::Device{public_key:sign::public_key(&key)},cover:dress.cover.clone().filter(|c|!c.is_empty()),deco:dress.deco.clone().filter(|d|!d.is_empty()),blurb:dress.blurb.as_deref().map(str::trim).filter(|b|!b.is_empty()).map(String::from),layout:dress.layout.clone()};let mut body=Vec::new();let mut ids=std::collections::HashSet::new();
+    let mut header=Header{prizes:vec![],pack_id,version,title:title.trim().into(),author,pouch:pouch.into(),made_at:now(),items:Vec::new(),signer:Signer::Device{public_key:sign::public_key(&key)},cover:dress.cover.clone().filter(|c|!c.is_empty()),deco:dress.deco.clone().filter(|d|!d.is_empty()),blurb:dress.blurb.as_deref().map(str::trim).filter(|b|!b.is_empty()).map(String::from),layout:dress.layout.clone()};let mut body=Vec::new();let mut ids=std::collections::HashSet::new();
     for item in selection {
         if !ids.insert(&item.sticker_id){return Err(invalid("Choose each sticker only once."));}
         let sticker=lib.db().sticker(&item.sticker_id)?.ok_or_else(||invalid("A selected sticker is no longer in your Book."))?;
         crate::ownership::require_real(&sticker)?;
         let png=lib.read_rendered(&item.sticker_id)?;let mask=sticker.mask_asset_path.as_ref().map(|p|lib.read_asset(p)).transpose()?.unwrap_or_default();
         let material_id=sticker.material_id.unwrap_or_else(||"matte".into());
-        header.items.push(Item{key:item.sticker_id.clone(),name:item.name.clone(),rarity:crate::materials::rarity_name(&material_id),material_id,aspect:sticker.aspect,png_len:png.len(),mask_len:mask.len(),weight:Some(item.weight.unwrap_or(4))});body.extend(png);body.extend(mask);
+        header.items.push(Item{copies:None,histories:vec![],minted:false,key:item.sticker_id.clone(),name:item.name.clone(),rarity:crate::materials::rarity_name(&material_id),material_id,aspect:sticker.aspect,png_len:png.len(),mask_len:mask.len(),weight:Some(item.weight.unwrap_or(4))});body.extend(png);body.extend(mask);
     }
     let bytes=encode(&header,&body,&key)?;decode(&bytes)?;Ok((header,bytes))
 }
@@ -154,6 +158,7 @@ fn rows(db:&crate::Database,sql:&str,pack_id:&str)->Result<Vec<Row>> {
 /// Draw one unopened item of a signed pack in proportion to the item weights. `_item_roll` stays for callers written for the old
 /// two-step (grade, then item) draw.
 pub fn pick(db:&crate::Database,pack_id:&str,roll:f64,_item_roll:f64)->Result<Option<(i64,String)>> {
+    if crate::edition_pack::is_v2(db,pack_id)? {return crate::edition_pack::pick(db,pack_id,roll);}
     let device=db.conn.query_row("SELECT public_key FROM pack_distributions WHERE pack_id=?1",[pack_id],|r|r.get::<_,Option<String>>(0)).optional()?.flatten();
     if device.is_none(){return db.pack_pick(pack_id,roll);}
     let items=rows(db,"SELECT i.id,i.item_key,s.rarity,w.weight FROM pack_items i JOIN signed_pack_items s ON s.item_id=i.id LEFT JOIN pack_item_weights w ON w.item_id=i.id WHERE i.pack_id=?1 AND i.opened_at IS NULL ORDER BY i.id",pack_id)?;
@@ -163,6 +168,7 @@ pub fn pick(db:&crate::Database,pack_id:&str,roll:f64,_item_roll:f64)->Result<Op
 
 /// A bonus draws from the pack's original designs, including exhausted ones, without spending stock.
 pub fn pick_bonus(db:&crate::Database,pack_id:&str,roll:f64,_item_roll:f64)->Result<Option<(i64,String)>> {
+    if crate::edition_pack::is_v2(db,pack_id)? {return crate::edition_pack::pick(db,pack_id,roll);}
     let items=rows(db,"SELECT MIN(i.id),i.item_key,COALESCE(s.rarity,'common'),w.weight FROM pack_items i LEFT JOIN signed_pack_items s ON s.item_id=i.id LEFT JOIN pack_item_weights w ON w.item_id=i.id WHERE i.pack_id=?1 GROUP BY i.item_key ORDER BY MIN(i.id)",pack_id)?;
     let weights:Vec<f64>=items.iter().map(|i|weight_of(i.3,&i.2)).collect();
     Ok(weighted_pick(&weights,roll).map(|i|(items[i].0,items[i].1.clone())))
@@ -170,6 +176,7 @@ pub fn pick_bonus(db:&crate::Database,pack_id:&str,roll:f64,_item_roll:f64)->Res
 /// Up to three pictures to show on the pack's card: the cover first, then the items that come out most often (the rarest are kept
 /// as a surprise). Returns `(item id, name, picture path, material id)`.
 pub fn peek(db:&crate::Database,pack_id:&str)->Result<Vec<(i64,String,String,String)>> {
+    if crate::edition_pack::is_v2(db,pack_id)? {return crate::edition_pack::peek(db,pack_id);}
     let cover:Option<String>=db.conn.query_row("SELECT cover FROM pack_dress WHERE pack_id=?1",[pack_id],|r|r.get(0)).optional()?.flatten();
     let mut stmt=db.conn.prepare("SELECT MIN(i.id),i.item_key,s.name,s.png_path,s.material_id,s.rarity,w.weight FROM pack_items i JOIN signed_pack_items s ON s.item_id=i.id LEFT JOIN pack_item_weights w ON w.item_id=i.id WHERE i.pack_id=?1 GROUP BY i.item_key ORDER BY MIN(i.id)")?;
     let found=stmt.query_map([pack_id],|r|{let weight:Option<u32>=r.get(6)?;let grade:String=r.get(5)?;Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?,r.get(4)?,weight_of(weight,&grade)))})?.collect::<std::result::Result<Vec<(i64,String,String,String,String,f64)>,_>>()?;
@@ -183,7 +190,7 @@ pub fn peek(db:&crate::Database,pack_id:&str)->Result<Vec<(i64,String,String,Str
     use super::*;
     fn lib()->Library {Library::open(&std::env::temp_dir().join(format!("peta-creator-pack-{}",crate::ids::new_sticker_id()))).unwrap()}
     fn png()->Vec<u8>{let mut bytes=Vec::new();({let mut image=image::RgbaImage::new(24,20);for y in 4..16{for x in 4..20{image.put_pixel(x,y,image::Rgba([140,90,50,255]));}}image}).write_to(&mut std::io::Cursor::new(&mut bytes),image::ImageFormat::Png).unwrap();bytes}
-    fn pack(key:&SigningKey,n:usize)->(Header,Vec<u8>){let png=png();let header=Header{pack_id:"desk-doodles".into(),version:1,title:"Desk Doodles".into(),author:"Nao".into(),pouch:"kraft".into(),made_at:now(),items:(0..n).map(|i|Item{key:format!("item-{i}"),name:format!("Sticker {i}"),rarity:if i==0{"rare"}else{"common"}.into(),material_id:"holographic".into(),aspect:16.0/12.0,png_len:png.len(),mask_len:png.len(),weight:None}).collect(),signer:Signer::Device{public_key:sign::public_key(key)},cover:None,deco:None,blurb:None,layout:None};let body=(0..n).flat_map(|_|[png.clone(),png.clone()].concat()).collect();(header,body)}
+    fn pack(key:&SigningKey,n:usize)->(Header,Vec<u8>){let png=png();let header=Header{prizes:vec![],pack_id:"desk-doodles".into(),version:1,title:"Desk Doodles".into(),author:"Nao".into(),pouch:"kraft".into(),made_at:now(),items:(0..n).map(|i|Item{copies:None,histories:vec![],minted:false,key:format!("item-{i}"),name:format!("Sticker {i}"),rarity:if i==0{"rare"}else{"common"}.into(),material_id:"holographic".into(),aspect:16.0/12.0,png_len:png.len(),mask_len:png.len(),weight:None}).collect(),signer:Signer::Device{public_key:sign::public_key(key)},cover:None,deco:None,blurb:None,layout:None};let body=(0..n).flat_map(|_|[png.clone(),png.clone()].concat()).collect();(header,body)}
     #[test] fn consent_versions_new_keys_and_rollback_preserve_shelf_and_tofu() {
         let key=sign::generate().unwrap();let (mut h,body)=pack(&key,3);let file=encode(&h,&body,&key).unwrap();let mut lib=lib();let p=decode(&file).unwrap();
         assert_eq!(preview(&lib,&p).unwrap().identity.status,"new");assert!(install(&mut lib,&p,false).is_err());assert!(lib.db().packs().unwrap().is_empty());assert_eq!(lib.db().conn.query_row("SELECT COUNT(*) FROM friends",[],|r|r.get::<_,i64>(0)).unwrap(),0);
@@ -246,12 +253,12 @@ pub fn peek(db:&crate::Database,pack_id:&str)->Result<Vec<(i64,String,String,Str
     }
     #[test] fn a_pack_you_made_can_go_on_your_own_shelf_dressed_and_weighted() {
         let mut mine=lib();mine.db_mut().set_display_name("Nao").unwrap();let rendered=crate::pack::render_pack_sticker(&png()).unwrap();let mut selections=Vec::new();
-        for i in 0..4{let sticker=mine.add_made(&rendered,b"orig","jpg",None,"holographic").unwrap();selections.push(Selection{sticker_id:sticker.id,name:format!("Drawing {i}"),weight:Some([1,2,4,16][i])});}
+        for i in 0..4{let sticker=mine.add_made(&rendered,b"orig","jpg",None,"holographic").unwrap();selections.push(LegacySelection{sticker_id:sticker.id,name:format!("Drawing {i}"),weight:Some([1,2,4,16][i])});}
         let copy=mine.db_mut().sticker_duplicate(&selections[0].sticker_id,1).unwrap().remove(0);
         let mut invalid=selections.clone();invalid[0].sticker_id=copy.id;
-        assert!(matches!(build(&mine,"No copies","cotton",&invalid,&Dress::default()),Err(crate::Error::Invalid(e)) if e=="copies_stay_home"));
+        assert!(matches!(build_legacy(&mine,"No copies","cotton",&invalid,&Dress::default()),Err(crate::Error::Invalid(e)) if e=="copies_stay_home"));
         let dress=Dress{cover:Some(selections[2].sticker_id.clone()),deco:Some("pin".into()),blurb:Some("Small things.".into()),layout:None};
-        let (h,bytes)=build(&mine,"My Desk","cotton",&selections,&dress).unwrap();
+        let (h,bytes)=build_legacy(&mine,"My Desk","cotton",&selections,&dress).unwrap();
         assert!(h.items.iter().all(|i|i.rarity=="rare"&&i.material_id=="holographic")); // the grade written down is the material's
         let id=install(&mut mine,&decode(&bytes).unwrap(),true).unwrap();record_made(&mut mine,&h).unwrap();
         let shelf=mine.db().packs().unwrap();let mine_on_shelf=shelf.iter().find(|p|p.id==id).unwrap();
@@ -260,13 +267,13 @@ pub fn peek(db:&crate::Database,pack_id:&str)->Result<Vec<(i64,String,String,Str
         assert!(!peeked.iter().any(|p|p.1=="Drawing 0"));
         assert_eq!(mine_on_shelf.signature_status.as_deref(),Some("mine"));assert_eq!(mine.db().conn.query_row("SELECT COUNT(*) FROM friends",[],|r|r.get::<_,i64>(0)).unwrap(),0);
         // a second save of the same pack is a newer version, not a duplicate on the shelf
-        let (h2,bytes2)=build(&mine,"My Desk","cotton",&selections,&dress).unwrap();assert_eq!(h2.version,2);install(&mut mine,&decode(&bytes2).unwrap(),true).unwrap();
+        let (h2,bytes2)=build_legacy(&mine,"My Desk","cotton",&selections,&dress).unwrap();assert_eq!(h2.version,2);install(&mut mine,&decode(&bytes2).unwrap(),true).unwrap();
         assert_eq!(mine.db().packs().unwrap().iter().filter(|p|p.title=="My Desk").count(),1);
     }
     #[test] fn export_to_another_library_contains_finished_copies_only_and_versions_increase() {
         let mut mine=lib();mine.db_mut().set_display_name("Nao").unwrap();let picture=png();let rendered=crate::pack::render_pack_sticker(&picture).unwrap();let mut selections=Vec::new();
-        for i in 0..4{let sticker=mine.add_made(&rendered,b"PRIVATE ORIGINAL PHOTO","jpg",None,"holographic").unwrap();selections.push(Selection{sticker_id:sticker.id,name:format!("Drawing {i}"),weight:Some(if i==0{1}else{4})});}
-        let (h,bytes)=build(&mine,"My Desk","matte",&selections,&Dress::default()).unwrap();assert!(!bytes.windows(22).any(|b|b==b"PRIVATE ORIGINAL PHOTO"));assert!(mine.db().packs().unwrap().is_empty());assert_eq!(h.version,1);record_made(&mut mine,&h).unwrap();assert_eq!(build(&mine,"My Desk","matte",&selections,&Dress::default()).unwrap().0.version,2);
+        for i in 0..4{let sticker=mine.add_made(&rendered,b"PRIVATE ORIGINAL PHOTO","jpg",None,"holographic").unwrap();selections.push(LegacySelection{sticker_id:sticker.id,name:format!("Drawing {i}"),weight:Some(if i==0{1}else{4})});}
+        let (h,bytes)=build_legacy(&mine,"My Desk","matte",&selections,&Dress::default()).unwrap();assert!(!bytes.windows(22).any(|b|b==b"PRIVATE ORIGINAL PHOTO"));assert!(mine.db().packs().unwrap().is_empty());assert_eq!(h.version,1);record_made(&mut mine,&h).unwrap();assert_eq!(build_legacy(&mine,"My Desk","matte",&selections,&Dress::default()).unwrap().0.version,2);
         let p=decode(&bytes).unwrap();let mut theirs=lib();let id=install(&mut theirs,&p,true).unwrap();let (item,_) =pick(theirs.db(),&id,0.99,0.0).unwrap().unwrap();let metadata=crate::pack::stored_item(theirs.db(),item).unwrap().unwrap();let png=theirs.read_asset(&metadata.png_path).unwrap();let mask=theirs.read_asset(metadata.mask_path.as_ref().unwrap()).unwrap();let sticker=theirs.add_finished_from_pack(&png,&mask,&h.title,&h.author,&metadata.material_id).unwrap();
         assert_eq!(sticker.source_type,crate::SourceType::Pack);assert_eq!(sticker.original_number,None);assert_eq!(sticker.edition_number,None);assert_eq!(sticker.material_id.as_deref(),Some("holographic"));assert_eq!(theirs.db().material_count("holographic").unwrap(),0);assert_eq!(theirs.read_asset(&sticker.original_asset_path).unwrap(),png);
         let back=crate::back::sticker_back(theirs.db(),&sticker.id,"Me",&|t|Some(t.chars().take(10).collect())).unwrap().unwrap();assert_eq!(back.received_from.as_deref(),Some("My Desk"));
@@ -286,3 +293,5 @@ pub fn peek(db:&crate::Database,pack_id:&str)->Result<Vec<(i64,String,String,Str
         h.layout=None;h.version=2;let again=decode(&encode(&h,&body,&key).unwrap()).unwrap();install(&mut lib,&again,true).unwrap();assert!(lib.db().packs().unwrap().iter().find(|x|x.id==id).unwrap().layout.is_none());
     }
 }
+
+pub use crate::edition_pack::{Selection,Prize,press};

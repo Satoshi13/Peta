@@ -14,12 +14,19 @@ pub struct PackStatus {
     pub packs: Vec<PackSummary>,
     /// Welcome's independent daily allowance; other packs depend only on remaining items.
     pub can_open: bool,
+    pub limits:Limits,
 }
+
+#[derive(Serialize)]
+#[serde(rename_all="camelCase")]
+pub struct Limits {copies_per_design:u32,pack_slots:u32,prizes:u32}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Opened {
-    pub sticker_id: String,
+    pub sticker_id: Option<String>,
+    pub kind:String,
+    pub material_id:Option<String>,
     pub pack_title: String,
     pub remaining: i64,
     pub rarity: Option<String>,
@@ -31,7 +38,7 @@ pub fn pack_status(app: AppHandle, store: tauri::State<Store>) -> Result<PackSta
     let can_open = store.lock().db().welcome_available(&app.state::<today::Today>().date()).map_err(|e|e.to_string())?;
     store.lock().db_mut().replenish_developer_packs().map_err(|e|e.to_string())?;
     let packs = store.lock().db().packs().map_err(|e| e.to_string())?;
-    Ok(PackStatus { packs, can_open })
+    Ok(PackStatus { packs, can_open,limits:Limits{copies_per_design:peta_core::edition_pack::MAX_COPIES_PER_DESIGN,pack_slots:peta_core::edition_pack::MAX_PACK_SLOTS,prizes:peta_core::edition_pack::MAX_PRIZES} })
 }
 
 /// The picture of a pack item, from the assets shipped with the app.
@@ -53,6 +60,15 @@ pub async fn pack_open_free(app: AppHandle, pack_id: String, queue: Option<bool>
 }
 
 async fn open(app: AppHandle, pack_id: String, free: bool, queue: bool) -> Result<Opened, String> {
+    {
+        let store=app.state::<Store>();let mut lib=store.lock();
+        peta_core::edition_pack::ensure_can_open(&lib,&pack_id).map_err(|e|e.to_string())?;
+        if peta_core::edition_pack::is_v2(lib.db(),&pack_id).map_err(|e|e.to_string())? {
+            let title=lib.db().packs().map_err(|e|e.to_string())?.into_iter().find(|p|p.id==pack_id).ok_or("Unknown pack")?.title;
+            let award=peta_core::edition_pack::open(&mut lib,&pack_id,random_unit(),free,&app.state::<today::Today>().date(),queue,&peta_core::ownership::NoReferee).map_err(|e|e.to_string())?;
+            drop(lib);today::announce(&app);return Ok(Opened{sticker_id:award.sticker_id,kind:award.kind,material_id:award.material_id,pack_title:title,remaining:award.remaining,rarity:Some(award.rarity),name:Some(award.name)});
+        }
+    }
     let (item_id, key, title, by) = {
         let store = app.state::<Store>();
         let mut lib = store.lock();
@@ -98,7 +114,7 @@ async fn open(app: AppHandle, pack_id: String, free: bool, queue: bool) -> Resul
     };
     today::announce(&app);
     // The ceremony hands it to the print layer after the main window closes.
-    Ok(Opened { sticker_id: remaining.0, pack_title: title, remaining: remaining.1, rarity: stored.as_ref().map(|i|peta_core::materials::rarity_name(&i.material_id)), name:stored.map(|i|i.name) }) // the rarity of a pull is the rarity of its material
+    Ok(Opened { sticker_id: Some(remaining.0),kind:"sticker".into(),material_id:None, pack_title: title, remaining: remaining.1, rarity: stored.as_ref().map(|i|peta_core::materials::rarity_name(&i.material_id)), name:stored.map(|i|i.name) }) // the rarity of a pull is the rarity of its material
 }
 
 // Free acquisition is separate from the atomic Scraps exchange.

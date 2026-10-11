@@ -76,6 +76,12 @@ pub fn ensure_today(db: &mut Database, today: &str, roll: f64) -> Result<DailyRe
     db.daily_get(today)?.ok_or_else(|| Error::Invalid("daily record vanished".into()))
 }
 
+/// Initialize a day within the same transaction as an award and its print queue entry.
+pub(crate) fn ensure_today_in(conn:&rusqlite::Connection,today:&str,roll:f64)->Result<()> {
+    let first:bool=conn.query_row("SELECT NOT EXISTS(SELECT 1 FROM daily_records)",[],|r|r.get(0))?;
+    conn.execute("INSERT OR IGNORE INTO daily_records(date,material_id) VALUES (?1,?2)",rusqlite::params![today,materials::draw(roll,first)])?;Ok(())
+}
+
 /// Open the envelope: Today's Material is yours. It is written into the Material Book for good, and one of it
 /// goes into your stock (materials are used up when a sticker is made with them).
 /// Returns the record and whether the material was newly found (first time in the book). Idempotent per day:

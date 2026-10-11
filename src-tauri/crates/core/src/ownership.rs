@@ -58,6 +58,13 @@ mod tests {
         db.sticker_duplicate("c",1).unwrap();
         crate::scraps::NEW_STICKER_CALLS.with(|c|assert_eq!(*c.borrow(),vec![("a".into(),true),("b".into(),false),("c".into(),true)]));
     }
+    #[test] fn refused_registration_does_not_record_a_source_or_a_sticker() {
+        struct Reject;
+        impl Referee for Reject {fn register(&self,_:&str,_:&str)->Result<()>{Err(invalid("refused"))}fn release(&self,_:&Transfer)->Result<()>{Ok(())}fn claim(&self,_:&Transfer)->Result<()>{Ok(())}}
+        let mut db=Database::open_in_memory().unwrap();let key=sign::generate().unwrap();
+        assert!(db.create_signed_sticker(new("refused"),b"source",b"png",&key,&Reject).is_err());assert_eq!(db.sticker_count().unwrap(),0);
+        assert!(db.create_signed_sticker(new("accepted"),b"source",b"png",&key,&NoReferee).unwrap().new_image);
+    }
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all="camelCase", deny_unknown_fields)]
@@ -99,7 +106,7 @@ pub fn sticker_chain_verify(chain:&Chain,png:&[u8])->Result<String> {
     let c=&chain.creation;
     if !crate::events::safe_id(&c.sticker_id)||c.sticker_id.len()>120||c.image_digest!=digest(png)||chain.transfers.len()>256 {return Err(invalid("Invalid creation record or image."));}
     let mut previous=time(&c.created_at)?;
-    if c.edition_no.is_some()!=c.edition_total.is_some() || c.edition_no.zip(c.edition_total).is_some_and(|(n,total)|n==0||n>total||total>30) {return Err(invalid("Invalid edition."));}
+    if c.edition_no.is_some()!=c.edition_total.is_some() || c.edition_no.zip(c.edition_total).is_some_and(|(n,total)|n==0||n>total||total>crate::edition_pack::MAX_COPIES_PER_DESIGN) {return Err(invalid("Invalid edition."));}
     match (&c.creator_public_key,&c.creator_sig,&c.legacy) {
         (Some(key),Some(sig),None)=>verify(key,&c.bytes()?,sig)?,
         (None,None,Some(holder))=>{ let at=time(&holder.at)?;if at<previous{return Err(invalid("Legacy attestation precedes creation."));}verify(&holder.key,&c.legacy_bytes(&holder.key,&holder.at)?,&holder.sig)?;previous=at; },
@@ -120,6 +127,11 @@ pub fn sticker_chain_verify(chain:&Chain,png:&[u8])->Result<String> {
 }
 pub fn append(chain:&mut Chain,kind:&str,reference:&str,key:&SigningKey)->Result<Transfer> {
     let mut t=Transfer{sticker_id:chain.creation.sticker_id.clone(),seq:chain.transfers.len() as u32,kind:kind.into(),actor_key:sign::public_key(key),reference:reference.into(),at:now(),sig:String::new()};t.sig=signed(key,&t.bytes()?);chain.transfers.push(t.clone());Ok(t)
+}
+pub(crate) fn resign(t:&mut Transfer,key:&SigningKey)->Result<()> {t.sig=signed(key,&t.bytes()?);Ok(())}
+pub(crate) fn stored_transfers(conn:&Connection,id:&str)->Result<Vec<Transfer>> {
+    let mut stmt=conn.prepare("SELECT seq,kind,actor_key,ref,at,sig FROM transfers WHERE sticker_id=?1 ORDER BY seq")?;
+    let rows=stmt.query_map([id],|r|Ok(Transfer{sticker_id:id.into(),seq:r.get(0)?,kind:r.get(1)?,actor_key:r.get(2)?,reference:r.get(3)?,at:r.get(4)?,sig:r.get(5)?}))?.collect::<std::result::Result<Vec<_>,_>>()?;Ok(rows)
 }
 /// A future service can reject a fork. Rejections happen before a local transaction commits.
 pub trait Referee { fn register(&self,sticker_id:&str,creator_sig:&str)->Result<()>;fn release(&self,release:&Transfer)->Result<()>;fn claim(&self,claim:&Transfer)->Result<()>;fn claim_slot(&self,_pack_id:&str,_slot:u32,_claimer_key:&str)->Result<()> {Ok(())} }

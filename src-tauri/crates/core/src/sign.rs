@@ -44,17 +44,25 @@ pub fn resolve(signer: &Signer) -> Result<VerifyingKey> {
 pub const MAX_FILE: usize = 24 * 1024 * 1024;
 pub const MAX_HEADER: usize = 64 * 1024;
 pub fn seal(magic: &[u8;8], version: u8, header: &impl Serialize, body: &[u8], key: &SigningKey) -> Result<Vec<u8>> {
+    seal_limit(magic,version,header,body,key,MAX_HEADER)
+}
+pub const MAX_PACK_HEADER:usize=1024*1024;
+pub fn seal_large(magic:&[u8;8],version:u8,header:&impl Serialize,body:&[u8],key:&SigningKey)->Result<Vec<u8>> {seal_limit(magic,version,header,body,key,MAX_PACK_HEADER)}
+fn seal_limit(magic:&[u8;8],version:u8,header:&impl Serialize,body:&[u8],key:&SigningKey,limit:usize)->Result<Vec<u8>> {
     let json = serde_json::to_vec(header).map_err(|e| Error::Invalid(e.to_string()))?;
-    if json.is_empty() || json.len()>MAX_HEADER || 13+json.len()+body.len()+64>MAX_FILE {return Err(Error::Invalid("This Peta file is too large.".into()));}
+    if json.is_empty() || json.len()>limit || 13+json.len()+body.len()+64>MAX_FILE {return Err(Error::Invalid("This Peta file is too large.".into()));}
     let mut bytes = Vec::with_capacity(13+json.len()+body.len()+64);
     bytes.extend_from_slice(magic); bytes.push(version); bytes.extend_from_slice(&(json.len() as u32).to_be_bytes()); bytes.extend_from_slice(&json); bytes.extend_from_slice(body);
     bytes.extend_from_slice(&sign(key,&bytes)); Ok(bytes)
 }
 /// Only parse bounded JSON before verification. Callers may decode attachments after this returns.
 pub fn unseal_with<'a>(bytes: &'a [u8], magic: &[u8;8], version: u8, trust: impl FnOnce(&Signer)->Result<VerifyingKey>) -> Result<(serde_json::Value, &'a [u8])> {
+    unseal_limit(bytes,magic,version,trust,MAX_HEADER)
+}
+fn unseal_limit<'a>(bytes:&'a[u8],magic:&[u8;8],version:u8,trust:impl FnOnce(&Signer)->Result<VerifyingKey>,limit:usize)->Result<(serde_json::Value,&'a[u8])> {
     if bytes.len()<77 || bytes.len()>MAX_FILE || &bytes[..8]!=magic || bytes[8]!=version {return Err(Error::Invalid("This Peta file is damaged or needs a newer Peta.".into()));}
     let n=u32::from_be_bytes(bytes[9..13].try_into().unwrap()) as usize;
-    if n==0 || n>MAX_HEADER || 13+n>bytes.len()-64 {return Err(Error::Invalid("This Peta file has a damaged header.".into()));}
+    if n==0 || n>limit || 13+n>bytes.len()-64 {return Err(Error::Invalid("This Peta file has a damaged header.".into()));}
     let header:serde_json::Value=serde_json::from_slice(&bytes[13..13+n]).map_err(|_| Error::Invalid("This Peta file has a damaged header.".into()))?;
     let signer:Signer=serde_json::from_value(header.get("signer").cloned().ok_or_else(invalid_signature)?).map_err(|_| invalid_signature())?;
     verify(&trust(&signer)?, &bytes[..bytes.len()-64], &bytes[bytes.len()-64..])?;
@@ -80,3 +88,5 @@ mod tests {
         assert!(unseal(&bytes[..bytes.len()-1],b"PETAEVNT",1).is_err());
     }
 }
+
+pub fn unseal_large<'a>(bytes:&'a[u8],magic:&[u8;8],version:u8)->Result<(serde_json::Value,&'a[u8])> {unseal_limit(bytes,magic,version,resolve,MAX_PACK_HEADER)}

@@ -40,3 +40,5 @@ pub mod creator_pack;
 pub mod ownership;
 
 pub mod export;
+
+pub mod edition_pack;

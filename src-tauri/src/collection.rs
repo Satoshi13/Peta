@@ -25,6 +25,7 @@ pub fn book_index(store: State<Store>) -> Result<Vec<MonthIndex>, String> {
 pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookItem>, String> {
     let lib = store.lock();
     let entries = book::entries_local(lib.db()).map_err(|e| e.to_string())?;
+    let key=peta_core::sign::public_key(&peta_core::device_key::load_or_create(lib.root()).map_err(|e|e.to_string())?);
     book::page(&entries, year, month).into_iter().map(|entry| {
         let sticker = lib.db().sticker(&entry.sticker_id).map_err(|e| e.to_string())?;
         let can_manage = sticker.as_ref().is_some_and(|s| s.source_type == peta_core::SourceType::Created || s.lineage=="copy");
@@ -32,17 +33,20 @@ pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookI
         let copy_of=sticker.as_ref().and_then(|s|s.copy_of.clone());
         let copy_no=sticker.as_ref().and_then(|s|s.copy_no);
         let verified=sticker.as_ref().is_some_and(|s|s.verified);
+        let can_press=sticker.as_ref().is_some_and(|s|peta_core::edition_pack::can_press(s,&key));
+        let pressed=sticker.as_ref().is_some_and(|s|s.pressed);
+        let edition_total=sticker.as_ref().and_then(|s|s.edition_total);
         let copies=lib.db().copies(copy_of.as_deref().unwrap_or(&entry.sticker_id)).map_err(|e|e.to_string())?;
         let created_at = sticker.map(|s| s.created_at);
         let pack_name=peta_core::pack::item_name(lib.db(),&entry.sticker_id).map_err(|e|e.to_string())?;
         let title = lib.db().sticker_title(&entry.sticker_id).map_err(|e| e.to_string())?;
-        Ok(BookItem { entry, can_manage, created_at, pack_name, title, lineage, copy_of, copy_no, copies, verified, copy_limit:peta_core::ownership::MAX_COPIES })
+        Ok(BookItem { entry, can_manage, created_at, pack_name, title, lineage, copy_of, copy_no, copies, verified, pressed,can_press,edition_total, copy_limit:peta_core::ownership::MAX_COPIES })
     }).collect()
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool, created_at: Option<String>, pack_name: Option<String>, /** the name the person gave it */ title: Option<String>, lineage:String, copy_of:Option<String>,copy_no:Option<u32>,copies:u32,verified:bool,copy_limit:u32 }
+pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool, created_at: Option<String>, pack_name: Option<String>, /** the name the person gave it */ title: Option<String>, lineage:String, copy_of:Option<String>,copy_no:Option<u32>,copies:u32,verified:bool,pressed:bool,can_press:bool,edition_total:Option<u32>,copy_limit:u32 }
 
 #[tauri::command]
 pub fn sticker_duplicate(app:AppHandle,store:State<Store>,sticker_id:String,count:u32)->Result<Vec<peta_core::Sticker>,String> {

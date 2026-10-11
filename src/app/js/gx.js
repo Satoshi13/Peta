@@ -328,7 +328,7 @@ const Gx = (() => {
         const sx = 480 - c.cx, sy = 330 - c.cy; Sfx.slide(.18, .6);
         run.anim(el, [{ transform: `translate(${sx}px, ${sy - 30}px) scale(.5) rotate(${rand(-30, 30)}deg)`, opacity: 0 }, { transform: `translate(${sx * .45}px, ${Math.min(sy, 0) - 90}px) scale(1.04) rotate(${rand(-9, 9)}deg)`, opacity: 1, offset: .5 }, { transform: "translate(0,0) scale(1) rotate(0)", opacity: 1 }], { duration: 640, easing: EASE.inOut });
         if (!pouchGone) { pouchGone = true; run.to(rig.pouch, [{ transform: "none", opacity: 1 }, { transform: `translate(${-rig.PW * 1.5}px, ${rig.PH * .42}px) rotate(-14deg) scale(.5)`, opacity: 0 }], { duration: 900, easing: EASE.inOut, delay: 500 }); }
-        (async () => { try { const entry = await Bridge.entry(opened.stickerId); one.entry = { ...entry, rarity: opened.rarity, title: opened.name || entry.title }; one.res = await resOf(one.entry); } catch { previewFailed = true; } })();
+        (async () => { try { const entry = await Bridge.packEntry(opened); one.entry = { ...entry, rarity: opened.rarity, title: opened.name || entry.title }; one.res = entry.prize ? {aspect:1,prize:true} : await resOf(one.entry); } catch { previewFailed = true; } })();
         await run.wait(70);
       }
       for (const c of cells.slice(got.length)) c.slot.remove();
@@ -349,7 +349,7 @@ const Gx = (() => {
           const c = cells[i], p = got[i], r = p.rarity, hot = RANK(r) >= 2;
           const flip = async (slow) => {
             const stkWrap = h("div", { style: { position: "relative" } }); c.slot.append(stkWrap);
-            let face; if (p.res) { const w = cw * .95 * Math.min(1, p.res.aspect), stk = Stk.el(p.res, w); stkWrap.append(stk, h("i.gx-glint", { style: { "--mask": `url(${p.res.url})` } })); face = stkWrap; Stk.tilt(stkWrap, { max: 4, scale: 1.015, trigger: c.slot }); } else stkWrap.append(h("span.gx-missing", "Saved to Collection"));
+            let face; if (p.res) { const w = cw * .95 * Math.min(1, p.res.aspect), stk = p.entry.prize ? PrizeCard(p.entry,w) : Stk.el(p.res, w); stkWrap.append(stk); if(!p.entry.prize) stkWrap.append(h("i.gx-glint", { style: { "--mask": `url(${p.res.url})` } })); face = stkWrap; Stk.tilt(stkWrap, { max: 4, scale: 1.015, trigger: c.slot }); } else stkWrap.append(h("span.gx-missing", "Saved to Collection"));
             stkWrap.style.opacity = 0; const sl = c.sleeve; run.anim(sl, [{ transform: "none", opacity: 1 }, { transform: "rotateY(88deg) scale(1.06)", opacity: 0 }], { duration: slow ? 420 : 280, easing: EASE.in });
             await run.wait(slow ? 260 : 170); Sfx.unwrap();
             await run.anim(stkWrap, [{ opacity: 0, transform: "scale(.7) rotateY(-70deg)" }, { opacity: 1, transform: "scale(1.06)", offset: .6 }, { opacity: 1, transform: "none" }], { duration: slow ? 520 : 340, easing: EASE.out });

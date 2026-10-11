@@ -48,3 +48,7 @@ API 確認: [Apple の request](https://developer.apple.com/documentation/vision
 - `CARGO_INCREMENTAL=0 npm run check:mac` は成功。
 - Mac 専用化後にも `cargo test --workspace`（core 151件ほか）と `npm test`（129件）を再実行し、全成功。
 - `.app` の Info.plist の `LSMinimumSystemVersion` は **14.0**。
+
+## 最終 release ビルド
+
+3つの実装を含む `CARGO_INCREMENTAL=0 npm run build` は成功。Peta.app は **53.10 MiB**、Info.plist の最低 OS は **14.0**、ONNX ファイルは0個。変更前の同条件バンドルとのサイズ差は未計測。

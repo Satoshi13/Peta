@@ -105,7 +105,7 @@ pub fn apply_event(lib:&mut Library,verified:&Verified,source:&str,time:DateTime
             tx.execute("INSERT INTO pack_distributions VALUES (?1,?2,1,NULL,NULL,'official',?3)",params![id,e.payload["packId"].as_str().unwrap(),e.payload["pouch"].as_str().unwrap()])?;
             for ((i,(a,_,_)),path) in e.payload["items"].as_array().unwrap().iter().zip(&verified.attachments).zip(paths.iter()) {
                 tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES (?1,?2)",params![id,a.key])?;
-                tx.execute("INSERT INTO signed_pack_items VALUES (?1,?2,NULL,'matte',1,?3,?4,0)",params![tx.last_insert_rowid(),path,i["name"].as_str().unwrap(),i["rarity"].as_str().unwrap()])?;
+                tx.execute("INSERT INTO signed_pack_items(item_id,png_path,mask_path,material_id,aspect,name,rarity,finished) VALUES (?1,?2,NULL,'matte',1,?3,?4,0)",params![tx.last_insert_rowid(),path,i["name"].as_str().unwrap(),i["rarity"].as_str().unwrap()])?;
             }
         },_=>unreachable!(),
     }

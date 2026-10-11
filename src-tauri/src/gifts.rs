@@ -167,28 +167,21 @@ pub fn creator_pack_decline(app:AppHandle,token:String) {
     let pending=app.state::<PendingPack>();let mut guard=pending.0.lock().unwrap();if guard.as_ref().is_some_and(|(id,_)|id==&token){*guard=None;}
 }
 #[tauri::command]
-pub async fn creator_pack_save(window:WebviewWindow,app:AppHandle,title:String,pouch:String,items:Vec<peta_core::creator_pack::Selection>,dress:Option<peta_core::creator_pack::Dress>)->Result<Option<String>,String> {
+pub async fn creator_pack_save(window:WebviewWindow,app:AppHandle,title:String,pouch:String,items:Vec<peta_core::creator_pack::Selection>,prizes:Vec<peta_core::creator_pack::Prize>,dress:Option<peta_core::creator_pack::Dress>)->Result<Option<String>,String> {
     let Some(path)=app.dialog().file().set_parent(&window).add_filter("Peta pack",&["peta"]).set_file_name("My Pack.peta").blocking_save_file().and_then(|p|p.into_path().ok()) else{return Ok(None)};
-    let store=app.state::<Store>();let mut lib=store.lock();
-    let (header,bytes)=peta_core::creator_pack::build(&lib,&title,&pouch,&items,&dress.unwrap_or_default()).map_err(|e|e.to_string())?;
-    // Write a complete package before replacing the selected output; a failed write leaves it intact.
-    use std::io::Write;
-    let temp=path.with_file_name(format!(".peta-{}.tmp",peta_core::ids::new_gift_id()));
-    let saved=(||->std::io::Result<()>{let mut file=std::fs::OpenOptions::new().write(true).create_new(true).open(&temp)?;file.write_all(&bytes)?;file.sync_all()?;std::fs::rename(&temp,&path)})();
-    if let Err(error)=saved {let _=std::fs::remove_file(&temp);return Err(format!("Could not save this pack: {error}"));}
-    peta_core::creator_pack::record_made(&mut lib,&header).map_err(|e|e.to_string())?;
-    if lib.db_mut().link_tag_release(&items.iter().map(|i|i.sticker_id.clone()).collect::<Vec<_>>()).unwrap_or(0)>0 {let _=app.emit("link-tags-changed",());}
-    Ok(Some(path.display().to_string()))
+    let store=app.state::<Store>();let mut lib=store.lock();let root=lib.root().to_owned();let mut publication=None;
+    peta_core::creator_pack::press(&mut lib,&title,&pouch,&items,&prizes,&dress.unwrap_or_default(),false,&peta_core::ownership::NoReferee,|h,bytes| {
+        publication=Some(peta_core::export::Export::publish(&root,&path,bytes,&h.pack_id)?);Ok(())
+    }).map_err(|e|e.to_string())?;
+    if let Some(publication)=publication {publication.finish();}
+    drop(lib);press_announced(&app);Ok(Some(path.display().to_string()))
 }
 
-/// Studio: put a pack you made on your own shelf (the same file you would save, installed here). Returns the pack's shelf id.
+/// Own shelf entries are stock samples; only friends can open them.
 #[tauri::command]
-pub fn creator_pack_shelve(app:AppHandle,title:String,pouch:String,items:Vec<peta_core::creator_pack::Selection>,dress:Option<peta_core::creator_pack::Dress>)->Result<String,String> {
+pub fn creator_pack_shelve(app:AppHandle,title:String,pouch:String,items:Vec<peta_core::creator_pack::Selection>,prizes:Vec<peta_core::creator_pack::Prize>,dress:Option<peta_core::creator_pack::Dress>)->Result<String,String> {
     let store=app.state::<Store>();let mut lib=store.lock();
-    let (header,bytes)=peta_core::creator_pack::build(&lib,&title,&pouch,&items,&dress.unwrap_or_default()).map_err(|e|e.to_string())?;
-    let verified=peta_core::creator_pack::decode(&bytes).map_err(|e|e.to_string())?;
-    let id=peta_core::creator_pack::install(&mut lib,&verified,true).map_err(|e|e.to_string())?;
-    peta_core::creator_pack::record_made(&mut lib,&header).map_err(|e|e.to_string())?;
-    if lib.db_mut().link_tag_release(&items.iter().map(|i|i.sticker_id.clone()).collect::<Vec<_>>()).unwrap_or(0)>0 {let _=app.emit("link-tags-changed",());}
-    drop(lib);today::announce(&app);Ok(id)
+    let id=peta_core::creator_pack::press(&mut lib,&title,&pouch,&items,&prizes,&dress.unwrap_or_default(),true,&peta_core::ownership::NoReferee,|_,_|Ok(())).map_err(|e|e.to_string())?;
+    drop(lib);press_announced(&app);Ok(id)
 }
+fn press_announced(app:&AppHandle) {let _=app.emit("sticker-updated",());let _=app.emit("link-tags-changed",());let _=crate::layers::sync(app);today::announce(app);}

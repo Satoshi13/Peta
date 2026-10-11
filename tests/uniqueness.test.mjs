@@ -19,3 +19,26 @@ test('Duplicate exposes only the remaining allowance and copies stay local',()=>
 test('Gift requires an explicit transfer confirmation before invoking the command',()=>{
  const src=read('src/app/js/studio.js');assert.match(src,/This leaves your Collection\./);assert.match(src,/if\(!await stConfirmTransfer\(\)\) return null/);
 });
+test('Copies panel fixes foreign stickers to one and reports odds including prizes',()=>{
+ const src=read('src/app/js/studio.js'),ctx=vm.createContext({S:{packLimits:{copiesPerDesign:30}}});
+ const pick=n=>src.split('\n').find(l=>l.startsWith(`const ${n} =`));
+ vm.runInContext(['stCopyMax','stSlots','stOdds'].map(pick).join('\n')+';this.out={stCopyMax,stSlots,stOdds};',ctx);
+ assert.equal(ctx.out.stCopyMax({canPress:true}),30);assert.equal(ctx.out.stCopyMax({canPress:false}),1);
+ assert.equal(ctx.out.stSlots({sel:[{copies:3},{copies:1}],prizes:[{count:2}]}),6);
+ assert.deepEqual(Array.from(ctx.out.stOdds([{copies:3},{copies:1}],[{count:2}])),[.5,1/6]);
+ assert.match(src,/Made by someone else: one copy/);assert.match(src,/disabled:!!e.pressed/);assert.match(src,/ids = p.sel.filter\(x=>stEntry\(x.id\)\?\.canPress\)/);
+});
+test('own packs have no opening controls and prize awards never load a sticker asset',()=>{
+ const src=read('src/app/js/packs.js');assert.match(src,/const one = p.own \? null/);assert.match(src,/Your own pack: friends open it/);
+ assert.match(read('src/app/js/catalog.js'),/packOpenable = p => !p.own/);
+ const bridge=read('src/app/js/bridge.js');assert.match(bridge,/opened.kind !== "sticker"/);assert.match(bridge,/id:null,prize:true/);
+ assert.match(read('src/app/js/ceremony.js'),/if\(entry.prize\).*Added to your stock/s);
+});
+test('restored prize drafts respect current stock, duplicate types and remaining slots',()=>{
+ const src=read('src/app/js/studio.js'),ctx=vm.createContext({S:{packLimits:{prizes:10,packSlots:200},prizeStock:{kraft:4},tagStock:{available:2}},MAT:{kraft:{}}});
+ vm.runInContext(src.slice(src.indexOf('function stCleanPrizes('),src.indexOf('const stDraftKey'))+';this.clean=stCleanPrizes;',ctx);
+ const draft=[{kind:'material',materialId:'kraft',count:20},{kind:'material',materialId:'kraft',count:4},{kind:'material',materialId:'unknown',count:1},{kind:'tag',count:8}];
+ assert.deepEqual(JSON.parse(JSON.stringify(ctx.clean(draft,197))),[{kind:'material',materialId:'kraft',count:3}]);
+ assert.deepEqual(JSON.parse(JSON.stringify(ctx.clean(draft,190))),[{kind:'material',materialId:'kraft',count:4},{kind:'tag',count:2}]);
+ assert.equal(ctx.clean(draft,200).length,0);
+});

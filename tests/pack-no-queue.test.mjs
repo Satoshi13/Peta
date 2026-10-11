@@ -18,7 +18,7 @@ test("one pack sticker: the pull queues nothing; Stick it sends it to the deskto
   assert.match(one, /\{packId:pack\.id, queue:false\}/);                       // opening never queues a print
   assert.match(one, /daily_stick_from_collection/);                              // Stick it = the Collection's "Stick on desktop"
   assert.match(one, /Desktop\.print\(entry\)/);
-  assert.match(one, /laterLabel: "Keep in Collection"/);                         // there is a way back that is not sticking
+  assert.match(one, /laterLabel: entry.prize \? "Done" : "Keep in Collection"/);                         // there is a way back that is not sticking
   assert.match(one, /else leave\(\)/);                                           // and Esc closes after the reveal too
   assert.doesNotMatch(one, /print_later|print slot/i);                           // nothing is left waiting at the print slot
 });

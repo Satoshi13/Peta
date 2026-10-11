@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 12;
+pub const SCHEMA_VERSION: i64 = 13;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -211,6 +211,18 @@ CREATE TABLE gift_dress (gift_id TEXT PRIMARY KEY REFERENCES gifts_received(gift
 ";
 
 
+const MIGRATION_V13: &str = "
+ALTER TABLE stickers ADD COLUMN edition_total INTEGER;
+ALTER TABLE stickers ADD COLUMN pressed INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE stickers ADD COLUMN edition_verified INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE signed_pack_items ADD COLUMN edition_no INTEGER;
+ALTER TABLE signed_pack_items ADD COLUMN edition_total INTEGER;
+ALTER TABLE signed_pack_items ADD COLUMN kind TEXT NOT NULL DEFAULT 'sticker' CHECK(kind IN ('sticker','material','tag'));
+ALTER TABLE signed_pack_items ADD COLUMN prize_ref TEXT;
+CREATE TABLE edition_pack_frames(pack_id TEXT PRIMARY KEY REFERENCES packs(id) ON DELETE CASCADE, header TEXT NOT NULL, digest TEXT NOT NULL);
+CREATE TABLE edition_pack_slots(item_id INTEGER PRIMARY KEY REFERENCES pack_items(id) ON DELETE CASCADE, slot_no INTEGER NOT NULL, chain TEXT);
+";
+
 const MIGRATION_V12: &str = "
 ALTER TABLE stickers ADD COLUMN lineage TEXT NOT NULL DEFAULT 'real' CHECK(lineage IN ('real','copy'));
 ALTER TABLE stickers ADD COLUMN copy_of TEXT REFERENCES stickers(id) ON DELETE CASCADE;
@@ -300,7 +312,7 @@ impl Database {
     /// Copy a depleted developer pack's original items, retaining every opened row and signed metadata.
     pub fn replenish_developer_packs(&mut self) -> Result<()> {
         if !self.unrestricted { return Ok(()); }
-        let empty: Vec<_> = self.packs()?.into_iter().filter(|p| p.remaining==0).collect();
+        let empty: Vec<_> = self.packs()?.into_iter().filter(|p| p.remaining==0 && !crate::edition_pack::is_v2(self,&p.id).unwrap_or(true)).collect();
         let tx = self.conn.transaction()?;
         for p in empty {
             let originals: Vec<(i64,String)> = {
@@ -311,7 +323,7 @@ impl Database {
             for (old,key) in originals {
                 tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES(?1,?2)",params![p.id,key])?;
                 let new = tx.last_insert_rowid();
-                tx.execute("INSERT INTO signed_pack_items SELECT ?1,png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?2",params![new,old])?;
+                tx.execute("INSERT INTO signed_pack_items(item_id,png_path,mask_path,material_id,aspect,name,rarity,finished) SELECT ?1,png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?2",params![new,old])?;
                 tx.execute("INSERT INTO pack_item_weights SELECT ?1,weight FROM pack_item_weights WHERE item_id=?2",params![new,old])?;
             }
         }
@@ -404,6 +416,9 @@ impl Database {
         if version < 12 {
             let tx=self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V12)?;tx.pragma_update(None,"user_version",12)?;tx.commit()?;
+        }
+        if version < 13 {
+            let tx=self.conn.transaction()?;tx.execute_batch(MIGRATION_V13)?;tx.pragma_update(None,"user_version",13)?;tx.commit()?;
         }
         Ok(())
     }
@@ -534,7 +549,7 @@ impl Database {
             .conn
             .query_row(
                 "SELECT id, creator_id, created_at, original_asset_path, rendered_asset_path, mask_asset_path,
-                        material_id, original_number, edition_number, source_type, parent_sticker_id, aspect, creator_name, lineage,state,copy_of,copy_no,source_hash,creator_sig,creator_public_key,verified,new_image
+                        material_id, original_number, edition_number, source_type, parent_sticker_id, aspect, creator_name, lineage,state,copy_of,copy_no,source_hash,creator_sig,creator_public_key,verified,new_image,edition_total,pressed,edition_verified
                  FROM stickers WHERE id = ?1",
                 [id],
                 |r| {
@@ -553,7 +568,7 @@ impl Database {
                         aspect: r.get(11)?,
                         creator_name: r.get(12)?,
                         provenance: Vec::new(),
-                        lineage:r.get(13)?,state:r.get(14)?,copy_of:r.get(15)?,copy_no:r.get(16)?,source_hash:r.get(17)?,creator_sig:r.get(18)?,creator_public_key:r.get(19)?,verified:r.get::<_,bool>(20)?,new_image:r.get::<_,bool>(21)?,
+                        lineage:r.get(13)?,state:r.get(14)?,copy_of:r.get(15)?,copy_no:r.get(16)?,source_hash:r.get(17)?,creator_sig:r.get(18)?,creator_public_key:r.get(19)?,verified:r.get::<_,bool>(20)?,new_image:r.get::<_,bool>(21)?,edition_total:r.get(22)?,pressed:r.get(23)?,edition_verified:r.get(24)?,
                     })
                 },
             )
@@ -878,7 +893,7 @@ impl Database {
     pub fn packs(&self) -> Result<Vec<PackSummary>> {
         let mut stmt = self.conn.prepare(
             "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint, x.cover, x.deco, x.blurb
-             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id AND NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id) LEFT JOIN pack_distributions d ON d.pack_id=p.id LEFT JOIN pack_dress x ON x.pack_id=p.id
+             FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id AND (EXISTS(SELECT 1 FROM edition_pack_frames f WHERE f.pack_id=p.id) OR NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id)) LEFT JOIN pack_distributions d ON d.pack_id=p.id LEFT JOIN pack_dress x ON x.pack_id=p.id
              GROUP BY p.id ORDER BY p.created_at, p.id",
         )?;
         let rows = stmt.query_map([], |r| {
@@ -889,7 +904,7 @@ impl Database {
         Ok(packs)
     }
 
-    fn pack_reward_counts(conn: &Connection, pack_id: &str) -> Result<(i64, i64)> {
+    pub(crate) fn pack_reward_counts(conn: &Connection, pack_id: &str) -> Result<(i64, i64)> {
         let opened = conn.query_row("SELECT COUNT(*) FROM pack_items i WHERE pack_id=?1 AND opened_at IS NOT NULL AND NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id)", [pack_id], |r| r.get::<_,i64>(0))?;
         let claimed = conn.query_row("SELECT COUNT(*) FROM meta WHERE key GLOB 'pack.free_item.*' AND value=?1", [pack_id], |r| r.get::<_,i64>(0))?;
         Ok((opened, claimed))
@@ -897,12 +912,14 @@ impl Database {
 
     pub fn pack_free_openings(&self, pack_id: &str) -> Result<i64> {
         let (opened, claimed) = Self::pack_reward_counts(&self.conn, pack_id)?;
-        Ok((opened / crate::pack::FREE_OPENING_EVERY - claimed).max(0))
+        let available=(opened / crate::pack::FREE_OPENING_EVERY - claimed).max(0);
+        if crate::edition_pack::is_v2(self,pack_id)? {let remaining:i64=self.conn.query_row("SELECT COUNT(*) FROM pack_items WHERE pack_id=?1 AND opened_at IS NULL",[pack_id],|r|r.get(0))?;Ok(available.min(remaining))}else{Ok(available)}
     }
 
     /// A bonus copy spends one earned opening, never a sealed item or Welcome's daily allowance.
     /// Its receipt, signed metadata, Book entry and print queue commit together in the existing v8 DB.
     pub fn claim_pack_free_opening(&mut self, pack_id: &str, template_id: i64, sticker_id: &str, date: &str) -> Result<()> {
+        if crate::edition_pack::is_v2(self,pack_id)? {return Err(Error::Invalid("Use the finite slot opening for this pack.".into()));}
         let tx = self.conn.transaction()?;
         if tx.query_row("SELECT EXISTS(SELECT 1 FROM pack_items i JOIN meta m ON m.key='pack.free_item.' || i.id WHERE i.sticker_id=?1)", [sticker_id], |r| r.get::<_,bool>(0))? {
             return Err(Error::Invalid("This free opening was already claimed.".into()));
@@ -920,7 +937,7 @@ impl Database {
         let ts = now();
         tx.execute("INSERT INTO pack_items(pack_id,item_key,opened_at,sticker_id) SELECT pack_id,item_key,?2,?3 FROM pack_items WHERE id=?1", params![template_id,ts,sticker_id])?;
         let bonus_id = tx.last_insert_rowid();
-        tx.execute("INSERT INTO signed_pack_items SELECT ?1,png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?2", params![bonus_id,template_id])?;
+        tx.execute("INSERT INTO signed_pack_items(item_id,png_path,mask_path,material_id,aspect,name,rarity,finished) SELECT ?1,png_path,mask_path,material_id,aspect,name,rarity,finished FROM signed_pack_items WHERE item_id=?2", params![bonus_id,template_id])?;
         tx.execute("INSERT INTO pack_item_weights SELECT ?1,weight FROM pack_item_weights WHERE item_id=?2", params![bonus_id,template_id])?;
         tx.execute("INSERT INTO meta(key,value) VALUES (?1,?2)", params![format!("pack.free_item.{bonus_id}"),pack_id])?;
         Self::confirm_in(&tx, date, sticker_id, SourceType::Pack, &ts)?;
@@ -1206,7 +1223,7 @@ mod tests {
         assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_items WHERE opened_at IS NOT NULL",[],|r|r.get::<_,i64>(0)).unwrap(),2);
         db.pack_install("signed-test","Signed","Friend",&["item"]).unwrap();
         let (old,_) = db.pack_pick("signed-test",0.0).unwrap().unwrap();
-        db.conn.execute("INSERT INTO signed_pack_items VALUES(?1,'render.png','mask.png','holographic',1.5,'Cutout','rare',1)",[old]).unwrap();
+        db.conn.execute("INSERT INTO signed_pack_items(item_id,png_path,mask_path,material_id,aspect,name,rarity,finished) VALUES(?1,'render.png','mask.png','holographic',1.5,'Cutout','rare',1)",[old]).unwrap();
         db.pack_mark_opened(old,"one").unwrap();
         db.replenish_developer_packs().unwrap();
         let (fresh,_) = db.pack_pick("signed-test",0.0).unwrap().unwrap();
@@ -1438,6 +1455,21 @@ mod tests {
         assert!(db.set_sticker_title("nope", Some("x")).is_err());
         assert_eq!(db.sticker_title("nope").unwrap(), None);
     }
+    #[test]
+    fn v12_to_v13_preserves_weighted_slots_and_existing_ownership() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8,MIGRATION_V9,MIGRATION_V10,MIGRATION_V11,MIGRATION_V12] {conn.execute_batch(migration).unwrap();}
+        conn.pragma_update(None,"user_version",12).unwrap();
+        conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect,lineage,state) VALUES ('real','2026-01-01T00:00:00Z','o','r','gift',1,'real','gone')",[]).unwrap();
+        conn.execute("INSERT INTO packs VALUES ('old','Old pack','Friend','x')",[]).unwrap();conn.execute("INSERT INTO pack_items(id,pack_id,item_key) VALUES (1,'old','drawing')",[]).unwrap();
+        conn.execute("INSERT INTO signed_pack_items VALUES (1,'drawing.png',NULL,'kraft',1,'Drawing','common',1)",[]).unwrap();
+        conn.execute("INSERT INTO pack_item_weights VALUES (1,16)",[]).unwrap();
+        let db=Database::init(conn).unwrap();assert_eq!(db.sticker("real").unwrap().unwrap().state,"gone");assert!(!db.sticker("real").unwrap().unwrap().pressed);
+        let meta:(String,Option<u32>,Option<u32>)=db.conn.query_row("SELECT kind,edition_no,edition_total FROM signed_pack_items WHERE item_id=1",[],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).unwrap();assert_eq!(meta,("sticker".into(),None,None));
+        assert_eq!(db.packs().unwrap()[0].remaining,1);assert_eq!(db.conn.query_row("SELECT weight FROM pack_item_weights",[],|r|r.get::<_,u32>(0)).unwrap(),16);
+        assert!(!crate::edition_pack::is_v2(&db,"old").unwrap());
+    }
+
     #[test]
     fn v11_to_v12_keeps_legacy_records_and_marks_all_as_real() {
         let conn=Connection::open_in_memory().unwrap();
@@ -1675,7 +1707,7 @@ mod tests {
             reward_open(&mut db, "a", 20);
             db.create_sticker(new("free", SourceType::Pack)).unwrap();
             let (item, _) = crate::creator_pack::pick_bonus(&db, "a", 0.0, 0.0).unwrap().unwrap();
-            db.conn.execute("INSERT INTO signed_pack_items VALUES (?1,'png','mask','holographic',1,'Bonus cat','rare',1)", [item]).unwrap();
+            db.conn.execute("INSERT INTO signed_pack_items(item_id,png_path,mask_path,material_id,aspect,name,rarity,finished) VALUES (?1,'png','mask','holographic',1,'Bonus cat','rare',1)", [item]).unwrap();
             db.claim_pack_free_opening("a", item, "free", "2026-10-07").unwrap();
         }
         {

@@ -106,6 +106,9 @@ pub struct Sticker {
     pub creator_public_key: Option<String>,
     pub verified: bool,
     pub new_image: bool,
+    pub pressed:bool,
+    pub edition_total:Option<u32>,
+    pub edition_verified:bool,
 }
 
 /// Everything needed to insert a sticker; `id` and counters are assigned by the library.
