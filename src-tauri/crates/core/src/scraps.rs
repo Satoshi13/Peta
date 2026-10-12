@@ -98,7 +98,10 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
         }
         Kind::Tool => {
             let owned_key = if request.item_id=="board" { crate::boards::OWNED_KEY } else { crate::link_tag::OWNED_KEY };
-            let owned: i64 = tx.query_row("SELECT value FROM meta WHERE key=?1", [owned_key], |r| r.get::<_,String>(0)).optional()?.and_then(|v| v.parse().ok()).unwrap_or(0);
+            let raw: Option<String> = tx.query_row("SELECT value FROM meta WHERE key=?1", [owned_key], |r| r.get(0)).optional()?;
+            let owned: i64 = if request.item_id == "board" {
+                raw.as_deref().and_then(|v| v.parse().ok()).filter(|v| (2..=crate::boards::MAX_OWNED).contains(v)).ok_or_else(|| invalid("invalid_board_stock"))?
+            } else { raw.and_then(|v| v.parse().ok()).unwrap_or(0) };
             let cap=if request.item_id=="board" { crate::boards::MAX_OWNED } else { 1_000_000 };
             let next_owned = owned.checked_add(request.quantity).filter(|v| *v<=cap).ok_or_else(|| invalid(if request.item_id=="board" { "You have all 12 boards." } else { "Link tag count is out of range." }))?;
             tx.execute("INSERT INTO meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![owned_key,next_owned.to_string()])?;
@@ -343,8 +346,10 @@ mod tests {
         let dir=std::env::temp_dir().join(format!("peta-scraps-{}",ids::new_sticker_id()));std::fs::create_dir_all(&dir).unwrap();let path=dir.join("test.db");
         { let mut db=Database::open(&path).unwrap();db.add_material("holographic",2).unwrap(); }
         let barrier=std::sync::Arc::new(std::sync::Barrier::new(2));
-        let workers:Vec<_>=(0..2).map(|_| { let barrier=barrier.clone();let path=path.clone();std::thread::spawn(move || {
-            let mut db=Database::open(&path).unwrap();barrier.wait();db.scrap_trade(&request(Kind::Dismantle,"holographic",1),"same-request").unwrap()
+        // Open before spawning: a failed concurrent migration must not strand a worker at the barrier.
+        let connections=(0..2).map(|_|Database::open(&path).unwrap()).collect::<Vec<_>>();
+        let workers:Vec<_>=connections.into_iter().map(|mut db| { let barrier=barrier.clone();std::thread::spawn(move || {
+            barrier.wait();db.scrap_trade(&request(Kind::Dismantle,"holographic",1),"same-request").unwrap()
         }) }).collect();
         let receipts:Vec<_>=workers.into_iter().map(|w|w.join().unwrap()).collect();assert_eq!(receipts[0],receipts[1]);
         let db=Database::open(&path).unwrap();assert_eq!(db.scrap_status().unwrap().balance,3);assert_eq!(db.material_count("holographic").unwrap(),1);

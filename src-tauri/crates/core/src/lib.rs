@@ -47,3 +47,4 @@ pub mod edition_pack;
 pub mod server;
 
 pub mod boards;
+pub mod board_auto;

@@ -367,9 +367,12 @@ impl Database {
         Ok(())
     }
     pub fn board_delete(&mut self, id: &str) -> Result<()> {
-        if self.conn.execute("DELETE FROM boards WHERE id=?1", [id])? == 0 {
+        let tx = self.conn.transaction()?;
+        tx.execute("DELETE FROM meta WHERE key IN (SELECT 'boards.auto.'||id FROM board_rules WHERE board_id=?1)",[id])?;
+        if tx.execute("DELETE FROM boards WHERE id=?1", [id])? == 0 {
             return Err(invalid("board_not_found"));
         }
+        tx.commit()?;
         Ok(())
     }
     pub fn board_put(
@@ -521,27 +524,35 @@ impl Database {
             rule.id = crate::ids::new_sticker_id();
         }
         tx.execute("INSERT INTO board_rules VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10) ON CONFLICT(id) DO UPDATE SET kind=excluded.kind,days=excluded.days,start_min=excluded.start_min,end_min=excluded.end_min,wifi=excluded.wifi,display_id=excluded.display_id,board_id=excluded.board_id,enabled=excluded.enabled",params![rule.id,rule.sort,rule.kind,rule.days,rule.start_min,rule.end_min,rule.wifi,rule.display_id,rule.board_id,rule.enabled])?;
+        tx.execute(
+            "DELETE FROM meta WHERE key=?1",
+            [format!("boards.auto.{}", rule.id)],
+        )?;
         tx.commit()?;
         Ok(rule)
     }
     pub fn board_rule_delete(&mut self, id: &str) -> Result<()> {
-        if self
-            .conn
-            .execute("DELETE FROM board_rules WHERE id=?1", [id])?
-            == 0
-        {
+        let tx = self.conn.transaction()?;
+        if tx.execute("DELETE FROM board_rules WHERE id=?1", [id])? == 0 {
             return Err(invalid("rule_not_found"));
         }
+        tx.execute(
+            "DELETE FROM meta WHERE key=?1",
+            [format!("boards.auto.{id}")],
+        )?;
+        tx.commit()?;
         Ok(())
     }
     pub fn board_rule_toggle(&mut self, id: &str) -> Result<()> {
-        if self
-            .conn
-            .execute("UPDATE board_rules SET enabled=1-enabled WHERE id=?1", [id])?
-            == 0
-        {
+        let tx = self.conn.transaction()?;
+        if tx.execute("UPDATE board_rules SET enabled=1-enabled WHERE id=?1", [id])? == 0 {
             return Err(invalid("rule_not_found"));
         }
+        tx.execute(
+            "DELETE FROM meta WHERE key=?1",
+            [format!("boards.auto.{id}")],
+        )?;
+        tx.commit()?;
         Ok(())
     }
     pub fn board_rule_move(&mut self, id: &str, direction: &str) -> Result<()> {
@@ -587,7 +598,7 @@ pub(crate) fn put_in(conn: &Connection, id: &str, display: &str) -> Result<PutRe
     )?;
     apply(conn, display, &wanted)
 }
-fn rules(conn: &Connection) -> Result<Vec<Rule>> {
+pub(crate) fn rules(conn: &Connection) -> Result<Vec<Rule>> {
     let mut q=conn.prepare("SELECT id,sort,kind,days,start_min,end_min,wifi,display_id,board_id,enabled FROM board_rules ORDER BY sort,id")?;
     let rows = q.query_map([], |r| {
         Ok(Rule {
@@ -654,6 +665,210 @@ mod tests {
             board_id: board.into(),
             enabled: true,
         }
+    }
+    #[test]
+    fn auto_commits_dates_and_undo_together_and_retries_after_failure() {
+        use crate::board_auto::WifiObservation;
+        use std::collections::HashSet;
+        let mut db = seed();
+        place(&mut db, "a", "one");
+        let b = db.board_save("one", "Work").unwrap();
+        let r = db.board_rule_save(rule(&b.id), &["one".into()]).unwrap();
+        let lower = db.board_rule_save(rule(&b.id), &["one".into()]).unwrap();
+        db.peel("a").unwrap();
+        place(&mut db, "b", "one");
+        let time =
+            chrono::NaiveDateTime::parse_from_str("2026-10-12 09:30", "%Y-%m-%d %H:%M").unwrap();
+        db.conn.execute_batch("CREATE TRIGGER auto_failure BEFORE UPDATE ON placements WHEN NEW.sticker_id='a' BEGIN SELECT RAISE(ABORT,'fail'); END;").unwrap();
+        assert!(db
+            .board_auto(
+                time,
+                WifiObservation::Unavailable,
+                &["one".into()],
+                &HashSet::new()
+            )
+            .is_err());
+        assert_eq!(placements(&db.conn, "one").unwrap()[0].sticker_id, "b");
+        assert!(meta(&db.conn, &format!("boards.auto.{}", r.id))
+            .unwrap()
+            .is_none());
+        assert!(meta(&db.conn, UNDO_KEY).unwrap().is_none());
+        db.conn.execute_batch("DROP TRIGGER auto_failure").unwrap();
+        let applied = db
+            .board_auto(
+                time,
+                WifiObservation::Unavailable,
+                &["one".into()],
+                &HashSet::new(),
+            )
+            .unwrap();
+        assert_eq!(applied.applied.len(), 1);
+        for id in [&r.id, &lower.id] {
+            assert_eq!(
+                meta(&db.conn, &format!("boards.auto.{id}"))
+                    .unwrap()
+                    .as_deref(),
+                Some("2026-10-12")
+            );
+        }
+        db.board_undo().unwrap();
+        assert_eq!(placements(&db.conn, "one").unwrap()[0].sticker_id, "b");
+        // A fresh in-memory latch simulates restarting. Persisted dates prevent another paste.
+        assert!(db
+            .board_auto(
+                time,
+                WifiObservation::Unavailable,
+                &["one".into()],
+                &HashSet::new()
+            )
+            .unwrap()
+            .applied
+            .is_empty());
+        db.board_rule_toggle(&r.id).unwrap();
+        db.board_rule_toggle(&r.id).unwrap();
+        assert_eq!(
+            db.board_auto(
+                time,
+                WifiObservation::Unavailable,
+                &["one".into()],
+                &HashSet::new()
+            )
+            .unwrap()
+            .applied
+            .len(),
+            1
+        );
+    }
+    #[test]
+    fn auto_two_screens_roll_back_every_put_date_and_previous_undo() {
+        use crate::board_auto::WifiObservation;
+        use std::collections::HashSet;
+        let mut db = seed();
+        place(&mut db, "a", "one");
+        let first = db.board_save("one", "One").unwrap();
+        place(&mut db, "c", "two");
+        let second = db.board_save("two", "Two").unwrap();
+        let ids = vec!["one".into(), "two".into()];
+        let r1 = db.board_rule_save(rule(&first.id), &ids).unwrap();
+        let mut r2 = rule(&second.id);
+        r2.display_id = "two".into();
+        let r2 = db.board_rule_save(r2, &ids).unwrap();
+        db.board_put(&first.id, "one", &ids).unwrap();
+        let undo = meta(&db.conn, UNDO_KEY).unwrap();
+        db.peel("a").unwrap();
+        db.peel("c").unwrap();
+        place(&mut db, "b", "one");
+        place(&mut db, "d", "two");
+        let before = db.on_desktop().unwrap();
+        db.conn.execute_batch("CREATE TRIGGER second_failure BEFORE UPDATE ON placements WHEN NEW.sticker_id='c' BEGIN SELECT RAISE(ABORT,'fail'); END;").unwrap();
+        let time =
+            chrono::NaiveDateTime::parse_from_str("2026-10-12 09:30", "%Y-%m-%d %H:%M").unwrap();
+        assert!(db
+            .board_auto(time, WifiObservation::Unavailable, &ids, &HashSet::new())
+            .is_err());
+        assert_eq!(db.on_desktop().unwrap(), before);
+        assert_eq!(meta(&db.conn, UNDO_KEY).unwrap(), undo);
+        for r in [&r1, &r2] {
+            assert!(meta(&db.conn, &format!("boards.auto.{}", r.id))
+                .unwrap()
+                .is_none());
+        }
+        db.conn
+            .execute_batch("DROP TRIGGER second_failure")
+            .unwrap();
+        assert_eq!(
+            db.board_auto(time, WifiObservation::Unavailable, &ids, &HashSet::new())
+                .unwrap()
+                .applied
+                .len(),
+            2
+        );
+        assert_eq!(placements(&db.conn, "one").unwrap()[0].sticker_id, "a");
+        assert_eq!(placements(&db.conn, "two").unwrap()[0].sticker_id, "c");
+    }
+    #[test]
+    fn auto_place_never_persists_observed_wifi_and_location_prompt_is_once() {
+        use crate::board_auto::WifiObservation;
+        use std::collections::HashSet;
+        let mut db = seed();
+        place(&mut db, "a", "one");
+        let b = db.board_save("one", "Home").unwrap();
+        let mut r = rule(&b.id);
+        r.kind = "place".into();
+        r.wifi = Some("Chosen".into());
+        db.board_rule_save(r, &["one".into()]).unwrap();
+        let now = chrono::Local::now().naive_local();
+        assert!(db
+            .board_auto(
+                now,
+                WifiObservation::Connected("Observed-private"),
+                &["one".into()],
+                &HashSet::new()
+            )
+            .unwrap()
+            .applied
+            .is_empty());
+        let values: String = db
+            .conn
+            .prepare("SELECT group_concat(value) FROM meta")
+            .unwrap()
+            .query_row([], |r| r.get(0))
+            .unwrap();
+        assert!(!values.contains("Observed-private"));
+        assert!(!db.board_location_prompted().unwrap());
+        assert!(db.board_location_mark_prompted().unwrap());
+        assert!(!db.board_location_mark_prompted().unwrap());
+        assert!(db
+            .board_auto(
+                now,
+                WifiObservation::Connected("Chosen"),
+                &[],
+                &HashSet::new()
+            )
+            .unwrap()
+            .applied
+            .is_empty());
+        let a = db
+            .board_auto(
+                now,
+                WifiObservation::Connected("Chosen"),
+                &["one".into()],
+                &HashSet::new(),
+            )
+            .unwrap();
+        assert_eq!(a.applied.len(), 1);
+        assert!(db
+            .board_auto(
+                now,
+                WifiObservation::Unavailable,
+                &["one".into()],
+                &a.place_latches
+            )
+            .unwrap()
+            .applied
+            .is_empty());
+    }
+    #[test]
+    fn corrupt_board_stock_cannot_be_replaced_by_a_purchase() {
+        let mut db = seed();
+        db.scrap_welcome().unwrap();
+        set(&db.conn, OWNED_KEY, "broken").unwrap();
+        let before = db.scrap_status().unwrap().balance;
+        assert!(db
+            .scrap_trade(
+                &crate::scraps::Trade {
+                    kind: crate::scraps::Kind::Tool,
+                    item_id: "board".into(),
+                    quantity: 1
+                },
+                "broken-stock"
+            )
+            .is_err());
+        assert_eq!(db.scrap_status().unwrap().balance, before);
+        assert_eq!(
+            meta(&db.conn, OWNED_KEY).unwrap().as_deref(),
+            Some("broken")
+        );
     }
     #[test]
     fn save_update_rename_delete_and_rules_use_reusable_blanks() {
