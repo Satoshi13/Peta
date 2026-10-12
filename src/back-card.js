@@ -1,3 +1,4 @@
+import "./referee-ui.js";
 // The back of a sticker (spec §30): ORIGINAL / Received, who made it, when, which material.
 // Shared by the desktop layer ("turn over") and the Sticker Book. All text comes from Rust (`sticker_back`);
 // this only lays it out. Every value goes in with textContent (names are user input).
@@ -36,12 +37,14 @@ export function renderBackCard(back) {
   if (received) row("Received from", back.receivedFrom, back.receivedOn);
   if (back.material) row("Material", back.material.name);
   face.append(rows);
+  if (back.checked != null) face.append(el("small", "code", PetaRefereeUI.label(back.checked)));
 
   const number = back.originalNumber
     ? `No. ${back.originalNumber}`
     : back.editionNumber
-      ? `Edition #${back.editionNumber}`
+      ? `Edition #${back.editionNumber}${back.editionTotal ? "/" + back.editionTotal : ""}`
       : "";
+  if(back.editionTotal && !back.editionVerified) face.append(el("small", "code", "Edition numbers are not checked by a server yet"));
   if (number) face.append(el("div", "number", number));
 
   const mark = el("div", "peta-mark", "Peta");

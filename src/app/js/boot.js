@@ -14,6 +14,8 @@ async function boot() {
     } else await Shell.open(e.payload);
   });
   await Bridge.listen('distribution-result', async e => {await Bridge.reload(); Shell.refresh(); if(e.payload.pack) Distribution.offer(e.payload.pack);else Shell.toast(e.payload.result);});
+  await Bridge.listen('referee-synced', Bridge.changed);
+  await Bridge.listen('referee-sync-failed', Bridge.changed);
   await Bridge.listen('daily-changed', Bridge.changed);
   await Bridge.listen('placements-changed', Bridge.changed);
   await Bridge.listen('sticker-updated', e => { Bridge.invalidateAsset(e.payload); Bridge.changed(); });

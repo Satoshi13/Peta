@@ -48,6 +48,7 @@ function renderBackCard(back) {
   if (received) row("Received from", back.receivedFrom, back.receivedOn);
   if (back.material) row("Material", back.material.name);
   face.append(rows);
+  if (back.checked != null) face.append(backElement("small", "code", PetaRefereeUI.label(back.checked)));
 
   const number = back.originalNumber
     ? `No. ${back.originalNumber}`
@@ -262,10 +263,11 @@ Pages.book = {
         h("div", h("small", "Made"), h("b", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })))),
       e.lineage === "copy" ? h("p",`Existing copy #${e.copyNo} of ${titleOf(S.lib.find(x=>x.id===e.copyOf) || e)} · Stays on this Mac`) : e.pressed ? h("p","Already pressed") : null,
       e.lineage !== "copy" ? this.existingCopies(e,paint) : null,
+      e.lineage !== "copy" ? h("p.referee-check",PetaRefereeUI.label(e.checked)) : null,
       LinkTags.row(e, paint),
       (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions", main,
         h("div.book-action-row", e.lineage !== "copy" ? act("det-link", "gift", Icon("gift"), "Gift", () => { BK.deleteId = null; StudioOpen("gift", e.id); }) : null,
-          e.canManage && e.lineage !== "copy" ? act("det-link.quiet2", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,
+          e.canManage && e.lineage !== "copy" && e.checked !== "checked" ? act("det-link.quiet2", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,
           e.canManage ? act("det-link.quiet2.danger", "delete", Icon("trash"), "Delete", () => { BK.deleteId = e.id; paint(); }) : null))));
   },
   existingCopies(e,paint) {

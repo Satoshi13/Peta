@@ -23,6 +23,7 @@ Pages.settings = {
         h("button.btn.paper.small",{on:{click:async e=>{const b=e.currentTarget;b.disabled=true;try {await Bridge.invoke("developer_show_arrival");await Shell.close();}catch(err){Shell.toast(String(err));}finally{b.disabled=false;}}}},"Show desktop envelope once"),
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_next_day");S.envelopeDeadline=null;await Bridge.reload();Shell.go("today",{force:true});}catch(e){Shell.toast(String(e));}}}},"Next Day (+1 day)"),
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_sync_displays");Shell.toast("Displays re-synced.");}catch(e){Shell.toast(String(e));}}}},"Re-sync Displays"))));
+    if(S.developer) root.append(RefereeSettings.card());
     root.append(h("p.muted.fine", "In the real app this window also hosts Cutting Mat, Collection, Packs and Gifts — what used to be four separate windows. Stickers stay on your desktop; this window comes and goes from the menu bar."));
     return root;
   },
@@ -69,5 +70,17 @@ const CreatorIcon = {
       close:()=>{observer.disconnect();dialog.remove();Distribution.afterClose();(trigger.isConnected ? trigger : $(".creator-icon-change"))?.focus({preventScroll:true});}
     }},form);
     Bridge.dialogOpen=true;document.body.append(dialog);dialog.showModal();mark();cancel.focus({preventScroll:true});
+  },
+};
+
+const RefereeSettings = {
+  card() {
+    const address=h("p.small","Loading connection…");
+    const contact=h("p.small");
+    const pending=h("p.small");
+    const card=h("section.setcard.referee-tools",h("h2","Peta checks"),address,contact,pending);
+    const refresh=async()=>{try {const state=await Bridge.invoke("referee_status");if(!card.isConnected)return;address.textContent=state.url || "Server checks are disabled.";contact.textContent=state.lastContact ? `Last contact: ${new Date(state.lastContact*1000).toLocaleString()}` : "No contact yet";pending.textContent=`Waiting to check: ${state.pending.registrations} · Taking back: ${state.pending.cancellations} · Pending draws: ${state.pending.slots} · Recovered remote transfers: ${state.pending.reconciliations}`;}catch(e){pending.textContent=String(e);}};
+    card.append(h("button.btn.paper.small",{on:{click:async e=>{const button=e.currentTarget;button.disabled=true;try {await Bridge.invoke("referee_sync");await Bridge.reload();Shell.toast("Checks synced.");}catch(error){Shell.toast(String(error));}finally{button.disabled=false;await refresh();}}}},"Sync now"));
+    queueMicrotask(refresh);return card;
   },
 };
