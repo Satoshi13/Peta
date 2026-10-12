@@ -36,7 +36,7 @@ pub struct Status { pub balance: i64, pub materials: Vec<MaterialRate>, pub pack
 #[serde(rename_all = "camelCase")]
 pub struct ToolRate { pub id: &'static str, pub exchange: i64 }
 /// The link tag's price is provisional (owner has not fixed it).
-const TOOLS: [ToolRate; 1] = [ToolRate { id: "link-tag", exchange: 2 }];
+const TOOLS: [ToolRate; 2] = [ToolRate { id: "link-tag", exchange: 2 }, ToolRate { id: "board", exchange: 12 }];
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Kind { Dismantle, Material, Pack, Tool }
@@ -97,9 +97,11 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
             tx.execute("INSERT OR IGNORE INTO material_unlocks(material_id,unlocked_at) VALUES(?1,?2)", params![request.item_id,chrono::Utc::now().to_rfc3339()])?;
         }
         Kind::Tool => {
-            let owned: i64 = tx.query_row("SELECT value FROM meta WHERE key=?1", [crate::link_tag::OWNED_KEY], |r| r.get::<_,String>(0)).optional()?.and_then(|v| v.parse().ok()).unwrap_or(0);
-            let next_owned = owned.checked_add(request.quantity).filter(|v| *v<=1_000_000).ok_or_else(|| invalid("Link tag count is out of range."))?;
-            tx.execute("INSERT INTO meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![crate::link_tag::OWNED_KEY,next_owned.to_string()])?;
+            let owned_key = if request.item_id=="board" { crate::boards::OWNED_KEY } else { crate::link_tag::OWNED_KEY };
+            let owned: i64 = tx.query_row("SELECT value FROM meta WHERE key=?1", [owned_key], |r| r.get::<_,String>(0)).optional()?.and_then(|v| v.parse().ok()).unwrap_or(0);
+            let cap=if request.item_id=="board" { crate::boards::MAX_OWNED } else { 1_000_000 };
+            let next_owned = owned.checked_add(request.quantity).filter(|v| *v<=cap).ok_or_else(|| invalid(if request.item_id=="board" { "You have all 12 boards." } else { "Link tag count is out of range." }))?;
+            tx.execute("INSERT INTO meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![owned_key,next_owned.to_string()])?;
         }
         Kind::Pack => {
             let own: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM packs WHERE id=?1)", [&request.item_id], |r| r.get(0))?;

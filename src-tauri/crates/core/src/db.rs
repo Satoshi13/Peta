@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 14;
+pub const SCHEMA_VERSION: i64 = 15;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -213,6 +213,13 @@ CREATE TABLE pack_dress (pack_id TEXT PRIMARY KEY REFERENCES packs(id), cover TE
 CREATE TABLE gift_dress (gift_id TEXT PRIMARY KEY REFERENCES gifts_received(gift_id), bag TEXT, deco TEXT, to_name TEXT);
 ";
 
+
+const MIGRATION_V15: &str = "
+CREATE TABLE boards(id TEXT PRIMARY KEY, name TEXT NOT NULL, sort INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE board_items(board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE CASCADE, sticker_id TEXT NOT NULL REFERENCES stickers(id) ON DELETE CASCADE, relative_x REAL NOT NULL, relative_y REAL NOT NULL, relative_scale REAL NOT NULL, rotation REAL NOT NULL, z INTEGER NOT NULL, PRIMARY KEY(board_id,sticker_id));
+CREATE TABLE board_rules(id TEXT PRIMARY KEY, sort INTEGER NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('time','place')), days INTEGER NOT NULL DEFAULT 0, start_min INTEGER, end_min INTEGER, wifi TEXT, display_id TEXT NOT NULL, board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE CASCADE, enabled INTEGER NOT NULL DEFAULT 1);
+INSERT INTO meta(key,value) VALUES ('boards.owned','2');
+";
 
 const MIGRATION_V14: &str = "
 CREATE TABLE pack_market_listings (
@@ -432,6 +439,12 @@ impl Database {
         }
         if version < 14 {
             let tx=self.conn.transaction()?;tx.execute_batch(MIGRATION_V14)?;tx.pragma_update(None,"user_version",14)?;tx.commit()?;
+        }
+        if version < 15 {
+            let tx=self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V15)?;
+            tx.pragma_update(None,"user_version",15)?;
+            tx.commit()?;
         }
         crate::server::schema(&mut self.conn)?;
         Ok(())
@@ -1487,9 +1500,33 @@ mod tests {
         conn.pragma_update(None,"user_version",13).unwrap();conn.execute("INSERT INTO packs VALUES ('saved','Seasonal','Maker','x')",[]).unwrap();
         conn.execute("INSERT INTO pack_items(pack_id,item_key) VALUES ('saved','design')",[]).unwrap();conn.execute("INSERT INTO edition_pack_frames VALUES ('saved','header','digest')",[]).unwrap();conn.execute("INSERT INTO meta VALUES ('pack.archive.saved','digest')",[]).unwrap();
         let db=Database::init(conn).unwrap();let packs=db.packs().unwrap();assert_eq!(packs.len(),1);assert_eq!((packs[0].total,packs[0].remaining),(1,1));assert!(!packs[0].listed);assert!(packs[0].edition_pack);
-        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),14);assert_eq!(db.conn.query_row("SELECT header FROM edition_pack_frames",[],|r|r.get::<_,String>(0)).unwrap(),"header");assert_eq!(db.conn.query_row("SELECT value FROM meta WHERE key='pack.archive.saved'",[],|r|r.get::<_,String>(0)).unwrap(),"digest");
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),SCHEMA_VERSION);assert_eq!(db.conn.query_row("SELECT header FROM edition_pack_frames",[],|r|r.get::<_,String>(0)).unwrap(),"header");assert_eq!(db.conn.query_row("SELECT value FROM meta WHERE key='pack.archive.saved'",[],|r|r.get::<_,String>(0)).unwrap(),"digest");
         assert_eq!(crate::server::counts(&db).unwrap().registrations,0);assert_eq!(crate::server::checked(&db,"missing").unwrap(),None);
         db.conn.execute("INSERT INTO pack_market_listings VALUES ('saved','x')",[]).unwrap();db.conn.execute("DELETE FROM pack_items WHERE pack_id='saved'",[]).unwrap();db.conn.execute("DELETE FROM packs WHERE id='saved'",[]).unwrap();assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_market_listings",[],|r|r.get::<_,i64>(0)).unwrap(),0);
+    }
+
+    #[test]
+    fn v14_to_v15_preserves_existing_library_and_grants_two_boards_once() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8,MIGRATION_V9,MIGRATION_V10,MIGRATION_V11,MIGRATION_V12,MIGRATION_V13,MIGRATION_V14] {conn.execute_batch(migration).unwrap();}
+        conn.pragma_update(None,"user_version",14).unwrap();
+        conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect,title) VALUES ('old','x','o','r','created',1,'Old')",[]).unwrap();
+        conn.execute("INSERT INTO placements VALUES ('old','external',0.3,0.4,0.1,5,'x',1,9)",[]).unwrap();
+        conn.execute("INSERT INTO print_queue(sticker_id,queued_at) VALUES ('old','x')",[]).unwrap();
+        conn.execute("INSERT INTO meta VALUES ('scraps.balance','37')",[]).unwrap();
+        conn.execute("INSERT INTO material_stock VALUES ('kraft',4)",[]).unwrap();
+        let mut db=Database::init(conn).unwrap();
+        assert_eq!(db.board_stock().unwrap().owned,2);
+        assert_eq!(db.board_stock().unwrap().available,2);
+        assert_eq!(db.on_desktop().unwrap()[0].display_id,"external");
+        assert_eq!(db.on_desktop().unwrap()[0].z,9);
+        assert_eq!(db.next_print().unwrap().as_deref(),Some("old"));
+        assert_eq!(db.sticker_title("old").unwrap().as_deref(),Some("Old"));
+        assert_eq!(db.scrap_status().unwrap().balance,37);
+        assert_eq!(db.material_count("kraft").unwrap(),4);
+        db.board_save("external","Kept").unwrap();db.migrate().unwrap();
+        assert_eq!(db.board_stock().unwrap().available,1);
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),15);
     }
 
     #[test]
@@ -1500,7 +1537,7 @@ mod tests {
         let mut db=Database::init(conn).unwrap();crate::server::schema(&mut db.conn).unwrap();
         assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_market_listings",[],|r|r.get::<_,u32>(0)).unwrap(),1);
         assert_eq!(crate::server::counts(&db).unwrap().slots,0);
-        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),14);
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),SCHEMA_VERSION);
     }
 
     #[test]
