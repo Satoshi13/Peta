@@ -91,20 +91,31 @@ pub fn transfer_gift(lib:&mut Library,sticker_id:&str,to:&str,note:Option<&str>,
     let sticker=lib.db().held_sticker(sticker_id)?.ok_or_else(||Error::Invalid("Sticker not held here.".into()))?;o::require_real(&sticker)?;
     let png=lib.read_rendered(sticker_id)?;let mask=sticker.mask_asset_path.as_ref().map(|p|lib.read_asset(p)).transpose()?.unwrap_or_default();
     let key=crate::device_key::load_or_create(lib.root())?;let mut chain=o::chain_for(lib.db(),&sticker,&png,&key)?;
+    let tracked=crate::server::ensure_registered(lib.db_mut(),&chain.creation,referee)?;
     let gift_id=new_gift_id();let release=o::append(&mut chain,"release",&gift_id,&key)?;o::sticker_chain_verify(&chain,&png)?;
     let header=GiftHeader{gift_id:gift_id.clone(),from:lib.db().display_name()?,note:note.map(str::trim).filter(|n|!n.is_empty()).map(|n|n.chars().take(if dressed {GIFT_NOTE_MAX}else{140}).collect()),sent_at:release.at.clone(),edition:None,
         origin:Origin{sticker_id:sticker.id.clone(),creator_name:sticker.creator_name.clone(),created_at:sticker.created_at.clone(),material_id:sticker.material_id.clone(),aspect:sticker.aspect},
         png_len:png.len(),mask_len:mask.len(),signer:Some(crate::sign::Signer::Device{public_key:crate::sign::public_key(&key)}),bag:dress.bag.clone(),deco:dress.bag.as_ref().and(dress.deco.clone()),to:wrapped_to,history:Some(chain.clone())};
     let bytes=crate::sign::seal(MAGIC,VERSION,&header,&[png,mask].concat(),&key)?;decode_gift(&bytes)?;
+    if tracked {crate::server::enqueue(&lib.db().conn,"cancel_release",sticker_id,&release)?;}
+    let result=(||->Result<()> {
     let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     if tx.query_row("SELECT state FROM stickers WHERE id=?1",[sticker_id],|r|r.get::<_,String>(0))? != "held" {return Err(Error::Invalid("Sticker not held here.".into()));}
     let count:u32=tx.query_row("SELECT COUNT(*) FROM transfers WHERE sticker_id=?1",[sticker_id],|r|r.get(0))?;
     if count!=release.seq {return Err(Error::Invalid("Sticker history changed while sealing.".into()));}
-    referee.release(&release)?;o::store_creation(&tx,&chain.creation)?;o::store_transfer(&tx,&release)?;
+    if tracked || !referee.enabled() {referee.release(&release)?;}o::store_creation(&tx,&chain.creation)?;o::store_transfer(&tx,&release)?;
     tx.execute("INSERT INTO gifts_sent(gift_id,sticker_id,edition,to_label,sent_at) VALUES (?1,?2,0,?3,?4)",rusqlite::params![gift_id,sticker_id,to,release.at])?;
     o::provenance(&tx,sticker_id,"gifted",Some(to),&release.at)?;o::release_local(&tx,sticker_id)?;
     tx.execute("INSERT INTO meta(key,value) VALUES (?1,'1')",[format!("export.{gift_id}")])?;
-    persist(&bytes)?;tx.commit()?;Ok((gift_id,bytes))
+    persist(&bytes)?;
+    if tracked {crate::server::remove(&tx,"cancel_release",sticker_id)?;}
+    tx.commit()?;Ok(())
+    })();
+    if let Err(e)=result {
+        if tracked {if matches!(&e,Error::Referee(o::RefereeError::Rejected(_))) {crate::server::remove(&lib.db().conn,"cancel_release",sticker_id)?;}else{crate::server::compensate_release(lib.db(),referee,&release)?;}}
+        return Err(e);
+    }
+    Ok((gift_id,bytes))
 }
 
 pub struct Decoded<'a> {
@@ -189,16 +200,26 @@ pub fn receive_gift_with_referee(lib: &mut Library, bytes: &[u8],referee:&dyn cr
             let previous=stmt.query_map([id],|r|Ok(crate::ownership::Transfer{sticker_id:id.clone(),seq:r.get(0)?,kind:r.get(1)?,actor_key:r.get(2)?,reference:r.get(3)?,at:r.get(4)?,sig:r.get(5)?}))?.collect::<std::result::Result<Vec<_>,_>>()?;
             if old.state!="gone"||creation!=chain.creation||!chain.transfers.starts_with(&previous)||chain.transfers.len()<=previous.len() {return Err(bad("incoming history does not extend your record"));}
         }
-        let key=crate::device_key::load_or_create(lib.root())?;crate::ownership::append(chain,"claim",&d.header.gift_id,&key)?;crate::ownership::sticker_chain_verify(chain,d.png)?;
+        let key=crate::device_key::load_or_create(lib.root())?;
+        use rusqlite::OptionalExtension;
+        let pending:Option<(String,String)>=lib.db().conn.query_row("SELECT chain,content_digest FROM gift_claim_pending WHERE gift_id=?1",[&d.header.gift_id],|r|Ok((r.get(0)?,r.get(1)?))).optional()?;
+        if let Some((saved,digest))=pending {
+            if digest!=crate::ownership::digest(bytes){return Err(bad("pending gift changed"));}
+            *chain=serde_json::from_str(&saved).map_err(|_|bad("damaged pending claim"))?;
+        }else{crate::ownership::append(chain,"claim",&d.header.gift_id,&key)?;}
+        crate::ownership::sticker_chain_verify(chain,d.png)?;
+        if referee.enabled() {lib.db().conn.execute("INSERT OR IGNORE INTO gift_claim_pending VALUES (?1,?2,?3)",rusqlite::params![d.header.gift_id,crate::server::json(chain)?,crate::ownership::digest(bytes)])?;}
+
     }
     use sha2::{Digest,Sha256};
     let content_id=Sha256::digest(bytes).iter().map(|b|format!("{b:02x}")).collect::<String>();
     let rel = format!("gifts/{content_id}.peta");
     let mut writes=crate::asset_writes::AssetWrites::new(lib);writes.write(&rel, bytes)?;
+    let checked=if referee.enabled() {incoming.as_ref().map(|c|crate::server::known_status(referee,&c.creation.sticker_id)).transpose()?.unwrap_or(false)}else{false};
     let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     if let Some(chain)=&incoming {
         if tx.query_row("SELECT EXISTS(SELECT 1 FROM stickers WHERE id=?1 AND state='held')",[&chain.creation.sticker_id],|r|r.get::<_,bool>(0))? {return Err(bad("sticker already held"));}
-        referee.claim(chain.transfers.last().unwrap())?;
+        if checked || !referee.enabled() {referee.claim(chain.transfers.last().unwrap())?;}
     }
     let identity=if let Some(crate::sign::Signer::Device{public_key})=&d.header.signer {Some(crate::friends::observe(&tx,public_key,&d.header.from)?)} else {None};
     tx.execute("INSERT INTO gifts_received(gift_id,from_name,note,sent_at,received_at,package) VALUES (?1,?2,?3,?4,?5,?6)",rusqlite::params![d.header.gift_id,identity.as_ref().map(|i|i.name.as_str()).unwrap_or(&d.header.from),d.header.note,d.header.sent_at,now(),rel])?;
@@ -207,6 +228,8 @@ pub fn receive_gift_with_referee(lib: &mut Library, bytes: &[u8],referee:&dyn cr
     }
     tx.execute("INSERT INTO gift_signers VALUES (?1,?2,?3,?4)",rusqlite::params![d.header.gift_id,identity.as_ref().map(|i|i.status.as_str()).unwrap_or("unsigned"),identity.as_ref().map(|i|&i.fingerprint),identity.as_ref().map(|i|&i.public_key)])?;
     if let Some(chain)=incoming {tx.execute("INSERT INTO gift_claims VALUES (?1,?2,?3)",rusqlite::params![d.header.gift_id,chain.creation.sticker_id,serde_json::to_string(&chain).map_err(|_|bad("could not save history"))?])?;}
+    tx.execute("INSERT INTO gift_server_checks VALUES (?1,?2)",rusqlite::params![d.header.gift_id,checked])?;
+    tx.execute("DELETE FROM gift_claim_pending WHERE gift_id=?1",[&d.header.gift_id])?;
     writes.commit(tx)?;
     lib.db()
         .gifts_received()?
@@ -244,6 +267,7 @@ fn open_gift_inner(lib: &mut Library, gift_id: &str,date:Option<&str>) -> Result
     };
     let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     tx.execute("INSERT INTO stickers(id,creator_id,creator_name,created_at,original_asset_path,rendered_asset_path,mask_asset_path,material_id,source_type,aspect,parent_sticker_id,edition_number) VALUES (?1,NULL,?2,?3,?4,?4,?5,?6,'gift',?7,?8,?9)",rusqlite::params![id,h.origin.creator_name,h.origin.created_at,rendered_rel,mask_rel,h.origin.material_id,h.origin.aspect,h.origin.sticker_id,h.edition])?;
+    tx.execute("UPDATE stickers SET checked='pre_server' WHERE id=?1",[&id])?;
     crate::ownership::provenance(&tx,&id,"created",None,&h.origin.created_at)?;
     crate::ownership::provenance(&tx,&id,"gifted",Some(&h.from),&h.sent_at)?;
     crate::ownership::provenance(&tx,&id,"received",Some(&h.from),&now())?;
@@ -272,6 +296,8 @@ fn open_transfer(lib:&mut Library,gift_id:&str,d:&Decoded<'_>,date:Option<&str>)
         _=>return Err(bad("invalid held state")),
     }
     o::store_creation(&tx,&chain.creation)?;
+    let checked:bool=tx.query_row("SELECT checked FROM gift_server_checks WHERE gift_id=?1",[gift_id],|r|r.get(0)).optional()?.unwrap_or(false);
+    tx.execute("UPDATE stickers SET checked=?2,edition_verified=?3 WHERE id=?1",rusqlite::params![id,if checked {"checked"}else{"pre_server"},checked])?;
     tx.execute("UPDATE stickers SET edition_number=?2,edition_total=?3 WHERE id=?1",rusqlite::params![id,chain.creation.edition_no,chain.creation.edition_total])?;
     let existing:usize=tx.query_row("SELECT COUNT(*) FROM transfers WHERE sticker_id=?1",[id],|r|r.get(0))?;
     for transfer in chain.transfers.iter().skip(existing) {o::store_transfer(&tx,transfer)?;}
@@ -322,7 +348,7 @@ mod tests {
 
     struct Refuse;
     impl crate::ownership::Referee for Refuse {
-        fn register(&self,_:&str,_:&str)->Result<()> {Err(bad("referee refused"))}
+        fn register(&self,_:&crate::ownership::Creation)->Result<()> {Err(bad("referee refused"))}
         fn release(&self,_:&crate::ownership::Transfer)->Result<()> {Err(bad("referee refused"))}
         fn claim(&self,_:&crate::ownership::Transfer)->Result<()> {Err(bad("referee refused"))}
     }

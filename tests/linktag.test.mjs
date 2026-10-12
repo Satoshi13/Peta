@@ -24,7 +24,7 @@ test('the kinds a tag may have are the same in the dialog and in Rust, and the R
 
 test('a Gift transaction releases tags and its serialized envelope never carries a target', () => {
   const core=read('src-tauri/crates/core/src/gift.rs'), ownership=read('src-tauri/crates/core/src/ownership.rs');
-  assert.ok(core.indexOf('o::release_local') < core.indexOf('persist(&bytes)?;tx.commit()'));
+  assert.ok(core.indexOf('o::release_local') < core.indexOf('persist(&bytes)?'));
   assert.match(ownership,/\["placements","link_tags","print_queue"\]/);
   const header=core.slice(core.indexOf('pub struct GiftHeader'),core.indexOf('pub const GIFT_BAGS'));
   assert.doesNotMatch(header,/pub (target|link_tag)/);

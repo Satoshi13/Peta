@@ -56,12 +56,13 @@ mod tests {
         db.seed_legacy_copies("c",1).unwrap();
         crate::scraps::NEW_STICKER_CALLS.with(|c|assert_eq!(*c.borrow(),vec![("a".into(),true),("b".into(),false),("c".into(),true)]));
     }
-    #[test] fn refused_registration_does_not_record_a_source_or_a_sticker() {
-        struct Reject;
-        impl Referee for Reject {fn register(&self,_:&str,_:&str)->Result<()>{Err(invalid("refused"))}fn release(&self,_:&Transfer)->Result<()>{Ok(())}fn claim(&self,_:&Transfer)->Result<()>{Ok(())}}
+    #[test] fn creation_queues_registration_without_contacting_the_service() {
+        struct Offline;
+        impl Referee for Offline {fn register(&self,_:&Creation)->Result<()>{Err(RefereeError::Offline.into())}}
         let mut db=Database::open_in_memory().unwrap();let key=sign::generate().unwrap();
-        assert!(db.create_signed_sticker(new("refused"),b"source",b"png",&key,&Reject).is_err());assert_eq!(db.sticker_count().unwrap(),0);
-        assert!(db.create_signed_sticker(new("accepted"),b"source",b"png",&key,&NoReferee).unwrap().new_image);
+        let s=db.create_signed_sticker(new("offline"),b"source",b"png",&key,&Offline).unwrap();
+        assert_eq!(crate::server::checked(&db,&s.id).unwrap().as_deref(),Some("pending"));
+        assert_eq!(crate::server::counts(&db).unwrap().registrations,1);
     }
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -131,10 +132,38 @@ pub(crate) fn stored_transfers(conn:&Connection,id:&str)->Result<Vec<Transfer>> 
     let mut stmt=conn.prepare("SELECT seq,kind,actor_key,ref,at,sig FROM transfers WHERE sticker_id=?1 ORDER BY seq")?;
     let rows=stmt.query_map([id],|r|Ok(Transfer{sticker_id:id.into(),seq:r.get(0)?,kind:r.get(1)?,actor_key:r.get(2)?,reference:r.get(3)?,at:r.get(4)?,sig:r.get(5)?}))?.collect::<std::result::Result<Vec<_>,_>>()?;Ok(rows)
 }
-/// A future service can reject a fork. Rejections happen before a local transaction commits.
-pub trait Referee { fn register(&self,sticker_id:&str,creator_sig:&str)->Result<()>;fn release(&self,release:&Transfer)->Result<()>;fn claim(&self,claim:&Transfer)->Result<()>;fn claim_slot(&self,_pack_id:&str,_slot:u32,_claimer_key:&str)->Result<()> {Ok(())} }
+/// Service failures remain distinct from local SQL and file errors.
+#[derive(Clone,Debug,PartialEq,Eq)]
+pub enum RefereeError {Offline,Rejected(String),Unknown}
+impl std::fmt::Display for RefereeError {fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result {match self {Self::Offline=>write!(f,"offline"),Self::Rejected(code)=>write!(f,"{code}"),Self::Unknown=>write!(f,"unknown")}}}
+impl From<RefereeError> for Error {fn from(e:RefereeError)->Self {Self::Referee(e)}}
+#[derive(Clone,Debug,PartialEq,Eq)]
+pub enum Status {Unknown,Held{holder:String},Released}
+#[derive(Clone,Debug,Serialize,Deserialize)]
+#[serde(rename_all="camelCase")]
+pub struct EditionRegistration {pub creation:Creation,pub release:Transfer}
+#[derive(Clone,Debug,Serialize,Deserialize)]
+#[serde(rename_all="camelCase")]
+pub struct PackRegistration {pub pack_id:String,pub creator_key:String,pub slot_count:u32,pub header_digest:String,pub editions:Vec<EditionRegistration>,pub moved_releases:Vec<Transfer>,#[serde(default)] pub source_ids:Vec<String>}
+pub trait Referee {
+    fn enabled(&self)->bool {true}
+    fn register(&self,_:&Creation)->Result<()> {Ok(())}
+    fn release(&self,_:&Transfer)->Result<()> {Ok(())}
+    fn cancel_release(&self,_:&Transfer)->Result<()> {Ok(())}
+    fn claim(&self,_:&Transfer)->Result<()> {Ok(())}
+    fn register_pack(&self,p:&PackRegistration)->Result<()> {for e in &p.editions {self.register(&e.creation)?;self.release(&e.release)?;}for t in &p.moved_releases {self.release(t)?;}Ok(())}
+    fn cancel_pack(&self,_:&str,_:&str)->Result<()> {Ok(())}
+    fn claim_slot(&self,_:&str,_:u32,claim:Option<&Transfer>)->Result<()> {if let Some(t)=claim {self.claim(t)?;}Ok(())}
+    fn claimed_slots(&self,_:&str)->Result<Vec<u32>> {Ok(vec![])}
+    fn status(&self,_:&str)->Result<Status> {Ok(Status::Released)}
+    fn pack_known(&self,_:&str)->Result<bool> {Ok(true)}
+}
 pub struct NoReferee;
-impl Referee for NoReferee { fn register(&self,_:&str,_:&str)->Result<()>{Ok(())}fn release(&self,_:&Transfer)->Result<()>{Ok(())}fn claim(&self,_:&Transfer)->Result<()>{Ok(())} }
+impl Referee for NoReferee {
+    fn enabled(&self)->bool {false}
+    fn status(&self,_:&str)->Result<Status>{Ok(Status::Unknown)}
+    fn pack_known(&self,_:&str)->Result<bool>{Ok(false)}
+}
 pub fn chain_for(db:&Database,s:&Sticker,png:&[u8],key:&SigningKey)->Result<Chain> {
     let record:Option<String>=db.conn.query_row("SELECT creation_record FROM stickers WHERE id=?1",[&s.id],|r|r.get(0))?;
     let creation=if let Some(record)=record {serde_json::from_str(&record).map_err(|_|invalid("Damaged stored origin."))?} else {

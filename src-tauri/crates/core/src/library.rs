@@ -123,6 +123,11 @@ impl Library {
     /// Write immutable revision files first, then switch the database pointer. Failed writes preserve the old sticker.
     pub fn update_original(&mut self, id: &str, rendered: &crate::creator::Rendered, editor: &crate::creator::EditorState) -> Result<()> {
         let (sticker, _, _, _) = self.original_for_edit(id)?;
+        if crate::server::enabled(&self.db)? {
+            let check=crate::server::checked(&self.db,id)?;
+            let attempted:bool=self.db.conn.query_row("SELECT EXISTS(SELECT 1 FROM referee_outbox WHERE target=?1 AND (kind!='register' OR attempts>0))",[id],|r|r.get(0))?;
+            if check.as_deref()==Some("checked") || attempted {return Err(Error::Invalid("A checked original cannot be edited. Make a new sticker.".into()));}
+        }
         let dir = format!("stickers/{}/revisions/{}", sticker.id, new_sticker_id());
         let png = format!("{dir}/rendered.png"); let mask = format!("{dir}/mask.png");
         let result = (|| {
@@ -132,7 +137,9 @@ impl Library {
             let creation=crate::ownership::Creation::new(id,sticker.creator_name.clone(),&sticker.created_at,&rendered.sticker_png,&key)?;
             let tx=self.db.conn.transaction()?;
             tx.execute("UPDATE stickers SET rendered_asset_path=?2,mask_asset_path=?3,aspect=?4 WHERE id=?1 OR copy_of=?1",rusqlite::params![id,png,mask,rendered.aspect()])?;
-            crate::ownership::store_creation(&tx,&creation)?;tx.commit()?;Ok(())
+            crate::ownership::store_creation(&tx,&creation)?;
+            if tx.query_row("SELECT EXISTS(SELECT 1 FROM referee_outbox WHERE kind='register' AND target=?1)",[id],|r|r.get::<_,bool>(0))? {crate::server::enqueue(&tx,"register",id,&creation)?;}
+            tx.commit()?;Ok(())
         })();
         if result.is_err() { let _ = fs::remove_dir_all(self.assets_dir.join(dir)); }
         result

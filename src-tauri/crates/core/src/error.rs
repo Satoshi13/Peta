@@ -3,6 +3,7 @@ use std::fmt;
 #[derive(Debug)]
 pub enum Error {
     Db(rusqlite::Error),
+    Referee(crate::ownership::RefereeError),
     Io(std::io::Error),
     Image(String),
     /// Segmentation model could not be loaded or run.
@@ -21,6 +22,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Error::Referee(e) => write!(f,"{e}"),
             Error::Db(e) => write!(f, "database error: {e}"),
             Error::Io(e) => write!(f, "io error: {e}"),
             Error::Image(e) => write!(f, "image error: {e}"),

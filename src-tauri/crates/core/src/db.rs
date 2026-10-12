@@ -433,6 +433,7 @@ impl Database {
         if version < 14 {
             let tx=self.conn.transaction()?;tx.execute_batch(MIGRATION_V14)?;tx.pragma_update(None,"user_version",14)?;tx.commit()?;
         }
+        crate::server::schema(&mut self.conn)?;
         Ok(())
     }
 
@@ -546,7 +547,8 @@ impl Database {
         )?;
         let mut new_image=false;
         if let Some((source,_,_,referee))=signing {
-            let c=creation.as_ref().unwrap();referee.register(&new.id,c.creator_sig.as_deref().unwrap())?;
+            let c=creation.as_ref().unwrap();
+            if referee.enabled() || tx.query_row("SELECT EXISTS(SELECT 1 FROM meta WHERE key='server.migrated_at')",[],|r|r.get::<_,bool>(0))? {crate::server::enqueue(&tx,"register",&new.id,c)?;tx.execute("UPDATE stickers SET checked='pending' WHERE id=?1",[&new.id])?;}
             crate::ownership::store_creation(&tx,c)?;
             let hash=crate::ownership::digest(source);
             new_image=tx.execute("INSERT OR IGNORE INTO seen_sources VALUES (?1,?2)",params![hash,created_at])?>0;
@@ -905,7 +907,7 @@ impl Database {
 
     pub fn packs(&self) -> Result<Vec<PackSummary>> {
         let mut stmt = self.conn.prepare(
-            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint, x.cover, x.deco, x.blurb, EXISTS(SELECT 1 FROM pack_market_listings l WHERE l.pack_id=p.id), EXISTS(SELECT 1 FROM edition_pack_frames f WHERE f.pack_id=p.id)
+            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL AND NOT EXISTS(SELECT 1 FROM edition_pack_slots e JOIN pack_slot_exclusions x ON x.slot_no=e.slot_no AND x.pack_id=p.id WHERE e.item_id=i.id) THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint, x.cover, x.deco, x.blurb, EXISTS(SELECT 1 FROM pack_market_listings l WHERE l.pack_id=p.id), EXISTS(SELECT 1 FROM edition_pack_frames f WHERE f.pack_id=p.id)
              FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id AND (EXISTS(SELECT 1 FROM edition_pack_frames f WHERE f.pack_id=p.id) OR NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id)) LEFT JOIN pack_distributions d ON d.pack_id=p.id LEFT JOIN pack_dress x ON x.pack_id=p.id
              GROUP BY p.id ORDER BY p.created_at, p.id",
         )?;
@@ -1469,14 +1471,26 @@ mod tests {
         assert_eq!(db.sticker_title("nope").unwrap(), None);
     }
     #[test]
-    fn v13_to_v14_adds_only_unlisted_visibility_and_cascades_on_pack_delete() {
+    fn v13_to_v14_preserves_data_and_adds_s1_and_unlisted_visibility() {
         let conn=Connection::open_in_memory().unwrap();
         for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8,MIGRATION_V9,MIGRATION_V10,MIGRATION_V11,MIGRATION_V12,MIGRATION_V13] {conn.execute_batch(migration).unwrap();}
         conn.pragma_update(None,"user_version",13).unwrap();conn.execute("INSERT INTO packs VALUES ('saved','Seasonal','Maker','x')",[]).unwrap();
         conn.execute("INSERT INTO pack_items(pack_id,item_key) VALUES ('saved','design')",[]).unwrap();conn.execute("INSERT INTO edition_pack_frames VALUES ('saved','header','digest')",[]).unwrap();conn.execute("INSERT INTO meta VALUES ('pack.archive.saved','digest')",[]).unwrap();
         let db=Database::init(conn).unwrap();let packs=db.packs().unwrap();assert_eq!(packs.len(),1);assert_eq!((packs[0].total,packs[0].remaining),(1,1));assert!(!packs[0].listed);assert!(packs[0].edition_pack);
         assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),14);assert_eq!(db.conn.query_row("SELECT header FROM edition_pack_frames",[],|r|r.get::<_,String>(0)).unwrap(),"header");assert_eq!(db.conn.query_row("SELECT value FROM meta WHERE key='pack.archive.saved'",[],|r|r.get::<_,String>(0)).unwrap(),"digest");
+        assert_eq!(crate::server::counts(&db).unwrap().registrations,0);assert_eq!(crate::server::checked(&db,"missing").unwrap(),None);
         db.conn.execute("INSERT INTO pack_market_listings VALUES ('saved','x')",[]).unwrap();db.conn.execute("DELETE FROM pack_items WHERE pack_id='saved'",[]).unwrap();db.conn.execute("DELETE FROM packs WHERE id='saved'",[]).unwrap();assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_market_listings",[],|r|r.get::<_,i64>(0)).unwrap(),0);
+    }
+
+    #[test]
+    fn old_v14_is_extended_once_without_losing_market_data() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8,MIGRATION_V9,MIGRATION_V10,MIGRATION_V11,MIGRATION_V12,MIGRATION_V13,MIGRATION_V14] {conn.execute_batch(migration).unwrap();}
+        conn.pragma_update(None,"user_version",14).unwrap();conn.execute("INSERT INTO packs VALUES ('saved','Pack','Maker','x')",[]).unwrap();conn.execute("INSERT INTO pack_market_listings VALUES ('saved','x')",[]).unwrap();
+        let mut db=Database::init(conn).unwrap();crate::server::schema(&mut db.conn).unwrap();
+        assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_market_listings",[],|r|r.get::<_,u32>(0)).unwrap(),1);
+        assert_eq!(crate::server::counts(&db).unwrap().slots,0);
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),14);
     }
 
     #[test]
