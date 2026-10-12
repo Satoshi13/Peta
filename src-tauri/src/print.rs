@@ -72,7 +72,7 @@ pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, s
         }
         lib.db_mut().finish_print(&sticker_id).map_err(|e|e.to_string())?;
     }
-    // Keep later jobs queued until an explicit Resume; don't feed another sheet while this Peta is being adjusted.
+    // Keep later jobs queued until the person chooses another sticker to stick; don't feed another sheet while this Peta is being adjusted.
     layers::set_print(&app, false);
     // Straight into Edit Mode: the new sticker can be resized, turned and moved right away instead of being stuck
     // before you have had a chance to adjust it. Esc / Done leaves it.
@@ -81,13 +81,13 @@ pub fn print_paste(app: AppHandle, layers: State<Layers>, store: State<Store>, s
     Ok(())
 }
 
-/// Not now: the layer goes back to resting, the Peta keeps waiting (menu bar → Today's Peta brings it back).
+/// Not now: the layer goes back to resting; the saved Peta can be chosen in the Collection.
 #[tauri::command]
 pub fn print_later(app: AppHandle) {
     layers::set_print(&app, false);
 }
 
-/// Resume after a ceremony, or from the tray. The pending print remains in Rust storage.
+/// Print stickers chosen in a ceremony or the Collection. The pending print remains in Rust storage.
 #[tauri::command]
 /// `sticker_ids` are the ones the person has just chosen to stick: they print first, in that order, ahead of anything that was already waiting.
 pub fn print_resume(app: AppHandle, store: State<Store>, sticker_ids: Option<Vec<String>>) -> Result<(), String> {

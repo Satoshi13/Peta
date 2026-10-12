@@ -26,7 +26,7 @@ async function fixture(active = false, pending) {
   return {calls, assets, tick, emit:on=>events['print-changed']({payload:on})};
 }
 
-test('saved queue stays quiet on launch until Resume requests printing', async()=>{
+test('saved queue stays quiet on launch until a Stick action requests printing', async()=>{
   const f = await fixture();
   assert.deepEqual(f.calls, ['layer_info']);
   assert.deepEqual(f.assets, []);

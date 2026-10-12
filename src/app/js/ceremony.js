@@ -396,7 +396,7 @@ const Cer = (() => {
       catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
       gift.opened=true;const savedGift=S.gifts.find(g=>g.id===gift.id);if(savedGift)savedGift.opened=true;
       try {entry=await Bridge.entry(id);await Bridge.reload();}
-      catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; resume printing from the Peta menu.');return;}
+      catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; find it in your Collection.');return;}
       let pulled = false; const base = sleeve.style.transform;
       drag(sleeve, {
         down: () => !pulled,
@@ -411,11 +411,11 @@ const Cer = (() => {
         const r = sleeve.getBoundingClientRect(), sr = stage.getBoundingClientRect();
         stage.append(sleeve); sleeve.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;`;
         try {await unwrapAndReveal({ cer, stage, sleeve, entry, source: `Gift from ${gift.from}`, onKeep: keep, onLater: later });}
-        catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; resume printing from the Peta menu.');}
+        catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; find it in your Collection.');}
       }
     };
-    const keep = async () => { if(settling)return;settling=true;Bridge.busy=false;await cer.close();Shell.refresh();try {await Desktop.print(entry);Shell.toast("A gift from " + gift.from + ".");} catch {Shell.toast('Gift saved. Resume printing from the Peta menu.');} };
-    const later = async () => { if(settling)return;settling=true;try {await Bridge.invoke("print_later");} catch {await closeCommittedPreview(cer,'Gift saved. Resume printing from the Peta menu.');return;}Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast("Waiting at the print slot — open the Peta menu.");Shell.renderNav(); };
+    const keep = async () => { if(settling)return;settling=true;Bridge.busy=false;await cer.close();Shell.refresh();try {await Desktop.print(entry);Shell.toast("A gift from " + gift.from + ".");} catch {Shell.toast('Gift saved. Stick it from your Collection whenever you like.');} };
+    const later = async () => { if(settling)return;settling=true;try {await Bridge.invoke("print_later");} catch {await closeCommittedPreview(cer,'Gift saved. Stick it from your Collection whenever you like.');return;}Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast("Saved in your Collection for later.");Shell.renderNav(); };
     wax.addEventListener("click", crack); wax.addEventListener("pointerdown", () => Snd.tap()); wax.tabIndex = 0; wax.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && crack());
     wax.style.cursor = "pointer"; cer.root._esc = () => { if (!opened) cer.close(); else if(entry)later(); };
   }
@@ -457,7 +457,7 @@ const Cer = (() => {
       if(entry.prize) {Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast("Added to your stock.");return;}
       try { await Bridge.printAction("daily_stick_from_collection", { stickerId: entry.id }); }
       catch {await closeCommittedPreview(cer,'Kept in your Collection. Could not place it on the desktop.');return;}
-      Bridge.busy=false;await cer.close();Shell.refresh();try {await Desktop.print(entry);Shell.toast("It's yours.");} catch {Shell.toast('Sticker saved. Resume printing from the Peta menu.');}
+      Bridge.busy=false;await cer.close();Shell.refresh();try {await Desktop.print(entry);Shell.toast("It's yours.");} catch {Shell.toast('Sticker saved. Stick it from your Collection whenever you like.');}
     };
     const leave = async () => { if(settling)return;settling=true;Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast(entry.prize ? "Added to your stock." : "Kept in your Collection."); };
     cer.root._esc = () => { if (!rig.done) cer.close(); else if(entry)leave(); };

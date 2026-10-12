@@ -1,7 +1,7 @@
 // Print → Grab → Paste (spec §26-29). A finished Peta is not stuck down for you: it is printed out of an
 // abstract slot at the top of the screen, on its backing sheet, and waits there. You grab it, drag it anywhere
 // and let go: "Peta!". Nothing is stored here — Rust says what is waiting (`print_pending`) and does the sticking
-// (`print_paste`). Saved jobs wait quietly after launch until an explicit Resume / Stick action.
+// (`print_paste`). Saved jobs wait quietly after launch until the person chooses a sticker to stick.
 //
 // Art: the slot (`data-art="print-slot"` / `print-slot-glow`), the backing sheet (`data-art="backing-sheet"`)
 // and the sound (`pata()`) are the original paper artwork / synthesized WebAudio. Peta! uses the four
