@@ -18,26 +18,33 @@ CREATE INDEX rates_expiry ON rate_counters(window);
 -- A failed assertion is an SQL error, so D1 rolls back the entire batch.
 CREATE TABLE assertions(code TEXT NOT NULL,ok INTEGER NOT NULL);
 CREATE TRIGGER assert_ledger BEFORE INSERT ON assertions WHEN NEW.ok=0 BEGIN
- SELECT CASE NEW.code
+ SELECT (CASE NEW.code
  WHEN 'taken' THEN RAISE(ABORT,'taken') WHEN 'not_yours' THEN RAISE(ABORT,'not_yours')
  WHEN 'unknown' THEN RAISE(ABORT,'unknown') WHEN 'unknown_pack' THEN RAISE(ABORT,'unknown_pack')
  WHEN 'already_claimed' THEN RAISE(ABORT,'already_claimed') WHEN 'slot_taken' THEN RAISE(ABORT,'slot_taken')
  WHEN 'already_opened' THEN RAISE(ABORT,'already_opened') WHEN 'seq_mismatch' THEN RAISE(ABORT,'seq_mismatch')
- WHEN 'ref_mismatch' THEN RAISE(ABORT,'ref_mismatch') ELSE RAISE(ABORT,'invalid') END;
+ WHEN 'ref_mismatch' THEN RAISE(ABORT,'ref_mismatch') ELSE RAISE(ABORT,'invalid') END);
 END;
 CREATE TRIGGER transfer_transition BEFORE INSERT ON transfers
 WHEN NOT EXISTS(SELECT 1 FROM transfers WHERE sticker_id=NEW.sticker_id AND seq=NEW.seq AND sig=NEW.sig) BEGIN
- SELECT CASE WHEN NOT EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id) THEN RAISE(ABORT,'unknown') END;
- SELECT CASE WHEN NEW.kind='claim' AND EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id AND state='held') THEN RAISE(ABORT,'already_claimed') END;
- SELECT CASE WHEN NEW.kind='release' AND NOT EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id AND holder_key=NEW.actor_key) THEN RAISE(ABORT,'not_yours') END;
- SELECT CASE WHEN NOT EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id AND seq=NEW.seq) THEN RAISE(ABORT,'seq_mismatch') END;
- SELECT CASE WHEN NEW.kind='claim' AND NOT EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id AND release_ref=NEW.ref) THEN RAISE(ABORT,'ref_mismatch') END;
- SELECT CASE WHEN NEW.kind='release' AND NOT EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id AND state='held') THEN RAISE(ABORT,'already_released') END;
- SELECT CASE WHEN NEW.kind='claim' AND EXISTS(SELECT 1 FROM pack_slots WHERE sticker_id=NEW.sticker_id AND release_sig=(SELECT sig FROM transfers WHERE sticker_id=NEW.sticker_id AND seq=NEW.seq-1) AND (claimer_key IS NULL OR claimer_key!=NEW.actor_key OR claim_sig!=NEW.sig)) THEN RAISE(ABORT,'slot_taken') END;
- UPDATE stickers SET state=CASE NEW.kind WHEN 'claim' THEN 'held' ELSE 'released' END,holder_key=CASE NEW.kind WHEN 'claim' THEN NEW.actor_key ELSE holder_key END,seq=seq+1,release_ref=CASE NEW.kind WHEN 'release' THEN NEW.ref ELSE NULL END,updated_at=NEW.received_at WHERE id=NEW.sticker_id AND seq=NEW.seq AND ((NEW.kind='claim' AND state='released' AND release_ref=NEW.ref) OR (NEW.kind='release' AND state='held' AND holder_key=NEW.actor_key));
- SELECT CASE WHEN changes()!=1 THEN RAISE(ABORT,'seq_mismatch') END;
+ SELECT (CASE WHEN NOT EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id) THEN RAISE(ABORT,'unknown') END);
+ SELECT (CASE WHEN NEW.kind='claim' AND EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id AND state='held') THEN RAISE(ABORT,'already_claimed') END);
+ SELECT (CASE WHEN NEW.kind='release' AND NOT EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id AND holder_key=NEW.actor_key) THEN RAISE(ABORT,'not_yours') END);
+ SELECT (CASE WHEN NOT EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id AND seq=NEW.seq) THEN RAISE(ABORT,'seq_mismatch') END);
+ SELECT (CASE WHEN NEW.kind='claim' AND NOT EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id AND release_ref=NEW.ref) THEN RAISE(ABORT,'ref_mismatch') END);
+ SELECT (CASE WHEN NEW.kind='release' AND NOT EXISTS(SELECT 1 FROM stickers WHERE id=NEW.sticker_id AND state='held') THEN RAISE(ABORT,'already_released') END);
+ SELECT (CASE WHEN NEW.kind='claim' AND EXISTS(SELECT 1 FROM pack_slots WHERE sticker_id=NEW.sticker_id AND release_sig=(SELECT sig FROM transfers WHERE sticker_id=NEW.sticker_id AND seq=NEW.seq-1) AND (claimer_key IS NULL OR claimer_key!=NEW.actor_key OR claim_sig!=NEW.sig)) THEN RAISE(ABORT,'slot_taken') END);
+ UPDATE stickers SET state=(CASE NEW.kind WHEN 'claim' THEN 'held' ELSE 'released' END),holder_key=(CASE NEW.kind WHEN 'claim' THEN NEW.actor_key ELSE holder_key END),seq=seq+1,release_ref=(CASE NEW.kind WHEN 'release' THEN NEW.ref ELSE NULL END),updated_at=NEW.received_at WHERE id=NEW.sticker_id AND seq=NEW.seq AND ((NEW.kind='claim' AND state='released' AND release_ref=NEW.ref) OR (NEW.kind='release' AND state='held' AND holder_key=NEW.actor_key));
+ SELECT (CASE WHEN changes()!=1 THEN RAISE(ABORT,'seq_mismatch') END);
 END;
 
 CREATE TRIGGER transfer_time BEFORE INSERT ON transfers BEGIN
- SELECT CASE WHEN julianday(NEW.at)<COALESCE((SELECT julianday(at) FROM transfers WHERE sticker_id=NEW.sticker_id AND seq=NEW.seq-1),(SELECT julianday(json_extract(creation,'$.createdAt')) FROM stickers WHERE id=NEW.sticker_id)) THEN RAISE(ABORT,'time_order') END;
+ SELECT (CASE WHEN julianday(NEW.at)<COALESCE((SELECT julianday(at) FROM transfers WHERE sticker_id=NEW.sticker_id AND seq=NEW.seq-1),(SELECT julianday(json_extract(creation,'$.createdAt')) FROM stickers WHERE id=NEW.sticker_id)) THEN RAISE(ABORT,'time_order') END);
+END;
+
+-- Exact-operation fences survive cancellation, including requests that arrive late.
+CREATE TABLE cancelled_releases(sig TEXT PRIMARY KEY,sticker_id TEXT NOT NULL,actor_key TEXT NOT NULL);
+CREATE TABLE cancelled_packs(pack_id TEXT NOT NULL,registration_digest TEXT NOT NULL,creator_key TEXT NOT NULL,PRIMARY KEY(pack_id,registration_digest));
+CREATE TRIGGER release_fence BEFORE INSERT ON transfers WHEN NEW.kind='release' BEGIN
+ SELECT (CASE WHEN EXISTS(SELECT 1 FROM cancelled_releases WHERE sig=NEW.sig) THEN RAISE(ABORT,'cancelled') END);
 END;
