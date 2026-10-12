@@ -145,3 +145,5 @@ dialog.bd-dialog::backdrop { background: rgba(30, 24, 14, .32); }
 [data-theme="night"] .bd-on { box-shadow: 0 0 0 3px var(--w-surface), 1px 2px 3px rgba(0, 0, 0, .4); }
 html[data-motion="reduce"] :is(.bd-slip, .bd-menu, .bd-sheet) { animation: none; }
 html[data-motion="reduce"] 
+.bd-screen-wrap { min-width: 0; display: grid; justify-items: center; align-content: end; }
+.bd-screen-wrap > .link { font: var(--meta); margin-top: 6px; }

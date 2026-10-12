@@ -1,5 +1,7 @@
 import * as PetaMath from "../../ui-math.js";
 window.PetaMath = PetaMath;
+import * as BoardState from "../../boards-state.js";
+window.BoardState = BoardState;
 
 async function boot() {
   const displayUnits = () => { document.documentElement.style.setProperty('--desktop-height',screen.height+'px'); document.documentElement.style.setProperty('--desktop-width',screen.width+'px'); };
@@ -18,6 +20,7 @@ async function boot() {
   await Bridge.listen('referee-sync-failed', Bridge.changed);
   await Bridge.listen('daily-changed', Bridge.changed);
   await Bridge.listen('placements-changed', Bridge.changed);
+  await Bridge.listen('boards-changed', Bridge.changed);
   await Bridge.listen('sticker-updated', e => { Bridge.invalidateAsset(e.payload); Bridge.changed(); });
   await Bridge.listen('profile-changed', e => { S.iconStickerId=e.payload.iconStickerId; Shell.renderNav(); if(['settings','market'].includes(S.page)) Shell.refresh(); });
   await Bridge.window.onFocusChanged(async e => {

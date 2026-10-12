@@ -120,7 +120,7 @@ Pages.market = {
     paint(); return root;
   },
   /* Small tools for your Peta, each on its own taped sheet. The link tag is reusable: it comes back to you when you take it off or seal the sticker
-     into a gift or a pack. The board is reusable too: deleting a look gives the blank board back (a developer preview until boards are real). */
+     into a gift or a pack. The board is reusable too: deleting a look gives the blank board back. */
   tools(paint) {
     const stock = LinkTags.stock(), price = LT_PRICE(), cannot = !S.developer && S.scraps.balance < price;
     const sheet = (...kids) => h("article.mk-tool", h("i.mk-tool-tape", { "aria-hidden": "true" }), ...kids);
@@ -132,17 +132,26 @@ Pages.market = {
       h("div.mk-tool-foot", h("p", h("span", "Available", h("b", String(stock.available))), h("span", `${stock.attached} attached`)),
         h("button.link", { type: "button", on: { click: () => Shell.go("book") } }, "Manage link tags ", h("i", "→"))));
     const sheets = [tag];
-    if(S.developer && Pages.boards) {
-      if(!BD.seeded) BD.seed();
+    if(S.developer && Pages.boards && S.boards) {
+      const boardStock=S.boards.stock, info=BoardState.tool(boardStock,S.scraps,S.developer);
       sheets.push(sheet(h("h3", "Board ×1"), h("p.mk-tool-sub", "A blank board to keep one more look."),
         h("div.mk-tool-art.mk-art-board", { "aria-hidden": "true" }, h("i"), h("i"), h("i.mk-art-clip")),
         h("p.mk-tool-cap", "Save a screen, keep a favourite."),
-        h("button.btn.mk-tool-get", { type: "button", on: { click: () => { BD.stock++; Snd.tap(); paint(); Shell.toast("Preview: a blank board was added. No Scraps were spent."); } } }, "Get a board"),
-        h("p.mk-tool-price", ScrapAmt(BD_PRICE)), h("p.mk-tool-note", "Uses one per look. Returns when deleted."),
-        h("div.mk-tool-foot", h("p", h("span", "Blank boards", h("b", String(BD.stock)))),
+        h("button.btn.mk-tool-get", { type: "button", disabled:this.boardBusy || (!this.boardRequest && info.disabled), on: { click: () => this.buyBoard(paint) } }, this.boardRequest ? "Retry board purchase" : info.label),
+        h("p.mk-tool-price", S.developer ? "Free · Developer" : info.price==null ? "Unavailable" : ScrapAmt(info.price)), h("p.mk-tool-note", "Uses one per look. Returns when deleted."),
+        h("div.mk-tool-foot", h("p", h("span", "Blank boards", h("b", String(boardStock.available)))),
           h("button.link", { type: "button", on: { click: () => Shell.go("boards") } }, "Open Boards ", h("i", "→")))));
     }
     return h("div.mk-toolspage", h("p.muted.lede", "Small tools for your Peta."), h("div.mk-toolgrid", sheets));
+  },
+  async buyBoard(paint) {
+    if(this.boardBusy || Scraps.inFlight) return;
+    const info=BoardState.tool(S.boards.stock,S.scraps,S.developer);if(!this.boardRequest && info.disabled) return;
+    this.boardRequest ||= {trade:{kind:"tool",itemId:"board",quantity:1},requestId:Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,"0")).join("")};
+    this.boardBusy=true;Scraps.inFlight=true;const was=!!Bridge.busy;Bridge.busy=true;paint();
+    try {await Bridge.invoke("scrap_trade",this.boardRequest);this.boardRequest=null;await Bridge.reload();Snd.chime(2,740);Shell.toast("A blank board is in your stock.");}
+    catch(e) {Shell.toast(String(e));}
+    finally {this.boardBusy=false;Scraps.inFlight=false;Bridge.busy=was;paint();}
   },
   packs(paint) {
     const feat = MARKET_PACKS[0];
