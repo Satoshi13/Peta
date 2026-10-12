@@ -32,6 +32,9 @@ base64 = { version = "0.22", optional = true }
 getrandom = { version = "0.3", optional = true }
 
 objc2 = "0.6"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSObject", "NSString", "NSNotification"] }
+objc2-core-location = { version = "0.3.2", default-features = false, features = ["std", "CLLocationManager", "CLLocationManagerDelegate"] }
 
 # Image resizing / SQLite are painfully slow at opt-level 0; the app itself stays debuggable.
 [profile.dev.package."*"]

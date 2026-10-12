@@ -48,9 +48,12 @@ struct State {
 }
 
 #[derive(Default)]
-pub struct Layers(Mutex<State>, Condvar);
+pub struct Layers(Mutex<State>, Condvar, Mutex<()>);
 
 impl Layers {
+    /// Hold only around topology + database work; release before any native UI operations.
+    pub fn topology_guard(&self)->std::sync::MutexGuard<'_,()> {self.2.lock().unwrap()}
+
     pub fn info(&self, label: &str) -> Option<LayerInfo> {
         self.0.lock().unwrap().by_label.get(label).cloned()
     }
@@ -103,6 +106,8 @@ fn signature(monitors: &[Monitor]) -> String {
 
 /// Rebuild all layers from the current monitor set. Call on the main thread.
 pub fn sync(app: &AppHandle) -> tauri::Result<()> {
+    let layers=app.state::<Layers>();
+    let _topology=layers.topology_guard();
     let monitors = app.available_monitors()?;
     if monitors.is_empty() {
         return Ok(());
@@ -168,6 +173,7 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
         apply_mode(&window, edit_mode || (print && i == primary_idx));
     }
     let _ = app.emit("boards-changed", ());
+    crate::board_auto::signal(app, None);
     Ok(())
 }
 

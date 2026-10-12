@@ -7,6 +7,7 @@ mod arrival;
 mod arrival_window;
 mod collection;
 mod boards;
+mod board_auto;
 mod creator;
 mod gifts;
 mod link_tags;
@@ -169,6 +170,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(Store::default())
         .manage(Layers::default())
+        .manage(board_auto::Auto::default())
         .manage(Today::default())
         .manage(arrival::Arrival::default())
         .manage(Creator::default())
@@ -249,6 +251,8 @@ pub fn run() {
             print::print_pending,
             print::print_paste,
             print::print_later,
+            board_auto::boards_location_request,
+            board_auto::boards_take_notes,
             boards::boards_status,
             boards::boards_save,
             boards::boards_update,
@@ -293,6 +297,7 @@ pub fn run() {
             app.state::<Store>().open(app.handle())?;
             tray::build(app.handle())?;
             layers::sync(app.handle())?;
+            board_auto::start(app.handle());
             layers::spawn_monitor_watcher(app.handle().clone());
             layers::spawn_reflection_watcher(app.handle().clone());
             today::roll_day(app.handle()); // draws today's material; sets the menu indicator
@@ -309,7 +314,7 @@ pub fn run() {
         if let tauri::RunEvent::Opened {urls}=&event {
             for url in urls {if let Ok(path)=url.to_file_path(){if !creator::open_image_file(app,&path){gifts::open_external(app,&path);}}}
         }
-        if matches!(event, tauri::RunEvent::Exit) { layers::stop_reflection(app); }
+        if matches!(event, tauri::RunEvent::Exit) { layers::stop_reflection(app); board_auto::stop(app); }
         // Layers are destroyed/recreated on display changes; that must not quit the app.
         // Only an explicit `app.exit(..)` (tray -> Quit) carries an exit code.
         if let tauri::RunEvent::ExitRequested { api, code, .. } = event {

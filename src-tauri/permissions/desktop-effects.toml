@@ -67,4 +67,4 @@ commands.allow = ["link_tag_status", "link_tag_open", "layer_capture"]
 [[permission]]
 identifier = "allow-boards"
 description = "Manage local screen boards and Auto rules from the main window."
-commands.allow = ["boards_status", "boards_save", "boards_update", "boards_rename", "boards_delete", "boards_put", "boards_undo", "boards_bring_here", "board_rule_save", "board_rule_delete", "board_rule_move", "board_rule_toggle"]
+commands.allow = ["boards_status", "boards_save", "boards_update", "boards_rename", "boards_delete", "boards_put", "boards_undo", "boards_bring_here", "board_rule_save", "board_rule_delete", "board_rule_move", "board_rule_toggle", "boards_location_request", "boards_take_notes"]

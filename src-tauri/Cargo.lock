@@ -2469,9 +2469,12 @@ name = "peta"
 version = "0.0.1"
 dependencies = [
  "base64 0.22.1",
+ "chrono",
  "ed25519-dalek",
  "getrandom 0.3.4",
  "objc2",
+ "objc2-core-location",
+ "objc2-foundation",
  "peta-core",
  "serde",
  "serde_json",

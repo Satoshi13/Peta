@@ -8,6 +8,7 @@ pub struct View {
     #[serde(flatten)]
     pub status: Status,
     pub displays: Vec<crate::layers::DisplayInfo>,
+    pub location: crate::board_auto::Location,
 }
 fn connected(app: &AppHandle) -> Vec<String> {
     app.state::<Layers>()
@@ -33,20 +34,27 @@ pub fn status(app: &AppHandle) -> Result<View, String> {
         .db()
         .boards_status(&ids, &primary)
         .map_err(|e| e.to_string())?;
-    Ok(View { status, displays })
+    Ok(View {
+        status,
+        displays,
+        location: crate::board_auto::location(app),
+    })
 }
 pub fn announce(app: &AppHandle) {
     let _ = app.emit("placements-changed", ());
     let _ = app.emit("boards-changed", ());
 }
 pub fn put(app: &AppHandle, id: &str, display: &str) -> Result<PutResult, String> {
-    let ids = connected(app);
-    let r = app
-        .state::<Store>()
-        .lock()
-        .db_mut()
-        .board_put(id, display, &ids)
-        .map_err(|e| e.to_string())?;
+    let r = {
+        let layers = app.state::<Layers>();
+        let _topology = layers.topology_guard();
+        let ids = connected(app);
+        app.state::<Store>()
+            .lock()
+            .db_mut()
+            .board_put(id, display, &ids)
+            .map_err(|e| e.to_string())?
+    };
     announce(app);
     Ok(r)
 }
@@ -112,6 +120,7 @@ pub async fn boards_delete(app: AppHandle, board_id: String) -> Result<(), Strin
         .db_mut()
         .board_delete(&board_id)
         .map_err(|e| e.to_string())?;
+    crate::board_auto::signal(&app, None);
     announce(&app);
     Ok(())
 }
@@ -155,6 +164,7 @@ pub async fn board_rule_save(app: AppHandle, rule: Rule) -> Result<Rule, String>
         .db_mut()
         .board_rule_save(rule, &ids)
         .map_err(|e| e.to_string())?;
+    crate::board_auto::signal(&app, Some(&r.id));
     announce(&app);
     Ok(r)
 }
@@ -165,6 +175,7 @@ pub async fn board_rule_delete(app: AppHandle, rule_id: String) -> Result<(), St
         .db_mut()
         .board_rule_delete(&rule_id)
         .map_err(|e| e.to_string())?;
+    crate::board_auto::signal(&app, None);
     announce(&app);
     Ok(())
 }
@@ -179,6 +190,7 @@ pub async fn board_rule_move(
         .db_mut()
         .board_rule_move(&rule_id, &direction)
         .map_err(|e| e.to_string())?;
+    crate::board_auto::signal(&app, None);
     announce(&app);
     Ok(())
 }
@@ -189,6 +201,7 @@ pub async fn board_rule_toggle(app: AppHandle, rule_id: String) -> Result<(), St
         .db_mut()
         .board_rule_toggle(&rule_id)
         .map_err(|e| e.to_string())?;
+    crate::board_auto::signal(&app, Some(&rule_id));
     announce(&app);
     Ok(())
 }
