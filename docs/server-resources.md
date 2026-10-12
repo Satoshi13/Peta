@@ -1,6 +1,6 @@
 # サーバーの置き場所(Cloudflare)
 
-作成日: 2026-10-12。Worker のコードはまだない(`docs/server-plan.md` を書いてから Codex が `cloudflare/peta-api/` に作る)。
+作成日・S1 dev デプロイ日: 2026-10-12。Worker のコードは `cloudflare/peta-api/`。S1 は D1 の審判役だけを使用し、R2 binding はありません。
 
 アカウント ID: `7ebfd4fac7f7545a9e34a963af32ae7c`(Wrangler は `npx wrangler@4.149.0`、ログイン済み)
 
@@ -13,4 +13,5 @@
 - R2 は両方にライフサイクルルール `expire-7d`(7日で削除、途中のマルチパートは1日で破棄)。
 - **テストは開発用だけで行う**。審判役の台帳に本番で書いた記録は消せない前提で扱う。
 - D1 の ID は秘密ではない(Worker の設定ファイルに書く)。API トークンや Webhook の URL は `wrangler secret put` で入れ、リポジトリに書かない。
-- まだ作っていないもの: Worker 本体、通報用の非公開 R2(P2)、レート制限ルール、独自ドメイン。
+- 開発用 Worker: [peta-api-dev](https://peta-api-dev.peta-api.workers.dev)。D1 `0001_ledger.sql` 適用済み。Rate Limiting binding と D1 カウンタを使用。
+- 本番への migration / deploy は未実施。通報用の非公開 R2(P2)、独自ドメインは未実装。
