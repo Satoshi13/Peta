@@ -64,6 +64,13 @@ export async function inbox(request: Request, env: Env, path: string, key: strin
     return Response.json({ id });
   }
   if (path === "/v1/report" && method === "POST") return report(env, key, data);
+  const asked = /^\/v1\/mailbox\/([0-9A-Z]{26})\/allowed$/.exec(path);
+  if (asked && method === "GET") {
+    // Whether the caller may send gifts here: the only thing a requester learns about someone else's mailbox.
+    await mailbox(env, asked[1]);
+    const yes = await stmt(env.DB, "SELECT 1 FROM mailbox_allow WHERE mailbox_id=? AND key_hash=?", asked[1], await keyHash(key)).first();
+    return Response.json({ allowed: !!yes });
+  }
   const m = /^\/v1\/mailbox\/([0-9A-Z]{26})(?:\/(allow|requests|messages)(?:\/([A-Za-z0-9_-]{8,64}))?)?$/.exec(path);
   if (!m) return null;
   const [, id, part, item] = m;

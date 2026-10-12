@@ -10,6 +10,7 @@ mod boards;
 mod board_auto;
 mod creator;
 mod gifts;
+mod inbox;
 mod link_tags;
 mod layers;
 mod packs;
@@ -218,6 +219,22 @@ pub fn run() {
             arrival::arrival_hover_status,
             arrival::arrival_open,
             gifts::gift_send,
+            inbox::inbox_status,
+            inbox::friend_preview,
+            inbox::inbox_set_auto,
+            inbox::identity_export,
+            inbox::identity_import,
+            inbox::friend_code_copied,
+            inbox::friend_add,
+            inbox::friend_approve,
+            inbox::friend_decline,
+            inbox::friend_block,
+            inbox::friend_unblock,
+            inbox::friend_remove,
+            inbox::inbox_check,
+            inbox::gift_send_friend,
+            inbox::inbox_report,
+            inbox::inbox_leave,
             gifts::gift_receive_file,
             gifts::gift_inbox,
             gifts::redeem_code,
@@ -306,6 +323,7 @@ pub fn run() {
             arrival::spawn_hit_watcher(app.handle().clone());
             port_capture::start(app.handle());
             referee_access::kickoff(app.handle());
+            inbox::start(app.handle());
             Ok(())
         })
         .build(context)

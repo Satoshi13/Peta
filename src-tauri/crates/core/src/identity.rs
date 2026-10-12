@@ -118,6 +118,17 @@ fn code_with(signing: &SigningKey, sealing: &SecretKey, name: &str) -> FriendCod
     let binding = STANDARD.encode(sign::sign(signing, &binding_bytes(&enc, &name)));
     FriendCode { sign_key: sign::public_key(signing), enc_key: STANDARD.encode(&enc), name, binding }
 }
+/// This library's own friend code (loads the signing key from `root`).
+pub fn code_here(root: &Path, name: &str) -> Result<FriendCode> { my_code(root, &crate::device_key::load_or_create(root)?, name) }
+/// A backup of this library's keys (loads the signing key from `root`).
+pub fn export_here(root: &Path, passphrase: &str) -> Result<Vec<u8>> { export(root, &crate::device_key::load_or_create(root)?, passphrase) }
+/// How the server names a key in allow lists and reports: SHA-256 of the raw public key, in hex.
+pub fn key_hash(key_b64: &str) -> Result<String> {
+    use sha2::{Digest, Sha256};
+    let raw = STANDARD.decode(key_b64).map_err(|_| invalid("Damaged key."))?;
+    if raw.len() != 32 { return Err(invalid("Damaged key.")); }
+    Ok(Sha256::digest(&raw).iter().map(|b| format!("{b:02x}")).collect())
+}
 /// A mailbox's address on the server: the first 16 bytes of SHA-256 of the signing public key, in the same base32 as friend codes.
 pub fn mailbox_id(sign_key_b64: &str) -> Result<String> {
     use sha2::{Digest, Sha256};

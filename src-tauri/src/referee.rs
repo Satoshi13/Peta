@@ -34,7 +34,7 @@ impl HttpReferee {
     pub fn new(root: &std::path::Path) -> Result<Self> {
         Self::with_url(peta_core::device_key::load_or_create(root)?, endpoint())
     }
-    fn with_url(key: SigningKey, url: String) -> Result<Self> {
+    pub(crate) fn with_url(key: SigningKey, url: String) -> Result<Self> {
         // Production uses HTTPS. Loopback HTTP is allowed for developer test servers only.
         let secure = url.starts_with("https://");
         #[cfg(feature = "developer")]
@@ -54,17 +54,8 @@ impl HttpReferee {
                 .build(),
         })
     }
-    fn request<T: DeserializeOwned>(
-        &self,
-        method: &str,
-        path: &str,
-        body: Option<&impl Serialize>,
-    ) -> Result<T> {
-        let body = body
-            .map(serde_json::to_vec)
-            .transpose()
-            .map_err(|e| Error::Invalid(e.to_string()))?
-            .unwrap_or_default();
+    /// One signed exchange. `body` is sent as is (JSON or sealed bytes); at most `max` bytes are read back.
+    pub(crate) fn exchange(&self, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
         let time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map_err(|_| RefereeError::Rejected("clock_skew".into()))?
@@ -75,17 +66,17 @@ impl HttpReferee {
         let nonce = STANDARD.encode(nonce);
         let signature = STANDARD.encode(sign::sign(
             &self.key,
-            &peta_core::ownership::request_bytes(method, path, &time, &nonce, &body),
+            &peta_core::ownership::request_bytes(method, path, &time, &nonce, body),
         ));
         let r = self
             .agent
             .request(method, &format!("{}{path}", self.url))
-            .set("Content-Type", "application/json")
+            .set("Content-Type", content_type)
             .set("X-Peta-Key", &sign::public_key(&self.key))
             .set("X-Peta-Time", &time)
             .set("X-Peta-Nonce", &nonce)
             .set("X-Peta-Sig", &signature)
-            .send_bytes(&body);
+            .send_bytes(body);
         let (status, response) = match r {
             Ok(r) => (r.status(), r),
             Err(ureq::Error::Status(status, r)) => (status, r),
@@ -94,26 +85,42 @@ impl HttpReferee {
         let mut bytes = vec![];
         response
             .into_reader()
-            .take(64 * 1024 + 1)
+            .take(max as u64 + 1)
             .read_to_end(&mut bytes)
             .map_err(|_| RefereeError::Offline)?;
-        if bytes.len() > 64 * 1024 || status >= 500 {
+        if bytes.len() > max || status >= 500 {
             return Err(RefereeError::Offline.into());
         }
-        let data: serde_json::Value =
-            serde_json::from_slice(&bytes).map_err(|_| RefereeError::Offline)?;
         LAST_CONTACT.store(time.parse().unwrap_or(0), Ordering::Relaxed);
-        if !(200..300).contains(&status) {
-            if status == 404 {
-                return Err(RefereeError::Unknown.into());
-            }
-            let code = data
-                .get("error")
-                .and_then(|v| v.as_str())
-                .unwrap_or("refused");
-            return Err(RefereeError::Rejected(code.into()).into());
+        Ok((status, bytes))
+    }
+    /// A failed status as the referee's error: 404 is Unknown, anything else carries the Worker's code.
+    pub(crate) fn refused(status: u16, bytes: &[u8]) -> Error {
+        if status == 404 {
+            return RefereeError::Unknown.into();
         }
-        serde_json::from_value(data).map_err(|_| RefereeError::Offline.into())
+        let code = serde_json::from_slice::<serde_json::Value>(bytes)
+            .ok()
+            .and_then(|v| v.get("error").and_then(|e| e.as_str()).map(str::to_owned))
+            .unwrap_or_else(|| "refused".into());
+        RefereeError::Rejected(code).into()
+    }
+    pub(crate) fn request<T: DeserializeOwned>(
+        &self,
+        method: &str,
+        path: &str,
+        body: Option<&impl Serialize>,
+    ) -> Result<T> {
+        let body = body
+            .map(serde_json::to_vec)
+            .transpose()
+            .map_err(|e| Error::Invalid(e.to_string()))?
+            .unwrap_or_default();
+        let (status, bytes) = self.exchange(method, path, &body, "application/json", 64 * 1024)?;
+        if !(200..300).contains(&status) {
+            return Err(Self::refused(status, &bytes));
+        }
+        serde_json::from_slice(&bytes).map_err(|_| RefereeError::Offline.into())
     }
     fn post(&self, path: &str, body: &impl Serialize) -> Result<()> {
         let _: serde_json::Value = self.request("POST", path, Some(body))?;

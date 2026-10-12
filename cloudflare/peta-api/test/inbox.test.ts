@@ -66,9 +66,12 @@ it("a friend request, approval, a gift, pickup and deletion", async () => {
   const list = (await (await call("GET", `/v1/mailbox/${a}/requests`, alice)).json()) as { requests: { id: string; senderHash: string }[] };
   expect(list.requests.map((r) => r.id)).toEqual(["req-00001"]);
   expect(list.requests[0].senderHash).toBe(await hash(bob));
+  expect(await (await call("GET", `/v1/mailbox/${a}/allowed`, bob)).json()).toEqual({ allowed: false });
   // Alice approves: Bob's key goes on her allow list and the request is gone.
   expect((await call("PUT", `/v1/mailbox/${a}/allow`, alice, { add: [await hash(bob)] })).status).toBe(200);
   expect((await call("DELETE", `/v1/mailbox/${a}/requests/req-00001`, alice)).status).toBe(200);
+  expect(await (await call("GET", `/v1/mailbox/${a}/allowed`, bob)).json()).toEqual({ allowed: true });
+  expect(await (await call("GET", `/v1/mailbox/${a}/allowed`, eve)).json()).toEqual({ allowed: false });
   const sealed = gift(1000);
   expect((await call("POST", `/v1/mailbox/${a}/messages/msg-00001`, bob, sealed)).status).toBe(200);
   expect((await call("POST", `/v1/mailbox/${a}/messages/msg-00001`, bob, sealed)).status).toBe(200);   // a retry is the same gift

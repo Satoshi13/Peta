@@ -92,6 +92,48 @@ pub fn get(conn: &Connection, key: &str) -> Result<Option<Friend>> { Ok(list(con
 /// Whether anyone is a friend or waiting: with no one, Peta never talks to the inbox.
 pub fn anyone(conn: &Connection) -> Result<bool> { Ok(conn.query_row("SELECT EXISTS(SELECT 1 FROM friends WHERE status IN ('requested','pending','friend'))", [], |r| r.get(0))?) }
 
+/// The app reaches friends and the inbox's small state through the database (its connection stays private to core).
+impl crate::Database {
+    pub fn friends(&self) -> Result<Vec<Friend>> { list(&self.conn) }
+    pub fn friend(&self, key: &str) -> Result<Option<Friend>> { get(&self.conn, key) }
+    pub fn friends_anyone(&self) -> Result<bool> { anyone(&self.conn) }
+    pub fn friend_request_sent(&mut self, me: &str, code: &FriendCode, request_id: &str) -> Result<bool> { request_sent(&self.conn, me, code, request_id) }
+    pub fn friend_request_received(&mut self, me: &str, code: &FriendCode, note: Option<&str>, request_id: &str) -> Result<&'static str> { request_received(&self.conn, me, code, note, request_id) }
+    pub fn friend_approve(&mut self, key: &str) -> Result<()> { approve(&self.conn, key) }
+    pub fn friend_decline(&mut self, key: &str) -> Result<()> { decline(&self.conn, key) }
+    pub fn friend_accepted(&mut self, key: &str) -> Result<()> { accepted(&self.conn, key) }
+    pub fn friend_remove(&mut self, key: &str) -> Result<()> { remove(&self.conn, key) }
+    pub fn friend_block(&mut self, key: &str) -> Result<()> { block(&self.conn, key) }
+    pub fn friend_unblock(&mut self, key: &str) -> Result<()> { unblock(&self.conn, key) }
+    /// Leaving the server: every friend status goes (file friends stay as TOFU rows), and so does the inbox's state.
+    pub fn inbox_forget(&mut self) -> Result<()> {
+        let tx = self.conn.transaction()?;
+        tx.execute("UPDATE friends SET status=NULL,allowed=0,note=NULL,request_id=NULL", [])?;
+        tx.execute("DELETE FROM meta WHERE key LIKE 'inbox.%'", [])?;
+        tx.commit()?; Ok(())
+    }
+    /// Small inbox settings and marks, all under `inbox.` in meta.
+    pub fn inbox_value(&self, key: &str) -> Result<Option<String>> {
+        Ok(self.conn.query_row("SELECT value FROM meta WHERE key=?1", [format!("inbox.{key}")], |r| r.get(0)).optional()?)
+    }
+    pub fn set_inbox_value(&mut self, key: &str, value: Option<&str>) -> Result<()> {
+        let key = format!("inbox.{key}");
+        match value {
+            Some(v) => self.conn.execute("INSERT INTO meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![key, v])?,
+            None => self.conn.execute("DELETE FROM meta WHERE key=?1", [key])?,
+        };
+        Ok(())
+    }
+    /// The signing key a received gift was sealed with, when it had one (for a report).
+    pub fn gift_signer_key(&self, gift_id: &str) -> Result<Option<String>> {
+        Ok(self.conn.query_row("SELECT public_key FROM gift_signers WHERE gift_id=?1", [gift_id], |r| r.get::<_, Option<String>>(0)).optional()?.flatten())
+    }
+    pub fn inbox_seen(&self, message_id: &str) -> Result<bool> { Ok(self.conn.query_row("SELECT EXISTS(SELECT 1 FROM inbox_seen WHERE message_id=?1)", [message_id], |r| r.get(0))?) }
+    pub fn mark_inbox_seen(&mut self, message_id: &str, sender: Option<&str>) -> Result<()> {
+        self.conn.execute("INSERT OR IGNORE INTO inbox_seen VALUES(?1,?2,?3)", params![message_id, sender, now()])?; Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
