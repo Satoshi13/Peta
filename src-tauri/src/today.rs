@@ -110,7 +110,7 @@ pub fn status(app: &AppHandle) -> Result<DailyStatus, String> {
 /// Tell every window (and the menu bar) that something about today changed.
 pub fn announce(app: &AppHandle) {
     let _ = app.emit("daily-changed", ());
-    let _ = app.emit("placements-changed", ());
+    crate::boards::announce(app);
     tray::refresh_today(app);
     crate::arrival::sync(app);
 }

@@ -6,6 +6,7 @@ mod port_capture;
 mod arrival;
 mod arrival_window;
 mod collection;
+mod boards;
 mod creator;
 mod gifts;
 mod link_tags;
@@ -60,10 +61,12 @@ fn layer_placements(window: WebviewWindow, layers: State<Layers>, store: State<S
 /// and goes on top of the others.
 #[cfg_attr(feature="server",tauri::command(async))]
 #[cfg_attr(not(feature="server"),tauri::command)]
-fn save_placement(window: WebviewWindow, layers: State<Layers>, store: State<Store>, mut placement: Placement) -> Result<(), String> {
+fn save_placement(app: AppHandle, window: WebviewWindow, layers: State<Layers>, store: State<Store>, mut placement: Placement) -> Result<(), String> {
     let info = layers.info(window.label()).ok_or("unknown layer")?;
     placement.display_id = info.display_id;
-    store.lock().db_mut().place(placement).map(|_| ()).map_err(|e| e.to_string())
+    store.lock().db_mut().place(placement).map_err(|e| e.to_string())?;
+    boards::announce(&app);
+    Ok(())
 }
 
 /// Peel off: the sticker leaves the desktop (it stays in the collection).
@@ -71,7 +74,7 @@ fn save_placement(window: WebviewWindow, layers: State<Layers>, store: State<Sto
 #[cfg_attr(not(feature="server"),tauri::command)]
 fn peel_sticker(app: AppHandle, store: State<Store>, sticker_id: String) -> Result<(), String> {
     store.lock().db_mut().peel(&sticker_id).map_err(|e| e.to_string())?;
-    let _ = app.emit("placements-changed", ()); // the Sticker Book shows what is on the desktop
+    boards::announce(&app);
     Ok(())
 }
 
@@ -246,6 +249,18 @@ pub fn run() {
             print::print_pending,
             print::print_paste,
             print::print_later,
+            boards::boards_status,
+            boards::boards_save,
+            boards::boards_update,
+            boards::boards_rename,
+            boards::boards_delete,
+            boards::boards_put,
+            boards::boards_undo,
+            boards::boards_bring_here,
+            boards::board_rule_save,
+            boards::board_rule_delete,
+            boards::board_rule_move,
+            boards::board_rule_toggle,
             collection::book_index,
             collection::book_page,
             collection::sticker_back,

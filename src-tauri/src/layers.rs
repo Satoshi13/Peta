@@ -21,6 +21,10 @@ pub struct LayerInfo {
     pub edit_mode: bool,
 }
 
+#[derive(Clone, Serialize)]
+#[serde(rename_all="camelCase")]
+pub struct DisplayInfo { pub id:String, pub name:String, pub kind:String, pub aspect:f64 }
+
 #[derive(Default)]
 struct State {
     generation: u32,
@@ -33,6 +37,7 @@ struct State {
     present_display_ids: Vec<String>,
     primary_display_id: String,
     signature: String,
+    displays: Vec<DisplayInfo>,
     reflection: HashSet<String>,
     reflection_last: HashMap<String, CursorReflect>,
     reflection_cursor: Option<platform::coordinates::Point>,
@@ -59,6 +64,9 @@ impl Layers {
 
     pub fn primary_display_id(&self) -> String {
         self.0.lock().unwrap().primary_display_id.clone()
+    }
+    pub fn snapshot(&self) -> (Vec<DisplayInfo>, String) {
+        let st=self.0.lock().unwrap(); (st.displays.clone(),st.primary_display_id.clone())
     }
     pub fn interactive(&self)->bool { let state=self.0.lock().unwrap(); state.edit_mode||state.print }
 
@@ -114,6 +122,10 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
         st.reflection.clear(); st.reflection_last.clear(); st.reflection_cursor = None; st.reflection_moved = false;
         layers.1.notify_all();
         st.present_display_ids = ids.clone();
+        st.displays=monitors.iter().enumerate().map(|(i,m)| {
+            let name=ids[i].clone();let low=name.to_lowercase();
+            DisplayInfo {id:ids[i].clone(),name,kind:if low.contains("built-in") || low.contains("内蔵") || low.contains("macbook") {"laptop"} else {"display"}.into(),aspect:m.size().width as f64 / m.size().height.max(1) as f64}
+        }).collect();
         st.primary_display_id = ids[primary_idx].clone();
         st.signature = signature(&monitors);
         (old, st.generation, st.edit_mode, st.print)

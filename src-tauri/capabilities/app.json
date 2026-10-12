@@ -22,6 +22,7 @@
     "allow-window-vibrancy",
     "allow-clipboard-create",
     "allow-scrap-trades",
+    "allow-boards",
     "allow-signed-distribution",
     "allow-developer-tools"
   ]
