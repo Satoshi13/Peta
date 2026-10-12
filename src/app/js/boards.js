@@ -43,6 +43,13 @@ Pages.boards = {
     this.paint = paint; paint(); return root;
   },
   leave() { this.closeMenu(); },
+  traySave() {
+    BD.target=BD.screens.find(s=>s.primary&&s.connected)?.id || BD.target;
+    this.paint?.();
+    if(!BD.screen()?.items.length) return Shell.toast("There are no stickers on the main screen to save.");
+    if(!BD.stock) return Shell.toast("Get a blank board in Market first.");
+    this.saveDialog(this.paint);
+  },
   parts(paint) {
     const t = BD.screen();
     const save = h("button.btn", { type: "button", disabled: !BD.stock || !t?.items.length, on: { click: () => this.saveDialog(paint) } }, "Save this screen…");

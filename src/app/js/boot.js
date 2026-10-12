@@ -13,7 +13,8 @@ async function boot() {
       if(!Shell.current) await Shell.open('today');
       else { $('#win').hidden=false; S.windowOpen=true; Pages[S.page]?.resume?.(); }
       Distribution.redeem();
-    } else await Shell.open(e.payload);
+    } else if(e.payload==='boards-save'){document.querySelector('dialog')?.close();await Shell.open('boards');Pages.boards.traySave();}
+    else await Shell.open(e.payload);
   });
   await Bridge.listen('distribution-result', async e => {await Bridge.reload(); Shell.refresh(); if(e.payload.pack) Distribution.offer(e.payload.pack);else Shell.toast(e.payload.result);});
   await Bridge.listen('referee-synced', Bridge.changed);
@@ -34,7 +35,8 @@ async function boot() {
   document.addEventListener("visibilitychange", () => { if(document.hidden) Pages[S.page]?.suspend?.(); else Pages[S.page]?.resume?.(); });
   const page=new URLSearchParams(location.search).get('page') || 'today';
   const welcome=await Bridge.invoke('scrap_welcome').catch(()=>null);   // once per library, before the first numbers are read
-  await Shell.open(page==='redeem' ? 'today' : page);
+  await Shell.open(page==='redeem' ? 'today' : page==='boards-save' ? 'boards' : page);
+  if(page==='boards-save') Pages.boards.traySave();
   await boardNotes();
   if(welcome!=null) Scraps.note(`A welcome gift: ${welcome} Scraps.`); requestAnimationFrame(() => requestAnimationFrame(() => Vibrancy.sync()));if(page==='redeem') Distribution.redeem();if(S.packOffer)Distribution.offer(S.packOffer);
 }
