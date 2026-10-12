@@ -9,11 +9,21 @@ import {
   sha256,
   verify,
 } from "./proofs";
+import { inbox, MAX_GIFT } from "./inbox";
 export interface Env {
   DB: D1Database;
   RATE_LIMITER?: RateLimit;
   REQUESTS_PER_MINUTE?: string;
   PACKS_PER_HOUR?: string;
+  /** S2: sealed gifts (7-day lifecycle) and consented reports (private). */
+  GIFTS?: R2Bucket;
+  REPORTS?: R2Bucket;
+  REPORT_WEBHOOK?: string;
+  PENDING_REQUESTS?: string;
+  PENDING_FROM_ONE?: string;
+  REQUESTS_PER_DAY?: string;
+  PENDING_GIFTS?: string;
+  GIFTS_PER_DAY?: string;
 }
 class ApiError extends Error {
   constructor(
@@ -23,10 +33,10 @@ class ApiError extends Error {
     super(code);
   }
 }
-function fail(status: number, code: string): never {
+export function fail(status: number, code: string): never {
   throw new ApiError(status, code);
 }
-const ok = () => Response.json({ ok: true });
+export const ok = () => Response.json({ ok: true });
 const safeId = (s: unknown): s is string =>
   typeof s === "string" && /^[A-Za-z0-9_-]{1,120}$/.test(s);
 const uint = (n: unknown, max: number): n is number =>
@@ -83,7 +93,7 @@ async function transfer(t: Transfer, key: string, kind: string, id?: string) {
   at(t.at);
   if (!(await verify(key, transferBytes(t), t.sig))) fail(401, "bad_signature");
 }
-const stmt = (db: D1Database, sql: string, ...args: unknown[]) =>
+export const stmt = (db: D1Database, sql: string, ...args: unknown[]) =>
   db.prepare(sql).bind(...args);
 function assertion(
   db: D1Database,
@@ -167,7 +177,7 @@ function creationGuard(db: D1Database, c: Creation) {
     c.creatorSig,
   );
 }
-async function counter(
+export async function counter(
   env: Env,
   hash: string,
   kind: string,
@@ -237,7 +247,7 @@ async function authenticate(
   await counter(env, hash, "minute", 60, minute);
   if (request.method === "POST" && path === "/v1/packs")
     await counter(env, hash, "packs", 3600, hour);
-  if (request.method === "POST") {
+  if (request.method !== "GET") {
     const now = Math.floor(Date.now() / 1000);
     try {
       await env.DB.batch([
@@ -552,15 +562,18 @@ async function claimSlot(
 async function route(request: Request, env: Env): Promise<Response> {
   const path = new URL(request.url).pathname;
   if (path === "/v1/health" && request.method === "GET") return ok();
-  if (!["GET", "POST"].includes(request.method))
+  if (!["GET", "POST", "PUT", "DELETE"].includes(request.method))
     fail(405, "method_not_allowed");
-  if (Number(request.headers.get("Content-Length") ?? 0) > 1024 * 1024)
+  // A sealed gift is raw bytes up to 8 MB; a report carries one opened gift as base64. Everything else stays under 1 MB of JSON.
+  const upload = request.method === "POST" && /^\/v1\/mailbox\/[0-9A-Z]{26}\/messages\/[A-Za-z0-9_-]{8,64}$/.test(path);
+  const limit = upload ? MAX_GIFT : path === "/v1/report" ? Math.ceil(MAX_GIFT / 3) * 4 + 4096 : 1024 * 1024;
+  if (Number(request.headers.get("Content-Length") ?? 0) > limit)
     fail(413, "too_large");
   const body = new Uint8Array(await request.arrayBuffer());
-  if (body.length > 1024 * 1024) fail(413, "too_large");
+  if (body.length > limit) fail(413, "too_large");
   const key = await authenticate(request, env, path, body);
   let data: any = {};
-  if (body.length) {
+  if (body.length && !upload) {
     try {
       data = JSON.parse(new TextDecoder().decode(body));
     } catch {
@@ -569,6 +582,8 @@ async function route(request: Request, env: Env): Promise<Response> {
     if (!data || typeof data !== "object" || Array.isArray(data))
       fail(400, "invalid");
   }
+  const fromInbox = await inbox(request, env, path, key, body, data);
+  if (fromInbox) return fromInbox;
   if (request.method === "POST" && path === "/v1/stickers") {
     await creation(data, key);
     await batch(env.DB, [

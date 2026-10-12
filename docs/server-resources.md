@@ -8,6 +8,7 @@
 |---|---|---|
 | D1(台帳・友達・受信箱の索引) | `peta-dev` / `806da135-64f5-4063-8bce-0dca96d969db` | `peta-prod` / `9517d6ae-1676-4dc4-a906-462650d21586` |
 | R2(暗号化した Gift) | `peta-gifts-dev` | `peta-gifts-prod` |
+| R2(通報、非公開。S2) | `peta-reports-dev`(作成済み 2026-10-13) | `peta-reports-prod`(**未作成。オーナーが作る**) |
 
 - どちらも場所のヒントは `apac`。
 - R2 は両方にライフサイクルルール `expire-7d`(7日で削除、途中のマルチパートは1日で破棄)。

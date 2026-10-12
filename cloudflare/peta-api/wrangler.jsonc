@@ -7,13 +7,15 @@
       "name": "peta-api-dev",
       "vars": {"REQUESTS_PER_MINUTE": "60", "PACKS_PER_HOUR": "20"},
       "ratelimits": [{"name":"RATE_LIMITER","namespace_id":"1001","simple":{"limit":60,"period":60}}],
-      "d1_databases": [{"binding":"DB","database_name":"peta-dev","database_id":"806da135-64f5-4063-8bce-0dca96d969db","migrations_dir":"migrations"}]
+      "d1_databases": [{"binding":"DB","database_name":"peta-dev","database_id":"806da135-64f5-4063-8bce-0dca96d969db","migrations_dir":"migrations"}],
+      "r2_buckets": [{"binding":"GIFTS","bucket_name":"peta-gifts-dev"},{"binding":"REPORTS","bucket_name":"peta-reports-dev"}]
     },
     "prod": {
       "name": "peta-api-prod",
       "vars": {"REQUESTS_PER_MINUTE": "60", "PACKS_PER_HOUR": "20"},
       "ratelimits": [{"name":"RATE_LIMITER","namespace_id":"1002","simple":{"limit":60,"period":60}}],
-      "d1_databases": [{"binding":"DB","database_name":"peta-prod","database_id":"9517d6ae-1676-4dc4-a906-462650d21586","migrations_dir":"migrations"}]
+      "d1_databases": [{"binding":"DB","database_name":"peta-prod","database_id":"9517d6ae-1676-4dc4-a906-462650d21586","migrations_dir":"migrations"}],
+      "r2_buckets": [{"binding":"GIFTS","bucket_name":"peta-gifts-prod"},{"binding":"REPORTS","bucket_name":"peta-reports-prod"}]
     }
   }
 }
