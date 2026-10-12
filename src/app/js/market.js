@@ -119,18 +119,30 @@ Pages.market = {
     };
     paint(); return root;
   },
-  /* Small tools for your Peta. The link tag is reusable: it comes back to you when you take it off or seal the sticker into a gift or a pack. */
+  /* Small tools for your Peta, each on its own taped sheet. The link tag is reusable: it comes back to you when you take it off or seal the sticker
+     into a gift or a pack. The board is reusable too: deleting a look gives the blank board back (a developer preview until boards are real). */
   tools(paint) {
     const stock = LinkTags.stock(), price = LT_PRICE(), cannot = !S.developer && S.scraps.balance < price;
-    return h("div.mk-toolspage", h("p.muted.lede", "Small tools for your Peta."), h("div.mk-tools",
-      h("i.mk-paper"), h("i.mk-tape"), h("i.mk-spec-card"), h("i.mk-spec-egg"), h("span.mk-hang-tag", LinkTagPic()), h("small.mk-cap", "Fits any Peta"),
-      h("h3.mk-t1", "Link tag"), h("p.mk-t2", "Open an app, website or folder from any Peta."), h("p.mk-t3", "Reusable · Hidden on desktop"),
-      h("button.btn.mk-get", { disabled: cannot, on: { click: () => LinkTags.buy(paint) } }, cannot ? "Not enough Scraps" : "Get a tag"), h("span.mk-price", S.developer ? "Free · Developer" : ScrapAmt(price)),
-      h("small.mk-t4", "Returns to you when removed."),
-      h("h3.mk-t5", "Your link tags"),
-      h("div.mk-pocket", h("small", "Available"), h("b", String(stock.available))),
-      h("div.mk-ticket", h("span.mk-att", h("b", String(stock.attached)), " attached"), h("button.link", { type: "button", on: { click: () => Shell.go("book") } }, "Manage ", h("i", "→"))),
-      h("small.mk-note", "Tags return automatically when gifting or packing.")));
+    const sheet = (...kids) => h("article.mk-tool", h("i.mk-tool-tape", { "aria-hidden": "true" }), ...kids);
+    const tag = sheet(h("h3", "Link tag"), h("p.mk-tool-sub", "Open an app, website or folder from any Peta."),
+      h("div.mk-tool-art.mk-art-tag", { "aria-hidden": "true" }, h("i.mk-art-card"), h("i.mk-art-egg"), h("span.mk-art-hang", LinkTagPic())),
+      h("p.mk-tool-cap", "Reusable · Hidden on desktop"),
+      h("button.btn.mk-tool-get", { type: "button", disabled: cannot, on: { click: () => LinkTags.buy(paint) } }, cannot ? "Not enough Scraps" : "Get a tag"),
+      h("p.mk-tool-price", S.developer ? "Free · Developer" : ScrapAmt(price)), h("p.mk-tool-note", "Returns to you when removed."),
+      h("div.mk-tool-foot", h("p", h("span", "Available", h("b", String(stock.available))), h("span", `${stock.attached} attached`)),
+        h("button.link", { type: "button", on: { click: () => Shell.go("book") } }, "Manage link tags ", h("i", "→"))));
+    const sheets = [tag];
+    if(S.developer && Pages.boards) {
+      if(!BD.seeded) BD.seed();
+      sheets.push(sheet(h("h3", "Board ×1"), h("p.mk-tool-sub", "A blank board to keep one more look."),
+        h("div.mk-tool-art.mk-art-board", { "aria-hidden": "true" }, h("i"), h("i"), h("i.mk-art-clip")),
+        h("p.mk-tool-cap", "Save a screen, keep a favourite."),
+        h("button.btn.mk-tool-get", { type: "button", on: { click: () => { BD.stock++; Snd.tap(); paint(); Shell.toast("Preview: a blank board was added. No Scraps were spent."); } } }, "Get a board"),
+        h("p.mk-tool-price", ScrapAmt(BD_PRICE)), h("p.mk-tool-note", "Uses one per look. Returns when deleted."),
+        h("div.mk-tool-foot", h("p", h("span", "Blank boards", h("b", String(BD.stock)))),
+          h("button.link", { type: "button", on: { click: () => Shell.go("boards") } }, "Open Boards ", h("i", "→")))));
+    }
+    return h("div.mk-toolspage", h("p.muted.lede", "Small tools for your Peta."), h("div.mk-toolgrid", sheets));
   },
   packs(paint) {
     const feat = MARKET_PACKS[0];

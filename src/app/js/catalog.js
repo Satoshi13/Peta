@@ -20,6 +20,7 @@ const NAV = [
   { id: "create", key: 2, group:"Make", label: "Create", tab: "tab3", icon: "chCreate" },
   { id: "studio", label: "Studio", tab: "tab5", icon: "bagGlassine" },
   { id: "book", key: 3, group:"Collect", label: "Collection", tab: "tab2", icon: "chCollection" },
+  { id: "boards", label: "Boards", tab: "tab4", icon: "peekPaper", dev: true },   // developer preview until the Rust side lands (docs/boards-plan.md)
   { id: "packs", key: 4, label: "Packs", tab: "tab5", icon: "chPack" },
   { id: "gifts", key: 5, label: "Gifts", tab: "tab4", icon: "chGift" },
   { id: "materials", key: 6, label: "Materials", tab: "tab6", icon: "cardHolo" },

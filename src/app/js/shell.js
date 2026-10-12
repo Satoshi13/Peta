@@ -22,6 +22,7 @@ const Shell = (() => {
     const nav = $("#nav"), b = badges();
     const top = h("div.nav-top", h("i.nav-pill", { "aria-hidden": "true" })), foot = h("div.nav-foot");
     NAV.forEach((n, i) => {
+      if(n.dev && !S.developer) return;
       const count = n.id === "gifts" ? b.gifts : 0, dot = n.id === "today" && b.today;
       if(n.group) top.append(h("span.nav-group", n.group));
       const label = n.label + (count ? `, ${count} unopened` : dot ? ", New envelope" : "");
