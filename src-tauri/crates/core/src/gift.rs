@@ -112,7 +112,7 @@ pub fn transfer_gift(lib:&mut Library,sticker_id:&str,to:&str,note:Option<&str>,
     tx.commit()?;Ok(())
     })();
     if let Err(e)=result {
-        if tracked {if matches!(&e,Error::Referee(o::RefereeError::Rejected(_))) {crate::server::remove(&lib.db().conn,"cancel_release",sticker_id)?;}else{crate::server::compensate_release(lib.db(),referee,&release)?;}}
+        if tracked {if matches!(&e,Error::Referee(o::RefereeError::Rejected(_))) {crate::server::remove(&lib.db().conn,"cancel_release",sticker_id)?;}else{crate::server::compensate_release(lib.db_mut(),referee,&release)?;}}
         return Err(e);
     }
     Ok((gift_id,bytes))

@@ -135,7 +135,11 @@ pub(crate) fn stored_transfers(conn:&Connection,id:&str)->Result<Vec<Transfer>> 
 /// Service failures remain distinct from local SQL and file errors.
 #[derive(Clone,Debug,PartialEq,Eq)]
 pub enum RefereeError {Offline,Rejected(String),Unknown}
-impl std::fmt::Display for RefereeError {fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result {match self {Self::Offline=>write!(f,"offline"),Self::Rejected(code)=>write!(f,"{code}"),Self::Unknown=>write!(f,"unknown")}}}
+impl std::fmt::Display for RefereeError {fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result {
+    let code=match self {Self::Offline=>"offline",Self::Rejected(code)=>code,Self::Unknown=>"unknown"};
+    let message=match code {"offline"=>"Connect to the internet to do this. Nothing was changed.","already_claimed"=>"Someone already received this gift.","pending_cancel"=>"Peta is still taking back an earlier send. Try again when you're online.","clock_skew"=>"Check your Mac's date and time, then try again.","gift_received_during_save"=>"The gift was received before saving finished. This sticker is no longer on this device.","pack_opened_during_save"=>"Someone opened this pack before saving finished. Peta recorded the remote transfer; the local pack was not saved.","busy_pack"=>"This pack is busy. Please try again.",_=>"Peta could not check this. Please try again."};
+    f.write_str(message)?;if cfg!(feature="developer"){write!(f," [{code}]")?;}Ok(())
+}}
 impl From<RefereeError> for Error {fn from(e:RefereeError)->Self {Self::Referee(e)}}
 #[derive(Clone,Debug,PartialEq,Eq)]
 pub enum Status {Unknown,Held{holder:String},Released}
@@ -152,7 +156,7 @@ pub trait Referee {
     fn cancel_release(&self,_:&Transfer)->Result<()> {Ok(())}
     fn claim(&self,_:&Transfer)->Result<()> {Ok(())}
     fn register_pack(&self,p:&PackRegistration)->Result<()> {for e in &p.editions {self.register(&e.creation)?;self.release(&e.release)?;}for t in &p.moved_releases {self.release(t)?;}Ok(())}
-    fn cancel_pack(&self,_:&str,_:&str)->Result<()> {Ok(())}
+    fn cancel_pack(&self,_:&PackRegistration)->Result<()> {Ok(())}
     fn claim_slot(&self,_:&str,_:u32,claim:Option<&Transfer>)->Result<()> {if let Some(t)=claim {self.claim(t)?;}Ok(())}
     fn claimed_slots(&self,_:&str)->Result<Vec<u32>> {Ok(vec![])}
     fn status(&self,_:&str)->Result<Status> {Ok(Status::Released)}

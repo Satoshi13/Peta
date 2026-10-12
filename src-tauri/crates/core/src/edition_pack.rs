@@ -190,7 +190,7 @@ pub fn press(lib:&mut Library,title:&str,pouch:&str,items:&[Selection],prizes:&[
         if tracked && crate::server::pending_cancel(lib.db(),&item.key)? {return Err(o::RefereeError::Rejected("pending_cancel".into()).into());}
         for chain in &item.histories {let release=chain.transfers.last().unwrap().clone();if item.minted {registration.editions.push(o::EditionRegistration{creation:chain.creation.clone(),release});}else if !tracked || crate::server::ensure_registered(lib.db_mut(),&chain.creation,referee)? {registration.moved_releases.push(release);}}
     }
-    if tracked {crate::server::enqueue(&lib.db().conn,"cancel_pack",&h.pack_id,&registration)?;}
+    if tracked {let mut intent=serde_json::to_value(&registration).map_err(|e|invalid(&e.to_string()))?;let mut materials=std::collections::BTreeMap::<String,u32>::new();let mut tags=0u32;for prize in prizes {match prize {Prize::Material{material_id,count}=>*materials.entry(material_id.clone()).or_default()+=count,Prize::Tag{count}=>tags+=count}}intent["recoveryMaterials"]=serde_json::to_value(materials).unwrap();intent["recoveryTags"]=tags.into();intent["recoveryMoved"]=serde_json::to_value(h.items.iter().filter(|i|!i.minted).map(|i|i.histories[0].transfers.last().unwrap()).collect::<Vec<_>>()).unwrap();crate::server::enqueue(&lib.db().conn,"cancel_pack",&h.pack_id,&intent)?;}
     let key=crate::device_key::load_or_create(lib.root())?;let own=sign::public_key(&key);let (paths,writes)=if shelf {write_assets(lib,&verified)?}else{(vec![],crate::asset_writes::AssetWrites::new(lib))};
     let snapshots=h.items.iter().map(|i|lib.db().held_sticker(&i.key)?.ok_or_else(||invalid("Sticker left this device."))).collect::<Result<Vec<_>>>()?;
     let (digest,receipt,archive)=publish_archive(lib,&bytes)?;
@@ -224,7 +224,7 @@ pub fn press(lib:&mut Library,title:&str,pouch:&str,items:&[Selection],prizes:&[
     if tracked {crate::server::remove(&tx,"cancel_pack",&h.pack_id)?;if shelf {tx.execute("INSERT OR REPLACE INTO server_pack_state VALUES (?1,0)",[&id])?;}}
     writes.commit(tx)?;Ok(id)
     })();
-    match result {Ok(id)=>{archive.finish();Ok(id)},Err(e)=>{if tracked {if matches!(&e,crate::Error::Referee(o::RefereeError::Rejected(_))){crate::server::remove(&lib.db().conn,"cancel_pack",&h.pack_id)?;}else{crate::server::compensate_pack(lib.db(),referee,&registration)?;}}Err(e)}}
+    match result {Ok(id)=>{archive.finish();Ok(id)},Err(e)=>{if tracked {if matches!(&e,crate::Error::Referee(o::RefereeError::Rejected(_))){crate::server::remove(&lib.db().conn,"cancel_pack",&h.pack_id)?;}else{crate::server::compensate_pack(lib.db_mut(),referee,&registration)?;}}Err(e)}}
 }
 pub fn is_v2(db:&Database,id:&str)->Result<bool> {Ok(db.conn.query_row("SELECT EXISTS(SELECT 1 FROM edition_pack_frames WHERE pack_id=?1)",[id],|r|r.get(0))?)}
 /// Show a finished own V2 pack in this Library's Market. Visibility never presses,
