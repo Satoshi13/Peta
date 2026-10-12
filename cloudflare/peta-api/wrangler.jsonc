@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "peta-api", "main": "src/index.ts",
+  "account_id": "7ebfd4fac7f7545a9e34a963af32ae7c", "compatibility_date": "2026-10-12",
+  "env": {
+    "dev": {
+      "name": "peta-api-dev",
+      "vars": {"REQUESTS_PER_MINUTE": "60", "PACKS_PER_HOUR": "20"},
+      "ratelimits": [{"name":"RATE_LIMITER","namespace_id":"1001","simple":{"limit":60,"period":60}}],
+      "d1_databases": [{"binding":"DB","database_name":"peta-dev","database_id":"806da135-64f5-4063-8bce-0dca96d969db","migrations_dir":"migrations"}]
+    },
+    "prod": {
+      "name": "peta-api-prod",
+      "vars": {"REQUESTS_PER_MINUTE": "60", "PACKS_PER_HOUR": "20"},
+      "ratelimits": [{"name":"RATE_LIMITER","namespace_id":"1002","simple":{"limit":60,"period":60}}],
+      "d1_databases": [{"binding":"DB","database_name":"peta-prod","database_id":"9517d6ae-1676-4dc4-a906-462650d21586","migrations_dir":"migrations"}]
+    }
+  }
+}
