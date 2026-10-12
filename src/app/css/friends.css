@@ -1,0 +1,35 @@
+/* ===== Friends and the Gift inbox (js/friends.js): Settings' cards, the Gifts page's requests, Studio's friend picker ===== */
+.fr-card > p.small { margin: 0 8px 8px; }
+.fr-mine { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 6px 8px 4px; padding: 12px 14px; border-radius: 12px; background: var(--w-surface2); box-shadow: inset 0 0 0 1px var(--w-line); }
+.fr-mine b { display: block; font: 650 13.5px/18px var(--sys); }
+.fr-mine small { font: var(--meta); font-family: var(--type, var(--sys)); letter-spacing: .06em; }
+.fr-acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fr-group { margin: 12px 8px 0; }
+.fr-group .eyebrow { margin: 0 0 4px; }
+.fr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(120, 100, 60, .14); }
+.fr-row:first-of-type { border-top: 0; }
+.fr-name { display: grid; gap: 1px; min-width: 0; }
+.fr-name b { font: 650 13.5px/18px var(--sys); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fr-name small { font: var(--meta); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fr-note { color: var(--ink2); font-style: italic; }
+.fr-none { margin: 10px 8px 0; }
+.fr-leave { margin: 10px 8px 2px; padding-top: 10px; border-top: 1px solid rgba(120, 100, 60, .14); }
+.fr-leave .link { font: var(--meta); }
+.fr-code { resize: vertical; font: 500 12.5px/18px var(--type, ui-monospace, monospace); letter-spacing: .03em; }
+.fr-who { min-height: 20px; font: var(--meta); }
+.fr-who b { font: 650 14px/20px var(--sys); }
+.fr-who p { margin: 4px 0 0; }
+/* the Gifts page */
+.fr-gifts { display: grid; gap: 14px; margin: 4px 0 18px; }
+.fr-requests, .fr-received { max-width: 640px; padding: 12px 16px; border-radius: 14px; background: var(--w-surface); box-shadow: inset 0 0 0 1px var(--w-line), var(--sh1); }
+.fr-requests .pk-section-title { margin: 0 0 4px; font-size: 18px; }
+.fr-received .eyebrow { margin: 0 0 2px; }
+/* reporting */
+.fr-reasons { display: grid; gap: 6px; }
+.fr-reason, .fr-agree { display: flex; align-items: center; gap: 8px; font: 500 13px/18px var(--sys); color: var(--ink); }
+.fr-agree { align-items: flex-start; color: var(--ink2); }
+/* Studio's picker */
+.fr-pick { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+.fr-pill { display: grid; gap: 1px; padding: 7px 12px; border: 0; border-radius: 12px; background: var(--w-surface); box-shadow: inset 0 0 0 1px var(--w-line); color: var(--ink); text-align: left; font: 600 13px/17px var(--sys); }
+.fr-pill small { font: var(--meta); color: var(--muted); }
+.fr-pill[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--ink); }

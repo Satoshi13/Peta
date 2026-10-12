@@ -113,7 +113,13 @@ async function stCommitSeal(mode,d,args) {
   const busy=!!Bridge.busy;Bridge.busy=true;
   try {
     let result;
-    if(mode==='gift') {
+    if(mode==='gift' && d.dest==='friend') {
+      // Through the inbox: sealed to the friend on this Mac, released with the referee and uploaded together (gift_send_friend).
+      if(!d.friend)return null;
+      if(!await stConfirmTransfer())return null;
+      await Bridge.invoke('gift_send_friend',{stickerId:args.stickerId,toKey:d.friend,note:args.note,dress:args.dress});
+      result={where:'friend',name:d.to.trim()};
+    } else if(mode==='gift') {
       if(!await stConfirmTransfer())return null;
       const sent=await Bridge.fileDialog('gift_send',args);if(!sent)return null;
       result={where:'file',path:sent.savedTo};
@@ -373,9 +379,13 @@ Pages.studio = {
     const giftSeal = () => {
       const g = ST.gift, bag = BAGS[g.bag];
       if(g.sealed) return [doneBlock("gift")];
+      const inbox = !!S.inbox?.enabled, toFriend = inbox && g.dest === "friend";
+      const send = inbox ? sec("Send", pills([["file", "Save a file"], ["friend", "To a friend"]], g.dest || "file", (k) => { g.dest = k; stSave(); Snd.tap(); paint(); }, ST.sealing)) : null;
+      const who = toFriend ? Friends.picker(g.friend, (f) => { g.friend = f.publicKey; g.to = f.name; stSave(); Snd.tap(); paint(); }) : null;
+      const button = sealButton(toFriend ? "Seal and send" : "Seal and save…"); if(toFriend && !g.friend) button.set(false, "Choose a friend to send it to.");
       return [heading("Ready to seal", "Check the details before finishing."),
-        h("div.st-scroll", h("div.st-sum", h("b", `For ${g.to.trim()}`), h("span", `1 sticker · ${bag.name}`), h("small", "Your photo is never inside.")), tagNote([g.sticker])),
-        foot(true, sealButton("Seal and save…").el, "Sealing signs the gift and asks where to save the file. It cannot be edited afterward.")];
+        h("div.st-scroll", h("div.st-sum", h("b", `For ${g.to.trim()}`), h("span", `1 sticker · ${bag.name}`), h("small", "Your photo is never inside.")), send, who, tagNote([g.sticker])),
+        foot(true, button.el, toFriend ? "Sealing signs the gift and sends it to your friend's Peta. It cannot be edited afterward." : "Sealing signs the gift and asks where to save the file. It cannot be edited afterward.")];
     };
     const doneBlock = (kind) => {
       const d = kind === "pack" ? ST.pack : ST.gift, r = d.result || {};
@@ -387,7 +397,7 @@ Pages.studio = {
         if(r.where === "shelf") more.push(act("Also save a file…", async (m) => { const path = await Bridge.fileDialog("creator_pack_export", {packId:r.packId}); if(path) { Snd.chime(2, 740); m("Saved."); } }));
         else more.push(act("Also put on my shelf", async (m) => { await Bridge.invoke("creator_pack_store", {packId:r.packId}); r.where="shelf"; paint(); try {await Bridge.reload();Shell.renderNav();} catch {m("Stored on My shelf. The display could not refresh.");return;} Snd.chime(2, 740); m("It's on your Packs shelf."); }, ".paper"));
       }
-      const line = r.where === "shelf" ? "It's on your Packs shelf." : kind === "pack" ? "The file is saved. Share it any way you like." : "The file is saved. Send it any way you like.";
+      const line = r.where === "shelf" ? "It's on your Packs shelf." : r.where === "friend" ? `Sent to ${r.name}. It arrives the next time their Peta checks.` : kind === "pack" ? "The file is saved. Share it any way you like." : "The file is saved. Send it any way you like.";
       return h("div.st-done", h("i.st-check", { "aria-hidden": "true" }), h("h2", kind === "pack" ? `Sealed. ${ST.pack.title.trim()}` : `Sealed. For ${ST.gift.to.trim()}`), h("p.muted", kind === "pack" ? `${ST.pack.sel.length} stickers · ${line}` : line), r.path ? h("p.muted.st-path", { title: r.path }, r.path) : null,
         h("div.st-done-actions", ...more, h("button.btn.quiet", { on: { click: again } }, "Make another")));
     };

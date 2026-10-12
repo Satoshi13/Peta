@@ -18,6 +18,7 @@ async function boot() {
   });
   await Bridge.listen('distribution-result', async e => {await Bridge.reload(); Shell.refresh(); if(e.payload.pack) Distribution.offer(e.payload.pack);else Shell.toast(e.payload.result);});
   await Bridge.listen('referee-synced', Bridge.changed);
+  await Bridge.listen('inbox-changed', Bridge.changed);
   await Bridge.listen('referee-sync-failed', Bridge.changed);
   await Bridge.listen('daily-changed', Bridge.changed);
   await Bridge.listen('placements-changed', Bridge.changed);
@@ -27,7 +28,7 @@ async function boot() {
   await Bridge.listen('sticker-updated', e => { Bridge.invalidateAsset(e.payload); Bridge.changed(); });
   await Bridge.listen('profile-changed', e => { S.iconStickerId=e.payload.iconStickerId; Shell.renderNav(); if(['settings','market'].includes(S.page)) Shell.refresh(); });
   await Bridge.window.onFocusChanged(async e => {
-    if(e.payload) { Bridge.printFocusTransfer=false; if(await Bridge.window.isVisible() && !(await Bridge.window.isMinimized())) { S.windowOpen=true; Pages[S.page]?.resume?.(); Scraps.flushNote(); await boardNotes(); } return; }
+    if(e.payload) { Bridge.printFocusTransfer=false; if(await Bridge.window.isVisible() && !(await Bridge.window.isMinimized())) { S.windowOpen=true; Pages[S.page]?.resume?.(); Scraps.flushNote(); await boardNotes(); if(S.inbox?.enabled) Bridge.invoke('inbox_check',{manual:false}).catch(()=>{}); } return; }
     if(S.page!=="today" || !(await Bridge.window.isVisible()) || await Bridge.window.isMinimized()) Pages[S.page]?.suspend?.();
     if(Bridge.printFocusTransfer) { Bridge.printFocusTransfer=false; return; }
     if(S.closeOutside && !Bridge.dialogOpen && !document.querySelector('.cer')) Shell.close();

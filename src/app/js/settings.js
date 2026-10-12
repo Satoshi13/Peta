@@ -24,6 +24,7 @@ Pages.settings = {
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_next_day");S.envelopeDeadline=null;await Bridge.reload();Shell.go("today",{force:true});}catch(e){Shell.toast(String(e));}}}},"Next Day (+1 day)"),
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_sync_displays");Shell.toast("Displays re-synced.");}catch(e){Shell.toast(String(e));}}}},"Re-sync Displays"))));
     if(S.developer) root.append(RefereeSettings.card());
+    const friends = Friends.settingsCard(), key = Friends.keyCard(); if(friends) root.append(friends); if(key) root.append(key);
     root.append(AboutPeta.card());
     root.append(h("p.muted.fine", "In the real app this window also hosts Cutting Mat, Collection, Packs and Gifts — what used to be four separate windows. Stickers stay on your desktop; this window comes and goes from the menu bar."));
     return root;

@@ -5,6 +5,7 @@ Pages.gifts = {
     const waiting = S.gifts.filter((g) => !g.opened), got = S.gifts.filter((g) => g.opened);
     root.append(PageHead("Gifts", "Sealed until you open them"));
     root.append(h("p.muted.lede", "A friend can send you a Peta as a small file. It stays sealed until you open it. Opening a gift never uses up a material."));
+    const fromFriends = Friends.giftsSection(); if(fromFriends) root.append(fromFriends);
     root.append(waiting.length
       ? h("div.inbox", waiting.map((g, i) => h("div", h("button.gift", { disabled: locked, style: { "--i": i, "--r": [-3, 2.5, -1.5][i % 3] + "deg" }, on: { click: () => { Snd.tap(); Cer.openGift(g); } } },
           g.bag ? h("div.g-env.g-bag", BagPic({ bag: g.bag, title: g.to ? "For " + g.to : "For you", sub: "from " + g.from + (["known","official"].includes(g.signatureStatus) ? " ✓" : ""), deco: g.deco || "none", k: 14, fit: 200, shut: true, id: g.id })) : [img("arrGift", "g-env"), h("span.g-from.hand", h("small", "From"), g.from + (["known","official"].includes(g.signatureStatus) ? " ✓" : ""))], locked ? null : h("span.open-cta", "Open")), h("p.muted.small", {style:{maxWidth:"240px",textAlign:"center"}}, Distribution.trust(g)))))
@@ -16,6 +17,7 @@ Pages.gifts = {
     if(S.events.length) root.append(h("section", h("h2", "From Peta ✓"), S.events.map(e=>h("article",h("b",e.title),h("p.muted.small",e.result),e.message ? h("p.small",e.message) : null))));
     return root;
   },
+  enter() { if(S.inbox?.enabled) Bridge.invoke("inbox_check", { manual: false }).catch(() => {}); },
   async receiveFile() {
     Bridge.dialogOpen=true;
     try { const gift=await Bridge.invoke("gift_receive_file"); if(gift) { await Bridge.reload(); Shell.renderNav(); Shell.refresh(); Snd.chime(2,740); if(gift.pack) Distribution.offer(gift.pack);else Shell.toast(gift.result); } }

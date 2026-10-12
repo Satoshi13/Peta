@@ -15,7 +15,7 @@ const Shell = (() => {
   }
 
   function badges() {
-    const gifts = S.gifts.filter((g) => !g.opened).length;
+    const gifts = S.gifts.filter((g) => !g.opened).length + (typeof Friends !== "undefined" ? Friends.waiting() : 0);   // unopened gifts + friend requests waiting on me
     return { gifts, today: S.dayState === "arrived" ? 1 : 0 };
   }
   function renderNav() {
