@@ -418,6 +418,18 @@ Pages.studio = {
     const paint = () => { const on = !!ST.mode; work.hidden = !on; choose.hidden = on; paintHead(); if(on) { paintBench(); paintPanel(); } else paintChoose(); };
     paint(); return root;
   },
+  enter(root) {
+    this.resizeObserver?.disconnect();
+    // The wrapping must fit again when the window or the page columns change.
+    this.resizeObserver = new ResizeObserver(() => {
+      if (!ST.sealing) this.repaintBench?.();
+    });
+    this.resizeObserver.observe($(".st-stage", root));
+  },
+  leave() {
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+  },
 };
 
 /* The sealing ceremonies. A press for the foil, tape for the paper bags, a round seal for glassine and the folded wrap, a thumb along the flap for

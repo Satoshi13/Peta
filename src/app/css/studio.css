@@ -194,4 +194,4 @@
 
 .st-slot-summary .ico, .st-stock .ico, .st-prize-head .ico, .st-fixed .ico { flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
-@media (max-width: 900px) { .st-work { grid-template-columns: minmax(140px, .65fr) minmax(0, 1fr); gap: 16px; } .st-bench { min-height: 0; } .st-panel { padding: 16px; } .st-head h1 { font-size: 32px; } .st-steps button { padding: 8px 10px; } }
+@container page (max-width: 680px) { .st-work { grid-template-columns: minmax(140px, .65fr) minmax(0, 1fr); gap: 16px; } .st-bench { min-height: 0; } .st-panel { padding: 16px; } .st-head h1 { font-size: 32px; } .st-steps button { padding: 8px 10px; } }

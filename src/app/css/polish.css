@@ -104,10 +104,10 @@ input[type="range"]::-webkit-slider-runnable-track { height: 5px; border-radius:
 .mcard .lab { white-space: nowrap; } .mcard .lab b { font-size: calc(var(--w) * .08); } .mcard .lab small { font-size: calc(var(--w) * .06); }
 .mk-hero-text { padding-top: 40px; }
 .btn { white-space: nowrap; } .btn.paper { padding-inline: 26px; }
-.ph { flex-wrap: wrap; row-gap: 10px; } .ph > div:first-child { min-width: max-content; } .ph .quota { white-space: normal; max-width: 100%; flex-wrap: wrap; }
-.page-in { container-type: size; }
+.ph { flex-wrap: wrap; row-gap: 10px; } .ph > div:first-child { min-width: 0; } .ph .quota { white-space: normal; max-width: 100%; flex-wrap: wrap; }
+.page-in { container-type: size; container-name: page; }
 .sample-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
-@container (max-width: 700px) { .cr-empty { grid-template-columns: 1fr; gap: 20px; min-height: 0; } .drop { min-height: 260px; } }/* the grab pill sits in the top 30px; page content starts below it in every shell */
+@container page (max-width: 700px) { .cr-empty { grid-template-columns: 1fr; gap: 20px; min-height: 0; } .drop { min-height: 260px; } }/* the grab pill sits in the top 30px; page content starts below it in every shell */
 
 .page-in { padding-top: 38px; }
 .stk-host { grid-template: minmax(0, 1fr) / minmax(0, 1fr); width: 100%; height: 100%; box-sizing: border-box; }
@@ -117,7 +117,7 @@ input[type="range"]::-webkit-slider-runnable-track { height: 5px; border-radius:
 .shelf { padding-bottom: 16px; }
 .bk, .mk { min-height: 620px; }/* the sticky detail card must fit inside its row, or the page can't scroll to its bottom */ 
 .cr-controls { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1.2fr); } .cr-controls > * { min-width: 0; }
-@container (max-width: 760px) { .cr-controls { grid-template-columns: minmax(0, 1fr); } }/* =====================================================================================================
+@container page (max-width: 760px) { .cr-controls { grid-template-columns: minmax(0, 1fr); } }/* =====================================================================================================
    Pass 3 — Codex's finished parts replace the CSS stand-ins: window top band + hand-made ✕, resize corner,
    control parts, per-material back papers, material cards, market tags. Desk / Studio are the two window styles.
    ===================================================================================================== *//* ---------- window chrome: no bar, no band. A little paper pill with three paper dots (close / minimise / fill) in the top-left corner; the top edge itself is the drag strip ---------- */

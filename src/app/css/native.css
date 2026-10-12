@@ -94,7 +94,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .mk-hero-text .btn { margin-top: 12px; }
 .marketpage .price.own { display:inline-flex; align-items:center; gap:6px; min-width:0; padding:6px 11px; border-radius:999px; background:var(--paper); color:var(--muted); box-shadow:inset 0 0 0 1px rgba(120,100,60,.16); font:500 12px/1.3 var(--sys); letter-spacing:0; filter:none; }
 .marketpage .price.own::before { content:"✓"; color:var(--ink); font-weight:600; }
-@container (max-width: 640px) {
+@container page (max-width: 640px) {
   .mk-hero { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 20px; }
   .mk-hero-art { height: 218px; max-width: 320px; width: 100%; justify-self: center; }
 }
@@ -220,7 +220,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .book-head-actions { display:flex; align-items:center; justify-content:flex-end; gap:12px; }
 .book-view { flex:none; }
 .book-view button { width:76px; padding-inline:10px; flex:none; }
-@media (max-width:880px) {
+@container page (max-width:640px) {
   .bookpage .ph-extra { display:contents; }
   .bookpage .book-view { grid-column:2; grid-row:1; justify-self:end; }
   .bookpage .book-head-actions { grid-column:1 / -1; grid-row:2; justify-self:end; }
@@ -254,7 +254,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .calendar-complete.press { animation:calendar-press .4s var(--ease-spring) 1; }
 @keyframes calendar-press { from { opacity:0; transform:rotate(-12deg) scale(1.5); } }
 .detail.stay { animation:none; }
-@media(max-width:800px) { .calendar-ledger { padding:12px 6px 8px; } .calendar-day { min-height:72px; padding:4px; } .calendar-sticker { height:42px; } .calendar-sticker .stk { width:min(84px,85%,calc(36px * var(--aspect))) !important; } .calendar-heading h2 { font-size:19px; } }
+@container page (max-width:600px) { .calendar-ledger { padding:12px 6px 8px; } .calendar-day { min-height:72px; padding:4px; } .calendar-sticker { height:42px; } .calendar-sticker .stk { width:min(84px,85%,calc(36px * var(--aspect))) !important; } .calendar-heading h2 { font-size:19px; } }
 @media(prefers-reduced-motion:reduce) { .calendar-add, .calendar-complete.press { animation:none; } .calendar-sticker { transition:none; } .calendar-day.stuck:hover .calendar-sticker { transform:rotate(var(--rot)); } }
 :root[data-motion="reduce"] .calendar-add, :root[data-motion="reduce"] .calendar-complete.press { animation:none; }
 :root[data-motion="reduce"] .calendar-sticker { transition:none; }
@@ -290,10 +290,10 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .material-preview { display:grid; grid-template-columns:minmax(0,240px) minmax(0,1fr); align-items:center; gap:24px; }
 .material-preview > .mcard { width:100%; }
 .material-preview > .x { color:var(--ink); background:var(--w-surface2); position:absolute; right:10px; top:10px; }
-@media (max-width:880px) {
+@container page (max-width:640px) {
   [data-shell="studio"] .materialspage .ph, [data-shell="studio"] .marketpage .ph { padding-top:12px; }
 }
-@container (max-width:560px) {
+@container page (max-width:560px) {
   .scrap-trade, .material-preview { padding:16px; }
   .material-preview { grid-template-columns:minmax(0,160px) minmax(0,1fr); gap:16px; }
   .scrap-summary { gap:10px; }
@@ -317,7 +317,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .creator-icon-choice small { font-size:10px; color:var(--muted); }
 .creator-icon-choice:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
 .creator-icon-choice:hover { background:var(--paper); }
-@media (max-width:760px) { .cr-self { flex-wrap:wrap; } .setrow .creator-icon-change { font-size:12px; padding:8px; } }
+@container page (max-width:560px) { .cr-self { flex-wrap:wrap; } .setrow .creator-icon-change { font-size:12px; padding:8px; } }
 .creator-icon-grid { scrollbar-width:none; }
 .creator-icon-grid::-webkit-scrollbar { display:none; width:0; height:0; }
 /* All sheets share one outline; only the material texture changes.
@@ -404,9 +404,9 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .stuck-empty b { font:600 13px/18px var(--sys); }
 .stuck-empty .btn { margin-top:5px; }
 .btn.secondary { background:var(--w-surface); color:var(--ink); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh1); }
-@media (max-width:1000px) { .t-choose .t-bottom { grid-template-columns:minmax(0,1fr); } }
-@media (max-width:880px) { .choices.featured { grid-template-columns:repeat(2,minmax(0,1fr)); }  }
-@container (max-width:470px) { .t-choose .t-mat { grid-template-columns:104px minmax(0,1fr); gap:10px; } .tm-card .mcard { --w:88px!important; } }
+@container page (max-width:700px) { .t-choose .t-bottom { grid-template-columns:minmax(0,1fr); } }
+@container page (max-width:640px) { .choices.featured { grid-template-columns:repeat(2,minmax(0,1fr)); }  }
+@container page (max-width:470px) { .t-choose .t-mat { grid-template-columns:104px minmax(0,1fr); gap:10px; } .tm-card .mcard { --w:88px!important; } }
 
 .t-stuck .stuck-strip { padding:0; background:none; box-shadow:none; }
 
@@ -466,9 +466,9 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .create .uses { font:var(--meta); }
 .create .uses b { color:var(--ink); font-weight:650; }
 .btn.quiet { background:none; color:var(--ink2); box-shadow:none; padding:8px 12px; }
-@container (max-width:720px) { .create .cr-controls { grid-template-columns:repeat(2,minmax(0,1fr)); } .create .g-mat { grid-column:1 / -1; } .create .mtray { grid-template-columns:repeat(auto-fit,minmax(80px,104px)); } }
-@container (max-width:480px) { .create .cr-controls { grid-template-columns:minmax(0,1fr); } }
-@media (max-width:880px) { .create .panes { flex-direction:row; height:176px; } .create .panes .pane { min-height:0; } .create .arrow { display:block; } .create .cr-mat { padding:14px 12px; } }
+@container page (max-width:720px) { .create .cr-controls { grid-template-columns:repeat(2,minmax(0,1fr)); } .create .g-mat { grid-column:1 / -1; } .create .mtray { grid-template-columns:repeat(auto-fit,minmax(80px,104px)); } }
+@container page (max-width:480px) { .create .cr-controls { grid-template-columns:minmax(0,1fr); } }
+@container page (max-width:640px) { .create .panes { flex-direction:row; height:176px; } .create .panes .pane { min-height:0; } .create .arrow { display:block; } .create .cr-mat { padding:14px 12px; } }
 
 /* Night changes the room, while physical papers keep their own ink and texture. */
 [data-theme="night"] :is(.btn.paper, .detail, .back-card, .backing, .datestamp, .envelope-ticket, .tile-date,
@@ -509,10 +509,7 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .calendar-rest { color:var(--muted); }
 [data-theme="night"] .calendar-day.future { color:var(--muted); border-color:transparent; }
 [data-theme="night"] .calendar-add { color:var(--w-ok); border-color:var(--w-ok); }
-@media(max-width:880px) {
-  [data-theme="night"] [data-shell] .nav { background:var(--w-side) !important; }
-  [data-theme="night"] [data-shell] .nav-item[aria-current="page"] { background:var(--w-surface) !important; }
-}
+
 [data-theme="night"] :is(.detail, .back-card, .backing, .pack-tag, .mk-hero-text, .ev-note, .env-label, .note, .setcard),
 [data-theme="night"] [data-shell="desk"] .page { color:var(--ink); --w-ink:var(--ink); }
 [data-theme="night"] .open-cta { background:var(--w-btn); color:var(--w-btnfg); }
@@ -616,7 +613,7 @@ html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
 .more .choice small { grid-area:sub; align-self:start; font:var(--meta); max-width:none; white-space:normal; }
 .more .choice-count { right:12px; top:10px; }
 [data-theme="night"] .t-hero { background-image:none; }
-@media (max-width:1000px) { .t-hero { grid-template-columns:minmax(0,1fr); } .t-info { padding:0 24px 22px; } .t-slot { min-height:240px; } }
+@container page (max-width:700px) { .t-hero { grid-template-columns:minmax(0,1fr); } .t-info { padding:0 24px 22px; } .t-slot { min-height:240px; } }
 
 /* Calendar as a poster: stickers sit on the page with a little overhang, rest days are quiet dashed rings. */
 .calendar-day { overflow:visible; min-height:98px; }
@@ -627,7 +624,7 @@ html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
 .calendar-sticker .stk { width:min(112px,115%,calc(74px * var(--aspect))) !important; filter:drop-shadow(0 2px 2px rgba(40,28,10,.3)) drop-shadow(0 6px 8px rgba(40,28,10,.16)); }
 .calendar-rest { display:block; width:34px; height:34px; margin-top:8px; border:1.5px dashed rgba(60,45,20,.28); border-radius:50%; font-size:0; }
 .poster-save[disabled] { opacity:.5; }
-@media(max-width:800px) { .calendar-day { min-height:76px; } .calendar-sticker { height:48px; } .calendar-sticker .stk { width:min(84px,100%,calc(46px * var(--aspect))) !important; } .calendar-rest { width:26px; height:26px; margin-top:6px; } }
+@container page (max-width:600px) { .calendar-day { min-height:76px; } .calendar-sticker { height:48px; } .calendar-sticker .stk { width:min(84px,100%,calc(46px * var(--aspect))) !important; } .calendar-rest { width:26px; height:26px; margin-top:6px; } }
 
 /* Translucent Studio sidebar (macOS). Only while Rust confirms the material behind the web view, in Day, and with room for the side rail. */
 @media (min-width:881px) {
@@ -710,9 +707,9 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 .cs-foot .btn.quiet { color:#2b2a28; }
 [data-shell="desk"] .page[data-page="create"] .cs-foot .uses { color:#f4f0e4; }
 [data-shell="desk"] .page[data-page="create"] .cs-foot .uses b { color:#fff; }
-@media (max-width:1000px) { .create .cr-stage { height:clamp(380px,calc(100vh - 230px),620px); } }
+@container page (max-width:700px) { .create .cr-stage { height:clamp(380px,calc(100vh - 230px),620px); } }
 /* Narrow window: the stock becomes a strip above the tools, the stage grows to fit instead of crowding the sticker. */
-@media (max-width:880px) {
+@container page (max-width:640px) {
   .create .cr-stage { height:auto; min-height:560px; display:grid; grid-template-rows:auto minmax(220px,1fr) auto auto; gap:10px; padding:14px; align-content:stretch; }
   .cs-top { position:static; grid-row:1; }
   .cs-center { position:relative; inset:auto; grid-row:2; min-height:220px; }
@@ -944,7 +941,7 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .bk-select select:hover, .bk-search input:hover { background:var(--w-surface2); }
 .bk-clear { margin-left:10px; font:500 13px/1 var(--sys); }
 .book-count { display:flex; align-items:baseline; min-height:22px; }
-@media (max-width:760px) { .bk-filter { flex-wrap:wrap; } .bk-search { flex-basis:100%; } .bk-select { flex:1 1 140px; } }
+@container page (max-width:560px) { .bk-filter { flex-wrap:wrap; } .bk-search { flex-basis:100%; } .bk-select { flex:1 1 140px; } }
 /* With the detail card open the list is narrow: the search field takes a row of its own so its hint is never cut. */
 .bk.has-detail .bk-filter { flex-wrap:wrap; }
 .bk.has-detail .bk-search { flex-basis:100%; }
@@ -976,7 +973,7 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .nt-return { position:absolute; z-index:1; right:26px; top:50%; width:22px; height:22px; margin-top:-11px; fill:none; stroke:#9a958a; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
 .nt-notes { display:grid; gap:4px; }
 .cs-foot .go-btns { align-self:start; align-items:center; height:44px; margin:0; } /* the buttons are the app's standard .btn; this only centres them on the name field */
-@media (max-width:820px) { .cs-foot { grid-template-columns:1fr; } .cs-foot .go-btns { justify-self:end; } .nametag { grid-template-columns:auto minmax(0,1fr); } }
+@container page (max-width:620px) { .cs-foot { grid-template-columns:minmax(0,1fr); } .cs-foot .go-btns { justify-self:end; } .nametag { grid-template-columns:auto minmax(0,1fr); } }
 [data-shell="desk"] .page[data-page="create"] .nt-label, [data-shell="desk"] .page[data-page="create"] .nt-hint { color:#f4f0e4; }
 
 /* The glint on a pack: light drawn over the pack's own surface (js/surface-light.js). It lightens and darkens the picture (soft-light) and never

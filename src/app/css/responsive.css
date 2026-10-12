@@ -1,0 +1,85 @@
+/* Size page furniture against the space beside the navigation rail. */
+.ph-extra, .row-btns, .bd-head { flex-wrap: wrap; }
+.ph-extra { min-width: 0; max-width: 100%; }
+.cr-empty > * { min-width: 0; }
+.page-in :is(input, select, textarea) { min-width: 0; max-width: 100%; }
+.mgrid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+.mk-creators { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.mk-toolgrid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); }
+.cs-dock { flex-wrap: wrap; justify-content: center; border-radius: 18px; }
+.nametag { max-width: 100%; }
+.nt-paper { min-width: 0; }
+.det-info { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.det-info > div { min-width: 0; overflow-wrap: anywhere; }
+.det-info b { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+
+dialog:is(.bd-dialog, .lt-dialog, .rd-dialog) {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+@container page (max-width: 700px) {
+  .page-in > .ph h1, .st-head .ph h1 { font-size: 32px; }
+  .ph-extra { gap: 8px; }
+  .cr-empty { grid-template-columns: minmax(0, 1fr); }
+  .panes { flex-direction: column; height: auto; }
+  .panes .pane { min-height: 190px; }
+  .panes .arrow { display: none; }
+  .bk, .mk { flex-direction: column; }
+  .detail, .mk-detail { position: relative; top: auto; right: auto; width: 100%; max-width: 100%; }
+  .bk-main, .mk-main { width: 100%; }
+  .st-cards { grid-template-columns: minmax(0, 1fr); }
+  .st-card { aspect-ratio: auto; min-height: 350px; padding: 30px; }
+  .st-card-art { min-height: 170px; }
+  .st-head-r { flex-wrap: wrap; }
+  .st-work { grid-template-columns: minmax(0, 1fr); }
+  .studiopage { grid-template-rows: auto auto; }
+  .st-bench { min-height: 280px; }
+  .st-stage { min-height: 230px; }
+  .st-panel { min-height: 380px; }
+  .st-scroll { overflow: visible; mask-image: none; -webkit-mask-image: none; }
+  .st-nextwrap, .st-footrow { flex-wrap: wrap; }
+  .setrow { flex-wrap: wrap; gap: 12px; }
+  .setrow > :first-child { flex: 1 1 200px; min-width: 0; }
+  .setrow > :last-child { max-width: 100%; }
+  .cs-foot { grid-template-columns: minmax(0, 1fr); }
+}
+
+@container page (max-width: 500px) {
+  .choices, .choices.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .choices.more { grid-template-columns: minmax(0, 1fr); }
+  .bd-desk { padding: 14px; gap: 12px; }
+  .bd-head { gap: 4px 10px; }
+  .bookpage .ph { grid-template-columns: minmax(0, 1fr); }
+  .bookpage .book-view, .bookpage .book-head-actions { grid-column: 1; grid-row: auto; justify-self: start; }
+  .book-head-actions { flex-wrap: wrap; }
+  .calendar-day { min-height: 60px; padding: 2px; }
+  .calendar-rest { width: 20px; height: 20px; }
+  .material-preview { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .material-preview > .mcard { max-width: 200px; }
+  .scrap-summary, .scrap-summary.has-cost { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .scrap-actions { flex-wrap: wrap; }
+  .st-pair { grid-template-columns: minmax(0, 1fr); }
+  .cs-top { flex-wrap: wrap; }
+  .mk-tool { padding-inline: 8px; border-width: 18px; }
+  .mk-tool-art { zoom: .85; }
+}
+
+@container page (max-width: 640px) {
+  .cs-rail::after { display: none; }
+  .cs-rail .mtray {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 132px), 1fr));
+  }
+}
+
+/* Padding belongs to the container itself, so use the window width here. */
+@media (max-width: 1000px) {
+  .page-in { padding-inline: 24px; }
+}
+@media (max-width: 600px) {
+  .page-in { padding-inline: 16px; }
+}

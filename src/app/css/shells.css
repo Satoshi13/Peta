@@ -70,24 +70,6 @@ body[data-shell="studio"] { --studio-paper: linear-gradient(rgba(251, 249, 244, 
 [data-shell="studio"] .viewport { inset: 0; overflow: hidden; }
 [data-shell="studio"] .page { background: var(--studio-paper); }
 
-/* ================================================================== narrow screens: one bottom bar, any direction */
-@media (max-width: 880px) {
-  body[data-shell] #win-layer { padding-right: 0; inset: 28px 0 74px 0; }
-  .win { --win-w: calc(100vw - 14px); --win-h: calc(100vh - 28px - 82px); }
-  .nav { position: absolute !important; inset: auto 0 0 0 !important; top: auto !important; right: 0 !important; left: 0 !important; bottom: 0 !important; width: auto !important; height: 60px; flex-direction: row !important; align-items: center !important; justify-content: flex-start !important;
-    gap: 2px !important; padding: 6px 8px !important; overflow-x: auto; background: rgba(247, 243, 234, .97) !important; border-radius: 0 0 16px 16px; z-index: 40 !important; box-shadow: 0 -1px 0 rgba(120, 100, 60, .2) !important; }
-  .nav-item, [data-shell] .nav-item { flex: none; width: auto !important; height: 46px !important; padding: 0 12px !important; transform: none !important; border-radius: 12px !important; background: none !important; box-shadow: none !important; filter: none !important; flex-direction: row !important; gap: 6px !important; }
-  [data-shell] .nav-item[aria-current="page"] { background: #fffdf9 !important; box-shadow: 0 1px 3px rgba(60, 45, 20, .25) !important; }
-  [data-shell] .nav-item .ni-label { display: none; color: var(--ink) !important; text-shadow: none !important; font: 600 13px var(--sys) !important; } [data-shell] .nav-item[aria-current="page"] .ni-label { display: inline; }
-  [data-shell] .nav-item .ni-icon { width: 28px !important; height: 28px !important; margin: 0 !important; } [data-shell] .nav-item::after { display: none !important; } [data-shell] .nav-item .ni-badge { top: 2px !important; right: 2px !important; }
-  [data-shell] .book { left: 0 !important; right: 0 !important; top: 14px !important; bottom: 60px !important; }
-  [data-shell] .spiral { display: none; } [data-shell="desk"] .viewport { inset: 0; } [data-shell="desk"] .book { left: 8px !important; right: 8px !important; top: 14px !important; } [data-shell="desk"] .close-tag { right: 30px; }
-  [data-shell="studio"] .viewport { inset: 0 0 60px 0; } [data-shell="studio"] .book { top: 0 !important; bottom: 0 !important; } [data-shell="studio"] .nav::before { display: none; }
-  .page-in { padding: 18px 16px 24px; } .ph h1 { font-size: 34px !important; }
-  body .choices { grid-template-columns: repeat(2, 1fr); } body .choices.compact { grid-template-columns: repeat(4, 1fr); } body .t-bottom { grid-template-columns: 1fr; } body .cr-controls { grid-template-columns: 1fr; } body .panes { flex-direction: column; height: auto; } body .panes .pane { min-height: 170px; } body .arrow { display: none; }
-  body .bk { flex-direction: column; } body .detail { position: static; width: 100%; } body .t-done { grid-template-columns: 1fr; justify-items: center; } body .cr-empty { grid-template-columns: 1fr; } body .sample-grid { grid-template-columns: repeat(4, 1fr); }
-}
-
 /* The logo stays above a scrolling list; Settings and the local profile stay at the foot. */
 .nav-top { min-height:0; }
 .nav-foot { flex:none; }
@@ -122,10 +104,17 @@ body[data-shell="studio"] { --studio-paper: linear-gradient(rgba(251, 249, 244, 
 [data-shell="desk"] .nav-foot { margin-top:auto; }
 [data-shell="desk"] .nav-account, [data-shell="desk"] .nav-group, [data-shell="desk"] .ni-key { display:none; }
 [data-shell="desk"] .ni-dot { position:absolute; right:12px; top:8px; }
-@media (max-width:880px) {
-  [data-shell] .nav-top, [data-shell] .nav-foot { display:contents; }
-  [data-shell] .nav-group, [data-shell] .nav-account, [data-shell] .ni-key, [data-shell] .nav-pill { display:none; }
-  [data-shell] .nav-item[data-page="settings"] { display:flex; }
-  [data-shell] .ni-tile { background:none; box-shadow:none; width:28px; height:28px; }
-  [data-shell] .ni-dot { position:absolute; right:8px; top:6px; }
+
+/* Compact windows keep the sections on the left, with the list scrolling vertically. */
+@media (max-width: 880px) {
+  [data-shell="studio"] .nav { width: 80px; padding: 58px 8px 10px; }
+  [data-shell="studio"] .nav::before { display: none; }
+  [data-shell="studio"] .book { left: 80px; }
+  [data-shell="studio"] .nav-item { flex-direction: column; justify-content: center; gap: 2px; height: 54px; padding: 4px 2px; }
+  [data-shell="studio"] .nav-item .ni-label { font: 500 10.5px/14px var(--sys); }
+  [data-shell="studio"] .nav-item .ni-badge, [data-shell="studio"] .ni-dot { position: absolute; right: 1px; top: 2px; margin: 0; }
+  [data-shell="studio"] .nav-group, [data-shell="studio"] .nav-account, [data-shell="studio"] .ni-key { display: none; }
+  [data-shell="studio"] .nav-item[data-page="settings"] { display: flex; }
+  [data-shell="studio"] .nav-foot { padding-top: 6px; }
+  [data-shell="desk"] .nav-top { justify-content: flex-start; }
 }
