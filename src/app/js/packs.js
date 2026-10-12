@@ -179,6 +179,27 @@ const WallInk = {
 };
 
 /* A listing is only this Mac's display of the same finished pack. */
+/* How a pack on sale is doing (its maker's view): asked of the referee at most once a minute per pack. */
+const PackSales = {
+  cache: new Map(),
+  get(p) {
+    const hit = this.cache.get(p.id);
+    if (hit && Date.now() - hit.at < 60000) return hit.request;
+    const request = Bridge.invoke("pack_sales", { packId: p.id }).then((r) => r?.status ? r : { status: "offline" }, () => ({ status: "offline" }));
+    this.cache.set(p.id, { at: Date.now(), request }); return request;
+  },
+  line(l) { return h("li.pk-sale-line", h("span", l.name), h("i.pk-sale-bar", { "aria-hidden": "true" }, h("i", { style: { width: (l.total ? l.taken / l.total * 100 : 0) + "%" } })), h("b", `${l.taken} / ${l.total}`)); },
+  panel(p) {
+    const box = h("section.pk-sales", { "aria-live": "polite" }, h("p.small.muted", "Checking sales…"));
+    this.get(p).then((r) => {
+      if (r.status !== "live") { box.replaceChildren(h("p.small.muted", r.status === "offline" ? "Connect to the internet to see sales." : "Sales appear once Peta checks this pack.")); return; }
+      box.replaceChildren(h("p.pk-sales-head", h("b", r.taken === r.total ? "Sold out" : `${r.taken} of ${r.total} taken`), h("small.muted", "by friends")),
+        h("ul.pk-sale-list", r.designs.map((l) => this.line(l))), r.prizes.length ? h("ul.pk-sale-list.prizes", r.prizes.map((l) => this.line(l))) : null);
+    });
+    return box;
+  },
+};
+
 const PackListing = {
   visible() { return S.packs.filter(p => p.own && p.listed).map(p => ({...p, local:true, empty:!p.left.length})); },
   control(p) {
@@ -248,6 +269,14 @@ Pages.packs = {
     const light = gen ? { aim() {}, rest() {} } : SurfaceLight.attach(img, p.kind || "holo"); // the glint is lit over the pack's own surface, not slid across it
     const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}${p.own ? p.listed ? ", listed in Market on this Mac" : ", kept on My shelf" : ""}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
       stack, (() => { const ink = WallInk.write(`${p.left.length} left`, p.id); return h("span.pk-count", { "aria-hidden": "true", style: { "--tilt": ink.tilt, "--dx": ink.dx } }, ...ink.nodes); })()); // written on the wall behind the pouch, so it stays put when the pouch lifts
+    if (p.own && p.listed) {   // on sale: a mark on the pouch, and the wall shows how many friends have drawn
+      const mark = h("span.pk-sale-mark", "On sale"); stack.append(mark);
+      PackSales.get(p).then((r) => {
+        if (r.status !== "live" || !card.isConnected) return;
+        const sold = r.taken >= r.total, ink = WallInk.write(sold ? "sold out" : `${r.taken} of ${r.total} taken`, p.id), count = $(".pk-count", card);
+        count?.replaceChildren(...ink.nodes); if (sold) { mark.textContent = "Sold out"; mark.classList.add("sold"); }
+      });
+    }
     onPointerFollow(card, (x, y, e, amount) => {
       if (!e) return;
       const r = (img || $(".bagpic", stack)).getBoundingClientRect(), px = clamp((e.clientX - r.left) / r.width, -.2, 1.2), py = clamp((e.clientY - r.top) / r.height, -.2, 1.2);
@@ -279,6 +308,7 @@ Pages.packs = {
       h("p.mkz-own", h("b", p.own ? `${left} sealed slots` : `${left} ${left === 1 ? "opening" : "openings"} left`)),
       p.own ? null : h("div.mkz-reward", h("p.small.muted", available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} / 10 toward a free opening`),
         h("div.mkz-pips", {role:"progressbar","aria-label":"Free opening progress","aria-valuemin":0,"aria-valuemax":10,"aria-valuenow":progress,"aria-valuetext":available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} of 10 openings`}, Array.from({length:10}, (_, i) => h("i" + (i < progress ? "" : ".o"))))),
+      p.own && p.listed ? PackSales.panel(p) : null,
       peek,
       h("div.mkz-buy", rule ? h("p.mkz-rule", rule) : null,
         PackListing.control(p), exportPack, free,

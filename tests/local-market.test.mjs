@@ -47,6 +47,6 @@ test('local Market cards reuse the own-pack card and never offer purchases or op
   f.context.Market.buyBox=()=>{throw Error('buy path');};f.context.Market.exchange=()=>{throw Error('exchange path');};
   const card=f.context.Market.card(local),buttons=nodes(card).filter(n=>n.tag.startsWith('button')).map(text);
   assert.ok(buttons.includes('Take down from Market'));assert.ok(buttons.includes('Save file…'));assert.ok(!buttons.some(t=>/Open|Buy|Get|Exchange/.test(t)));
-  await f.context.Market.get(local);assert.equal(f.calls.length,0);
+  await f.context.Market.get(local);assert.equal(f.calls.filter(c=>c.cmd!=='pack_sales').length,0,'reading sales is the only native call');
   assert.equal(f.context.PackListing.control({...local,own:false}),null);assert.equal(f.context.PackListing.control({...local,listed:false,canList:false}),null);
 });

@@ -165,3 +165,34 @@ pub async fn pack_cover_picture(store:tauri::State<'_,Store>,pack_id:String)->Re
     let small=tauri::async_runtime::spawn_blocking(move||peta_core::thumb::thumbnail_png(&bytes,512)).await.map_err(|e|e.to_string())?.map_err(|e|e.to_string())?;
     Ok(tauri::ipc::Response::new(small))
 }
+
+/// How a pack on sale is doing, for its maker. The slots taken are known only to the referee (developer builds today); the pack's own
+/// signed header turns slot numbers back into designs and prizes. The library lock is released before asking the server.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PackSales {
+    /// "live": counted by the referee; "untracked": no referee in this build, or the pack was made before it; "offline": try later.
+    pub status: &'static str,
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
+    pub sales: Option<peta_core::edition_pack::Sales>,
+}
+
+#[tauri::command]
+pub async fn pack_sales(app: AppHandle, pack_id: String) -> Result<PackSales, String> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<PackSales, String> {
+        use peta_core::ownership::{Referee, RefereeError};
+        let store = app.state::<Store>();
+        let (header, referee) = {
+            let mut lib = store.lock();
+            let header = peta_core::edition_pack::header_of(lib.db(), &pack_id).map_err(|e| e.to_string())?.ok_or("Not an edition pack.")?;
+            (header, crate::referee_access::active(&mut lib).map_err(|e| e.to_string())?)
+        };
+        if !cfg!(feature = "server") { return Ok(PackSales { status: "untracked", sales: None }); }
+        match referee.claimed_slots(&header.pack_id) {
+            Ok(claimed) => Ok(PackSales { status: "live", sales: Some(peta_core::edition_pack::sales(&header, &claimed)) }),
+            Err(peta_core::Error::Referee(RefereeError::Unknown)) => Ok(PackSales { status: "untracked", sales: None }),
+            Err(peta_core::Error::Referee(RefereeError::Offline)) => Ok(PackSales { status: "offline", sales: None }),
+            Err(e) => Err(e.to_string()),
+        }
+    }).await.map_err(|e| e.to_string())?
+}

@@ -330,6 +330,32 @@ fn open_row(lib:&mut Library,id:&str,row:i64,free:bool,date:&str,queue:bool,refe
     Ok(Award{kind,sticker_id,material_id:prize,name:metadata.name,rarity:metadata.rarity,remaining})
 }
 
+/* Sales of a pack on sale, for its maker: which of its slots others have drawn. Slots run through the designs in header order (each takes
+   `copies` slots), then the prizes; the referee knows which slot numbers are taken, this turns them back into designs and prizes. */
+#[derive(Clone,Debug,Serialize,PartialEq)]
+#[serde(rename_all="camelCase")]
+pub struct SalesLine {pub name:String,pub kind:String,pub total:u32,pub taken:u32}
+#[derive(Clone,Debug,Serialize,PartialEq)]
+#[serde(rename_all="camelCase")]
+pub struct Sales {pub total:u32,pub taken:u32,pub designs:Vec<SalesLine>,pub prizes:Vec<SalesLine>}
+pub fn sales(h:&Header,claimed:&[u32])->Sales {
+    let taken_in=|from:u32,n:u32| claimed.iter().filter(|s| **s>=from && **s<from+n).count() as u32;
+    let mut next=0u32;let mut designs=vec![];let mut prizes=vec![];
+    for item in &h.items { let n=item.copies.unwrap_or(0); designs.push(SalesLine{name:item.name.clone(),kind:"sticker".into(),total:n,taken:taken_in(next,n)}); next+=n; }
+    for prize in &h.prizes {
+        let n=prize.count();
+        let (name,kind)=match prize { Prize::Material{material_id,..}=>(crate::materials::get(material_id).map(|m|m.name).unwrap_or_else(||material_id.clone()),"material"), Prize::Tag{..}=>("Link tag".to_owned(),"tag") };
+        prizes.push(SalesLine{name,kind:kind.into(),total:n,taken:taken_in(next,n)}); next+=n;
+    }
+    let taken=claimed.iter().filter(|s| **s<next).collect::<std::collections::HashSet<_>>().len() as u32;
+    Sales{total:next,taken,designs,prizes}
+}
+/// The signed header of a pack kept on this Mac (edition packs only).
+pub fn header_of(db:&Database,id:&str)->Result<Option<Header>> {
+    let saved:Option<String>=db.conn.query_row("SELECT header FROM edition_pack_frames WHERE pack_id=?1",[id],|r|r.get(0)).optional()?;
+    saved.map(|s| serde_json::from_str(&s).map_err(|_|invalid("Damaged pack record."))).transpose()
+}
+
 #[cfg(test)] mod tests {
     use super::*;
     fn lib()->Library {Library::open(&std::env::temp_dir().join(crate::ids::new_gift_id())).unwrap()}
@@ -548,5 +574,25 @@ fn open_row(lib:&mut Library,id:&str,row:i64,free:bool,date:&str,queue:bool,refe
         let mut choices=std::collections::HashSet::new();for i in 0..15 {choices.insert(pick(friend.db(),&id,(i as f64+0.5)/15.0).unwrap().unwrap().0);}assert_eq!(choices.len(),15);
         for _ in 0..10 {open(&mut friend,&id,0.0,false,"2026-10-11",false,&o::NoReferee).unwrap();}assert_eq!(friend.db().pack_free_openings(&id).unwrap(),1);
         open(&mut friend,&id,0.0,true,"2026-10-11",true,&o::NoReferee).unwrap();assert_eq!(friend.db().packs().unwrap()[0].remaining,4);assert_eq!(friend.db().packs().unwrap()[0].total,15);assert_eq!(friend.db().pack_free_openings(&id).unwrap(),0);assert!(friend.db().next_print().unwrap().is_some());
+    }
+}
+
+#[cfg(test)] mod sales_tests {
+    use super::*;
+    fn header(items:&[(&str,u32)],prizes:Vec<Prize>)->Header {
+        let mut h:Header=serde_json::from_value(serde_json::json!({"packId":"p","version":2,"title":"T","author":"A","pouch":"kraft","madeAt":"2026-10-13T00:00:00Z","items":[],"signer":{"kind":"device","publicKey":"k"}})).unwrap();
+        h.items=items.iter().map(|(name,copies)| serde_json::from_value(serde_json::json!({"copies":copies,"key":name,"name":name,"rarity":"common","materialId":"matte","aspect":1.0,"pngLen":0,"maskLen":0})).unwrap()).collect();
+        h.prizes=prizes;h
+    }
+    #[test] fn slots_map_back_to_designs_then_prizes() {
+        let h=header(&[("Cat",3),("Leaf",2)],vec![Prize::Material{material_id:"kraft".into(),count:2},Prize::Tag{count:1}]);
+        // slots: Cat 0..3, Leaf 3..5, Kraft 5..7, Tag 7
+        let s=sales(&h,&[0,2,4,6,7,99]);
+        assert_eq!((s.total,s.taken),(8,5),"an unknown slot number is not counted");
+        assert_eq!(s.designs.iter().map(|d|(d.name.as_str(),d.total,d.taken)).collect::<Vec<_>>(),vec![("Cat",3,2),("Leaf",2,1)]);
+        assert_eq!(s.prizes.iter().map(|d|(d.kind.as_str(),d.total,d.taken)).collect::<Vec<_>>(),vec![("material",2,1),("tag",1,1)]);
+        assert_eq!(s.prizes[1].name,"Link tag");
+        let none=sales(&h,&[]); assert_eq!(none.taken,0);
+        let all=sales(&h,&(0..8).collect::<Vec<_>>()); assert_eq!(all.taken,all.total);
     }
 }

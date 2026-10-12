@@ -241,6 +241,7 @@ pub fn run() {
             gifts::event_inbox,
             gifts::gift_open,
             packs::pack_install_demo,
+            packs::pack_sales,
             packs::pack_status,
             packs::pack_open,
             packs::pack_open_free,
