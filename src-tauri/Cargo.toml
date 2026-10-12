@@ -9,7 +9,8 @@ rust-version = "1.77"
 members = ["crates/core", "crates/peta-pass"]
 
 [features]
-developer = ["peta-core/developer"]
+developer = ["peta-core/developer", "server"]
+server = ["dep:ureq", "dep:ed25519-dalek", "dep:base64", "dep:getrandom"]
 
 [lib]
 name = "peta_lib"
@@ -25,6 +26,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 peta-core = { path = "crates/core" }
 tauri-plugin-dialog = "2"
+ureq = { version = "2.12.1", default-features = false, features = ["tls"], optional = true }
+ed25519-dalek = { version = "2", optional = true }
+base64 = { version = "0.22", optional = true }
+getrandom = { version = "0.3", optional = true }
 
 objc2 = "0.6"
 

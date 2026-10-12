@@ -142,7 +142,8 @@ pub fn stick_from_collection(app: &AppHandle, sticker_id: &str, _display_id: &st
 
 // ---- commands (called by the Today window) ----
 
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn daily_status(app: AppHandle) -> Result<DailyStatus, String> {
     let today = app.state::<Today>();
     let changed = *today.last_seen.lock().unwrap() != today.date();
@@ -151,7 +152,8 @@ pub fn daily_status(app: AppHandle) -> Result<DailyStatus, String> {
 }
 
 /// Open the envelope: today's material is yours and joins the Material Book.
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn daily_open_material(app: AppHandle, store: State<Store>, today: State<Today>) -> Result<DailyStatus, String> {
     {
         let mut lib = store.lock();
@@ -195,7 +197,8 @@ pub async fn daily_create(
 }
 
 /// Stickers that are not on the desktop right now.
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn collection_unused(store: State<Store>) -> Result<Vec<StickerSummary>, String> {
     let lib = store.lock();
     let stickers = lib.db().off_desktop().map_err(|e| e.to_string())?;
@@ -211,7 +214,8 @@ pub fn collection_unused(store: State<Store>) -> Result<Vec<StickerSummary>, Str
         .collect())
 }
 
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn daily_stick_from_collection(app: AppHandle, layers: State<Layers>, sticker_id: String) -> Result<DailyStatus, String> {
     stick_from_collection(&app, &sticker_id, &layers.primary_display_id())?;
     status(&app)

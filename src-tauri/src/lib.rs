@@ -1,3 +1,6 @@
+#[cfg(feature="server")]
+mod referee;
+mod referee_access;
 mod app_window;
 mod port_capture;
 mod arrival;
@@ -39,7 +42,8 @@ struct PlacedSticker {
 }
 
 /// Stickers this layer should draw, bottom -> top.
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 fn layer_placements(window: WebviewWindow, layers: State<Layers>, store: State<Store>) -> Vec<PlacedSticker> {
     let placements = layers.placements_for(window.label(), &store);
     let lib = store.lock();
@@ -54,7 +58,8 @@ fn layer_placements(window: WebviewWindow, layers: State<Layers>, store: State<S
 
 /// Called when a drag / resize / rotate ends. The sticker now belongs to the display it was edited on,
 /// and goes on top of the others.
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 fn save_placement(window: WebviewWindow, layers: State<Layers>, store: State<Store>, mut placement: Placement) -> Result<(), String> {
     let info = layers.info(window.label()).ok_or("unknown layer")?;
     placement.display_id = info.display_id;
@@ -62,7 +67,8 @@ fn save_placement(window: WebviewWindow, layers: State<Layers>, store: State<Sto
 }
 
 /// Peel off: the sticker leaves the desktop (it stays in the collection).
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 fn peel_sticker(app: AppHandle, store: State<Store>, sticker_id: String) -> Result<(), String> {
     store.lock().db_mut().peel(&sticker_id).map_err(|e| e.to_string())?;
     let _ = app.emit("placements-changed", ()); // the Sticker Book shows what is on the desktop
@@ -132,14 +138,16 @@ fn haptic_tap(app: AppHandle, kind: String) -> Result<(), String> {
     app.run_on_main_thread(move || platform::haptic(&kind)).map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 fn developer_next_day(app: AppHandle) -> Result<(), String> {
     app.state::<Today>().next_day()?;
     today::roll_day(&app);
     Ok(())
 }
 
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 fn developer_sync_displays(app: AppHandle) -> Result<(), String> {
     if !cfg!(feature="developer") { return Err("Developer edition required.".into()); }
     layers::sync(&app).map_err(|e| e.to_string())
@@ -167,6 +175,8 @@ pub fn run() {
             port_capture::port_capture_tray,
             haptic_tap,
             app_window::window_vibrancy,
+            referee_access::referee_status,
+            referee_access::referee_sync,
             developer_next_day,
             developer_sync_displays,
             arrival::developer_show_arrival,
@@ -249,6 +259,7 @@ pub fn run() {
             collection::poster_save
         ])
         .on_window_event(|window, event| {
+            if window.label()==app_window::APP_LABEL && matches!(event,tauri::WindowEvent::Focused(true)){referee_access::kickoff(window.app_handle());}
             if matches!(event, tauri::WindowEvent::Destroyed) { layers::forget_reflection(window.app_handle(), window.label()); }
             // The main window is transparent and rounded: its native shadow is recomputed whenever the shape changes.
             if window.label() == app_window::APP_LABEL && matches!(event, tauri::WindowEvent::Resized(_)) {
@@ -272,6 +283,7 @@ pub fn run() {
             today::spawn_day_watcher(app.handle().clone());
             arrival::spawn_hit_watcher(app.handle().clone());
             port_capture::start(app.handle());
+            referee_access::kickoff(app.handle());
             Ok(())
         })
         .build(context)

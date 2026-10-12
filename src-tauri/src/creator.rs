@@ -176,7 +176,8 @@ pub struct CreatorInfo {
     editing_sticker_id: Option<String>,
 }
 
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn creator_info(app: AppHandle, creator: State<Creator>, store: State<Store>) -> CreatorInfo {
     let phase = creator.phase.lock().unwrap().clone();
     // today::status takes the library lock itself, so ask it before taking ours (holding both deadlocked
@@ -341,6 +342,7 @@ pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, 
         .await
         .map_err(|e| e.to_string())??;
     clear(&app);
+    crate::referee_access::kickoff(&app);
     Ok(result)
 }
 

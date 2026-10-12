@@ -14,7 +14,7 @@ use crate::{store::Store};
 
 /// Months that have a page, newest first.
 #[tauri::command]
-pub fn book_index(store: State<Store>) -> Result<Vec<MonthIndex>, String> {
+pub async fn book_index(store: State<'_,Store>) -> Result<Vec<MonthIndex>, String> {
     let lib = store.lock();
     let entries = book::entries_local(lib.db()).map_err(|e| e.to_string())?;
     Ok(book::index(&entries))
@@ -22,7 +22,7 @@ pub fn book_index(store: State<Store>) -> Result<Vec<MonthIndex>, String> {
 
 /// One month's page, oldest first.
 #[tauri::command]
-pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookItem>, String> {
+pub async fn book_page(store: State<'_,Store>, year: i32, month: u32) -> Result<Vec<BookItem>, String> {
     let lib = store.lock();
     let entries = book::entries_local(lib.db()).map_err(|e| e.to_string())?;
     let key=peta_core::sign::public_key(&peta_core::device_key::load_or_create(lib.root()).map_err(|e|e.to_string())?);
@@ -36,19 +36,21 @@ pub fn book_page(store: State<Store>, year: i32, month: u32) -> Result<Vec<BookI
         let can_press=sticker.as_ref().is_some_and(|s|peta_core::edition_pack::can_press(s,&key));
         let pressed=sticker.as_ref().is_some_and(|s|s.pressed);
         let edition_total=sticker.as_ref().and_then(|s|s.edition_total);
+        let checked=peta_core::server::checked(lib.db(),&entry.sticker_id).map_err(|e|e.to_string())?;
         let created_at = sticker.map(|s| s.created_at);
         let pack_name=peta_core::pack::item_name(lib.db(),&entry.sticker_id).map_err(|e|e.to_string())?;
         let title = lib.db().sticker_title(&entry.sticker_id).map_err(|e| e.to_string())?;
-        Ok(BookItem { entry, can_manage, created_at, pack_name, title, lineage, copy_of, copy_no, verified, pressed,can_press,edition_total })
+        Ok(BookItem { entry, can_manage, created_at, pack_name, title, lineage, copy_of, copy_no, verified, pressed,can_press,edition_total,checked })
     }).collect()
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool, created_at: Option<String>, pack_name: Option<String>, /** the name the person gave it */ title: Option<String>, lineage:String, copy_of:Option<String>,copy_no:Option<u32>,verified:bool,pressed:bool,can_press:bool,edition_total:Option<u32> }
+pub struct BookItem { #[serde(flatten)] entry: BookEntry, can_manage: bool, created_at: Option<String>, pack_name: Option<String>, /** the name the person gave it */ title: Option<String>, lineage:String, copy_of:Option<String>,copy_no:Option<u32>,verified:bool,pressed:bool,can_press:bool,edition_total:Option<u32>,checked:Option<String> }
 
-#[tauri::command]
-pub fn sticker_delete_original(app: AppHandle, store: State<Store>, sticker_id: String) -> Result<(), String> {
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
+pub fn sticker_delete_original(app: AppHandle, store: State<'_,Store>, sticker_id: String) -> Result<(), String> {
     store.lock().delete_original(&sticker_id).map_err(|e| e.to_string())?;
     let _ = app.emit("sticker-updated", &sticker_id);
     if crate::print::pending(&app)?.is_none() { crate::layers::set_print(&app, false); }
@@ -58,7 +60,7 @@ pub fn sticker_delete_original(app: AppHandle, store: State<Store>, sticker_id: 
 
 /// What is printed on the back of a sticker (ORIGINAL / Received, who, when, which material, history).
 #[tauri::command]
-pub fn sticker_back(store: State<Store>, sticker_id: String) -> Result<Option<StickerBack>, String> {
+pub async fn sticker_back(store: State<'_,Store>, sticker_id: String) -> Result<Option<StickerBack>, String> {
     let lib = store.lock();
     let name = lib.db().display_name().map_err(|e| e.to_string())?;
     back::sticker_back(lib.db(), &sticker_id, &name, &local_ymd).map_err(|e| e.to_string())
@@ -72,8 +74,9 @@ pub struct MaterialBookEntry {
 }
 
 /// Every material there is, and whether you have it yet (the Material Book).
-#[tauri::command]
-pub fn material_book(store: State<Store>) -> Result<Vec<MaterialBookEntry>, String> {
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
+pub fn material_book(store: State<'_,Store>) -> Result<Vec<MaterialBookEntry>, String> {
     let lib = store.lock();
     materials::catalog()
         .into_iter()
@@ -86,13 +89,15 @@ pub fn material_book(store: State<Store>) -> Result<Vec<MaterialBookEntry>, Stri
         .collect()
 }
 
-#[tauri::command]
-pub fn scrap_status(store: State<Store>) -> Result<peta_core::scraps::Status, String> {
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
+pub fn scrap_status(store: State<'_,Store>) -> Result<peta_core::scraps::Status, String> {
     store.lock().db().scrap_status().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
-pub fn scrap_trade(app: AppHandle, store: State<Store>, trade: peta_core::scraps::Trade, request_id: String) -> Result<peta_core::scraps::Receipt, String> {
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
+pub fn scrap_trade(app: AppHandle, store: State<'_,Store>, trade: peta_core::scraps::Trade, request_id: String) -> Result<peta_core::scraps::Receipt, String> {
     let receipt = store.lock().db_mut().scrap_trade(&trade, &request_id).map_err(|e| e.to_string())?;
     crate::today::announce(&app);
     Ok(receipt)
@@ -106,16 +111,18 @@ pub struct Profile {
     pub developer: bool,
 }
 
-#[tauri::command]
-pub fn profile_get(store: State<Store>) -> Result<Profile, String> {
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
+pub fn profile_get(store: State<'_,Store>) -> Result<Profile, String> {
     let lib = store.lock();
     let display_name = lib.db().display_name().map_err(|e| e.to_string())?;
     let icon_sticker_id = lib.db().profile_icon().map_err(|e| e.to_string())?;
     Ok(Profile { display_name, icon_sticker_id, developer: cfg!(feature="developer") })
 }
 
-#[tauri::command]
-pub fn profile_set_icon(app: AppHandle, store: State<Store>, sticker_id: Option<String>) -> Result<Profile, String> {
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
+pub fn profile_set_icon(app: AppHandle, store: State<'_,Store>, sticker_id: Option<String>) -> Result<Profile, String> {
     store.lock().db_mut().set_profile_icon(sticker_id.as_deref()).map_err(|e| e.to_string())?;
     let profile = profile_get(store)?;
     let _ = app.emit("profile-changed", &profile);
@@ -123,8 +130,9 @@ pub fn profile_set_icon(app: AppHandle, store: State<Store>, sticker_id: Option<
 }
 
 /// The name printed on the back of stickers you make from now on. Empty = back to the OS user name.
-#[tauri::command]
-pub fn profile_set(store: State<Store>, display_name: String) -> Result<Profile, String> {
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
+pub fn profile_set(store: State<'_,Store>, display_name: String) -> Result<Profile, String> {
     store.lock().db_mut().set_display_name(&display_name).map_err(|e| e.to_string())?;
     profile_get(store)
 }

@@ -33,7 +33,8 @@ pub struct Opened {
     pub name: Option<String>,
 }
 
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn pack_status(app: AppHandle, store: tauri::State<Store>) -> Result<PackStatus, String> {
     let can_open = store.lock().db().welcome_available(&app.state::<today::Today>().date()).map_err(|e|e.to_string())?;
     store.lock().db_mut().replenish_developer_packs().map_err(|e|e.to_string())?;
@@ -60,15 +61,23 @@ pub async fn pack_open_free(app: AppHandle, pack_id: String, queue: Option<bool>
 }
 
 async fn open(app: AppHandle, pack_id: String, free: bool, queue: bool) -> Result<Opened, String> {
+    let app2=app.clone();let id2=pack_id.clone();
+    let edition=tauri::async_runtime::spawn_blocking(move|| -> Result<Option<Opened>,String> {
+        let app=app2;let pack_id=id2;
+        crate::referee_access::before_operation(&app);
     {
         let store=app.state::<Store>();let mut lib=store.lock();
         peta_core::edition_pack::ensure_can_open(&lib,&pack_id).map_err(|e|e.to_string())?;
         if peta_core::edition_pack::is_v2(lib.db(),&pack_id).map_err(|e|e.to_string())? {
             let title=lib.db().packs().map_err(|e|e.to_string())?.into_iter().find(|p|p.id==pack_id).ok_or("Unknown pack")?.title;
-            let award=peta_core::edition_pack::open(&mut lib,&pack_id,random_unit(),free,&app.state::<today::Today>().date(),queue,&peta_core::ownership::NoReferee).map_err(|e|e.to_string())?;
-            drop(lib);today::announce(&app);return Ok(Opened{sticker_id:award.sticker_id,kind:award.kind,material_id:award.material_id,pack_title:title,remaining:award.remaining,rarity:Some(award.rarity),name:Some(award.name)});
+            let referee=crate::referee_access::active(&mut lib).map_err(|e|e.to_string())?;
+            let award=peta_core::edition_pack::open(&mut lib,&pack_id,random_unit(),free,&app.state::<today::Today>().date(),queue,&referee).map_err(|e|e.to_string())?;
+            drop(lib);today::announce(&app);return Ok(Some(Opened{sticker_id:award.sticker_id,kind:award.kind,material_id:award.material_id,pack_title:title,remaining:award.remaining,rarity:Some(award.rarity),name:Some(award.name)}));
         }
     }
+        Ok(None)
+    }).await.map_err(|e|e.to_string())??;
+    if let Some(edition)=edition{return Ok(edition);}
     let (item_id, key, title, by) = {
         let store = app.state::<Store>();
         let mut lib = store.lock();
@@ -118,7 +127,8 @@ async fn open(app: AppHandle, pack_id: String, free: bool, queue: bool) -> Resul
 }
 
 // Free acquisition is separate from the atomic Scraps exchange.
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn pack_install_demo(app: AppHandle, pack_id: String) -> Result<(), String> {
     let p = pack::market_pack(&pack_id).ok_or("This pack is not available yet")?;
     if !p.free { return Err("Exchange Scraps for this pack.".into()); }
@@ -133,7 +143,8 @@ pub fn pack_install_demo(app: AppHandle, pack_id: String) -> Result<(), String> 
 pub struct PeekItem { pub item_id: i64, pub name: String, pub material: String }
 
 /// Up to three pictures of a signed pack: its cover, then the items that come out most often (the rarest stay a surprise).
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn pack_peek(store: tauri::State<Store>, pack_id: String) -> Result<Vec<PeekItem>, String> {
     let lib = store.lock();
     Ok(peta_core::creator_pack::peek(lib.db(), &pack_id).map_err(|e| e.to_string())?

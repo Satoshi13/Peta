@@ -62,6 +62,8 @@ impl Store {
         if let Err(e) = peta_core::pack::ensure_welcome_pack(lib.db_mut()) {
             eprintln!("[peta] installing the Welcome Pack failed: {e}");
         }
+        #[cfg(feature="server")]
+        peta_core::server::migrate(&mut lib)?;
         *self.lib.lock().unwrap() = Some(lib);
         self.needs_seed.store(first_run, Ordering::SeqCst);
         Ok(())

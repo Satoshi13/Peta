@@ -10,27 +10,31 @@ use crate::Store;
 #[serde(rename_all = "camelCase")]
 pub struct Status { pub stock: Stock, pub tags: Vec<LinkTag> }
 
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn link_tag_status(store: State<Store>) -> Result<Status, String> {
     let lib = store.lock();
     Ok(Status { stock: lib.db().link_tag_stock().map_err(|e| e.to_string())?, tags: lib.db().link_tags().map_err(|e| e.to_string())? })
 }
 
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn link_tag_attach(app: AppHandle, store: State<Store>, request: Attach) -> Result<LinkTag, String> {
     let tag = store.lock().db_mut().link_tag_attach(&request.sticker_id, &request.kind, &request.target, &request.label, request.show_in_collection).map_err(|e| e.to_string())?;
     let _ = app.emit("link-tags-changed", ());
     Ok(tag)
 }
 
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn link_tag_set_show(app: AppHandle, store: State<Store>, sticker_id: String, show: bool) -> Result<(), String> {
     store.lock().db_mut().link_tag_set_show(&sticker_id, show).map_err(|e| e.to_string())?;
     let _ = app.emit("link-tags-changed", ());
     Ok(())
 }
 
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn link_tag_remove(app: AppHandle, store: State<Store>, sticker_id: String) -> Result<bool, String> {
     let removed = store.lock().db_mut().link_tag_remove(&sticker_id).map_err(|e| e.to_string())?;
     let _ = app.emit("link-tags-changed", ());
@@ -58,7 +62,8 @@ pub async fn link_tag_pick(window: WebviewWindow, app: AppHandle, kind: String) 
 }
 
 /// Open what the tag points at. Re-checked here, from the saved record, so the window can never ask for anything else to be opened.
-#[tauri::command]
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
 pub fn link_tag_open(store: State<Store>, sticker_id: String) -> Result<(), String> {
     let tag = store.lock().db().link_tag(&sticker_id).map_err(|e| e.to_string())?.ok_or("This sticker has no link tag.")?;
     link_tag::validate(&tag.kind, &tag.target, &tag.label).map_err(|e| e.to_string())?;
