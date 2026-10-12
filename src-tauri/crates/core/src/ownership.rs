@@ -77,7 +77,7 @@ pub struct Creation {
     #[serde(default,skip_serializing_if="Option::is_none")] pub edition_total: Option<u32>,
 }
 impl Creation {
-    fn bytes(&self) -> Result<Vec<u8>> { json(&("peta.creation.v1", &self.sticker_id, &self.creator_public_key, &self.created_at, &self.image_digest, &self.creator_name, self.edition_no, self.edition_total)) }
+    pub fn bytes(&self) -> Result<Vec<u8>> { json(&("peta.creation.v1", &self.sticker_id, &self.creator_public_key, &self.created_at, &self.image_digest, &self.creator_name, self.edition_no, self.edition_total)) }
     fn legacy_bytes(&self,key:&str,at:&str) -> Result<Vec<u8>> { json(&("peta.legacy-holder.v1", self.bytes()?, key, at)) }
     pub fn new(id:&str,name:Option<String>,at:&str,png:&[u8],key:&SigningKey) -> Result<Self> {
         let mut origin=Self{sticker_id:id.into(),creator_public_key:Some(sign::public_key(key)),creator_name:name,created_at:at.into(),image_digest:digest(png),creator_sig:None,legacy:None,edition_no:None,edition_total:None};
@@ -94,7 +94,7 @@ impl Creation {
 #[serde(rename_all="camelCase", deny_unknown_fields)]
 pub struct Transfer { pub sticker_id:String,pub seq:u32,pub kind:String,pub actor_key:String,#[serde(rename="ref")] pub reference:String,pub at:String,pub sig:String }
 impl Transfer {
-    fn bytes(&self)->Result<Vec<u8>> { json(&("peta.transfer.v1",&self.sticker_id,self.seq,&self.kind,&self.actor_key,&self.reference,&self.at)) }
+    pub fn bytes(&self)->Result<Vec<u8>> { json(&("peta.transfer.v1",&self.sticker_id,self.seq,&self.kind,&self.actor_key,&self.reference,&self.at)) }
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all="camelCase", deny_unknown_fields)]
@@ -177,4 +177,40 @@ impl Database {
         tx.commit()?;ids.into_iter().map(|id|self.sticker(&id)?.ok_or_else(||invalid("Legacy copy fixture missing."))).collect()
     }
     pub fn held_sticker(&self,id:&str)->Result<Option<Sticker>> {Ok(self.sticker(id)?.filter(|s|s.state=="held"))}
+}
+
+/// Canonical HTTP request proof; nonce and time are already encoded header values.
+pub fn request_bytes(method:&str,path:&str,time:&str,nonce:&str,body:&[u8])->Vec<u8> {
+    format!("peta.req.v1\n{method}\n{path}\n{time}\n{nonce}\n{}",digest(body)).into_bytes()
+}
+
+#[cfg(test)]
+mod server_vectors {
+    use super::*;
+    #[test]
+    fn rust_signature_vectors_match_committed_worker_fixture() {
+        let key=SigningKey::from_bytes(&[7;32]);
+        let names=[None,Some("Maker"),Some("日本語 🌸"),Some("quote \" and slash \\")];
+        let mut creations=Vec::new();
+        for (i,name) in names.iter().enumerate() {for edition in [false,true] {
+            let id=format!("vector-{i}-{}",u8::from(edition));
+            let c=if edition {Creation::edition(&id,name.map(str::to_owned),"2026-01-01T00:00:00Z",b"fixed PNG bytes",&key,2,3)}else{Creation::new(&id,name.map(str::to_owned),"2026-01-01T00:00:00Z",b"fixed PNG bytes",&key)}.unwrap();
+            creations.push(serde_json::json!({"record":c,"bytes":STANDARD.encode(c.bytes().unwrap())}));
+        }}
+        let mut transfers=Vec::new();
+        for reference in ["GIFT-vector","vector-pack:slot-17"] {for (seq,kind) in ["release","claim"].into_iter().enumerate() {
+            let mut t=Transfer{sticker_id:"vector-sticker".into(),seq:seq as u32,kind:kind.into(),actor_key:sign::public_key(&key),reference:reference.into(),at:"2026-01-01T00:00:01Z".into(),sig:String::new()};
+            t.sig=signed(&key,&t.bytes().unwrap());transfers.push(serde_json::json!({"record":t,"bytes":STANDARD.encode(t.bytes().unwrap())}));
+        }}
+        let mut requests=Vec::new();
+        for (method,path,body) in [("POST","/v1/stickers",r#"{"name":"日本語 🌸"}"#),("GET","/v1/packs/vector-pack/slots","")] {
+            let time="1767225600";let nonce=STANDARD.encode([9;16]);let bytes=request_bytes(method,path,time,&nonce,body.as_bytes());
+            requests.push(serde_json::json!({"method":method,"path":path,"time":time,"nonce":nonce,"body":body,"bytes":STANDARD.encode(&bytes),"sig":signed(&key,&bytes)}));
+        }
+        let value=serde_json::json!({"publicKey":sign::public_key(&key),"creations":creations,"transfers":transfers,"requests":requests});
+        let path=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../cloudflare/peta-api/test/vectors.json");
+        if std::env::var("PETA_WRITE_VECTORS").as_deref()==Ok("1") {std::fs::create_dir_all(path.parent().unwrap()).unwrap();std::fs::write(&path,serde_json::to_string_pretty(&value).unwrap()+"\n").unwrap();}
+        let committed:serde_json::Value=serde_json::from_slice(&std::fs::read(&path).expect("Missing vectors; regenerate explicitly with PETA_WRITE_VECTORS=1")).unwrap();
+        assert_eq!(committed,value,"Signature bytes changed; review before regenerating vectors");
+    }
 }

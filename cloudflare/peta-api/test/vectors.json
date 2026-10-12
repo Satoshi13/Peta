@@ -1,0 +1,171 @@
+{
+  "creations": [
+    {
+      "bytes": "WyJwZXRhLmNyZWF0aW9uLnYxIiwidmVjdG9yLTAtMCIsIjZrcHNZK0tjVWdxKzlWQjdFeTdGK1pWSGRxNit2bnVTUWg3cWFSUkcwaXc9IiwiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJjN2I4OTdiZDZkYTRkNzg2YTEwZDM3ZjlmYzEzY2NlZWJhZmZjMzAwNjQyNGZlYTZkODRlZGJkMGNiYjdhMzBlIixudWxsLG51bGwsbnVsbF0=",
+      "record": {
+        "createdAt": "2026-01-01T00:00:00Z",
+        "creatorName": null,
+        "creatorPublicKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "creatorSig": "3nd+l1Gky4BQyLXhFbqkxi2kx1pUaRxPt2dOdoRtgB4h7t06q6B1DbTMWykHgdFj9D9p/SYN0hGDYNByupY0Dg==",
+        "imageDigest": "c7b897bd6da4d786a10d37f9fc13cceebaffc3006424fea6d84edbd0cbb7a30e",
+        "stickerId": "vector-0-0"
+      }
+    },
+    {
+      "bytes": "WyJwZXRhLmNyZWF0aW9uLnYxIiwidmVjdG9yLTAtMSIsIjZrcHNZK0tjVWdxKzlWQjdFeTdGK1pWSGRxNit2bnVTUWg3cWFSUkcwaXc9IiwiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJjN2I4OTdiZDZkYTRkNzg2YTEwZDM3ZjlmYzEzY2NlZWJhZmZjMzAwNjQyNGZlYTZkODRlZGJkMGNiYjdhMzBlIixudWxsLDIsM10=",
+      "record": {
+        "createdAt": "2026-01-01T00:00:00Z",
+        "creatorName": null,
+        "creatorPublicKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "creatorSig": "57/wuOWrplzZ+CH/O42PiLQqPlkTkxKG9rShEj548CLt5O7xOAnWOir9/j3QA29vEfiNF/IzmYzQBtFzLXy6Aw==",
+        "editionNo": 2,
+        "editionTotal": 3,
+        "imageDigest": "c7b897bd6da4d786a10d37f9fc13cceebaffc3006424fea6d84edbd0cbb7a30e",
+        "stickerId": "vector-0-1"
+      }
+    },
+    {
+      "bytes": "WyJwZXRhLmNyZWF0aW9uLnYxIiwidmVjdG9yLTEtMCIsIjZrcHNZK0tjVWdxKzlWQjdFeTdGK1pWSGRxNit2bnVTUWg3cWFSUkcwaXc9IiwiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJjN2I4OTdiZDZkYTRkNzg2YTEwZDM3ZjlmYzEzY2NlZWJhZmZjMzAwNjQyNGZlYTZkODRlZGJkMGNiYjdhMzBlIiwiTWFrZXIiLG51bGwsbnVsbF0=",
+      "record": {
+        "createdAt": "2026-01-01T00:00:00Z",
+        "creatorName": "Maker",
+        "creatorPublicKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "creatorSig": "5E8t3wwxNy2jVbe3yLbItsmH6kp4R8E0dUI5++PEzNanl/x0H8kxxJY3XSfq7jA6eu2ku6cyxA6Smc4PslP9Ag==",
+        "imageDigest": "c7b897bd6da4d786a10d37f9fc13cceebaffc3006424fea6d84edbd0cbb7a30e",
+        "stickerId": "vector-1-0"
+      }
+    },
+    {
+      "bytes": "WyJwZXRhLmNyZWF0aW9uLnYxIiwidmVjdG9yLTEtMSIsIjZrcHNZK0tjVWdxKzlWQjdFeTdGK1pWSGRxNit2bnVTUWg3cWFSUkcwaXc9IiwiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJjN2I4OTdiZDZkYTRkNzg2YTEwZDM3ZjlmYzEzY2NlZWJhZmZjMzAwNjQyNGZlYTZkODRlZGJkMGNiYjdhMzBlIiwiTWFrZXIiLDIsM10=",
+      "record": {
+        "createdAt": "2026-01-01T00:00:00Z",
+        "creatorName": "Maker",
+        "creatorPublicKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "creatorSig": "QgQhPGT/ILSoI5Dxr++JKcyqwVMCSJl9KGDT86/PR4nZAP/30zFKNLdtDTp5SPnHQiYyHoq3CaMd26HQTUaJBg==",
+        "editionNo": 2,
+        "editionTotal": 3,
+        "imageDigest": "c7b897bd6da4d786a10d37f9fc13cceebaffc3006424fea6d84edbd0cbb7a30e",
+        "stickerId": "vector-1-1"
+      }
+    },
+    {
+      "bytes": "WyJwZXRhLmNyZWF0aW9uLnYxIiwidmVjdG9yLTItMCIsIjZrcHNZK0tjVWdxKzlWQjdFeTdGK1pWSGRxNit2bnVTUWg3cWFSUkcwaXc9IiwiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJjN2I4OTdiZDZkYTRkNzg2YTEwZDM3ZjlmYzEzY2NlZWJhZmZjMzAwNjQyNGZlYTZkODRlZGJkMGNiYjdhMzBlIiwi5pel5pys6KqeIPCfjLgiLG51bGwsbnVsbF0=",
+      "record": {
+        "createdAt": "2026-01-01T00:00:00Z",
+        "creatorName": "日本語 🌸",
+        "creatorPublicKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "creatorSig": "qdegRJMJJbnJ417s3I8KHdabU39W+tJ4hrvxlIviEiDqIB+ac2m/ZRQ8C2hzgrOBa3PJf3+jy4jGZ9+q++38Dg==",
+        "imageDigest": "c7b897bd6da4d786a10d37f9fc13cceebaffc3006424fea6d84edbd0cbb7a30e",
+        "stickerId": "vector-2-0"
+      }
+    },
+    {
+      "bytes": "WyJwZXRhLmNyZWF0aW9uLnYxIiwidmVjdG9yLTItMSIsIjZrcHNZK0tjVWdxKzlWQjdFeTdGK1pWSGRxNit2bnVTUWg3cWFSUkcwaXc9IiwiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJjN2I4OTdiZDZkYTRkNzg2YTEwZDM3ZjlmYzEzY2NlZWJhZmZjMzAwNjQyNGZlYTZkODRlZGJkMGNiYjdhMzBlIiwi5pel5pys6KqeIPCfjLgiLDIsM10=",
+      "record": {
+        "createdAt": "2026-01-01T00:00:00Z",
+        "creatorName": "日本語 🌸",
+        "creatorPublicKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "creatorSig": "t47FS3jhstWmWsx5t2AB5+IRpfVmOdHNaXK3GkbbPiOs6lwkl/G4DrKVGZYWzolAebwiAxsYMiFVfnXZVy5fBA==",
+        "editionNo": 2,
+        "editionTotal": 3,
+        "imageDigest": "c7b897bd6da4d786a10d37f9fc13cceebaffc3006424fea6d84edbd0cbb7a30e",
+        "stickerId": "vector-2-1"
+      }
+    },
+    {
+      "bytes": "WyJwZXRhLmNyZWF0aW9uLnYxIiwidmVjdG9yLTMtMCIsIjZrcHNZK0tjVWdxKzlWQjdFeTdGK1pWSGRxNit2bnVTUWg3cWFSUkcwaXc9IiwiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJjN2I4OTdiZDZkYTRkNzg2YTEwZDM3ZjlmYzEzY2NlZWJhZmZjMzAwNjQyNGZlYTZkODRlZGJkMGNiYjdhMzBlIiwicXVvdGUgXCIgYW5kIHNsYXNoIFxcIixudWxsLG51bGxd",
+      "record": {
+        "createdAt": "2026-01-01T00:00:00Z",
+        "creatorName": "quote \" and slash \\",
+        "creatorPublicKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "creatorSig": "4pxx5oELaJqYJ3y2/YZkuUlXu+jr84lBMFBciEvaiDZ3U8MxZmR8dDxLw7CbHGEwinEQcGBbzt8HIn/lj82kDw==",
+        "imageDigest": "c7b897bd6da4d786a10d37f9fc13cceebaffc3006424fea6d84edbd0cbb7a30e",
+        "stickerId": "vector-3-0"
+      }
+    },
+    {
+      "bytes": "WyJwZXRhLmNyZWF0aW9uLnYxIiwidmVjdG9yLTMtMSIsIjZrcHNZK0tjVWdxKzlWQjdFeTdGK1pWSGRxNit2bnVTUWg3cWFSUkcwaXc9IiwiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJjN2I4OTdiZDZkYTRkNzg2YTEwZDM3ZjlmYzEzY2NlZWJhZmZjMzAwNjQyNGZlYTZkODRlZGJkMGNiYjdhMzBlIiwicXVvdGUgXCIgYW5kIHNsYXNoIFxcIiwyLDNd",
+      "record": {
+        "createdAt": "2026-01-01T00:00:00Z",
+        "creatorName": "quote \" and slash \\",
+        "creatorPublicKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "creatorSig": "nhF6rElai10uPflUQ6c1Fbp4f2+Ow5qUMAaLahjR3dcHzP8sjp8K0fm+8ND6j549ubIL0KLKODP+iCS4KCFXCw==",
+        "editionNo": 2,
+        "editionTotal": 3,
+        "imageDigest": "c7b897bd6da4d786a10d37f9fc13cceebaffc3006424fea6d84edbd0cbb7a30e",
+        "stickerId": "vector-3-1"
+      }
+    }
+  ],
+  "publicKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+  "requests": [
+    {
+      "body": "{\"name\":\"日本語 🌸\"}",
+      "bytes": "cGV0YS5yZXEudjEKUE9TVAovdjEvc3RpY2tlcnMKMTc2NzIyNTYwMApDUWtKQ1FrSkNRa0pDUWtKQ1FrSkNRPT0KMjM2NGZmNDc0NDk4MjFjZjUxODc3NzA4MzViZjE1NjQ5OTg0Yjg4MTdjMTUxOTNlYTU0Y2Y2Mjc1OGE4NTFmZA==",
+      "method": "POST",
+      "nonce": "CQkJCQkJCQkJCQkJCQkJCQ==",
+      "path": "/v1/stickers",
+      "sig": "s8J/WZSYXF4/ysqhgSFyr570c8QO8bgvaMCPO+Xb63GNvErbh9dOGoq8wZbwB+Jkb5rz3nSd+Mpn1YcxvvO9Cw==",
+      "time": "1767225600"
+    },
+    {
+      "body": "",
+      "bytes": "cGV0YS5yZXEudjEKR0VUCi92MS9wYWNrcy92ZWN0b3ItcGFjay9zbG90cwoxNzY3MjI1NjAwCkNRa0pDUWtKQ1FrSkNRa0pDUWtKQ1E9PQplM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1",
+      "method": "GET",
+      "nonce": "CQkJCQkJCQkJCQkJCQkJCQ==",
+      "path": "/v1/packs/vector-pack/slots",
+      "sig": "BAwAb0rQjHGQet3j8Mzow+RxYZGj3S4yK1jE/qWCjHHEHnCJZp5uwxThsLstFWvS7XsoQxm10WeUYENchgjMAQ==",
+      "time": "1767225600"
+    }
+  ],
+  "transfers": [
+    {
+      "bytes": "WyJwZXRhLnRyYW5zZmVyLnYxIiwidmVjdG9yLXN0aWNrZXIiLDAsInJlbGVhc2UiLCI2a3BzWStLY1VncSs5VkI3RXk3RitaVkhkcTYrdm51U1FoN3FhUlJHMGl3PSIsIkdJRlQtdmVjdG9yIiwiMjAyNi0wMS0wMVQwMDowMDowMVoiXQ==",
+      "record": {
+        "actorKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "at": "2026-01-01T00:00:01Z",
+        "kind": "release",
+        "ref": "GIFT-vector",
+        "seq": 0,
+        "sig": "vaNn3NaZ6g3u/G0b6syMs3SuucqJPUgHVsRkCR95Qqu6V02dmw9V+pRHJCnPhdT1wqRdXYHrThebnYP+ZLG4Dw==",
+        "stickerId": "vector-sticker"
+      }
+    },
+    {
+      "bytes": "WyJwZXRhLnRyYW5zZmVyLnYxIiwidmVjdG9yLXN0aWNrZXIiLDEsImNsYWltIiwiNmtwc1krS2NVZ3ErOVZCN0V5N0YrWlZIZHE2K3ZudVNRaDdxYVJSRzBpdz0iLCJHSUZULXZlY3RvciIsIjIwMjYtMDEtMDFUMDA6MDA6MDFaIl0=",
+      "record": {
+        "actorKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "at": "2026-01-01T00:00:01Z",
+        "kind": "claim",
+        "ref": "GIFT-vector",
+        "seq": 1,
+        "sig": "pTuJtbrSBalSxgVlA3RQ0brdOnVStID2slnCRhYrf0+w0fOYjp+CZIt3l6F6ysrmsghsuYehszxCQbp5PiJ7Dw==",
+        "stickerId": "vector-sticker"
+      }
+    },
+    {
+      "bytes": "WyJwZXRhLnRyYW5zZmVyLnYxIiwidmVjdG9yLXN0aWNrZXIiLDAsInJlbGVhc2UiLCI2a3BzWStLY1VncSs5VkI3RXk3RitaVkhkcTYrdm51U1FoN3FhUlJHMGl3PSIsInZlY3Rvci1wYWNrOnNsb3QtMTciLCIyMDI2LTAxLTAxVDAwOjAwOjAxWiJd",
+      "record": {
+        "actorKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "at": "2026-01-01T00:00:01Z",
+        "kind": "release",
+        "ref": "vector-pack:slot-17",
+        "seq": 0,
+        "sig": "pQxx4jRa7h1wYzJf9xhJYhtAqyRranyu/qwJzhkO51EYqAw0Uee4BVO5ePGmewvtrhUd6IyeO3pL6gkZpyhXCg==",
+        "stickerId": "vector-sticker"
+      }
+    },
+    {
+      "bytes": "WyJwZXRhLnRyYW5zZmVyLnYxIiwidmVjdG9yLXN0aWNrZXIiLDEsImNsYWltIiwiNmtwc1krS2NVZ3ErOVZCN0V5N0YrWlZIZHE2K3ZudVNRaDdxYVJSRzBpdz0iLCJ2ZWN0b3ItcGFjazpzbG90LTE3IiwiMjAyNi0wMS0wMVQwMDowMDowMVoiXQ==",
+      "record": {
+        "actorKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+        "at": "2026-01-01T00:00:01Z",
+        "kind": "claim",
+        "ref": "vector-pack:slot-17",
+        "seq": 1,
+        "sig": "uJbnU5pHO/Sw5dnuzD8+fNBQuQ0iXPa3gmb0TCRTcoBxg3d1mwFPIlhtdFpB2d8qpJo0J4L/wFd1x4TpwjgRBA==",
+        "stickerId": "vector-sticker"
+      }
+    }
+  ]
+}
