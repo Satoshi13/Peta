@@ -106,8 +106,6 @@ fn signature(monitors: &[Monitor]) -> String {
 
 /// Rebuild all layers from the current monitor set. Call on the main thread.
 pub fn sync(app: &AppHandle) -> tauri::Result<()> {
-    let layers=app.state::<Layers>();
-    let _topology=layers.topology_guard();
     let monitors = app.available_monitors()?;
     if monitors.is_empty() {
         return Ok(());
@@ -120,6 +118,7 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
 
     let layers = app.state::<Layers>();
     let (old_labels, generation, edit_mode, print) = {
+        let _topology=layers.topology_guard();
         let mut st = layers.0.lock().unwrap();
         let old: Vec<String> = st.by_label.keys().cloned().collect();
         st.generation += 1;
@@ -172,6 +171,7 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
 
         apply_mode(&window, edit_mode || (print && i == primary_idx));
     }
+    crate::tray::refresh_boards(app);
     let _ = app.emit("boards-changed", ());
     crate::board_auto::signal(app, None);
     Ok(())

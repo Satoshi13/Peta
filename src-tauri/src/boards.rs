@@ -41,6 +41,7 @@ pub fn status(app: &AppHandle) -> Result<View, String> {
     })
 }
 pub fn announce(app: &AppHandle) {
+    crate::tray::refresh_boards(app);
     let _ = app.emit("placements-changed", ());
     let _ = app.emit("boards-changed", ());
 }

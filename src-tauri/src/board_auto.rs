@@ -130,6 +130,10 @@ pub fn start(app: &AppHandle) {
         }
     });
 }
+pub fn notify(app: &AppHandle, message: String) {
+    app.state::<Auto>().notes.lock().unwrap().push(message);
+    let _ = app.emit("boards-changed", ());
+}
 pub fn stop(app: &AppHandle) {
     if let Some(s) = app.try_state::<Auto>() {
         s.control.lock().unwrap().stopped = true;
