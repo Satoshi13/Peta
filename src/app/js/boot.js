@@ -20,11 +20,13 @@ async function boot() {
   await Bridge.listen('referee-sync-failed', Bridge.changed);
   await Bridge.listen('daily-changed', Bridge.changed);
   await Bridge.listen('placements-changed', Bridge.changed);
-  await Bridge.listen('boards-changed', Bridge.changed);
+  const boardNotes=async()=>{const notes=await Bridge.invoke('boards_take_notes');if(notes.length)Scraps.note(notes.join(' · '));};
+  await Bridge.listen('boards-changed', async()=>{await Bridge.changed();await boardNotes();});
+  await Bridge.listen('boards-location-changed',async()=>{await Bridge.changed();window.dispatchEvent(new Event('boards-location-updated'));});
   await Bridge.listen('sticker-updated', e => { Bridge.invalidateAsset(e.payload); Bridge.changed(); });
   await Bridge.listen('profile-changed', e => { S.iconStickerId=e.payload.iconStickerId; Shell.renderNav(); if(['settings','market'].includes(S.page)) Shell.refresh(); });
   await Bridge.window.onFocusChanged(async e => {
-    if(e.payload) { Bridge.printFocusTransfer=false; if(await Bridge.window.isVisible() && !(await Bridge.window.isMinimized())) { S.windowOpen=true; Pages[S.page]?.resume?.(); Scraps.flushNote(); } return; }
+    if(e.payload) { Bridge.printFocusTransfer=false; if(await Bridge.window.isVisible() && !(await Bridge.window.isMinimized())) { S.windowOpen=true; Pages[S.page]?.resume?.(); Scraps.flushNote(); await boardNotes(); } return; }
     if(S.page!=="today" || !(await Bridge.window.isVisible()) || await Bridge.window.isMinimized()) Pages[S.page]?.suspend?.();
     if(Bridge.printFocusTransfer) { Bridge.printFocusTransfer=false; return; }
     if(S.closeOutside && !Bridge.dialogOpen && !document.querySelector('.cer')) Shell.close();
@@ -33,6 +35,7 @@ async function boot() {
   const page=new URLSearchParams(location.search).get('page') || 'today';
   const welcome=await Bridge.invoke('scrap_welcome').catch(()=>null);   // once per library, before the first numbers are read
   await Shell.open(page==='redeem' ? 'today' : page);
+  await boardNotes();
   if(welcome!=null) Scraps.note(`A welcome gift: ${welcome} Scraps.`); requestAnimationFrame(() => requestAnimationFrame(() => Vibrancy.sync()));if(page==='redeem') Distribution.redeem();if(S.packOffer)Distribution.offer(S.packOffer);
 }
 boot().catch(e => { console.error(e); document.getElementById('toast').textContent=String(e); document.getElementById('toast').classList.add('on'); });

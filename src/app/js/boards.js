@@ -104,7 +104,7 @@ Pages.boards = {
       return h(r.on ? "div.bd-rule" : "div.bd-rule.off",
         h("div.bd-order", h("button", { type: "button", "aria-label": "Move up", disabled: i === 0, on: { click: () => { this.run("board_rule_move",{ruleId:r.id,direction:"up"},paint); } } }, "▲"),
           h("button", { type: "button", "aria-label": "Move down", disabled: i === BD.rules.length - 1, on: { click: () => { this.run("board_rule_move",{ruleId:r.id,direction:"down"},paint); } } }, "▼")),
-        h("button.bd-when", { type: "button", on: { click: () => this.ruleDialog(paint, r) } }, bdGlyph(BD_ICON[r.type]), h("span", h("b", BD.when(r)), h("small", r.type === "time" ? "Time" : "Place"))),
+        h("button.bd-when", { type: "button", on: { click: () => this.ruleDialog(paint, r) } }, bdGlyph(BD_ICON[r.type]), h("span", h("b", BD.when(r)), h("small", r.type === "time" ? "Time" : BoardState.locationOff(BD.location) ? "Location is off for Peta" : "Place"))),
         h("span.bd-to", "→"), h("span.bd-where", s?.name || r.screen, s?.connected ? null : h("small", " · stored")), h("span.bd-which.hand", b ? b.name : "—"),
         h("button.switch", { type: "button", role: "switch", "aria-checked": String(r.on), "aria-label": `${BD.when(r)} on`, on: { click: () => { this.run("board_rule_toggle",{ruleId:r.id},paint); } } }, h("i")),
         CloseButton("Remove rule", { on: { click: () => { this.run("board_rule_delete",{ruleId:r.id},paint); } } }, ".bd-rm"));
@@ -189,14 +189,17 @@ Pages.boards = {
     const select = (opts, value, label) => { const s = h("select.bd-input", { "aria-label": label }, opts.map(([v, text]) => h("option", { value: v }, text))); s.value = value; return s; };
     const screen = select(BD.screens.map((s) => [s.id, s.name + (s.connected ? "" : " (stored)")]), d.screen, "Screen");
     const board = select(BD.boards.map((b) => [b.id, b.name]), d.board, "Board");
+    const locationNote=h("p.small.muted");
+    const updateLocationNote=()=>{BD.location=S.boards?.location||BD.location;locationNote.textContent=BoardState.locationOff(BD.location)?"Location is off for Peta. You can save this rule; it will run when location is allowed in System Settings.":"The Wi‑Fi name stays on this Mac.";};
     const seg = h("div.seg.bd-seg"), draw = () => {
       seg.replaceChildren(...[["time", "Time"], ["place", "Place"]].map(([v, text]) => SegButton(text, { type: "button", "aria-pressed": String(d.type === v), on: { click: () => { d.type = v; Snd.tap(); draw(); } } })));
-      if (d.type === "place" && !BD.placeAllowed) {
+      if (d.type === "place" && !BD.location?.prompted) {
         body.replaceChildren(h("div.bd-permit", h("b", "Use your Wi‑Fi name"), h("p.small", "Peta uses the name of your Wi‑Fi to know where you are. It never leaves this Mac."),
-          h("button.btn.paper.small", { type: "button", on: { click: () => { BD.placeAllowed = true; draw(); } } }, "Continue")));
+          h("button.btn.paper.small", { type: "button", on: { click: async () => { try {await Bridge.invoke("boards_location_request");await Bridge.reload();BD.location=S.boards.location;draw();} catch(e){error.textContent="Could not request location access.";} } } }, "Continue")));
       } else if (d.type === "place") {
         const wifi = h("input.bd-input", { type: "text", maxLength: 64, value: d.wifi, "aria-label": "Wi‑Fi name", on: { input: (e) => { d.wifi = e.target.value; } } });
-        body.replaceChildren(h("label.bd-field", h("span", "Wi‑Fi"), wifi));
+        body.replaceChildren(h("label.bd-field", h("span", "Wi‑Fi"), wifi), locationNote);
+        updateLocationNote();
       } else {
         const day = (x) => h("button.bd-day", { type: "button", "aria-pressed": String(d.days.includes(x)), on: { click: (e) => { d.days = d.days.includes(x) ? d.days.filter((y) => y !== x) : BD_DAYS.filter((y) => d.days.includes(y) || y === x); e.currentTarget.setAttribute("aria-pressed", String(d.days.includes(x))); } } }, x.slice(0, 2));
         const time = (k, label) => h("label.bd-field", h("span", label), h("input.bd-input", { type: "time", value: d[k], on: { input: (e) => { d[k] = e.target.value; } } }));
@@ -205,13 +208,15 @@ Pages.boards = {
     };
     draw();
     const form = h("form.bd-form", { on: { submit: (e) => { e.preventDefault();
-      if (d.type === "place" && !BD.placeAllowed) { error.textContent = "Continue to use your Wi‑Fi name first."; return; }
+      if (d.type === "place" && !BD.location?.prompted) { error.textContent = "Continue to use your Wi‑Fi name first."; return; }
       if (d.type === "time" && (!d.days.length || !d.start || !d.end || d.start === d.end)) { error.textContent = "Choose at least one day and two different times."; return; }
       if (d.type === "place" && !d.wifi.trim()) { error.textContent = "Enter a Wi‑Fi name."; return; }
       Object.assign(d, { screen: screen.value, board: board.value });
       this.run("board_rule_save",{rule:BoardState.toRule(d)},paint,()=>{dialog.close();Shell.toast("Auto rule saved.");},error); } } },
       seg, body, h("div.bd-pair", h("label.bd-field", h("span", "Screen"), screen), h("label.bd-field", h("span", "Board"), board)), error,
       h("div.bd-dacts", h("button.link", { type: "button", on: { click: () => dialog.close() } }, "Cancel"), h("button.btn", { type: "submit" }, rule ? "Save rule" : "Add rule")));
+    window.addEventListener("boards-location-updated",updateLocationNote);
     const dialog = this.sheet(rule ? "Edit rule" : "Add a rule", h("h2", rule ? "Edit rule" : "Add a rule"), h("p.muted.small", "When it begins, put a board on a screen."), form);
+    dialog.addEventListener("close",()=>window.removeEventListener("boards-location-updated",updateLocationNote),{once:true});
   },
 };

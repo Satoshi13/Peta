@@ -5,6 +5,7 @@ const clock = n => `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).p
 export function project(status) {
   const displays=new Map((status.displays||[]).map(d=>[d.id,d]));
   return {
+    location:status.location||{status:'unknown',prompted:false},
     screens:status.screens.map(s=>({...s,...displays.get(s.id),name:displays.get(s.id)?.name||s.id,kind:displays.get(s.id)?.kind||'display',aspect:displays.get(s.id)?.aspect||16/9,items:s.items.map(item)})),
     boards:status.boards.map(b=>({...b,items:b.stickers.map(item)})),
     rules:status.rules.map(r=>({id:r.id,type:r.kind,days:DAYS.filter((_,i)=>r.days&(1<<i)),start:clock(r.startMin||0),end:clock(r.endMin||0),wifi:r.wifi||'',screen:r.displayId,board:r.boardId,on:r.enabled})),
@@ -21,3 +22,5 @@ export function tool(status,scraps,developer=false) {
   return {price,capped,disabled:price==null || capped || !developer && scraps.balance<price,label:capped?'You have all 12 boards.':!developer && scraps.balance<price?'Not enough Scraps':'Get a board'};
 }
 export function toRule(d) {const minute=v=>{const [h,m]=v.split(':').map(Number);return h*60+m;};return {id:d.id||'',sort:0,kind:d.type,days:d.type==='time'?DAYS.reduce((n,v,i)=>n|(d.days.includes(v)?1<<i:0),0):0,startMin:d.type==='time'?minute(d.start):null,endMin:d.type==='time'?minute(d.end):null,wifi:d.type==='place'?d.wifi.trim():null,displayId:d.screen,boardId:d.board,enabled:d.on};}
+
+export const locationOff = location => location?.status !== 'on';
