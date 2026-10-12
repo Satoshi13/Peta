@@ -50,20 +50,11 @@ impl Layers {
         self.0.lock().unwrap().by_label.get(label).cloned()
     }
 
-    /// Placements this layer should draw. Stickers whose display is gone fall back to the
-    /// primary display *without* rewriting their stored displayId, so they return home when the
-    /// monitor is reconnected (spec §10.2).
+    /// Disconnected screens keep their placements in storage. Only their own layer draws them when they return.
     pub fn placements_for(&self, label: &str, store: &Store) -> Vec<Placement> {
-        let st = self.0.lock().unwrap();
-        let Some(info) = st.by_label.get(label) else { return Vec::new() };
-        store
-            .on_desktop()
-            .into_iter()
-            .filter(|p| {
-                p.display_id == info.display_id
-                    || (info.is_primary && !st.present_display_ids.contains(&p.display_id))
-            })
-            .collect()
+        let display = self.0.lock().unwrap().by_label.get(label).map(|i| i.display_id.clone());
+        let Some(display) = display else { return Vec::new() };
+        visible_placements(store.on_desktop(), &display)
     }
 
     pub fn primary_display_id(&self) -> String {
@@ -164,6 +155,7 @@ pub fn sync(app: &AppHandle) -> tauri::Result<()> {
 
         apply_mode(&window, edit_mode || (print && i == primary_idx));
     }
+    let _ = app.emit("boards-changed", ());
     Ok(())
 }
 
@@ -357,4 +349,24 @@ pub fn layer_capture(window: WebviewWindow, layers: tauri::State<Layers>, on: bo
     // While the pointer is over a tagged sticker the layer is lifted to the Edit Mode level (above the icons, still below every app window) and takes the mouse; it goes back the moment the pointer leaves.
     let target = window.clone();
     window.app_handle().run_on_main_thread(move || apply_mode(&target, on)).map_err(|e| e.to_string())
+}
+
+fn visible_placements(placements: Vec<Placement>, display: &str) -> Vec<Placement> {
+    placements.into_iter().filter(|p| p.display_id == display).collect()
+}
+
+#[cfg(test)]
+mod screen_memory_tests {
+    use super::*;
+    fn p(display: &str) -> Placement {
+        Placement {sticker_id:display.into(),display_id:display.into(),relative_x:0.3,relative_y:0.4,relative_scale:0.1,rotation:5.0,placed_at:"before".into(),is_on_desktop:true,z:2}
+    }
+    #[test]
+    fn disconnected_stickers_are_stored_and_return_only_on_their_own_screen() {
+        let saved=vec![p("primary"),p("external")];
+        assert_eq!(visible_placements(saved.clone(),"primary"),vec![p("primary")]);
+        assert_eq!(visible_placements(saved.clone(),"external"),vec![p("external")]);
+        assert!(visible_placements(saved.clone(),"new-screen").is_empty());
+        assert_eq!(saved[1],p("external"));
+    }
 }
