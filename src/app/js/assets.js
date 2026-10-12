@@ -49,6 +49,7 @@ const P = {
   bagGlassine: "bags/glassine.webp", bagPhoto: "bags/photo-envelope.webp", bagKraftParcel: "bags/kraft-parcel.webp", bagPocket: "bags/library-pocket.webp",
   bagAirmail: "bags/airmail.webp", bagWrap: "bags/folded-wrap.webp", bagDrawer: "bags/drawer-box.webp", bagCotton: "bags/cotton-pouch.webp",
   peekPaper: "ui/peek-paper.png", peekTape: "ui/peek-tape.png",
+  tourStill: "onboarding/hero.png",
   sCatSleeping: "samples/cat-pack-sleeping.png", sCatSkateboard: "samples/cat-pack-skateboard.png", sCatSitting: "samples/cat-pack-sitting.png",
   inspNameLabel: "ui/inspector-name-label.png",
   wallInkGrain: "ui/wall-ink-grain.png",

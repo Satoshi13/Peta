@@ -24,6 +24,7 @@ Pages.settings = {
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_next_day");S.envelopeDeadline=null;await Bridge.reload();Shell.go("today",{force:true});}catch(e){Shell.toast(String(e));}}}},"Next Day (+1 day)"),
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_sync_displays");Shell.toast("Displays re-synced.");}catch(e){Shell.toast(String(e));}}}},"Re-sync Displays"))));
     if(S.developer) root.append(RefereeSettings.card());
+    root.append(AboutPeta.card());
     root.append(h("p.muted.fine", "In the real app this window also hosts Cutting Mat, Collection, Packs and Gifts — what used to be four separate windows. Stickers stay on your desktop; this window comes and goes from the menu bar."));
     return root;
   },
@@ -82,5 +83,29 @@ const RefereeSettings = {
     const refresh=async()=>{try {const state=await Bridge.invoke("referee_status");if(!card.isConnected)return;address.textContent=state.url || "Server checks are disabled.";contact.textContent=state.lastContact ? `Last contact: ${new Date(state.lastContact*1000).toLocaleString()}` : "No contact yet";pending.textContent=`Waiting to check: ${state.pending.registrations} · Taking back: ${state.pending.cancellations} · Pending draws: ${state.pending.slots} · Recovered remote transfers: ${state.pending.reconciliations}`;}catch(e){pending.textContent=String(e);}};
     card.append(h("button.btn.paper.small",{on:{click:async e=>{const button=e.currentTarget;button.disabled=true;try {await Bridge.invoke("referee_sync");await Bridge.reload();Shell.toast("Checks synced.");}catch(error){Shell.toast(String(error));}finally{button.disabled=false;await refresh();}}}},"Sync now"));
     queueMicrotask(refresh);return card;
+  },
+};
+
+/* About Peta: a still taped to the card like a photo; the tour plays in a paper frame.
+   The film is optional: drop it at TOUR and the button wakes up, otherwise it reads "coming soon". */
+const AboutPeta = {
+  TOUR: "art/tour/peta-tour.mp4",
+  card() {
+    const button=h("button.btn.paper.small.about-watch",{type:"button",disabled:true,on:{click:()=>this.play()}},"Tour coming soon");
+    const photo=h("button.about-photo",{type:"button",disabled:true,"aria-label":"Watch the tour",on:{click:()=>this.play()}},
+      h("span.about-window",h("img.about-still",{src:A.tourStill,alt:"",draggable:false})),h("img.about-tape",{src:A.peekTape,alt:"",draggable:false}),h("span.about-play",{"aria-hidden":"true"}));
+    const probe=h("video",{preload:"metadata",muted:true});
+    const ready=()=>{button.disabled=false;photo.disabled=false;button.textContent="Watch the tour";photo.classList.add("ready");probe.removeAttribute("src");probe.load();};
+    probe.addEventListener("loadedmetadata",ready,{once:true});probe.addEventListener("error",()=>probe.removeAttribute("src"),{once:true});probe.src=this.TOUR;
+    return h("section.setcard.about-card",photo,h("div.about-text",h("h2","About Peta"),h("p.small","A short film of how Peta works: make a sticker, stick it on your desktop, and send one to a friend."),button));
+  },
+  play() {
+    if(document.querySelector("dialog")) return;
+    const video=h("video.tour-video",{controls:true,playsInline:true,muted:true,preload:"auto",poster:A.tourStill,src:this.TOUR});
+    const close=CloseButton("Close",{on:{click:()=>dialog.close()}},".tour-x");
+    const dialog=h("dialog.tour-dialog",{"aria-label":"Peta tour",on:{keydown:e=>{if(e.key==="Escape")e.stopPropagation();},close:()=>{video.pause();video.removeAttribute("src");video.load();dialog.remove();Bridge.dialogOpen=!!document.querySelector("dialog");}}},
+      h("div.tour-frame",h("img.tour-tape",{src:A.peekTape,alt:"",draggable:false}),video,close));
+    Bridge.dialogOpen=true;document.body.append(dialog);dialog.showModal();
+    if(document.documentElement.dataset.motion!=="reduce") video.play().catch(()=>{});
   },
 };

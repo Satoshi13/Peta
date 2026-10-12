@@ -60,7 +60,7 @@ body[data-shell="studio"] { --studio-paper: linear-gradient(rgba(251, 249, 244, 
 [data-shell="studio"] .spiral { display: none; }
 [data-shell="studio"] .nav { left: 0; top: 0; bottom: 0; width: 204px; flex-direction: column; gap: 2px; padding: 62px 12px 14px; background: linear-gradient(180deg, rgba(236, 229, 214, .75), rgba(236, 229, 214, .5)); box-shadow: inset -1px 0 0 rgba(120, 100, 60, .14); }
 [data-shell="studio"] .nav::before { content: ""; position: absolute; top: 16px; left: 22px; width: 72px; height: 32px; background: var(--ink); -webkit-mask: var(--a-logo) left center / contain no-repeat; mask: var(--a-logo) left center / contain no-repeat; opacity: .82; }
-[data-shell="studio"] .nav-item { gap: 11px; height: 42px; padding: 0 12px; border-radius: 11px; transition: background .18s, box-shadow .18s, transform .18s; font: 500 14px var(--sys); }
+[data-shell="studio"] .nav-item { gap: 11px; height: 40px; padding: 0 12px; border-radius: 11px; transition: background .18s, box-shadow .18s, transform .18s; font: 500 14px var(--sys); }
 [data-shell="studio"] .nav-item .ni-icon { width: 28px; height: 28px; filter: drop-shadow(0 1px 1.5px rgba(40, 30, 10, .3)); transition: transform .25s var(--ease-spring); }
 [data-shell="studio"] .nav-item:hover { background: rgba(255, 255, 255, .55); } [data-shell="studio"] .nav-item:hover .ni-icon { transform: rotate(-6deg) scale(1.08); }
 /* the plate behind the current row is .nav-pill, which slides between rows (shell.js placePill) */
@@ -92,7 +92,7 @@ body[data-shell="studio"] { --studio-paper: linear-gradient(rgba(251, 249, 244, 
 .nav-top { min-height:0; }
 .nav-foot { flex:none; }
 [data-shell="studio"] .nav { background:var(--w-side); }
-[data-shell="studio"] .nav-top { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:2px; }
+[data-shell="studio"] .nav-top { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:4px; }
 [data-shell="studio"] .nav-top { padding:4px 8px 10px; margin:-4px -8px 0; } /* room for the active row's shadow and corners: overflow:auto would clip them at the edge */
 [data-shell="studio"] .nav-item { flex:none; height:38px; padding:0 10px 0 6px; color:var(--ink2); }
 [data-shell="studio"] .nav-item[aria-current="page"] { color:var(--ink); }
