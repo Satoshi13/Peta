@@ -994,6 +994,16 @@ impl Database {
         crate::scraps::trade(&mut self.conn, request, request_id, self.unrestricted)
     }
 
+    /// The welcome gift of Scraps, once per library. `Some(amount)` when it was given now.
+    pub fn scrap_welcome(&mut self) -> Result<Option<i64>> {
+        crate::scraps::welcome(&mut self.conn)
+    }
+
+    /// The daily mission and streak for a sticker made on `today` (the app's local day). Idempotent per sticker.
+    pub fn scrap_reward_creation(&mut self, sticker_id: &str, new_image: bool, today: &str) -> Result<crate::scraps::Reward> {
+        crate::scraps::reward_creation(&mut self.conn, sticker_id, new_image, today)
+    }
+
     /// How many unused sheets of a material you hold.
     pub fn material_count(&self, material_id: &str) -> Result<i64> {
         Ok(self

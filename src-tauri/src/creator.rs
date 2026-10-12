@@ -330,7 +330,7 @@ impl History {
 
 #[derive(serde::Serialize)]
 #[serde(rename_all="camelCase")]
-pub struct Made { pub sticker_id:String,pub new_image:bool }
+pub struct Made { pub sticker_id:String,pub new_image:bool,#[serde(skip_serializing_if="Option::is_none")] pub reward:Option<peta_core::scraps::Reward> }
 
 /// "Make this Peta": render at full size, keep it in the library, consume one material (except Matte), and enqueue it for printing.
 #[tauri::command]
@@ -368,7 +368,7 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
             return Err(peta_core::Error::MaterialUnavailable.to_string()); // used up elsewhere while the Cutting Mat was open
         }
         let sticker = lib.add_made_with_editor(&rendered, &original, ext, &material, &editor).map_err(|e| e.to_string())?;
-        result=Made{sticker_id:sticker.id.clone(),new_image:sticker.new_image};
+        let mut made=Made{sticker_id:sticker.id.clone(),new_image:sticker.new_image,reward:None};
         if !target.counts_for_today {
             // developer tools: no daily rule, no print — straight onto the desktop
             lib.stick_new(&sticker, &target.display_id, target.x, target.y).map_err(|e| e.to_string())?;
@@ -383,6 +383,14 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
         }
         // Last, once the sticker is fully made: a failure here leaves a good sticker without its name, never half of one.
         if let Some(title) = title { lib.db_mut().set_sticker_title(&sticker.id, Some(title)).map_err(|e| format!("The sticker was made, but its name could not be saved: {e}"))?; }
+        // The daily mission (docs/decisions.md 2026-10-13). A failure here costs the bonus, never the sticker; asking again is safe.
+        if target.counts_for_today {
+            match lib.db_mut().scrap_reward_creation(&sticker.id, sticker.new_image, &date) {
+                Ok(reward) => made.reward = Some(reward),
+                Err(error) => eprintln!("[peta] creation reward skipped: {error}"),
+            }
+        }
+        result = made;
     }
     today::announce(app);
     if made_id.is_some() {
@@ -448,7 +456,7 @@ pub async fn creator_save_original(app: AppHandle, material_id: String, strength
         Ok(id)
     }).await.map_err(|e| e.to_string())??;
     clear(&app); let _ = app.emit("sticker-updated", &id); today::announce(&app);
-    Ok(Made{sticker_id:id,new_image:false})
+    Ok(Made{sticker_id:id,new_image:false,reward:None})   // editing an original earns nothing
 }
 
 /// Cancel: close the window, keep everything as it was.

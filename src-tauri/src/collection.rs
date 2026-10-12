@@ -95,6 +95,13 @@ pub fn scrap_status(store: State<'_,Store>) -> Result<peta_core::scraps::Status,
     store.lock().db().scrap_status().map_err(|e| e.to_string())
 }
 
+/// The welcome gift of Scraps, once per library; `Some(amount)` when it was given now.
+#[cfg_attr(feature="server",tauri::command(async))]
+#[cfg_attr(not(feature="server"),tauri::command)]
+pub fn scrap_welcome(store: State<'_,Store>) -> Result<Option<i64>, String> {
+    store.lock().db_mut().scrap_welcome().map_err(|e| e.to_string())
+}
+
 #[cfg_attr(feature="server",tauri::command(async))]
 #[cfg_attr(not(feature="server"),tauri::command)]
 pub fn scrap_trade(app: AppHandle, store: State<'_,Store>, trade: peta_core::scraps::Trade, request_id: String) -> Result<peta_core::scraps::Receipt, String> {

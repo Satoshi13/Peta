@@ -162,7 +162,16 @@ function ScrapAmt(n) {
 }
 
 const Scraps = {
-  selection: null, inFlight: false,
+  selection: null, inFlight: false, waiting: null,
+  /** Say what was earned. "Make this Peta" hands focus to the desktop's print slot, so a note the window cannot show yet waits for its next focus. */
+  note(message) {
+    if (S.windowOpen && !document.hidden && document.hasFocus()) { this.waiting = null; Shell.toast(message, 4200); } else this.waiting = message;
+  },
+  flushNote() { if (this.waiting) { const m = this.waiting; this.waiting = null; setTimeout(() => Shell.toast(m, 4200), 450); } },
+  earned(reward) {
+    if (!reward?.made) return;
+    this.note(reward.streak ? `+${reward.made} Scraps for a new picture, and +${reward.streak} for ${reward.streakDays} days in a row.` : `+${reward.made} Scraps for a new picture.`);
+  },
   material(id) { return S.scraps.materials.find(m => m.id === id); },
   pack(id) { return S.scraps.packs.find(p => p.id === id); },
   badge() { return h("span.scraps-count", {"aria-label":`${S.scraps.balance.toLocaleString("en-US")} Scraps`}, h("i.sc-ico", {"aria-hidden":"true"}), h("span", "Scraps"), h("b", S.scraps.balance.toLocaleString("en-US"))); },

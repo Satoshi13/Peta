@@ -329,7 +329,7 @@ Pages.create = {
       catch(e) { Shell.toast(String(e)); $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=false; }); } finally { CR.finishing=false; Bridge.busy=false; }
       return;
     }
-    try { await CR.queue; const made=await Bridge.printAction("creator_finish",{materialId:S.chosen,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,name:CR.name}); console.debug("newImage",made.newImage); crReset(); await Bridge.reload(); Shell.refresh(); }
+    try { await CR.queue; const made=await Bridge.printAction("creator_finish",{materialId:S.chosen,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,name:CR.name}); crReset(); await Bridge.reload(); Shell.refresh(); Scraps.earned(made.reward); }
     catch(e) { Shell.toast(String(e)); $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=false; }); } finally { CR.finishing=false; Bridge.busy=false; }
   },
 };

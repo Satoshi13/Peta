@@ -2,7 +2,7 @@
    A board is reusable like a link tag: deleting a look gives the blank board back.
    Spec: docs/boards-plan.md. This page is a developer preview: the screens, boards and rules below are sample data held in memory, and
    nothing is saved, stuck or spent. When the Rust side lands, only BD's data (and the few places marked "preview") change. */
-const BD_PRICE = 8;
+const BD_PRICE = 12;   // decided 2026-10-13 (docs/decisions.md, Scraps economy)
 const BD_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const bdItem = (k, x, y, w, a = 0) => ({ k, x, y, w, a });
 const BD = {

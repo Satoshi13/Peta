@@ -361,10 +361,121 @@ mod tests {
     }
 }
 
-/// Future creation reward seam. Exact input-file novelty is computed by the creation transaction.
-/// This intentionally grants no Scraps, in either production or developer builds.
+/* The faucets (docs/decisions.md 2026-10-13, Scraps economy). A day's first sticker made from a new picture earns MADE_BONUS; every
+   STREAK_EVERY such days in a row earn STREAK_BONUS more. A re-cut of a picture seen before earns nothing, and so does a second new
+   picture on the same day. Each grant is written with its receipt in one transaction and is keyed (by sticker, by day, or once), so a
+   retry can never pay twice. "Day" is the app's own local day, passed in by the caller (the developer edition can move it forward). */
+pub const WELCOME: i64 = 20;
+pub const MADE_BONUS: i64 = 2;
+pub const STREAK_EVERY: u32 = 7;
+pub const STREAK_BONUS: i64 = 5;
+const WELCOME_KEY: &str = "scraps.welcome";
+const STREAK_KEY: &str = "scraps.streak";   // "YYYY-MM-DD:n": the last rewarded day and how many days in a row it ends
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Reward { pub made: i64, pub streak: i64, pub streak_days: u32, pub balance: i64 }
+
+fn day(value: &str) -> Result<chrono::NaiveDate> { chrono::NaiveDate::parse_from_str(value, "%Y-%m-%d").map_err(|_| invalid("Invalid day.")) }
+fn set(tx: &Connection, key: &str, value: &str) -> Result<()> {
+    tx.execute("INSERT INTO meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![key,value])?; Ok(())
+}
+fn credit(tx: &Connection, amount: i64) -> Result<i64> {
+    let next = balance(tx)?.checked_add(amount).filter(|n| *n<=MAX_SAFE_COUNT).ok_or_else(|| invalid("Scraps balance is out of range."))?;
+    set(tx, BALANCE_KEY, &next.to_string())?; Ok(next)
+}
+
+/// The welcome gift, once per library (new and existing ones alike). Returns the amount when it was given now.
+pub(crate) fn welcome(conn: &mut Connection) -> Result<Option<i64>> {
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    if tx.query_row("SELECT EXISTS(SELECT 1 FROM meta WHERE key=?1)", [WELCOME_KEY], |r| r.get::<_,bool>(0))? { return Ok(None); }
+    credit(&tx, WELCOME)?; set(&tx, WELCOME_KEY, &chrono::Utc::now().to_rfc3339())?; tx.commit()?;
+    Ok(Some(WELCOME))
+}
+
+/// The daily mission for a sticker just made on `today`. Asking again for the same sticker returns the first answer.
+pub(crate) fn reward_creation(conn: &mut Connection, sticker_id: &str, new_image: bool, today: &str) -> Result<Reward> {
+    let date = day(today)?;
+    let receipt = format!("scraps.reward.{sticker_id}");
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    if let Some(saved) = tx.query_row("SELECT value FROM meta WHERE key=?1", [&receipt], |r| r.get::<_,String>(0)).optional()? {
+        return serde_json::from_str(&saved).map_err(|_| invalid("Reward receipt could not be read."));
+    }
+    let made_day = format!("scraps.made.{today}");
+    let first_today = new_image && !tx.query_row("SELECT EXISTS(SELECT 1 FROM meta WHERE key=?1)", [&made_day], |r| r.get::<_,bool>(0))?;
+    let mut reward = Reward { balance: balance(&tx)?, ..Reward::default() };
+    if first_today {
+        let previous: Option<String> = tx.query_row("SELECT value FROM meta WHERE key=?1", [STREAK_KEY], |r| r.get(0)).optional()?;
+        let (last, run) = previous.as_deref().and_then(|v| v.split_once(':')).and_then(|(d, n)| Some((day(d).ok()?, n.parse::<u32>().ok()?))).unzip();
+        let days = if last.is_some_and(|l| l.succ_opt()==Some(date)) { run.unwrap_or(0).saturating_add(1) } else { 1 };
+        reward.made = MADE_BONUS;
+        reward.streak = if days % STREAK_EVERY == 0 { STREAK_BONUS } else { 0 };
+        reward.streak_days = days;
+        reward.balance = credit(&tx, reward.made + reward.streak)?;
+        set(&tx, &made_day, sticker_id)?;
+        set(&tx, STREAK_KEY, &format!("{today}:{days}"))?;
+    }
+    set(&tx, &receipt, &serde_json::to_string(&reward).map_err(|_| invalid("Reward receipt could not be saved."))?)?;
+    tx.commit()?;
+    Ok(reward)
+}
+
+/// Seam called by the creation transaction's caller with the exact input-file novelty. The grant itself is `reward_creation`,
+/// made by the app with its own day once the sticker is fully made.
 pub fn on_new_sticker(_db: &crate::Database, _sticker_id: &str, _new_image: bool) -> Result<()> {
     #[cfg(test)] NEW_STICKER_CALLS.with(|calls| calls.borrow_mut().push((_sticker_id.to_owned(),_new_image)));
     Ok(())
 }
 #[cfg(test)] thread_local! {pub(crate) static NEW_STICKER_CALLS:std::cell::RefCell<Vec<(String,bool)>>=const {std::cell::RefCell::new(Vec::new())};}
+
+#[cfg(test)]
+mod reward_tests {
+    use super::*;
+    use crate::Database;
+    fn days(from: &str, n: i64) -> String { (chrono::NaiveDate::parse_from_str(from, "%Y-%m-%d").unwrap() + chrono::Duration::days(n)).to_string() }
+
+    #[test]
+    fn the_welcome_gift_is_given_once() {
+        let mut db = Database::open_in_memory().unwrap();
+        db.scrap_reward_creation("earlier", true, "2026-10-01").unwrap();
+        assert_eq!(db.scrap_welcome().unwrap(), Some(WELCOME), "the amount given, also for a library that already holds Scraps");
+        assert_eq!(db.scrap_welcome().unwrap(), None);
+        assert_eq!(db.scrap_status().unwrap().balance, MADE_BONUS + WELCOME);
+    }
+
+    #[test]
+    fn only_the_first_new_picture_of_a_day_earns_and_a_retry_never_pays_twice() {
+        let mut db = Database::open_in_memory().unwrap();
+        let first = db.scrap_reward_creation("a", true, "2026-10-13").unwrap();
+        assert_eq!((first.made, first.streak, first.streak_days, first.balance), (MADE_BONUS, 0, 1, MADE_BONUS));
+        assert_eq!(db.scrap_reward_creation("a", true, "2026-10-13").unwrap(), first, "same sticker: same receipt");
+        assert_eq!(db.scrap_reward_creation("a", true, "2026-10-14").unwrap(), first, "a receipt is per sticker, whatever day is asked");
+        let second = db.scrap_reward_creation("b", true, "2026-10-13").unwrap();
+        assert_eq!((second.made, second.streak, second.balance), (0, 0, MADE_BONUS));
+        let recut = db.scrap_reward_creation("c", false, "2026-10-14").unwrap();
+        assert_eq!((recut.made, recut.balance), (0, MADE_BONUS), "a picture seen before earns nothing, and does not start the day");
+        assert_eq!(db.scrap_reward_creation("d", true, "2026-10-14").unwrap().streak_days, 2);
+        assert_eq!(db.scrap_status().unwrap().balance, 2 * MADE_BONUS);
+    }
+
+    #[test]
+    fn every_seventh_day_in_a_row_adds_the_streak_bonus_and_a_gap_starts_again() {
+        let mut db = Database::open_in_memory().unwrap();
+        let start = "2026-10-01";
+        let mut paid = vec![];
+        for n in 0..14 { let r = db.scrap_reward_creation(&format!("s{n}"), true, &days(start, n)).unwrap(); paid.push((r.streak_days, r.streak)); }
+        assert_eq!(paid[6], (7, STREAK_BONUS)); assert_eq!(paid[13], (14, STREAK_BONUS));
+        assert!(paid.iter().enumerate().all(|(i, (_, s))| *s == if i == 6 || i == 13 { STREAK_BONUS } else { 0 }));
+        assert_eq!(db.scrap_status().unwrap().balance, 14 * MADE_BONUS + 2 * STREAK_BONUS);
+        let after_gap = db.scrap_reward_creation("late", true, &days(start, 15)).unwrap();
+        assert_eq!((after_gap.streak_days, after_gap.streak), (1, 0));
+    }
+
+    #[test]
+    fn a_bad_day_changes_nothing() {
+        let mut db = Database::open_in_memory().unwrap();
+        for bad in ["", "yesterday", "2026-13-01", "2026-10-13T00:00:00Z"] { assert!(db.scrap_reward_creation("a", true, bad).is_err()); }
+        assert_eq!(db.scrap_status().unwrap().balance, 0);
+        assert_eq!(db.scrap_reward_creation("a", true, "2026-10-13").unwrap().made, MADE_BONUS, "a refused ask leaves no receipt behind");
+    }
+}
