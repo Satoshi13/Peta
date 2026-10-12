@@ -1,5 +1,7 @@
 # Codex への依頼: Gift の受信箱 P1(Cloudflare Worker + 暗号 + 友達 + 送受信。開発者版のみ)
 
+> **2026-10-12: 古い依頼書です。使わないでください。** Gift v2・DB V9 が前提のため、[`server-plan.md`](server-plan.md) の S1/S2 に合わせて書き直します。
+
 **使い方**: この文書の全文を Codex に渡す。**実装の指示**(Rust・TypeScript・JS/CSS)で、画像制作ではない。作業は **Step 順**。各 Step の終わりに `cargo test --manifest-path src-tauri/Cargo.toml --workspace`、`npm test`、(Worker は)`npm test` in `cloudflare/gift-inbox/` を通し、**Step ごとにコミット**する(Rust のルールと UI は別コミット)。
 
 > 日本語で指示。コード中のコメントと UI の文言は、既存に合わせて**英語**。説明文書は日本語。

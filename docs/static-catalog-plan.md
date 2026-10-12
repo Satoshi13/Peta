@@ -1,5 +1,7 @@
 # 静的カタログ(Cloudflare)方針メモ
 
+> **2026-10-12: 廃止。** 公式カタログは作らず、Market は友達だけにします([`server-plan.md`](server-plan.md) §決めたこと 3)。経緯として残しています。
+
 決定日: 2026-10-05(オーナー)。**方針の記録であり、実装は未着手**。実装するときは別の依頼書(Codex 用)を起こす。
 関連: Gift の受信箱は [`gift-inbox-plan.md`](gift-inbox-plan.md)(同じ Cloudflare アカウント・ドメインを使う)。
 前提の仕様: [`codex-signed-distribution-prompt.md`](codex-signed-distribution-prompt.md)(署名・作者パック `PETAPACK`)、[`distribution-howto.md`](distribution-howto.md)(オーナー向けの鍵と配り方)、[`signed-distribution-report.md`](signed-distribution-report.md)(実装済みの範囲)。
