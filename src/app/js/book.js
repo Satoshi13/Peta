@@ -179,12 +179,14 @@ Pages.book = {
   },
   tile(e, i, select) {
     const holder = h("div.tile-stk"), onDesk = S.desk.some(d => d.id === e.id), lt = ltTag(e.id);
-    const badges = [e.kind === "received" ? h("i.recv", "Gift") : null,
-      lt && lt.showInCollection ? h("span.tile-link", { title: `Opens ${lt.label}` }, ltMark(e.id, lt), h("span.tile-link-label", lt.label)) : null].filter(Boolean);
+    // Written on the paper, not stuck on as chips: a gift and a link tag read as one line, joined by a dot.
+    const badges = [e.kind === "received" ? h("span.tile-gift", Icon("gift"), "Gift") : null,
+      lt && lt.showInCollection ? h("span.tile-link", { title: `Opens ${lt.label}` }, ltMark(e.id, lt), h("span.tile-link-label", lt.label)) : null].filter(Boolean)
+      .flatMap((badge, n) => n ? [h("i.tile-sep", { "aria-hidden": "true" }), badge] : [badge]);
     this.lazySticker(holder, e, 128);
     return h("button.tile", { data: { sticker: e.id, late: i >= 12 || this.settled ? "1" : "0" }, "aria-pressed": String(BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date)), style: { "--i": Math.min(i, 8) }, on: { click: () => select(e) } },
       h("span.tile-date", fmtDate(e.date,{month:"short",day:"numeric"})),
-      holder, badges.length ? h("span.tile-badges", badges) : null, h("span.tile-footer", h("b", titleOf(e)), e.verified === false && e.lineage !== "copy" ? h("small", "Unverified") : null, h("small", `${MAT[e.material].name} · ${e.kind === "received" ? "Received" : "No. "+pad4(e.no)}`)),
+      holder, badges.length ? h("span.tile-badges", badges) : null, h("span.tile-footer", h("b", titleOf(e)), e.verified === false && e.lineage !== "copy" ? h("small.tile-status", "Unverified") : null, h("small", `${MAT[e.material].name} · ${e.kind === "received" ? "Received" : "No. "+pad4(e.no)}`)),
       onDesk ? h("i.on-desk", "On desktop") : null);
   },
   /* Search, material and order for the list. The values live in BK so they survive picking a sticker and coming back to the page. */

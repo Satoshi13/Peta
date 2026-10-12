@@ -243,7 +243,7 @@ Pages.packs = {
   pack(p, i) {
     const gen = PackArt.decorated(p);
     const img = gen ? null : h("i.pk-img" + ((p.kind || "holo") === "holo" && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } });
-    const stack = h("div.pk-stack", {data:{empty:p.empty, gen: gen ? "1" : "0"}}, gen ? PackArt.shelf(p, null) : img, gen ? null : PackLabel(p));
+    const stack = h("div.pk-stack", {data:{empty:p.empty, gen: gen ? "1" : "0", kind: p.kind || "holo"}}, gen ? PackArt.shelf(p, null) : img, gen ? null : PackLabel(p));
     if(gen && p.cover) PackArt.cover(p).then((cover) => { if(cover && stack.isConnected) $(".bagpic", stack)?.replaceWith(PackArt.shelf(p, cover)); });
     const light = gen ? { aim() {}, rest() {} } : SurfaceLight.attach(img, p.kind || "holo"); // the glint is lit over the pack's own surface, not slid across it
     const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}${p.own ? p.listed ? ", listed in Market on this Mac" : ", kept on My shelf" : ""}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
