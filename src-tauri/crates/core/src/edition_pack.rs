@@ -213,6 +213,27 @@ pub fn press(lib:&mut Library,title:&str,pouch:&str,items:&[Selection],prizes:&[
     record_archive(&tx,&id,&digest,&receipt)?;persist(&h,&bytes)?;writes.commit(tx)?;archive.finish();Ok(id)
 }
 pub fn is_v2(db:&Database,id:&str)->Result<bool> {Ok(db.conn.query_row("SELECT EXISTS(SELECT 1 FROM edition_pack_frames WHERE pack_id=?1)",[id],|r|r.get(0))?)}
+/// Show a finished own V2 pack in this Library's Market. Visibility never presses,
+/// exports, opens or replenishes it. Taking a listing down must work even if its
+/// signing key or related metadata can no longer be read.
+pub fn set_listed(lib:&mut Library,id:&str,listed:bool)->Result<bool> {
+    let public=if listed {Some(sign::public_key(&crate::device_key::load(&lib.root().join("device.key"))?))}else{None};
+    let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    if let Some(public)=public {
+        let row:Option<(String,String,String,i64)>=tx.query_row(
+            "SELECT f.header,d.public_key,d.external_id,d.version FROM packs p JOIN edition_pack_frames f ON f.pack_id=p.id JOIN pack_distributions d ON d.pack_id=p.id WHERE p.id=?1",
+            [id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).optional()?;
+        let (json,owner,external,version)=row.ok_or_else(||invalid("Only finished packs on My shelf can be listed."))?;
+        let header:Header=serde_json::from_str(&json).map_err(|_|invalid("The finished pack metadata is damaged."))?;
+        if owner!=public||creator_pack::public(&header)?!=public||creator_pack::internal_id(&header)?!=id||header.pack_id!=external||header.version!=version {
+            return Err(invalid("Only your own finished packs can be listed."));
+        }
+        tx.execute("INSERT INTO pack_market_listings(pack_id,listed_at) VALUES (?1,?2) ON CONFLICT(pack_id) DO NOTHING",params![id,now()])?;
+    }else{
+        tx.execute("DELETE FROM pack_market_listings WHERE pack_id=?1",[id])?;
+    }
+    tx.commit()?;Ok(listed)
+}
 pub fn ensure_can_open(lib:&Library,id:&str)->Result<()> {
     let public:Option<String>=lib.db().conn.query_row("SELECT public_key FROM pack_distributions WHERE pack_id=?1",[id],|r|r.get(0)).optional()?.flatten();
     if let Some(public)=public {if public==sign::public_key(&crate::device_key::load_or_create(lib.root())?) {return Err(invalid("your_own_pack"));}}Ok(())
@@ -281,6 +302,66 @@ pub fn open(lib:&mut Library,id:&str,roll:f64,free:bool,date:&str,queue:bool,ref
         let mut png=Vec::new();image.write_to(&mut std::io::Cursor::new(&mut png),image::ImageFormat::Png).unwrap();let rendered=crate::pack::render_pack_sticker(&png).unwrap();
         for no in 0..n {let s=lib.add_made(&rendered,b"source","png",None,"kraft").unwrap();selections.push(Selection{sticker_id:s.id,name:format!("Design {no}"),copies});}
         (lib,selections)
+    }
+    // Compare every durable row except local visibility, including inventories,
+    // immutable frames, ownership histories, slots and export receipts.
+    fn market_snapshot(lib:&Library)->Vec<(String,Vec<String>)> {
+        let conn=&lib.db().conn;
+        let tables=conn.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name!='pack_market_listings' ORDER BY name").unwrap()
+            .query_map([],|r|r.get::<_,String>(0)).unwrap().collect::<std::result::Result<Vec<_>,_>>().unwrap();
+        tables.into_iter().map(|table| {
+            let columns=conn.prepare("SELECT name FROM pragma_table_info(?1)").unwrap().query_map([&table],|r|r.get::<_,String>(0)).unwrap().collect::<std::result::Result<Vec<_>,_>>().unwrap();
+            let quoted=columns.iter().map(|c|format!("quote(\"{}\")",c.replace('"',"\"\""))).collect::<Vec<_>>().join(" || '|' || ");
+            let sql=format!("SELECT {quoted} FROM \"{}\" ORDER BY 1",table.replace('"',"\"\""));
+            let rows=conn.prepare(&sql).unwrap().query_map([],|r|r.get::<_,String>(0)).unwrap().collect::<std::result::Result<Vec<_>,_>>().unwrap();
+            (table,rows)
+        }).collect()
+    }
+    fn market_assets(root:&std::path::Path)->Vec<(std::path::PathBuf,Vec<u8>)> {
+        fn walk(root:&std::path::Path,path:&std::path::Path,out:&mut Vec<(std::path::PathBuf,Vec<u8>)>) {
+            for entry in std::fs::read_dir(path).unwrap() {let path=entry.unwrap().path();if path.is_dir(){walk(root,&path,out)}else{out.push((path.strip_prefix(root).unwrap().to_owned(),std::fs::read(path).unwrap()));}}
+        }
+        let mut files=vec![];walk(root,root,&mut files);files.sort_by(|a,b|a.0.cmp(&b.0));files
+    }
+    #[test] fn market_listing_is_durable_idempotent_and_never_changes_inventory_or_signed_bytes() {
+        let (mut mine,selection)=fixture(3,2);mine.db_mut().add_material("kraft",2).unwrap();mine.db_mut().link_tag_add_stock(2).unwrap();
+        let id=press(&mut mine,"Seasonal","kraft",&selection,&[Prize::Material{material_id:"kraft".into(),count:1},Prize::Tag{count:1}],&Dress::default(),true,&o::NoReferee,|_,_|Ok(())).unwrap();
+        let rows=market_snapshot(&mine);let assets=market_assets(&mine.root().join("assets"));
+        assert!(!mine.db().packs().unwrap()[0].listed);assert!(mine.db().packs().unwrap()[0].edition_pack);
+        assert!(set_listed(&mut mine,&id,true).unwrap());
+        let stamp:String=mine.db().conn.query_row("SELECT listed_at FROM pack_market_listings",[],|r|r.get(0)).unwrap();
+        mine.db().conn.execute("UPDATE pack_market_listings SET listed_at='retained timestamp'",[]).unwrap();
+        assert!(set_listed(&mut mine,&id,true).unwrap());assert_eq!(mine.db().conn.query_row("SELECT listed_at FROM pack_market_listings",[],|r|r.get::<_,String>(0)).unwrap(),"retained timestamp");
+        let root=mine.root().to_owned();drop(mine);let mut mine=Library::open(&root).unwrap();assert!(mine.db().packs().unwrap()[0].listed);
+        assert!(!set_listed(&mut mine,&id,false).unwrap());assert!(!set_listed(&mut mine,&id,false).unwrap());assert!(!mine.db().packs().unwrap()[0].listed);
+        assert!(set_listed(&mut mine,&id,true).unwrap());assert!(!stamp.is_empty());
+        assert_eq!(market_snapshot(&mine),rows);assert_eq!(market_assets(&mine.root().join("assets")),assets);
+        assert_eq!((mine.db().packs().unwrap()[0].total,mine.db().packs().unwrap()[0].remaining),(8,8));
+        assert!(matches!(ensure_can_open(&mine,&id),Err(crate::Error::Invalid(e)) if e=="your_own_pack"));
+        drop(mine);let mine=Library::open(&root).unwrap();assert!(mine.db().packs().unwrap()[0].listed);
+    }
+    #[test] fn market_listing_rejects_non_owners_legacy_demo_and_file_only_packs() {
+        let (mut mine,selection)=fixture(3,1);let bytes=export(&mut mine,&selection,&[]);let package=creator_pack::decode(&bytes).unwrap();let id=creator_pack::internal_id(&package.header).unwrap();
+        assert!(set_listed(&mut mine,&id,true).is_err());assert!(set_listed(&mut mine,"missing",true).is_err());
+        mine.db_mut().pack_install("demo","Demo","Peta", &["sample".into()]).unwrap();assert!(set_listed(&mut mine,"demo",true).is_err());
+        store_archived(&mut mine,&id).unwrap();
+        let mut friend=lib();let foreign=install(&mut friend,&package).unwrap();friend.db().conn.execute("UPDATE pack_distributions SET status='mine'",[]).unwrap();assert!(set_listed(&mut friend,&foreign,true).is_err());
+        mine.db().conn.execute("DELETE FROM edition_pack_frames WHERE pack_id=?1",[&id]).unwrap();assert!(set_listed(&mut mine,&id,true).is_err());
+        assert_eq!(mine.db().conn.query_row("SELECT COUNT(*) FROM pack_market_listings",[],|r|r.get::<_,i64>(0)).unwrap(),0);
+    }
+    #[test] fn market_listing_can_be_taken_down_with_a_missing_key_and_damaged_metadata() {
+        let (mut mine,selection)=fixture(3,1);let id=press(&mut mine,"Down","kraft",&selection,&[],&Dress::default(),true,&o::NoReferee,|_,_|Ok(())).unwrap();set_listed(&mut mine,&id,true).unwrap();
+        mine.db().conn.execute("UPDATE edition_pack_frames SET header='damaged'",[]).unwrap();assert!(set_listed(&mut mine,&id,true).is_err());
+        std::fs::remove_file(mine.root().join("device.key")).unwrap();assert!(!set_listed(&mut mine,&id,false).unwrap());assert!(!set_listed(&mut mine,&id,false).unwrap());assert!(!mine.root().join("device.key").exists());assert!(!mine.db().packs().unwrap()[0].listed);
+    }
+    #[test] fn market_listing_does_not_restore_archives_and_failure_rolls_back_visibility() {
+        let (mut mine,selection)=fixture(3,1);let id=press(&mut mine,"Old shelf","kraft",&selection,&[],&Dress::default(),true,&o::NoReferee,|_,_|Ok(())).unwrap();
+        mine.db().conn.execute("DELETE FROM meta WHERE key=?1",[format!("pack.archive.{id}")]).unwrap();let rows=market_snapshot(&mine);let assets=market_assets(&mine.root().join("assets"));
+        mine.db().conn.execute_batch("CREATE TRIGGER fail_listing BEFORE INSERT ON pack_market_listings BEGIN SELECT RAISE(ABORT,'test'); END;").unwrap();assert!(set_listed(&mut mine,&id,true).is_err());assert!(!mine.db().packs().unwrap()[0].listed);mine.db().conn.execute_batch("DROP TRIGGER fail_listing").unwrap();
+        set_listed(&mut mine,&id,true).unwrap();assert_eq!(market_snapshot(&mine),rows);assert_eq!(market_assets(&mine.root().join("assets")),assets);
+        // Installed metadata consistency is checked without rewriting a signed archive.
+        mine.db().conn.execute("UPDATE pack_distributions SET external_id='swapped'",[]).unwrap();assert!(set_listed(&mut mine,&id,true).is_err());assert!(mine.db().packs().unwrap()[0].listed);
+        set_listed(&mut mine,&id,false).unwrap();assert!(!mine.db().packs().unwrap()[0].listed);
     }
     fn export(lib:&mut Library,selection:&[Selection],prizes:&[Prize])->Vec<u8> {let mut bytes=Vec::new();press(lib,"Editions","kraft",selection,prizes,&Dress::default(),false,&o::NoReferee,|_,b|{bytes=b.to_vec();Ok(())}).unwrap();bytes}
     #[test] fn a_commit_failure_restores_the_external_file_and_press_inventory() {

@@ -202,3 +202,10 @@ pub fn creator_pack_store(app:AppHandle,pack_id:String)->Result<String,String> {
     let id=peta_core::edition_pack::store_archived(&mut app.state::<Store>().lock(),&pack_id).map_err(|e|e.to_string())?;
     today::announce(&app);Ok(id)
 }
+
+/// Local Market visibility of a finished own pack; no transfer or stock changes.
+#[tauri::command]
+pub fn creator_pack_set_listed(app:AppHandle,pack_id:String,listed:bool)->Result<bool,String> {
+    let listed=peta_core::edition_pack::set_listed(&mut app.state::<Store>().lock(),&pack_id,listed).map_err(|e|e.to_string())?;
+    today::announce(&app);Ok(listed)
+}

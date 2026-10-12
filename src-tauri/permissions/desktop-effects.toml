@@ -32,7 +32,7 @@ commands.allow = ["scrap_status", "scrap_trade"]
 [[permission]]
 identifier = "allow-signed-distribution"
 description = "Redeem a signed official code and read local distribution receipts."
-commands.allow = ["redeem_code", "event_inbox", "creator_pack_accept", "creator_pack_pending", "creator_pack_decline", "creator_pack_save", "creator_pack_shelve", "creator_pack_export", "creator_pack_store", "link_tag_status", "link_tag_attach", "link_tag_set_show", "link_tag_remove", "link_tag_pick", "link_tag_open", "link_tag_icon", "link_tag_app_icon", "layer_capture", "pack_peek", "pack_peek_picture", "pack_cover_picture"]
+commands.allow = ["redeem_code", "event_inbox", "creator_pack_accept", "creator_pack_pending", "creator_pack_decline", "creator_pack_save", "creator_pack_shelve", "creator_pack_export", "creator_pack_store", "creator_pack_set_listed", "link_tag_status", "link_tag_attach", "link_tag_set_show", "link_tag_remove", "link_tag_pick", "link_tag_open", "link_tag_icon", "link_tag_app_icon", "layer_capture", "pack_peek", "pack_peek_picture", "pack_cover_picture"]
 
 [[permission]]
 identifier = "allow-developer-tools"

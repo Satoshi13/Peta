@@ -26,6 +26,7 @@ const Market = {
   },
   /* Free packs are taken straight away; anything else (including a second set of a pack you already have) goes through the exchange. */
   async get(pack) {
+    if(pack.local || pack.canList) return;
     if (this.own(pack.id) || pack.price !== "Free") { this.exchange(pack).click(); return; }
     try { await Bridge.invoke("pack_install_demo", {packId:pack.id}); await Bridge.reload(); Snd.chime(3,784); Shell.toast(`${pack.title} is on your Packs shelf.`); Shell.refresh(); }
     catch(e) { Shell.toast(String(e)); }
@@ -85,6 +86,7 @@ const Market = {
   },
   /* The zoomed card: details first, then what it costs. */
   card(pack) {
+    if(pack.local || pack.canList) return Pages.packs.card(pack);
     const paid = pack.price !== "Free" || this.own(pack.id);
     const peek = PackPeek(pack.keys, ""); peek?.classList.add("compact"); // the Market card also holds the price box, so the sheet is smaller here
     const own = h("p.mkz-own"), paintOwn = () => { const have = this.own(pack.id); own.hidden = !have; own.replaceChildren(h("b", "On your shelf"), ` · ${this.sealed(pack.id)} sealed`); };
@@ -143,8 +145,16 @@ Pages.market = {
       h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat), h("div.fan", feat.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
         h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", feat.title), h("p.muted", `by ${feat.by} · ${feat.count} stickers`), h("p", feat.blurb),
           h("div.mk-hero-actions", h("button.btn", { on: { click: (e) => Market.own(feat.id) ? open(feat, e.currentTarget.closest(".mk-hero").querySelector(".mk-hero-art")) : Market.get(feat) } }, Market.own(feat.id) ? "Add another set…" : "Get — Free")))),
+      this.localPacks(),
       h("p.eyebrow.mk-h", "New and popular"), this.rail(MARKET_PACKS.slice(1).map(cell)));
     return h("div.mk", main);
+  },
+  localPacks() {
+    const packs=PackListing.visible();
+    if(!packs.length) return null;
+    return h("section.mk-local", h("h2.pk-section-title", "On this Mac"),
+      h("p.muted.lede", "Your listed packs. Take one down to keep it on My shelf for another season."),
+      Pages.packs.shelf(packs));
   },
   /* Each pack is a damped pendulum hanging from the rod: θ'' = -ω₀² sin θ - 2ζω₀ θ' + (a/L) cos θ, where a is the rail's real acceleration along x
      (measured every frame from where the page actually is, by `follow`). Scrolling moves the rail up and down; a pack that hangs a little off-centre

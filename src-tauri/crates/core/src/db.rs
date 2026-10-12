@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 13;
+pub const SCHEMA_VERSION: i64 = 14;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -113,6 +113,9 @@ pub struct PackSummary {
     pub total: i64,
     pub remaining: i64,
     pub free_openings: i64,
+    /// Local visibility only; never changes the signed pack or its inventory.
+    pub listed: bool,
+    pub edition_pack: bool,
     pub pouch: Option<String>,
     pub signature_status: Option<String>,
     pub fingerprint: Option<String>,
@@ -210,6 +213,13 @@ CREATE TABLE pack_dress (pack_id TEXT PRIMARY KEY REFERENCES packs(id), cover TE
 CREATE TABLE gift_dress (gift_id TEXT PRIMARY KEY REFERENCES gifts_received(gift_id), bag TEXT, deco TEXT, to_name TEXT);
 ";
 
+
+const MIGRATION_V14: &str = "
+CREATE TABLE pack_market_listings (
+    pack_id TEXT PRIMARY KEY REFERENCES packs(id) ON DELETE CASCADE,
+    listed_at TEXT NOT NULL
+);
+";
 
 const MIGRATION_V13: &str = "
 ALTER TABLE stickers ADD COLUMN edition_total INTEGER;
@@ -419,6 +429,9 @@ impl Database {
         }
         if version < 13 {
             let tx=self.conn.transaction()?;tx.execute_batch(MIGRATION_V13)?;tx.pragma_update(None,"user_version",13)?;tx.commit()?;
+        }
+        if version < 14 {
+            let tx=self.conn.transaction()?;tx.execute_batch(MIGRATION_V14)?;tx.pragma_update(None,"user_version",14)?;tx.commit()?;
         }
         Ok(())
     }
@@ -892,12 +905,12 @@ impl Database {
 
     pub fn packs(&self) -> Result<Vec<PackSummary>> {
         let mut stmt = self.conn.prepare(
-            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint, x.cover, x.deco, x.blurb
+            "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint, x.cover, x.deco, x.blurb, EXISTS(SELECT 1 FROM pack_market_listings l WHERE l.pack_id=p.id), EXISTS(SELECT 1 FROM edition_pack_frames f WHERE f.pack_id=p.id)
              FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id AND (EXISTS(SELECT 1 FROM edition_pack_frames f WHERE f.pack_id=p.id) OR NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id)) LEFT JOIN pack_distributions d ON d.pack_id=p.id LEFT JOIN pack_dress x ON x.pack_id=p.id
              GROUP BY p.id ORDER BY p.created_at, p.id",
         )?;
         let rows = stmt.query_map([], |r| {
-            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, free_openings:0, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)?,cover:r.get(8)?,deco:r.get(9)?,blurb:r.get(10)?,layout:None })
+            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, free_openings:0, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)?,cover:r.get(8)?,deco:r.get(9)?,blurb:r.get(10)?,layout:None,listed:r.get(11)?,edition_pack:r.get(12)? })
         })?;
         let mut packs = rows.collect::<std::result::Result<Vec<_>, _>>()?;
         for pack in &mut packs { pack.free_openings = self.pack_free_openings(&pack.id)?; pack.layout = self.conn.query_row("SELECT value FROM meta WHERE key=?1", [format!("pack.layout.{}", pack.id)], |r| r.get(0)).optional()?; }
@@ -1455,6 +1468,17 @@ mod tests {
         assert!(db.set_sticker_title("nope", Some("x")).is_err());
         assert_eq!(db.sticker_title("nope").unwrap(), None);
     }
+    #[test]
+    fn v13_to_v14_adds_only_unlisted_visibility_and_cascades_on_pack_delete() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8,MIGRATION_V9,MIGRATION_V10,MIGRATION_V11,MIGRATION_V12,MIGRATION_V13] {conn.execute_batch(migration).unwrap();}
+        conn.pragma_update(None,"user_version",13).unwrap();conn.execute("INSERT INTO packs VALUES ('saved','Seasonal','Maker','x')",[]).unwrap();
+        conn.execute("INSERT INTO pack_items(pack_id,item_key) VALUES ('saved','design')",[]).unwrap();conn.execute("INSERT INTO edition_pack_frames VALUES ('saved','header','digest')",[]).unwrap();conn.execute("INSERT INTO meta VALUES ('pack.archive.saved','digest')",[]).unwrap();
+        let db=Database::init(conn).unwrap();let packs=db.packs().unwrap();assert_eq!(packs.len(),1);assert_eq!((packs[0].total,packs[0].remaining),(1,1));assert!(!packs[0].listed);assert!(packs[0].edition_pack);
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),14);assert_eq!(db.conn.query_row("SELECT header FROM edition_pack_frames",[],|r|r.get::<_,String>(0)).unwrap(),"header");assert_eq!(db.conn.query_row("SELECT value FROM meta WHERE key='pack.archive.saved'",[],|r|r.get::<_,String>(0)).unwrap(),"digest");
+        db.conn.execute("INSERT INTO pack_market_listings VALUES ('saved','x')",[]).unwrap();db.conn.execute("DELETE FROM pack_items WHERE pack_id='saved'",[]).unwrap();db.conn.execute("DELETE FROM packs WHERE id='saved'",[]).unwrap();assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_market_listings",[],|r|r.get::<_,i64>(0)).unwrap(),0);
+    }
+
     #[test]
     fn v12_to_v13_preserves_weighted_slots_and_existing_ownership() {
         let conn=Connection::open_in_memory().unwrap();

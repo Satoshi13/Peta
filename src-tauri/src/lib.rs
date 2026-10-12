@@ -213,6 +213,7 @@ pub fn run() {
             gifts::creator_pack_shelve,
             gifts::creator_pack_export,
             gifts::creator_pack_store,
+            gifts::creator_pack_set_listed,
             link_tags::link_tag_status,
             link_tags::link_tag_attach,
             link_tags::link_tag_set_show,

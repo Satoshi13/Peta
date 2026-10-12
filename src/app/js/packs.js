@@ -178,12 +178,46 @@ const WallInk = {
   },
 };
 
+/* A listing is only this Mac's display of the same finished pack. */
+const PackListing = {
+  visible() { return S.packs.filter(p => p.own && p.listed).map(p => ({...p, local:true, empty:!p.left.length})); },
+  control(p) {
+    if(!p.own || (!p.canList && !p.listed)) return null;
+    let busy=false;
+    const status=h("p.mkz-rule", {role:"status", "aria-live":"polite"});
+    const button=h("button.btn.paper.mkz-primary", {type:"button", on:{click:async()=>{
+      if(busy || Bridge.busy) return;
+      const desired=!p.listed;
+      busy=true; Bridge.busy=true; paint();
+      try {
+        const listed=await Bridge.invoke("creator_pack_set_listed", {packId:p.id, listed:desired});
+        // Commit the native result before any fallible UI refresh.
+        p.listed=listed;
+        const stored=S.packs.find(pack=>pack.id===p.id); if(stored) stored.listed=listed;
+        PackZoom.stale();
+        try { await Bridge.reload(); } catch { Shell.toast("Saved the listing. The shelf will refresh when you reopen it."); }
+        Snd.tap();
+      } catch(err) { Shell.toast(String(err)); }
+      finally {
+        busy=false; Bridge.busy=false; paint();
+        if(!PackZoom.current) Shell.refresh();
+      }
+    }}});
+    const paint=()=>{
+      button.disabled=busy;
+      button.textContent=busy ? "Saving…" : p.listed ? "Take down from Market" : "List in Market";
+      status.textContent=p.listed ? "Listed in Market · visible on this Mac" : "Kept on My shelf · not listed";
+    };
+    paint(); return h("div.pk-listing", status, button);
+  },
+};
+
 Pages.packs = {
   build() {
     const root = h("div.page-in.packspage");
     root.append(PageHead("Packs", "Open one at random", h("span.quota", { "aria-live": "polite" }, h("b", "Welcome Pack"), ` ${S.packAvailable ? 0 : 1} of 1 today`, h("small", "resets at midnight · other packs open any time"))));
     const items = S.packs.map((p) => ({ ...p, empty: !p.left.length })), stored=items.filter(p=>p.own), received=items.filter(p=>!p.own);
-    if(stored.length) root.append(h("h2.pk-section-title","My shelf"),h("p.muted.lede","Finished packs kept for another season. Save the same signed file whenever you want to share one again."),this.shelf(stored));
+    if(stored.length) root.append(h("h2.pk-section-title","My shelf"),h("p.muted.lede","Keep finished packs for another season. List or take them down in this Mac’s Market, or save the same signed file to share."),this.shelf(stored));
     if(received.length) root.append(stored.length ? h("h2.pk-section-title","Packs to open") : null,h("p.muted.lede","Choose a pack to look closer and open a random sticker. The Welcome Pack opens once a day; packs from friends open any time."),this.shelf(received));
     const total=received.reduce((n,p)=>n+p.left.length,0);
     root.append(h("p.shelf-note.muted", received.length ? `${total} slots still sealed in packs to open.` : "Your finished packs are stored on My shelf."));
@@ -212,7 +246,7 @@ Pages.packs = {
     const stack = h("div.pk-stack", {data:{empty:p.empty, gen: gen ? "1" : "0"}}, gen ? PackArt.shelf(p, null) : img, gen ? null : PackLabel(p));
     if(gen && p.cover) PackArt.cover(p).then((cover) => { if(cover && stack.isConnected) $(".bagpic", stack)?.replaceWith(PackArt.shelf(p, cover)); });
     const light = gen ? { aim() {}, rest() {} } : SurfaceLight.attach(img, p.kind || "holo"); // the glint is lit over the pack's own surface, not slid across it
-    const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
+    const card = h("button.pack", { "aria-label": `${p.title} by ${p.by}${p.own ? p.listed ? ", listed in Market on this Mac" : ", kept on My shelf" : ""}, ${p.empty ? "all opened" : p.left.length + " sealed"} — look closer`, "aria-haspopup": "dialog", data: { empty: p.empty, pack: p.id }, style: { "--i": i }, on: { click: (e) => { Snd.tap(); PackZoom.open(p, e.currentTarget, (pack) => this.card(pack)); } } },
       stack, (() => { const ink = WallInk.write(`${p.left.length} left`, p.id); return h("span.pk-count", { "aria-hidden": "true", style: { "--tilt": ink.tilt, "--dx": ink.dx } }, ...ink.nodes); })()); // written on the wall behind the pouch, so it stays put when the pouch lifts
     onPointerFollow(card, (x, y, e, amount) => {
       if (!e) return;
@@ -227,7 +261,7 @@ Pages.packs = {
     const left = p.left.length, many = Math.min(10, left), more = left >= 2 && !p.daily;
     const available = p.freeOpenings || 0, progress = available ? 10 : Math.max(0, p.total - left) % 10;
     /* A ready free opening always comes first: while one is waiting, it is the only thing the card offers. */
-    const rule = p.own ? "Stored on My shelf. Export this finished pack whenever you want to share it again." : available ? `${available === 1 ? "A free opening is" : "Free openings are"} ready. ${available === 1 ? "It comes" : "They come"} first.` : p.empty ? "No regular openings left." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "";
+    const rule = p.own ? "Stored on My shelf. Listing it again keeps the same editions and remaining slots." : available ? `${available === 1 ? "A free opening is" : "Free openings are"} ready. ${available === 1 ? "It comes" : "They come"} first.` : p.empty ? "No regular openings left." : p.daily ? (packsLeftToday() ? "Once a day — today's is ready." : "Back tomorrow. This one opens once a day.") : "";
     const listed = MARKET_PACKS.find((m) => m.id === p.id), blurb = listed?.blurb || p.blurb;
     // the packs that ship with the app show shipped pictures; a pack made in Studio shows its own (the cover first, the rarest kept hidden)
     const peekHost = h("div.peek-host"), shipped = listed ? listed.keys : p.id === "welcome" ? ["sCat", "sEgg", "sBlueFlower"] : [];
@@ -247,7 +281,7 @@ Pages.packs = {
         h("div.mkz-pips", {role:"progressbar","aria-label":"Free opening progress","aria-valuemin":0,"aria-valuemax":10,"aria-valuenow":progress,"aria-valuetext":available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} of 10 openings`}, Array.from({length:10}, (_, i) => h("i" + (i < progress ? "" : ".o"))))),
       peek,
       h("div.mkz-buy", rule ? h("p.mkz-rule", rule) : null,
-        exportPack, free,
+        PackListing.control(p), exportPack, free,
         p.own || available ? null : p.empty ? h("button.btn.mkz-act", { type: "button", on: { click: () => Shell.go("market") } }, "Find more in the Market") : [one, ten],
         h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
   },

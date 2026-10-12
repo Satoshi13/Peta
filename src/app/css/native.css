@@ -1039,3 +1039,8 @@ dialog.rd-dialog button.close-control.rd-x:hover { background:rgba(60,45,20,.08)
 .sc-amt .sc-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 .scrap-action .sc-amt .sc-ico { width:1.35em; height:1.25em; }
 .mkz-buy .have, .mkz-buy small.muted .sc-amt { justify-content:center; }
+
+/* Finished creator packs keep the same pouch and shelf when locally listed. */
+.mk-local { margin-top:28px; min-width:0; }
+.mk-local .lede { max-width:52ch; }
+.pk-listing { display:grid; gap:9px; }
