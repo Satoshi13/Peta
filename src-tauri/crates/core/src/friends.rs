@@ -17,5 +17,127 @@ pub fn preview(conn:&Connection,public_key:&str,name:&str)->Result<Identity> {
 /// Call inside the same transaction as receipt/install; preview alone never trusts a new key.
 pub fn observe(conn:&Connection,public_key:&str,name:&str)->Result<Identity> {
     let identity=preview(conn,public_key,name)?;
-    conn.execute("INSERT OR IGNORE INTO friends VALUES (?1,?2,?3)",params![public_key,identity.name,now()])?;Ok(identity)
+    conn.execute("INSERT OR IGNORE INTO friends(public_key,name,first_seen_at) VALUES (?1,?2,?3)",params![public_key,identity.name,now()])?;Ok(identity)
+}
+
+/* ---------- friends by code (server S2) ----------
+   A row's status: requested = I asked them; pending = they asked me; friend; blocked. `allowed` = their gifts may reach my mailbox.
+   Asking someone allows them at once (I chose them); approving allows them; declining, removing and blocking take it back.
+   Gifts already received are never touched. Rows met only through a file (TOFU) keep a NULL status. */
+use crate::{error::Error, identity::FriendCode};
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Friend { pub public_key: String, pub name: String, pub fingerprint: String, pub status: String, pub allowed: bool, pub note: Option<String>, pub added_at: Option<String>, pub enc_key: Option<String> }
+
+fn upsert(conn: &Connection, code: &FriendCode, status: &str, allowed: bool, note: Option<&str>, request_id: Option<&str>) -> Result<()> {
+    conn.execute("INSERT INTO friends(public_key,name,first_seen_at,enc_public_key,binding,status,allowed,added_at,note,request_id) VALUES(?1,?2,?3,?4,?5,?6,?7,?3,?8,?9)
+        ON CONFLICT(public_key) DO UPDATE SET name=excluded.name,enc_public_key=excluded.enc_public_key,binding=excluded.binding,status=excluded.status,allowed=excluded.allowed,added_at=excluded.added_at,note=excluded.note,request_id=excluded.request_id",
+        params![code.sign_key, code.name, now(), code.enc_key, code.binding, status, allowed, note, request_id])?;
+    Ok(())
+}
+fn status_of(conn: &Connection, key: &str) -> Result<Option<String>> { Ok(conn.query_row("SELECT status FROM friends WHERE public_key=?1", [key], |r| r.get::<_, Option<String>>(0)).optional()?.flatten()) }
+fn clean_note(note: Option<&str>) -> Option<String> { note.map(str::trim).filter(|n| !n.is_empty()).map(|n| n.chars().take(80).collect()) }
+
+/// I paste their code and send a request. Returns false (nothing changes) for myself or someone I blocked.
+pub fn request_sent(conn: &Connection, me: &str, code: &FriendCode, request_id: &str) -> Result<bool> {
+    code.verify()?;
+    if code.sign_key == me { return Err(Error::Invalid("That is your own friend code.".into())); }
+    match status_of(conn, &code.sign_key)?.as_deref() {
+        Some("blocked") => Err(Error::Invalid("You blocked this person. Unblock them in Settings first.".into())),
+        Some("friend") => Ok(false),
+        Some("pending") => { upsert(conn, code, "friend", true, None, None)?; Ok(true) }   // they asked first: asking back is approving
+        _ => { upsert(conn, code, "requested", true, None, Some(request_id))?; Ok(true) }
+    }
+}
+/// Their request reached my mailbox. Returns what happened: "pending", "friend" (we had both asked), or "ignored".
+pub fn request_received(conn: &Connection, me: &str, code: &FriendCode, note: Option<&str>, request_id: &str) -> Result<&'static str> {
+    code.verify()?;
+    if code.sign_key == me { return Ok("ignored"); }
+    Ok(match status_of(conn, &code.sign_key)?.as_deref() {
+        Some("blocked") | Some("friend") => "ignored",
+        Some("requested") => { upsert(conn, code, "friend", true, None, None)?; "friend" }
+        _ => { upsert(conn, code, "pending", false, clean_note(note).as_deref(), Some(request_id))?; "pending" }
+    })
+}
+fn set(conn: &Connection, key: &str, from: &[&str], status: Option<&str>, allowed: bool) -> Result<()> {
+    let now_status = status_of(conn, key)?;
+    if !from.is_empty() && !from.contains(&now_status.as_deref().unwrap_or("")) { return Err(Error::Invalid("That friend request is not waiting any more.".into())); }
+    conn.execute("UPDATE friends SET status=?2,allowed=?3,note=NULL,request_id=NULL WHERE public_key=?1", params![key, status, allowed])?; Ok(())
+}
+pub fn approve(conn: &Connection, key: &str) -> Result<()> { set(conn, key, &["pending"], Some("friend"), true) }
+pub fn decline(conn: &Connection, key: &str) -> Result<()> { set(conn, key, &["pending"], None, false) }
+/// They accepted me (my gifts now reach them).
+pub fn accepted(conn: &Connection, key: &str) -> Result<()> { set(conn, key, &["requested"], Some("friend"), true) }
+pub fn remove(conn: &Connection, key: &str) -> Result<()> { set(conn, key, &[], None, false) }
+pub fn block(conn: &Connection, key: &str) -> Result<()> {
+    if status_of(conn, key)?.is_none() && conn.query_row("SELECT COUNT(*) FROM friends WHERE public_key=?1", [key], |r| r.get::<_, i64>(0))? == 0 {
+        conn.execute("INSERT INTO friends(public_key,name,first_seen_at) VALUES(?1,'',?2)", params![key, now()])?;
+    }
+    set(conn, key, &[], Some("blocked"), false)
+}
+pub fn unblock(conn: &Connection, key: &str) -> Result<()> { set(conn, key, &["blocked"], None, false) }
+/// Everyone with a status, friends first, then requests waiting on me, then those I asked, then blocked.
+pub fn list(conn: &Connection) -> Result<Vec<Friend>> {
+    let mut stmt = conn.prepare("SELECT public_key,name,status,allowed,note,added_at,enc_public_key FROM friends WHERE status IS NOT NULL
+        ORDER BY CASE status WHEN 'friend' THEN 0 WHEN 'pending' THEN 1 WHEN 'requested' THEN 2 ELSE 3 END, lower(name)")?;
+    let rows = stmt.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?, r.get::<_, String>(2)?, r.get::<_, bool>(3)?, r.get::<_, Option<String>>(4)?, r.get::<_, Option<String>>(5)?, r.get::<_, Option<String>>(6)?)))?
+        .collect::<std::result::Result<Vec<_>, _>>()?;
+    rows.into_iter().map(|(public_key, name, status, allowed, note, added_at, enc_key)| {
+        let fingerprint = sign::fingerprint(&sign::parse_public(&public_key)?);
+        Ok(Friend { public_key, name, fingerprint, status, allowed, note, added_at, enc_key })
+    }).collect()
+}
+pub fn get(conn: &Connection, key: &str) -> Result<Option<Friend>> { Ok(list(conn)?.into_iter().find(|f| f.public_key == key)) }
+/// Whether anyone is a friend or waiting: with no one, Peta never talks to the inbox.
+pub fn anyone(conn: &Connection) -> Result<bool> { Ok(conn.query_row("SELECT EXISTS(SELECT 1 FROM friends WHERE status IN ('requested','pending','friend'))", [], |r| r.get(0))?) }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Database, identity};
+    fn code(name: &str) -> (FriendCode, std::path::PathBuf) {
+        let dir = std::env::temp_dir().join(format!("peta-friend-{}", crate::ids::new_sticker_id())); std::fs::create_dir_all(&dir).unwrap();
+        (identity::my_code(&dir, &sign::generate().unwrap(), name).unwrap(), dir)
+    }
+    #[test]
+    fn requests_approvals_and_blocks_move_between_states() {
+        let db = Database::open_in_memory().unwrap(); let c = &db.conn;
+        let (me, _d0) = code("Me"); let (nao, _d1) = code("Nao"); let (ren, _d2) = code("Ren"); let (eve, _d3) = code("Eve");
+        assert!(request_sent(c, &me.sign_key, &me, "r0").is_err(), "not my own code");
+        assert!(request_sent(c, &me.sign_key, &nao, "r1").unwrap());
+        assert_eq!(get(c, &nao.sign_key).unwrap().map(|f| (f.status, f.allowed)), Some(("requested".into(), true)));
+        accepted(c, &nao.sign_key).unwrap(); assert_eq!(get(c, &nao.sign_key).unwrap().unwrap().status, "friend");
+        assert_eq!(request_received(c, &me.sign_key, &ren, Some("  hi from the café  "), "q1").unwrap(), "pending");
+        let waiting = get(c, &ren.sign_key).unwrap().unwrap(); assert_eq!((waiting.allowed, waiting.note.as_deref()), (false, Some("hi from the café")));
+        approve(c, &ren.sign_key).unwrap(); assert!(get(c, &ren.sign_key).unwrap().unwrap().allowed);
+        assert!(approve(c, &ren.sign_key).is_err(), "nothing is waiting any more");
+        assert_eq!(request_received(c, &me.sign_key, &eve, None, "q2").unwrap(), "pending");
+        block(c, &eve.sign_key).unwrap();
+        assert_eq!(request_received(c, &me.sign_key, &eve, None, "q3").unwrap(), "ignored");
+        assert!(request_sent(c, &me.sign_key, &eve, "r2").is_err(), "blocked first");
+        unblock(c, &eve.sign_key).unwrap(); assert!(get(c, &eve.sign_key).unwrap().is_none());
+        remove(c, &nao.sign_key).unwrap(); assert!(get(c, &nao.sign_key).unwrap().is_none());
+        assert_eq!(list(c).unwrap().iter().map(|f| f.name.as_str()).collect::<Vec<_>>(), vec!["Ren"]);
+        assert!(anyone(c).unwrap());
+    }
+    #[test]
+    fn asking_each_other_makes_friends_either_way() {
+        let db = Database::open_in_memory().unwrap(); let c = &db.conn; let (me, _a) = code("Me"); let (nao, _b) = code("Nao");
+        request_sent(c, &me.sign_key, &nao, "r1").unwrap();
+        assert_eq!(request_received(c, &me.sign_key, &nao, None, "q1").unwrap(), "friend");
+        let (ren, _c) = code("Ren");
+        request_received(c, &me.sign_key, &ren, None, "q2").unwrap(); request_sent(c, &me.sign_key, &ren, "r2").unwrap();
+        assert_eq!(get(c, &ren.sign_key).unwrap().unwrap().status, "friend");
+        let mut forged = ren.clone(); forged.name = "Mallory".into();
+        assert!(request_received(c, &me.sign_key, &forged, None, "q3").is_err(), "a code that does not match its key is refused");
+    }
+    #[test]
+    fn a_file_friend_keeps_its_row_and_gains_a_status() {
+        let db = Database::open_in_memory().unwrap(); let c = &db.conn; let (me, _a) = code("Me"); let (nao, _b) = code("Nao");
+        observe(c, &nao.sign_key, "Nao").unwrap();
+        assert!(!anyone(c).unwrap(), "a gift file alone does not start talking to the inbox");
+        request_sent(c, &me.sign_key, &nao, "r1").unwrap(); assert!(anyone(c).unwrap());
+        assert_eq!(preview(c, &nao.sign_key, "Nao").unwrap().status, "known");
+    }
 }

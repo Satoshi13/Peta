@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 15;
+pub const SCHEMA_VERSION: i64 = 16;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -219,6 +219,19 @@ CREATE TABLE boards(id TEXT PRIMARY KEY, name TEXT NOT NULL, sort INTEGER NOT NU
 CREATE TABLE board_items(board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE CASCADE, sticker_id TEXT NOT NULL REFERENCES stickers(id) ON DELETE CASCADE, relative_x REAL NOT NULL, relative_y REAL NOT NULL, relative_scale REAL NOT NULL, rotation REAL NOT NULL, z INTEGER NOT NULL, PRIMARY KEY(board_id,sticker_id));
 CREATE TABLE board_rules(id TEXT PRIMARY KEY, sort INTEGER NOT NULL, kind TEXT NOT NULL CHECK(kind IN ('time','place')), days INTEGER NOT NULL DEFAULT 0, start_min INTEGER, end_min INTEGER, wifi TEXT, display_id TEXT NOT NULL, board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE CASCADE, enabled INTEGER NOT NULL DEFAULT 1);
 INSERT INTO meta(key,value) VALUES ('boards.owned','2');
+";
+
+/// Friends and the Gift inbox (server S2). Rows already in `friends` were met through a gift or pack file (TOFU) and keep a NULL status.
+const MIGRATION_V16: &str = "
+ALTER TABLE friends ADD COLUMN enc_public_key TEXT;
+ALTER TABLE friends ADD COLUMN binding TEXT;
+ALTER TABLE friends ADD COLUMN status TEXT CHECK(status IS NULL OR status IN ('requested','pending','friend','blocked'));
+ALTER TABLE friends ADD COLUMN allowed INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE friends ADD COLUMN added_at TEXT;
+ALTER TABLE friends ADD COLUMN note TEXT;
+ALTER TABLE friends ADD COLUMN request_id TEXT;
+CREATE TABLE inbox_seen(message_id TEXT PRIMARY KEY, sender_key TEXT, seen_at TEXT NOT NULL);
+CREATE TABLE inbox_outbox(message_id TEXT PRIMARY KEY, gift_id TEXT NOT NULL, sticker_id TEXT NOT NULL, to_key TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('sending','sent','taking_back')), created_at TEXT NOT NULL);
 ";
 
 const MIGRATION_V14: &str = "
@@ -444,6 +457,12 @@ impl Database {
             let tx=self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V15)?;
             tx.pragma_update(None,"user_version",15)?;
+            tx.commit()?;
+        }
+        if version < 16 {
+            let tx=self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V16)?;
+            tx.pragma_update(None,"user_version",16)?;
             tx.commit()?;
         }
         crate::server::schema(&mut self.conn)?;
@@ -1506,6 +1525,24 @@ mod tests {
     }
 
     #[test]
+    fn v15_to_v16_keeps_file_friends_and_boards_and_adds_inbox_state() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8,MIGRATION_V9,MIGRATION_V10,MIGRATION_V11,MIGRATION_V12,MIGRATION_V13,MIGRATION_V14,MIGRATION_V15] {conn.execute_batch(migration).unwrap();}
+        conn.pragma_update(None,"user_version",15).unwrap();
+        let key=crate::sign::public_key(&crate::sign::generate().unwrap());
+        conn.execute("INSERT INTO friends VALUES (?1,'Nao','2026-10-01')",[&key]).unwrap();
+        conn.execute("INSERT INTO boards VALUES ('b','Work day',0,'x','x')",[]).unwrap();
+        let db=Database::init(conn).unwrap();
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),SCHEMA_VERSION);
+        let (name,status,allowed):(String,Option<String>,bool)=db.conn.query_row("SELECT name,status,allowed FROM friends WHERE public_key=?1",[&key],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).unwrap();
+        assert_eq!((name.as_str(),status,allowed),("Nao",None,false),"a friend met through a file keeps its row and gains no status");
+        assert!(!crate::friends::anyone(&db.conn).unwrap());
+        assert_eq!(crate::friends::preview(&db.conn,&key,"Nao").unwrap().status,"known");
+        assert_eq!(db.conn.query_row("SELECT name FROM boards",[],|r|r.get::<_,String>(0)).unwrap(),"Work day");
+        for table in ["inbox_seen","inbox_outbox"] {assert_eq!(db.conn.query_row(&format!("SELECT COUNT(*) FROM {table}"),[],|r|r.get::<_,i64>(0)).unwrap(),0);}
+    }
+
+    #[test]
     fn v14_to_v15_preserves_existing_library_and_grants_two_boards_once() {
         let conn=Connection::open_in_memory().unwrap();
         for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8,MIGRATION_V9,MIGRATION_V10,MIGRATION_V11,MIGRATION_V12,MIGRATION_V13,MIGRATION_V14] {conn.execute_batch(migration).unwrap();}
@@ -1526,7 +1563,7 @@ mod tests {
         assert_eq!(db.material_count("kraft").unwrap(),4);
         db.board_save("external","Kept").unwrap();db.migrate().unwrap();
         assert_eq!(db.board_stock().unwrap().available,1);
-        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),15);
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),SCHEMA_VERSION);
     }
 
     #[test]
