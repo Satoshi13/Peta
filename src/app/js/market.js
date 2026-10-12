@@ -132,7 +132,7 @@ Pages.market = {
       h("div.mk-tool-foot", h("p", h("span", "Available", h("b", String(stock.available))), h("span", `${stock.attached} attached`)),
         h("button.link", { type: "button", on: { click: () => Shell.go("book") } }, "Manage link tags ", h("i", "→"))));
     const sheets = [tag];
-    if(S.developer && Pages.boards && S.boards) {
+    if(Pages.boards && S.boards) {
       const boardStock=S.boards.stock, info=BoardState.tool(boardStock,S.scraps,S.developer);
       sheets.push(sheet(h("h3", "Board ×1"), h("p.mk-tool-sub", "A blank board to keep one more look."),
         h("div.mk-tool-art.mk-art-board", { "aria-hidden": "true" }, h("i"), h("i"), h("i.mk-art-clip")),

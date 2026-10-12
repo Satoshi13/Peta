@@ -128,7 +128,7 @@ Pages.boards = {
     this.busy=true;const was=!!Bridge.busy;Bridge.busy=true;
     try {
       const result=await Bridge.invoke(command,args);await Bridge.reload();BD.load(S.boards);Snd.tap();success?.(result);paint?.();return true;
-    } catch(e) { const code=String(e), messages={nothing_to_save:"There are no stickers on this screen.",no_blank_board:"Get a blank board in Market.",invalid_board_name:"Use a name of 1 to 24 letters.",screen_not_connected:"This screen is not connected.",board_not_found:"This board was removed."}; const message=Object.entries(messages).find(([key])=>code.includes(key))?.[1]||code;if(error)error.textContent=message;else Shell.toast(message);return false; }
+    } catch(e) { const code=String(e), messages={nothing_to_save:"There are no stickers on this screen.",no_blank_board:"Get a blank board in Market.",invalid_board_name:"Use a name of 1 to 24 letters.",screen_not_connected:"This screen is not connected.",board_not_found:"This board was removed.",rule_not_found:"This rule was removed.",screen_not_found:"Choose a screen that Peta remembers.",invalid_time_rule:"Choose at least one day and two different times.",invalid_wifi_name:"Use a Wi‑Fi name of 1 to 64 letters.",invalid_rule:"Choose Time or Place.",invalid_direction:"Choose up or down.",invalid_board_placement:"This board has an invalid sticker position.",invalid_screen:"Choose a different connected screen."}; const message=Object.entries(messages).find(([key])=>code.includes(key))?.[1]||"Could not change this board. Try again.";if(error)error.textContent=message;else Shell.toast(message);return false; }
     finally {this.busy=false;Bridge.busy=was;}
   },
   async put(boardId,screenId,paint) {
