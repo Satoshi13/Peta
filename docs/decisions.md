@@ -314,3 +314,7 @@ CSPはselfのscript、ローカル画像/data/blob/Tauri asset、selfのfont/med
 ## 2026-10-14: 公開前修正 Step 6（C7・C10）
 
 通報は受信箱のallow/block関係と、出品では過去の本人宛封筒の証拠を確認する。封筒の削除後も通報できるよう、出品IDと受取人/送り手ハッシュの関係だけを残す。本文のSHA-256で重複をまとめ、24時間5件・未対応500件の予約をSQLiteで原子的に行う。保存失敗の予約は同じ通報の再送で修復する。resolved_atから30日のR2とD1をCronで順に消す。Gift v3のTypeScriptでの署名・PNGフレーム解析は本段階では追加せず、運営が真正性を確認する（虚偽通報だけで制裁しない）。Worker schemaは0004のみ、アプリschemaは変更なし。
+
+## 2026-10-14: 公開前修正 Step 7（C8）
+
+新しいライセンス管理ツールは導入せず、locked/offlineのCargo metadataと既存ソースでmacOSの全featureの依存通知を作る。crateに欠ける本文は公式の版固定告知と選択したMIT、MozillaのMPL本文で補完し、取得元・SHA-256を保存する。objc2のSDK由来の上流告知は改変せず残す。版固定の未変更crateソースURLと既存フォントの本文を一覧に含め、resourceとして同梱する。cargo audit/npm auditは配布直前のオーナー手順に明記する。

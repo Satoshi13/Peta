@@ -12,7 +12,8 @@
     "build:developer": "python3 scripts/build-mac.py --features developer --config src-tauri/tauri.developer.conf.json",
     "check:mac:developer": "cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin --features developer",
     "clean:target": "python3 scripts/clean-target.py",
-    "check:binary-paths": "python3 scripts/check-binary-paths.py"
+    "check:binary-paths": "python3 scripts/check-binary-paths.py",
+    "licenses": "python3 scripts/third-party-licenses.py"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"

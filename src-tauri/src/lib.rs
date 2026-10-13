@@ -2,6 +2,7 @@
 mod referee;
 mod referee_access;
 mod app_window;
+mod about;
 mod port_capture;
 mod arrival;
 mod arrival_window;
@@ -182,6 +183,7 @@ pub fn run() {
         .manage(Creator::default())
         .manage(gifts::PendingPack::default())
         .invoke_handler(tauri::generate_handler![
+            about::about_notices,
             port_capture::port_capture_report,
             port_capture::port_capture_tray,
             haptic_tap,

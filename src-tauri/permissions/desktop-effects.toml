@@ -78,3 +78,8 @@ commands.allow = ["friend_link_take"]
 identifier = "allow-friend-market"
 description = "Friends' packs in Market: list, pull, sell and collect Scraps through Peta's server (server builds only)."
 commands.allow = ["market_friend_listings", "market_card", "market_pull", "market_list_pack", "market_pause_pack", "market_close_pack", "market_payouts_sync"]
+
+[[permission]]
+identifier = "allow-about-notices"
+description = "Open bundled third-party license notices from About Peta."
+commands.allow = ["about_notices"]

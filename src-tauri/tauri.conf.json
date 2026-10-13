@@ -48,6 +48,9 @@
     ],
     "macOS": {
       "minimumSystemVersion": "14.0"
+    },
+    "resources": {
+      "../THIRD_PARTY_NOTICES": "THIRD_PARTY_NOTICES"
     }
   },
   "plugins": {

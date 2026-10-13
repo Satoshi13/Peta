@@ -98,7 +98,7 @@ const AboutPeta = {
     const probe=h("video",{preload:"metadata",muted:true});
     const ready=()=>{button.disabled=false;photo.disabled=false;button.textContent="Watch the tour";photo.classList.add("ready");probe.removeAttribute("src");probe.load();};
     probe.addEventListener("loadedmetadata",ready,{once:true});probe.addEventListener("error",()=>probe.removeAttribute("src"),{once:true});probe.src=this.TOUR;
-    return h("section.setcard.about-card",photo,h("div.about-text",h("h2","About Peta"),h("p.small","A short film of how Peta works: make a sticker, stick it on your desktop, and send one to a friend."),button));
+    return h("section.setcard.about-card",photo,h("div.about-text",h("h2","About Peta"),h("p.small","A short film of how Peta works: make a sticker, stick it on your desktop, and send one to a friend."),button,h("button.btn.paper.small",{type:"button",on:{click:async()=>{try{await Bridge.invoke("about_notices");}catch(e){Shell.toast(String(e));}}}},"Third-party notices…")));
   },
   play() {
     if(document.querySelector("dialog")) return;

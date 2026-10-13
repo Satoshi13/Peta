@@ -108,3 +108,18 @@ npm run check:binary-paths
 ```
 
 検査は.appのContents/MacOS内の実行ファイルにstringsをかけ、個人のホームパスが1つでも残れば一覧を出して失敗します。別の成果物は `python3 scripts/check-binary-paths.py '<成果物>/Peta.app'` で検査します。失敗した成果物は配布せず、依存ライブラリを含めてビルドフラグを確認します。
+
+## 2026-10-14: ライセンスと脆弱性の確認
+
+配る前に `npm run licenses` で `THIRD_PARTY_NOTICES` を再生成し、変更した依存と通知を確認します。cargo metadata（locked/offline、macOS、全feature）と既にあるcrateの本文、同梱フォントのNOTICE/OFLを使います。crate配布物に本文が無いものの補完は `third-party/licenses/sources.json` に版に対応する取得元とSHA-256を記録し、再生成では通信しません。MITを選択できる補完対象はMIT本文を同梱し、objc2の上流のApple SDK由来の告知も保持します。MPLの未変更ソースを取得する版固定URLも各項目へ記載します。上流のSDK告知・ソース提供条件を含む法律面の最終確認は専門家と行ってください。
+
+配布前の脆弱性照合:
+
+```sh
+cargo audit --file src-tauri/Cargo.lock
+npm audit
+cd cloudflare/peta-api
+npm audit
+```
+
+cargo auditが無ければ、その導入はオーナーが判断します。この作業はcargo audit/cargo aboutを新しくインストールしません。監査は当日時点の情報なので、実際に配る直前にも行います。検出を機械的な一括更新で消さず、影響と修正版を確認してテストします。

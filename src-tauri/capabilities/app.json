@@ -26,6 +26,7 @@
     "allow-signed-distribution",
     "allow-developer-tools",
     "allow-friend-links",
-    "allow-friend-market"
+    "allow-friend-market",
+    "allow-about-notices"
   ]
 }
