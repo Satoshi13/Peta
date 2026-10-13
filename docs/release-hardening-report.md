@@ -27,3 +27,9 @@ Step 3: 必須5コマンドがすべて成功。故障注入を含む鍵復旧3�
 Step 3 commit: `c8a5c70`。通常版とDeveloperのreleaseビルドを共通ラッパーにし、HOMEとソースルートをremapする。encoded rustflagsで空白付きパスと継承フラグを維持する。パス検査は.appの実行ファイルをstringsで調べ、残存時に一覧と失敗を返す。最終の通常版・ベータ版バイナリの検査結果はビルド段階で記載する。新規crateなし。
 
 Step 4: 必須5コマンドすべて成功。空白付きパスのフラグ保持、パス検査の成功・拒否を一時fixtureで確認。
+
+## Step 5 — C6
+
+Step 4 commit: `6e0d92e`。通常版・Developerで同じCSPを明示する。同梱scriptだけを許可し、styleのみ既存の動的な位置・素材表示のためunsafe-inlineを許可する。画像はself/data/blob/Tauri asset、接続はselfとIPC。APIの通信はRustなのでWebViewからの外部接続を許可しない。3つのHTMLにインラインscript/イベント属性はない。[Tauri公式文書](https://v2.tauri.app/security/csp/)を確認した。隔離IPCを使ったブラウザ検証と、ネイティブWebViewでの実機確認は区別して記録する。
+
+Step 5: 必須5コマンドすべて成功。Chrome＋隔離IPCで実ファイルの10ページ、デスクトップ層、arrivalを設定したCSPヘッダー下で読み込み、違反なしを確認。任意のインラインscriptの実行は拒否された。ネイティブWebViewの全操作は未実施でチェックリストに残す。

@@ -306,3 +306,7 @@ OSのUSER/USERNAMEを初期表示名に使わず、未設定は空とする。�
 ## 2026-10-14: 公開前修正 Step 4（C4）
 
 リリース用ラッパーでHOMEとリポジトリをremapし、空白を含むパスをencoded rustflagsで保つ。ビルド後の実行ファイルに個人ホームパスが残る場合は検査を失敗させる。個人ごとの絶対パスはリポジトリ設定に書かない。
+
+## 2026-10-14: 公開前修正 Step 5（C6）
+
+CSPはselfのscript、ローカル画像/data/blob/Tauri asset、selfのfont/mediaとIPCだけの接続を許可する。APIへのHTTPはRustで行うためWebViewの接続許可へAPI住所を追加しない。インラインstyle属性が素材・位置・アニメーションに必要なのでstyleだけunsafe-inlineを許可する。インラインscriptとevalは許可しない。[Tauri公式CSP説明](https://v2.tauri.app/security/csp/)のIPC/assetスキームに合わせ、通常版とDeveloperに同じ設定を明示する。
