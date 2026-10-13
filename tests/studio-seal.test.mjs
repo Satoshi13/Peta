@@ -36,5 +36,5 @@ test('the pickers have a search, and a tap does not rebuild the list (so it keep
 });
 test('a step that cannot go on says why beside its button', () => {
   assert.match(js, /const stNext = /);
-  for(const reason of ['Give the pack a name to continue.', 'Write who it is for to continue.', 'Choose a sticker to continue.']) assert.ok(js.includes(reason), reason);
+  for(const reason of ['Give the pack a name to continue.', 'Choose who it is for to continue.', 'Choose a sticker to continue.']) assert.ok(js.includes(reason), reason);
 });

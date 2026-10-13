@@ -47,6 +47,24 @@ try{
     await page.evaluate(async p=>{await Shell.open(p);await document.fonts.ready;for(let i=0;i<3;i++)await new Promise(requestAnimationFrame);},route);
     assert.deepEqual(await page.evaluate(()=>window.cspViolations),[],route);
   }
+  // Exercise the Gift destination controls with isolated friend state, without sealing or HTTP.
+  await page.evaluate(async()=>{await Shell.open('studio');S.name='Maker';S.inbox.enabled=true;S.inbox.friends=[{publicKey:'fixture-friend',name:'Nao',status:'friend',fingerprint:'00112233'}];ST.mode='gift';Object.assign(ST.gift,{step:2,sticker:S.lib[0].id,dest:'file',friend:null,to:'',sealed:false});Shell.refresh();});
+  await page.locator('.fr-pill').filter({hasText:'Nao'}).click();
+  assert.equal(await page.getByRole('textbox',{name:'Name on the envelope',exact:true}).count(),0);
+  await page.getByRole('button',{name:'Next →',exact:true}).click();
+  assert.equal(await page.locator('.fr-pill').count(),0);
+  assert.ok(await page.getByText('For Nao · to their Peta',{exact:true}).isVisible());
+  await page.evaluate(()=>{ST.gift.step=2;Shell.refresh();});
+  await page.getByRole('button',{name:'Someone else — save a file',exact:true}).click();
+  await page.getByRole('textbox',{name:'Name on the envelope',exact:true}).fill('Aki');
+  await page.getByRole('button',{name:'Next →',exact:true}).click();
+  assert.ok(await page.getByText('For Aki · saved as a file',{exact:true}).isVisible());
+  await page.evaluate(()=>{ST.gift.step=2;S.inbox.friends=[];Shell.refresh();});
+  assert.ok(await page.getByText('No friends yet.',{exact:false}).isVisible());
+  await page.evaluate(()=>{S.inbox.enabled=false;Shell.refresh();});
+  assert.equal(await page.locator('.fr-pill').count(),0);
+  assert.ok(await page.getByRole('textbox',{name:'Name on the envelope',exact:true}).isVisible());
+  assert.deepEqual(await page.evaluate(()=>window.cspViolations),[],'Gift destinations');
   for(const file of ['index.html','arrival.html']){
     await page.goto(`${origin}/src/${file}`);await page.waitForLoadState('networkidle');
     assert.deepEqual(await page.evaluate(()=>window.cspViolations),[],file);
@@ -55,5 +73,5 @@ try{
   await page.evaluate(()=>{const s=document.createElement('script');s.textContent='window.untrustedScriptRan=true';document.body.append(s);});
   await page.waitForFunction(()=>window.cspViolations.length>0);
   assert.equal(await page.evaluate(()=>window.untrustedScriptRan),undefined);
-  console.log('PASS: 10 app pages, desktop layer and arrival load without CSP violations; untrusted inline script is blocked. Native WebView checks remain on the macOS checklist.');
+  console.log('PASS: 10 app pages, Gift friend/file/offline destinations, desktop layer and arrival load without CSP violations; untrusted inline script is blocked. Native WebView checks remain on the macOS checklist.');
 }finally{await browser?.close();await new Promise(r=>server.close(r));}

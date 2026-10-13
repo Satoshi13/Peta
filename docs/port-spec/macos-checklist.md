@@ -380,3 +380,6 @@ Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に
 - [ ] オーナーのDeveloper ID証明書・キーチェーンprofileでrelease-mac.shを実行し、Accepted、stapler validate、codesign verify、spctlが成功する。zipを別Macへ渡し、ネット接続なしでもGatekeeperと全機能を確認する。署名名義・必要最小限のentitlements・透明窓も確認する。
 
 - [ ] 規約・ポリシーURL未設定ではAboutにリンクが出ない。正式URLを設定した版で各文書が既定ブラウザに開き、通知本文は同梱resourceからTextEditに開く。運営者・連絡先・施行日・法的条件を公開前に確定する。
+
+- [ ] GiftのDressで友達を選ぶと宛先と名前が入り文字欄が消える。Someone elseだけ文字欄が出る。友達なしの案内からSettings Friendsへ行ける。通常版はName on the envelopeだけ。Sealには切り替えがなく送付先を要約する。
+- [ ] 古い名前だけのGift draftはfileとして開く。Remove/Blockした友達は再選択が必要。未設定の自分の名前は封をする前にSettingsへ案内し、取消・通信失敗で元のステッカー/タグ/在庫が残る。実際の友達送付は本番準備後のみ。

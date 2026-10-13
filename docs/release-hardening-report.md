@@ -79,3 +79,9 @@ Step 10: mock検証とbash構文検査、必須5コマンドがすべて成功�
 Step 10 commit: 7decd0a。日英の利用規約下書きと、プライバシー文案の空欄一覧・【オーナーが記入】を整備した。無料/Scraps非換金・非購入、鍵紛失、画像の権利、禁止事項、通報/削除/拒否、唯一の版と抽選・70%取り分、終了と法令に従う免責、準拠法/管轄/連絡先を記載。法的判断は行わない。プライバシーの古い手動削除説明はCronへ更新し、Market通報、配送証拠保持、.petamoveの無送信も明示。AboutのURL定数はabout.rsの1か所で両方Noneのまま、設定前は非表示。新規crateなし。
 
 Step 11: 未設定URLを隠すnativeテストとAboutの表示/クリック2件が成功。必須5コマンドがすべて成功（JS200・Worker56）。規約・ポリシーは下書きで、URL・運営者・連絡先・施行日等は未設定。
+
+## Step 12 — B4
+
+Step 11 commit: 35fc6de。Giftの宛先をDressへ移し、承認済み友達とSomeone else — save a fileを選ぶ。Sealでは送り先を確認して封をするだけ。通常版はName on the envelopeだけ。dest/friendをdraftへ保存し、旧draftはfileへ、Remove/Block済みの友達は再選択へ案内する。未設定の自分の名前はStep 2を出る前・封の前に案内する。stCommitSealとnative送付/補償処理・署名形式は変更なし。新規crateなし。
+
+Step 12: Giftの状態・選択・旧draft・Remove/Block・名前案内の6件、既存保存/取消テストが成功。必須5コマンドすべて成功（JS206・Worker56）。Chromeの実画面でも友達/ファイル/友達なし/通信なしを操作し、全10ページ・desktop層・arrivalでCSP違反なし、インライン攻撃は拒否を確認。native WebViewと実送付はオーナー確認に残る。

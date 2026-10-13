@@ -198,3 +198,5 @@ Settings → Move to a new Mac → Make a move file… でDB・assets・2つの�
 ## 2026-10-14: 規約・ポリシーの公開準備
 
 terms-draft.mdとprivacy-policy-draft.mdの【オーナーが記入】を専門家と確定し、Cloudflareの契約・処理国・IP保持・問い合わせ運用を実際の本番設定と照合する。正式文書をHTTPSで公開してから、src-tauri/src/about.rsのSERVICE_LINKSのNoneだけをURLへ置換して再ビルドする。下書きのままサービスURLを設定しない。
+
+GiftはStudioのDressで承認済み友達を選び、Sealで確認して送る。Someone elseは名前を書いたファイル保存。古いdraftはfileとして読め、削除/ブロックした相手は選び直す。既存のgift_send_friendとファイル保存の補償処理は維持する。

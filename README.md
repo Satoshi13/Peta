@@ -390,3 +390,5 @@ Settings の Move to a new Mac は、DB・画像・鍵をパスフレーズ付�
 Developer ID署名・公証はオーナー準備後に `bash scripts/release-mac.sh beta`（通信なし版はoffline）。資格情報が無ければbuild前に停止する。手順はdocs/distribution-howto.md。
 
 利用規約とプライバシーポリシーはdocs/terms-draft.mdとdocs/privacy-policy-draft.mdの日英下書き。専門家と確定したURLだけをabout.rsのSERVICE_LINKSに設定する。未設定のAboutリンクは表示しない。
+
+Giftの宛先はStudioのDressで友達またはSomeone else — save a fileを選ぶ。Sealは確認だけ。通信なし版はName on the envelopeの文字欄だけを表示する。

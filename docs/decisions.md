@@ -336,3 +336,7 @@ CSPはselfのscript、ローカル画像/data/blob/Tauri asset、selfのfont/med
 ## 2026-10-14: Step 11（B3）
 
 日英の利用規約を下書きとして作成し、法的結論はオーナーと専門家へ委ねる。両文書の未記入を【オーナーが記入】へ統一し、冒頭に要決定項目を列挙する。プライバシー文案をS3・日次通報削除・配送証拠の保持・offline移行へ更新した。Aboutの文書は1か所のHTTPS定数からのみ開き、未設定を隠す。任意URLをIPCで開く機能にはしない。
+
+## 2026-10-14: Step 12（B4）
+
+Giftだけを変更し、宛先と封筒の名前をDressでまとめて決める。承認済み友達のfr-pillと最後のSomeone else — save a fileを並べ、後者だけ文字欄を出す。通信なし版はName on the envelope。Sealは宛先の要約と封だけ。draftにdest/friendを保存し、旧名前だけはfileと解釈する。Remove/Blockされた友達は選択を外し、fileへ勝手に変更しない。未設定の自分の名前は次へ進む前と封の前に案内する。既存の送付・保存・取消補償の処理と署名形式は変えない。オーナーが削除を求めたCover position操作も戻さない。

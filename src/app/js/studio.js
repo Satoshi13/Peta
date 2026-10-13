@@ -12,7 +12,7 @@ const stClip = (text, max) => { let v = text; while (stEm(v) > max) v = v.slice(
 const ST = {
   mode: null, sealing: false, urls: new Map(), urlRequests: new Map(), ctx: "shelf", find: { q: "", mat: "all" }, view: "pack", open: null, chances: false,
   pack: { step: 1, seen: new Set([1]), sealed: false, dest: "shelf", result: null, sel: [], prizes:[], bag: "kraft", deco: "none", layout: { comp: "corner", label: null, cover: null, accents: [] }, cover: null, title: "", blurb: "" },
-  gift: { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, bag: "airmail", deco: "none", to: "", note: "" },
+  gift: { step: 1, seen: new Set([1]), sealed: false, result: null, dest: "file", friend: null, sticker: null, bag: "airmail", deco: "none", to: "", note: "" },
 };
 const stCopyMax = e => e?.canPress ? S.packLimits.copiesPerDesign : 1;
 const stSlots = p => p.sel.reduce((sum,x)=>sum+x.copies,0)+(p.prizes || []).reduce((sum,x)=>sum+x.count,0);
@@ -30,6 +30,18 @@ function stCleanPrizes(prizes, copies) {
   }
   return out;
 }
+// A stale friend selection never becomes a file gift implicitly.
+function stGiftDestination(g) {
+  if(!S.inbox?.enabled) { g.dest="file";g.friend=null;return; }
+  if(g.dest!=="friend") { g.dest="file";g.friend=null;return; }
+  const friend=Friends.groups().friends.find(f=>f.publicKey===g.friend);
+  if(friend)g.to=friend.name || "Someone";
+  else {g.friend=null;g.to="";}
+}
+function stGiftReady(g) {
+  if(S.inbox?.enabled && g.dest==="friend")return !!Friends.groups().friends.find(f=>f.publicKey===g.friend);
+  return (!g.dest || g.dest==="file") && !!g.to.trim();
+}
 const stDraftKey = "peta.studio";
 function stLoad() {
   if(ST.sealing)return;
@@ -41,12 +53,12 @@ function stLoad() {
       p.layout = stCleanLayout(d.pack.layout, p.bag);
       p.cover = p.sel.some((x) => x.id === d.pack.cover && stEntry(x.id)?.canPress) ? d.pack.cover : null; p.title = stClip(String(d.pack.title || ""), STUDIO.limits.name); p.blurb = String(d.pack.blurb || "").slice(0, STUDIO.limits.blurb); }
     if(d.gift&&!ST.gift.sealed) { const g = ST.gift; g.sticker = known.has(d.gift.sticker) ? d.gift.sticker : null; g.bag = GIFT_BAG_IDS.includes(d.gift.bag) ? d.gift.bag : "airmail"; g.deco = ["none", "clip", "pin", "tape"].includes(d.gift.deco) ? d.gift.deco : "none";
-      g.to = stClip(String(d.gift.to || ""), STUDIO.limits.to); g.note = String(d.gift.note || "").slice(0, STUDIO.limits.note); }
+      g.to = stClip(String(d.gift.to || ""), STUDIO.limits.to); g.note = String(d.gift.note || "").slice(0, STUDIO.limits.note); g.dest=d.gift.dest==="friend" ? "friend" : "file";g.friend=typeof d.gift.friend==="string" ? d.gift.friend : null;stGiftDestination(g); }
   } catch {}
 }
 function stSave() {
   const p = ST.pack, g = ST.gift;
-  try { localStorage.setItem(stDraftKey, JSON.stringify({ ...(p.sealed?{}:{pack: { sel: p.sel, prizes:p.prizes, bag: p.bag, deco: p.deco, layout: p.layout, cover: p.cover, title: p.title, blurb: p.blurb }}), ...(g.sealed?{}:{gift: { sticker: g.sticker, bag: g.bag, deco: g.deco, to: g.to, note: g.note }}) })); } catch {}
+  try { localStorage.setItem(stDraftKey, JSON.stringify({ ...(p.sealed?{}:{pack: { sel: p.sel, prizes:p.prizes, bag: p.bag, deco: p.deco, layout: p.layout, cover: p.cover, title: p.title, blurb: p.blurb }}), ...(g.sealed?{}:{gift: { dest:g.dest, friend:g.friend, sticker: g.sticker, bag: g.bag, deco: g.deco, to: g.to, note: g.note }}) })); } catch {}
 }
 /** A saved layout, made safe: a known composition, places that are numbers, at most two different accents. The picture clamps the places again when it draws. */
 function stCleanLayout(l, bagId) {
@@ -167,8 +179,8 @@ Pages.studio = {
     work.append(bench, panel); root.append(head, choose, work);
     const stage = $(".st-stage", bench), cap = $(".st-cap", bench), views = $(".st-views", bench);
     const D = () => stDraft(), count = () => (ST.mode === "gift" ? (ST.gift.sticker ? 1 : 0) : ST.pack.sel.length);
-    const canGo = (to) => { const d = D(); if(to > 1 && (ST.mode === "gift" ? !d.sticker : d.sel.length < STUDIO.limits.min)) return false; if(to > 2 && !(ST.mode === "gift" ? d.to.trim() : d.title.trim())) return false; return true; };
-    const go = (to) => { const d = D(); if(d.sealed || ST.sealing || !canGo(to)) return; ST.enter = to !== d.step; if(to !== d.step) { ST.open = null; ST.chances = false; ST.view = "pack"; } d.step = to; d.seen.add(to); Snd.tap(); paint(); };
+    const canGo = (to) => { const d = D(); if(to > 1 && (ST.mode === "gift" ? !d.sticker : d.sel.length < STUDIO.limits.min)) return false; if(to > 2 && !(ST.mode === "gift" ? stGiftReady(d) : d.title.trim())) return false; return true; };
+    const go = (to) => { const d = D(); if(d.sealed || ST.sealing || !canGo(to)) return; if(to>2 && ST.mode==="gift" && d.dest==="friend" && !S.name.trim()){ProfileName.request();return;} ST.enter = to !== d.step; if(to !== d.step) { ST.open = null; ST.chances = false; ST.view = "pack"; } d.step = to; d.seen.add(to); Snd.tap(); paint(); };
     const VIEWS = { pack: [["pack", "Pack"], ["shelf", "Shelf"], ["market", "Market"]], gift: [["pack", "Gift"], ["arrives", "Arrives"], ["opened", "Opened"]] };
     /* what the left side shows on the last step: the wrapped thing itself, or where it will be seen (the shelf and the Market for a pack; arriving and opened for a gift) */
     const scene = (kind) => {
@@ -368,28 +380,38 @@ Pages.studio = {
       fill(); return body;
     };
     const giftDress = () => {
-      const g = ST.gift, next = stNext("Next →", () => go(3)), need = "Write who it is for to continue.";
+      const g = ST.gift;stGiftDestination(g);
+      const next = stNext("Next →", () => go(3)), need = "Choose who it is for to continue.";
+      const sync=()=>next.set(stGiftReady(g),need);
+      const name=()=>field(g.to,STUDIO.limits.to,"Name on the envelope",v=>{g.to=v;stSave();paintBench();sync();},"Who is it for?",true);
+      let destination;
+      if(S.inbox?.enabled) {
+        const friends=Friends.groups().friends;
+        const choices=h("div.fr-pick",friends.map(f=>h("button.fr-pill",{type:"button","aria-pressed":String(g.dest==="friend"&&g.friend===f.publicKey),on:{click:()=>{g.dest="friend";g.friend=f.publicKey;g.to=f.name || "Someone";stSave();Snd.tap();paint();}}},f.name || "Someone",h("small",PetaFp(f)))),
+          h("button.fr-pill",{type:"button","aria-pressed":String(g.dest==="file"),on:{click:()=>{g.dest="file";g.friend=null;stSave();Snd.tap();paint();}}},"Someone else — save a file"));
+        const empty=friends.length ? null : h("p.st-fine","No friends yet. ",h("button.link",{type:"button",on:{click:async()=>{await Shell.open("settings");document.querySelector(".fr-card")?.scrollIntoView({block:"start"});}}},"Add one in Settings → Friends."));
+        destination=sec("To (required)",empty,choices,g.dest==="file" ? name() : null);
+      } else destination=sec("Name on the envelope",name());
       const note = h("textarea", { rows: 2, maxLength: STUDIO.limits.note, "aria-label": "Note", on: { input: (e) => { g.note = e.target.value; cnt.textContent = `${g.note.length}/${STUDIO.limits.note}`; stSave(); } } }, g.note), cnt = h("span.cnt", `${g.note.length}/${STUDIO.limits.note}`);
-      const body = [heading("Dress the gift", "Choose a wrapping, write who it is for, and a few words only they will see."),
-        h("div.st-scroll", sec("Wrapping", bagPicker(g, GIFT_BAG_IDS)), sec("To (required)", field(g.to, STUDIO.limits.to, "To", (v) => { g.to = v; stSave(); paintBench(); next.set(!!v.trim(), need); }, "Who is it for?", true)),
+      const body = [heading("Dress the gift", "Choose a wrapping, who it is for, and a few words only they will see."),
+        h("div.st-scroll", sec("Wrapping", bagPicker(g, GIFT_BAG_IDS)), destination,
           sec("A few words", h("div.st-field", note, cnt)), sec("Decoration", pills(STUDIO.decos, g.deco, (k) => { g.deco = k; stSave(); Snd.tap(); paint(); }))),
         foot(true, next.el)];
-      next.set(!!g.to.trim(), need); return body;
+      sync();return body;
     };
     const giftSeal = () => {
       const g = ST.gift, bag = BAGS[g.bag];
       if(g.sealed) return [doneBlock("gift")];
-      const inbox = !!S.inbox?.enabled, toFriend = inbox && g.dest === "friend";
-      const send = inbox ? sec("Send", pills([["file", "Save a file"], ["friend", "To a friend"]], g.dest || "file", (k) => { g.dest = k; stSave(); Snd.tap(); paint(); }, ST.sealing)) : null;
-      const who = toFriend ? Friends.picker(g.friend, (f) => { g.friend = f.publicKey; g.to = f.name; stSave(); Snd.tap(); paint(); }) : null;
-      const button = sealButton(toFriend ? "Seal and send" : "Seal and save…"); if(toFriend && !g.friend) button.set(false, "Choose a friend to send it to.");
+      stGiftDestination(g);
+      const toFriend=!!S.inbox?.enabled && g.dest==="friend";
+      const button = sealButton(toFriend ? "Seal and send" : "Seal and save…");button.set(stGiftReady(g),"Choose who it is for to continue.");
       return [heading("Ready to seal", "Check the details before finishing."),
-        h("div.st-scroll", h("div.st-sum", h("b", `For ${g.to.trim()}`), h("span", `1 sticker · ${bag.name}`), h("small", "Your photo is never inside.")), send, who, tagNote([g.sticker])),
+        h("div.st-scroll", h("div.st-sum", h("b", `For ${g.to.trim()} · ${toFriend ? "to their Peta" : "saved as a file"}`), h("span", `1 sticker · ${bag.name}`), h("small", "Your photo is never inside.")), tagNote([g.sticker])),
         foot(true, button.el, toFriend ? "Sealing signs the gift and sends it to your friend's Peta. It cannot be edited afterward." : "Sealing signs the gift and asks where to save the file. It cannot be edited afterward.")];
     };
     const doneBlock = (kind) => {
       const d = kind === "pack" ? ST.pack : ST.gift, r = d.result || {};
-      const again = () => { if(kind === "pack") Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], prizes:[], cover: null, title: "", blurb: "", layout: { comp: "corner", label: null, cover: null, accents: [] } }); else Object.assign(ST.gift, { step: 1, seen: new Set([1]), sealed: false, result: null, sticker: null, to: "", note: "" }); stSave(); Snd.tap(); paint(); };
+      const again = () => { if(kind === "pack") Object.assign(ST.pack, { step: 1, seen: new Set([1]), sealed: false, result: null, sel: [], prizes:[], cover: null, title: "", blurb: "", layout: { comp: "corner", label: null, cover: null, accents: [] } }); else Object.assign(ST.gift, { step: 1, seen: new Set([1]), sealed: false, result: null, dest:"file", friend:null, sticker: null, to: "", note: "" }); stSave(); Snd.tap(); paint(); };
       const msg = (t) => { const m = h("div.st-toast", t); root.append(m); setTimeout(() => m.remove(), 2200); };
       const act = (label, fn, cls = "") => h("button.btn" + cls, { on: { click: async (ev) => { const b = ev.currentTarget; b.disabled = true; try { await fn(msg); } catch(err) { Shell.toast(Distribution?.error ? Distribution.error(err) : String(err)); } finally { b.disabled = false; } } } }, label);
       const more = [];
@@ -406,7 +428,7 @@ Pages.studio = {
 
     /* ---------- sealing: it signs and writes first (a cancelled save dialog makes nothing), then the wrapping closes its own way ---------- */
     const seal = async () => {
-      if(ST.sealing) return; const mode=ST.mode,d=D(),args=mode==='gift'?giftArgs():packArgs(); ST.sealing = true; ST.view = "pack"; paint();
+      if(ST.sealing) return; const mode=ST.mode,d=D();if(mode==='gift'){stGiftDestination(d);if(!stGiftReady(d)){Shell.toast('Choose who it is for to continue.');return;}if(d.dest==='friend'&&!S.name.trim()){ProfileName.request();return;}} const args=mode==='gift'?giftArgs():packArgs(); ST.sealing = true; ST.view = "pack"; paint();
       try {
       if(mode==='pack'&&stSlots(d)>S.packLimits.packSlots)throw new Error('Too many slots.');
       const result=await stCommitSeal(mode,d,args);if(!result)return;
