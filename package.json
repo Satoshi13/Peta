@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "tauri dev",
-    "build": "tauri build",
+    "build": "python3 scripts/build-mac.py",
     "test": "node --test tests/*.test.mjs",
     "check:mac": "cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin",
     "dev:developer": "tauri dev --features developer --config src-tauri/tauri.developer.conf.json",
-    "build:developer": "tauri build --features developer --config src-tauri/tauri.developer.conf.json",
+    "build:developer": "python3 scripts/build-mac.py --features developer --config src-tauri/tauri.developer.conf.json",
     "check:mac:developer": "cargo check --manifest-path src-tauri/Cargo.toml --target aarch64-apple-darwin --features developer",
-    "clean:target": "python3 scripts/clean-target.py"
+    "clean:target": "python3 scripts/clean-target.py",
+    "check:binary-paths": "python3 scripts/check-binary-paths.py"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"
