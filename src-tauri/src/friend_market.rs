@@ -281,3 +281,85 @@ mod net {
         first.map_or(Ok(()), Err)
     }
 }
+
+#[cfg(all(test, feature = "server"))]
+mod live {
+    use crate::referee::HttpReferee;
+    use peta_core::{edition_pack, identity, market as m, ownership::Referee, Library};
+    use std::cell::RefCell;
+
+    struct One(RefCell<Library>);
+    impl m::Locked for One { fn with<T>(&self, f: impl FnOnce(&mut Library) -> peta_core::Result<T>) -> peta_core::Result<T> { f(&mut self.0.borrow_mut()) } }
+    fn lib(tag: &str) -> Library { Library::open(&std::env::temp_dir().join(format!("peta-live-market-{tag}-{}", peta_core::ids::new_sticker_id()))).unwrap() }
+    fn ok(r: peta_core::Result<serde_json::Value>) -> serde_json::Value { r.unwrap() }
+
+    /// Against the dev service (PETA_API_URL to point elsewhere): a seller lists, only a friend sees it, the friend pulls once,
+    /// and the seller is paid. Run explicitly: `cargo test -p peta --features developer market_live -- --ignored`.
+    #[test]
+    #[ignore]
+    fn market_live_round_trip() {
+        let (mut seller, mut buyer, stranger) = (lib("seller"), lib("buyer"), lib("stranger"));
+        let url = crate::referee::endpoint();
+        let client = |l: &Library| HttpReferee::with_url(peta_core::device_key::load_or_create(l.root()).unwrap(), url.clone()).unwrap();
+        let (s, b, x) = (client(&seller), client(&buyer), client(&stranger));
+        let codes: Vec<_> = [(&seller, "Nao"), (&buyer, "Buyer"), (&stranger, "Stranger")].iter().map(|(l, n)| identity::code_here(l.root(), n).unwrap()).collect();
+        for (c, code) in [(&s, &codes[0]), (&b, &codes[1]), (&x, &codes[2])] {
+            ok(c.request("POST", "/v1/mailbox", Some(&serde_json::json!({"signKey": code.sign_key, "encKey": code.enc_key, "name": code.name, "binding": code.binding}))));
+        }
+        // Seller and buyer are friends on both Macs and on the service; the stranger is not.
+        for (c, me, them) in [(&s, &codes[0], &codes[1]), (&b, &codes[1], &codes[0])] {
+            ok(c.request("PUT", &format!("/v1/mailbox/{}/allow", identity::mailbox_id(&me.sign_key).unwrap()), Some(&serde_json::json!({"add": [identity::key_hash(&them.sign_key).unwrap()]}))));
+        }
+        seller.db_mut().friend_request_received(&codes[0].sign_key, &codes[1], None, "live-r").unwrap(); seller.db_mut().friend_approve(&codes[1].sign_key).unwrap();
+        buyer.db_mut().friend_request_sent(&codes[1].sign_key, &codes[0], "live-r").unwrap(); buyer.db_mut().friend_accepted(&codes[0].sign_key).unwrap();
+        // A finished three-design pack, registered with the referee as it is pressed.
+        for l in [&mut seller, &mut buyer] { peta_core::server::migrate(l).unwrap(); }
+        let rendered = peta_core::pack::render_pack_sticker(include_bytes!("../assets/sample-cat.png")).unwrap();
+        let selection: Vec<edition_pack::Selection> = (0..3).map(|i| { let st = seller.add_made(&rendered, format!("live source {i} {}", peta_core::ids::new_sticker_id()).as_bytes(), "png", None, "kraft").unwrap();
+            serde_json::from_value(serde_json::json!({"stickerId": st.id, "name": format!("Design {i}"), "copies": 1})).unwrap() }).collect();
+        let pack = edition_pack::press(&mut seller, &format!("Live {}", &peta_core::ids::new_sticker_id()[..6]), "kraft", &selection, &[], &Default::default(), true, &s, |_, _| Ok(())).unwrap();
+        // List: register, upload both sealed files, envelopes, open.
+        let l = m::prepare_listing(&mut seller, &pack).unwrap();
+        ok(s.request("POST", "/v1/market/listings", Some(&serde_json::to_value(l.registration()).unwrap())));
+        for kind in ["card", "pack"] {
+            let bytes = m::upload_bytes(&seller, &l.listing_id, kind).unwrap();
+            assert_eq!(s.exchange_bulk("PUT", &format!("/v1/market/listings/{}/{kind}", l.listing_id), &bytes, "application/octet-stream", 65536).unwrap().0, 200);
+        }
+        let changes = m::envelope_changes(&seller, &l.listing_id).unwrap();
+        assert_eq!(changes.added_keys, vec![codes[1].sign_key.clone()]);
+        ok(s.request("PUT", &format!("/v1/market/listings/{}/envelopes", l.listing_id), Some(&changes.body())));
+        m::envelopes_sent(&mut seller, &l.listing_id, &changes).unwrap();
+        ok(s.request("POST", &format!("/v1/market/listings/{}/open", l.listing_id), None::<&()>));
+        // The stranger sees nothing and cannot fetch it even with the id.
+        let none: Vec<m::RemoteListing> = x.request_max("GET", "/v1/market/listings", None::<&()>, 512 * 1024).unwrap();
+        assert!(none.iter().all(|r| r.listing_id != l.listing_id));
+        assert_ne!(x.exchange_bulk("GET", &format!("/v1/market/listings/{}/card", l.listing_id), &[], "application/json", 2 << 20).unwrap().0, 200);
+        // The friend sees it, fetches the card and the pack, and pulls once.
+        let remote: Vec<m::RemoteListing> = b.request_max("GET", "/v1/market/listings", None::<&()>, 512 * 1024).unwrap();
+        assert!(m::store_seen(&mut buyer, &remote).unwrap().contains(&l.listing_id));
+        let (status, card) = b.exchange_bulk("GET", &format!("/v1/market/listings/{}/card", l.listing_id), &[], "application/json", 2 << 20).unwrap(); assert_eq!(status, 200);
+        m::store_card(&mut buyer, &l.listing_id, &card).unwrap();
+        let (status, sealed) = b.exchange_bulk("GET", &format!("/v1/market/listings/{}/pack", l.listing_id), &[], "application/json", 25 << 20).unwrap(); assert_eq!(status, 200);
+        let local = m::install_pack(&mut buyer, &l.listing_id, &sealed).unwrap();
+        buyer.db_mut().scrap_welcome().unwrap();   // the first 20 Scraps
+        let store = One(RefCell::new(buyer));
+        let award = m::pull(&store, &b, &local, false, "2026-10-13", false).unwrap();
+        let buyer = store.0.into_inner();
+        assert_eq!(award.kind, "sticker");
+        assert_eq!(buyer.db().scrap_status().unwrap().balance, 14);
+        assert_eq!(Referee::claimed_slots(&b, &l.external_id).unwrap().len(), 1);
+        // The seller is paid 70% of 6 (4 now, the fraction carried) and acknowledges it.
+        let sales: Vec<m::Sale> = s.request_max("GET", "/v1/market/payouts?after=0", None::<&()>, 512 * 1024).unwrap();
+        let paid = m::apply_payouts(seller.db_mut(), &sales).unwrap();
+        assert_eq!(paid.credited, 4);
+        ok(s.request("POST", "/v1/market/payouts/ack", Some(&serde_json::json!({"upTo": paid.upto}))));
+        let again: Vec<m::Sale> = s.request_max("GET", "/v1/market/payouts?after=0", None::<&()>, 512 * 1024).unwrap();
+        assert!(again.is_empty(), "acknowledged sales are not returned again");
+        // Stop selling and leave, so the dev service keeps only ledger rows.
+        ok(s.request("DELETE", &format!("/v1/market/listings/{}", l.listing_id), None::<&()>));
+        let gone: Vec<m::RemoteListing> = b.request_max("GET", "/v1/market/listings", None::<&()>, 512 * 1024).unwrap();
+        assert!(gone.iter().all(|r| r.listing_id != l.listing_id));
+        for (c, code) in [(&s, &codes[0]), (&b, &codes[1]), (&x, &codes[2])] { ok(c.request("DELETE", &format!("/v1/mailbox/{}", identity::mailbox_id(&code.sign_key).unwrap()), None::<&()>)); }
+        for l in [seller.root().to_owned(), buyer.root().to_owned(), stranger.root().to_owned()] { let _ = std::fs::remove_dir_all(l); }
+    }
+}
