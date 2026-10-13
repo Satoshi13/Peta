@@ -147,14 +147,14 @@ const Friends = {
         e.preventDefault();
         try { if (await Bridge.fileDialog("identity_import", { passphrase: a.value })) { dialog.close(); await Bridge.reload(); Shell.refresh(); Shell.toast("Your key is restored on this Mac."); } }
         catch (err) { status.textContent = this.error(err); }
-      } } }, h("p.small", "This replaces this Mac's key with the backup's. Use it when you move to a new Mac. Two Macs can't use the same key at once: the one that checks first gets each gift."), a, status,
+      } } }, h("p.small", "This replaces this Mac's key with the backup's. The backup contains keys only, not your Collection or friends. Move your Peta data folder with Migration Assistant or Time Machine too. Use the same key on only one Mac at a time."), a, status,
         h("div.bd-dacts", h("button.link", { type: "button", on: { click: () => dialog.close() } }, "Cancel"), h("button.btn.stamp", { type: "submit" }, "Restore…")));
       const dialog = this.sheet("Restore your key", h("h2", "Restore your key"), form); a.focus();
     };
     return h("section.setcard.fr-card",
       h("h2", "Your Peta key"),
       h("p.small.muted", "Your key is who you are to friends and to Peta's record of who owns each sticker. Lose it, and the real stickers you hold can never be given again."),
-      h("div.setrow", h("div", h("b", S.inbox.backedUp ? "Backed up" : "Not backed up yet"), h("small", "A file sealed with a passphrase.")),
+      h("div.setrow", h("div", h("b", S.inbox.backedUp ? "Backed up" : "Not backed up yet"), h("small", "Keys only, sealed with a passphrase. Your Collection and friends need a separate data folder backup.")),
         h("div.fr-acts", h("button.btn.paper.small", { type: "button", on: { click: backup } }, "Back up key…"), h("button.btn.paper.small", { type: "button", on: { click: restore } }, "Restore…"))));
   },
 
