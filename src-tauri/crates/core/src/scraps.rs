@@ -39,7 +39,7 @@ pub struct ToolRate { pub id: &'static str, pub exchange: i64 }
 const TOOLS: [ToolRate; 2] = [ToolRate { id: "link-tag", exchange: 2 }, ToolRate { id: "board", exchange: 12 }];
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum Kind { Dismantle, Material, Pack, Tool }
+pub enum Kind { Dismantle, Material, Pack, Tool, Pull, Payout }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Trade { pub kind: Kind, pub item_id: String, pub quantity: i64 }
@@ -72,6 +72,8 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
     }
     let rate = MATERIALS.iter().find(|m| m.id==request.item_id);
     let delta = match request.kind {
+        // Friend Market money moves only through its verified pull and payout records.
+        Kind::Pull | Kind::Payout => return Err(invalid("This exchange is not available here.")),
         Kind::Dismantle => rate.ok_or_else(|| invalid("This material cannot be dismantled."))?.dismantle * request.quantity,
         Kind::Material => -rate.and_then(|m| m.exchange).ok_or_else(|| invalid("This material is not available to exchange."))? * request.quantity,
         Kind::Pack => {
@@ -106,6 +108,7 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
             let next_owned = owned.checked_add(request.quantity).filter(|v| *v<=cap).ok_or_else(|| invalid(if request.item_id=="board" { "You have all 12 boards." } else { "Link tag count is out of range." }))?;
             tx.execute("INSERT INTO meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![owned_key,next_owned.to_string()])?;
         }
+        Kind::Pull | Kind::Payout => unreachable!(),
         Kind::Pack => {
             let own: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM packs WHERE id=?1)", [&request.item_id], |r| r.get(0))?;
             let p = pack::market_pack(&request.item_id).unwrap();
@@ -391,6 +394,23 @@ fn credit(tx: &Connection, amount: i64) -> Result<i64> {
     let next = balance(tx)?.checked_add(amount).filter(|n| *n<=MAX_SAFE_COUNT).ok_or_else(|| invalid("Scraps balance is out of range."))?;
     set(tx, BALANCE_KEY, &next.to_string())?; Ok(next)
 }
+
+/// A Friend Market movement inside the caller's transaction, with its receipt under `scraps.tx.{request_id}`: a pull's payment or
+/// refund (`Pull`), or a seller's proceeds (`Payout`, never negative). Debits fail without
+/// changing anything when the balance is short; the caller keeps the record that explains the movement in the same transaction.
+pub(crate) fn market_move(tx: &Connection, kind: Kind, item_id: &str, request_id: &str, delta: i64) -> Result<Receipt> {
+    if !matches!(kind, Kind::Pull | Kind::Payout) || (kind==Kind::Payout && delta<0) { return Err(invalid("Invalid Market exchange.")); }
+    let key = format!("scraps.tx.{request_id}");
+    if tx.query_row("SELECT EXISTS(SELECT 1 FROM meta WHERE key=?1)", [&key], |r| r.get::<_,bool>(0))? { return Err(invalid("This exchange request was already used.")); }
+    let next = balance(tx)?.checked_add(delta).ok_or_else(|| invalid("Scraps balance is out of range."))?;
+    if next<0 { return Err(invalid("Not enough Scraps.")); }
+    if next>MAX_SAFE_COUNT { return Err(invalid("Scraps balance is out of range.")); }
+    let receipt = Receipt { request_id:request_id.into(), trade:Trade { kind, item_id:item_id.into(), quantity:1 }, delta, balance:next };
+    set(tx, BALANCE_KEY, &next.to_string())?;
+    set(tx, &key, &serde_json::to_string(&receipt).map_err(|_| invalid("Exchange receipt could not be saved."))?)?;
+    Ok(receipt)
+}
+pub(crate) fn balance_in(conn: &Connection) -> Result<i64> { balance(conn) }
 
 /// The welcome gift, once per library (new and existing ones alike). Returns the amount when it was given now.
 pub(crate) fn welcome(conn: &mut Connection) -> Result<Option<i64>> {

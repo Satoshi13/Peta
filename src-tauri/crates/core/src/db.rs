@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 16;
+pub const SCHEMA_VERSION: i64 = 17;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -232,6 +232,18 @@ ALTER TABLE friends ADD COLUMN note TEXT;
 ALTER TABLE friends ADD COLUMN request_id TEXT;
 CREATE TABLE inbox_seen(message_id TEXT PRIMARY KEY, sender_key TEXT, seen_at TEXT NOT NULL);
 CREATE TABLE inbox_outbox(message_id TEXT PRIMARY KEY, gift_id TEXT NOT NULL, sticker_id TEXT NOT NULL, to_key TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('sending','sent','taking_back')), created_at TEXT NOT NULL);
+";
+
+/// Friend Market (server S3). Sellers keep each listing's content key and the sealed bytes they upload; buyers keep what they fetched,
+/// the packs they may only pull through Market, and one durable record per paid pull. Scraps stay in `meta` as before.
+const MIGRATION_V17: &str = "
+CREATE TABLE market_my_listings(pack_id TEXT PRIMARY KEY, listing_id TEXT NOT NULL UNIQUE, external_id TEXT NOT NULL, content_key BLOB NOT NULL, state TEXT NOT NULL CHECK(state IN ('draft','open','paused','closed')), card_digest TEXT NOT NULL, card_size INTEGER NOT NULL, pack_digest TEXT NOT NULL, pack_size INTEGER NOT NULL, registered INTEGER NOT NULL DEFAULT 0, card_uploaded INTEGER NOT NULL DEFAULT 0, pack_uploaded INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE market_envelopes_sent(listing_id TEXT NOT NULL REFERENCES market_my_listings(listing_id) ON DELETE CASCADE, recipient_key TEXT NOT NULL, PRIMARY KEY(listing_id, recipient_key));
+CREATE TABLE market_earned(external_id TEXT PRIMARY KEY, cut_milli INTEGER NOT NULL, sales INTEGER NOT NULL);
+CREATE TABLE market_listings_seen(listing_id TEXT PRIMARY KEY, seller_key TEXT NOT NULL, external_id TEXT NOT NULL, price INTEGER NOT NULL, state TEXT NOT NULL, slot_count INTEGER NOT NULL, slots_left INTEGER NOT NULL, card_digest TEXT NOT NULL, pack_digest TEXT NOT NULL, content_key BLOB, card_path TEXT, fetched_at TEXT NOT NULL);
+CREATE TABLE market_packs(pack_id TEXT PRIMARY KEY REFERENCES packs(id) ON DELETE CASCADE, listing_id TEXT NOT NULL UNIQUE, seller_key TEXT NOT NULL, installed_at TEXT NOT NULL);
+CREATE TABLE market_pulls(pull_id TEXT PRIMARY KEY, listing_id TEXT NOT NULL, pack_id TEXT NOT NULL, slot_no INTEGER NOT NULL, item_id INTEGER NOT NULL, quoted_price INTEGER NOT NULL, debited INTEGER NOT NULL, claim TEXT, attempts INTEGER NOT NULL DEFAULT 1, state TEXT NOT NULL CHECK(state IN ('pending','done','refunded')), sale_id INTEGER, slots_left INTEGER, award TEXT, failure TEXT, created_at TEXT NOT NULL, finished_at TEXT);
+CREATE UNIQUE INDEX market_pulls_one_pending ON market_pulls(pack_id) WHERE state='pending';
 ";
 
 const MIGRATION_V14: &str = "
@@ -463,6 +475,12 @@ impl Database {
             let tx=self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V16)?;
             tx.pragma_update(None,"user_version",16)?;
+            tx.commit()?;
+        }
+        if version < 17 {
+            let tx=self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V17)?;
+            tx.pragma_update(None,"user_version",17)?;
             tx.commit()?;
         }
         crate::server::schema(&mut self.conn)?;
@@ -941,6 +959,7 @@ impl Database {
         let mut stmt = self.conn.prepare(
             "SELECT p.id, p.title, p.by_name, COUNT(i.id), COALESCE(SUM(CASE WHEN i.opened_at IS NULL AND NOT EXISTS(SELECT 1 FROM edition_pack_slots e JOIN pack_slot_exclusions x ON x.slot_no=e.slot_no AND x.pack_id=p.id WHERE e.item_id=i.id) THEN 1 ELSE 0 END), 0), d.pouch, d.status, d.fingerprint, x.cover, x.deco, x.blurb, EXISTS(SELECT 1 FROM pack_market_listings l WHERE l.pack_id=p.id), EXISTS(SELECT 1 FROM edition_pack_frames f WHERE f.pack_id=p.id)
              FROM packs p LEFT JOIN pack_items i ON i.pack_id = p.id AND (EXISTS(SELECT 1 FROM edition_pack_frames f WHERE f.pack_id=p.id) OR NOT EXISTS(SELECT 1 FROM meta m WHERE m.key='pack.free_item.' || i.id)) LEFT JOIN pack_distributions d ON d.pack_id=p.id LEFT JOIN pack_dress x ON x.pack_id=p.id
+             WHERE NOT EXISTS(SELECT 1 FROM market_packs m WHERE m.pack_id=p.id)
              GROUP BY p.id ORDER BY p.created_at, p.id",
         )?;
         let rows = stmt.query_map([], |r| {
@@ -1540,6 +1559,24 @@ mod tests {
         assert_eq!(crate::friends::preview(&db.conn,&key,"Nao").unwrap().status,"known");
         assert_eq!(db.conn.query_row("SELECT name FROM boards",[],|r|r.get::<_,String>(0)).unwrap(),"Work day");
         for table in ["inbox_seen","inbox_outbox"] {assert_eq!(db.conn.query_row(&format!("SELECT COUNT(*) FROM {table}"),[],|r|r.get::<_,i64>(0)).unwrap(),0);}
+    }
+
+    #[test]
+    fn v16_to_v17_keeps_local_listings_scraps_and_friends_and_adds_market_state() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8,MIGRATION_V9,MIGRATION_V10,MIGRATION_V11,MIGRATION_V12,MIGRATION_V13,MIGRATION_V14,MIGRATION_V15,MIGRATION_V16] {conn.execute_batch(migration).unwrap();}
+        conn.pragma_update(None,"user_version",16).unwrap();
+        conn.execute("INSERT INTO packs VALUES ('saved','Pack','Maker','x')",[]).unwrap();conn.execute("INSERT INTO pack_market_listings VALUES ('saved','x')",[]).unwrap();
+        conn.execute("INSERT INTO meta VALUES ('scraps.balance','41')",[]).unwrap();
+        let key=crate::sign::public_key(&crate::sign::generate().unwrap());
+        conn.execute("INSERT INTO friends(public_key,name,first_seen_at,status,allowed) VALUES (?1,'Nao','x','friend',1)",[&key]).unwrap();
+        let db=Database::init(conn).unwrap();
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),SCHEMA_VERSION);
+        assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_market_listings",[],|r|r.get::<_,u32>(0)).unwrap(),1);
+        assert_eq!(db.scrap_status().unwrap().balance,41);
+        assert_eq!(db.conn.query_row("SELECT status FROM friends WHERE public_key=?1",[&key],|r|r.get::<_,String>(0)).unwrap(),"friend");
+        assert!(db.packs().unwrap()[0].listed);
+        for table in ["market_my_listings","market_envelopes_sent","market_earned","market_listings_seen","market_packs","market_pulls"] {assert_eq!(db.conn.query_row(&format!("SELECT COUNT(*) FROM {table}"),[],|r|r.get::<_,i64>(0)).unwrap(),0);}
     }
 
     #[test]

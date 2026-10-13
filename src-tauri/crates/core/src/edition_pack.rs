@@ -31,7 +31,7 @@ pub fn validate(h:&Header)->Result<()> {
     }
     if prizes>MAX_PRIZES||total+prizes>MAX_PACK_SLOTS {return Err(invalid("This pack exceeds the slot or prize limit."));}Ok(())
 }
-fn slot_ref(pack:&str,no:u32)->String {format!("{pack}:slot-{no}")}
+pub(crate) fn slot_ref(pack:&str,no:u32)->String {format!("{pack}:slot-{no}")}
 pub fn verify_item(h:&Header,item:&Item,png:&[u8])->Result<()> {
     let key=creator_pack::public(h)?;let first=h.items.iter().take_while(|i|i.key!=item.key).map(|i|i.copies.unwrap_or(0)).sum::<u32>();
     for (i,chain) in item.histories.iter().enumerate() {
@@ -114,9 +114,11 @@ fn install_in(conn:&Connection,p:&Verified,paths:&Paths,own:&str)->Result<String
     conn.execute("INSERT INTO pack_dress VALUES (?1,?2,?3,?4)",params![id,h.cover,h.deco,h.blurb])?;
     if let Some(layout)=&h.layout {conn.execute("INSERT INTO meta VALUES (?1,?2)",params![format!("pack.layout.{id}"),serde_json::to_string(layout).map_err(|e|invalid(&e.to_string()))?])?;}Ok(id)
 }
-pub fn install(lib:&mut Library,p:&Verified)->Result<String> {
+pub fn install(lib:&mut Library,p:&Verified)->Result<String> {install_with(lib,p,|_,_|Ok(()))}
+/// `mark` runs in the install transaction with the new internal id (the Friend Market records its pull-only packs this way).
+pub(crate) fn install_with(lib:&mut Library,p:&Verified,mark:impl FnOnce(&Connection,&str)->Result<()>)->Result<String> {
     let own=sign::public_key(&crate::device_key::load_or_create(lib.root())?);let (paths,writes)=write_assets(lib,p)?;
-    let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;let id=install_in(&tx,p,&paths,&own)?;writes.commit(tx)?;Ok(id)
+    let tx=lib.db_mut().conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;let id=install_in(&tx,p,&paths,&own)?;mark(&tx,&id)?;writes.commit(tx)?;Ok(id)
 }
 /// A finished pack is archived as its exact signed bytes, never pressed again.
 fn archive_path(digest:&str)->Result<String> {
@@ -249,6 +251,7 @@ pub fn set_listed(lib:&mut Library,id:&str,listed:bool)->Result<bool> {
     tx.commit()?;Ok(listed)
 }
 pub fn ensure_can_open(lib:&Library,id:&str)->Result<()> {
+    if crate::market::is_market_pack(lib.db(),id)? {return Err(o::RefereeError::Rejected("market_pack".into()).into());}
     let public:Option<String>=lib.db().conn.query_row("SELECT public_key FROM pack_distributions WHERE pack_id=?1",[id],|r|r.get(0)).optional()?.flatten();
     if let Some(public)=public {if public==sign::public_key(&crate::device_key::load_or_create(lib.root())?) {return Err(invalid("your_own_pack"));}}Ok(())
 }
@@ -261,7 +264,7 @@ pub fn peek(db:&Database,id:&str)->Result<Vec<(i64,String,String,String)>> {
     let mut stmt=db.conn.prepare("SELECT MIN(i.id),s.name,s.png_path,s.material_id FROM pack_items i JOIN signed_pack_items s ON s.item_id=i.id WHERE i.pack_id=?1 AND s.kind='sticker' AND i.opened_at IS NULL GROUP BY i.item_key ORDER BY COUNT(*) DESC,MIN(i.id) LIMIT 3")?;
     let rows=stmt.query_map([id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?)))?.collect::<std::result::Result<Vec<_>,_>>()?;Ok(rows)
 }
-#[derive(Serialize,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
 #[serde(rename_all="camelCase")]
 pub struct Award {pub kind:String,pub sticker_id:Option<String>,pub material_id:Option<String>,pub name:String,pub rarity:String,pub remaining:i64}
 /// Claim one finite slot and its award, receipt and optional print in a single transaction.
@@ -277,6 +280,7 @@ pub fn open(lib:&mut Library,id:&str,roll:f64,free:bool,date:&str,queue:bool,ref
         if known && pending.is_none() {let taken=referee.claimed_slots(&h.pack_id)?;let tx=lib.db_mut().conn.transaction()?;for slot in taken {tx.execute("INSERT OR IGNORE INTO pack_slot_exclusions VALUES (?1,?2)",params![id,slot])?;}tx.commit()?;}
         let row=if let Some((slot,_))=&pending {lib.db().conn.query_row("SELECT i.id FROM pack_items i JOIN edition_pack_slots e ON e.item_id=i.id WHERE i.pack_id=?1 AND e.slot_no=?2 AND i.opened_at IS NULL",params![id,slot],|r|r.get(0))?}else{pick(lib.db(),id,if attempt==0 {roll}else{crate::ids::random_unit()})?.ok_or_else(||invalid("pack_empty"))?.0};
         match open_row(lib,id,row,free,date,queue,referee,known,pending.and_then(|(_,t)|t)) {
+            Err(crate::Error::Referee(o::RefereeError::Rejected(code))) if code=="for_sale" =>{lib.db().conn.execute("DELETE FROM pack_slot_pending WHERE pack_id=?1",[id])?;return Err(o::RefereeError::Rejected(code).into());},
             Err(crate::Error::Referee(o::RefereeError::Rejected(code))) if code=="slot_taken" =>{let slot:u32=lib.db().conn.query_row("SELECT slot_no FROM edition_pack_slots WHERE item_id=?1",[row],|r|r.get(0))?;let tx=lib.db_mut().conn.transaction()?;tx.execute("DELETE FROM pack_slot_pending WHERE pack_id=?1",[id])?;tx.execute("INSERT OR IGNORE INTO pack_slot_exclusions VALUES (?1,?2)",params![id,slot])?;tx.commit()?;},
             result=>return result,
         }
@@ -297,6 +301,13 @@ fn open_row(lib:&mut Library,id:&str,row:i64,free:bool,date:&str,queue:bool,refe
     if !tx.query_row("SELECT EXISTS(SELECT 1 FROM pack_items WHERE id=?1 AND pack_id=?2 AND opened_at IS NULL)",params![row,id],|r|r.get::<_,bool>(0))? {return Err(invalid("That slot was already opened."));}
     if free {let (opened,claimed)=Database::pack_reward_counts(&tx,id)?;if opened/crate::pack::FREE_OPENING_EVERY<=claimed{return Err(invalid("No free opening is ready for this pack."));}}
     if known || !referee.enabled() {referee.claim_slot(&h.pack_id,slot,if checked || !referee.enabled() {chain.as_ref().and_then(|c|c.transfers.last())}else{None})?;}
+    let award=award_in(&tx,id,row,&metadata,&kind,prize,chain,checked,&h.title,free,date,queue)?;
+    tx.execute("DELETE FROM pack_slot_pending WHERE pack_id=?1",[id])?;tx.commit()?;
+    Ok(award)
+}
+/// What opening one slot puts in this Library: the edition (with its verified history) or the prize, the receipt, the optional
+/// print and the remaining count. Shared by the referee's slot opening and the Friend Market's confirmed pull; the caller commits.
+pub(crate) fn award_in(tx:&rusqlite::Transaction<'_>,id:&str,row:i64,metadata:&crate::pack::StoredItem,kind:&str,prize:Option<String>,chain:Option<Chain>,checked:bool,title:&str,free:bool,date:&str,queue:bool)->Result<Award> {
     let mut sticker_id=None;
     if let Some(chain)=chain {
         let c=&chain.creation;let state:Option<String>=tx.query_row("SELECT state FROM stickers WHERE id=?1",[&c.sticker_id],|r|r.get(0)).optional()?;
@@ -304,17 +315,17 @@ fn open_row(lib:&mut Library,id:&str,row:i64,free:bool,date:&str,queue:bool,refe
         if state.is_some() {
             let record:Option<String>=tx.query_row("SELECT creation_record FROM stickers WHERE id=?1",[&c.sticker_id],|r|r.get(0))?;
             if record.as_deref().and_then(|s|serde_json::from_str::<o::Creation>(s).ok()).as_ref()!=Some(c) {return Err(invalid("Incoming edition does not match the previous origin."));}
-            let previous=o::stored_transfers(&tx,&c.sticker_id)?;if !chain.transfers.starts_with(&previous){return Err(invalid("Incoming edition does not extend the holder history."));}
+            let previous=o::stored_transfers(tx,&c.sticker_id)?;if !chain.transfers.starts_with(&previous){return Err(invalid("Incoming edition does not extend the holder history."));}
             tx.execute("UPDATE stickers SET state='held' WHERE id=?1",[&c.sticker_id])?;
         }else{
             tx.execute("INSERT INTO stickers(id,creator_id,creator_name,created_at,original_asset_path,rendered_asset_path,mask_asset_path,material_id,source_type,aspect,edition_number,edition_total,title) VALUES (?1,?2,?3,?4,?5,?5,?6,?7,'pack',?8,?9,?10,?11)",params![c.sticker_id,c.creator_public_key,c.creator_name,c.created_at,metadata.png_path,metadata.mask_path,metadata.material_id,metadata.aspect,c.edition_no,c.edition_total,metadata.name])?;
-            o::provenance(&tx,&c.sticker_id,"created",c.creator_public_key.as_deref(),&c.created_at)?;
+            o::provenance(tx,&c.sticker_id,"created",c.creator_public_key.as_deref(),&c.created_at)?;
         }
-        o::store_creation(&tx,c)?;
+        o::store_creation(tx,c)?;
         tx.execute("UPDATE stickers SET checked=?2,edition_verified=?3 WHERE id=?1",params![c.sticker_id,if checked {"checked"}else{"pre_server"},checked])?;
-        let previous=o::stored_transfers(&tx,&c.sticker_id)?.len();for transfer in chain.transfers.iter().skip(previous){o::store_transfer(&tx,transfer)?;}
-        o::provenance(&tx,&c.sticker_id,"pack_opened",Some(&h.title),&now())?;
-        if queue {crate::daily::ensure_today_in(&tx,date,crate::ids::random_unit())?;Database::confirm_in(&tx,date,&c.sticker_id,SourceType::Pack,&now())?;}else{tx.execute("INSERT INTO sticker_events(date,sticker_id,source_type) VALUES (?1,?2,'pack') ON CONFLICT DO NOTHING",params![date,c.sticker_id])?;}
+        let previous=o::stored_transfers(tx,&c.sticker_id)?.len();for transfer in chain.transfers.iter().skip(previous){o::store_transfer(tx,transfer)?;}
+        o::provenance(tx,&c.sticker_id,"pack_opened",Some(title),&now())?;
+        if queue {crate::daily::ensure_today_in(tx,date,crate::ids::random_unit())?;Database::confirm_in(tx,date,&c.sticker_id,SourceType::Pack,&now())?;}else{tx.execute("INSERT INTO sticker_events(date,sticker_id,source_type) VALUES (?1,?2,'pack') ON CONFLICT DO NOTHING",params![date,c.sticker_id])?;}
         sticker_id=Some(c.sticker_id.clone());
     }else if kind=="material" {
         let material=prize.as_deref().ok_or_else(||invalid("Missing material prize."))?;
@@ -326,8 +337,7 @@ fn open_row(lib:&mut Library,id:&str,row:i64,free:bool,date:&str,queue:bool,refe
     tx.execute("UPDATE pack_items SET opened_at=?2,sticker_id=?3 WHERE id=?1",params![row,now(),sticker_id])?;
     if free {tx.execute("INSERT INTO meta VALUES (?1,?2)",params![format!("pack.free_item.{row}"),id])?;}
     let remaining=tx.query_row("SELECT COUNT(*) FROM pack_items WHERE pack_id=?1 AND opened_at IS NULL AND id NOT IN (SELECT e.item_id FROM edition_pack_slots e JOIN pack_slot_exclusions x ON x.slot_no=e.slot_no WHERE x.pack_id=?1)",[id],|r|r.get(0))?;
-    tx.execute("DELETE FROM pack_slot_pending WHERE pack_id=?1",[id])?;tx.commit()?;
-    Ok(Award{kind,sticker_id,material_id:prize,name:metadata.name,rarity:metadata.rarity,remaining})
+    Ok(Award{kind:kind.into(),sticker_id,material_id:prize,name:metadata.name.clone(),rarity:metadata.rarity.clone(),remaining})
 }
 
 /* Sales of a pack on sale, for its maker: which of its slots others have drawn. Slots run through the designs in header order (each takes

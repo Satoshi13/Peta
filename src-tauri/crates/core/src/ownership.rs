@@ -137,7 +137,7 @@ pub(crate) fn stored_transfers(conn:&Connection,id:&str)->Result<Vec<Transfer>> 
 pub enum RefereeError {Offline,Rejected(String),Unknown}
 impl std::fmt::Display for RefereeError {fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result {
     let code=match self {Self::Offline=>"offline",Self::Rejected(code)=>code,Self::Unknown=>"unknown"};
-    let message=match code {"offline"=>"Connect to the internet to do this. Nothing was changed.","already_claimed"=>"Someone already received this gift.","pending_cancel"=>"Peta is still taking back an earlier send. Try again when you're online.","clock_skew"=>"Check your Mac's date and time, then try again.","gift_received_during_save"=>"The gift was received before saving finished. This sticker is no longer on this device.","pack_opened_during_save"=>"Someone opened this pack before saving finished. Peta recorded the remote transfer; the local pack was not saved.","busy_pack"=>"This pack is busy. Please try again.",_=>"Peta could not check this. Please try again."};
+    let message=match code {"offline"=>"Connect to the internet to do this. Nothing was changed.","already_claimed"=>"Someone already received this gift.","pending_cancel"=>"Peta is still taking back an earlier send. Try again when you're online.","clock_skew"=>"Check your Mac's date and time, then try again.","gift_received_during_save"=>"The gift was received before saving finished. This sticker is no longer on this device.","pack_opened_during_save"=>"Someone opened this pack before saving finished. Peta recorded the remote transfer; the local pack was not saved.","busy_pack"=>"This pack is busy. Please try again.","for_sale"=>"This pack is sold in Market. Pull it there.","not_friend"=>"You and this friend aren't friends anymore.","listing_closed"=>"This pack isn't in Market anymore.","sold_out"=>"Someone pulled the last one.","too_many_pulls"=>"That's enough pulls for today. Try again tomorrow.","price_changed"=>"The price of this pack changed. Nothing was paid.","own_pack"=>"You can't pull from your own pack.","market_pack"=>"Pull this pack in Market.",_=>"Peta could not check this. Please try again."};
     f.write_str(message)?;if cfg!(feature="developer"){write!(f," [{code}]")?;}Ok(())
 }}
 impl From<RefereeError> for Error {fn from(e:RefereeError)->Self {Self::Referee(e)}}
@@ -153,6 +153,10 @@ pub struct PackRegistration {pub pack_id:String,pub creator_key:String,pub slot_
 #[derive(Clone,Debug,Serialize,Deserialize,PartialEq)]
 #[serde(rename_all="camelCase")]
 pub struct SlotDrawer { pub slot:u32, pub key_hash:String }
+/// The service's answer to a confirmed Friend Market pull.
+#[derive(Clone,Debug,Serialize,Deserialize,PartialEq)]
+#[serde(rename_all="camelCase")]
+pub struct PurchaseAck { pub sale_id:i64, pub slots_left:u32 }
 pub trait Referee {
     fn enabled(&self)->bool {true}
     fn register(&self,_:&Creation)->Result<()> {Ok(())}
@@ -166,6 +170,8 @@ pub trait Referee {
     fn claimed_slot_drawers(&self,_:&str)->Result<Option<Vec<SlotDrawer>>> {Ok(None)}
     fn status(&self,_:&str)->Result<Status> {Ok(Status::Released)}
     fn pack_known(&self,_:&str)->Result<bool> {Ok(true)}
+    /// Pay for and claim one slot of a friend's listing: the slot, its edition claim and the sale commit together on the service.
+    fn purchase(&self,_listing:&str,_pull:&str,_slot:u32,_claim:Option<&Transfer>,_price:u32)->Result<PurchaseAck> {Err(RefereeError::Offline.into())}
 }
 pub struct NoReferee;
 impl Referee for NoReferee {
