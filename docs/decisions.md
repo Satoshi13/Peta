@@ -310,3 +310,7 @@ OSのUSER/USERNAMEを初期表示名に使わず、未設定は空とする。�
 ## 2026-10-14: 公開前修正 Step 5（C6）
 
 CSPはselfのscript、ローカル画像/data/blob/Tauri asset、selfのfont/mediaとIPCだけの接続を許可する。APIへのHTTPはRustで行うためWebViewの接続許可へAPI住所を追加しない。インラインstyle属性が素材・位置・アニメーションに必要なのでstyleだけunsafe-inlineを許可する。インラインscriptとevalは許可しない。[Tauri公式CSP説明](https://v2.tauri.app/security/csp/)のIPC/assetスキームに合わせ、通常版とDeveloperに同じ設定を明示する。
+
+## 2026-10-14: 公開前修正 Step 6（C7・C10）
+
+通報は受信箱のallow/block関係と、出品では過去の本人宛封筒の証拠を確認する。封筒の削除後も通報できるよう、出品IDと受取人/送り手ハッシュの関係だけを残す。本文のSHA-256で重複をまとめ、24時間5件・未対応500件の予約をSQLiteで原子的に行う。保存失敗の予約は同じ通報の再送で修復する。resolved_atから30日のR2とD1をCronで順に消す。Gift v3のTypeScriptでの署名・PNGフレーム解析は本段階では追加せず、運営が真正性を確認する（虚偽通報だけで制裁しない）。Worker schemaは0004のみ、アプリschemaは変更なし。

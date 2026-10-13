@@ -55,7 +55,7 @@ beforeAll(async()=>{
   [a,b,c,d]=await Promise.all([1,2,3,4].map(()=>crypto.subtle.generateKey("Ed25519",true,["sign","verify"]) as Promise<CryptoKeyPair>));
 });
 beforeEach(async()=>{
-  await db.batch(["market_sales","market_envelopes","market_listings","market_payout_marks","reports","mailboxes","pack_slots","packs","transfers","stickers","nonces","blocked_keys","rate_counters","assertions","cancelled_releases","cancelled_packs"].map(t=>db.prepare(`DELETE FROM ${t}`)));
+  await db.batch(["market_sales","market_envelopes","market_listings","market_payout_marks","report_listing_access", "reports","mailboxes","pack_slots","packs","transfers","stickers","nonces","blocked_keys","rate_counters","assertions","cancelled_releases","cancelled_packs"].map(t=>db.prepare(`DELETE FROM ${t}`)));
   for (const bucket of [bindings.MARKET!,bindings.REPORTS!]) { const objects=await bucket.list(); if(objects.objects.length) await bucket.delete(objects.objects.map(o=>o.key)); }
   await Promise.all([a,b,c,d].map(mailbox));
 });
@@ -213,4 +213,13 @@ it("an exact committed purchase recovers after buyer or seller blocking, while n
 it("a non-friend cannot learn sold-out state by calling pulls with a known ID",async()=>{
   const p=await make(1);expect((await pull(p.listingId,0,b,await claim(p.packId))).status).toBe(200);
   await error(await pull(p.listingId,0,c),403,'not_friend');
+});
+
+it("listing reports require this recipient's envelope and retain proof after envelope deletion",async()=>{
+  const p=await make(),payload={kind:'listing',listingId:p.listingId,senderHash:await hash(a),reason:'Review',card:base64(utf8('{"title":"opened"}'))};
+  await allow(c,a);await error(await req('/v1/report','POST',payload,c),403,'not_recipient');
+  await allow(b,d);await error(await req('/v1/report','POST',{...payload,senderHash:await hash(d)},b),403,'not_recipient');
+  await req(`/v1/market/listings/${p.listingId}/envelopes`,'PUT',{add:[],remove:[await hash(b)]});
+  expect(await db.prepare('SELECT 1 FROM market_envelopes WHERE recipient_hash=?').bind(await hash(b)).first()).toBeNull();
+  expect((await req('/v1/report','POST',payload,b)).status).toBe(200);
 });

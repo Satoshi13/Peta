@@ -368,3 +368,4 @@ Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に
 - [ ] 既存の表示名は維持され、Settingsで変更できる。名前を消すと共有前の案内が再び出る。
 - [ ] 鍵復元の途中でアプリを強制終了し、再起動後の友達コードと受信箱の復号が同じ世代の鍵を使用する。
 - [ ] 通常版・Developer・ベータ版のWebViewコンソールを開き、Today/Create/Studio/Collection/Packs/Gifts/Materials/Market/Boards/Settings、app.html・index.htmlのデスクトップ層・arrival.htmlを操作してCSP違反がないことを確認する。素材、blob画像、フォント、Tour動画、印刷、開封、ボード切替、友達のシートも確認する。
+- [ ] devでGift/出品の通報を送る。未許可の相手は拒否、ブロック済みは通報可、封筒削除後の出品も通報可。同じ内容は同じID、上限時は新規保存せず429となる。

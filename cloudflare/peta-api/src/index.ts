@@ -9,7 +9,7 @@ import {
   sha256,
   verify,
 } from "./proofs";
-import { inbox, MAX_GIFT, keyHash } from "./inbox";
+import { inbox, MAX_GIFT, keyHash, sweepReports } from "./inbox";
 import { market, contentLimit, MARKET_CARD_MAX, MARKET_PACK_MAX } from "./market";
 export interface Env {
   DB: D1Database;
@@ -24,6 +24,8 @@ export interface Env {
   GIFTS?: R2Bucket;
   REPORTS?: R2Bucket;
   REPORT_WEBHOOK?: string;
+  REPORTS_PER_DAY?: string;
+  REPORTS_PENDING?: string;
   PENDING_REQUESTS?: string;
   PENDING_FROM_ONE?: string;
   REQUESTS_PER_DAY?: string;
@@ -710,6 +712,9 @@ async function route(request: Request, env: Env): Promise<Response> {
   fail(404, "not_found");
 }
 export default {
+  async scheduled(event: ScheduledController, env: Env): Promise<void> {
+    await sweepReports(env,Math.floor(event.scheduledTime/1000));
+  },
   async fetch(request: Request, env: Env): Promise<Response> {
     try {
       return await route(request, env);

@@ -1,7 +1,7 @@
 import { env, applyD1Migrations } from "cloudflare:test";
 import { beforeAll, beforeEach, expect, it, vi } from "vitest";
 import worker, { Env } from "../src/index";
-import { mailboxId, bindingBytes, keyHash } from "../src/inbox";
+import { mailboxId, bindingBytes, keyHash, sweepReports } from "../src/inbox";
 import { base64, requestBytes, utf8, unbase64, verify } from "../src/proofs";
 import vectors from "./vectors-s2.json";
 
@@ -36,7 +36,7 @@ beforeAll(async () => {
   [alice, bob, eve] = await Promise.all([1, 2, 3].map(() => crypto.subtle.generateKey("Ed25519", true, ["sign", "verify"]) as Promise<CryptoKeyPair>));
 });
 beforeEach(async () => {
-  await db.batch(["messages", "friend_requests", "mailbox_allow", "mailbox_blocks", "reports", "mailboxes", "nonces", "rate_counters"].map((t) => db.prepare(`DELETE FROM ${t}`)));
+  await db.batch(["messages", "friend_requests", "mailbox_allow", "mailbox_blocks", "report_listing_access", "reports", "mailboxes", "nonces", "rate_counters"].map((t) => db.prepare(`DELETE FROM ${t}`)));
 });
 
 it("Rust friend codes and mailbox ids agree", async () => {
@@ -145,6 +145,7 @@ it("leaving deletes the mailbox, its lists, requests and gifts", async () => {
 });
 
 it("a report is kept privately and the note carries no content", async () => {
+  const mailbox=await open(alice);await call("PUT",`/v1/mailbox/${mailbox}/allow`,alice,{block:[await hash(eve)]});
   const seen: string[] = [];
   const spy = vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => { seen.push(String(init?.body)); return new Response("ok"); });
   const r = await call("POST", "/v1/report", alice, { senderHash: await hash(eve), reason: "Hurtful", gift: base64(gift(200)) }, { ...bindings, REPORT_WEBHOOK: "https://hooks.example/peta" } as Env);
@@ -167,4 +168,60 @@ it("PUT and DELETE are signed and replay-protected like POST", async () => {
   const headers = { "X-Peta-Key": await pub(alice), "X-Peta-Time": time, "X-Peta-Nonce": nonce, "X-Peta-Sig": await sign(alice, await requestBytes("PUT", path, time, nonce, bytes)) };
   expect((await worker.fetch(new Request(`https://peta.test${path}`, { method: "PUT", headers, body: bytes }), bindings)).status).toBe(200);
   await refused(await worker.fetch(new Request(`https://peta.test${path}`, { method: "PUT", headers, body: bytes }), bindings), 401, "replay");
+});
+
+it("reports require a known sender, deduplicate content and enforce rolling quotas atomically",async()=>{
+  const mailbox=await open(alice),senderHash=await hash(bob),payload={senderHash,reason:"Hurtful",gift:base64(gift(200))};
+  await refused(await call("POST","/v1/report",alice,payload),403,"not_recipient");
+  await call("PUT",`/v1/mailbox/${mailbox}/allow`,alice,{add:[senderHash]});
+  const replies=await Promise.all([call("POST","/v1/report",alice,payload),call("POST","/v1/report",alice,{...payload,reason:"Duplicate"})]);
+  expect(replies.map(r=>r.status)).toEqual([200,200]);
+  const ids=await Promise.all(replies.map(r=>r.json() as Promise<{id:string}>));expect(ids[0].id).toBe(ids[1].id);
+  expect((await db.prepare("SELECT COUNT(*) AS n FROM reports").first<{n:number}>())?.n).toBe(1);
+  const more=await Promise.all(Array.from({length:7},()=>call("POST","/v1/report",alice,{...payload,gift:base64(gift(200))})));
+  expect(more.filter(r=>r.status===200)).toHaveLength(4);expect(more.filter(r=>r.status===429)).toHaveLength(3);
+  expect((await db.prepare("SELECT COUNT(*) AS n FROM reports").first<{n:number}>())?.n).toBe(5);
+  expect((await call("POST","/v1/report",alice,payload)).status).toBe(200);
+  await db.prepare("UPDATE reports SET created_at=created_at-86401").run();
+  expect((await call("POST","/v1/report",alice,{...payload,gift:base64(gift(200))})).status).toBe(200);
+});
+
+it("the global pending quota reserves capacity before storing content",async()=>{
+  const mailbox=await open(alice),senderHash=await hash(bob);await call("PUT",`/v1/mailbox/${mailbox}/allow`,alice,{block:[senderHash]});
+  const use={...bindings,REPORTS_PENDING:"2",REPORTS_PER_DAY:"100"};
+  const replies=await Promise.all(Array.from({length:4},()=>call("POST","/v1/report",alice,{senderHash,reason:"Review",gift:base64(gift())},use)));
+  expect(replies.filter(r=>r.status===200)).toHaveLength(2);expect(replies.filter(r=>r.status===429)).toHaveLength(2);
+  await db.prepare("UPDATE reports SET resolved_at=?").bind(Math.floor(Date.now()/1000)).run();
+  expect((await call("POST","/v1/report",alice,{senderHash,reason:"Review",gift:base64(gift())},use)).status).toBe(200);
+});
+
+it("daily cron deletes only reports resolved at least thirty days ago",async()=>{
+  const now=Math.floor(Date.now()/1000),bucket=(env as any).REPORTS;
+  for(const [id,resolved] of [["old",now-30*86400],["recent",now-29*86400],["pending",null]] as const){
+    await db.prepare("INSERT INTO reports(id,reporter_hash,sender_hash,reason,created_at,resolved_at) VALUES(?,?,?,?,?,?)").bind(id,"a","b","Review",now-40*86400,resolved).run();await bucket.put(`reports/${id}.json`,id);
+  }
+  await worker.scheduled({scheduledTime:now*1000} as ScheduledController,bindings);
+  expect(await bucket.get('reports/old.json')).toBeNull();expect(await bucket.get('reports/recent.json')).not.toBeNull();expect(await bucket.get('reports/pending.json')).not.toBeNull();
+  expect((await db.prepare("SELECT id FROM reports ORDER BY id").all()).results.map((r:any)=>r.id)).toEqual(['pending','recent']);
+  expect(await sweepReports(bindings,now)).toBe(0);
+});
+
+it("a failed report upload reserves one slot and an identical retry repairs it",async()=>{
+  const mailbox=await open(alice),senderHash=await hash(bob),payload={senderHash,reason:'Review',gift:base64(gift())};await call('PUT',`/v1/mailbox/${mailbox}/allow`,alice,{add:[senderHash]});
+  const bad={...bindings,REPORTS:{put:async()=>{throw Error('injected R2 failure');}}} as unknown as Env;
+  await refused(await call('POST','/v1/report',alice,payload,bad),503,'unavailable');
+  expect(await db.prepare('SELECT stored FROM reports').first('stored')).toBe(0);
+  expect((await call('POST','/v1/report',alice,payload)).status).toBe(200);
+  expect(await db.prepare('SELECT COUNT(*) FROM reports').first('COUNT(*)')).toBe(1);
+  expect(await db.prepare('SELECT stored FROM reports').first('stored')).toBe(1);
+});
+
+it("a failed retention deletion keeps the index for the next cron",async()=>{
+  const now=Math.floor(Date.now()/1000);
+  await db.prepare("INSERT INTO reports(id,reporter_hash,sender_hash,reason,created_at,resolved_at) VALUES('retry','a','b','Review',?,?)").bind(now-40*86400,now-31*86400).run();
+  await bindings.REPORTS!.put('reports/retry.json','private content');
+  const bad={...bindings,REPORTS:{delete:async()=>{throw Error('injected R2 failure');}}} as unknown as Env;
+  await expect(sweepReports(bad,now)).rejects.toThrow('injected R2 failure');
+  expect(await db.prepare("SELECT id FROM reports WHERE id='retry'").first('id')).toBe('retry');
+  expect(await sweepReports(bindings,now)).toBe(1);expect(await bindings.REPORTS!.get('reports/retry.json')).toBeNull();
 });

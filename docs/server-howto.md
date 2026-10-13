@@ -167,3 +167,18 @@ Cloudflare の使用量の通知に R2(保存量)を足します。1人あたり
 ## 出品を止める・通報を見る(運営)
 
 出品の通報は S2 と同じ `REPORTS` に `kind: "listing"` と `listingId` で保存されます。中身(復号済みのカードとパック)は通報した人の同意で送られたものです。運営が出品を止めるときは、D1 で `UPDATE market_listings SET state='closed' WHERE listing_id='…'` を実行し、R2 `market/{listingId}/card` と `/pack` を消します(`npx wrangler@4.149.0 r2 object delete peta-market-prod/market/{listingId}/card --remote` など)。売上の行と `for_sale` の判定は残します(消すと、出品したパックを無料で開けるようになるため)。鍵ごと止めるときは S2 の `blocked_keys` を使います。
+
+## 2026-10-14: 通報の上限と対応後の削除
+
+Worker `0004_reports.sql` は通報の内容ハッシュ・対応時刻と保存状態を追加します。同じ通報者・送り手・内容は既存IDを返します。通報者の受信箱の許可/拒否リストにある送り手のみ通報できます。出品は本人宛ての封筒があった証拠も必要で、封筒の削除後も出品ID・受取人/送り手のハッシュだけを保持します（封筒や内容鍵は保持しません）。
+
+`REPORTS_PER_DAY=5` は直近24時間の新規件数、`REPORTS_PENDING=500` は未対応の全件数です。SQLiteの1つのINSERTで上限を確かめて予約し、並行処理でも超えません。R2への保存に失敗した予約も上限に数えます。同じ内容を再送するとその予約を修復します。予約だけ残った通報も運営が内容の有無を確認して対応済みにできます。Gift本文の署名は運営の確認対象で、サーバーのこのAPIだけでは真偽を決めません。通報だけで自動制裁しないでください。
+
+対応を終えたIDだけ、以下で時刻を記録します。これは**オーナー用の運用例**です。IDは実際に確認したものに置き換えます。
+
+```sh
+cd cloudflare/peta-api
+npx wrangler d1 execute peta-dev --remote --env dev --command "UPDATE reports SET resolved_at=unixepoch() WHERE id='<report-id>' AND resolved_at IS NULL"
+```
+
+1日1回03:15 UTC（12:15 JST）のCronが、対応済みから30日以上のR2本文を消し、その後D1の行を消します。未対応・29日目は残ります。R2削除で失敗した行は次回やり直します。日次処理なので期限の時刻ぴったりの物理削除ではありません。本番の設定も定義していますが、本番への反映はオーナーだけが行います。

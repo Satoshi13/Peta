@@ -166,25 +166,71 @@ export async function inbox(request: Request, env: Env, path: string, key: strin
 
 /* A report, made only when the recipient agrees: the opened gift and its sender go to a private bucket for the owner to look at.
    The owner is told how many reports wait, never what they hold. */
+interface ReportRow { id: string; reason: string; created_at: number; stored: number }
+const reportLimit = (value: string | undefined, fallback: number) => {
+  const n=Number(value ?? fallback);return Number.isSafeInteger(n) && n>0 ? n : fallback;
+};
 async function report(env: Env, key: string, data: any) {
-  const { senderHash, reason, gift, listingId, card, pack } = data ?? {};
+  const { senderHash, reason, listingId } = data ?? {};
+  let { gift, card, pack }=data ?? {};
   const kind = data?.kind ?? "gift";
   if (!isHash(senderHash) || typeof reason !== "string" || reason.length < 1 || reason.length > 200 || !["gift","listing"].includes(kind)) fail(400, "invalid");
+  let contentHash: string;
   if (kind === "gift") {
     if (typeof gift !== "string") fail(400,"invalid");
     let bytes: Uint8Array; try { bytes=unbase64(gift); } catch { fail(400,"invalid"); }
-    if (bytes.length>MAX_GIFT) fail(413,"too_large");
+    if (!bytes.length || bytes.length>MAX_GIFT) fail(413,"too_large");
+    contentHash=await sha256(bytes);gift=base64(bytes);
   } else {
     if (typeof listingId!=="string" || !/^[A-Za-z0-9_-]{22}$/.test(listingId) || typeof card!=="string" || (pack!==undefined && typeof pack!=="string")) fail(400,"invalid");
-    try { if (unbase64(card).length>MARKET_CARD_MAX || (pack && unbase64(pack).length>MARKET_PACK_MAX)) fail(413,"too_large"); } catch (e) { if (e instanceof Error && e.message === "too_large") throw e; fail(400,"invalid"); }
+    let cardBytes: Uint8Array,packBytes: Uint8Array | undefined;
+    try { cardBytes=unbase64(card);packBytes=pack===undefined ? undefined : unbase64(pack); } catch {fail(400,"invalid");}
+    if (!cardBytes.length || cardBytes.length>MARKET_CARD_MAX || (packBytes && packBytes.length>MARKET_PACK_MAX)) fail(413,"too_large");
+    contentHash=await sha256(utf8(JSON.stringify([await sha256(cardBytes),packBytes ? await sha256(packBytes) : null])));
+    card=base64(cardBytes);pack=packBytes ? base64(packBytes) : undefined;
   }
   if (!env.REPORTS) fail(503, "unavailable");
-  const reporter = await keyHash(key), id = base64(crypto.getRandomValues(new Uint8Array(12))).replace(/[+/=]/g, "").slice(0, 16);
-  await env.REPORTS.put(`reports/${id}.json`, JSON.stringify({ id, reporter, senderHash, reason, kind, ...(kind === "gift" ? {gift} : {listingId,card,pack}), at: new Date().toISOString() }));
-  await env.DB.batch([stmt(env.DB, "INSERT INTO reports(id,reporter_hash,sender_hash,reason,created_at,kind,listing_id) VALUES(?,?,?,?,?,?,?)", id, reporter, senderHash, reason, now(),kind,kind==="listing"?listingId:null)]);
-  if (env.REPORT_WEBHOOK) {
-    const open = await stmt(env.DB, "SELECT COUNT(*) AS n FROM reports").first<{ n: number }>();
-    try { await fetch(env.REPORT_WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: `Peta: a new report (${id}). ${Number(open?.n)} on file.` }) }); } catch { /* the report is kept even if the note fails */ }
+  const reporter=await keyHash(key), mailbox=await mailboxId(key), t=now();
+  const relationship="(EXISTS(SELECT 1 FROM mailbox_allow WHERE mailbox_id=? AND key_hash=?) OR EXISTS(SELECT 1 FROM mailbox_blocks WHERE mailbox_id=? AND key_hash=?))";
+  const relationArgs=[mailbox,senderHash,mailbox,senderHash];
+  const access=kind==="listing" ? " AND EXISTS(SELECT 1 FROM report_listing_access WHERE listing_id=? AND recipient_hash=? AND sender_hash=?)" : "";
+  const accessArgs=kind==="listing" ? [listingId,reporter,senderHash] : [];
+  if (!await stmt(env.DB,`SELECT 1 WHERE ${relationship}${access}`,...relationArgs,...accessArgs).first()) fail(403,"not_recipient");
+  const id=await sha256(utf8(reporter+senderHash+contentHash));
+  let saved=await stmt(env.DB,"SELECT id,reason,created_at,stored FROM reports WHERE reporter_hash=? AND sender_hash=? AND content_hash=?",reporter,senderHash,contentHash).first<ReportRow>();
+  if (saved?.stored) return Response.json({id:saved.id});
+  if (!saved) {
+    // Relationship and quotas are checked atomically with the capacity reservation.
+    await stmt(env.DB,`INSERT INTO reports(id,reporter_hash,sender_hash,reason,created_at,kind,listing_id,content_hash,stored)
+      SELECT ?,?,?,?,?,?,?,?,0 WHERE ${relationship}${access}
+      AND (SELECT COUNT(*) FROM reports WHERE reporter_hash=? AND created_at>?)<?
+      AND (SELECT COUNT(*) FROM reports WHERE resolved_at IS NULL)<? ON CONFLICT DO NOTHING`,
+      id,reporter,senderHash,reason,t,kind,kind==="listing"?listingId:null,contentHash,...relationArgs,...accessArgs,
+      reporter,t-DAY,reportLimit(env.REPORTS_PER_DAY,5),reportLimit(env.REPORTS_PENDING,500)).run();
+    saved=await stmt(env.DB,"SELECT id,reason,created_at,stored FROM reports WHERE reporter_hash=? AND sender_hash=? AND content_hash=?",reporter,senderHash,contentHash).first<ReportRow>();
+    if (!saved) fail(429,"report_limit");
+    if (saved.stored) return Response.json({id:saved.id});
   }
-  return Response.json({ id });
+  // Upload failure leaves a bounded reservation; identical retry repairs it.
+  await env.REPORTS.put(`reports/${saved.id}.json`,JSON.stringify({id:saved.id,reporter,senderHash,reason:saved.reason,kind,...(kind==="gift"?{gift}:{listingId,card,pack}),at:new Date(saved.created_at*1000).toISOString()}));
+  const completed=await stmt(env.DB,"UPDATE reports SET stored=1 WHERE id=? AND stored=0",saved.id).run();
+  if (env.REPORT_WEBHOOK && completed.meta.changes>0) {
+    const open=await stmt(env.DB,"SELECT COUNT(*) AS n FROM reports WHERE resolved_at IS NULL").first<{n:number}>();
+    try {await fetch(env.REPORT_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:`Peta: a new report (${saved.id}). ${Number(open?.n)} waiting.`})});} catch { /* Stored reports survive notification failure. */ }
+  }
+  return Response.json({id:saved.id});
+}
+
+/** Delete contents first, then the index; both phases are safe to retry. */
+export async function sweepReports(env: Env, timestamp=now()): Promise<number> {
+  if (!env.REPORTS) fail(503,"unavailable");
+  const cutoff=timestamp-30*DAY;let removed=0;
+  for (;;) {
+    const rows=await stmt(env.DB,"SELECT id FROM reports WHERE resolved_at IS NOT NULL AND resolved_at<=? LIMIT 100",cutoff).all<{id:string}>();
+    if (!rows.results.length) return removed;
+    for (const row of rows.results) {
+      await env.REPORTS.delete(`reports/${row.id}.json`);
+      const result=await stmt(env.DB,"DELETE FROM reports WHERE id=? AND resolved_at IS NOT NULL AND resolved_at<=?",row.id,cutoff).run();removed+=result.meta.changes;
+    }
+  }
 }
