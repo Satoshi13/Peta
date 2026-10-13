@@ -3,7 +3,7 @@ name = "peta"
 version = "0.0.1"
 description = "Peta — One sticker a day."
 edition = "2021"
-rust-version = "1.77"
+rust-version = "1.77.2"
 
 [workspace]
 members = ["crates/core", "crates/peta-pass"]
@@ -35,6 +35,7 @@ objc2 = "0.6"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSObject", "NSString", "NSNotification"] }
 objc2-core-location = { version = "0.3.2", default-features = false, features = ["std", "CLLocationManager", "CLLocationManagerDelegate"] }
+tauri-plugin-deep-link = "=2.4.10"
 
 # Image resizing / SQLite are painfully slow at opt-level 0; the app itself stays debuggable.
 [profile.dev.package."*"]

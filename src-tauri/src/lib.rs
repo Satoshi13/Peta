@@ -11,6 +11,7 @@ mod board_auto;
 mod creator;
 mod gifts;
 mod inbox;
+mod friend_links;
 mod link_tags;
 mod layers;
 mod packs;
@@ -165,11 +166,14 @@ pub fn run() {
         let mut context = context;
         context.config_mut().identifier = "app.peta.developer".into();
         context.config_mut().product_name = Some("Peta Developer".into());
+        context.config_mut().plugins.0.insert("deep-link".into(), serde_json::json!({"desktop":{"schemes":["peta-developer"]}}));
         context
     };
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_deep_link::init())
         .manage(Store::default())
+        .manage(friend_links::PendingLinks::default())
         .manage(Layers::default())
         .manage(board_auto::Auto::default())
         .manage(Today::default())
@@ -221,6 +225,7 @@ pub fn run() {
             gifts::gift_send,
             inbox::inbox_status,
             inbox::friend_preview,
+            friend_links::friend_link_take,
             inbox::inbox_set_auto,
             inbox::identity_export,
             inbox::identity_import,
@@ -324,6 +329,7 @@ pub fn run() {
             port_capture::start(app.handle());
             referee_access::kickoff(app.handle());
             inbox::start(app.handle());
+            friend_links::start(app.handle());
             Ok(())
         })
         .build(context)

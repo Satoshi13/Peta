@@ -24,6 +24,7 @@
     "allow-scrap-trades",
     "allow-boards",
     "allow-signed-distribution",
-    "allow-developer-tools"
+    "allow-developer-tools",
+    "allow-friend-links"
   ]
 }

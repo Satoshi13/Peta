@@ -65,7 +65,7 @@ pub async fn inbox_status(app: AppHandle) -> Result<InboxStatus, String> {
 #[tauri::command]
 pub async fn friend_preview(app: AppHandle, code: String) -> Result<Preview, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let parsed = identity::FriendCode::parse(&code).map_err(|e| e.to_string())?;
+        let parsed = identity::FriendCode::parse_for_scheme(&code, SCHEME).map_err(|e| e.to_string())?;
         let (_, mine) = me(&app)?;
         let store = app.state::<Store>();
         let existing = store.lock().db().friend(&parsed.sign_key).map_err(|e| e.to_string())?;
@@ -222,7 +222,7 @@ mod net {
     }
 
     pub fn add(app: &AppHandle, code: String, note: Option<String>) -> Result<Friend, String> {
-        let theirs = identity::FriendCode::parse(&code).map_err(text)?;
+        let theirs = identity::FriendCode::parse_for_scheme(&code, SCHEME).map_err(text)?;
         let (_, mine) = me(app)?;
         if theirs.sign_key == mine.sign_key { return Err("That is your own friend code.".into()); }
         if app.state::<Store>().lock().db().friend(&theirs.sign_key).map_err(text)?.is_some_and(|f| f.status == "blocked") {
