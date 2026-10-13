@@ -49,7 +49,7 @@ pub async fn library_move_import(
 ) -> Result<bool, String> {
     if !app.state::<Store>().can_import_move()? {
         return Err(
-            "Restore a move file only on a fresh installation before you start using Peta.".into(),
+            "Restore on the first launch of a fresh installation, before you use Peta or close it.".into(),
         );
     }
     let Some(path) = app

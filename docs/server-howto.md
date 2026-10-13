@@ -1,6 +1,6 @@
 # S1 / S2 / S3 サーバーの運用手順
 
-2026-10-13 更新。審判役の台帳（S1）と友達・Gift の受信箱・通報（S2）を扱います。実装・デプロイは dev のみ。本番の準備は下記のオーナー用手順です。
+2026-10-14 更新。審判役の台帳（S1）と友達・Gift の受信箱・通報（S2）、友達のMarket（S3）、公開前修正を扱います。実装・デプロイは dev のみ。本番の準備は下記のオーナー用手順です。
 
 ## 開発用
 
@@ -14,7 +14,7 @@ npx wrangler d1 migrations apply peta-dev --remote --env dev
 npx wrangler deploy --env dev
 ```
 
-`wrangler` は package.json の 4.149.0 に固定しています。URL は `server-resources.md` と `src-tauri/src/referee.rs` の `API_URL` を揃えます。開発者版だけ `PETA_API_URL` で HTTPS または localhost の HTTP に上書きできます。通常版では上書きも HTTP クライアントもコンパイルしません。
+`wrangler` は package.json の 4.149.0 に固定しています。URL は `server-resources.md` と `src-tauri/src/referee.rs` の `API_URL` を揃えます。開発者版だけ `PETA_API_URL` で HTTPS または localhost の HTTP に上書きできます。既定の通信なし通常版では上書きもHTTP clientもコンパイルしません。通常設定＋serverのベータ版は非Developerの本番API定数を使い、上書きできません。
 
 ```sh
 npm run dev:developer
@@ -115,16 +115,11 @@ npx wrangler@4.149.0 d1 execute peta-prod --remote --env prod --command "SELECT 
 npx wrangler@4.149.0 r2 object get peta-reports-prod/reports/確認したID.json --remote --env prod --file /安全な保存先/report.json
 ```
 
-Cloudflareアカウントと保存先は運営だけに制限し、通報ファイル・画像・理由をGitやチャット、Webhookへ転送しません。取り出したJSONの `gift` をbase64復号すると Giftの `.peta` ファイルです。受領経路・Giftの署名・内容を確認し、通報者が指定した sender_hash だけで処分を決めません（APIは通報内容の真偽を検証しません）。必要な対応・対応日・削除予定日をアクセスを絞った運営記録に残します。現行DBには resolved_at と自動削除ジョブがありません。
+Cloudflareアカウントと保存先は運営だけに制限し、通報ファイル・画像・理由をGitやチャット、Webhookへ転送しません。取り出したJSONの `gift` をbase64復号すると Giftの `.peta` ファイルです。受領経路・Giftの署名・内容を確認し、通報者が指定した sender_hash だけで処分を決めません（APIは通報内容の真偽を検証しません）。必要な対応・対応日・削除予定日をアクセスを絞った運営記録に残します。0004でresolved_atと保存状態・重複索引を追加済みです。通報の真偽は運営が原本で確認し、対応済みIDの時刻を記録します。
 
-**対応完了から30日後**、保存中の通報ごとに次を実施します。まずR2の削除を確認してからD1索引を消し、取得したローカルファイルと運営の内容コピーも消します。未対応分は削除対象にしません。
+対応を終えた通報は、下の「通報の上限と対応後の削除」のSQLでresolved_atを記録します。日次Cronが30日以上経ったR2本文とD1行を削除し、失敗時は再試行します。未対応は消しません。手元に取得したファイルと運営の内容コピーは、同じ期限で担当者が別途削除します。
 
-```sh
-npx wrangler@4.149.0 r2 object delete peta-reports-prod/reports/確認したID.json --remote --env prod
-npx wrangler@4.149.0 d1 execute peta-prod --remote --env prod --command "DELETE FROM reports WHERE id='確認したID';"
-```
-
-保持の例外が必要な場合の法的判断と、クラウド側バックアップ・削除依頼・開示への扱いは公開前にオーナーと専門家が決めます。30日運用はこの手順を実行することで成立するため、担当者と見落とし防止の管理を先に用意します。
+保持の例外の法的判断、Cloudflareのbackup・削除依頼・開示への扱いはオーナーと専門家が決めます。自動削除を避ける必要のある記録を、通常の対応済みと同じように無断で扱わないでください。担当者は解決時刻の記録と日次Cronの失敗を確認します。
 
 ## 運営の拒否（blocked_keys）
 
@@ -178,7 +173,7 @@ Worker `0004_reports.sql` は通報の内容ハッシュ・対応時刻と保存
 
 ```sh
 cd cloudflare/peta-api
-npx wrangler d1 execute peta-dev --remote --env dev --command "UPDATE reports SET resolved_at=unixepoch() WHERE id='<report-id>' AND resolved_at IS NULL"
+npx wrangler@4.149.0 d1 execute peta-dev --remote --env dev --command "UPDATE reports SET resolved_at=unixepoch() WHERE id='<report-id>' AND resolved_at IS NULL"
 ```
 
 1日1回03:15 UTC（12:15 JST）のCronが、対応済みから30日以上のR2本文を消し、その後D1の行を消します。未対応・29日目は残ります。R2削除で失敗した行は次回やり直します。日次処理なので期限の時刻ぴったりの物理削除ではありません。本番の設定も定義していますが、本番への反映はオーナーだけが行います。
@@ -200,3 +195,9 @@ Settings → Move to a new Mac → Make a move file… でDB・assets・2つの�
 terms-draft.mdとprivacy-policy-draft.mdの【オーナーが記入】を専門家と確定し、Cloudflareの契約・処理国・IP保持・問い合わせ運用を実際の本番設定と照合する。正式文書をHTTPSで公開してから、src-tauri/src/about.rsのSERVICE_LINKSのNoneだけをURLへ置換して再ビルドする。下書きのままサービスURLを設定しない。
 
 GiftはStudioのDressで承認済み友達を選び、Sealで確認して送る。Someone elseは名前を書いたファイル保存。古いdraftはfileとして読め、削除/ブロックした相手は選び直す。既存のgift_send_friendとファイル保存の補償処理は維持する。
+
+## 2026-10-14: 検証の範囲と配布前の残り
+
+公開前修正の全自動テストと隔離ブラウザの確認はrelease-hardening-report.mdを参照してください。devに0004とWorkerを反映し日次Cronを登録しました。期限の分岐は隔離したWorkerテストで検証済みですが、実際のdev通報を作ってクラウドのCronで削除する確認は行っていません。運営は対応時刻を記録し、Cron/R2/D1の失敗を監視してください。0004以前の通報はcontent_hashがNULLのまま残るため、旧分への重複検出は遡及しません（対応後の削除は可能）。
+
+本番R2/D1/deploy/secret/通知はオーナーだけが準備する。本作業はprodの照会も変更も行っていない。正式署名・公証、実Mac間移行、ネイティブWebView、友達Gift/Marketの実往復、規約確定、配布直前の依存監査が残る。

@@ -392,3 +392,5 @@ Developer ID署名・公証はオーナー準備後に `bash scripts/release-mac
 利用規約とプライバシーポリシーはdocs/terms-draft.mdとdocs/privacy-policy-draft.mdの日英下書き。専門家と確定したURLだけをabout.rsのSERVICE_LINKSに設定する。未設定のAboutリンクは表示しない。
 
 Giftの宛先はStudioのDressで友達またはSomeone else — save a fileを選ぶ。Sealは確認だけ。通信なし版はName on the envelopeの文字欄だけを表示する。
+
+公開前修正の実装・段階別コミット・検証結果・残る準備は[報告](docs/release-hardening-report.md)にまとめた。移行の読み込みは、新しいMacでPetaを初めて開いたまま、使用や終了の前に行う。正式配布はオーナーの本番・Apple・法律面の準備と実機確認の後。

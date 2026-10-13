@@ -141,3 +141,7 @@ bash scripts/release-mac.sh offline
 [Appleの公証要件](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)と[Tauriの署名・公証案内](https://v2.tauri.app/distribute/sign/macos/)に基づく。Codexは登録・証明書作成・profile登録・実署名・実公証を行っていない。`python3 scripts/test-release-mac.py` は偽のツールと一時bundleだけで順序・拒否・staple後の再zipを検証し、Appleへ接続しない。
 
 配布前にdocs/terms-draft.md・privacy-policy-draft.mdの未記入と法的確認を終え、正式なHTTPSの規約・ポリシーURLをsrc-tauri/src/about.rsのSERVICE_LINKSへ設定してビルドする。未設定ではAboutに表示されない。
+
+## 2026-10-14: 最終成果物と残る確認
+
+通常版/ベータ版の最新.appはtarget/release/verified/offline/Peta.appとtarget/release/verified/beta/Peta.appに保持する（生成物でGitには含めない）。ビルドはadhoc署名で、Developer ID署名・公証済みの配布物ではない。正式配布はrelease-mac.shと別MacのGatekeeper確認後。ベータは本番のオーナー準備後だけ配る。rootのnpm auditは0件、Worker開発依存は7件の指摘が未解消、cargo auditは未導入なので、配布直前の監査・更新判断を完了する。詳細はrelease-hardening-report.md。

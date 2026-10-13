@@ -94,7 +94,7 @@ impl Store {
     }
     pub fn with_cache_write<T>(&self,write:impl FnOnce()->T)->T{let _cache=self.cache_writes.lock().unwrap();write()}
     pub fn import_move(&self,input:&Path,passphrase:&str)->Result<(),String>{
-        if !self.can_import_move()?{return Err("Restore a move file only on a fresh installation before you start using Peta.".into());}
+        if !self.can_import_move()?{return Err("Restore on the first launch of a fresh installation, before you use Peta or close it.".into());}
         let root=self.lock().root().to_owned();
         if input.canonicalize().map_err(|e|e.to_string())?.starts_with(root.canonicalize().map_err(|e|e.to_string())?){return Err("Choose a move file outside the Peta data folder.".into());}
         let prepared=peta_core::migration::prepare(&root,input,passphrase).map_err(|e|e.to_string())?;

@@ -383,3 +383,6 @@ Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に
 
 - [ ] GiftのDressで友達を選ぶと宛先と名前が入り文字欄が消える。Someone elseだけ文字欄が出る。友達なしの案内からSettings Friendsへ行ける。通常版はName on the envelopeだけ。Sealには切り替えがなく送付先を要約する。
 - [ ] 古い名前だけのGift draftはfileとして開く。Remove/Blockした友達は再選択が必要。未設定の自分の名前は封をする前にSettingsへ案内し、取消・通信失敗で元のステッカー/タグ/在庫が残る。実際の友達送付は本番準備後のみ。
+
+- [ ] 配布直前にcargo auditとroot/Workerのnpm auditを実行し、開発ツールを含む指摘の影響と更新を確認する。THIRD_PARTY_NOTICESを再生成して専門家へ利用条件を確認し、最終.appの個人パス検査を繰り返す。
+- [ ] .petamoveは新Macで最初にPetaを開いたまま、使用/終了する前に復元する。元Macの停止、署名済み.appの別Mac確認、本番の準備、日英の文書・連絡先を完了してから配る。

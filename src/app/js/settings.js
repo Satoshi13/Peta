@@ -128,10 +128,10 @@ const ProfileName = {
 const LibraryMove = {
   card() {
     const restore=h("button.btn.paper.small",{type:"button",disabled:true,on:{click:()=>this.dialog(true)}},"Restore a move file…");
-    const note=h("small","Restore is available on a fresh installation before you start using Peta.");
+    const note=h("small","Restore on the first launch of a fresh installation, before you use Peta or close it.");
     const card=h("section.setcard",h("h2","Move to a new Mac"),h("p.small.muted","Your Collection, friends, desktop arrangements and keys in one file, sealed with a passphrase. Nothing is sent to a server."),
       h("div.row-btns",h("button.btn.paper.small",{type:"button",on:{click:()=>this.dialog(false)}},"Make a move file…"),restore),note);
-    queueMicrotask(()=>Bridge.invoke("move_status").then(ready=>{if(card.isConnected){restore.disabled=!ready;note.textContent=ready ? "This fresh installation can restore a move file. Peta will restart afterward." : "Restore is available on a fresh installation before you start using Peta.";}}).catch(()=>{}));
+    queueMicrotask(()=>Bridge.invoke("move_status").then(ready=>{if(card.isConnected){restore.disabled=!ready;note.textContent=ready ? "This fresh installation can restore a move file. Peta will restart afterward." : "Restore on the first launch of a fresh installation, before you use Peta or close it.";}}).catch(()=>{}));
     return card;
   },
   dialog(restoring) {
@@ -146,7 +146,7 @@ const LibraryMove = {
       try{const saved=await Bridge.fileDialog(restoring ? "library_move_import" : "library_move_export",{passphrase:a.value});
         if(saved){dialog.close();Shell.toast(restoring ? "Your Peta library was restored. Restart Peta to finish." : "Move file saved. After restoring it, do not use Peta on this Mac.",6500);}else status.textContent="";
       }catch(err){status.textContent=Friends.error(err);}finally{pending=false;submit.disabled=false;}
-    }}},h("p.small",restoring ? "Restore only into a fresh installation. Peta checks the whole file before replacing anything, then restarts." : "Keep the file and passphrase apart. After restoring it on the new Mac, do not use Peta on this Mac. Using the same keys on two Macs at once is not supported."),a,b,status,h("div.bd-dacts",h("button.link",{type:"button",on:{click:()=>{if(!pending)dialog.close();}}},"Cancel"),submit));
+    }}},h("p.small",restoring ? "Restore on the first launch of a fresh installation, before you use Peta or close it. Peta checks the whole file before replacing anything, then restarts." : "Keep the file and passphrase apart. After restoring it on the new Mac, do not use Peta on this Mac. Using the same keys on two Macs at once is not supported."),a,b,status,h("div.bd-dacts",h("button.link",{type:"button",on:{click:()=>{if(!pending)dialog.close();}}},"Cancel"),submit));
     const dialog=Friends.sheet(restoring ? "Restore your Peta library" : "Move to a new Mac",h("h2",restoring ? "Restore your Peta library" : "Move to a new Mac"),form);
     if(dialog){dialog.addEventListener("cancel",e=>{if(pending)e.preventDefault();});a.focus();}
   },

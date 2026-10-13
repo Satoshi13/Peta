@@ -110,7 +110,7 @@ Peta(Mac)                                   Cloudflare
 
 | 段階 | 内容 | 配布版 |
 |---|---|---|
-| S1 | Worker(台帳・署名検証・回数制限)とテスト、`HttpReferee`、登録待ち、サーバー以前の印、枠の同期、復旧。Cargo feature `server`(`developer` が有効にする) | 無効 |
+| S1 | Worker(台帳・署名検証・回数制限)とテスト、`HttpReferee`、登録待ち、サーバー以前の印、枠の同期、復旧。Cargo feature `server`（Developerとbuild:betaが有効にする） | 通信なし通常版では無効、友達限定ベータで有効 |
 | S2 | 友達・受信箱・Export/Import identity・通報・拒否リスト・Settings | 友達限定ベータで有効 |
 | S3 | 友達の Market([`server-s3-market-plan.md`](server-s3-market-plan.md)) | 友達限定ベータで有効 |
 | S4 | 公開前チェックリスト(`gift-inbox-plan.md` の末尾。電気通信事業法の項は決めたこと 5 で更新)と公開前確認([`release-readiness-audit-2026-10-13.md`](release-readiness-audit-2026-10-13.md))→ 機能フラグを外す | 公開 |
