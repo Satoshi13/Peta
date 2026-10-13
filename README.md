@@ -362,3 +362,7 @@ Settings の Friends でコード／リンクをコピーして交換し、本�
 `.petakey` は署名鍵と暗号鍵だけのパスフレーズ付きバックアップです。Collection・友達・配置を移すには、移行アシスタント／Time Machine でデータフォルダ全体も移します。同じ鍵の2台同時利用と同期は対応しません。通報は本人の同意で復号済みの元の Gift を非公開の運営用 R2 へ送り、退会は受信箱を消しますが所有権台帳は残します。
 
 パック作者だけが枠ごとの引いた人の鍵ハッシュを取得し、端末内の承認済み友達の名前に置き換えます。それ以外は `Someone`、各デザイン・景品で3人までと `+N` を表示します。Scraps の取り分・友達の Market は S3 です。実装・検証・残る実機項目は [S2 報告](docs/server-s2-report.md)、運用は [server-howto.md](docs/server-howto.md)、公開前に専門家と確認する文案は [privacy-policy-draft.md](docs/privacy-policy-draft.md) を参照してください。本番への操作はしていません。
+
+### 2026-10-13: S3 友達の Market（開発者版限定）
+
+Market の公式の棚の下に、承認済みの友達が出したパックが友達ごとのレールで並びます。カードで中身と残りを見て、1回 6 Scraps(仮)で1枠ずつ引きます。Scraps は端末のまま、引く記録と売り手の取り分(70%、仮)は審判役が持ちます。出品の中身は出品ごとの鍵で暗号化され、運営は読めません。My shelf の完成パックは `Show to friends in Market` / `Take down` / `Stop selling` で出し、売れ行きに入った Scraps が出ます。アプリ DB は V17、Worker は `0003_market.sql`。詳細は [S3 報告](docs/server-s3-report.md)、設計は [server-s3-market-plan.md](docs/server-s3-market-plan.md)、運用は [server-howto.md](docs/server-howto.md)。本番への操作はしていません。

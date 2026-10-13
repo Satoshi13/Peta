@@ -1,6 +1,6 @@
 # S3 友達のMarket — Claudeへの引き継ぎ
 
-2026-10-13。Codex が Step 2 まで実装して Claude へ引き継ぎ、**Claude が Step 3 を実装・コミットして停止**(ユーザーの指示で、Step 4 以降は別のチャットへ引き継ぐ)。**S3 全体は未完了。Step 4 から再開する。** Step 3 の内容は下の「Step 3 の実装(Claude)」。
+2026-10-13。Codex が Step 2 まで実装して Claude へ引き継ぎ、**Claude が Step 3 を実装・コミットして停止**(ユーザーの指示で、Step 4 以降は別のチャットへ引き継ぐ)。**2026-10-13 に Claude(別のセッション)が Step 4〜7 を完了。S3 は完了で、結果は [server-s3-report.md](server-s3-report.md)。** 以下は経緯の記録。 Step 3 の内容は下の「Step 3 の実装(Claude)」。
 
 ## 最初に読むもの
 
@@ -18,10 +18,10 @@
 | 1 Rust検証データ | 完了 | `5a5f8f5` |
 | 2 Worker | 完了、ローカル検証済み。dev未デプロイ | `5e6ffc9` |
 | 3 core V17・支払い・精算・カード・購入経路 | **完了**。全系統のテスト済み | `825aa71` |
-| 4 アプリ通信・IPC・同期 | 未着手 | — |
-| 5 UI | 未着手 | — |
-| 6 dev bucket・migration・deploy・実API往復 | 未着手 | — |
-| 7 正式なS3文書更新 | 未完了。この引き継ぎと途中報告のみ | — |
+| 4 アプリ通信・IPC・同期 | 完了 | `e1b8721` |
+| 5 UI | 完了 | `53d74b4` |
+| 6 dev bucket・migration・deploy・実API往復 | 完了 | `351802e` |
+| 7 正式なS3文書更新 | 完了。[server-s3-report.md](server-s3-report.md) | Step 7 のコミット |
 
 ブランチは `codex/ui-fixes-oct07`。元HEADは `0db8d95`。アプリDBは **V17**(Step 3)。既定版・Developer版のアプリのS3 UI/通信はまだ存在しない。Workerの新migrationはローカルテストでのみ適用された。`wrangler whoami` もまだ実行していない。
 

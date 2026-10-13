@@ -9,10 +9,11 @@
 | D1(台帳・友達・受信箱の索引) | `peta-dev` / `806da135-64f5-4063-8bce-0dca96d969db` | `peta-prod` / `9517d6ae-1676-4dc4-a906-462650d21586` |
 | R2(暗号化した Gift) | `peta-gifts-dev` | `peta-gifts-prod` |
 | R2(通報、非公開。S2) | `peta-reports-dev`(作成済み 2026-10-13) | `peta-reports-prod`(**未作成。オーナーが作る**) |
+| R2(友達の Market の暗号文、非公開。S3) | `peta-market-dev`(作成済み 2026-10-13。ライフサイクルなし) | `peta-market-prod`(**未作成。オーナーが作る**) |
 
 - どちらも場所のヒントは `apac`。
-- R2 は両方にライフサイクルルール `expire-7d`(7日で削除、途中のマルチパートは1日で破棄)。
+- Gift の R2 は両方にライフサイクルルール `expire-7d`(7日で削除、途中のマルチパートは1日で破棄)。Market の R2 にはライフサイクルを付けない(出品をやめたときに Worker が消す)。
 - **テストは開発用だけで行う**。審判役の台帳に本番で書いた記録は消せない前提で扱う。
 - D1 の ID は秘密ではない(Worker の設定ファイルに書く)。API トークンや Webhook の URL は `wrangler secret put` で入れ、リポジトリに書かない。
 - 開発用 Worker: [peta-api-dev](https://peta-api-dev.peta-api.workers.dev)。D1 `0001_ledger.sql` 適用済み。Rate Limiting binding と D1 カウンタを使用。
-- 本番への migration / deploy は未実施。通報用の非公開 R2(P2)、独自ドメインは未実装。
+- 開発用には `0002_inbox.sql`・`0003_market.sql` も適用済み(S3 は 2026-10-13)。本番への migration / deploy は未実施。通報用の非公開 R2(P2)、独自ドメインは未実装。

@@ -345,3 +345,18 @@ Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に
 - [ ] Report… の理由・同意・任意の Block。運営 R2 に元の Gift、Webhook にIDと件数だけ。Webhook が失敗しても通報は残る。運営が確認し、対応後30日でR2とD1の索引を消す運用を試す。
 - [ ] Leave の説明と確認。受信箱・許可／拒否・申請・未受取Giftがサーバーから消え、台帳・受取済みGift・通報は残る。再参加にはコードをコピーして登録し直す必要がある。
 - [ ] 公開前に [運用手順](../server-howto.md) のprod準備・通知・通報運用、[プライバシー下書き](../privacy-policy-draft.md) の責任主体・連絡先・委託先／保存期間／法令の確認を終える。通常版の server 公開は別途判断する。
+
+## S3 友達の Market(2026-10-13、オーナーの実機確認)
+
+- [ ] 異なる鍵の2〜3台で: A が My shelf の完成パックを `Show to friends in Market` → 友達の B の Market に `From A` のレールで出る。友達でない C には出ない。友達がいない新しいデータフォルダでは Market の通信をしない。
+- [ ] B がカードを開く: 見本・デザインと景品ごとの残り・Costs / Scraps after。`Pull one — 6 Scraps` → いつもの開封の演出 → Collection に版が入り、残高が 6 減る(開発者版は減らない)。Packs の棚に A のパックは出ない。
+- [ ] A の売れ行きに B の名前、`Earned N Scraps`、精算の知らせ。6 を5回で 21。
+- [ ] Wi‑Fi を切って引く: 押す前なら「Connect to the internet…」で何も減らない。送った後に切れた場合は引き待ちとして残り、つながると同じ枠で確定する(二重に払わない)。
+- [ ] B と D が同時に同じ出品を引く: 同じ枠は1人だけ、版の番号は重複しない。最後の1枠は片方が `Sold out` になり、残高が戻る。
+- [ ] A が `Take down` → B の袋が `Back soon`、引けない。もう一度 `Show to friends in Market` で戻る。`Stop selling` は確認のシートの後に止まり、戻せない。すでに引かれた版は B の手元に残り、Gift で渡せる。
+- [ ] A が B を Remove / Block → B の一覧から消え、引けない。
+- [ ] A のパックのファイルを B が直接開こうとすると「This pack is sold in Market.」で何も変わらない。出品していないパックのファイルは従来どおり開ける。
+- [ ] 24MB 近いパックの出品とダウンロードの時間。アップロード中にアプリを終了 → 次の起動・フォーカスで続きから進む。
+- [ ] データフォルダごと新しい Mac に移すと出品が続く。鍵だけを戻した場合は、既存の友達は引け、精算は受け取れる。
+- [ ] 通常版(既定ビルド)の Market・Packs・Scraps・この Mac の出品が今までどおり。
+- [ ] 本番: `peta-market-prod` の作成・`0003` の適用・deploy・R2 の使用量通知([運用手順](../server-howto.md))。

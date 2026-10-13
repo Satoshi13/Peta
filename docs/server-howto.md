@@ -1,4 +1,4 @@
-# S1 / S2 サーバーの運用手順
+# S1 / S2 / S3 サーバーの運用手順
 
 2026-10-13 更新。審判役の台帳（S1）と友達・Gift の受信箱・通報（S2）を扱います。実装・デプロイは dev のみ。本番の準備は下記のオーナー用手順です。
 
@@ -143,3 +143,27 @@ npx wrangler@4.149.0 d1 execute peta-prod --remote --env prod --command "DELETE 
 Settings の Leave は本人が署名して `DELETE /v1/mailbox/{id}` を呼び、**自分の受信箱**、許可／拒否リスト、そこにある申請・未受取GiftとR2の中身を消します。ローカル友達はサーバーの状態を外してファイルGiftのTOFU行として残り、登録・確認設定をリセットします。受取済みGift・ステッカー・台帳（持ち主／移動／枠）・通報・運営の拒否は消えません。相手の受信箱へ送った未受取分は相手の受取／期限切れまで残り得ます。台帳を消すと持ち主の保証が壊れるため、削除依頼は種類を分けて確認します。運営の拒否に入った鍵は本人の退会APIも拒否されるため、必要な受信箱削除は運営が別途対応します。
 
 `.petakey` は `device.key` と `box.key` のバックアップだけです。12文字以上のパスフレーズを2回入力して封をし、パスフレーズを失うと復元できません。Collection・友達・配置・受取済みGift・画像は含みません。新Macへはアプリを止め、移行アシスタント／Time Machine で通常版 `~/Library/Application Support/app.peta.desktop/`、Developer `~/Library/Application Support/app.peta.developer/` のデータフォルダ**全体**を移します。必要な場合だけ移したフォルダで鍵を復元し、鍵・DB・assets の組合せを保ちます。同じ鍵なら受信箱IDは継続しますが、空のDBへ鍵だけ復元しても友達と手元の本物は戻りません。旧Macは同じ鍵で起動しません。同期や2台同時利用は未対応です。
+
+## S3 友達の Market の dev
+
+`0003_market.sql`、R2 `peta-market-dev`、dev の MARKET binding は 2026-10-13 に適用・作成済みです。Worker を変えたら `npx wrangler@4.149.0 deploy --env dev` で再デプロイします。実 API の往復は `CARGO_INCREMENTAL=0 cargo test --manifest-path src-tauri/Cargo.toml -p peta --features developer market_live -- --ignored`(終わると出品を閉じて3人とも退会します。台帳・売上の小さな記録は dev に残ります)。
+
+上限は `wrangler.jsonc` の `vars` で変えます: `MARKET_LISTINGS`(売り手1人の出品、既定 10)、`MARKET_PULLS_PER_DAY`(買い手1人の24時間、既定 20)、`MARKET_CARD_MAX`(カードの大きさ、既定 1 MiB)。値段 6 と取り分 700‰ は Rust と Worker の定数です(変えるときは両方と検証用データを直す)。
+
+## S3 の本番準備(オーナーのみ・この作業では実行しない)
+
+S2 の本番準備の後に行います。`peta-market-prod` は**非公開**にし、r2.dev と公開カスタムドメインを有効にしません。出品をやめると Worker が暗号文を消すので、一律のライフサイクルは設定しません。
+
+```sh
+cd cloudflare/peta-api
+npx wrangler@4.149.0 r2 bucket create peta-market-prod
+npx wrangler@4.149.0 d1 export peta-prod --remote --env prod --output /安全な保存先/peta-prod-before-s3.sql
+npx wrangler@4.149.0 d1 migrations apply peta-prod --remote --env prod
+npx wrangler@4.149.0 deploy --env prod
+```
+
+Cloudflare の使用量の通知に R2(保存量)を足します。1人あたり出品 3つ・平均 10MB で 1,000人なら約 30GB(無料枠 10GB を超えた分は月 0.015ドル/GB)。
+
+## 出品を止める・通報を見る(運営)
+
+出品の通報は S2 と同じ `REPORTS` に `kind: "listing"` と `listingId` で保存されます。中身(復号済みのカードとパック)は通報した人の同意で送られたものです。運営が出品を止めるときは、D1 で `UPDATE market_listings SET state='closed' WHERE listing_id='…'` を実行し、R2 `market/{listingId}/card` と `/pack` を消します(`npx wrangler@4.149.0 r2 object delete peta-market-prod/market/{listingId}/card --remote` など)。売上の行と `for_sale` の判定は残します(消すと、出品したパックを無料で開けるようになるため)。鍵ごと止めるときは S2 の `blocked_keys` を使います。

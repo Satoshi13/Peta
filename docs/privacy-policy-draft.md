@@ -27,6 +27,8 @@ Collection、ステッカーの完成画像・元写真、配置、ローカル�
 
 パックの作者には、引かれた枠と、引いた人の鍵ハッシュを返します。他の人には枠番号だけです。アプリは承認済み友達のハッシュを端末内の名前に対応させ、知らない人は `Someone` と表示します。友達の一覧やこの名前の対応表を作者へ送る仕組みではありません。
 
+友達の Market(S3)では、出品のカード(題名・説明・見本の絵など)とパックを、出品ごとの鍵で端末で暗号化してから送ります。その鍵は、承認済みの友達1人ずつの暗号公開鍵に封をして渡します。Peta 運営とWorkerは鍵を持たないので、出品の中身を復号できません。サーバーが受け取るのは、出品ID・パックID・値段・状態・暗号文の大きさとダイジェスト、封筒の宛先の鍵ハッシュ、売上の記録(買い手の鍵ハッシュ・売り手の公開鍵・枠・値段・取り分・時刻)です。Scraps の残高はMacにあり、サーバーへ送りません。
+
 ### 通報の例外
 
 受け取ったGiftをReport…で通報し、同意して送信すると、**復号済みの元のGiftファイル（完成画像・メモ等）、理由、送り手と通報者の鍵ハッシュ、時刻**を運営用の非公開R2に送ります。この場合は運営が内容を確認できます。元写真はGiftに含めません。通報は相手を自動でブロックせず、利用者が選べます。運営へのWebhookにはIDと保存中の件数だけを送り、内容・画像・鍵／鍵ハッシュは送りません。
@@ -38,6 +40,8 @@ Collection、ステッカーの完成画像・元写真、配置、ローカル�
 | 未処理の申請・未受取Gift | 7日で期限切れ。通常は受取後・取消で早く削除。申請／索引は受信箱APIで掃除し、GiftのR2には7日の削除ルールを設定。削除処理は非同期で、厳密な時刻の物理削除を保証しません。 |
 | 受信箱の登録、許可／拒否 | 本人の退会まで。 |
 | 通報と索引 | 対応完了後30日で運営が削除。対応中は保管。対応日と削除予定日の管理は手動で、自動ジョブはありません。 |
+| 友達の Market の出品(暗号文・封筒) | 売り手が販売をやめるか退会すると、R2 の暗号文と封筒を削除。 |
+| 友達の Market の売上の記録 | 台帳の一部として残します(持ち主確認と売り手の精算に必要)。現行実装に期限付き削除はありません。 |
 | 所有権の台帳・運営の拒否 | 退会しても残します。持ち主確認と不正利用防止に必要なため、現行実装に期限付き削除はありません。 |
 | nonce・回数カウンタ | 有効期間を過ぎた古い行をAPIの書き込み時に掃除。クラウド側バックアップは契約・設定に従い、即時消去を保証しません。 |
 | 受取済みGift・Collection・友達・鍵 | Mac上に保持。アプリの操作またはデータフォルダの管理によります。 |
@@ -75,6 +79,8 @@ Friend request contents and Gifts are sealed on the sender's Mac with HPKE to th
 
 Only a pack's authenticated maker receives hashes identifying who drew its slots. Other callers receive slot numbers only. The app matches accepted friends to names locally and shows other people as `Someone`. It does not send your friend list or local name mapping to a pack maker.
 
+In the friends' Market (S3), a listing's card (title, description, peek pictures and so on) and pack are encrypted on the Mac with a per-listing key before they are sent. That key is sealed to each approved friend's encryption public key. Peta's operator and Worker do not hold the key and cannot decrypt listings. The server receives the listing and pack IDs, price, state, the size and digest of the encrypted files, the key hashes of the friends who received the key, and sale records (buyer key hash, seller public key, slot, price, seller's share, time). Scraps balances stay on the Mac and are not sent.
+
 ### Reports are an exception
 
 If you choose Report… and consent to send it, **the decrypted original Gift file (including the finished image and note), your reason, sender and reporter key hashes, and time** are sent to the operator's private R2 bucket. The operator can review these contents. The original source photo is not part of the Gift. Blocking the sender is optional. A notification webhook receives only the report ID and the number of stored reports, without contents, images, keys or key hashes.
@@ -86,6 +92,8 @@ If you choose Report… and consent to send it, **the decrypted original Gift fi
 | Pending requests and unreceived Gifts | Expire after 7 days; normally deleted sooner upon receipt or cancellation. Inbox API calls sweep requests/indexes, and Gift R2 objects have a 7-day deletion rule. Deletion is asynchronous; exact-time physical deletion is not guaranteed. |
 | Mailbox registration and allow/block lists | Until you leave. |
 | Reports and their indexes | Manually deleted by the operator 30 days after resolution; kept while unresolved. Resolution and deletion dates require manual tracking; there is no automated job. |
+| Friends' Market listings (encrypted files and key envelopes) | Deleted from R2 when the seller stops selling or leaves. |
+| Friends' Market sale records | Kept as part of the ledger (needed for ownership checks and the seller's share). The current implementation has no timed deletion. |
 | Ownership ledger and service blocks | Retained after leaving for ownership checks and abuse prevention. The current implementation has no expiry-based deletion. |
 | Nonces and rate counters | Older rows are swept on API writes after their validity window. Cloud-provider backups follow the actual contract and settings and are not guaranteed to disappear immediately. |
 | Received Gifts, Collection, friend records and keys | Kept on the Mac, managed through app actions or the data folder. |
