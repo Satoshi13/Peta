@@ -16,6 +16,7 @@ pub mod pack;
 pub mod models;
 pub mod segment;
 pub mod scraps;
+pub mod market;
 pub mod sticker;
 pub mod link_tag;
 pub mod thumb;

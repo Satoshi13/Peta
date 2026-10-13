@@ -1,0 +1,92 @@
+{
+  "card": {
+    "plain": "eyJ0aXRsZSI6Ik5pZ2h0IFdhbGsiLCJoZWFkZXJEaWdlc3QiOiJ0ZXN0LW9ubHkifQ==",
+    "sealed": "UEVUQU1LVDEBAQEBAQEBAQEBAQEZdPXhQZ1j9xEI+xXlB85MOhGAgHXMhg2wJ9U5yhOSE4yVhRnY6EL/iJQvtK1yddu6VcJZh9K23iFgSDy+cV87pw=="
+  },
+  "creation": {
+    "createdAt": "2026-01-01T00:00:00Z",
+    "creatorName": "Maker",
+    "creatorPublicKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+    "creatorSig": "P1Gv+o+HtyCFWNDi/YKMcVxrSyHzq3VG2wC5174DLEUoM75Ai0Uk1WGXcVw4F3JqHTSaB9zCLF7dqo7Ek6z2CA==",
+    "editionNo": 1,
+    "editionTotal": 1,
+    "imageDigest": "8f8cbb7dcf46e0bc7d53265749a6c17d116093a6ba95e442764060c76fd4a86c",
+    "stickerId": "market-edition"
+  },
+  "editionPull": {
+    "claim": {
+      "actorKey": "E5j2LG0aRXxRumpLXz29L2n8qTIWIY3ImX5Ba9F9k8o=",
+      "at": "2026-01-01T00:00:02Z",
+      "kind": "claim",
+      "ref": "market-pack:slot-0",
+      "seq": 1,
+      "sig": "mKM9i4Yl1lH6Btd+/QHvmE20NMIdep+QubVBSEEpQL/7FXqDfUvQ2A33GB9aJp0PKiF/j3RXoSt2m7IM2QXlBQ==",
+      "stickerId": "market-edition"
+    },
+    "price": 6,
+    "slot": 0
+  },
+  "envelope": {
+    "encKey": "UKYUCbHd0DJemxa3AOcZ6XcsBwALG9d4bpB8ZT0gSV0=",
+    "sealed": "i6WnS9Cu1d0LcIWiF3X4xDNnedguyEZ9Jn8Jfjq10nL4VAjMxY/1te/4PM/JuHX2lJFoDJM0zHJtRqGD9NfuEa/7I0phOANfH7K5t8pgJr4="
+  },
+  "listing": {
+    "cardDigest": "663c375137f431b4b61bbc6fab6c1193939aef2681362bebf87f8e2aa7e8a0e6",
+    "cardSize": 85,
+    "listingId": "AAAAAAAAAAAAAAAAAAAAAA",
+    "packDigest": "f3b501240cac26747fd5b6274d0d5720d186e5d4335fdbe23bc74539ef0d1bb1",
+    "packId": "market-pack",
+    "packSize": 69,
+    "price": 6
+  },
+  "pack": {
+    "plain": "UEVUQVBBQ0sgdGVzdC1vbmx5IHZlY3RvciBwYXlsb2Fk",
+    "sealed": "UEVUQU1LVDECAgICAgICAgICAgK5cuNFYwUM9kcVNswScvm5/9QOLzM+MMwrcypeiYSkDzk9PKgV5OBaQExzg2pBjum1"
+  },
+  "prizePull": {
+    "claim": null,
+    "price": 6,
+    "slot": 1
+  },
+  "release": {
+    "actorKey": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+    "at": "2026-01-01T00:00:01Z",
+    "kind": "release",
+    "ref": "market-pack:slot-0",
+    "seq": 0,
+    "sig": "NtlSFANTY9x5FtrukkaPqWd03oSKTJQB65UaoSL6jpYWXsWcj+D8SJMMbHlrTSNpC/lO2ZE+hWn88vl181nsBg==",
+    "stickerId": "market-edition"
+  },
+  "requests": [
+    {
+      "body": "{\"cardDigest\":\"663c375137f431b4b61bbc6fab6c1193939aef2681362bebf87f8e2aa7e8a0e6\",\"cardSize\":85,\"listingId\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"packDigest\":\"f3b501240cac26747fd5b6274d0d5720d186e5d4335fdbe23bc74539ef0d1bb1\",\"packId\":\"market-pack\",\"packSize\":69,\"price\":6}",
+      "bytes": "cGV0YS5yZXEudjEKUE9TVAovdjEvbWFya2V0L2xpc3RpbmdzCjE3NjcyMjU2MDIKQ1FrSkNRa0pDUWtKQ1FrSkNRa0pDUT09CjZlNDhmODYxMjRkNWMwNTc0ZTJkNWVhOGNlMWNiYjRmOTAzYjZiNWU2ZjlkNTU3Mjk2Yzk3Yjg4NmYzYTQ4ZmE=",
+      "key": "6kpsY+KcUgq+9VB7Ey7F+ZVHdq6+vnuSQh7qaRRG0iw=",
+      "method": "POST",
+      "nonce": "CQkJCQkJCQkJCQkJCQkJCQ==",
+      "path": "/v1/market/listings",
+      "sig": "OG8EQjvRccLbt2Emd8+YqzjJP/eiXtjEtZMXxGggQExdMa7Layg4lCN66CSwM5ZGPOXqZ0citZojaRD1qH40Dw==",
+      "time": "1767225602"
+    },
+    {
+      "body": "{\"claim\":{\"actorKey\":\"E5j2LG0aRXxRumpLXz29L2n8qTIWIY3ImX5Ba9F9k8o=\",\"at\":\"2026-01-01T00:00:02Z\",\"kind\":\"claim\",\"ref\":\"market-pack:slot-0\",\"seq\":1,\"sig\":\"mKM9i4Yl1lH6Btd+/QHvmE20NMIdep+QubVBSEEpQL/7FXqDfUvQ2A33GB9aJp0PKiF/j3RXoSt2m7IM2QXlBQ==\",\"stickerId\":\"market-edition\"},\"price\":6,\"slot\":0}",
+      "bytes": "cGV0YS5yZXEudjEKUE9TVAovdjEvbWFya2V0L2xpc3RpbmdzL0FBQUFBQUFBQUFBQUFBQUFBQUFBQUEvcHVsbHMvQkJCQkJCQkJCQkJCQkJCQkJCQkJCQQoxNzY3MjI1NjAyCkNRa0pDUWtKQ1FrSkNRa0pDUWtKQ1E9PQo2NTc5NjgxNzNjODliY2U1MGU4N2QwM2NkMGVjZDJkNDdlNGVlYjZkYWE4NzFiNDkxMTJjMzdhZjI3MWU5OWE3",
+      "key": "E5j2LG0aRXxRumpLXz29L2n8qTIWIY3ImX5Ba9F9k8o=",
+      "method": "POST",
+      "nonce": "CQkJCQkJCQkJCQkJCQkJCQ==",
+      "path": "/v1/market/listings/AAAAAAAAAAAAAAAAAAAAAA/pulls/BBBBBBBBBBBBBBBBBBBBBA",
+      "sig": "yXfPCKbUZpHQmI37HIyJsOF4BHifV1EEIutG+KXxGFfeqdtWdp/SNJ9SViNnh2DQB4PDgaftNb1tgT/22Q1KDQ==",
+      "time": "1767225602"
+    },
+    {
+      "body": "{\"claim\":null,\"price\":6,\"slot\":1}",
+      "bytes": "cGV0YS5yZXEudjEKUE9TVAovdjEvbWFya2V0L2xpc3RpbmdzL0FBQUFBQUFBQUFBQUFBQUFBQUFBQUEvcHVsbHMvQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQQoxNzY3MjI1NjAyCkNRa0pDUWtKQ1FrSkNRa0pDUWtKQ1E9PQpiYjBjZTc1NzM5ODZmNjk3OTZhZThlY2I0OTgxMWRhNmNhODUxYTNkNWEzODk2MDBlMGFmNTYwNzY0MzYxMmFl",
+      "key": "E5j2LG0aRXxRumpLXz29L2n8qTIWIY3ImX5Ba9F9k8o=",
+      "method": "POST",
+      "nonce": "CQkJCQkJCQkJCQkJCQkJCQ==",
+      "path": "/v1/market/listings/AAAAAAAAAAAAAAAAAAAAAA/pulls/CCCCCCCCCCCCCCCCCCCCCA",
+      "sig": "kOIiNWtfgJWKOcyv84A1Rcis+BlEIAv26Ose+ZzH7sZ+KLQdhC7Gnc3mLSr3RNVXVH7kVolnRwAhZswODhBiBg==",
+      "time": "1767225602"
+    }
+  ]
+}
