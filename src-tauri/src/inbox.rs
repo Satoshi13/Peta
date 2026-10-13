@@ -246,7 +246,7 @@ mod net {
     pub fn approve(app: &AppHandle, key: String) -> Result<(), String> {
         allow(app, "add", &key)?;
         app.state::<Store>().lock().db_mut().friend_approve(&key).map_err(text)?;
-        let _ = app.emit("inbox-changed", ()); Ok(())
+        let _ = app.emit("inbox-changed", ()); crate::friend_market::kickoff(app); Ok(())
     }
     pub fn decline(app: &AppHandle, key: String) -> Result<(), String> {
         app.state::<Store>().lock().db_mut().friend_decline(&key).map_err(text)?;
@@ -255,17 +255,17 @@ mod net {
     pub fn block(app: &AppHandle, key: String) -> Result<(), String> {
         allow(app, "block", &key)?;
         app.state::<Store>().lock().db_mut().friend_block(&key).map_err(text)?;
-        let _ = app.emit("inbox-changed", ()); Ok(())
+        let _ = app.emit("inbox-changed", ()); crate::friend_market::kickoff(app); Ok(())
     }
     pub fn unblock(app: &AppHandle, key: String) -> Result<(), String> {
         allow(app, "unblock", &key)?;
         app.state::<Store>().lock().db_mut().friend_unblock(&key).map_err(text)?;
-        let _ = app.emit("inbox-changed", ()); Ok(())
+        let _ = app.emit("inbox-changed", ()); crate::friend_market::kickoff(app); Ok(())
     }
     pub fn remove(app: &AppHandle, key: String) -> Result<(), String> {
         allow(app, "remove", &key)?;
         app.state::<Store>().lock().db_mut().friend_remove(&key).map_err(text)?;
-        let _ = app.emit("inbox-changed", ()); Ok(())
+        let _ = app.emit("inbox-changed", ()); crate::friend_market::kickoff(app); Ok(())
     }
 
     /// The background clock: every 15 minutes while friends exist and Check for gifts is Automatically.

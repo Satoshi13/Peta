@@ -11,6 +11,7 @@ mod board_auto;
 mod creator;
 mod gifts;
 mod inbox;
+mod friend_market;
 mod friend_links;
 mod link_tags;
 mod layers;
@@ -240,6 +241,13 @@ pub fn run() {
             inbox::gift_send_friend,
             inbox::inbox_report,
             inbox::inbox_leave,
+            friend_market::market_friend_listings,
+            friend_market::market_card,
+            friend_market::market_pull,
+            friend_market::market_list_pack,
+            friend_market::market_pause_pack,
+            friend_market::market_close_pack,
+            friend_market::market_payouts_sync,
             gifts::gift_receive_file,
             gifts::gift_inbox,
             gifts::redeem_code,
@@ -302,7 +310,7 @@ pub fn run() {
             collection::poster_save
         ])
         .on_window_event(|window, event| {
-            if window.label()==app_window::APP_LABEL && matches!(event,tauri::WindowEvent::Focused(true)){referee_access::kickoff(window.app_handle());}
+            if window.label()==app_window::APP_LABEL && matches!(event,tauri::WindowEvent::Focused(true)){referee_access::kickoff(window.app_handle());friend_market::kickoff(window.app_handle());}
             if matches!(event, tauri::WindowEvent::Destroyed) { layers::forget_reflection(window.app_handle(), window.label()); }
             // The main window is transparent and rounded: its native shadow is recomputed whenever the shape changes.
             if window.label() == app_window::APP_LABEL && matches!(event, tauri::WindowEvent::Resized(_)) {
@@ -329,6 +337,7 @@ pub fn run() {
             port_capture::start(app.handle());
             referee_access::kickoff(app.handle());
             inbox::start(app.handle());
+            friend_market::kickoff(app.handle());
             friend_links::start(app.handle());
             Ok(())
         })

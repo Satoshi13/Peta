@@ -2,7 +2,7 @@
 use base64::{engine::general_purpose::STANDARD, Engine};
 use ed25519_dalek::SigningKey;
 use peta_core::{
-    ownership::{Creation, PackRegistration, Referee, RefereeError, Status, Transfer},
+    ownership::{Creation, PackRegistration, PurchaseAck, Referee, RefereeError, Status, Transfer},
     sign, Error, Result,
 };
 use serde::{de::DeserializeOwned, Serialize};
@@ -29,6 +29,8 @@ pub struct HttpReferee {
     key: SigningKey,
     url: String,
     agent: ureq::Agent,
+    /// Sealed Market packs are up to 24 MiB, so their uploads and downloads get more time than ordinary JSON.
+    bulk: ureq::Agent,
 }
 impl HttpReferee {
     pub fn new(root: &std::path::Path) -> Result<Self> {
@@ -52,10 +54,24 @@ impl HttpReferee {
                 .timeout(Duration::from_secs(10))
                 .redirects(0)
                 .build(),
+            bulk: ureq::AgentBuilder::new()
+                .timeout_connect(Duration::from_secs(10))
+                .timeout(Duration::from_secs(300))
+                .redirects(0)
+                .build(),
         })
     }
     /// One signed exchange. `body` is sent as is (JSON or sealed bytes); at most `max` bytes are read back.
     pub(crate) fn exchange(&self, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
+        self.exchange_with(&self.agent, method, path, body, content_type, max)
+    }
+    /// The same signed exchange with the long-running agent, for sealed Market cards and packs.
+    pub(crate) fn exchange_bulk(&self, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
+        self.exchange_with(&self.bulk, method, path, body, content_type, max)
+    }
+    /// The service signs and routes on the path alone; a query string travels with the URL but is not signed.
+    fn exchange_with(&self, agent: &ureq::Agent, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
+        let signed_path = path.split('?').next().unwrap_or(path);
         let time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map_err(|_| RefereeError::Rejected("clock_skew".into()))?
@@ -66,10 +82,9 @@ impl HttpReferee {
         let nonce = STANDARD.encode(nonce);
         let signature = STANDARD.encode(sign::sign(
             &self.key,
-            &peta_core::ownership::request_bytes(method, path, &time, &nonce, body),
+            &peta_core::ownership::request_bytes(method, signed_path, &time, &nonce, body),
         ));
-        let r = self
-            .agent
+        let r = agent
             .request(method, &format!("{}{path}", self.url))
             .set("Content-Type", content_type)
             .set("X-Peta-Key", &sign::public_key(&self.key))
@@ -111,12 +126,22 @@ impl HttpReferee {
         path: &str,
         body: Option<&impl Serialize>,
     ) -> Result<T> {
+        self.request_max(method, path, body, 64 * 1024)
+    }
+    /// A JSON exchange whose answer may be larger than the usual 64 KiB (the Market's lists).
+    pub(crate) fn request_max<T: DeserializeOwned>(
+        &self,
+        method: &str,
+        path: &str,
+        body: Option<&impl Serialize>,
+        max: usize,
+    ) -> Result<T> {
         let body = body
             .map(serde_json::to_vec)
             .transpose()
             .map_err(|e| Error::Invalid(e.to_string()))?
             .unwrap_or_default();
-        let (status, bytes) = self.exchange(method, path, &body, "application/json", 64 * 1024)?;
+        let (status, bytes) = self.exchange(method, path, &body, "application/json", max)?;
         if !(200..300).contains(&status) {
             return Err(Self::refused(status, &bytes));
         }
@@ -178,6 +203,13 @@ impl Referee for HttpReferee {
     }
     fn claimed_slot_drawers(&self, id: &str) -> Result<Option<Vec<peta_core::ownership::SlotDrawer>>> {
         Ok(self.slot_details(id)?.drawers)
+    }
+    fn purchase(&self, listing: &str, pull: &str, slot: u32, claim: Option<&Transfer>, price: u32) -> Result<PurchaseAck> {
+        self.request(
+            "POST",
+            &format!("/v1/market/listings/{listing}/pulls/{pull}"),
+            Some(&serde_json::json!({"slot": slot, "claim": claim, "price": price})),
+        )
     }
     fn pack_known(&self, id: &str) -> Result<bool> {
         match self.slots(id) {
@@ -278,6 +310,43 @@ mod tests {
         assert_eq!(referee.claimed_slot_drawers("p").unwrap(),Some(vec![]));
         let got=referee.claimed_slot_drawers("p").unwrap().unwrap();assert_eq!(got[0].slot,0);assert_eq!(got[0].key_hash,"a".repeat(64));
         assert!(referee.claimed_slot_drawers("p").is_err(),"unclaimed metadata is refused");thread.join().unwrap();
+    }
+    #[test]
+    fn market_requests_sign_the_path_without_its_query_and_read_the_sale() {
+        use std::io::Write;
+        use std::net::TcpListener;
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        let key = SigningKey::from_bytes(&[7; 32]);
+        let public = sign::public_key(&key);
+        let thread = std::thread::spawn(move || {
+            for (line, signed, answer) in [
+                ("GET /v1/market/payouts?after=3 HTTP/1.1", "/v1/market/payouts", "[]".to_owned()),
+                ("POST /v1/market/listings/AAAAAAAAAAAAAAAAAAAAAA/pulls/BBBBBBBBBBBBBBBBBBBBBA HTTP/1.1", "/v1/market/listings/AAAAAAAAAAAAAAAAAAAAAA/pulls/BBBBBBBBBBBBBBBBBBBBBA", r#"{"saleId":5,"slotsLeft":2}"#.to_owned()),
+            ] {
+                let (mut stream, _) = listener.accept().unwrap();
+                let mut bytes = vec![]; let mut byte = [0; 1];
+                while !bytes.ends_with(b"\r\n\r\n") { stream.read_exact(&mut byte).unwrap(); bytes.push(byte[0]); }
+                let text = String::from_utf8(bytes).unwrap();
+                assert!(text.starts_with(line), "{text}");
+                let headers = std::collections::HashMap::<_, _>::from_iter(text.lines().skip(1).filter_map(|l| l.split_once(':')).map(|(k, v)| (k.to_lowercase(), v.trim().to_owned())));
+                let mut body = vec![0; headers.get("content-length").map(|n| n.parse::<usize>().unwrap()).unwrap_or(0)];
+                stream.read_exact(&mut body).unwrap();
+                if line.starts_with("POST") {
+                    let sent: serde_json::Value = serde_json::from_slice(&body).unwrap();
+                    assert_eq!(sent, serde_json::json!({"slot": 4, "claim": null, "price": 6}));
+                }
+                let method = line.split(' ').next().unwrap();
+                let proof = peta_core::ownership::request_bytes(method, signed, &headers["x-peta-time"], &headers["x-peta-nonce"], &body);
+                sign::verify(&sign::parse_public(&public).unwrap(), &proof, &STANDARD.decode(&headers["x-peta-sig"]).unwrap()).unwrap();
+                write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{answer}", answer.len()).unwrap();
+            }
+        });
+        let referee = HttpReferee::with_url(key, url).unwrap();
+        let sales: Vec<serde_json::Value> = referee.request_max("GET", "/v1/market/payouts?after=3", None::<&()>, 1024).unwrap();
+        assert!(sales.is_empty());
+        assert_eq!(referee.purchase("AAAAAAAAAAAAAAAAAAAAAA", "BBBBBBBBBBBBBBBBBBBBBA", 4, None, 6).unwrap(), PurchaseAck { sale_id: 5, slots_left: 2 });
+        thread.join().unwrap();
     }
     #[test]
     fn request_bytes_use_the_rust_vectors() {

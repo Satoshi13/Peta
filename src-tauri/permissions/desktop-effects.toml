@@ -73,3 +73,8 @@ commands.allow = ["boards_status", "boards_save", "boards_update", "boards_renam
 identifier = "allow-friend-links"
 description = "Read local friend links after the app frontend is ready; never sends a request."
 commands.allow = ["friend_link_take"]
+
+[[permission]]
+identifier = "allow-friend-market"
+description = "Friends' packs in Market: list, pull, sell and collect Scraps through Peta's server (server builds only)."
+commands.allow = ["market_friend_listings", "market_card", "market_pull", "market_list_pack", "market_pause_pack", "market_close_pack", "market_payouts_sync"]

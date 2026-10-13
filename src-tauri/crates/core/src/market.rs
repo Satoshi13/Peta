@@ -308,6 +308,8 @@ pub fn seen(lib: &Library) -> Result<Vec<Seen>> {
     }).collect())
 }
 pub fn is_market_pack(db: &Database, pack_id: &str) -> Result<bool> { Ok(db.conn.query_row("SELECT EXISTS(SELECT 1 FROM market_packs WHERE pack_id=?1)", [pack_id], |r| r.get(0))?) }
+/// The title of a pull-only pack (those packs are not in `Database::packs`).
+pub fn pack_title(db: &Database, pack_id: &str) -> Result<String> { Ok(db.conn.query_row("SELECT title FROM packs WHERE id=?1", [pack_id], |r| r.get(0))?) }
 /// The local pack for a listing, once fetched.
 pub fn market_pack(db: &Database, listing_id: &str) -> Result<Option<String>> { Ok(db.conn.query_row("SELECT pack_id FROM market_packs WHERE listing_id=?1", [listing_id], |r| r.get(0)).optional()?) }
 /// Check and install a fetched pack (`GET .../pack`) as pull-only: never on the Packs shelf, never opened for free.
