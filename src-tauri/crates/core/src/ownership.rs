@@ -149,6 +149,10 @@ pub struct EditionRegistration {pub creation:Creation,pub release:Transfer}
 #[derive(Clone,Debug,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
 pub struct PackRegistration {pub pack_id:String,pub creator_key:String,pub slot_count:u32,pub header_digest:String,pub editions:Vec<EditionRegistration>,pub moved_releases:Vec<Transfer>,#[serde(default)] pub source_ids:Vec<String>}
+/// Optional author-only metadata. The key hash identifies a drawer without exposing their signing key.
+#[derive(Clone,Debug,Serialize,Deserialize,PartialEq)]
+#[serde(rename_all="camelCase")]
+pub struct SlotDrawer { pub slot:u32, pub key_hash:String }
 pub trait Referee {
     fn enabled(&self)->bool {true}
     fn register(&self,_:&Creation)->Result<()> {Ok(())}
@@ -159,6 +163,7 @@ pub trait Referee {
     fn cancel_pack(&self,_:&PackRegistration)->Result<()> {Ok(())}
     fn claim_slot(&self,_:&str,_:u32,claim:Option<&Transfer>)->Result<()> {if let Some(t)=claim {self.claim(t)?;}Ok(())}
     fn claimed_slots(&self,_:&str)->Result<Vec<u32>> {Ok(vec![])}
+    fn claimed_slot_drawers(&self,_:&str)->Result<Option<Vec<SlotDrawer>>> {Ok(None)}
     fn status(&self,_:&str)->Result<Status> {Ok(Status::Released)}
     fn pack_known(&self,_:&str)->Result<bool> {Ok(true)}
 }

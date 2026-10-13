@@ -334,20 +334,28 @@ fn open_row(lib:&mut Library,id:&str,row:i64,free:bool,date:&str,queue:bool,refe
    `copies` slots), then the prizes; the referee knows which slot numbers are taken, this turns them back into designs and prizes. */
 #[derive(Clone,Debug,Serialize,PartialEq)]
 #[serde(rename_all="camelCase")]
-pub struct SalesLine {pub name:String,pub kind:String,pub total:u32,pub taken:u32}
+pub struct SalesLine {pub name:String,pub kind:String,pub total:u32,pub taken:u32,pub drawers:Vec<String>}
 #[derive(Clone,Debug,Serialize,PartialEq)]
 #[serde(rename_all="camelCase")]
 pub struct Sales {pub total:u32,pub taken:u32,pub designs:Vec<SalesLine>,pub prizes:Vec<SalesLine>}
-pub fn sales(h:&Header,claimed:&[u32])->Sales {
-    let taken_in=|from:u32,n:u32| claimed.iter().filter(|s| **s>=from && **s<from+n).count() as u32;
+pub fn sales(h:&Header,claimed:&[u32])->Sales { sales_with_drawers(h,claimed,&[],&std::collections::HashMap::new()) }
+/// Names stay local. Each person appears once per design/prize, ordered by their first drawn slot.
+pub fn sales_with_drawers(h:&Header,claimed:&[u32],drawers:&[o::SlotDrawer],names:&std::collections::HashMap<String,String>)->Sales {
+    let claimed=claimed.iter().copied().collect::<std::collections::BTreeSet<_>>();
+    let taken_in=|from:u32,n:u32| claimed.range(from..from+n).count() as u32;
+    let names_in=|from:u32,n:u32| {
+        let mut seen=std::collections::HashSet::new();
+        claimed.range(from..from+n).filter_map(|slot| drawers.iter().find(|d| d.slot==*slot)).filter(|d| seen.insert(d.key_hash.as_str()))
+            .map(|d| names.get(&d.key_hash).cloned().unwrap_or_else(||"Someone".into())).collect::<Vec<_>>()
+    };
     let mut next=0u32;let mut designs=vec![];let mut prizes=vec![];
-    for item in &h.items { let n=item.copies.unwrap_or(0); designs.push(SalesLine{name:item.name.clone(),kind:"sticker".into(),total:n,taken:taken_in(next,n)}); next+=n; }
+    for item in &h.items { let n=item.copies.unwrap_or(0); designs.push(SalesLine{name:item.name.clone(),kind:"sticker".into(),total:n,taken:taken_in(next,n),drawers:names_in(next,n)}); next+=n; }
     for prize in &h.prizes {
         let n=prize.count();
         let (name,kind)=match prize { Prize::Material{material_id,..}=>(crate::materials::get(material_id).map(|m|m.name).unwrap_or_else(||material_id.clone()),"material"), Prize::Tag{..}=>("Link tag".to_owned(),"tag") };
-        prizes.push(SalesLine{name,kind:kind.into(),total:n,taken:taken_in(next,n)}); next+=n;
+        prizes.push(SalesLine{name,kind:kind.into(),total:n,taken:taken_in(next,n),drawers:names_in(next,n)}); next+=n;
     }
-    let taken=claimed.iter().filter(|s| **s<next).collect::<std::collections::HashSet<_>>().len() as u32;
+    let taken=claimed.range(..next).count() as u32;
     Sales{total:next,taken,designs,prizes}
 }
 /// The signed header of a pack kept on this Mac (edition packs only).
@@ -583,6 +591,19 @@ pub fn header_of(db:&Database,id:&str)->Result<Option<Header>> {
         let mut h:Header=serde_json::from_value(serde_json::json!({"packId":"p","version":2,"title":"T","author":"A","pouch":"kraft","madeAt":"2026-10-13T00:00:00Z","items":[],"signer":{"kind":"device","publicKey":"k"}})).unwrap();
         h.items=items.iter().map(|(name,copies)| serde_json::from_value(serde_json::json!({"copies":copies,"key":name,"name":name,"rarity":"common","materialId":"matte","aspect":1.0,"pngLen":0,"maskLen":0})).unwrap()).collect();
         h.prizes=prizes;h
+    }
+    #[test] fn drawer_names_follow_claimed_design_and_prize_slots() {
+        let h=header(&[("Cat",3),("Leaf",2)],vec![Prize::Material{material_id:"kraft".into(),count:2},Prize::Tag{count:1}]);
+        let d=|slot,key:&str| o::SlotDrawer{slot,key_hash:key.into()};
+        let drawers=vec![d(0,"friend"),d(2,"friend"),d(3,"unknown"),d(5,"friend"),d(7,"another"),d(99,"friend")];
+        let names=std::collections::HashMap::from([("friend".into(),"Nao".into())]);
+        let s=sales_with_drawers(&h,&[0,0,2,3,5,7,99],&drawers,&names);
+        assert_eq!(s.taken,5); assert_eq!(s.designs[0].taken,2,"duplicate slots do not inflate counts");
+        assert_eq!(s.designs[0].drawers,vec!["Nao"],"one name per person per design");
+        assert_eq!(s.designs[1].drawers,vec!["Someone"]);
+        assert_eq!(s.prizes[0].drawers,vec!["Nao"]); assert_eq!(s.prizes[1].drawers,vec!["Someone"]);
+        assert!(sales_with_drawers(&h,&[],&drawers,&names).designs.iter().all(|line|line.drawers.is_empty()),"unclaimed identities are ignored");
+        assert!(sales(&h,&[0]).designs[0].drawers.is_empty(),"older servers still supply counts");
     }
     #[test] fn slots_map_back_to_designs_then_prizes() {
         let h=header(&[("Cat",3),("Leaf",2)],vec![Prize::Material{material_id:"kraft".into(),count:2},Prize::Tag{count:1}]);
