@@ -26,7 +26,7 @@ fn invalid(message: &str) -> Error { Error::Invalid(message.into()) }
 
 /* ---------- the sealing key ---------- */
 
-fn read_box(path: &Path) -> Result<SecretKey> {
+pub(crate) fn read_box(path: &Path) -> Result<SecretKey> {
     let meta = fs::symlink_metadata(path)?;
     if !meta.is_file() || meta.file_type().is_symlink() { return Err(invalid("Sealing key must be a private regular file.")); }
     #[cfg(unix)] { use std::os::unix::fs::PermissionsExt; if meta.permissions().mode() & 0o077 != 0 { return Err(invalid("Sealing key permissions must be 0600.")); } }
@@ -34,7 +34,7 @@ fn read_box(path: &Path) -> Result<SecretKey> {
     if bytes.len() != 32 { return Err(invalid("Sealing key is damaged.")); }
     SecretKey::from_bytes(&bytes).map_err(|_| invalid("Sealing key is damaged."))
 }
-fn write_private(path: &Path, bytes: &[u8], create_new: bool) -> Result<()> {
+pub(crate) fn write_private(path: &Path, bytes: &[u8], create_new: bool) -> Result<()> {
     let mut opts = OpenOptions::new(); opts.write(true);
     if create_new { opts.create_new(true); } else { opts.create(true).truncate(true); }
     #[cfg(unix)] { use std::os::unix::fs::OpenOptionsExt; opts.mode(0o600); }
@@ -42,6 +42,7 @@ fn write_private(path: &Path, bytes: &[u8], create_new: bool) -> Result<()> {
 }
 /// The sealing key, made on first use.
 pub fn sealing_key(root: &Path) -> Result<SecretKey> {
+    recover_restore(root)?;
     let path = root.join(BOX_FILE);
     if fs::symlink_metadata(&path).is_ok() { return read_box(&path); }
     let (secret, _) = Kem::gen_keypair(&mut OsRng);
@@ -211,14 +212,13 @@ pub fn read_backup(bytes: &[u8], passphrase: &str) -> Result<(SigningKey, Secret
     let seed: [u8; 32] = plain[..32].try_into().unwrap();
     Ok((SigningKey::from_bytes(&seed), SecretKey::from_bytes(&plain[32..]).map_err(|_| invalid("This backup is damaged."))?))
 }
-/// Replace this library's keys with the backup's (moving to a new Mac). Each file is written beside its target and renamed over it.
+/// Resume or roll back an interrupted pair replacement before any key is read.
+pub use crate::identity_restore::recover as recover_restore;
+/// Replace both keys using a durable journal. The .petakey format is unchanged.
 pub fn restore(root: &Path, bytes: &[u8], passphrase: &str) -> Result<String> {
+    use hpke::Serializable;
     let (signing, sealing) = read_backup(bytes, passphrase)?;
-    for (name, data) in [("device.key", signing.to_bytes().to_vec()), (BOX_FILE, sealing.to_bytes().to_vec())] {
-        let temp = root.join(format!("{name}.restore"));
-        let _ = fs::remove_file(&temp);
-        write_private(&temp, &data, true)?; fs::rename(&temp, root.join(name))?;
-    }
+    crate::identity_restore::replace(root,[signing.to_bytes().to_vec(),sealing.to_bytes().to_vec()])?;
     Ok(sign::public_key(&signing))
 }
 

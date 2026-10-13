@@ -366,3 +366,4 @@ Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に
 - [ ] 通常版・ベータ版で k1 のイベントファイル／コードが `This Peta code was made for testing and can't be used here.` と表示され、在庫が変わらない。Developerでは受け取れる。
 - [ ] 新規ライブラリは名前未設定で開始。コードコピー・友達の申請/承認・Gift・Packの封はSettingsへの案内で止まり、在庫・ファイル・通信が変わらない。名前を設定すると続けられる。
 - [ ] 既存の表示名は維持され、Settingsで変更できる。名前を消すと共有前の案内が再び出る。
+- [ ] 鍵復元の途中でアプリを強制終了し、再起動後の友達コードと受信箱の復号が同じ世代の鍵を使用する。

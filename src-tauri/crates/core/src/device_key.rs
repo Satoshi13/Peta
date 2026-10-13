@@ -17,6 +17,7 @@ pub fn save_new(path:&Path,key:&SigningKey)->Result<()> {
     let mut file=opts.open(path)?;file.write_all(&key.to_bytes())?;file.sync_all()?;Ok(())
 }
 pub fn load_or_create(root:&Path)->Result<SigningKey> {
+    crate::identity::recover_restore(root)?;
     let path=root.join("device.key");
     if fs::symlink_metadata(&path).is_ok() {return read(&path);}
     let key=sign::generate()?;

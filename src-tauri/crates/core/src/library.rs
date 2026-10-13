@@ -34,6 +34,7 @@ pub struct Library {
 
 impl Library {
     pub fn open(dir: &Path) -> Result<Self> {
+        crate::identity::recover_restore(dir)?;
         fs::create_dir_all(dir.join("assets"))?;
         let db=Database::open(&dir.join("peta.db"))?;
         crate::export::recover(dir,&db)?;
