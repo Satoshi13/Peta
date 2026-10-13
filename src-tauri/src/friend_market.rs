@@ -276,7 +276,8 @@ mod net {
             if let Err(e) = m::send(&*app.state::<Store>(), &c, p, &today(app), false) { note(e)?; }
         }
         if let Err(e) = collect(app, &c) { note(e)?; }
-        let _ = app.emit("market-changed", ());
+        // Opening Market waits for this pass and redraws itself; only the background pass tells the window something changed.
+        if !wait { let _ = app.emit("market-changed", ()); }
         first.map_or(Ok(()), Err)
     }
 }

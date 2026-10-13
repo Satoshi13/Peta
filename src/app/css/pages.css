@@ -296,3 +296,12 @@ dialog.tour-dialog button.close-control.tour-x:hover { background:rgba(60,45,20,
 .pk-sale-line b { min-width:44px; text-align:right; font:650 12px/16px var(--sys); color:var(--ink); font-variant-numeric:tabular-nums; }
 .pk-sale-bar { position:relative; display:block; height:5px; border-radius:3px; background:var(--w-line); overflow:hidden; }
 .pk-sale-bar i { position:absolute; inset:0 auto 0 0; border-radius:3px; background:var(--w-ok); }
+
+/* Friends' packs in Market (server builds). The line under a pack is written on the wall like the others; it never swings. */
+.mk-friends { margin-top:28px; }
+.mk-friends > .muted.lede { margin-bottom:6px; }
+.mk-item > .mk-friend-note { margin-top:4px; color:var(--ink); font:500 14px/1.25 var(--sys); text-align:center; white-space:nowrap; }
+.mk-offline { margin:4px 0 10px; }
+.mk-friend-lines { margin:10px 0 4px; }
+.pk-listing .pk-stop { justify-self:start; }
+.pk-earned { margin:2px 0 8px; color:#35563a; font-weight:600; }

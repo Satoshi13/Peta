@@ -19,6 +19,8 @@ async function boot() {
   await Bridge.listen('distribution-result', async e => {await Bridge.reload(); Shell.refresh(); if(e.payload.pack) Distribution.offer(e.payload.pack);else Shell.toast(e.payload.result);});
   await Bridge.listen('referee-synced', Bridge.changed);
   await Bridge.listen('inbox-changed', Bridge.changed);
+  await Bridge.listen('market-changed', () => { FriendShop.stale(); return Bridge.changed(); });
+  await Bridge.listen('market-earned', e => { Shell.toast(`You earned ${e.payload} Scraps from friends' pulls.`); });
   await Bridge.listen('friend-link-pending', () => { Friends.openPendingLinks().catch(e => Shell.toast(Friends.error(e))); });
   await Bridge.listen('referee-sync-failed', Bridge.changed);
   await Bridge.listen('daily-changed', Bridge.changed);

@@ -13,6 +13,46 @@ const MARKET_CREATORS = [
 ];
 const MK = { tab: "packs" };
 
+/* Friends' packs (server builds). A maker seals the card and the pack on their Mac; only approved friends can open them. A pull pays
+   Scraps on this Mac and the service records the slot, its edition and the sale together. The native side does all of that; this
+   keeps what it last said, so the page can draw without waiting and still say when it is showing an older list. */
+const FriendShop = {
+  data: null, at: 0, loading: null,
+  enabled() { return !!this.data?.enabled; },
+  stale() { this.at = 0; },
+  fresh() { return !!this.data && Date.now() - this.at < 15000; },
+  load() {
+    if (this.loading) return this.loading;
+    this.loading = Bridge.invoke("market_friend_listings").then((d) => { this.data = d; this.at = Date.now(); return d; }, () => this.data)
+      .finally(() => { this.loading = null; });
+    return this.loading;
+  },
+  mine(packId) { return this.data?.mine?.find((l) => l.packId === packId) || null; },
+  put(listing) { if (!this.data) return; this.data.mine = [...(this.data.mine || []).filter((l) => l.packId !== listing.packId), listing]; },
+  left(l) { return l.state === "paused" ? "Back soon" : l.slotsLeft > 0 ? `${l.slotsLeft} of ${l.slotCount} left` : "Sold out"; },
+  /* A pack-shaped view of a listing, for the rail, the zoom and the ceremony. */
+  pack(l) {
+    const c = l.card || {};
+    return { id: "friend-" + l.listingId, listingId: l.listingId, title: c.title || "A friend's pack", by: l.sellerName, kind: ["holo", "kraft", "matte"].includes(c.pouch) ? c.pouch : "kraft", hue: 0,
+      blurb: c.blurb || "", friend: l, left: Array(Math.max(0, l.slotsLeft)).fill(null), total: l.slotCount };
+  },
+  /* Why a pull cannot happen right now, or "" when it can. */
+  why(l) {
+    if (this.data?.offline) return "Connect to the internet to pull from your friends' packs.";
+    if (l.state === "paused") return "This pack is taken down for now.";
+    if (!(l.slotsLeft > 0)) return "Someone pulled the last one.";
+    if (!S.developer && S.scraps.balance < l.price) return `You need ${(l.price - S.scraps.balance).toLocaleString("en-US")} more Scraps.`;
+    return "";
+  },
+  /* Pay for one pull and open it with the same ceremony as a pack on the shelf. */
+  pull(pack) {
+    if (this.why(pack.friend)) return;
+    PackZoom.dispose();
+    this.stale();
+    return Cer.openPack(pack, { pull: () => Bridge.invoke("market_pull", { listingId: pack.listingId, queue: false }) });
+  },
+};
+
 const Market = {
   pouch(p) { const foil = (p.kind || "holo") === "holo"; return h("div.pk-stack.mk-pouch", h("i.pk-img" + (foil && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, foil ? h("i.sheen") : null), PackLabel(p)); },
   own(id) { return !!S.owned[id]; },
@@ -86,6 +126,7 @@ const Market = {
   },
   /* The zoomed card: details first, then what it costs. */
   card(pack) {
+    if(pack.friend) return this.friendCard(pack);
     if(pack.local || pack.canList) return Pages.packs.card(pack);
     const paid = pack.price !== "Free" || this.own(pack.id);
     const peek = PackPeek(pack.keys, ""); peek?.classList.add("compact"); // the Market card also holds the price box, so the sheet is smaller here
@@ -98,6 +139,42 @@ const Market = {
       own, peek,
       h("div.mkz-buy", buy ? buy.el : [h("div.mkz-price", h("span", "Price"), h("b", "Free")), free,
         h("small.muted", "Open it any time, as often as you like. What's inside stays a surprise until you tear it.")],
+        h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
+  },
+  /* A friend's pack: what is inside and how much is left, then one pull at a time. The lines fill in from the service once it answers. */
+  friendCard(pack) {
+    const l = pack.friend, n = (v) => v.toLocaleString("en-US");
+    const lines = h("ul.pk-sale-list.mk-friend-lines"), peekHost = h("div.peek-host");
+    const fill = (card, taken) => {
+      if (!card) return;
+      const all = [...(card.designs || []), ...(card.prizes || [])];
+      lines.replaceChildren(...all.map((x, i) => h("li.pk-sale-line", h("span.pk-sale-title", h("span", x.name)),
+        h("b", taken ? `${Math.max(0, x.total - (taken[i] || 0))} of ${x.total} left` : `${x.total}`))));
+      const peek = (card.peek || []).map((p) => ({ src: "data:image/png;base64," + p.png, name: p.name }));
+      const fig = peek.length ? PackPeek(peek, "A few from this pack") : null; if (fig) { fig.classList.add("compact"); peekHost.replaceChildren(fig); }
+    };
+    fill(l.card, null);
+    const costs = h("b"), after = h("b"), have = h("small.muted"), stop = h("small.mkz-stop", { role: "status" });
+    const buy = h("button.btn.mkz-primary", { type: "button", on: { click: () => FriendShop.pull(pack) } });
+    const paint = () => {
+      const why = FriendShop.why(l), unit = S.developer ? 0 : l.price;
+      if (S.developer) costs.textContent = "No Scraps (developer)"; else costs.replaceChildren(ScrapAmt(n(unit)));
+      after.replaceChildren(why ? "—" : ScrapAmt(n(S.scraps.balance - unit)));
+      if (S.developer) have.textContent = ""; else have.replaceChildren("You have ", ScrapAmt(n(S.scraps.balance)));
+      buy.disabled = !!why; buy.replaceChildren(...(why ? ["Can't pull right now"] : ["Pull one — ", ScrapAmt(n(l.price))]));
+      stop.textContent = why; stop.hidden = !why;
+    };
+    paint();
+    Bridge.invoke("market_card", { listingId: l.listingId }).then((v) => {
+      Object.assign(l, v.listing); pack.left = Array(Math.max(0, l.slotsLeft)).fill(null); fill(l.card, v.taken.length ? v.taken : null); paint();
+    }, (e) => { stop.textContent = String(e); stop.hidden = false; });
+    return h("aside.mkz-card", CloseButton("Back to the shelf", {}, ".mkz-x"),
+      h("p.eyebrow", `from ${l.sellerName} · ${FriendShop.left(l)}`), h("h2", pack.title), pack.blurb ? h("p.mkz-blurb", pack.blurb) : null,
+      peekHost, lines,
+      h("div.mkz-buy", h("div.mkz-qty",
+        h("div.mkz-price", h("span", "Per pull"), h("b", ScrapAmt(n(l.price)))), have,
+        h("dl.mkz-sum", h("div", h("span", "Costs"), costs), h("div", h("span", "Scraps after"), after)),
+        stop, buy, h("small.muted", "Each pull opens one sticker or prize at random. Editions are numbered: the one you pull is yours alone.")),
         h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
   },
 };
@@ -167,8 +244,32 @@ Pages.market = {
         h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", feat.title), h("p.muted", `by ${feat.by} · ${feat.count} stickers`), h("p", feat.blurb),
           h("div.mk-hero-actions", h("button.btn", { on: { click: (e) => Market.own(feat.id) ? open(feat, e.currentTarget.closest(".mk-hero").querySelector(".mk-hero-art")) : Market.get(feat) } }, Market.own(feat.id) ? "Add another set…" : "Get — Free")))),
       this.localPacks(),
-      h("p.eyebrow.mk-h", "New and popular"), this.rail(MARKET_PACKS.slice(1).map(cell)));
+      h("p.eyebrow.mk-h", "New and popular"), this.rail(MARKET_PACKS.slice(1).map(cell)),
+      this.friendPacks(paint));
     return h("div.mk", main);
+  },
+  /* Friends' rails, one per friend, below the packs that come with Peta. Nothing is shown in builds without the server. */
+  friendPacks(paint) {
+    if (!FriendShop.fresh()) FriendShop.load().then((d) => { if (d?.enabled && MK.tab === "packs" && S.page === "market" && !PackZoom.current) paint(); });
+    const d = FriendShop.data;
+    if (!d?.enabled) return null;
+    const head = h("h2.pk-section-title", "From friends");
+    if (!d.hasFriends) return h("section.mk-friends", head, h("p.muted.lede", "Add a friend to see the packs they make."),
+      h("button.link", { type: "button", on: { click: () => Shell.go("settings") } }, "Friends in Settings ", h("i", "→")));
+    const offline = d.offline ? h("p.small.muted.mk-offline", "Connect to the internet to pull from your friends' packs.") : null;
+    const listings = (d.listings || []).filter((l) => l.card);
+    if (!listings.length) return h("section.mk-friends", head, offline, h("p.muted.lede", "Your friends haven't put any packs out yet."));
+    const open = (p, tile) => { Snd.tap(); PackZoom.open(p, tile, (pack) => Market.card(pack)); };
+    const cell = (l, i) => {
+      const p = FriendShop.pack(l);
+      return h("div.mk-item", h("div.mk-hang", h("i.mk-clip", { "aria-hidden": "true" }), h("button.mk-tile", { "aria-label": `${p.title} from ${l.sellerName}, ${FriendShop.left(l)} — look closer`, "aria-haspopup": "dialog", data: { pack: p.id }, style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
+        Market.pouch(p))), h("span.mk-friend-note", `${l.price} Scraps · ${FriendShop.left(l)}`));
+    };
+    const sellers = [...new Set(listings.map((l) => l.sellerKey))];
+    return h("section.mk-friends", head, offline, sellers.map((key) => {
+      const theirs = listings.filter((l) => l.sellerKey === key);
+      return [h("p.eyebrow.mk-h", `From ${theirs[0].sellerName}`), this.rail(theirs.map(cell))];
+    }));
   },
   localPacks() {
     const packs=PackListing.visible();

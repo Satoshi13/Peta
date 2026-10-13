@@ -420,13 +420,14 @@ const Cer = (() => {
     wax.style.cursor = "pointer"; cer.root._esc = () => { if (!opened) cer.close(); else if(entry)later(); };
   }
 
-  async function openPack(pack, { free = false } = {}) {
-    if (free ? !packHasFreeOpening(pack) : (!packOpenable(pack) || packHasFreeOpening(pack))) return; // a ready free opening always comes first
+  /* `pull` (friends' packs in Market) replaces the native opening with a paid pull; the ceremony is the same. */
+  async function openPack(pack, { free = false, pull = null } = {}) {
+    if (!pull && (free ? !packHasFreeOpening(pack) : (!packOpenable(pack) || packHasFreeOpening(pack)))) return; // a ready free opening always comes first
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
     const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null, settling=false;
     const onTear = async (rig) => {
       let opened;
-      try { Bridge.busy = true; opened=await Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false}); }
+      try { Bridge.busy = true; opened=await (pull ? pull() : Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false})); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
       pack.left=Array(opened.remaining).fill(null);if(free)pack.freeOpenings=Math.max(0,(pack.freeOpenings||0)-1);else if(pack.daily)S.packAvailable=false;
       const savedPack=S.packs.find(p=>p.id===pack.id);if(savedPack){savedPack.left=pack.left;if(free)savedPack.freeOpenings=pack.freeOpenings;}

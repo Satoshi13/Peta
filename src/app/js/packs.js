@@ -204,7 +204,9 @@ const PackSales = {
     const box = h("section.pk-sales", { "aria-live": "polite" }, h("p.small.muted", "Checking sales…"));
     this.get(p).then((r) => {
       if (r.status !== "live") { box.replaceChildren(h("p.small.muted", r.status === "offline" ? "Connect to the internet to see sales." : "Sales appear once Peta checks this pack.")); return; }
+      const earned = typeof FriendShop !== "undefined" ? FriendShop.mine(p.id)?.earned || 0 : 0;
       box.replaceChildren(h("p.pk-sales-head", h("b", r.taken === r.total ? "Sold out" : `${r.taken} of ${r.total} taken`), h("small.muted", "by friends")),
+        earned ? h("p.small.pk-earned", `Earned ${earned.toLocaleString("en-US")} Scraps`) : null,
         h("ul.pk-sale-list", r.designs.map((l) => this.line(l))), r.prizes.length ? h("ul.pk-sale-list.prizes", r.prizes.map((l) => this.line(l))) : null);
     });
     return box;
@@ -213,8 +215,11 @@ const PackSales = {
 
 const PackListing = {
   visible() { return S.packs.filter(p => p.own && p.listed).map(p => ({...p, local:true, empty:!p.left.length})); },
+  /* With Peta's server, listing means showing the pack to friends (market.js FriendShop); without it, this Mac's Market only. */
+  friendly() { return typeof FriendShop !== "undefined" && FriendShop.enabled(); },
   control(p) {
     if(!p.own || (!p.canList && !p.listed)) return null;
+    if(this.friendly()) return this.friends(p);
     let busy=false;
     const status=h("p.mkz-rule", {role:"status", "aria-live":"polite"});
     const button=h("button.btn.paper.mkz-primary", {type:"button", on:{click:async()=>{
@@ -242,10 +247,48 @@ const PackListing = {
     };
     paint(); return h("div.pk-listing", status, button);
   },
+  /* Show to friends, take down for now, or stop selling for good. Every step is the native result; nothing is assumed. */
+  friends(p) {
+    let busy=false;
+    const status=h("p.mkz-rule", {role:"status", "aria-live":"polite"});
+    const act=async(command, said)=>{
+      if(busy || Bridge.busy) return;
+      busy=true; Bridge.busy=true; paint();
+      try {
+        const listing=await Bridge.invoke(command, {packId:p.id});
+        FriendShop.put(listing); p.listed=listing.state==="open";
+        const stored=S.packs.find(pack=>pack.id===p.id); if(stored) stored.listed=p.listed;
+        PackZoom.stale();
+        try { await Bridge.reload(); } catch {}
+        Snd.tap(); Shell.toast(said);
+      } catch(err) { Shell.toast(String(err)); }
+      finally {
+        busy=false; Bridge.busy=false; paint();
+        if(!PackZoom.current) Shell.refresh();
+      }
+    };
+    const main=h("button.btn.paper.mkz-primary", {type:"button", on:{click:()=>FriendShop.mine(p.id)?.state==="open"
+      ? act("market_pause_pack", "Taken down. It stays on My shelf.")
+      : act("market_list_pack", "Your friends can see it in Market now.")}});
+    const stop=h("button.btn.paper.small.pk-stop", {type:"button", on:{click:async()=>{
+      const yes=typeof Friends!=="undefined" ? await Friends.ask("Stop selling this pack? Friends can't pull from it anymore. Stickers already pulled stay with them.", "Stop selling") : true;
+      if(yes) await act("market_close_pack", "Stopped selling. It stays on My shelf.");
+    }}}, "Stop selling");
+    const paint=()=>{
+      const state=FriendShop.mine(p.id)?.state;
+      main.hidden=state==="closed"; stop.hidden=!state || state==="closed";
+      main.disabled=stop.disabled=busy;
+      main.textContent=busy ? "Saving…" : state==="open" ? "Take down" : "Show to friends in Market";
+      status.textContent=state==="open" ? "Friends can pull from it in Market" : state==="paused" ? "Taken down for now · friends can't pull" : state==="draft" ? "Not finished uploading · try again to show it to friends"
+        : state==="closed" ? "Stopped selling · stickers already pulled stay with friends" : "Kept on My shelf · not shown to friends";
+    };
+    paint(); return h("div.pk-listing", status, main, stop);
+  },
 };
 
 Pages.packs = {
   build() {
+    if (typeof FriendShop !== "undefined" && !FriendShop.fresh()) FriendShop.load();   // so a zoomed own pack offers the friends' Market
     const root = h("div.page-in.packspage");
     root.append(PageHead("Packs", "Open one at random", h("span.quota", { "aria-live": "polite" }, h("b", "Welcome Pack"), ` ${S.packAvailable ? 0 : 1} of 1 today`, h("small", "resets at midnight · other packs open any time"))));
     const items = S.packs.map((p) => ({ ...p, empty: !p.left.length })), stored=items.filter(p=>p.own), received=items.filter(p=>!p.own);
