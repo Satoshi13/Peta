@@ -86,6 +86,7 @@ pub fn build_gift_dressed(lib:&mut Library,sticker_id:&str,to:&str,note:Option<&
 /// leaves the held item, copies, placements, tags and history untouched.
 pub fn transfer_gift(lib:&mut Library,sticker_id:&str,to:&str,note:Option<&str>,dress:&GiftDress,referee:&dyn crate::ownership::Referee,persist:impl FnOnce(&[u8])->Result<()>)->Result<(String,Vec<u8>)> {
     use crate::ownership as o;
+    let from=lib.db().require_display_name()?;
     let dressed=dress.bag.is_some();let wrapped_to=dressed.then(||to.trim().to_owned());
     if !dress_ok(&dress.bag,&dress.deco,&wrapped_to) {return Err(Error::Invalid("That wrapping is not available.".into()));}
     let sticker=lib.db().held_sticker(sticker_id)?.ok_or_else(||Error::Invalid("Sticker not held here.".into()))?;o::require_real(&sticker)?;
@@ -93,7 +94,7 @@ pub fn transfer_gift(lib:&mut Library,sticker_id:&str,to:&str,note:Option<&str>,
     let key=crate::device_key::load_or_create(lib.root())?;let mut chain=o::chain_for(lib.db(),&sticker,&png,&key)?;
     let tracked=crate::server::ensure_registered(lib.db_mut(),&chain.creation,referee)?;
     let gift_id=new_gift_id();let release=o::append(&mut chain,"release",&gift_id,&key)?;o::sticker_chain_verify(&chain,&png)?;
-    let header=GiftHeader{gift_id:gift_id.clone(),from:lib.db().display_name()?,note:note.map(str::trim).filter(|n|!n.is_empty()).map(|n|n.chars().take(if dressed {GIFT_NOTE_MAX}else{140}).collect()),sent_at:release.at.clone(),edition:None,
+    let header=GiftHeader{gift_id:gift_id.clone(),from,note:note.map(str::trim).filter(|n|!n.is_empty()).map(|n|n.chars().take(if dressed {GIFT_NOTE_MAX}else{140}).collect()),sent_at:release.at.clone(),edition:None,
         origin:Origin{sticker_id:sticker.id.clone(),creator_name:sticker.creator_name.clone(),created_at:sticker.created_at.clone(),material_id:sticker.material_id.clone(),aspect:sticker.aspect},
         png_len:png.len(),mask_len:mask.len(),signer:Some(crate::sign::Signer::Device{public_key:crate::sign::public_key(&key)}),bag:dress.bag.clone(),deco:dress.bag.as_ref().and(dress.deco.clone()),to:wrapped_to,history:Some(chain.clone())};
     let bytes=crate::sign::seal(MAGIC,VERSION,&header,&[png,mask].concat(),&key)?;decode_gift(&bytes)?;
@@ -320,7 +321,7 @@ mod tests {
     fn lib() -> Library {
         let dir = std::env::temp_dir().join(format!("peta-gift-test-{}", crate::ids::new_sticker_id()));
         std::fs::create_dir_all(&dir).unwrap();
-        Library::open(&dir).unwrap()
+        let mut lib=Library::open(&dir).unwrap();lib.db_mut().set_display_name("Maker").unwrap();lib
     }
 
     fn disc_png() -> Vec<u8> {
@@ -340,7 +341,7 @@ mod tests {
     /// A sticker in the sender's library, made the way the Creator makes one.
     fn sender_with_sticker() -> (Library, Sticker) {
         let mut lib = lib();
-        lib.db_mut().set_display_name("Satoshi").unwrap();
+        lib.db_mut().set_display_name("Maker").unwrap();
         let rendered = pack::render_pack_sticker(&disc_png()).unwrap();
         let s = lib.add_made(&rendered, &disc_png(), "png", None, "holographic").unwrap();
         (lib, s)
@@ -408,7 +409,7 @@ mod tests {
         let opened=open_gift(&mut theirs,&id).unwrap();assert_eq!(opened.id,sticker.id);assert!(opened.verified);assert_eq!(opened.edition_number,None);
         assert_eq!(opened.created_at,sticker.created_at);assert_eq!(opened.creator_name,sticker.creator_name);
         assert!(open_gift(&mut theirs,&id).is_err());
-        let (back_id,back_file)=build_gift(&mut theirs,&opened.id,"Satoshi",None).unwrap();
+        let (back_id,back_file)=build_gift(&mut theirs,&opened.id,"Maker",None).unwrap();
         receive_gift(&mut mine,&back_file).unwrap();let returned=open_gift(&mut mine,&back_id).unwrap();
         assert_eq!(returned.id,sticker.id);assert_eq!(returned.source_type,SourceType::Created);assert_eq!(mine.db().sticker_count().unwrap(),1);
         assert_eq!(mine.db().conn.query_row("SELECT COUNT(*) FROM transfers WHERE sticker_id=?1",[&sticker.id],|r|r.get::<_,u32>(0)).unwrap(),4);
@@ -459,7 +460,7 @@ mod tests {
     fn changing_sender_edition_or_png_is_rejected_before_any_receipt() {
         let (mut mine,sticker)=sender_with_sticker();let (_,good)=build_gift(&mut mine,&sticker.id,"Nao",None).unwrap();let mut theirs=lib();
         for changed in [
-            {let mut b=good.clone();let at=b.windows(7).position(|s|s==b"Satoshi").unwrap();b[at]=b'N';b},
+            {let mut b=good.clone();let at=b.windows(5).position(|s|s==b"Maker").unwrap();b[at]=b'N';b},
             {let mut b=good.clone();let at=b.windows(7).position(|s|s==b"release").unwrap();b[at]=b'x';b},
             {let mut b=good.clone();let n=b.len();b[n-65]^=1;b},
         ] {assert!(matches!(receive_gift(&mut theirs,&changed),Err(Error::Invalid(e)) if e.contains("invalid_signature")));}

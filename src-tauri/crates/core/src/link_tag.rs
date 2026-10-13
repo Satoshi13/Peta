@@ -121,7 +121,7 @@ mod tests {
         for bad in ["javascript:alert(1)", "file:///etc/passwd", "spotify:playlist:1", "https://", "https://nodots", "https://a b.com", "ftp://x.com", "", "  "] { assert!(validate("website", bad, "x").is_err(), "{bad}"); }
         assert!(validate("app", "/Applications/Notes.app", "Notes").is_ok());
         for bad in ["Notes.app", "/bin/sh", "/Applications/Notes", "relative/Notes.app"] { assert!(validate("app", bad, "x").is_err(), "{bad}"); }
-        assert!(validate("folder", "/Users/me/Documents", "Docs").is_ok()); assert!(validate("folder", "Documents", "Docs").is_err());
+        assert!(validate("folder", "/tmp/Documents", "Docs").is_ok()); assert!(validate("folder", "Documents", "Docs").is_err());
         assert!(validate("script", "/x", "x").is_err());
         assert!(validate("folder", "/tmp", "").is_err()); assert!(validate("folder", "/tmp", &"x".repeat(41)).is_err());
     }

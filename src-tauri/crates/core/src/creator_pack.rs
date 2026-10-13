@@ -120,7 +120,7 @@ pub fn install(lib:&mut Library,pack:&Verified,consent:bool)->Result<String> {
 fn build_legacy(lib:&Library,title:&str,pouch:&str,selection:&[LegacySelection],dress:&Dress)->Result<(Header,Vec<u8>)> {
     let title=title.trim();
     if !(3..=24).contains(&selection.len()) || !text(title,40){return Err(invalid("Choose 3–24 stickers and a title up to 40 characters."));}
-    let key=crate::device_key::load_or_create(lib.root())?;let author=lib.db().display_name()?;
+    let key=crate::device_key::load_or_create(lib.root())?;let author=lib.db().require_display_name()?;
     let slug:String=title.chars().filter(|c|c.is_ascii_alphanumeric()).take(16).flat_map(char::to_lowercase).collect();
     let pack_id=format!("{}-{}-{}",sign::fingerprint(&key.verifying_key()).replace('-',""),if slug.is_empty(){"pack"}else{&slug},&digest(title.as_bytes())[..16]);
     let version=lib.db().conn.query_row("SELECT version FROM packs_made WHERE pack_id=?1",[&pack_id],|r|r.get::<_,i64>(0)).optional()?.unwrap_or(0).checked_add(1).ok_or_else(||invalid("Pack version is too large."))?;

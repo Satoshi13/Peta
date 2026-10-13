@@ -75,7 +75,7 @@ try {
         await page.evaluate(async ({mode,step}) => {
           ST.mode=mode; const d=ST[mode]; d.step=step;
           d.sel=[{id:'review-0',copies:1},{id:'review-1',copies:1},{id:'review-2',copies:1}];
-          d.sticker='review-0'; d.to='Satoshi'; d.title='Review Pack'; await Shell.open('studio');
+          d.sticker='review-0'; d.to='Maker'; d.title='Review Pack'; await Shell.open('studio');
         },{mode,step});
         await check(shell,width,`studio-${mode}-${step}`);
       }

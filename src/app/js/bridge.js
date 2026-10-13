@@ -5,7 +5,11 @@ const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics:
   bonusEnvelopes: 0, extraEnvelope: false, pending: null, stuckToday: [], packAvailable: false, scraps: {balance:0, materials:[], packs:[]}, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
 const Bridge = (() => {
   const api = window.__TAURI__;
-  const invoke = (cmd, args) => api.core.invoke(cmd, args);
+  const sharing = new Set(['gift_send', 'gift_send_friend', 'creator_pack_save', 'creator_pack_shelve', 'friend_code_copied', 'friend_add', 'friend_approve']);
+  const invoke = async (cmd, args) => {
+    if(sharing.has(cmd) && !S.name.trim()) { ProfileName.request(); throw new Error("Choose your name in Settings before sharing."); }
+    return api.core.invoke(cmd, args);
+  };
   const windowApi = api.window.getCurrentWindow();
   const assets = new Map();
   async function fileDialog(cmd,args) {

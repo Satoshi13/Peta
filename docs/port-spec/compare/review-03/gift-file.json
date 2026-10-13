@@ -5,13 +5,13 @@
   "finishedPngUnchanged": true,
   "header": {
     "giftId": "GIFT-GYCG155FV52C",
-    "from": "Satoshi",
+    "from": "Maker",
     "note": null,
     "sentAt": "2026-10-03T21:49:52.416264561+00:00",
     "edition": 2,
     "origin": {
       "stickerId": "PETA-PORT-0011",
-      "creatorName": "Satoshi",
+      "creatorName": "Maker",
       "createdAt": "2026-10-01T12:00:00Z",
       "materialId": "matte",
       "aspect": 1.1810841983852365

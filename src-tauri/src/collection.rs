@@ -136,7 +136,7 @@ pub fn profile_set_icon(app: AppHandle, store: State<'_,Store>, sticker_id: Opti
     Ok(profile)
 }
 
-/// The name printed on the back of stickers you make from now on. Empty = back to the OS user name.
+/// The name printed on the back of stickers you make from now on. Empty = no name chosen yet.
 #[cfg_attr(feature="server",tauri::command(async))]
 #[cfg_attr(not(feature="server"),tauri::command)]
 pub fn profile_set(store: State<'_,Store>, display_name: String) -> Result<Profile, String> {

@@ -391,7 +391,7 @@ function tapeEl(bag, kind) {
 function pouch({ k: ppc = 24, fan = true, d = W(), closed, pending = null }) {
   const gift = d === S.gift, bag = bagOf(d.bag), [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, shut = closed ?? d.sealed;
   const boxW = bag.cm * ppc / (bw / 100);
-  const title = gift ? (d.to.trim() ? "For " + d.to.trim() : "For you") : (d.title.trim() || "Untitled"), sub = gift ? "from Satoshi" : "by Satoshi";
+  const title = gift ? (d.to.trim() ? "For " + d.to.trim() : "For you") : (d.title.trim() || "Untitled"), sub = gift ? "from Maker" : "by Maker";
   const seed = hash((gift ? d.to : d.title) + d.bag), jit = (i, amp) => (rnd(seed, i) - .5) * amp;   // every pack is a little different, the same way every time
   const el = h("div.pouch", { style: { "--w": boxW + "px", "--art": `url("${artOf(bag)}")`, "--gloss": bag.gloss ?? 0, aspectRatio: `${bag.W} / ${bag.H}` }, data: { kind: bag.gen ? "gen" : bag.id, ls: "paper", tinted: "0", nolabel: bag.gen && !bag.hasLabel ? "1" : "0", gloss: bag.gen && bag.gloss ? "1" : "0" } });
   if (bag.lean) el.style.rotate = bag.lean + "deg";
@@ -558,8 +558,8 @@ function pairPack() {
 }
 function pairGift() {
   const g = S.gift, a = pouch({ k: 10.5, fan: false, closed: true }); a.style.cssText += "left:50%;top:34px;translate:-50% 0;";
-  const left = h("div", {}, scene(a, h("span.small", { style: { position: "absolute", left: 0, right: 0, bottom: "10px", textAlign: "center", color: "#38342f", font: "600 12px var(--sys)" } }, "A gift from Satoshi")), cap("Arrives"));
-  const right = h("div", {}, scene(h("div.noteview", {}, h("div.to", {}, "To " + (g.to.trim() || "you") + ","), h("img.st", { src: sOf(g.sticker).src, alt: "" }), h("div.msg", {}, g.note || ""), h("div.from", {}, "from Satoshi · Oct 9"))), cap("Opened"));
+  const left = h("div", {}, scene(a, h("span.small", { style: { position: "absolute", left: 0, right: 0, bottom: "10px", textAlign: "center", color: "#38342f", font: "600 12px var(--sys)" } }, "A gift from Maker")), cap("Arrives"));
+  const right = h("div", {}, scene(h("div.noteview", {}, h("div.to", {}, "To " + (g.to.trim() || "you") + ","), h("img.st", { src: sOf(g.sticker).src, alt: "" }), h("div.msg", {}, g.note || ""), h("div.from", {}, "from Maker · Oct 9"))), cap("Opened"));
   return pair(left, right);
 }
 const signedLine = (parts) => h("div.signed", {}, h("i", {}, "SIGN"), parts);
@@ -569,7 +569,7 @@ function packSeal() {
   const p = S.pack, line = `${p.title.trim()} · ${p.items.length} stickers`;
   if (p.sealed) return [doneBlock("pack", line, [["Save pack file…", "Saved to Desktop"], ["Put on my shelf", "Placed on your shelf"]]), pairPack()];
   return [h("h2", {}, "Check it, then seal it"), help("棚とMarketでの見え方です。封をすると署名されて、もう変えられません。"),
-    h("div.scroll", {}, pairPack(), h("div.mline", {}, h("b", {}, p.title.trim()), h("span", {}, `by Satoshi · ${p.items.length} stickers`)), sec("Description (Market card)", field(p.blurb, LIMITS.blurb, "Description", (v) => { p.blurb = v; })), signedLine(`署名に入る: 袋 ${p.bag} · 表紙 ${p.cover || "なし"} · 飾り ${p.deco} · 名前 · 紹介文`)),
+    h("div.scroll", {}, pairPack(), h("div.mline", {}, h("b", {}, p.title.trim()), h("span", {}, `by Maker · ${p.items.length} stickers`)), sec("Description (Market card)", field(p.blurb, LIMITS.blurb, "Description", (v) => { p.blurb = v; })), signedLine(`署名に入る: 袋 ${p.bag} · 表紙 ${p.cover || "なし"} · 飾り ${p.deco} · 名前 · 紹介文`)),
     foot(true, nextBtn("Seal the pack", true, sealIt))];
 }
 /* --- gift 1-3 --- */

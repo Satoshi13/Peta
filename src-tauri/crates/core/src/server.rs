@@ -618,7 +618,7 @@ mod tests {
         }
     }
     fn library() -> Library {
-        Library::open(&std::env::temp_dir().join(crate::ids::new_gift_id())).unwrap()
+        let mut lib=Library::open(&std::env::temp_dir().join(crate::ids::new_gift_id())).unwrap();lib.db_mut().set_display_name("Maker").unwrap();lib
     }
     fn art() -> (Vec<u8>, crate::creator::Rendered) {
         let mut image = image::RgbaImage::new(24, 20);

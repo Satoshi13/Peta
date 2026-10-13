@@ -10,7 +10,7 @@ const sales=context.PackSales;
 const all=e=>e?.tag?[e,...e.children.flatMap(all)]:[];
 const text=e=>e?.tag?e.children.map(text).join(''):String(e??'');
 test('sales lines show up to three drawer names and the remaining people count',()=>{
- const names=['Nao','Mika','Ren','Satoshi','Yuki','Someone'];
+ const names=['Nao','Mika','Ren','Maker','Yuki','Someone'];
  const line=sales.line({name:'Cat',total:30,taken:8,drawers:names});
  const note=all(line).find(e=>e.tag==='small.pk-sale-drawers');
  assert.equal(text(note),'Nao, Mika, Ren · +3');

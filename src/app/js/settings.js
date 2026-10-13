@@ -2,7 +2,7 @@ Pages.settings = {
   build() {
     const root = h("div.page-in.settingspage");
     root.append(PageHead("Settings", "Quiet by default"));
-    const name = h("input", { type: "text", value: S.name, maxlength: 40, autocomplete: "off", spellcheck: false, on: { change: async (e) => { try { S.name = (await Bridge.invoke("profile_set", { displayName: e.target.value })).displayName; e.target.value = S.name; Shell.renderNav(); } catch(err) { Shell.toast(String(err)); } } } });
+    const name = h("input", { type: "text", value: S.name, "aria-label": "Your name on stickers", maxlength: 40, autocomplete: "off", spellcheck: false, on: { change: async (e) => { try { S.name = (await Bridge.invoke("profile_set", { displayName: e.target.value })).displayName; e.target.value = S.name; Shell.renderNav(); } catch(err) { Shell.toast(String(err)); } } } });
     const sw = (label, sub, get, set) => { const b = h("button.switch", { role: "switch", "aria-checked": String(get()), on: { click: () => { set(!get()); b.setAttribute("aria-checked", String(get())); Snd.tap(); } } }, h("i")); return h("div.setrow", h("div", h("b", label), h("small", sub)), b); };
     const segRow = (label, sub, opts, get, set) => { const seg = h("div.seg", opts.map(([v, text]) => SegButton(text, { "aria-pressed": String(get() === v), on: { click: () => { set(v); Snd.tap(); $$("button", seg).forEach((b, i) => b.setAttribute("aria-pressed", String(opts[i][0] === v))); } } }))); return h("div.setrow", h("div", h("b", label), h("small", sub)), seg); };
     root.append(h("div.setcard",
@@ -108,5 +108,15 @@ const AboutPeta = {
       h("div.tour-frame",h("img.tour-tape",{src:A.peekTape,alt:"",draggable:false}),video,close));
     Bridge.dialogOpen=true;document.body.append(dialog);dialog.showModal();
     if(document.documentElement.dataset.motion!=="reduce") video.play().catch(()=>{video.muted=true;video.play().catch(()=>{});});
+  },
+};
+
+
+/** Sharing waits until a profile name is chosen in Settings. Drafts stay on their page. */
+const ProfileName = {
+  request() {
+    const dialog=Friends.sheet("Choose your name",h("h2","Choose your name"),h("p.small","Friends will see this name on your code, gifts and packs."),
+      h("button.btn",{type:"button",on:{click:()=>{dialog.close();Shell.go("settings");queueMicrotask(()=>document.querySelector('[aria-label="Your name on stickers"]')?.focus());}}},"Open Settings"));
+    return dialog;
   },
 };

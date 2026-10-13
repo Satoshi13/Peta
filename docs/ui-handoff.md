@@ -78,10 +78,10 @@ Phase 3 で**機能として実装済み**。見た目だけプレースホル�
   "kind": "original",            // "original" | "received"
   "originalNumber": "0001",      // original のみ。"No. 0001"
   "editionNumber": null,         // "0042" → "Edition #0042"
-  "createdBy": "Satoshi", "createdOn": "Oct 3, 2026",
+  "createdBy": "Maker", "createdOn": "Oct 3, 2026",
   "material": { "id": "holographic", "name": "Holographic", "rarity": "rare" },
   "receivedFrom": null, "receivedOn": null,   // received のみ
-  "history": [ { "type": "created", "by": "Satoshi", "on": "Oct 3, 2026" } ]
+  "history": [ { "type": "created", "by": "Maker", "on": "Oct 3, 2026" } ]
 }
 ```
 

@@ -9,14 +9,14 @@ const bagEm = (text) => [...text].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 
 /**
  * @param bag    a BAGS id
  * @param title  written on the label (one line; a long name shrinks)
- * @param sub    the small line under it ("by Satoshi")
+ * @param sub    the small line under it ("by Maker")
  * @param cover  the url of a sticker picture to stick on, or null
  * @param deco   "none" | "clip" | "pin" | "tape" | "seal"
  * @param k      pixels per centimetre (every wrapping is drawn to scale)
  * @param fit    when set, the object is at most this wide in px
  * @param items  urls of stickers peeking out of it (up to six); left empty on a shelf
  * @param shut   closed: opaque wrappings hide what is inside (glassine and the folded wrap stay see-through)
- * @param layout where the maker put the cover and up to two accents ({comp, cover, accents:[{kind,x,y}]}); every place is clamped to the wrapping (ui-math.js bagResolveLayout)
+ * @param layout where the Maker put the cover and up to two accents ({comp, cover, accents:[{kind,x,y}]}); every place is clamped to the wrapping (ui-math.js bagResolveLayout)
  */
 function BagPic({ bag: id, title = "", sub = "", cover = null, deco = "none", k = 15, fit = 0, items = [], shut = false, id: key = "", layout = null } = {}) {
   const bag = BAGS[id] || BAGS.kraft, [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, seed = bagHash(title + bag.id), jit = (i, amp) => (bagRnd(seed, i) - .5) * amp;

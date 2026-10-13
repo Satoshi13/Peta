@@ -35,22 +35,23 @@ fn me(app: &AppHandle) -> Result<(std::path::PathBuf, identity::FriendCode), Str
     let store = app.state::<Store>();
     let lib = store.lock();
     let root = lib.root().to_owned();
-    let code = identity::code_here(&root, &lib.db().display_name().map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+    let code = identity::code_here(&root, &lib.db().require_display_name().map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
     Ok((root, code))
 }
 
 #[tauri::command]
 pub async fn inbox_status(app: AppHandle) -> Result<InboxStatus, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let (_, code) = me(&app)?;
         let store = app.state::<Store>();
         let lib = store.lock();
         let db = lib.db();
+        let name=db.display_name().map_err(|e| e.to_string())?;
+        let code=identity::code_here(lib.root(), &name).map_err(|e| e.to_string())?;
         let value = |k: &str| db.inbox_value(k).map_err(|e| e.to_string());
         Ok(InboxStatus {
             enabled: cfg!(feature = "server"),
-            my_code: code.to_code().map_err(|e| e.to_string())?,
-            my_link: code.to_link(SCHEME).map_err(|e| e.to_string())?,
+            my_code: if name.is_empty() {String::new()} else {code.to_code().map_err(|e| e.to_string())?},
+            my_link: if name.is_empty() {String::new()} else {code.to_link(SCHEME).map_err(|e| e.to_string())?},
             my_fingerprint: code.fingerprint().map_err(|e| e.to_string())?,
             friends: db.friends().map_err(|e| e.to_string())?,
             auto: value("auto")?.as_deref() != Some("off"),
@@ -86,7 +87,7 @@ pub async fn identity_export(window: tauri::WebviewWindow, app: AppHandle, passp
     if passphrase.chars().count() < identity::PASSPHRASE_MIN { return Err("Use a passphrase of at least 12 characters.".into()); }
     let Some(path) = app.dialog().file().set_parent(&window).add_filter("Peta key backup", &["petakey"]).set_file_name("Peta key.petakey").blocking_save_file().and_then(|p| p.into_path().ok()) else { return Ok(false) };
     tauri::async_runtime::spawn_blocking(move || {
-        let (root, _) = me(&app)?;
+        let root=app.state::<Store>().lock().root().to_owned();
         let bytes = identity::export_here(&root, &passphrase).map_err(|e| e.to_string())?;
         std::fs::write(&path, bytes).map_err(|e| format!("Could not save the backup: {e}"))?;
         app.state::<Store>().lock().db_mut().set_inbox_value("backed_up", Some(&peta_core::events::current_time().to_rfc3339())).map_err(|e| e.to_string())?;

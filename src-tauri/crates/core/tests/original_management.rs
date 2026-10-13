@@ -10,7 +10,7 @@ fn original() -> Vec<u8> {
 fn params() -> Params { Params { strength: 0.5, smooth: 0.3, recipe: materials::get("kraft").unwrap().recipe } }
 fn fixture() -> (PathBuf, Library, Session, String) {
     let dir = std::env::temp_dir().join(format!("peta-original-test-{}", ids::new_sticker_id()));
-    let mut lib = Library::open(&dir).unwrap(); let bytes=original(); let session=Session::new(&bytes, None).unwrap();
+    let mut lib = Library::open(&dir).unwrap(); lib.db_mut().set_display_name("Maker").unwrap(); let bytes=original(); let session=Session::new(&bytes, None).unwrap();
     let rendered=session.render(&params()).unwrap(); let state=EditorState::capture(&session,20.0,0.3,0.5);
     let id=lib.add_made_with_editor(&rendered,&bytes,"png","kraft",&state).unwrap().id;
     (dir,lib,session,id)

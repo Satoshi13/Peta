@@ -507,7 +507,7 @@ body.night .win[data-follow]{--x:0}
   <div class="voice">
     <div><h4>System · 人が読む声</h4><div class="s1">Today · Create · Book</div><p>見出し・本文・ボタン・補足。SF Pro / ヒラギノ角ゴ。日本語と英語が並んでも段差が出ない。</p></div>
     <div><h4>Special Elite · 物に印字された声</h4><div class="s2">OCT 3 · SAT — 06:12:44</div><p>日付スタンプ、値札、Scraps の数字、封筒の「次まで」。<b>13px以上</b>、かつ“物の上”だけ。</p></div>
-    <div><h4>Klee One · 手書きの声</h4><div class="s3">for you, from Satoshi</div><p>ステッカー裏の手書き、ギフトのメモ、付箋。UIの説明文には使わない。</p></div>
+    <div><h4>Klee One · 手書きの声</h4><div class="s3">for you, from Maker</div><p>ステッカー裏の手書き、ギフトのメモ、付箋。UIの説明文には使わない。</p></div>
   </div>
 
   <div class="panel" style="margin-top:16px">
@@ -854,7 +854,7 @@ body.night .win[data-follow]{--x:0}
           <li><b>アイコンを“同じ大きさのタイル”に</b>。30px の淡い台座に 22px のアートを置き、封筒・ポラロイド・紙袋・歯車の面積差を吸収。アート自体は触らない。</li>
           <li><b>バッジの文法を分ける</b>。数字(Gifts: 2)=<b>届いた数</b>はインクのピル。点(Today)=<b>新しい封筒</b>はクラフト色の点。<b>赤は“エラー・要対応”専用</b>に取っておく。</li>
           <li><b>ショートカットを hover で表示</b>。⌘1〜⌘7(設定は ⌘,)。現在地の行では薄く常時表示。マウスでもキーボードでも同じ場所に。</li>
-          <li><b>設定とプロフィールを下端に固定</b>。「Satoshi · 9 stickers」の小さな札で、ステッカーに印字される名前(Your name on stickers)の入口にもなる。</li>
+          <li><b>設定とプロフィールを下端に固定</b>。「Maker · 9 stickers」の小さな札で、ステッカーに印字される名前(Your name on stickers)の入口にもなる。</li>
           <li><b>現在地は“白い紙片”だけ</b>。色や線を足さず、いまの白ピル+影を維持(これは既に良い)。</li>
         </ol>
         <div class="rail">
@@ -906,7 +906,7 @@ body.night .win[data-follow]{--x:0}
       </div>
       <div class="misc">
         <div><h5>Segmented</h5><div class="stack"><div class="seg2"><span class="on">List</span><span>Calendar</span></div><div class="seg2"><span>Desk</span><span class="on">Studio</span></div></div></div>
-        <div><h5>Input</h5><div class="stack" style="width:100%"><div class="inp">Satoshi</div><div class="inp f">Satoshi|</div></div></div>
+        <div><h5>Input</h5><div class="stack" style="width:100%"><div class="inp">Maker</div><div class="inp f">Maker|</div></div></div>
         <div><h5>Switch</h5><div class="stack"><div style="display:flex;gap:10px;align-items:center"><span class="swt on"></span><span class="meta">Sounds</span></div><div style="display:flex;gap:10px;align-items:center"><span class="swt"></span><span class="meta">Reduce motion</span></div></div></div>
         <div><h5>Badges</h5><div class="bdg"><span class="seal rare">Rare</span><span class="chip">Foil</span><span class="chip fill">Matte ∞</span></div><div class="stack" style="margin-top:10px"><span class="toast">Peeled · <u>Undo</u></span></div></div>
       </div>
@@ -922,7 +922,7 @@ body.night .win[data-follow]{--x:0}
       </div>
       <div class="misc">
         <div><h5>Segmented</h5><div class="stack"><div class="seg2"><span class="on">List</span><span>Calendar</span></div><div class="seg2"><span>Desk</span><span class="on">Studio</span></div></div></div>
-        <div><h5>Input</h5><div class="stack" style="width:100%"><div class="inp">Satoshi</div><div class="inp f">Satoshi|</div></div></div>
+        <div><h5>Input</h5><div class="stack" style="width:100%"><div class="inp">Maker</div><div class="inp f">Maker|</div></div></div>
         <div><h5>Switch</h5><div class="stack"><div style="display:flex;gap:10px;align-items:center"><span class="swt on"></span><span class="meta">Sounds</span></div><div style="display:flex;gap:10px;align-items:center"><span class="swt"></span><span class="meta">Reduce motion</span></div></div></div>
         <div><h5>Badges</h5><div class="bdg"><span class="seal rare">Rare</span><span class="chip">Foil</span><span class="chip fill">Matte ∞</span></div><div class="stack" style="margin-top:10px"><span class="toast">Peeled · <u>Undo</u></span></div></div>
       </div>
@@ -991,7 +991,7 @@ function fillSidebars(root=document){
     const act = sb.dataset.active;
     const mk = (n)=>`<div class="it" ${n.id===act?'aria-current="page"':''}><span class="ic"><i style="background-image:url(../../src/art/${n.i})"></i></span><span>${n.l}</span>${n.n?`<span class="cnt">${n.n}</span>`:''}${n.dot&&n.id!==act&&sb.dataset.badge==null?'':''}${n.dot&&n.id==='today'&&act!=='today'?'<span class="dot" title="New envelope"></span>':''}<span class="k">⌘${n.k}</span></div>`;
     sb.innerHTML = NAV.map(n=> n.g ? `<div class="grp">${n.g}</div>` : mk(n)).join('') +
-      `<div class="foot"><div class="it"><span class="ic"><i style="background-image:url(../../src/art/ui/icon-settings.png)"></i></span><span>Settings</span><span class="k">⌘,</span></div><div class="me"><span class="av"></span><div><b>Satoshi</b>9 stickers</div></div></div>`;
+      `<div class="foot"><div class="it"><span class="ic"><i style="background-image:url(../../src/art/ui/icon-settings.png)"></i></span><span>Settings</span><span class="k">⌘,</span></div><div class="me"><span class="av"></span><div><b>Maker</b>9 stickers</div></div></div>`;
   });
 }
 

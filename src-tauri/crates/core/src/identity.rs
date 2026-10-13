@@ -230,14 +230,14 @@ mod tests {
     #[test]
     fn friend_codes_and_links_round_trip_and_forgive_pasting() {
         let root = dir("code"); let key = sign::generate().unwrap();
-        let code = my_code(&root, &key, "  Satoshi  ").unwrap();
-        assert_eq!(code.name, "Satoshi");
+        let code = my_code(&root, &key, "  Maker  ").unwrap();
+        assert_eq!(code.name, "Maker");
         let text = code.to_code().unwrap(); assert!(text.starts_with("PETAF1-"));
         assert_eq!(FriendCode::parse(&text).unwrap(), code);
         let messy = format!("  {}\n", text.to_lowercase().replace('-', " ").replace('1', "l").replace('0', "o"));
         assert_eq!(FriendCode::parse(&messy).unwrap(), code, "case, spaces and look-alike letters are forgiven");
         for scheme in ["peta", "peta-developer"] { let link = code.to_link(scheme).unwrap(); assert!(link.starts_with(&format!("{scheme}://friend/"))); assert_eq!(FriendCode::parse(&link).unwrap(), code); }
-        assert_eq!(my_code(&root, &key, "Satoshi").unwrap(), code, "the sealing key is kept, so the code is stable");
+        assert_eq!(my_code(&root, &key, "Maker").unwrap(), code, "the sealing key is kept, so the code is stable");
         let long = my_code(&root, &key, "あいうえおかきくけこさしすせそ").unwrap(); assert!(long.name.len() <= NAME_MAX_BYTES && long.name.chars().count() == 8);
         fs::remove_dir_all(root).unwrap();
     }
@@ -285,7 +285,7 @@ mod tests {
     #[test]
     fn a_backup_moves_both_keys_and_needs_its_passphrase() {
         let (old, new) = (dir("old"), dir("new"));
-        let key = crate::device_key::load_or_create(&old).unwrap(); let code = my_code(&old, &key, "Satoshi").unwrap();
+        let key = crate::device_key::load_or_create(&old).unwrap(); let code = my_code(&old, &key, "Maker").unwrap();
         assert!(export(&old, &key, "short").is_err());
         let backup = export(&old, &key, "correct horse battery").unwrap();
         assert!(read_backup(&backup, "wrong horse battery!").is_err());
@@ -294,7 +294,7 @@ mod tests {
         crate::device_key::load_or_create(&new).unwrap();   // the new Mac already made its own keys
         assert_eq!(restore(&new, &backup, "correct horse battery").unwrap(), sign::public_key(&key));
         let moved = crate::device_key::load_or_create(&new).unwrap();
-        assert_eq!(my_code(&new, &moved, "Satoshi").unwrap(), code, "same keys, same friend code");
+        assert_eq!(my_code(&new, &moved, "Maker").unwrap(), code, "same keys, same friend code");
         let sealed = seal(&code.enc_key, GIFT, b"hello").unwrap(); assert_eq!(open(&new, GIFT, &sealed).unwrap(), b"hello");
         #[cfg(unix)] { use std::os::unix::fs::PermissionsExt; for f in ["device.key", BOX_FILE] { assert_eq!(fs::metadata(new.join(f)).unwrap().permissions().mode() & 0o777, 0o600); } }
         fs::remove_dir_all(old).unwrap(); fs::remove_dir_all(new).unwrap();

@@ -48,9 +48,10 @@ fn pack_id(title:&str,key:&ed25519_dalek::SigningKey)->String {
 /// Prepare immutable bytes. Only `press` is allowed to publish them and consume inventory.
 fn build(lib:&Library,title:&str,pouch:&str,selection:&[Selection],prizes:&[Prize],dress:&Dress)->Result<(Header,Vec<u8>)> {
     if !(3..=24).contains(&selection.len())||!text(title.trim(),40){return Err(invalid("Choose 3–24 designs and a short title."));}
+    let author=lib.db().require_display_name()?;
     let key=crate::device_key::load_or_create(lib.root())?;let public=sign::public_key(&key);let id=pack_id(title.trim(),&key);
     if lib.db().conn.query_row("SELECT EXISTS(SELECT 1 FROM packs_made WHERE pack_id=?1)",[&id],|r|r.get::<_,bool>(0))? {return Err(invalid("already_pressed"));}
-    let mut h=Header{prizes:prizes.to_vec(),pack_id:id,version:1,title:title.trim().into(),author:lib.db().display_name()?,pouch:pouch.into(),made_at:now(),items:vec![],signer:sign::Signer::Device{public_key:public.clone()},layout:dress.layout.clone(),cover:dress.cover.clone().filter(|s|!s.is_empty()),deco:dress.deco.clone().filter(|s|!s.is_empty()),blurb:dress.blurb.as_deref().map(str::trim).filter(|s|!s.is_empty()).map(str::to_owned)};
+    let mut h=Header{prizes:prizes.to_vec(),pack_id:id,version:1,title:title.trim().into(),author,pouch:pouch.into(),made_at:now(),items:vec![],signer:sign::Signer::Device{public_key:public.clone()},layout:dress.layout.clone(),cover:dress.cover.clone().filter(|s|!s.is_empty()),deco:dress.deco.clone().filter(|s|!s.is_empty()),blurb:dress.blurb.as_deref().map(str::trim).filter(|s|!s.is_empty()).map(str::to_owned)};
     let mut body=Vec::new();let mut chosen=std::collections::HashSet::new();let mut slot=0;
     for selected in selection {
         if !chosen.insert(&selected.sticker_id){return Err(invalid("Choose each design once."));}
@@ -376,7 +377,7 @@ pub fn header_of(db:&Database,id:&str)->Result<Option<Header>> {
 
 #[cfg(test)] mod tests {
     use super::*;
-    fn lib()->Library {Library::open(&std::env::temp_dir().join(crate::ids::new_gift_id())).unwrap()}
+    fn lib()->Library {let mut lib=Library::open(&std::env::temp_dir().join(crate::ids::new_gift_id())).unwrap();lib.db_mut().set_display_name("Maker").unwrap();lib}
     fn fixture(n:usize,copies:u32)->(Library,Vec<Selection>) {
         let mut lib=lib();lib.db_mut().set_display_name("Maker").unwrap();let mut selections=Vec::new();
         let mut image=image::RgbaImage::new(24,20);for y in 3..17 {for x in 3..21 {image.put_pixel(x,y,image::Rgba([100,80,40,255]));}}

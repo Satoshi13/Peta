@@ -14,7 +14,7 @@ for version in range(1,7):
     if db.execute('pragma user_version').fetchone()[0]<version:
         migration=re.search(r'const MIGRATION_V'+str(version)+r': &str = "(.*?)";',src,re.S)[1]
         db.executescript(migration); db.execute(f'pragma user_version={version}')
-db.execute("INSERT OR REPLACE INTO meta VALUES ('display_name','Satoshi')")
+db.execute("INSERT OR REPLACE INTO meta VALUES ('display_name','Maker')")
 for id,day,count in [('matte','2026-09-01',0),('kraft','2026-09-28',1),('holographic','2026-10-02',0)]:
     db.execute('INSERT OR REPLACE INTO material_unlocks VALUES (?,?)',(id,day+'T12:00:00Z'))
     db.execute('INSERT OR REPLACE INTO material_stock VALUES (?,?)',(id,count))
@@ -23,8 +23,8 @@ for no,key,day,mat in [(12,'cat-skateboard','2026-10-02','holographic'),(11,'cof
     rel=f'stickers/{id}/rendered.png'; out=dir/'assets'/rel; out.parent.mkdir(parents=True,exist_ok=True)
     shutil.copyfile(root/f'src/art/samples/{key}.png',out)
     im=Image.open(out); aspect=im.width/im.height
-    db.execute('INSERT OR REPLACE INTO stickers (id,created_at,original_asset_path,rendered_asset_path,material_id,original_number,source_type,aspect,creator_name) VALUES (?,?,?,?,?,?,?,?,?)',(id,day+'T12:00:00Z',rel,rel,mat,no,'created',aspect,'Satoshi'))
-    db.execute('INSERT OR REPLACE INTO provenance VALUES (?,0,?,?,?)',(id,'created','Satoshi',day+'T12:00:00Z'))
+    db.execute('INSERT OR REPLACE INTO stickers (id,created_at,original_asset_path,rendered_asset_path,material_id,original_number,source_type,aspect,creator_name) VALUES (?,?,?,?,?,?,?,?,?)',(id,day+'T12:00:00Z',rel,rel,mat,no,'created',aspect,'Maker'))
+    db.execute('INSERT OR REPLACE INTO provenance VALUES (?,0,?,?,?)',(id,'created','Maker',day+'T12:00:00Z'))
     if no in [11,12]: db.execute('INSERT OR REPLACE INTO placements VALUES (?,?,?,?,?,?,?,?,?)',(id,'capture-display',.68 if no==12 else .2,.5 if no==12 else .62,.13,-5 if no==12 else 4,day+'T12:00:00Z',1,no))
 for id,name,key,note,mat,no in [('GIFT-PORT-NAO','Nao','cassette-tape','for your desk','kraft',42),('GIFT-PORT-YUKI','Yuki','good-day','','matte',7)]:
     png=(root/f'src/art/samples/{key}.png').read_bytes(); im=Image.open(root/f'src/art/samples/{key}.png')

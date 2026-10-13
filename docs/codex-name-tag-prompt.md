@@ -79,8 +79,8 @@ Single isolated UI prop for a cozy desktop sticker app, drawn as a soft semi-fla
 
 見本の札から文字・矢印・カーソルだけを消した土台画像を用意しました。
 
-- 土台: `/Users/satoshi/Peta/docs/art-reference/name-tag-mock-clean.png`(393×122。紙のしわ・縁のふくらみ・折れ角・影は見本のまま)
-- 元の見本: `/Users/satoshi/Peta/docs/art-reference/name-tag-mock.png`(右側が入力済み)
+- 土台: `~/Peta/docs/art-reference/name-tag-mock-clean.png`(393×122。紙のしわ・縁のふくらみ・折れ角・影は見本のまま)
+- 元の見本: `~/Peta/docs/art-reference/name-tag-mock.png`(右側が入力済み)
 
 **土台の画像を編集して**(image-to-image、必要なら高解像度化して)、次の素材を作ってください。文章だけから新しく生成しないでください。
 
@@ -96,5 +96,5 @@ Single isolated UI prop for a cozy desktop sticker app, drawn as a soft semi-fla
 
 - `name-tag-paper.png` を **2400×360、透明背景**で、土台と同じ見た目で作る(§1の仕様のまま:**左右200pxだけ固有、その間は一様**)。
 - 中央の一様な部分は、土台の**文字を消した紙の部分**を元に、継ぎ目なく横に伸ばせる質感にする(しわは細かく、同じ模様が目立つ繰り返しにならないように)。
-- 納品先: `/Users/satoshi/Documents/Codex/2026-10-08/peta-ui/outputs/name-tag/name-tag-paper.png` に上書きし、旧版は `name-tag-paper-v1.png` に残す。
+- 納品先: `~/Documents/Codex/2026-10-08/peta-ui/outputs/name-tag/name-tag-paper.png` に上書きし、旧版は `name-tag-paper-v1.png` に残す。
 - 完成したら、**見本の右側の札と並べた比較画像**を `work/name-tag/compare-v2.png` に作り、違う点があれば正直に報告して止まる。②(lifted)はまだ作らない。

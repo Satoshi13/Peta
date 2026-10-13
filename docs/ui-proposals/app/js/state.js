@@ -37,7 +37,7 @@ function freshState(prev) {
   ];
   return {
     shell: prev?.shell || "studio", sound: prev?.sound ?? true, motion: prev?.motion || "full",
-    name: prev?.name || "Satoshi",
+    name: prev?.name || "Maker",
     today: new Date(2026, 9, 3), dayState: "arrived", todayMat: "holographic", chosen: "holographic",
     stock: { matte: Infinity, kraft: 1, holographic: 0 },
     lib, nextNo: 13, desk: [{ id: "L12", x: 0.68, y: 0.5, rot: -5 }, { id: "L11", x: 0.2, y: 0.62, rot: 4 }],

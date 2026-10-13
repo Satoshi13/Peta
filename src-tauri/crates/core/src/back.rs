@@ -175,12 +175,12 @@ mod tests {
     #[test]
     fn the_back_of_something_you_made() {
         let mut db = Database::open_in_memory().unwrap();
-        sticker(&mut db, "PETA-AAAA-0001", Some("holographic"), SourceType::Created, Some("Satoshi"));
-        sticker(&mut db, "PETA-AAAA-0002", Some("kraft"), SourceType::Created, Some("Satoshi"));
+        sticker(&mut db, "PETA-AAAA-0001", Some("holographic"), SourceType::Created, Some("Maker"));
+        sticker(&mut db, "PETA-AAAA-0002", Some("kraft"), SourceType::Created, Some("Maker"));
         let back = sticker_back(&db, "PETA-AAAA-0001", "Me", &ident).unwrap().unwrap();
         assert_eq!(back.kind, BackKind::Original);
         assert_eq!(back.original_number.as_deref(), Some("0001"));
-        assert_eq!(back.created_by, "Satoshi");
+        assert_eq!(back.created_by, "Maker");
         assert_eq!(back.material.as_ref().unwrap().name, "Holographic");
         assert_eq!(back.id_code, "PETA-AAAA-0001");
         assert_eq!(back.edition_number, None);
@@ -194,8 +194,8 @@ mod tests {
     fn stickers_from_before_names_were_recorded_use_the_fallback() {
         let mut db = Database::open_in_memory().unwrap();
         sticker(&mut db, "OLD", None, SourceType::Created, None);
-        let back = sticker_back(&db, "OLD", "Satoshi", &ident).unwrap().unwrap();
-        assert_eq!(back.created_by, "Satoshi");
+        let back = sticker_back(&db, "OLD", "Maker", &ident).unwrap().unwrap();
+        assert_eq!(back.created_by, "Maker");
         assert!(back.material.is_none());
     }
 
@@ -203,15 +203,15 @@ mod tests {
     fn the_back_of_something_you_received() {
         let mut db = Database::open_in_memory().unwrap();
         sticker(&mut db, "GIFT", Some("matte"), SourceType::Gift, Some("Nao"));
-        db.add_provenance("GIFT", ProvenanceKind::Received, Some("Satoshi"), "2026-10-07T09:00:00+00:00").unwrap();
+        db.add_provenance("GIFT", ProvenanceKind::Received, Some("Maker"), "2026-10-07T09:00:00+00:00").unwrap();
         let back = sticker_back(&db, "GIFT", "Me", &ident).unwrap().unwrap();
         assert_eq!(back.kind, BackKind::Received);
         assert_eq!(back.original_number, None, "someone else's sticker has no ORIGINAL number of yours");
         assert_eq!(back.created_by, "Nao");
-        assert_eq!(back.received_from.as_deref(), Some("Satoshi"));
+        assert_eq!(back.received_from.as_deref(), Some("Maker"));
         assert_eq!(back.received_on.as_deref(), Some("Oct 7, 2026"));
         assert_eq!(back.history.len(), 2);
-        assert_eq!(back.history[1].by.as_deref(), Some("Satoshi"));
+        assert_eq!(back.history[1].by.as_deref(), Some("Maker"));
     }
 
     #[test]
@@ -228,9 +228,11 @@ mod tests {
     #[test]
     fn display_name_is_stored_and_can_be_reset() {
         let mut db = Database::open_in_memory().unwrap();
-        assert!(!db.display_name().unwrap().is_empty());
-        db.set_display_name("  Satoshi ").unwrap();
-        assert_eq!(db.display_name().unwrap(), "Satoshi");
+        assert!(db.display_name().unwrap().is_empty());
+        assert!(db.require_display_name().is_err());
+        db.set_display_name("  Maker ").unwrap();
+        assert_eq!(db.display_name().unwrap(), "Maker");
+        assert_eq!(db.require_display_name().unwrap(), "Maker");
         db.set_display_name("").unwrap();
         assert_eq!(db.display_name().unwrap(), crate::db::default_display_name());
     }

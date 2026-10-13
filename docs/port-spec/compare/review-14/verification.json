@@ -1,12 +1,12 @@
 [
   {
     "restart": {
-      "displayName": "Satoshi",
+      "displayName": "Maker",
       "iconStickerId": "PETA-PORT-0011"
     }
   },
   {
-    "self": "SSatoshiYour creator profileChange icon…"
+    "self": "SmakerYour creator profileChange icon…"
   },
   {
     "radios": 9
@@ -18,7 +18,7 @@
   true,
   {
     "cancelKept": {
-      "displayName": "Satoshi",
+      "displayName": "Maker",
       "iconStickerId": "PETA-PORT-0011"
     }
   },
@@ -111,20 +111,20 @@
   true,
   {
     "cleared": {
-      "displayName": "Satoshi",
+      "displayName": "Maker",
       "iconStickerId": null
     }
   },
   {
     "deleted": {
-      "displayName": "Satoshi",
+      "displayName": "Maker",
       "iconStickerId": null
     },
     "stickerStillInBook": false
   },
   {
     "restored": {
-      "displayName": "Satoshi",
+      "displayName": "Maker",
       "iconStickerId": "PETA-PORT-0011"
     }
   },

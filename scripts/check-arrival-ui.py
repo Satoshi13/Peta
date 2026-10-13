@@ -156,7 +156,7 @@ with sync_playwright() as p:
     assert today.evaluate("getComputedStyle(document.querySelector('.env-float')).animationName")=='none'
     print('Today: visible float travel, 20 hover transitions preserve phase, extraction remains still, reduced motion: PASS')
     today.evaluate("""
-      window.Pages={}; window.S={developer:true,name:'Satoshi',iconStickerId:null,shell:'studio',appearance:'day'};
+      window.Pages={}; window.S={developer:true,name:'Maker',iconStickerId:null,shell:'studio',appearance:'day'};
       window.devCalls=[];
       window.Bridge={invoke:async name=>devCalls.push(name)};
       window.Shell={close:async()=>devCalls.push('hide-main'),toast:message=>devCalls.push(message)};

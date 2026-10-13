@@ -22,6 +22,7 @@ const Friends = {
     catch (e) { Shell.toast(this.error(e)); }
   },
   async copy(what) {
+    if(!S.name.trim()) {ProfileName.request();return;}
     const text = what === "link" ? S.inbox.myLink : S.inbox.myCode;
     try { await navigator.clipboard.writeText(text); } catch { Shell.toast("Could not copy. Select the code and copy it instead."); return; }
     Shell.toast(what === "link" ? "Link copied. Send it to a friend." : "Code copied. Send it to a friend.");

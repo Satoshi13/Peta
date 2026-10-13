@@ -123,7 +123,7 @@ pub struct PackSummary {
     pub cover: Option<String>,
     pub deco: Option<String>,
     pub blurb: Option<String>,
-    /// Studio: where the label, the cover and the accents sit (the JSON of `creator_pack::Layout`), when the maker moved them.
+    /// Studio: where the label, the cover and the accents sit (the JSON of `creator_pack::Layout`), when the Maker moved them.
     pub layout: Option<String>,
 }
 
@@ -320,15 +320,8 @@ pub struct BookRow {
     pub on_desktop: bool,
 }
 
-/// OS user name with a capital first letter ("satoshi" -> "Satoshi"); "Me" if unknown.
-pub fn default_display_name() -> String {
-    let raw = std::env::var("USER").or_else(|_| std::env::var("USERNAME")).unwrap_or_default();
-    let mut chars = raw.trim().chars();
-    match chars.next() {
-        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
-        None => "Me".to_owned(),
-    }
-}
+/// An unset profile stays empty; the UI may display a neutral local label.
+pub fn default_display_name() -> String { String::new() }
 
 pub fn now() -> String {
     chrono::Utc::now().to_rfc3339()
@@ -665,6 +658,13 @@ impl Database {
             .query_row("SELECT value FROM meta WHERE key = 'display_name'", [], |r| r.get(0))
             .optional()?;
         Ok(stored.filter(|n| !n.trim().is_empty()).unwrap_or_else(default_display_name))
+    }
+
+    /// Sharing must use a name the person explicitly chose, never an OS account name.
+    pub fn require_display_name(&self) -> Result<String> {
+        let name=self.display_name()?;
+        if name.trim().is_empty() {return Err(Error::Invalid("Choose your name in Settings before sharing.".into()));}
+        Ok(name)
     }
 
     pub fn set_display_name(&mut self, name: &str) -> Result<()> {
@@ -1250,7 +1250,7 @@ mod tests {
         NewSticker {
             id: id.into(),
             creator_id: Some("me".into()),
-            creator_name: Some("Satoshi".into()),
+            creator_name: Some("Maker".into()),
             original_asset_path: format!("stickers/{id}/original.png"),
             rendered_asset_path: format!("stickers/{id}/rendered.png"),
             mask_asset_path: None,
@@ -1475,7 +1475,7 @@ mod tests {
         let mut db = Database::open(&path).unwrap();
         assert_eq!(db.sticker("OLD").unwrap().unwrap().creator_name, None);
         let new = db.create_sticker(new("NEW", SourceType::Created)).unwrap();
-        assert_eq!(new.creator_name.as_deref(), Some("Satoshi"));
+        assert_eq!(new.creator_name.as_deref(), Some("Maker"));
         let _ = std::fs::remove_dir_all(dir);
     }
 

@@ -49,10 +49,11 @@ for(const resource of ['resOf','thumbOf']) test(`a stale decoding failure cannot
 });
 test('a native save dialog protects focus until success, cancellation or failure',async()=>{
   let resolve;const f=fixture(()=>new Promise(r=>resolve=r));
+  f.run("S.name='Maker'");
   const pending=f.run("Bridge.fileDialog('gift_send',{})");assert.equal(f.run('Bridge.dialogOpen'),true);
   resolve(null);assert.equal(await pending,null);assert.equal(f.run('Bridge.dialogOpen'),false);
   f.document.querySelector=()=>({open:true});const nested=f.run("Bridge.fileDialog('gift_send',{})");resolve({savedTo:'/tmp/file'});await nested;assert.equal(f.run('Bridge.dialogOpen'),true);
-  const rejected=fixture(async()=>{throw Error('save');});await assert.rejects(rejected.run("Bridge.fileDialog('gift_send',{})"),/save/);assert.equal(rejected.run('Bridge.dialogOpen'),false);
+  const rejected=fixture(async()=>{throw Error('save');});rejected.run("S.name='Maker'");await assert.rejects(rejected.run("Bridge.fileDialog('gift_send',{})"),/save/);assert.equal(rejected.run('Bridge.dialogOpen'),false);
 });
 test('a stale Studio thumbnail cannot overwrite a picture requested after editing',async()=>{
   const pending=[];const state={urls:new Map(),urlRequests:new Map()};
@@ -61,4 +62,10 @@ test('a stale Studio thumbnail cannot overwrite a picture requested after editin
   vm.runInContext("stUrl('sticker')",context);state.urls.delete('sticker');state.urlRequests.delete('sticker');vm.runInContext("stUrl('sticker')",context);
   pending[1]({url:'new'});await new Promise(resolve=>setImmediate(resolve));pending[0]({url:'old'});await new Promise(resolve=>setImmediate(resolve));
   assert.equal(state.urls.get('sticker'),'new');
+});
+
+test('sharing stops before IPC when no profile name was chosen',async()=>{
+  let called=0,asked=0;const f=fixture(async()=>{called++;});f.context.ProfileName={request(){asked++;}};
+  for(const cmd of ['gift_send','gift_send_friend','creator_pack_save','creator_pack_shelve','friend_code_copied','friend_add','friend_approve']) await assert.rejects(f.run(`Bridge.invoke('${cmd}',{})`),/Choose your name in Settings/);
+  assert.equal(called,0);assert.equal(asked,7);f.run("S.name='Maker'");await f.run("Bridge.invoke('gift_send',{})");assert.equal(called,1);
 });
