@@ -17,6 +17,7 @@ pub fn kickoff(app: &tauri::AppHandle) {
     {
         use std::sync::atomic::Ordering;
         use tauri::{Emitter, Manager};
+        if !app.state::<crate::store::Store>().lock().db().friends_anyone().unwrap_or(false) { return; }
         if SYNCING.swap(true, Ordering::SeqCst) {
             return;
         }
@@ -45,8 +46,8 @@ pub struct Diagnostics {
 }
 #[tauri::command]
 pub async fn referee_status(app: tauri::AppHandle) -> std::result::Result<Diagnostics, String> {
-    if !cfg!(feature = "developer") {
-        return Err("Developer edition required.".into());
+    if !cfg!(feature = "server") {
+        return Err("Server checks are disabled in this edition.".into());
     }
     tauri::async_runtime::spawn_blocking(move || {
         use tauri::Manager;
@@ -70,8 +71,8 @@ pub async fn referee_status(app: tauri::AppHandle) -> std::result::Result<Diagno
 }
 #[tauri::command]
 pub async fn referee_sync(app: tauri::AppHandle) -> std::result::Result<(), String> {
-    if !cfg!(feature = "developer") {
-        return Err("Developer edition required.".into());
+    if !cfg!(feature = "server") {
+        return Err("Server checks are disabled in this edition.".into());
     }
     tauri::async_runtime::spawn_blocking(move || {
         use tauri::{Emitter, Manager};

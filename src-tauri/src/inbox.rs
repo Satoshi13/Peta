@@ -276,7 +276,7 @@ mod net {
             let lib = store.lock();
             let db = lib.db();
             let auto = db.inbox_value("auto").ok().flatten().as_deref() != Some("off");
-            auto && (db.friends_anyone().unwrap_or(false) || db.inbox_value("registered").ok().flatten().is_some())
+            auto && db.friends_anyone().unwrap_or(false)
         };
         if due && now() - LAST_PASS.load(Ordering::Relaxed) >= AUTO_EVERY { let _ = check(app, false); }
     }
@@ -296,7 +296,7 @@ mod net {
             let lib = store.lock();
             (lib.db().friends_anyone().map_err(text)?, lib.db().inbox_value("registered").map_err(text)?.is_some())
         };
-        if !talk && !registered { return Ok(Checked { skipped: true, ..Checked::default() }); }   // no friends, no mailbox: never talk
+        if !talk && (!manual || !registered) { return Ok(Checked { skipped: true, ..Checked::default() }); } // Automatic checks need a friend or an active request.
         LAST_PASS.store(now(), Ordering::Relaxed);
         ensure_registered(app)?;
         let (root, mine) = me(app)?;

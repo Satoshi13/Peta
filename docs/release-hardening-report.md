@@ -57,3 +57,13 @@ Step 7 commit: `d250bbf`。`.petamove`（PETAMOV1）を追加した。既存Argo
 移行レビュー後の追加対応: tag-iconsを再生成cacheとして除外し、thumbnailとapp iconの書き込みを同じ交換ロックで止める。Marketカードの旧絶対パスはsnapshot内だけroot相対へ正規化し、元DBは変更しない（この保存先列だけは文字列の一致ではなく移行先での参照の一致）。material/tag賞品の空png_pathは画像検証から除く。stage/old/rootのsymlink置換を拒否し、旧フォルダの指紋を確認してからrollbackする。親ディレクトリの宣言・chmod後のfsyncも検証する。
 
 Step 8: 必須5コマンドすべて成功（JS198件、Worker56件）。追加した移行10件（Market/賞品/重複/親欠落/リンク置換を含む）と鍵復旧も既定・Developer両方で成功。NativeのDeveloper cargo checkも成功。実際の2台移行は未実施。
+
+## Step 9 — B1
+
+Step 8 commit: `e000a56`。
+
+通常版設定のserverビルドをbuild:betaに追加し、通常版と同じbundle IDと保存先を使う。本番固定APIとDeveloperのdev/環境上書きを分けた。友達も進行中の申請も無い場合は自動受信・審判・Market同期を止める。申請は通信に必要なので「承認済みだけ」に限定しない。利用者が押した手動確認と共有操作の事前確認は維持する。Peta checksもserver版で表示する。ビルドのApple資格情報を継承せず、adhoc以外の署名・公証はreleaseスクリプトだけで行う。新規crateなし。本番照会なし。
+
+Step 9の実ビルドで通常版に1件の個人パスが見つかった。Rustの位置情報ではなく、同梱の名前札PNGのtEXt（元画像の保存先）だったため、このchunkのみ除去した。PNGのIDAT bytes/SHA-256は前後で完全一致し、画素・見た目・color情報は変更なし。ソース/同梱assetsのバイナリも再走査した。通常版のcargo tree -e normalにはureq/reqwest/hyper/rustlsがなく、server版にはureq 2.12.1とTLS依存がある。
+
+Step 9: 必須5コマンドがすべて成功（JS198・Worker56）。非Developerのserver付きworkspaceテストも成功。通常版/ベータ版の実releaseビルドと再検査が成功し、残存個人パス0件、bundle IDは両方app.peta.desktop。実行して本番へ接続する検証はしていない。生成物はtarget/release/verified/{offline,beta}/Peta.appに保持（正式配布用署名・公証なし）。全featureの実機操作はチェックリストに残す。

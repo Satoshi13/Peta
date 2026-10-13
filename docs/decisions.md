@@ -322,3 +322,9 @@ CSPはselfのscript、ローカル画像/data/blob/Tauri asset、selfのfont/med
 ## 2026-10-14: 公開前修正 Step 8（C9）
 
 新形式PETAMOV1/.petamoveは既存のArgon2id（19456KiB・2回・1lane）とChaCha20-Poly1305を使用する。256KiBレコードごとにヘッダー・番号・終端・長さを認証し、完全な認証後にだけ相対パスを展開する。DBはVACUUM INTO、assets・鍵・その他永続ファイルを含め、キャッシュと一時journalを除外する。全体64GiB・10万エントリ・パス1024bytesに境界を設ける。鍵・DB integrity/schema/外部キー・参照assetsを検証する。空だった初回起動の準備完了時にDB変更数と全永続内容の指紋を固定し、その後の変更と既存ライブラリを拒否する。新しいMacの自動見本は許可し、同じ初回起動内に限定する（V18追加を避け、過去の使用状態を推測しない）。親フォルダにjournalを置き、フォルダ単位で復旧する。交換中はDB mutexとサムネイルcache writerを止める。新規crate・アプリschema変更・既存署名形式変更なし。
+
+## 2026-10-14: Step 9（B1）
+
+通常設定のserver feature版をbuild:betaとして用意した。本番APIはreferee.rsの非Developer定数1か所で、環境変数による上書きはDeveloperだけ。受信箱・審判・Marketの自動処理は友達または進行中の申請が存在する場合だけ起動する。明示したCheck now/Sync nowや送付・受取などの操作は既存の事前確認を維持する。通常版とベータは同じデータフォルダを使うため同時利用しない。通常buildは通信clientなし。ビルド時のApple資格情報を遮断し、署名はadhocに限定、正式署名と公証は別スクリプトに委ねる。
+
+実バイナリ検査で見つかった画像由来の個人パスは、名前札PNGのtEXtだけを除去した。IDATは前後同一で画素は変わらない。Rustのremapだけでは同梱媒体のメタデータは消えないので、配布検査は実ファイルを対象にする。

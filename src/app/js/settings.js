@@ -23,7 +23,7 @@ Pages.settings = {
         h("button.btn.paper.small",{on:{click:async e=>{const b=e.currentTarget;b.disabled=true;try {await Bridge.invoke("developer_show_arrival");await Shell.close();}catch(err){Shell.toast(String(err));}finally{b.disabled=false;}}}},"Show desktop envelope once"),
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_next_day");S.envelopeDeadline=null;await Bridge.reload();Shell.go("today",{force:true});}catch(e){Shell.toast(String(e));}}}},"Next Day (+1 day)"),
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_sync_displays");Shell.toast("Displays re-synced.");}catch(e){Shell.toast(String(e));}}}},"Re-sync Displays"))));
-    if(S.developer) root.append(RefereeSettings.card());
+    if(S.inbox.enabled) root.append(RefereeSettings.card());
     const friends = Friends.settingsCard(), key = Friends.keyCard(); if(friends) root.append(friends); if(key) root.append(key);
     root.append(LibraryMove.card(),AboutPeta.card());
     root.append(h("p.muted.fine", "In the real app this window also hosts Cutting Mat, Collection, Packs and Gifts — what used to be four separate windows. Stickers stay on your desktop; this window comes and goes from the menu bar."));

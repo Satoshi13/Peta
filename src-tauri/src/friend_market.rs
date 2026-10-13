@@ -4,6 +4,8 @@
 //! "unavailable" and nothing is sent.
 use serde::Serialize;
 use tauri::AppHandle;
+#[cfg(feature="server")]
+use tauri::Manager;
 
 use crate::store::Store;
 use peta_core::market::{Listing, Seen};
@@ -72,6 +74,7 @@ market_command!(/// Count Scraps earned from friends' pulls.
 pub fn kickoff(app: &AppHandle) {
     #[cfg(feature = "server")]
     {
+        if !app.state::<Store>().lock().db().friends_anyone().unwrap_or(false) { return; }
         let app = app.clone();
         tauri::async_runtime::spawn_blocking(move || { let _ = net::sync(&app, false); });
     }
