@@ -10,8 +10,13 @@ import {
   verify,
 } from "./proofs";
 import { inbox, MAX_GIFT, keyHash } from "./inbox";
+import { market, contentLimit, MARKET_CARD_MAX, MARKET_PACK_MAX } from "./market";
 export interface Env {
   DB: D1Database;
+  MARKET?: R2Bucket;
+  MARKET_LISTINGS?: string;
+  MARKET_PULLS_PER_DAY?: string;
+  MARKET_CARD_MAX?: string;
   RATE_LIMITER?: RateLimit;
   REQUESTS_PER_MINUTE?: string;
   PACKS_PER_HOUR?: string;
@@ -95,7 +100,7 @@ async function transfer(t: Transfer, key: string, kind: string, id?: string) {
 }
 export const stmt = (db: D1Database, sql: string, ...args: unknown[]) =>
   db.prepare(sql).bind(...args);
-function assertion(
+export function assertion(
   db: D1Database,
   code: string,
   condition: string,
@@ -121,8 +126,9 @@ const sqlCodes = [
   "already_released",
   "time_order",
   "invalid",
+  "for_sale", "not_friend", "listing_closed", "price_changed", "pull_used", "too_many_pulls", "too_many_listings", "sold_out", "own_pack", "blocked",
 ];
-async function batch(db: D1Database, statements: D1PreparedStatement[]) {
+export async function batch(db: D1Database, statements: D1PreparedStatement[]) {
   try {
     return await db.batch([
       ...statements,
@@ -135,7 +141,7 @@ async function batch(db: D1Database, statements: D1PreparedStatement[]) {
       .find((c) => message.includes(c));
     if (code)
       fail(
-        code === "not_yours" ? 403 : code.startsWith("unknown") ? 404 : 409,
+        ["not_yours","for_sale","not_friend","blocked","own_pack"].includes(code) ? 403 : code.startsWith("unknown") ? 404 : ["too_many_pulls","too_many_listings"].includes(code) ? 429 : 409,
         code,
       );
     throw e;
@@ -228,12 +234,10 @@ async function authenticate(
   )
     fail(401, "bad_signature");
   const hash = await sha256(unbase64(key, 32));
-  if (
-    await stmt(
-      env.DB,
-      "SELECT 1 FROM blocked_keys WHERE key_hash=?",
-      hash,
-    ).first()
+  // Market checks blocks atomically with the sale; an exact committed retry must remain recoverable.
+  const purchase = request.method === "POST" && /^\/v1\/market\/listings\/[A-Za-z0-9_-]{22}\/pulls\/[A-Za-z0-9_-]{22}$/.test(path);
+  if (!purchase &&
+    await stmt(env.DB,"SELECT 1 FROM blocked_keys WHERE key_hash=?",hash).first()
   )
     fail(403, "blocked");
   const minute = Number(env.REQUESTS_PER_MINUTE ?? 60),
@@ -440,6 +444,7 @@ async function cancelPack(
     key,
   );
   await batch(env.DB, [
+    assertion(env.DB,"for_sale","NOT EXISTS(SELECT 1 FROM market_listings WHERE pack_id=?)",id),
     assertion(
       env.DB,
       "not_yours",
@@ -494,7 +499,7 @@ async function cancelPack(
   ]);
   return ok();
 }
-async function claimSlot(
+export async function slotClaimStatements(
   env: Env,
   key: string,
   id: string,
@@ -525,8 +530,7 @@ async function claimSlot(
   }>();
   if (!s) fail(400, "invalid");
   if (s.claimer_key) {
-    if (s.claimer_key === key && s.claim_sig === (t?.sig ?? "")) return ok();
-    fail(409, "slot_taken");
+    if (s.claimer_key !== key || s.claim_sig !== (t?.sig ?? "")) fail(409, "slot_taken");
   }
   if (s.sticker_id !== (t?.stickerId ?? null)) fail(400, "invalid");
   const q = [
@@ -556,7 +560,12 @@ async function claimSlot(
     ),
   ];
   if (t) q.push(await insertTransfer(env.DB, t));
-  await batch(env.DB, q);
+  return q;
+}
+async function claimSlot(env: Env, key: string, id: string, n: number, body: {claim?:Transfer|null}) {
+  if (await stmt(env.DB,"SELECT 1 FROM market_listings WHERE pack_id=?",id).first()) fail(403,"for_sale");
+  const q = await slotClaimStatements(env,key,id,n,body);
+  await batch(env.DB,[assertion(env.DB,"for_sale","NOT EXISTS(SELECT 1 FROM market_listings WHERE pack_id=?)",id),...q]);
   return ok();
 }
 async function route(request: Request, env: Env): Promise<Response> {
@@ -564,16 +573,17 @@ async function route(request: Request, env: Env): Promise<Response> {
   if (path === "/v1/health" && request.method === "GET") return ok();
   if (!["GET", "POST", "PUT", "DELETE"].includes(request.method))
     fail(405, "method_not_allowed");
-  // A sealed gift is raw bytes up to 8 MB; a report carries one opened gift as base64. Everything else stays under 1 MB of JSON.
+  // Only sealed Market uploads and consented reports use larger bodies; ordinary JSON stays under 1 MB.
   const upload = request.method === "POST" && /^\/v1\/mailbox\/[0-9A-Z]{26}\/messages\/[A-Za-z0-9_-]{8,64}$/.test(path);
-  const limit = upload ? MAX_GIFT : path === "/v1/report" ? Math.ceil(MAX_GIFT / 3) * 4 + 4096 : 1024 * 1024;
+  const marketUpload = request.method === "PUT" && /^\/v1\/market\/listings\/[A-Za-z0-9_-]{22}\/(card|pack)$/.exec(path);
+  const limit = marketUpload ? contentLimit(env,marketUpload[1]) : upload ? MAX_GIFT : path === "/v1/report" ? Math.ceil((MARKET_CARD_MAX+MARKET_PACK_MAX)/3)*4+8192 : 1024 * 1024;
   if (Number(request.headers.get("Content-Length") ?? 0) > limit)
     fail(413, "too_large");
   const body = new Uint8Array(await request.arrayBuffer());
   if (body.length > limit) fail(413, "too_large");
   const key = await authenticate(request, env, path, body);
   let data: any = {};
-  if (body.length && !upload) {
+  if (body.length && !upload && !marketUpload) {
     try {
       data = JSON.parse(new TextDecoder().decode(body));
     } catch {
@@ -582,6 +592,8 @@ async function route(request: Request, env: Env): Promise<Response> {
     if (!data || typeof data !== "object" || Array.isArray(data))
       fail(400, "invalid");
   }
+  const fromMarket = await market(request, env, path, key, body, data);
+  if (fromMarket) return fromMarket;
   const fromInbox = await inbox(request, env, path, key, body, data);
   if (fromInbox) return fromInbox;
   if (request.method === "POST" && path === "/v1/stickers") {
@@ -612,6 +624,7 @@ async function route(request: Request, env: Env): Promise<Response> {
       await transfer(t, key, action === "cancel" ? "release" : action, id);
       if (action === "cancel") {
         await batch(env.DB, [
+          assertion(env.DB,"for_sale","NOT EXISTS(SELECT 1 FROM pack_slots ps JOIN market_listings ml ON ml.pack_id=ps.pack_id WHERE ps.sticker_id=? AND ps.release_sig=?)",id,t.sig),
           stmt(
             env.DB,
             "INSERT OR IGNORE INTO cancelled_releases VALUES(?,?,?)",

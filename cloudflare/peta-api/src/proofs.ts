@@ -50,8 +50,11 @@ export function unbase64(s: string, length?: number): Uint8Array {
     throw new Error("bad_base64");
   return bytes;
 }
-export const base64 = (bytes: Uint8Array) =>
-  btoa(String.fromCharCode(...bytes));
+export function base64(bytes: Uint8Array): string {
+  const chunks: string[] = [];
+  for (let i=0;i<bytes.length;i+=8192) chunks.push(String.fromCharCode(...bytes.subarray(i,i+8192)));
+  return btoa(chunks.join(""));
+}
 export async function sha256(bytes: Uint8Array): Promise<string> {
   return Array.from(
     new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),

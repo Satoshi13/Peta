@@ -2,6 +2,7 @@
    a friend sends is sealed on their Mac to the owner's sealing key: the server keeps addresses, allow lists and boxes it cannot open.
    Unopened requests and gifts expire after 7 days (R2 lifecycle for the gifts, a sweep on write for the index). */
 import { Env, fail, ok, counter, stmt } from "./index";
+import { leaveMarket, MARKET_CARD_MAX, MARKET_PACK_MAX } from "./market";
 import { base64, sha256, unbase64, utf8, verify } from "./proofs";
 
 const DAY = 86400;
@@ -78,6 +79,7 @@ export async function inbox(request: Request, env: Env, path: string, key: strin
   if (!part) {
     if (method !== "DELETE") fail(405, "method_not_allowed");
     await owner(env, key, id);
+    await leaveMarket(env,key);
     const all = await stmt(env.DB, "SELECT id FROM messages WHERE mailbox_id=?", id).all<{ id: string }>();
     for (const g of all.results) await env.GIFTS?.delete(`${id}/${g.id}`);
     await env.DB.batch([stmt(env.DB, "DELETE FROM mailboxes WHERE id=?", id)]);
@@ -165,15 +167,21 @@ export async function inbox(request: Request, env: Env, path: string, key: strin
 /* A report, made only when the recipient agrees: the opened gift and its sender go to a private bucket for the owner to look at.
    The owner is told how many reports wait, never what they hold. */
 async function report(env: Env, key: string, data: any) {
-  const { senderHash, reason, gift } = data ?? {};
-  if (!isHash(senderHash) || typeof reason !== "string" || reason.length < 1 || reason.length > 200 || typeof gift !== "string") fail(400, "invalid");
-  let bytes: Uint8Array;
-  try { bytes = unbase64(gift); } catch { fail(400, "invalid"); }
-  if (bytes.length > MAX_GIFT) fail(413, "too_large");
+  const { senderHash, reason, gift, listingId, card, pack } = data ?? {};
+  const kind = data?.kind ?? "gift";
+  if (!isHash(senderHash) || typeof reason !== "string" || reason.length < 1 || reason.length > 200 || !["gift","listing"].includes(kind)) fail(400, "invalid");
+  if (kind === "gift") {
+    if (typeof gift !== "string") fail(400,"invalid");
+    let bytes: Uint8Array; try { bytes=unbase64(gift); } catch { fail(400,"invalid"); }
+    if (bytes.length>MAX_GIFT) fail(413,"too_large");
+  } else {
+    if (typeof listingId!=="string" || !/^[A-Za-z0-9_-]{22}$/.test(listingId) || typeof card!=="string" || (pack!==undefined && typeof pack!=="string")) fail(400,"invalid");
+    try { if (unbase64(card).length>MARKET_CARD_MAX || (pack && unbase64(pack).length>MARKET_PACK_MAX)) fail(413,"too_large"); } catch (e) { if (e instanceof Error && e.message === "too_large") throw e; fail(400,"invalid"); }
+  }
   if (!env.REPORTS) fail(503, "unavailable");
   const reporter = await keyHash(key), id = base64(crypto.getRandomValues(new Uint8Array(12))).replace(/[+/=]/g, "").slice(0, 16);
-  await env.REPORTS.put(`reports/${id}.json`, JSON.stringify({ id, reporter, senderHash, reason, gift, at: new Date().toISOString() }));
-  await env.DB.batch([stmt(env.DB, "INSERT INTO reports VALUES(?,?,?,?,?)", id, reporter, senderHash, reason, now())]);
+  await env.REPORTS.put(`reports/${id}.json`, JSON.stringify({ id, reporter, senderHash, reason, kind, ...(kind === "gift" ? {gift} : {listingId,card,pack}), at: new Date().toISOString() }));
+  await env.DB.batch([stmt(env.DB, "INSERT INTO reports(id,reporter_hash,sender_hash,reason,created_at,kind,listing_id) VALUES(?,?,?,?,?,?,?)", id, reporter, senderHash, reason, now(),kind,kind==="listing"?listingId:null)]);
   if (env.REPORT_WEBHOOK) {
     const open = await stmt(env.DB, "SELECT COUNT(*) AS n FROM reports").first<{ n: number }>();
     try { await fetch(env.REPORT_WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: `Peta: a new report (${id}). ${Number(open?.n)} on file.` }) }); } catch { /* the report is kept even if the note fails */ }
