@@ -328,6 +328,8 @@ pub fn now() -> String {
 }
 
 impl Database {
+    pub fn change_count(&self)->u64 {self.conn.total_changes()}
+
     pub fn open(path: &Path) -> Result<Self> {
         Self::init(Connection::open(path)?)
     }

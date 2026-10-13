@@ -370,3 +370,6 @@ Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に
 - [ ] 通常版・Developer・ベータ版のWebViewコンソールを開き、Today/Create/Studio/Collection/Packs/Gifts/Materials/Market/Boards/Settings、app.html・index.htmlのデスクトップ層・arrival.htmlを操作してCSP違反がないことを確認する。素材、blob画像、フォント、Tour動画、印刷、開封、ボード切替、友達のシートも確認する。
 - [ ] devでGift/出品の通報を送る。未許可の相手は拒否、ブロック済みは通報可、封筒削除後の出品も通報可。同じ内容は同じID、上限時は新規保存せず429となる。
 - [ ] 通常版・ベータ版のSettings → About Peta → Third-party notices… が、同梱のライセンス一覧を開く。Rust依存と同梱フォントの本文がある。
+- [ ] 別Macの初回起動で、名前・ステッカー・友達・配置を変更する前に `.petamove` を読み込む。再起動後にDBの行、画像、鍵、友達、配置が一致する。旧MacのPetaは停止する。
+- [ ] 誤ったパスフレーズ・途中破損・末尾の欠落、初回準備後に変更したライブラリでは復元できず、現在のデータが残る。再起動済みの空ライブラリもこの実装では対象外。
+- [ ] 大きいライブラリの書き出しと、交換中の強制終了→次の起動の復旧を確認する。移行途中で古い版に戻さない。

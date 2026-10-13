@@ -27,6 +27,7 @@
     "allow-developer-tools",
     "allow-friend-links",
     "allow-friend-market",
-    "allow-about-notices"
+    "allow-about-notices",
+    "allow-library-move"
   ]
 }

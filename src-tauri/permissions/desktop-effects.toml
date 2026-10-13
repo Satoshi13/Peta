@@ -83,3 +83,8 @@ commands.allow = ["market_friend_listings", "market_card", "market_pull", "marke
 identifier = "allow-about-notices"
 description = "Open bundled third-party license notices from About Peta."
 commands.allow = ["about_notices"]
+
+[[permission]]
+identifier = "allow-library-move"
+description = "Export a passphrase-protected full library and restore only into a frozen fresh installation."
+commands.allow = ["move_bootstrap_done", "move_status", "library_move_export", "library_move_import"]

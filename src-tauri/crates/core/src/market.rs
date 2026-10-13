@@ -59,6 +59,8 @@ fn write_atomic(path: &std::path::Path, bytes: &[u8]) -> Result<()> {
     std::fs::write(&tmp, bytes)?; std::fs::rename(&tmp, path)?; Ok(())
 }
 fn outbox(lib: &Library, listing: &str, kind: &str) -> std::path::PathBuf { lib.root().join("market").join("outbox").join(format!("{listing}.{kind}")) }
+pub(crate) fn relative_card_path(listing: &str) -> Result<String> { context(listing, "card")?; Ok(format!("market/cards/{listing}.json")) }
+fn stored_card_file(lib: &Library, path: &str) -> std::path::PathBuf { lib.root().join(path) }
 fn card_file(lib: &Library, listing: &str) -> std::path::PathBuf { lib.root().join("market").join("cards").join(format!("{listing}.json")) }
 
 /* ---------- The card: what friends see before they pull ---------- */
@@ -293,7 +295,7 @@ pub fn store_card(lib: &mut Library, listing_id: &str, sealed: &[u8]) -> Result<
     let plain = open(&key, listing_id, "card", sealed)?; let card = parse_card(&plain)?;
     if card.external_id != external { return Err(invalid()); }
     let path = card_file(lib, listing_id); write_atomic(&path, &plain)?;
-    lib.db().conn.execute("UPDATE market_listings_seen SET card_path=?2 WHERE listing_id=?1", params![listing_id, path.to_string_lossy()])?;
+    lib.db().conn.execute("UPDATE market_listings_seen SET card_path=?2 WHERE listing_id=?1", params![listing_id, relative_card_path(listing_id)?])?;
     Ok(card)
 }
 pub fn seen(lib: &Library) -> Result<Vec<Seen>> {
@@ -303,7 +305,7 @@ pub fn seen(lib: &Library) -> Result<Vec<Seen>> {
         .collect::<std::result::Result<Vec<_>, _>>()?;
     Ok(rows.into_iter().filter_map(|(listing_id, seller_key, external_id, price, state, slot_count, slots_left, card_path, fetched_at, pack_id)| {
         let seller_name = names.get(&seller_key)?.clone();
-        let card = card_path.and_then(|p| std::fs::read(p).ok()).and_then(|b| parse_card(&b).ok());
+        let card = card_path.and_then(|p| std::fs::read(stored_card_file(lib, &p)).ok()).and_then(|b| parse_card(&b).ok());
         Some(Seen { listing_id, seller_key, seller_name, external_id, price, state, slot_count, slots_left, card, pack_id, fetched_at })
     }).collect())
 }
@@ -317,7 +319,7 @@ pub fn install_pack(lib: &mut Library, listing_id: &str, sealed: &[u8]) -> Resul
     if let Some(existing) = market_pack(lib.db(), listing_id)? { return Ok(existing); }
     let (key, _, digest, seller, external) = seen_key(lib.db(), listing_id)?;
     let card_path: Option<String> = lib.db().conn.query_row("SELECT card_path FROM market_listings_seen WHERE listing_id=?1", [listing_id], |r| r.get(0))?;
-    let card = parse_card(&std::fs::read(card_path.ok_or_else(invalid)?)?)?;
+    let card = parse_card(&std::fs::read(stored_card_file(lib, &card_path.ok_or_else(invalid)?))?)?;
     if o::digest(sealed) != digest { return Err(invalid()); }
     let plain = open(&key, listing_id, "pack", sealed)?;
     if o::digest(&plain) != card.pack_digest { return Err(invalid()); }

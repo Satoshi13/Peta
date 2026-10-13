@@ -382,3 +382,5 @@ CSPを通常版・Developer共通で有効にし、スクリプトは同梱フ�
 通報は許可・拒否した相手と、実際に封筒が届いた出品についてのみ受け付けます。重複は同じIDにまとめ、1人24時間5件・未対応全500件に制限します。対応後30日の通報は日次で本文と索引を削除します。
 
 `npm run licenses` が依存とフォントの `THIRD_PARTY_NOTICES` をオフラインで生成します。アプリに同梱し、Settings → About Peta → Third-party notices… から開けます。配布直前の脆弱性照合は [配布手順](docs/distribution-howto.md) を参照してください。
+
+Settings の Move to a new Mac は、DB・画像・鍵をパスフレーズ付き `.petamove` にまとめるローカル移行です。復元は変更前の初回起動のライブラリに限り、検証後にフォルダを交換して再起動します。旧Macとの同時利用は避けてください。[移行手順](docs/server-howto.md)。

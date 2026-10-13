@@ -318,3 +318,7 @@ CSPはselfのscript、ローカル画像/data/blob/Tauri asset、selfのfont/med
 ## 2026-10-14: 公開前修正 Step 7（C8）
 
 新しいライセンス管理ツールは導入せず、locked/offlineのCargo metadataと既存ソースでmacOSの全featureの依存通知を作る。crateに欠ける本文は公式の版固定告知と選択したMIT、MozillaのMPL本文で補完し、取得元・SHA-256を保存する。objc2のSDK由来の上流告知は改変せず残す。版固定の未変更crateソースURLと既存フォントの本文を一覧に含め、resourceとして同梱する。cargo audit/npm auditは配布直前のオーナー手順に明記する。
+
+## 2026-10-14: 公開前修正 Step 8（C9）
+
+新形式PETAMOV1/.petamoveは既存のArgon2id（19456KiB・2回・1lane）とChaCha20-Poly1305を使用する。256KiBレコードごとにヘッダー・番号・終端・長さを認証し、完全な認証後にだけ相対パスを展開する。DBはVACUUM INTO、assets・鍵・その他永続ファイルを含め、キャッシュと一時journalを除外する。全体64GiB・10万エントリ・パス1024bytesに境界を設ける。鍵・DB integrity/schema/外部キー・参照assetsを検証する。空だった初回起動の準備完了時にDB変更数と全永続内容の指紋を固定し、その後の変更と既存ライブラリを拒否する。新しいMacの自動見本は許可し、同じ初回起動内に限定する（V18追加を避け、過去の使用状態を推測しない）。親フォルダにjournalを置き、フォルダ単位で復旧する。交換中はDB mutexとサムネイルcache writerを止める。新規crate・アプリschema変更・既存署名形式変更なし。

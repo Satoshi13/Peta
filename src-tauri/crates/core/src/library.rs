@@ -33,7 +33,11 @@ pub struct Library {
 }
 
 impl Library {
-    pub fn open(dir: &Path) -> Result<Self> {
+    pub fn open(dir: &Path) -> Result<Self> {Self::open_impl(dir,true)}
+    pub(crate) fn open_after_move(dir:&Path)->Result<Self>{Self::open_impl(dir,false)}
+    fn open_impl(dir:&Path,recover_move:bool)->Result<Self>{
+        if let Some(parent)=dir.parent(){fs::create_dir_all(parent)?;}
+        if recover_move {crate::migration::recover(dir)?;}
         crate::identity::recover_restore(dir)?;
         fs::create_dir_all(dir.join("assets"))?;
         let db=Database::open(&dir.join("peta.db"))?;

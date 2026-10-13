@@ -4,6 +4,7 @@ import * as BoardState from "../../boards-state.js";
 window.BoardState = BoardState;
 
 async function boot() {
+  document.body.inert=true;
   const displayUnits = () => { document.documentElement.style.setProperty('--desktop-height',screen.height+'px'); document.documentElement.style.setProperty('--desktop-width',screen.width+'px'); };
   displayUnits(); window.addEventListener('resize',displayUnits);
   Shell.applyAssetVars(); Shell.initChrome(); Shell.setShell(S.shell); Bridge.savePreferences();
@@ -42,8 +43,10 @@ async function boot() {
   await Shell.open(page==='redeem' ? 'today' : page==='boards-save' ? 'boards' : page);
   if(page==='boards-save') Pages.boards.traySave();
   await boardNotes();
+  await Bridge.invoke("move_bootstrap_done").catch(()=>{});
+  if(S.page==="settings") Shell.refresh();
   if(welcome!=null) Scraps.note(`A welcome gift: ${welcome} Scraps.`); requestAnimationFrame(() => requestAnimationFrame(() => Vibrancy.sync()));if(page==='redeem') Distribution.redeem();if(S.packOffer)Distribution.offer(S.packOffer);
   Friends.linksReady = true;
   await Friends.openPendingLinks();
 }
-boot().catch(e => { console.error(e); document.getElementById('toast').textContent=String(e); document.getElementById('toast').classList.add('on'); });
+boot().finally(()=>{document.body.inert=false;}).catch(e => { console.error(e); document.getElementById('toast').textContent=String(e); document.getElementById('toast').classList.add('on'); });

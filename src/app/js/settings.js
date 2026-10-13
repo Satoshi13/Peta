@@ -25,7 +25,7 @@ Pages.settings = {
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_sync_displays");Shell.toast("Displays re-synced.");}catch(e){Shell.toast(String(e));}}}},"Re-sync Displays"))));
     if(S.developer) root.append(RefereeSettings.card());
     const friends = Friends.settingsCard(), key = Friends.keyCard(); if(friends) root.append(friends); if(key) root.append(key);
-    root.append(AboutPeta.card());
+    root.append(LibraryMove.card(),AboutPeta.card());
     root.append(h("p.muted.fine", "In the real app this window also hosts Cutting Mat, Collection, Packs and Gifts — what used to be four separate windows. Stickers stay on your desktop; this window comes and goes from the menu bar."));
     return root;
   },
@@ -118,5 +118,34 @@ const ProfileName = {
     const dialog=Friends.sheet("Choose your name",h("h2","Choose your name"),h("p.small","Friends will see this name on your code, gifts and packs."),
       h("button.btn",{type:"button",on:{click:()=>{dialog.close();Shell.go("settings");queueMicrotask(()=>document.querySelector('[aria-label="Your name on stickers"]')?.focus());}}},"Open Settings"));
     return dialog;
+  },
+};
+
+
+/** A full library move is offline and separate from the existing keys-only backup. */
+const LibraryMove = {
+  card() {
+    const restore=h("button.btn.paper.small",{type:"button",disabled:true,on:{click:()=>this.dialog(true)}},"Restore a move file…");
+    const note=h("small","Restore is available on a fresh installation before you start using Peta.");
+    const card=h("section.setcard",h("h2","Move to a new Mac"),h("p.small.muted","Your Collection, friends, desktop arrangements and keys in one file, sealed with a passphrase. Nothing is sent to a server."),
+      h("div.row-btns",h("button.btn.paper.small",{type:"button",on:{click:()=>this.dialog(false)}},"Make a move file…"),restore),note);
+    queueMicrotask(()=>Bridge.invoke("move_status").then(ready=>{if(card.isConnected){restore.disabled=!ready;note.textContent=ready ? "This fresh installation can restore a move file. Peta will restart afterward." : "Restore is available on a fresh installation before you start using Peta.";}}).catch(()=>{}));
+    return card;
+  },
+  dialog(restoring) {
+    const pass=label=>h("input.bd-input",{type:"password",autocomplete:restoring ? "current-password" : "new-password","aria-label":label,placeholder:label});
+    const a=pass(restoring ? "Passphrase of the move file" : "Passphrase (12 characters or more)"),b=restoring ? null : pass("The same passphrase again"),status=h("p.small.bd-error",{role:"status"});
+    const submit=h("button.btn",{type:"submit"},restoring ? "Restore and restart…" : "Save move file…");let pending=false;
+    const form=h("form.bd-form",{on:{submit:async e=>{
+      e.preventDefault();if(pending)return;
+      if(!restoring && [...a.value].length<12){status.textContent="Use 12 characters or more.";return;}
+      if(b && a.value!==b.value){status.textContent="The two passphrases differ.";return;}
+      pending=true;submit.disabled=true;status.textContent=restoring ? "Checking the move file…" : "Making the move file…";
+      try{const saved=await Bridge.fileDialog(restoring ? "library_move_import" : "library_move_export",{passphrase:a.value});
+        if(saved){dialog.close();Shell.toast(restoring ? "Your Peta library was restored. Restart Peta to finish." : "Move file saved. After restoring it, do not use Peta on this Mac.",6500);}else status.textContent="";
+      }catch(err){status.textContent=Friends.error(err);}finally{pending=false;submit.disabled=false;}
+    }}},h("p.small",restoring ? "Restore only into a fresh installation. Peta checks the whole file before replacing anything, then restarts." : "Keep the file and passphrase apart. After restoring it on the new Mac, do not use Peta on this Mac. Using the same keys on two Macs at once is not supported."),a,b,status,h("div.bd-dacts",h("button.link",{type:"button",on:{click:()=>{if(!pending)dialog.close();}}},"Cancel"),submit));
+    const dialog=Friends.sheet(restoring ? "Restore your Peta library" : "Move to a new Mac",h("h2",restoring ? "Restore your Peta library" : "Move to a new Mac"),form);
+    if(dialog){dialog.addEventListener("cancel",e=>{if(pending)e.preventDefault();});a.focus();}
   },
 };

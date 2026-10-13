@@ -21,11 +21,14 @@ const LEGACY_JSON: &str = "placements.json";
 pub struct Store {
     lib: Mutex<Option<Library>>,
     needs_seed: AtomicBool,
+    fresh_origin: AtomicBool,
+    fresh_permit: Mutex<Option<peta_core::migration::MovePermit>>,
+    cache_writes: Mutex<()>,
 }
 
 impl Default for Store {
     fn default() -> Self {
-        Store { lib: Mutex::new(None), needs_seed: AtomicBool::new(false) }
+        Store { lib: Mutex::new(None), needs_seed: AtomicBool::new(false), fresh_origin:AtomicBool::new(false), fresh_permit:Mutex::new(None), cache_writes:Mutex::new(()) }
     }
 }
 
@@ -50,6 +53,14 @@ impl Store {
 
     pub fn open(&self, app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         let dir = app.path().app_data_dir()?;
+        if let Some(parent)=dir.parent(){fs::create_dir_all(parent)?;}
+        peta_core::migration::recover(&dir)?;
+        let fresh=match fs::symlink_metadata(&dir){
+            Ok(meta)=>meta.is_dir()&&!meta.file_type().is_symlink()&&fs::read_dir(&dir)?.next().is_none(),
+            Err(e) if e.kind()==std::io::ErrorKind::NotFound=>true,
+            Err(e)=>return Err(e.into()),
+        };
+        self.fresh_origin.store(fresh,Ordering::SeqCst);
         fs::create_dir_all(&dir)?;
         let first_run = !dir.join("peta.db").exists() && !dir.join(LEGACY_JSON).exists();
         let mut lib = Library::open(&dir)?;
@@ -67,6 +78,46 @@ impl Store {
         *self.lib.lock().unwrap() = Some(lib);
         self.needs_seed.store(first_run, Ordering::SeqCst);
         Ok(())
+    }
+
+    /// Called once after the frontend's synchronous built-in bootstrap, before interaction.
+    pub fn capture_move_bootstrap(&self)->Result<(),String>{
+        if !self.fresh_origin.load(Ordering::SeqCst){return Ok(());}
+        let lib=self.lock();let mut permit=self.fresh_permit.lock().unwrap();
+        if permit.is_none(){*permit=Some(peta_core::migration::permit_bootstrap(&lib).map_err(|e|e.to_string())?);}
+        Ok(())
+    }
+    pub fn can_import_move(&self)->Result<bool,String>{
+        if !self.fresh_origin.load(Ordering::SeqCst){return Ok(false);}
+        let lib=self.lock();let permit=self.fresh_permit.lock().unwrap();
+        match permit.as_ref(){Some(p)=>p.is_current(&lib).map_err(|e|e.to_string()),None=>Ok(false)}
+    }
+    pub fn with_cache_write<T>(&self,write:impl FnOnce()->T)->T{let _cache=self.cache_writes.lock().unwrap();write()}
+    pub fn import_move(&self,input:&Path,passphrase:&str)->Result<(),String>{
+        if !self.can_import_move()?{return Err("Restore a move file only on a fresh installation before you start using Peta.".into());}
+        let root=self.lock().root().to_owned();
+        if input.canonicalize().map_err(|e|e.to_string())?.starts_with(root.canonicalize().map_err(|e|e.to_string())?){return Err("Choose a move file outside the Peta data folder.".into());}
+        let prepared=peta_core::migration::prepare(&root,input,passphrase).map_err(|e|e.to_string())?;
+        let expected=prepared.fingerprint().to_owned();
+        // Cache writers cannot recreate the live root in the gap between its two renames.
+        let _cache=self.cache_writes.lock().unwrap();let mut current=self.lib.lock().unwrap();
+        let permit=self.fresh_permit.lock().unwrap().as_ref().cloned().ok_or("This library is not empty.")?;
+        if !self.fresh_origin.load(Ordering::SeqCst)||!permit.is_current(current.as_ref().ok_or("Library unavailable.")?).map_err(|e|e.to_string())?{return Err("This library changed while the move file was being opened. Restore only into an empty library.".into());}
+        drop(current.take());
+        let result=(||->peta_core::Result<()> {
+            let mut swap=peta_core::migration::publish(&root,prepared,&permit)?;
+            let moved=match swap.open_library(){Ok(lib)=>lib,Err(e)=>{swap.rollback()?;return Err(e);}};
+            match swap.finish(){
+                Ok(())=>{*current=Some(moved);Ok(())},
+                Err(e)=>{drop(moved);if !swap.committed(){swap.rollback()?;} peta_core::migration::recover(&root)?;
+                    if peta_core::migration::matches(&root,&expected)?{*current=Some(Library::open(&root)?);Ok(())}else{Err(e)}
+                },
+            }
+        })();
+        if current.is_none(){*current=Some(Library::open(&root).map_err(|e|e.to_string())?);}
+        if result.is_ok(){self.fresh_origin.store(false,Ordering::SeqCst);self.needs_seed.store(false,Ordering::SeqCst);}
+        else{*self.fresh_permit.lock().unwrap()=Some(peta_core::migration::permit_bootstrap(current.as_ref().unwrap()).map_err(|e|e.to_string())?);}
+        result.map_err(|e|e.to_string())
     }
 
     /// First launch only: one sample cat on the primary display.

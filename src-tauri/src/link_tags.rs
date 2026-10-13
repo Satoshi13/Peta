@@ -87,7 +87,7 @@ fn open(tag: &LinkTag) -> std::io::Result<()> {
 pub async fn link_tag_icon(app: AppHandle, sticker_id: String) -> Result<tauri::ipc::Response, String> {
     let (tag, dir) = { let store = app.state::<Store>(); let lib = store.lock(); (lib.db().link_tag(&sticker_id).map_err(|e| e.to_string())?, lib.root().join("tag-icons")) };
     let Some(tag) = tag.filter(|t| t.kind == "app") else { return Ok(tauri::ipc::Response::new(Vec::<u8>::new())) };
-    let png = tauri::async_runtime::spawn_blocking(move || app_icon_png(&tag.target, &dir)).await.map_err(|e| e.to_string())?;
+    let png = tauri::async_runtime::spawn_blocking(move || app.state::<Store>().with_cache_write(|| app_icon_png(&tag.target, &dir))).await.map_err(|e| e.to_string())?;
     Ok(tauri::ipc::Response::new(png.unwrap_or_default()))
 }
 
@@ -96,7 +96,7 @@ pub async fn link_tag_icon(app: AppHandle, sticker_id: String) -> Result<tauri::
 pub async fn link_tag_app_icon(app: AppHandle, target: String) -> Result<tauri::ipc::Response, String> {
     link_tag::validate("app", &target, "x").map_err(|e| e.to_string())?;
     let dir = { let store = app.state::<Store>(); let lib = store.lock(); lib.root().join("tag-icons") };
-    let png = tauri::async_runtime::spawn_blocking(move || app_icon_png(&target, &dir)).await.map_err(|e| e.to_string())?;
+    let png = tauri::async_runtime::spawn_blocking(move || app.state::<Store>().with_cache_write(|| app_icon_png(&target, &dir))).await.map_err(|e| e.to_string())?;
     Ok(tauri::ipc::Response::new(png.unwrap_or_default()))
 }
 

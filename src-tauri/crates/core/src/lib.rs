@@ -51,3 +51,5 @@ pub mod server;
 
 pub mod boards;
 pub mod board_auto;
+
+pub mod migration;

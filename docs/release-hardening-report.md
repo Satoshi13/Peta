@@ -45,3 +45,15 @@ Step 6: 必須5コマンドすべて成功（Worker56件）。無関係の相手
 Step 6 commit: `a8ee1d6`。Cargoのlocked/offline metadataと手元のソースでmacOS全feature（CLIとビルド用依存も含める）の323パッケージと同梱フォントを列挙する。crate配布物に本文が無かった18パッケージについて、版固定の上流告知と選択したMIT/Mozilla MPLの本文9ファイルを補完し、取得元・SHA-256を保存した。新しいツール・crateは導入していない。objc2上流のApple SDK由来の告知、MPLの版固定ソース取得先も残し、最終の法的確認はオーナーと専門家へ委ねる。一覧をbundle resourceに追加し、AboutからTextEditで開く。配布前のcargo audit/npm audit手順を追加した。
 
 Step 7: 再生成のSHA-256が一致し、一覧は3,046,617 bytes。必須5コマンドすべて成功。npm auditはルート0件、Workerの開発・テスト用依存に7件（high 5・moderate 2）。対象は旧Workerテストpool経由のwrangler/miniflare/undici/sharpとvitest/mocker。Worker自身に実行時npm依存はないが、開発環境の指摘は未解消として扱う。指定されたCLI固定版を無断でまとめて更新・ダウングレードせず、配布前の依存更新と再検証の項目に残す。cargo auditは未導入で、依頼どおり新規導入せずRustの最新脆弱性照合はオーナーの配布前手順に残る。
+
+移行機能の前の追加レビューで、C5の「ぶら下がったjournal symlinkの拒否」「復旧で完了した場合は成功を返してinboxメタデータも更新」「旧鍵の控えを公開前に読み戻して検証」を補強した。これらも移行段階のテストセットで確認する。
+
+## Step 8 — C9
+
+Step 7 commit: `d250bbf`。`.petamove`（PETAMOV1）を追加した。既存Argon2id 0.5.3・ChaCha20-Poly1305 0.10.1を使用し、256KiBごとに番号・終端・長さ・ヘッダーを認証する。SQLiteのVACUUM INTO snapshot、assets、2つの鍵、その他永続ファイルを含める。メモリにはチャンクと一覧のメタデータだけを持ち、完全認証後に0600/0700の一時領域で展開する。パス・重複・サイズ・ハッシュ、鍵、DB integrity/schema/外部キー、参照assetsを検証する。64GiB・10万エントリ・パス1024bytesが形式上限。
+
+読み込みは、元々空だった初回起動で、自動のWelcome/sample/daily準備後に固定した変更数と永続内容の指紋が一致する場合だけ許可する。**同じ初回起動内**という安全側の制約を選んだ。初期サンプルを理由に新規Macの復元が常に不可能になることと、削除済みだから空だと推測することを避ける。アプリのV18は不要で、schema17と既存署名形式を維持する。交換は親journalとold/stageのフォルダ単位で行い、DB接続を閉じ、cache writerを止め、成功後に再起動する。サーバーへは送信しない。旧Mac停止と実際の2台移行はオーナーの確認項目。
+
+移行レビュー後の追加対応: tag-iconsを再生成cacheとして除外し、thumbnailとapp iconの書き込みを同じ交換ロックで止める。Marketカードの旧絶対パスはsnapshot内だけroot相対へ正規化し、元DBは変更しない（この保存先列だけは文字列の一致ではなく移行先での参照の一致）。material/tag賞品の空png_pathは画像検証から除く。stage/old/rootのsymlink置換を拒否し、旧フォルダの指紋を確認してからrollbackする。親ディレクトリの宣言・chmod後のfsyncも検証する。
+
+Step 8: 必須5コマンドすべて成功（JS198件、Worker56件）。追加した移行10件（Market/賞品/重複/親欠落/リンク置換を含む）と鍵復旧も既定・Developer両方で成功。NativeのDeveloper cargo checkも成功。実際の2台移行は未実施。
