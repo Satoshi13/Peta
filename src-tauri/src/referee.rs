@@ -127,14 +127,26 @@ impl HttpReferee {
         Ok(())
     }
     fn slots(&self, id: &str) -> Result<Vec<u32>> {
-        #[derive(serde::Deserialize)]
-        struct Slots {
-            slots: Vec<u32>,
-        }
-        Ok(self
-            .request::<Slots>("GET", &format!("/v1/packs/{id}/slots"), None::<&()>)?
-            .slots)
+        Ok(self.slot_details(id)?.slots)
     }
+    fn slot_details(&self, id: &str) -> Result<SlotDetails> {
+        let details = self.request::<SlotDetails>("GET", &format!("/v1/packs/{id}/slots"), None::<&()>)?;
+        if let Some(drawers) = &details.drawers {
+            let claimed = details.slots.iter().copied().collect::<std::collections::BTreeSet<_>>();
+            let described = drawers.iter().map(|d| d.slot).collect::<std::collections::BTreeSet<_>>();
+            if drawers.len() > 200 || described != claimed || described.len() != drawers.len()
+                || drawers.iter().any(|d| d.slot >= 200 || d.key_hash.len() != 64 || !d.key_hash.bytes().all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))) {
+                return Err(RefereeError::Offline.into());
+            }
+        }
+        Ok(details)
+    }
+}
+#[derive(serde::Deserialize)]
+struct SlotDetails {
+    slots: Vec<u32>,
+    #[serde(default)]
+    drawers: Option<Vec<peta_core::ownership::SlotDrawer>>,
 }
 impl Referee for HttpReferee {
     fn register(&self, c: &Creation) -> Result<()> {
@@ -163,6 +175,9 @@ impl Referee for HttpReferee {
     }
     fn claimed_slots(&self, id: &str) -> Result<Vec<u32>> {
         self.slots(id)
+    }
+    fn claimed_slot_drawers(&self, id: &str) -> Result<Option<Vec<peta_core::ownership::SlotDrawer>>> {
+        Ok(self.slot_details(id)?.drawers)
     }
     fn pack_known(&self, id: &str) -> Result<bool> {
         match self.slots(id) {
@@ -239,6 +254,30 @@ mod tests {
             matches!(referee.register(&c),Err(Error::Referee(RefereeError::Rejected(c))) if c=="clock_skew")
         );
         thread.join().unwrap();
+    }
+    #[test]
+    fn drawer_metadata_is_optional_and_matches_claimed_slots() {
+        use std::io::Write;
+        use std::net::TcpListener;
+        let listener=TcpListener::bind("127.0.0.1:0").unwrap();
+        let url=format!("http://{}",listener.local_addr().unwrap());
+        let hash="a".repeat(64);
+        let responses=vec![serde_json::json!({"slots":[0]}),serde_json::json!({"slots":[],"drawers":[]}),
+            serde_json::json!({"slots":[0],"drawers":[{"slot":0,"keyHash":hash}]}),
+            serde_json::json!({"slots":[0],"drawers":[{"slot":1,"keyHash":"a".repeat(64)}]})];
+        let thread=std::thread::spawn(move || {
+            for response in responses {
+                let (mut stream,_)=listener.accept().unwrap();let mut bytes=vec![];let mut byte=[0;1];
+                while !bytes.ends_with(b"\r\n\r\n") {stream.read_exact(&mut byte).unwrap();bytes.push(byte[0]);}
+                assert!(String::from_utf8(bytes).unwrap().starts_with("GET /v1/packs/p/slots HTTP/1.1"));
+                let body=response.to_string();write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",body.len()).unwrap();
+            }
+        });
+        let referee=HttpReferee::with_url(SigningKey::from_bytes(&[7;32]),url).unwrap();
+        assert_eq!(referee.claimed_slot_drawers("p").unwrap(),None);
+        assert_eq!(referee.claimed_slot_drawers("p").unwrap(),Some(vec![]));
+        let got=referee.claimed_slot_drawers("p").unwrap().unwrap();assert_eq!(got[0].slot,0);assert_eq!(got[0].key_hash,"a".repeat(64));
+        assert!(referee.claimed_slot_drawers("p").is_err(),"unclaimed metadata is refused");thread.join().unwrap();
     }
     #[test]
     fn request_bytes_use_the_rust_vectors() {

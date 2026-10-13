@@ -177,22 +177,60 @@ pub struct PackSales {
     pub sales: Option<peta_core::edition_pack::Sales>,
 }
 
+fn drawer_names(friends: &[peta_core::friends::Friend]) -> std::collections::HashMap<String,String> {
+    friends.iter().filter(|f| f.status == "friend" && !f.name.trim().is_empty())
+        .filter_map(|f| peta_core::identity::key_hash(&f.public_key).ok().map(|key| (key,f.name.clone()))).collect()
+}
+fn sales_for(referee: &impl peta_core::ownership::Referee, header: &peta_core::creator_pack::Header, names: &std::collections::HashMap<String,String>) -> peta_core::Result<peta_core::edition_pack::Sales> {
+    match referee.claimed_slot_drawers(&header.pack_id)? {
+        Some(drawers) => {
+            let claimed = drawers.iter().map(|d| d.slot).collect::<Vec<_>>();
+            Ok(peta_core::edition_pack::sales_with_drawers(header,&claimed,&drawers,names))
+        }
+        None => Ok(peta_core::edition_pack::sales(header,&referee.claimed_slots(&header.pack_id)?)),
+    }
+}
+
 #[tauri::command]
 pub async fn pack_sales(app: AppHandle, pack_id: String) -> Result<PackSales, String> {
     tauri::async_runtime::spawn_blocking(move || -> Result<PackSales, String> {
-        use peta_core::ownership::{Referee, RefereeError};
+        use peta_core::ownership::RefereeError;
         let store = app.state::<Store>();
-        let (header, referee) = {
+        let (header, referee, names) = {
             let mut lib = store.lock();
             let header = peta_core::edition_pack::header_of(lib.db(), &pack_id).map_err(|e| e.to_string())?.ok_or("Not an edition pack.")?;
-            (header, crate::referee_access::active(&mut lib).map_err(|e| e.to_string())?)
+            let mine = peta_core::sign::public_key(&peta_core::device_key::load(&lib.root().join("device.key")).map_err(|e| e.to_string())?);
+            if !matches!(&header.signer,peta_core::sign::Signer::Device { public_key } if public_key == &mine) { return Err("Sales are only available for packs you made.".into()); }
+            let names = drawer_names(&lib.db().friends().map_err(|e| e.to_string())?);
+            (header, crate::referee_access::active(&mut lib).map_err(|e| e.to_string())?, names)
         };
         if !cfg!(feature = "server") { return Ok(PackSales { status: "untracked", sales: None }); }
-        match referee.claimed_slots(&header.pack_id) {
-            Ok(claimed) => Ok(PackSales { status: "live", sales: Some(peta_core::edition_pack::sales(&header, &claimed)) }),
+        match sales_for(&referee, &header, &names) {
+            Ok(sales) => Ok(PackSales { status: "live", sales: Some(sales) }),
             Err(peta_core::Error::Referee(RefereeError::Unknown)) => Ok(PackSales { status: "untracked", sales: None }),
             Err(peta_core::Error::Referee(RefereeError::Offline)) => Ok(PackSales { status: "offline", sales: None }),
             Err(e) => Err(e.to_string()),
         }
     }).await.map_err(|e| e.to_string())?
+}
+
+#[cfg(test)]
+mod sales_tests {
+    use super::*;
+    #[test]
+    fn only_accepted_friends_are_named() {
+        let key=peta_core::sign::public_key(&peta_core::sign::generate().unwrap());
+        let hash=peta_core::identity::key_hash(&key).unwrap();
+        let mut friend=peta_core::friends::Friend {public_key:key,name:"Nao".into(),fingerprint:"fp".into(),status:"friend".into(),allowed:true,note:None,added_at:None,enc_key:None};
+        assert_eq!(drawer_names(&[friend.clone()]).get(&hash).map(String::as_str),Some("Nao"));
+        for status in ["requested","pending","blocked",""] { friend.status=status.into();assert!(drawer_names(&[friend.clone()]).is_empty()); }
+        friend.status="friend".into();friend.name="  ".into();assert!(drawer_names(&[friend]).is_empty());
+    }
+    #[test]
+    fn old_workers_still_supply_sales_counts() {
+        struct Old;
+        impl peta_core::ownership::Referee for Old {fn claimed_slots(&self,_:&str)->peta_core::Result<Vec<u32>> {Ok(vec![0])}}
+        let h:peta_core::creator_pack::Header=serde_json::from_value(serde_json::json!({"packId":"p","version":2,"title":"T","author":"A","pouch":"kraft","madeAt":"2026-10-13T00:00:00Z","items":[],"prizes":[{"kind":"tag","count":2}],"signer":{"kind":"device","publicKey":"k"}})).unwrap();
+        let s=sales_for(&Old,&h,&std::collections::HashMap::new()).unwrap();assert_eq!((s.taken,s.total),(1,2));assert!(s.prizes[0].drawers.is_empty());
+    }
 }
