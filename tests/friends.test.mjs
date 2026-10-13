@@ -122,3 +122,15 @@ test('a warm link waits for an existing sheet and duplicate wakeups do not open 
   assert.equal(opened, 1); assert.ok(calls.some(x => x.page === 'settings'));
   assert.ok(!calls.some(x => x.cmd === 'friend_add'));
 });
+
+test('a link waits for a sheet opened during Settings navigation', async () => {
+  const links = ['peta://friend/during-navigation'];
+  const { Friends, calls, context } = load({ enabled:true }, [], async cmd => cmd === 'friend_link_take' ? links.shift() || null : {name:'Nao',status:'new'});
+  let current=null, close, opened=0;
+  context.document.querySelector=()=>current;
+  context.Shell.open=async()=>{current={addEventListener(_,fn){close=fn;}};};
+  Friends.sheet=()=>{opened++;return {close(){}};};Friends.linksReady=true;
+  const running=Friends.openPendingLinks();await flush();assert.equal(opened,0);assert.ok(close);
+  current=null;close();await running;await flush();assert.equal(opened,1);
+  assert.ok(!calls.some(x=>x.cmd==='friend_add'));
+});

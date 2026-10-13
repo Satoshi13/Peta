@@ -51,12 +51,16 @@ const Friends = {
     if (!this.linksReady || this.openingLinks) return;
     this.openingLinks = true;
     try {
+      const waitForSheets = async () => {
+        let current;
+        while ((current = document.querySelector("dialog"))) await new Promise(resolve => current.addEventListener("close", resolve, { once: true }));
+      };
       let link;
       while ((link = await Bridge.invoke("friend_link_take"))) {
-        const current = document.querySelector("dialog");
-        if (current) await new Promise(resolve => current.addEventListener("close", resolve, { once: true }));
+        await waitForSheets();
         PackZoom.dispose(true);
         await Shell.open("settings");
+        await waitForSheets(); // Navigation can finish while another sheet is being opened.
         this.addDialog(link);
       }
     } finally { this.openingLinks = false; }
