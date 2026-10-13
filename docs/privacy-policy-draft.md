@@ -1,20 +1,35 @@
 # Peta プライバシーポリシー下書き / Privacy policy draft
 
-2026-10-13、S2の現行実装に基づく公開前の文案。**法的な判断はオーナーと専門家が行います。この文書は正式なポリシーでも法的助言でもありません。** 責任主体・連絡先・適用地域・法的根拠・委託契約・保存期間と例外を決めてから公開してください。
+2026-10-14、S1〜S3と公開前修正の現行実装に基づく公開前の文案。**法的な判断はオーナーと専門家が行います。この文書は正式なポリシーでも法的助言でもありません。** 責任主体・連絡先・適用地域・法的根拠・委託契約・保存期間と例外を決めてから公開してください。
 
-**This is a pre-release draft based on the S2 implementation, not a final policy or legal advice. The owner and qualified advisers must make the legal decisions before publication.** The operator, contact details, applicable regions, legal basis, processor arrangements and retention exceptions remain to be confirmed.
+**This is a pre-release draft based on the S1–S3 and release-hardening implementation, not a final policy or legal advice. The owner and qualified advisers must make the legal decisions before publication.** The operator, contact details, applicable regions, legal basis, processor arrangements and retention exceptions remain to be confirmed.
+
+## 未記入・要決定項目 / Owner completion list
+
+以下はすべて **【オーナーが記入】**。公開前に専門家と実際の契約・運用へ合わせて確定する。
+
+| 項目 / Item | 値 / Value |
+| --- | --- |
+| 運営者 / Operator | 【オーナーが記入】 |
+| 問い合わせ窓口 / Privacy contact | 【オーナーが記入】 |
+| 施行日 / Effective date | 【オーナーが記入】 |
+| 提供地域・法的根拠 / Applicable regions and legal basis | 【オーナーが記入】 |
+| Cloudflareの契約・処理国・再委託先・保護措置 / Processor terms, countries, subprocessors and safeguards | 【オーナーが記入】 |
+| IP情報等のCloudflare側の保持条件 / Cloudflare network-data retention | 【オーナーが記入】 |
+| 開示・訂正・削除の本人確認と応答方法 / Verification and privacy-request procedure | 【オーナーが記入】 |
+| 法的保存例外・変更の告知方法 / Required retention exceptions and policy-change notices | 【オーナーが記入】 |
 
 ## 日本語
 
 ### 運営・対象
 
-運営者: **［オーナーが記入］**。問い合わせ・削除等の窓口: **［オーナーが記入］**。施行日: **［公開前に決定］**。
+運営者: **【オーナーが記入】**。問い合わせ・削除等の窓口: **【オーナーが記入】**。施行日: **【オーナーが記入】**。
 
-この文案は、Petaの所有権確認、友達とGift受信箱、通報を扱います。現在サーバー機能は開発者版のdev環境限定です。通常版にサーバー通信のコード・依存は含めていません。将来のMarket・決済・同期等には、その実装時に文案を更新します。
+この文案は、Petaの所有権確認、友達とGift受信箱、友達のMarket、通報、端末内の移行を扱います。通信なしの通常版にサーバー通信のコード・依存は含めません。Developerはdev、友達限定ベータは本番用の固定接続先を使います。本番はオーナー準備後に運用し、その準備が済むまで配布しません。現金決済とライブラリの同期は実装していません。
 
 ### 端末で扱うもの・サーバーへ送るもの
 
-Collection、ステッカーの完成画像・元写真、配置、ローカルの友達の記録、秘密鍵、鍵バックアップのパスフレーズはMacで扱います。元写真・秘密鍵・パスフレーズはサーバーへ送りません。`.petakey` は鍵だけで、ステッカー帳や友達を含むデータフォルダのバックアップではありません。
+Collection、ステッカーの完成画像・元写真、配置、ローカルの友達の記録、秘密鍵、鍵バックアップのパスフレーズはMacで扱います。元写真・秘密鍵・パスフレーズはサーバーへ送りません。`.petakey` は鍵だけで、ステッカー帳や友達を含むデータフォルダのバックアップではありません。`.petamove` はDB・assets・鍵をまとめた暗号化移行ファイルで、作成・読み込みでサーバーに何も送りません。移行後は元のMacでPetaを使わないでください。
 
 サーバーは、配達・認証・持ち主確認・不正利用防止のため、次の情報を受け取ります。
 
@@ -31,7 +46,7 @@ Collection、ステッカーの完成画像・元写真、配置、ローカル�
 
 ### 通報の例外
 
-受け取ったGiftをReport…で通報し、同意して送信すると、**復号済みの元のGiftファイル（完成画像・メモ等）、理由、送り手と通報者の鍵ハッシュ、時刻**を運営用の非公開R2に送ります。この場合は運営が内容を確認できます。元写真はGiftに含めません。通報は相手を自動でブロックせず、利用者が選べます。運営へのWebhookにはIDと保存中の件数だけを送り、内容・画像・鍵／鍵ハッシュは送りません。
+受け取ったGiftまたは閲覧した友達のMarketの出品をReport…で通報し、同意して送信すると、**復号済みの元のGiftファイル（完成画像・メモ等）、またはMarketの復号済みカードとパック、理由、送り手と通報者の鍵ハッシュ、時刻**を運営用の非公開R2に送ります。この場合は運営が内容を確認できます。元写真はGiftに含めません。通報は相手を自動でブロックせず、利用者が選べます。運営へのWebhookにはIDと保存中の件数だけを送り、内容・画像・鍵／鍵ハッシュは送りません。
 
 ### 保存期間
 
@@ -39,12 +54,14 @@ Collection、ステッカーの完成画像・元写真、配置、ローカル�
 | --- | --- |
 | 未処理の申請・未受取Gift | 7日で期限切れ。通常は受取後・取消で早く削除。申請／索引は受信箱APIで掃除し、GiftのR2には7日の削除ルールを設定。削除処理は非同期で、厳密な時刻の物理削除を保証しません。 |
 | 受信箱の登録、許可／拒否 | 本人の退会まで。 |
-| 通報と索引 | 対応完了後30日で運営が削除。対応中は保管。対応日と削除予定日の管理は手動で、自動ジョブはありません。 |
+| 通報と索引 | 運営が対応時刻を記録し、日次Cronで対応済みから30日経った内容と索引を自動削除。未対応は保存。削除失敗は再試行し、厳密な時刻の消去を保証しません。 |
 | 友達の Market の出品(暗号文・封筒) | 売り手が販売をやめるか退会すると、R2 の暗号文と封筒を削除。 |
 | 友達の Market の売上の記録 | 台帳の一部として残します(持ち主確認と売り手の精算に必要)。現行実装に期限付き削除はありません。 |
 | 所有権の台帳・運営の拒否 | 退会しても残します。持ち主確認と不正利用防止に必要なため、現行実装に期限付き削除はありません。 |
 | nonce・回数カウンタ | 有効期間を過ぎた古い行をAPIの書き込み時に掃除。クラウド側バックアップは契約・設定に従い、即時消去を保証しません。 |
 | 受取済みGift・Collection・友達・鍵 | Mac上に保持。アプリの操作またはデータフォルダの管理によります。 |
+
+出品の配送証拠は、封筒の削除後にも通報できるよう出品ID・受取人と送り手の鍵ハッシュの組だけを残します。内容鍵・暗号化封筒は含めません。現行ではこの証拠の時限削除はありません。
 
 ### 委託先・海外での処理
 
@@ -60,13 +77,13 @@ SettingsのLeaveは、本人の受信箱・許可／拒否・そこに届いた�
 
 ### Operator and scope
 
-Operator: **[owner to complete]**. Contact for privacy requests: **[owner to complete]**. Effective date: **[to be decided before publication]**.
+Operator: **【オーナーが記入】**. Contact for privacy requests: **【オーナーが記入】**. Effective date: **【オーナーが記入】**.
 
-This draft covers ownership checks, friends and the Gift inbox, and reports. Server features currently operate only in the Developer build against dev. The standard build does not include the server networking code or dependencies. Future Market, payments or sync features require an updated policy.
+This draft covers ownership checks, friends and the Gift inbox, the friends' Market, reports and local migration. The offline standard build does not include server networking code or dependencies. Developer builds use dev; the friends-only beta has a fixed production endpoint and must not be distributed until the owner has prepared production. Cash payments and library sync are not implemented.
 
 ### Local and server data
 
-Your Collection, finished sticker images, source photos, placements, local friend records, private keys and key-backup passphrase are handled on your Mac. Source photos, private keys and passphrases are not sent to the server. A `.petakey` file contains keys only; it is not a backup of your Collection or friends.
+Your Collection, finished sticker images, source photos, placements, local friend records, private keys and key-backup passphrase are handled on your Mac. Source photos, private keys and passphrases are not sent to the server. A `.petakey` file contains keys only; it is not a backup of your Collection or friends. A `.petamove` is an encrypted migration file containing the database, assets and keys. Export and restore do not send data to the server. Stop using Peta on the old Mac after moving.
 
 For delivery, authentication, ownership checks and abuse prevention, the server receives:
 
@@ -83,7 +100,7 @@ In the friends' Market (S3), a listing's card (title, description, peek pictures
 
 ### Reports are an exception
 
-If you choose Report… and consent to send it, **the decrypted original Gift file (including the finished image and note), your reason, sender and reporter key hashes, and time** are sent to the operator's private R2 bucket. The operator can review these contents. The original source photo is not part of the Gift. Blocking the sender is optional. A notification webhook receives only the report ID and the number of stored reports, without contents, images, keys or key hashes.
+If you choose Report… and consent to send it, **the decrypted original Gift file (including the finished image and note), or decrypted Market card and pack, your reason, sender and reporter key hashes, and time** are sent to the operator's private R2 bucket. The operator can review these contents. The original source photo is not part of the Gift. Blocking the sender is optional. A notification webhook receives only the report ID and the number of stored reports, without contents, images, keys or key hashes.
 
 ### Retention
 
@@ -91,12 +108,14 @@ If you choose Report… and consent to send it, **the decrypted original Gift fi
 | --- | --- |
 | Pending requests and unreceived Gifts | Expire after 7 days; normally deleted sooner upon receipt or cancellation. Inbox API calls sweep requests/indexes, and Gift R2 objects have a 7-day deletion rule. Deletion is asynchronous; exact-time physical deletion is not guaranteed. |
 | Mailbox registration and allow/block lists | Until you leave. |
-| Reports and their indexes | Manually deleted by the operator 30 days after resolution; kept while unresolved. Resolution and deletion dates require manual tracking; there is no automated job. |
+| Reports and their indexes | The operator records resolution time; a daily Cron automatically deletes contents and indexes at least 30 days after resolution. Unresolved reports remain. Failures are retried; exact-time deletion is not guaranteed. |
 | Friends' Market listings (encrypted files and key envelopes) | Deleted from R2 when the seller stops selling or leaves. |
 | Friends' Market sale records | Kept as part of the ledger (needed for ownership checks and the seller's share). The current implementation has no timed deletion. |
 | Ownership ledger and service blocks | Retained after leaving for ownership checks and abuse prevention. The current implementation has no expiry-based deletion. |
 | Nonces and rate counters | Older rows are swept on API writes after their validity window. Cloud-provider backups follow the actual contract and settings and are not guaranteed to disappear immediately. |
 | Received Gifts, Collection, friend records and keys | Kept on the Mac, managed through app actions or the data folder. |
+
+Listing-delivery proof retains only the listing ID, recipient key hash and sender key hash after an envelope is deleted, so a recipient can still report it. It contains no content key or encrypted envelope. There is currently no timed deletion rule for this proof.
 
 ### Cloudflare and international processing
 
@@ -107,3 +126,5 @@ Peta uses Cloudflare Workers, D1 and R2. Processing or storage may occur outside
 Leave in Settings deletes your mailbox, its allow/block lists, and requests and unreceived Gifts addressed to it. The ownership ledger, locally received data, reports and service blocks remain. Gifts already sent to other mailboxes may remain until those recipients receive them or they expire. Server participation state is reset locally; existing file-Gift contact records remain.
 
 A service-blocked key cannot use the Leave API. The operator must establish the contact and verification procedure above for deletion, access, correction and related requests, including that situation. Do not send private keys or passphrases with a request. Using the same key on two Macs at once and Collection sync are unsupported.
+
+正式化した文書のURLだけをsrc-tauri/src/about.rsのSERVICE_LINKSへ設定する。未設定ではAboutのリンクを表示しない。条項の法的な最終判断はオーナーと専門家が行う。

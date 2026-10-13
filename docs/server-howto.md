@@ -194,3 +194,7 @@ Settings → Move to a new Mac → Make a move file… でDB・assets・2つの�
 ## 2026-10-14: 友達限定ベータのビルド
 
 `npm run build:beta` は通常設定と同じ識別子・保存先でserverを含み、referee.rsの非Developer API_URLの固定値を使う。DeveloperはdevでPETA_API_URLの上書きを許す。既定のbuildはserverを含まない。正式署名・公証の前にパス検査を行う。通常版とベータを同じライブラリに同時起動しない。本番が未準備の間は配布しない。
+
+## 2026-10-14: 規約・ポリシーの公開準備
+
+terms-draft.mdとprivacy-policy-draft.mdの【オーナーが記入】を専門家と確定し、Cloudflareの契約・処理国・IP保持・問い合わせ運用を実際の本番設定と照合する。正式文書をHTTPSで公開してから、src-tauri/src/about.rsのSERVICE_LINKSのNoneだけをURLへ置換して再ビルドする。下書きのままサービスURLを設定しない。

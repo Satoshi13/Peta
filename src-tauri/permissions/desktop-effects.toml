@@ -81,8 +81,8 @@ commands.allow = ["market_friend_listings", "market_card", "market_pull", "marke
 
 [[permission]]
 identifier = "allow-about-notices"
-description = "Open bundled third-party license notices from About Peta."
-commands.allow = ["about_notices"]
+description = "Open bundled notices and owner-configured legal documents from About Peta."
+commands.allow = ["about_notices", "about_links", "about_open_link"]
 
 [[permission]]
 identifier = "allow-library-move"

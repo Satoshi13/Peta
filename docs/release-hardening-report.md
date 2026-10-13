@@ -73,3 +73,9 @@ Step 9: 必須5コマンドがすべて成功（JS198・Worker56）。非Develop
 Step 9 commit: `44acea6`。owner-runの署名・公証scriptを追加。Apple ID/password/API鍵を引数やリポジトリへ保存せず、Developer ID名義とキーチェーンprofile名を環境変数で受け取る。資格情報なしではApple接続前に停止する。実際の登録・資格情報設定・署名・公証は未実施。mockのみで欠落、拒否、Accepted後のstaple/検証/再zip、上書き防止を確認した。既存distribution文書のk1差し替え指示も、現行のk2末尾追加と暗号化保管手順へ統一した。新規crateなし。
 
 Step 10: mock検証とbash構文検査、必須5コマンドがすべて成功（JS198・Worker56）。Appleの実資格情報を使うコマンドは実行していない。
+
+## Step 11 — B3
+
+Step 10 commit: 7decd0a。日英の利用規約下書きと、プライバシー文案の空欄一覧・【オーナーが記入】を整備した。無料/Scraps非換金・非購入、鍵紛失、画像の権利、禁止事項、通報/削除/拒否、唯一の版と抽選・70%取り分、終了と法令に従う免責、準拠法/管轄/連絡先を記載。法的判断は行わない。プライバシーの古い手動削除説明はCronへ更新し、Market通報、配送証拠保持、.petamoveの無送信も明示。AboutのURL定数はabout.rsの1か所で両方Noneのまま、設定前は非表示。新規crateなし。
+
+Step 11: 未設定URLを隠すnativeテストとAboutの表示/クリック2件が成功。必須5コマンドがすべて成功（JS200・Worker56）。規約・ポリシーは下書きで、URL・運営者・連絡先・施行日等は未設定。

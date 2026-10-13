@@ -187,6 +187,8 @@ pub fn run() {
         .manage(gifts::PendingPack::default())
         .invoke_handler(tauri::generate_handler![
             about::about_notices,
+            about::about_links,
+            about::about_open_link,
             migration::move_bootstrap_done,
             migration::move_status,
             migration::library_move_export,

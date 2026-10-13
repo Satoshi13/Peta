@@ -388,3 +388,5 @@ Settings の Move to a new Mac は、DB・画像・鍵をパスフレーズ付�
 友達限定ベータは `npm run build:beta`。通常版と同じ `app.peta.desktop` の保存先でserverを有効にし、本番APIの固定値へ接続する。既定のbuildはserverなし、Developerはdev。友達も申請相手もいないときに自動通信しない。本番のオーナー準備が終わるまで配布しない。
 
 Developer ID署名・公証はオーナー準備後に `bash scripts/release-mac.sh beta`（通信なし版はoffline）。資格情報が無ければbuild前に停止する。手順はdocs/distribution-howto.md。
+
+利用規約とプライバシーポリシーはdocs/terms-draft.mdとdocs/privacy-policy-draft.mdの日英下書き。専門家と確定したURLだけをabout.rsのSERVICE_LINKSに設定する。未設定のAboutリンクは表示しない。

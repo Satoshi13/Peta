@@ -139,3 +139,5 @@ bash scripts/release-mac.sh offline
 ビルドラッパーはApple資格情報を子プロセスへ渡さず、Tauriの署名はadhocに限定する。正式署名・公証の順序はこのスクリプトだけで管理する。`PETA_ENTITLEMENTS`は必要性を確認したplistへの任意のパス。現行のWKWebView・画像処理・透明窓のために、debug/JIT/unsigned libraryの権限をまとめて追加していない。macOSPrivateApiは透明窓に必要な既存設定で、App Store向けにはしない。Developer IDでの実公証と別Macの動作は未確認で、公証ログとGatekeeperに合格してから配布する。
 
 [Appleの公証要件](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)と[Tauriの署名・公証案内](https://v2.tauri.app/distribute/sign/macos/)に基づく。Codexは登録・証明書作成・profile登録・実署名・実公証を行っていない。`python3 scripts/test-release-mac.py` は偽のツールと一時bundleだけで順序・拒否・staple後の再zipを検証し、Appleへ接続しない。
+
+配布前にdocs/terms-draft.md・privacy-policy-draft.mdの未記入と法的確認を終え、正式なHTTPSの規約・ポリシーURLをsrc-tauri/src/about.rsのSERVICE_LINKSへ設定してビルドする。未設定ではAboutに表示されない。

@@ -332,3 +332,7 @@ CSPはselfのscript、ローカル画像/data/blob/Tauri asset、selfのfont/med
 ## 2026-10-14: Step 10（B2）
 
 署名・公証は明示的なowner-run scriptにまとめる。資格情報なし・証明書なしではビルド前に停止する。パス検査→hardened runtime/timestamp→Accepted→staple→検証を順に実行し、staple後に配布zipを再作成する。未承認・検証失敗・既存成果物には配布zipを書かない。実公証は実施せず、mockツールだけで順序を検証する。透明窓のprivate API設定は維持し、App Storeには出さない。
+
+## 2026-10-14: Step 11（B3）
+
+日英の利用規約を下書きとして作成し、法的結論はオーナーと専門家へ委ねる。両文書の未記入を【オーナーが記入】へ統一し、冒頭に要決定項目を列挙する。プライバシー文案をS3・日次通報削除・配送証拠の保持・offline移行へ更新した。Aboutの文書は1か所のHTTPS定数からのみ開き、未設定を隠す。任意URLをIPCで開く機能にはしない。

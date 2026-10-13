@@ -98,7 +98,9 @@ const AboutPeta = {
     const probe=h("video",{preload:"metadata",muted:true});
     const ready=()=>{button.disabled=false;photo.disabled=false;button.textContent="Watch the tour";photo.classList.add("ready");probe.removeAttribute("src");probe.load();};
     probe.addEventListener("loadedmetadata",ready,{once:true});probe.addEventListener("error",()=>probe.removeAttribute("src"),{once:true});probe.src=this.TOUR;
-    return h("section.setcard.about-card",photo,h("div.about-text",h("h2","About Peta"),h("p.small","A short film of how Peta works: make a sticker, stick it on your desktop, and send one to a friend."),button,h("button.btn.paper.small",{type:"button",on:{click:async()=>{try{await Bridge.invoke("about_notices");}catch(e){Shell.toast(String(e));}}}},"Third-party notices…")));
+    const legal=h("div.row-btns",{hidden:true});
+    queueMicrotask(()=>Bridge.invoke("about_links").then(links=>{if(!legal.isConnected)return;for(const link of links)legal.append(h("button.btn.paper.small",{type:"button",on:{click:async()=>{try{await Bridge.invoke("about_open_link",{id:link.id});}catch(e){Shell.toast(String(e));}}}},link.label));legal.hidden=!links.length;}).catch(()=>{}));
+    return h("section.setcard.about-card",photo,h("div.about-text",h("h2","About Peta"),h("p.small","A short film of how Peta works: make a sticker, stick it on your desktop, and send one to a friend."),button,h("button.btn.paper.small",{type:"button",on:{click:async()=>{try{await Bridge.invoke("about_notices");}catch(e){Shell.toast(String(e));}}}},"Third-party notices…"),legal));
   },
   play() {
     if(document.querySelector("dialog")) return;

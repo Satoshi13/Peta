@@ -378,3 +378,5 @@ Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に
 - [ ] 隔離した未稼働endpointで受取/送付/Market drawが既存のcould-not-check表示で止まり、在庫と所有者が変わらない。本番での確認はオーナー準備後のみ。
 
 - [ ] オーナーのDeveloper ID証明書・キーチェーンprofileでrelease-mac.shを実行し、Accepted、stapler validate、codesign verify、spctlが成功する。zipを別Macへ渡し、ネット接続なしでもGatekeeperと全機能を確認する。署名名義・必要最小限のentitlements・透明窓も確認する。
+
+- [ ] 規約・ポリシーURL未設定ではAboutにリンクが出ない。正式URLを設定した版で各文書が既定ブラウザに開き、通知本文は同梱resourceからTextEditに開く。運営者・連絡先・施行日・法的条件を公開前に確定する。
