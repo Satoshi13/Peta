@@ -188,12 +188,18 @@ const WallInk = {
 const PackSales = {
   cache: new Map(),
   get(p) {
+    const friends = JSON.stringify((S.inbox?.friends || []).filter(f => f.status === "friend").map(f => [f.publicKey, f.name]));
     const hit = this.cache.get(p.id);
-    if (hit && Date.now() - hit.at < 60000) return hit.request;
+    if (hit && hit.friends === friends && Date.now() - hit.at < 60000) return hit.request;
     const request = Bridge.invoke("pack_sales", { packId: p.id }).then((r) => r?.status ? r : { status: "offline" }, () => ({ status: "offline" }));
-    this.cache.set(p.id, { at: Date.now(), request }); return request;
+    this.cache.set(p.id, { at: Date.now(), friends, request }); return request;
   },
-  line(l) { return h("li.pk-sale-line", h("span", l.name), h("i.pk-sale-bar", { "aria-hidden": "true" }, h("i", { style: { width: (l.total ? l.taken / l.total * 100 : 0) + "%" } })), h("b", `${l.taken} / ${l.total}`)); },
+  drawerLabel(names) { return names.slice(0, 3).join(", ") + (names.length > 3 ? ` · +${names.length - 3}` : ""); },
+  line(l) {
+    const names = l.drawers || [];
+    return h("li.pk-sale-line", h("span.pk-sale-title", h("span", l.name), names.length ? h("small.pk-sale-drawers", { title: names.join(", "), "aria-label": `Drawn by ${names.join(", ")}` }, this.drawerLabel(names)) : null),
+      h("i.pk-sale-bar", { "aria-hidden": "true" }, h("i", { style: { width: (l.total ? l.taken / l.total * 100 : 0) + "%" } })), h("b", `${l.taken} / ${l.total}`));
+  },
   panel(p) {
     const box = h("section.pk-sales", { "aria-live": "polite" }, h("p.small.muted", "Checking sales…"));
     this.get(p).then((r) => {
