@@ -98,10 +98,24 @@ impl FriendCode {
     }
     /// `peta://friend/<base64url>` (the developer edition uses its own scheme, so the two apps never take each other's links).
     pub fn to_link(&self, scheme: &str) -> Result<String> { Ok(format!("{scheme}://friend/{}", URL_SAFE_NO_PAD.encode(self.bytes()?))) }
+    /// Pasted links must belong to this build; plain friend codes work in both editions.
+    pub fn parse_for_scheme(text: &str, scheme: &str) -> Result<Self> {
+        if let Some((actual, _)) = text.trim().split_once("://") {
+            if actual != scheme {
+                return Err(invalid(match actual {
+                    "peta-developer" => "Open this friend link in Peta Developer, or paste their friend code.",
+                    "peta" => "Open this friend link in Peta, or paste their friend code.",
+                    _ => "This is not a Peta friend link.",
+                }));
+            }
+        }
+        Self::parse(text)
+    }
     /// Reads a pasted code or link: spaces, case, hyphens and the look-alike letters I, L and O are forgiven.
     pub fn parse(text: &str) -> Result<Self> {
         let text = text.trim();
-        if let Some((_, rest)) = text.split_once("://friend/") {
+        if let Some((scheme, rest)) = text.split_once("://friend/") {
+            if !matches!(scheme, "peta" | "peta-developer") { return Err(invalid("This is not a Peta friend link.")); }
             let raw = rest.trim_end_matches('/');
             return Self::from_bytes(&URL_SAFE_NO_PAD.decode(raw).map_err(|_| invalid("This friend link is damaged."))?);
         }
@@ -225,6 +239,22 @@ mod tests {
         for scheme in ["peta", "peta-developer"] { let link = code.to_link(scheme).unwrap(); assert!(link.starts_with(&format!("{scheme}://friend/"))); assert_eq!(FriendCode::parse(&link).unwrap(), code); }
         assert_eq!(my_code(&root, &key, "Satoshi").unwrap(), code, "the sealing key is kept, so the code is stable");
         let long = my_code(&root, &key, "あいうえおかきくけこさしすせそ").unwrap(); assert!(long.name.len() <= NAME_MAX_BYTES && long.name.chars().count() == 8);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn links_belong_to_their_build_but_codes_work_in_both() {
+        let root = dir("schemes");
+        let code = my_code(&root, &sign::generate().unwrap(), "Nao").unwrap();
+        for scheme in ["peta", "peta-developer"] {
+            let link = code.to_link(scheme).unwrap();
+            assert_eq!(FriendCode::parse_for_scheme(&link, scheme).unwrap(), code);
+            let other = if scheme == "peta" { "peta-developer" } else { "peta" };
+            assert!(FriendCode::parse_for_scheme(&link, other).is_err());
+            assert_eq!(FriendCode::parse_for_scheme(&code.to_code().unwrap(), scheme).unwrap(), code);
+        }
+        assert!(FriendCode::parse(&code.to_link("other").unwrap()).is_err());
+        assert!(FriendCode::parse_for_scheme("peta://friend/!!!", "peta").is_err());
         fs::remove_dir_all(root).unwrap();
     }
 
