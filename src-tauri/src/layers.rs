@@ -104,8 +104,22 @@ fn signature(monitors: &[Monitor]) -> String {
         .join(";")
 }
 
-/// Rebuild all layers from the current monitor set. Call on the main thread.
+/// Rebuild all layers from the current monitor set. Safe to call from any thread: the rebuild always runs on the main thread,
+/// because a layer's window level can only be set there. Rebuilt off the main thread, a layer kept the normal window level and
+/// the stickers came up in front of every app (after sending a gift or pressing a pack).
 pub fn sync(app: &AppHandle) -> tauri::Result<()> {
+    if objc2::MainThreadMarker::new().is_some() {
+        return sync_now(app);
+    }
+    let handle = app.clone();
+    app.run_on_main_thread(move || {
+        if let Err(e) = sync_now(&handle) {
+            eprintln!("[peta] layer re-sync failed: {e}");
+        }
+    })
+}
+
+fn sync_now(app: &AppHandle) -> tauri::Result<()> {
     let monitors = app.available_monitors()?;
     if monitors.is_empty() {
         return Ok(());

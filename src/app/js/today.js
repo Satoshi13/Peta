@@ -48,7 +48,9 @@ Pages.today = {
     else {
       const die = h("div.t-die", { "aria-hidden": "true" });
       die.innerHTML = '<svg viewBox="0 0 318 282"><path d="M60 40c40-34 126-30 170-6 44 24 70 74 58 128-12 54-62 88-130 88-70 0-128-26-140-82C8 114 20 72 60 40z"/></svg>';
-      slot.append(die, h("div.t-ghost", h("span.t-plus", "+"), h("b", "Today's Peta goes here"), h("small", "Make one from any image")));
+      // The whole empty slot is the way in: it does what "Make today's Peta" does.
+      slot.append(die, h("button.t-ghost", { type: "button", "aria-label": "Make today's Peta", on: { click: (e) => { Snd.tap(); Shell.go("create", { origin: e.currentTarget, via: "object" }); } } },
+        h("span.t-plus", { "aria-hidden": "true" }, "+"), h("b", "Today's Peta goes here"), h("small", "Make one from any image")));
     }
     const n = entries.length;
     const info = h("div.t-info",

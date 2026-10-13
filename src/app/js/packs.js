@@ -21,10 +21,15 @@ const PackArt = {
     return this.cache.get(p.id);
   },
   /** The wrapped pack for a shelf cell, standing on the ledge; `cover` is a picture url or null. Scales with its box, so the zoom can enlarge it. */
+  /* Where each picture really ends (alpha > 40, % of its height, measured from the art). `body` is the bag's box for the layout and can sit
+     a little below the painted bottom, so the shelf uses these instead: every bag's foot lands on the same floor as the shop's pouches. */
+  FOOT: { packKraft: 91.8, packMatte: 91.89, packHolo: 89.75, bagGlassine: 98.06, bagPhoto: 92.36, bagKraftParcel: 92.78, bagPocket: 94.44, bagAirmail: 86.46, bagWrap: 93.61, bagDrawer: 90.83, bagCotton: 91.11 },
+  /** The shelf's floor, as a share of the pouch box measured from its bottom: where the shop's kraft and matte pouches stand. */
+  FLOOR: 8.15,
   shelf(p, cover) {
-    const b = BAGS[p.bag], [x0, , x1, y1] = b.body, bw = x1 - x0, obj = Math.min(b.cm * 15, 166);
+    const b = BAGS[p.bag], [x0, , x1, y1] = b.body, bw = x1 - x0, obj = Math.min(b.cm * 15, 166), foot = this.FOOT[b.art] ?? y1;
     const pic = BagPic({ bag: p.bag, title: p.title, sub: "by " + p.by, cover, deco: p.deco || "none", layout: p.layout, k: 15, fit: 166, shut: true, id: p.id });
-    pic.style.width = (obj / (bw / 100) / 168 * 100) + "%"; pic.style.left = "50%"; pic.style.bottom = "0"; pic.style.translate = `-50% ${100 - y1}%`; pic.style.position = "absolute";
+    pic.style.width = (obj / (bw / 100) / 168 * 100) + "%"; pic.style.left = "50%"; pic.style.bottom = this.FLOOR + "%"; pic.style.translate = `-50% ${100 - foot}%`; pic.style.position = "absolute";
     return pic;
   },
 };

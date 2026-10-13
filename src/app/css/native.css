@@ -591,6 +591,11 @@ html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
 .t-die svg { width:min(320px,86%); height:auto; overflow:visible; }
 .t-die path { fill:rgba(60,45,20,.035); stroke:rgba(60,45,20,.38); stroke-width:2; stroke-dasharray:7 7; stroke-linecap:round; }
 .t-ghost { position:relative; display:grid; justify-items:center; gap:2px; text-align:center; }
+button.t-ghost { position:absolute; inset:0; align-content:center; padding:0; border:0; border-radius:50%; background:none; color:inherit; font:inherit; cursor:pointer; }
+button.t-ghost .t-plus { transition:transform .2s var(--ease-hover,ease), box-shadow .2s; }
+button.t-ghost:hover .t-plus, button.t-ghost:focus-visible .t-plus { transform:translateY(-2px) scale(1.06); box-shadow:inset 0 0 0 1px var(--w-line), 0 2px 3px rgba(60,45,20,.22), 0 8px 16px rgba(60,45,20,.12); }
+button.t-ghost:focus-visible { outline:none; } button.t-ghost:focus-visible b { text-decoration:underline; text-underline-offset:3px; }
+html[data-motion="reduce"] button.t-ghost .t-plus { transition:none; }
 .t-ghost b { font:650 17px/22px var(--sys); color:var(--ink); }
 .t-ghost small { font:var(--meta); color:var(--muted); }
 .t-plus { width:44px; height:44px; margin-bottom:10px; border-radius:50%; display:grid; place-items:center; background:var(--w-surface); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh1); font:300 26px/1 var(--sys); color:var(--ink2); }
@@ -875,6 +880,13 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .shelf .pack { display:grid; grid-template-rows:224px; padding:44px 0 0; }
 /* The foil pouch's picture has more empty space under its crimp than the paper bags (105 vs 84 of 1024 px), so it stood a little above the board; drop it by the difference so every pack rests on the shelf. */
 .shelf-row .pk-stack[data-kind="holo"][data-gen="0"] { translate:0 2.1%; }
+/* Depth on the shelf (owner's reference, 2026-10-13): the board lifts off the wall (a short dark shadow right under it and a soft one
+   spreading below), each pack touches the board (a small dark contact shadow where its foot meets the floor), and the wall behind the
+   pack takes a faint blurred shadow up and to the right. The floor is 8.15% of the 224px pouch box above its bottom, plus the card's 6px. */
+.shelf-row .ledge { filter: drop-shadow(0 2px 1.5px rgba(50, 35, 15, .34)) drop-shadow(0 12px 14px rgba(60, 45, 20, .2)); }
+.shelf-row .pack::after { left: 15%; right: 15%; bottom: 17px; height: 13px; opacity: 1; background: radial-gradient(ellipse at 50% 45%, rgba(35, 25, 10, .62), rgba(35, 25, 10, .26) 42%, rgba(35, 25, 10, 0) 70%); }
+.shelf-row .pack::before { content: ""; position: absolute; z-index: -1; left: 22%; right: 12%; top: calc(44px + 12%); bottom: 28px; border-radius: 14px; background: rgba(60, 45, 20, .24); filter: blur(12px); transform: translate(14px, -10px); pointer-events: none; }
+.shelf-row .pack[data-empty="true"]::before { opacity: .5; }
 /* Written on the wall: letters tilt and lift a little each, and the wall's grain makes the ink uneven (a mask, never a filter: WebKit renders an SVG/CSS filter at 1x and scales it up, which smears 2px strokes on a Retina screen). */
 .pk-count { position:absolute; left:0; right:0; top:30px; text-align:center; font:400 26px/1 "Kalam","Bradley Hand","Segoe Print",var(--hand),cursive; letter-spacing:.03em; word-spacing:.28em; color:#38342f; opacity:.96; mix-blend-mode:multiply; text-shadow:none; filter:none; -webkit-mask-image:var(--a-wallInkGrain); mask-image:var(--a-wallInkGrain); -webkit-mask-size:128px 128px; mask-size:128px 128px; -webkit-mask-repeat:repeat; mask-repeat:repeat; transform:translateX(var(--dx,0)) rotate(var(--tilt,0deg)); pointer-events:none; white-space:nowrap; }
 .pk-count .ink { display:inline-block; transform:translateY(var(--y,0)) rotate(var(--r,0deg)) scale(var(--s,1)); opacity:var(--o,1); }
