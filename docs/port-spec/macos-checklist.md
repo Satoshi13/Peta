@@ -360,3 +360,7 @@ Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に
 - [ ] データフォルダごと新しい Mac に移すと出品が続く。鍵だけを戻した場合は、既存の友達は引け、精算は受け取れる。
 - [ ] 通常版(既定ビルド)の Market・Packs・Scraps・この Mac の出品が今までどおり。
 - [ ] 本番: `peta-market-prod` の作成・`0003` の適用・deploy・R2 の使用量通知([運用手順](../server-howto.md))。
+
+## 2026-10-14: 公開前修正
+
+- [ ] 通常版・ベータ版で k1 のイベントファイル／コードが `This Peta code was made for testing and can't be used here.` と表示され、在庫が変わらない。Developerでは受け取れる。

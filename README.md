@@ -366,3 +366,7 @@ Settings の Friends でコード／リンクをコピーして交換し、本�
 ### 2026-10-13: S3 友達の Market（開発者版限定）
 
 Market の公式の棚の下に、承認済みの友達が出したパックが友達ごとのレールで並びます。カードで中身と残りを見て、1回 6 Scraps(仮)で1枠ずつ引きます。Scraps は端末のまま、引く記録と売り手の取り分(70%、仮)は審判役が持ちます。出品の中身は出品ごとの鍵で暗号化され、運営は読めません。My shelf の完成パックは `Show to friends in Market` / `Take down` / `Stop selling` で出し、売れ行きに入った Scraps が出ます。アプリ DB は V17、Worker は `0003_market.sql`。詳細は [S3 報告](docs/server-s3-report.md)、設計は [server-s3-market-plan.md](docs/server-s3-market-plan.md)、運用は [server-howto.md](docs/server-howto.md)。本番への操作はしていません。
+
+### 2026-10-14: 公開前修正 — 公式イベントの信頼
+
+通常版・友達限定ベータは公開テスト鍵 k1 を信用しません。コードの鍵番号は保持し、Developer とテストだけで使用します。本物の鍵はオーナーがオフラインで生成し、公開鍵だけを末尾の k2 に追加します。[鍵の手順](docs/official-key-howto.md)。
