@@ -19,6 +19,7 @@ async function boot() {
   await Bridge.listen('distribution-result', async e => {await Bridge.reload(); Shell.refresh(); if(e.payload.pack) Distribution.offer(e.payload.pack);else Shell.toast(e.payload.result);});
   await Bridge.listen('referee-synced', Bridge.changed);
   await Bridge.listen('inbox-changed', Bridge.changed);
+  await Bridge.listen('friend-link-pending', () => { Friends.openPendingLinks().catch(e => Shell.toast(Friends.error(e))); });
   await Bridge.listen('referee-sync-failed', Bridge.changed);
   await Bridge.listen('daily-changed', Bridge.changed);
   await Bridge.listen('placements-changed', Bridge.changed);
@@ -40,5 +41,7 @@ async function boot() {
   if(page==='boards-save') Pages.boards.traySave();
   await boardNotes();
   if(welcome!=null) Scraps.note(`A welcome gift: ${welcome} Scraps.`); requestAnimationFrame(() => requestAnimationFrame(() => Vibrancy.sync()));if(page==='redeem') Distribution.redeem();if(S.packOffer)Distribution.offer(S.packOffer);
+  Friends.linksReady = true;
+  await Friends.openPendingLinks();
 }
 boot().catch(e => { console.error(e); document.getElementById('toast').textContent=String(e); document.getElementById('toast').classList.add('on'); });

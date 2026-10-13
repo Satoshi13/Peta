@@ -4,19 +4,21 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const source = (name) => fs.readFileSync(new URL(`../src/app/js/${name}.js`, import.meta.url), 'utf8');
 class Element {
-  constructor(tag, props, children) { this.tag = tag; Object.assign(this, props); this.children = children.flat(Infinity).filter((x) => x != null && x !== false); this.classList = { add() {} }; }
+  constructor(tag, props, children) { this.tag = tag; this.value = tag.startsWith("textarea") ? children.join("") : ""; Object.assign(this, props); this.children = children.flat(Infinity).filter((x) => x != null && x !== false); this.classList = { add() {} }; }
   append(...c) { this.children.push(...c); }
+  replaceChildren(...c) { this.children = c.flat(Infinity); }
+  focus() {}
   addEventListener() {}
 }
 function h(tag, ...args) { const props = args[0] && typeof args[0] === 'object' && !Array.isArray(args[0]) && !(args[0] instanceof Element) ? args.shift() : {}; return new Element(tag, props, args); }
 const text = (el) => el instanceof Element ? (el.textContent || el.children.map(text).join('')) : String(el ?? '');
 const nodes = (el) => el instanceof Element ? [el, ...el.children.flatMap(nodes)] : [];
 const friend = (name, status, extra = {}) => ({ publicKey: `${name}-key`, name, fingerprint: 'ABCD-EFGH', status, allowed: status === 'friend', note: null, addedAt: new Date().toISOString(), ...extra });
-function load(inbox, gifts = []) {
+function load(inbox, gifts = [], reply = async () => ({})) {
   const calls = [];
-  const context = vm.createContext({ h, S: { inbox, gifts }, Shell: { toast() {}, refresh() {}, renderNav() {} }, Bridge: { invoke: async (cmd, args) => { calls.push({ cmd, args }); return {}; }, reload: async () => {} }, CloseButton: () => h('button.close'), SegButton: (t, p) => h('button', p, t), document: { querySelector: () => null, body: { append() {} } }, Date });
+  const context = vm.createContext({ h, S: { inbox, gifts }, PackZoom: { dispose() {} }, Shell: { toast() {}, refresh() {}, renderNav() {}, async open(page) { calls.push({ page }); } }, Bridge: { invoke: async (cmd, args) => { calls.push({ cmd, args }); return reply(cmd, args); }, reload: async () => {} }, CloseButton: () => h('button.close'), SegButton: (t, p) => h('button', p, t), document: { querySelector: () => null, body: { append() {} } }, Date });
   vm.runInContext(source('friends') + ';this.Friends=Friends;', context);
-  return { Friends: context.Friends, calls };
+  return { Friends: context.Friends, calls, context };
 }
 
 test('nothing about friends shows in a build without the server', () => {
@@ -59,4 +61,64 @@ test('Studio’s picker offers only friends who accepted', () => {
   pills[0].on.click(); assert.equal(chosen, 'Nao');
   const { Friends: none } = load({ enabled: true, friends: [] });
   assert.match(text(none.picker(null, () => {})), /Add one in Settings/);
+});
+
+function dialogForm(Friends, link) {
+  let form;
+  Friends.sheet = (_, ...children) => { form = children.find(x => x.tag === 'form.bd-form'); return { close() {} }; };
+  Friends.addDialog(link);
+  return form;
+}
+const flush = () => new Promise(resolve => setImmediate(resolve));
+
+test('an OS link waits for boot, opens Settings with the prefill, and only previews', async () => {
+  const links = ['peta-developer://friend/signed-code'];
+  const { Friends, calls } = load({ enabled:true, backedUp:true }, [], async cmd => cmd === 'friend_link_take' ? links.shift() || null : { name:'Nao', status:'new', fingerprint:'ABCD-EFGH' });
+  let form;
+  Friends.sheet = (_, ...children) => { form = children.find(x => x.tag === 'form.bd-form'); return { close() {} }; };
+  await Friends.openPendingLinks(); assert.equal(calls.length, 0, 'not consumed before boot is ready');
+  Friends.linksReady = true; await Friends.openPendingLinks(); await flush();
+  assert.ok(calls.some(x => x.page === 'settings'));
+  assert.equal(nodes(form).find(x => x.tag === 'textarea.bd-input.fr-code').value, 'peta-developer://friend/signed-code');
+  assert.ok(calls.some(x => x.cmd === 'friend_preview'));
+  assert.ok(!calls.some(x => x.cmd === 'friend_add'), 'neither launch nor preview sends anything');
+  const send = nodes(form).find(x => x.type === 'submit'); assert.equal(send.disabled, false);
+  await form.on.submit({ preventDefault() {} });
+  assert.equal(calls.filter(x => x.cmd === 'friend_add').length, 1, 'only the explicit submit sends');
+});
+
+test('self, blocked, existing and damaged links cannot submit a friend request', async () => {
+  for (const status of ['self', 'blocked', 'friend', 'requested', 'pending', 'damaged']) {
+    const { Friends, calls } = load({ enabled:true }, [], async () => { if(status === 'damaged') throw Error('This friend link is damaged.'); return {name:'Nao', status}; });
+    const form = dialogForm(Friends, 'peta://friend/payload'); await flush();
+    assert.equal(nodes(form).find(x => x.type === 'submit').disabled, true, status);
+    await form.on.submit({ preventDefault() {} });
+    assert.ok(!calls.some(x => x.cmd === 'friend_add'), status);
+  }
+});
+
+test('a late preview of an edited link cannot enable sending', async () => {
+  let finish;
+  const { Friends, calls } = load({ enabled:true }, [], () => new Promise(resolve => { finish = resolve; }));
+  const form = dialogForm(Friends, 'peta://friend/old');
+  const input = nodes(form).find(x => x.tag === 'textarea.bd-input.fr-code');
+  input.value = 'peta://friend/new';
+  finish({ name:'Old friend', status:'new' }); await flush();
+  assert.equal(nodes(form).find(x => x.type === 'submit').disabled, true);
+  await form.on.submit({ preventDefault() {} }); assert.ok(!calls.some(x => x.cmd === 'friend_add'));
+});
+
+test('a warm link waits for an existing sheet and duplicate wakeups do not open it twice', async () => {
+  const links = ['peta://friend/warm'];
+  const { Friends, calls, context } = load({ enabled:true }, [], async cmd => cmd === 'friend_link_take' ? links.shift() || null : {name:'Nao',status:'new'});
+  let closed, opened = 0;
+  context.document.querySelector = () => ({ addEventListener(_, callback) { closed = callback; } });
+  Friends.sheet = () => { opened++; return { close() {} }; };
+  Friends.linksReady = true;
+  const running = Friends.openPendingLinks(); await flush();
+  assert.equal(opened, 0); assert.ok(!calls.some(x => x.page === 'settings'));
+  await Friends.openPendingLinks(); assert.equal(opened, 0, 'wakeups share one consumer');
+  context.document.querySelector = () => null; closed(); await running; await flush();
+  assert.equal(opened, 1); assert.ok(calls.some(x => x.page === 'settings'));
+  assert.ok(!calls.some(x => x.cmd === 'friend_add'));
 });

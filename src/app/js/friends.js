@@ -46,25 +46,44 @@ const Friends = {
       dialog.addEventListener("close", () => resolve(answer));
     });
   },
+  /** Drain cold or warm OS links only after boot. Wait for another sheet instead of losing its link. */
+  async openPendingLinks() {
+    if (!this.linksReady || this.openingLinks) return;
+    this.openingLinks = true;
+    try {
+      let link;
+      while ((link = await Bridge.invoke("friend_link_take"))) {
+        const current = document.querySelector("dialog");
+        if (current) await new Promise(resolve => current.addEventListener("close", resolve, { once: true }));
+        PackZoom.dispose(true);
+        await Shell.open("settings");
+        this.addDialog(link);
+      }
+    } finally { this.openingLinks = false; }
+  },
+
   /** Paste a code or a link (or arrive from a link with it filled in), see who it is, and send a request. */
   addDialog(prefill = "") {
+    if (!S.inbox?.enabled) return this.sheet("Friends", h("h2", "Friends"), h("p.small.muted", "Friends need Peta's server, which this build does not include yet."));
     const input = h("textarea.bd-input.fr-code", { rows: 3, placeholder: "PETAF1-… or a friend link", "aria-label": "Friend code or link", spellcheck: false }, prefill);
     const who = h("div.fr-who", { "aria-live": "polite" }), note = h("input.bd-input", { type: "text", maxLength: 80, placeholder: "A few words (optional)", "aria-label": "A few words" });
     const send = h("button.btn", { type: "submit", disabled: true }, "Send request");
-    let preview = null, timer = 0;
+    let preview = null, previewText = "", timer = 0, revision = 0;
     const look = async () => {
-      preview = null; send.disabled = true; const text = input.value.trim();
+      preview = null; send.disabled = true; const text = input.value.trim(), request = ++revision;
       if (!text) { who.replaceChildren(); return; }
       try {
-        preview = await Bridge.invoke("friend_preview", { code: text });
+        const result = await Bridge.invoke("friend_preview", { code: text });
+        if (request !== revision || input.value.trim() !== text) return;
+        preview = result; previewText = text;
         const why = { self: "This is your own code.", blocked: "You blocked this person. Unblock them below first.", friend: "You are friends already.", requested: "You asked already. Waiting for them.", pending: "They asked you. Approve them on the Gifts page." }[preview.status];
         who.replaceChildren(h("b", preview.name || "Someone"), h("small.muted", ` · ${preview.fingerprint}`), why ? h("p.small.muted", why) : null);
-        send.disabled = !!why;
-      } catch (e) { who.replaceChildren(h("p.small.bd-error", this.error(e))); }
+        send.disabled = preview.status !== "new";
+      } catch (e) { if (request === revision) who.replaceChildren(h("p.small.bd-error", this.error(e))); }
     };
-    input.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(look, 250); });
+    input.addEventListener("input", () => { revision++; preview = null; send.disabled = true; clearTimeout(timer); timer = setTimeout(look, 250); });
     const form = h("form.bd-form", { on: { submit: async (e) => {
-      e.preventDefault(); if (!preview) return; send.disabled = true; send.textContent = "Sending…";
+      e.preventDefault(); if (!preview || preview.status !== "new" || previewText !== input.value.trim() || send.disabled) return; send.disabled = true; send.textContent = "Sending…";
       try {
         await Bridge.invoke("friend_add", { code: input.value.trim(), note: note.value.trim() || null });
         dialog.close(); await Bridge.reload(); Shell.refresh();
@@ -75,7 +94,8 @@ const Friends = {
       h("p.small.muted", "They see your name and these words. Gifts can be sent once they approve."),
       h("div.bd-dacts", h("button.link", { type: "button", on: { click: () => dialog.close() } }, "Cancel"), send));
     const dialog = this.sheet("Add a friend", h("h2", "Add a friend"), h("p.muted.small", "Paste the code or link your friend sent you."), form);
-    if (prefill) look(); input.focus();
+    if (!dialog) return null;
+    if (prefill) look(); input.focus(); return dialog;
   },
 
   /** Settings: my code, adding, the list, requests, checking, and leaving. */
