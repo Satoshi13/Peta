@@ -1,6 +1,6 @@
 # S3 友達のMarket — Claudeへの引き継ぎ
 
-2026-10-13。**ユーザーの「使用量制限にかかる前に区切ってClaudeへ渡す」という指示により、Step 2の検証・コミットまでで停止。S3全体は未完了。Step 3から再開する。**
+2026-10-13。Codex が Step 2 まで実装して Claude へ引き継ぎ、**Claude が Step 3 を実装・コミットして停止**(ユーザーの指示で、Step 4 以降は別のチャットへ引き継ぐ)。**S3 全体は未完了。Step 4 から再開する。** Step 3 の内容は下の「Step 3 の実装(Claude)」。
 
 ## 最初に読むもの
 
@@ -17,13 +17,13 @@
 | --- | --- | --- |
 | 1 Rust検証データ | 完了 | `5a5f8f5` |
 | 2 Worker | 完了、ローカル検証済み。dev未デプロイ | `5e6ffc9` |
-| 3 core V17・支払い・精算・カード・購入経路 | **未着手**。下に設計メモあり | — |
+| 3 core V17・支払い・精算・カード・購入経路 | **完了**。全系統のテスト済み | `825aa71` |
 | 4 アプリ通信・IPC・同期 | 未着手 | — |
 | 5 UI | 未着手 | — |
 | 6 dev bucket・migration・deploy・実API往復 | 未着手 | — |
 | 7 正式なS3文書更新 | 未完了。この引き継ぎと途中報告のみ | — |
 
-ブランチは `codex/ui-fixes-oct07`。元HEADは `0db8d95`。アプリDBは**V16のまま**。既定版・Developer版のアプリのS3 UI/通信はまだ存在しない。Workerの新migrationはローカルテストでのみ適用された。`wrangler whoami` もまだ実行していない。
+ブランチは `codex/ui-fixes-oct07`。元HEADは `0db8d95`。アプリDBは **V17**(Step 3)。既定版・Developer版のアプリのS3 UI/通信はまだ存在しない。Workerの新migrationはローカルテストでのみ適用された。`wrangler whoami` もまだ実行していない。
 
 ## Step 1の実装
 
@@ -54,7 +54,7 @@
 - wranglerのdev/prodにMARKET bindingと上限varsを追加しただけ。**どちらの実バケットもこの作業では作成していない。リモートmigration/deployもしていない。**
 - **仕様の整合に注意**: planには「鍵だけ復元したら新しい内容鍵で出し直す」とある一方、pack_idはUNIQUE・closedも残す指定。現実装は1 packにつき1 listingを維持し、closedの別listingへの再登録をtakenで拒否する。一時停止→openは可能。Step 4の鍵だけ復元時の扱いは、この矛盾を報告して解決する必要がある。closedを無断で削除・再利用して販売制限を消さない。
 
-## Step 3の推奨設計（未実装）
+## Step 3の推奨設計（Codexのメモ。実装済み。実際の形は次の節）
 
 最重要は**Library mutexもSQLite transactionも持たずにHTTPを行う**こと。既存 `edition_pack::open_row` はネットワーク呼び出しを含むので、そのままMarket用Refereeへ置き換えない。
 
@@ -75,6 +75,31 @@
 - カードはprompt優先で**作者名なし**。header digestとsigned pack/seller keyを照合。planの作者名入り記述よりpromptを優先。見本の選び方はpromptの「枚数が少ない順・最少を除く・3デザイン以下なら全部」を使う。
 
 必須テスト: V16→V17既存データ保持、debit/pendingの故障注入rollback、連打debit一回、再起動exact retry、3衝突で払い一回/返金一回、200後commit失敗からの復旧、done再確定一回、prizeとedition、payout二重計上/端数、作者不一致と改変カード拒否、hidden packの通常/free開封拒否。
+
+## Step 3 の実装(Claude、`825aa71`)
+
+変更は core だけ(`db.rs`・`scraps.rs`・`edition_pack.rs`・`ownership.rs`・`market.rs`)。アプリ(`src-tauri/src`)・UI・Worker は触っていない。
+
+- **DB V17**(`db.rs`): `market_my_listings`(内容鍵・状態・登録/アップロードの進み具合)、`market_envelopes_sent`、`market_earned`(外部パックIDごとの取り分)、`market_listings_seen`(友達の出品・内容鍵・カードのファイル)、`market_packs`(引く専用のパックの印)、`market_pulls`(+ pending は1パック1件の部分一意索引)。`Database::packs()` は `market_packs` を除外。V16→V17 のテストあり。
+- **Scraps**(`scraps.rs`): `Kind::Pull` / `Kind::Payout` を追加。**通常の `trade` からは拒否**し、`market_move`(呼び出し側のトランザクション内、レシートは `scraps.tx.pull-* / refund-* / payout-*`)だけが動かす。
+- **審判役**(`ownership.rs`): `PurchaseAck {saleId, slotsLeft}` と `Referee::purchase(listing, pull, slot, claim, price)`(既定は Offline)。Market のエラー文言を `RefereeError` の表示に追加。
+- **開封の共通化**(`edition_pack.rs`): `open_row` の中身を入れる処理を `award_in` に切り出し、S1 の開封と Market の確定で共有(既存の動きは不変)。`install_with` で印を同じトランザクションに入れる。`ensure_can_open` は引く専用パックを `market_pack` で拒否。出品済みパックの `for_sale` では S1 の `pack_slot_pending` を消して返す。`Award` に Deserialize。
+- **`market.rs` の公開 API**(Step 4 で使う):
+  - 売り手: `prepare_listing(lib, pack_id)`(自作の完成パック・サーバー以前でない・取り消し待ちでない。カードとパックを封じて `<root>/market/outbox/` に保存。再実行で同じ draft を返す。closed は再出品不可)、`Listing::registration()`(登録本文)、`upload_bytes(lib, listing, "card"|"pack")`、`record(lib, listing, Progress::{Registered,CardUploaded,PackUploaded,Open,Paused,Closed})`(Open/Closed で outbox を消す。Open/Paused/Closed は V14 の `pack_market_listings` にも反映)、`envelope_changes(lib, listing)`(`status=friend` で暗号鍵のある友達に付け、それ以外から外す。200件まで。`.body()` が Worker の本文)→ 成功後 `envelopes_sent`、`listing` / `listings`。
+  - 買い手: `store_seen(lib, &[RemoteListing])`(承認済みの友達の出品で封筒が開けるものだけ保存。カードを取り直すべき出品IDを返す)、`store_card(lib, listing, sealed)`、`seen(lib)`(UI 用。友達の名前つき)、`install_pack(lib, listing, sealed)`(digest・カードの packDigest・ヘッダの外部ID・**署名者 = 売り手**を確認して引く専用で入れる)、`market_pack`、`is_market_pack`、`card_taken(card, claimed)`。
+  - 引く: `pull(store: &impl Locked, referee, pack_id, unrestricted, date, queue)`。`Locked::with` の間だけ Library を触り、**HTTP はその外**。内部は `exclude_slots` → `prepare_pull`(残高を減らす + pending を1トランザクション、pending があればそれを再開)→ `send`(`slot_taken` は同じ払いで別の枠・3回で返金、`not_friend` / `listing_closed` / `price_changed` / `sold_out` / `own_pack` / `too_many_pulls` / `blocked` / `invalid` / 404 は返金、それ以外は pending のまま)→ `finish_pull`(二度目は保存した Award を返す)。同期で再送するには `pending_pulls(db)` を `send(..., queue=false)` に渡す。
+  - 精算: `payout_cursor(db)`(次の `after`)、`apply_payouts(db, &[Sale])`(取り分・端数・upto・`market_earned` を1トランザクション)。**ack の HTTP は呼び出し側**が `apply_payouts` の後に送る。
+- 仮に決めたこと: 見本は版の数の少ない順で一番少ないものを除き最大3枚。カードが 1MiB を超える見本の絵は入れない(縮小はしていない)。カードに作者名は入れない(ただし署名済みパックのヘッダには `author` がある)。
+- テスト(core 239 / developer 241): 友達だけに封筒、カードとパックの改ざん・作者の不一致の拒否、引く専用パックが棚に出ず無料開封できない、1回だけ払う、応答なし→同じ pull の再送、再起動後の再送、`slot_taken` で同じ払いのまま移る・3回で返金、最終拒否の返金と clock_skew の保留、debit と pending の故障注入、`done` 更新の故障注入からの復旧、景品の枠、精算の二重計上なし・端数、`trade` から Pull/Payout を拒否。
+- 全系統: Rust 既定(app 11 / core 239 / original_management 5 / CLI 1)、developer(app 14・1 ignored / core 241 / 5 / 1)、JS 187、Worker 50、`npm run check`、`git diff --check` 成功。既定版の `cargo tree -e normal` に ureq / rustls / reqwest なし。
+
+### Step 4 で最初にやること
+
+1. `src-tauri/src/referee.rs` の `HttpReferee` に `purchase` を実装(`POST /v1/market/listings/{L}/pulls/{pullId}`、本文 `{slot, claim, price}`、応答 `{saleId, slotsLeft}`)。Market 用の GET/PUT/POST/DELETE(一覧・カード・パックの取得、出品・アップロード・封筒・open/pause・close、payouts と ack)も `exchange` で足す(パックの PUT/GET は 24MiB+36、カードは 1MiB+36 まで)。
+2. `store::Store` に `market::Locked` を実装し、IPC 7つ(依頼書 §5)を `spawn_blocking` で。
+3. 同期(起動・フォーカス・Market を開いたとき・友達の承認/Remove/Block の後): 自分の出品を続きから進める → 封筒の付け外し → 一覧(`store_seen`)→ カードの取得 → `pending_pulls` の再送 → 精算と ack。
+4. **仕様の整合(未解決)**: 鍵だけを新しい Mac に戻した場合、内容鍵(DB)がないので新しい友達に封筒を作れない。ただし既存の友達は封筒のまま引け、精算は鍵だけで受け取れる。Worker は closed の再出品を拒否するので、「出し直す」は不可。**設計書 §2.1 の「出品を取り下げて出し直す」を、この挙動に合わせて Step 7 で直す**のが推奨。
+5. 既存の S1 開封(`packs.rs::open`)は Library のロックを持ったまま HTTP をしている(以前からの挙動)。Market の経路はロックの外で行う。
 
 ## Step 4以降の入口
 
@@ -113,9 +138,9 @@ npm run check
 
 ## 既存変更の保護
 
-開始時から `docs/decisions.md`・`docs/server-plan.md`・`docs/ui-proposals/README.md`・`src/app/css/linktag.css`・`src/app/js/assets.js`・`src/app/js/market.js` にオーナーの未コミット変更があり、今回のコミットへ含めていない。S3 prompt/planや `.claude/`、多数のUI試作、`docs/.codex-server-s3-prompt.md.swp` もある。**git add . / reset --hard / cleanを使わない。**
+開始時から `docs/decisions.md`・`docs/server-plan.md`・`docs/ui-proposals/README.md`・`src/app/css/linktag.css`・`src/app/js/assets.js`・`src/app/js/market.js` にオーナーの未コミット変更があり、今回のコミットへ含めていない。S3 prompt/plan(`docs/codex-server-s3-prompt.md`・`docs/server-s3-market-plan.md`、未追跡)や `.claude/`、多数のUI試作、`docs/.codex-server-s3-prompt.md.swp` もある。**git add . / reset --hard / cleanを使わない。**
 
-Step 3以降で既存の編集を保持し、Step 5のmarket.js、Step 7のdecisions/server-planは自分の変更だけをコミットする。補助コピーは `/tmp/peta-s3-owner-changes.patch`、`/tmp/peta-s3-market-before.js`、`/tmp/peta-s3-decisions-before.md`。これらは全未追跡ファイルのバックアップではない。
+Step 4以降も既存の編集を保持し、Step 5のmarket.js、Step 7のdecisions/server-planは自分の変更だけをコミットする。補助コピーは `/tmp/peta-s3-owner-changes.patch`、`/tmp/peta-s3-market-before.js`、`/tmp/peta-s3-decisions-before.md`。これらは全未追跡ファイルのバックアップではない。
 
 `docs/release-readiness-audit-2026-10-13.md` は前の確認依頼でCodexが作った未追跡レポート。S3には含めていない。公開前問題を勝手にS3へ混ぜない。
 
