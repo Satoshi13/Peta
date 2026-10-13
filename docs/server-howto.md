@@ -1,6 +1,6 @@
-# S1 サーバーの運用手順
+# S1 / S2 サーバーの運用手順
 
-2026-10-12。審判役の台帳だけを扱います。Gift の画像・本文・受信箱・友達・R2 は S2 以降です。
+2026-10-13 更新。審判役の台帳（S1）と友達・Gift の受信箱・通報（S2）を扱います。実装・デプロイは dev のみ。本番の準備は下記のオーナー用手順です。
 
 ## 開発用
 
@@ -29,13 +29,13 @@ Settings → Peta checks に接続先・最後に応答を受けた UNIX 時刻�
 
 ## 本番（オーナーだけが行う）
 
-この実装作業では本番への migration / deploy を行いません。S1 は開発者版限定です。独自ドメイン、鍵の復元、友達・受信箱、公開条件は後工程です。
+この実装作業では本番への migration / deploy を行いません。S1 / S2 は開発者版限定です。鍵の復元と友達・受信箱は実装済みですが、独自ドメインと公開条件の確認は別工程です。
 
 ```sh
 cd cloudflare/peta-api
 npx wrangler whoami
 npx wrangler d1 migrations list peta-prod --remote --env prod
-npx wrangler d1 export peta-prod --remote --env prod --output /安全な保存先/peta-prod-before-s1.sql
+npx wrangler d1 export peta-prod --remote --env prod --output /安全な保存先/peta-prod-before-s2.sql
 npx wrangler d1 migrations apply peta-prod --remote --env prod
 npx wrangler deploy --env prod
 ```
@@ -66,14 +66,80 @@ npx wrangler d1 time-travel restore peta-prod --bookmark 確認したbookmark --
 
 ## 鍵
 
-端末の `device.key` は既存どおり 0600 の秘密鍵です。Worker に秘密鍵・API トークンは置きません。D1 / account ID は公開情報です。鍵の Export / Import identity は S2 で、S1 の間は端末データと鍵を失うと台帳の持ち主へアクセスできません。OS のバックアップ対象には DB・assets と鍵を揃え、鍵をログやリポジトリへ貼らないでください。
+端末の `device.key` は既存どおり 0600 の秘密鍵です。Worker に秘密鍵・API トークンは置きません。D1 / account ID は公開情報です。S2 の Settings → Your Peta key から `.petakey` に書き出し／復元できます。端末データと鍵を失うと台帳の持ち主へアクセスできません。OS のバックアップ対象には DB・assets と鍵を揃え、鍵をログやリポジトリへ貼らないでください。
 
 ## API の JSON
 
-既存 Rust の serde と合わせて camelCase を使います。Creation / Transfer の署名形式・Gift v1〜v3・Pack v1/v2 は変えていません。パック登録は `packId, creatorKey, slotCount, headerDigest, editions[{creation,release}], movedReleases, sourceIds`。`sourceIds` は端末の取り消し待ち用で、Worker は版の署名と台帳で判断します。cancel は登録と同じ `PackRegistration` 全体を送り、登録本文の SHA-256 を照合します。取り消した release の署名と pack 登録の digest を台帳に残し、遅れて届いた元の操作を拒否します。単なる再送と、成功した cancel の後に同じ操作を復活させることは区別します。枠の claim は `{claim: Transfer | null}`。応答 `{slots:[n,…]}` は全端末共通の使用済み枠です。
+既存 Rust の serde と合わせて camelCase を使います。Creation / Transfer の署名形式・Gift v1〜v3・Pack v1/v2 は変えていません。パック登録は `packId, creatorKey, slotCount, headerDigest, editions[{creation,release}], movedReleases, sourceIds`。`sourceIds` は端末の取り消し待ち用で、Worker は版の署名と台帳で判断します。cancel は登録と同じ `PackRegistration` 全体を送り、登録本文の SHA-256 を照合します。取り消した release の署名と pack 登録の digest を台帳に残し、遅れて届いた元の操作を拒否します。単なる再送と、成功した cancel の後に同じ操作を復活させることは区別します。枠の claim は `{claim: Transfer | null}`。応答 `{slots:[n,…]}` は全端末共通の使用済み枠です。S2 では署名したパック作者に限り `drawers:[{slot,keyHash},…]` が追加されます。作者以外は従来どおり番号だけで、生の鍵は返しません。友達の名前への対応は端末内だけで行います。
 
 ## 保存と受け取りが競合した場合
 
 Gift / Pack ファイルの公開と SQLite の COMMIT は同じトランザクションにできません。公開直後に別端末で受け取られ、その後のローカル保存が失敗すると、サーバーは取消を拒否します。このときは相手の持ち主を守り、Gift 原本を gone、パックの移動原本を gone・刷った原本を pressed にして `referee_reconciliations` に記録します。既に受け取られた操作は「Nothing was changed」ではなく専用文言で表示します。パックの材料・Tag 在庫も取消 intent の記録から控除します（復旧時に不足する在庫は0で止め、遠隔台帳を取り消して埋め合わせることはしません）。ローカルの完成パック記録は自動で復元しないので、復旧件数がある場合はデータを保全して調査します。
 
 接続不能なら取消 intent を保持し、該当原本を再送・再 press できません。404 を取消成功と見なして intent を消すこともしません。
+
+
+## S2 の dev と受信箱
+
+`0002_inbox.sql`、`peta-reports-dev`、dev の GIFTS / REPORTS binding は Step 2 で適用済みです。Step 7 の更新は `npx wrangler@4.149.0 deploy --env dev` で再デプロイします。通常版に `server` は含めず、Developer の dev URL を本番へ流用しません。
+
+コード／リンクをコピーしたとき、または友達の追加で受信箱を登録します。未登録で友達0人なら受信箱 API は呼びません。登録後は友達0人でも申請を受け取るため確認します。起動時・Gifts・Check now・60秒以上後のフォーカス、Automatically で15分ごとに確認します。S1 台帳の同期と受信箱の確認は別です。
+
+申請と Gift は HPKE で封をしたまま保存されます。未処理は7日で期限切れ、受信箱 API の掃除でD1のメッセージ索引と友達申請を削除し、GIFTS のオブジェクトは7日のライフサイクルでも消します。厳密な7日後の物理削除やクラウド側バックアップからの即時消去を保証するものではありません。現行コードは一覧・取得を含む受信箱 API で掃除します。通常の受取後／送り手の取消／退会でもGiftのR2と索引を消します。R2のライフサイクルは非同期です。[Cloudflare object lifecycles](https://developers.cloudflare.com/r2/buckets/object-lifecycles/) を参照してください。
+
+## S2 の本番準備（オーナーのみ・この作業では実行しない）
+
+前掲の本番 D1 export / migrations / deploy の**前に**、同じアカウントで通報用の非公開バケットを準備します。`peta-gifts-prod` は作成済みですが、7日の削除ルールをDashboardで確認します。
+
+```sh
+cd cloudflare/peta-api
+npx wrangler@4.149.0 r2 bucket create peta-reports-prod --env prod
+npx wrangler@4.149.0 secret put REPORT_WEBHOOK --env prod
+# secret put の対話欄に運営専用のDiscord Webhook URLを入力（コマンドやGitには書かない）
+npx wrangler@4.149.0 d1 migrations list peta-prod --remote --env prod
+npx wrangler@4.149.0 d1 export peta-prod --remote --env prod --output /安全な保存先/peta-prod-before-s2.sql
+npx wrangler@4.149.0 d1 migrations apply peta-prod --remote --env prod
+npx wrangler@4.149.0 deploy --env prod
+```
+
+R2 → `peta-reports-prod` の Public access で r2.dev と公開カスタムドメインを有効にしません。REPORTS は「対応後30日」のため、作成後30日の一律ライフサイクルを設定しません（未対応分を消してしまうため）。`wrangler.jsonc` の対象D1・2つのバケット・secretを照合し、最新migrationが `0002_inbox.sql` まで適用されることを確認します。S1から未適用なら0001も適用されます。重複作成が不要な既存バケットは作り直しません。参考: [R2 Wrangler commands](https://developers.cloudflare.com/r2/reference/wrangler-commands/)。
+
+devで通報運用を試すときは、上のバケット名・DB名・`--env` をすべて dev に揃えます。Webhookは任意ですが、未設定だと知らせは来ないので定期的に通報索引を確認する必要があります。Webhookの送信失敗は保存成功を取り消さず、通知の自動再送もありません。
+
+## 通報を見る・対応する・30日後に消す
+
+Webhookに届くのは件数と通報IDだけです。件数は**保存中の全通報数**で、未対応件数とは限りません。理由・画像・本文・公開鍵／鍵ハッシュをWebhookへ送りません。D1 の `reports` はID・通報者と送り手のハッシュ・理由・時刻、R2 の `reports/<ID>.json` はそれに `gift`（base64の復号済み元Gift）を持ちます。
+
+```sh
+npx wrangler@4.149.0 d1 execute peta-prod --remote --env prod --command "SELECT id,reporter_hash,sender_hash,reason,created_at FROM reports ORDER BY created_at DESC LIMIT 50;"
+npx wrangler@4.149.0 r2 object get peta-reports-prod/reports/確認したID.json --remote --env prod --file /安全な保存先/report.json
+```
+
+Cloudflareアカウントと保存先は運営だけに制限し、通報ファイル・画像・理由をGitやチャット、Webhookへ転送しません。取り出したJSONの `gift` をbase64復号すると Giftの `.peta` ファイルです。受領経路・Giftの署名・内容を確認し、通報者が指定した sender_hash だけで処分を決めません（APIは通報内容の真偽を検証しません）。必要な対応・対応日・削除予定日をアクセスを絞った運営記録に残します。現行DBには resolved_at と自動削除ジョブがありません。
+
+**対応完了から30日後**、保存中の通報ごとに次を実施します。まずR2の削除を確認してからD1索引を消し、取得したローカルファイルと運営の内容コピーも消します。未対応分は削除対象にしません。
+
+```sh
+npx wrangler@4.149.0 r2 object delete peta-reports-prod/reports/確認したID.json --remote --env prod
+npx wrangler@4.149.0 d1 execute peta-prod --remote --env prod --command "DELETE FROM reports WHERE id='確認したID';"
+```
+
+保持の例外が必要な場合の法的判断と、クラウド側バックアップ・削除依頼・開示への扱いは公開前にオーナーと専門家が決めます。30日運用はこの手順を実行することで成立するため、担当者と見落とし防止の管理を先に用意します。
+
+## 運営の拒否（blocked_keys）
+
+対象は公開鍵そのものではなく、公開鍵32バイトをSHA-256した**64桁の小文字hex**です（base64文字列を直接ハッシュしない）。`reports.sender_hash` と同じ形。署名と事実を確認した鍵だけを登録します。SQLの例のハッシュと理由を確認した値に置き換え、理由に引用符があればSQL文字列として正しくエスケープします。
+
+```sh
+npx wrangler@4.149.0 d1 execute peta-prod --remote --env prod --command "INSERT INTO blocked_keys(key_hash,reason,at) VALUES('確認した64桁hash','confirmed abuse',unixepoch()) ON CONFLICT(key_hash) DO UPDATE SET reason=excluded.reason,at=excluded.at;"
+# 誤登録の解除
+npx wrangler@4.149.0 d1 execute peta-prod --remote --env prod --command "DELETE FROM blocked_keys WHERE key_hash='確認した64桁hash';"
+```
+
+認証後のAPI全般に `403 blocked` が効き、既存台帳・R2のデータを消す処理ではありません。既存の配達済み／保存済みGiftの回収や、新しい鍵での再参加は止められません。利用者のBlockは自分の受信箱の拒否リストであり、運営全体の拒否とは別です。
+
+## 退会と鍵の引っ越し
+
+Settings の Leave は本人が署名して `DELETE /v1/mailbox/{id}` を呼び、**自分の受信箱**、許可／拒否リスト、そこにある申請・未受取GiftとR2の中身を消します。ローカル友達はサーバーの状態を外してファイルGiftのTOFU行として残り、登録・確認設定をリセットします。受取済みGift・ステッカー・台帳（持ち主／移動／枠）・通報・運営の拒否は消えません。相手の受信箱へ送った未受取分は相手の受取／期限切れまで残り得ます。台帳を消すと持ち主の保証が壊れるため、削除依頼は種類を分けて確認します。運営の拒否に入った鍵は本人の退会APIも拒否されるため、必要な受信箱削除は運営が別途対応します。
+
+`.petakey` は `device.key` と `box.key` のバックアップだけです。12文字以上のパスフレーズを2回入力して封をし、パスフレーズを失うと復元できません。Collection・友達・配置・受取済みGift・画像は含みません。新Macへはアプリを止め、移行アシスタント／Time Machine で通常版 `~/Library/Application Support/app.peta.desktop/`、Developer `~/Library/Application Support/app.peta.developer/` のデータフォルダ**全体**を移します。必要な場合だけ移したフォルダで鍵を復元し、鍵・DB・assets の組合せを保ちます。同じ鍵なら受信箱IDは継続しますが、空のDBへ鍵だけ復元しても友達と手元の本物は戻りません。旧Macは同じ鍵で起動しません。同期や2台同時利用は未対応です。

@@ -2,7 +2,7 @@
 
 毎日、ひとつだけ。デスクトップに残る、ステッカーのある暮らし。
 
-現在は `src/` と `src-tauri/` の本物のTauriアプリに、Studio / Desk、Cutting Mat、Print → Grab → Paste、Collection、Packs、Gifts、MaterialsとSettingsがあります。DBはv8。配布版の素材はすべて有限で、Welcomeの通常開封は1日1回、Market / Giftは回数制限なしです。パック別の無料開封は以下のルールで追加できます。作成は選んだ素材を1枚消費します。最新のルールは [docs/decisions.md](docs/decisions.md)、移植・未決事項は [docs/port-spec/README.md](docs/port-spec/README.md) を参照してください。
+現在は `src/` と `src-tauri/` の本物のTauriアプリに、Studio / Desk、Cutting Mat、Print → Grab → Paste、Collection、Packs、Gifts、MaterialsとSettingsがあります。DBはv16。配布版の素材はすべて有限で、Welcomeの通常開封は1日1回、Market / Giftは回数制限なしです。パック別の無料開封は以下のルールで追加できます。作成は選んだ素材を1枚消費します。最新のルールは [docs/decisions.md](docs/decisions.md)、移植・未決事項は [docs/port-spec/README.md](docs/port-spec/README.md) を参照してください。
 
 ## ネイティブUIの設定
 
@@ -351,3 +351,14 @@ Auto は無料です。時間帯は開始日を基準に、窓に入った最初
 有効なルールがある間だけ1分ごとに確認し、起動・スリープ復帰・画面変更でも確認します。位置情報の要求は初回 Place の説明で Continue を押したときだけです。拒否してもルールは保存でき、`Location is off for Peta` と表示します。観測した Wi‑Fi 名・位置は保存も送信もしません（入力したルール名のみ DB に保存）。自動切り替えの知らせは窓が前に出たときにも届きます。
 
 メニューバーの Boards から画面ごとの切り替え・Undo・メイン画面の保存・Boards ページを開けます。検証結果と判断は [Boards 実装報告](docs/boards-report.md)、実機確認は [macOS チェックリスト](docs/port-spec/macos-checklist.md) に記載しています。
+
+
+### 2026-10-13: S2 友達・Gift の受信箱（開発者版限定）
+
+Settings の Friends でコード／リンクをコピーして交換し、本人の承認後に Gift v3 を双方向に送れます。コード／リンクのコピー時にも受信箱を登録するため、友達がまだいなくても申請を受け取れます。受信箱を未登録で友達もいない場合は受信箱の通信をしません（S1 の台帳確認は別機能）。申請と Gift は端末で HPKE に封をし、Worker は中身を読めません。未処理は7日で期限切れ。ファイルでの Gift と同じ署名・PNG・上限・release/claim の検証を通ります。アプリ DB は V16、Worker は `0002_inbox.sql` です。
+
+友達リンクは `peta://friend/…`／`peta-developer://friend/…` をビルドごとに登録し、起動前・起動後のリンクを窓が準備できるまで保持します。開くのはコード入りの追加ダイアログまでで、送信は本人が押します。通常版には通信の依存を入れず、リンクを受け取っても利用には開発者版が必要という案内になります。
+
+`.petakey` は署名鍵と暗号鍵だけのパスフレーズ付きバックアップです。Collection・友達・配置を移すには、移行アシスタント／Time Machine でデータフォルダ全体も移します。同じ鍵の2台同時利用と同期は対応しません。通報は本人の同意で復号済みの元の Gift を非公開の運営用 R2 へ送り、退会は受信箱を消しますが所有権台帳は残します。
+
+パック作者だけが枠ごとの引いた人の鍵ハッシュを取得し、端末内の承認済み友達の名前に置き換えます。それ以外は `Someone`、各デザイン・景品で3人までと `+N` を表示します。Scraps の取り分・友達の Market は S3 です。実装・検証・残る実機項目は [S2 報告](docs/server-s2-report.md)、運用は [server-howto.md](docs/server-howto.md)、公開前に専門家と確認する文案は [privacy-policy-draft.md](docs/privacy-policy-draft.md) を参照してください。本番への操作はしていません。
