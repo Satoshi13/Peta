@@ -329,7 +329,7 @@ it("slot and edition claims are atomic, concurrent, and replayable", async () =>
     409,
     "slot_taken",
   );
-  expect(await (await req("/v1/packs/pack/slots")).json()).toEqual({
+  expect(await (await req("/v1/packs/pack/slots", undefined, b)).json()).toEqual({
     slots: [0],
   });
   await code(await req("/v1/packs/pack/cancel", p), 409, "already_opened");
@@ -343,7 +343,7 @@ it("bad edition sequence does not consume the slot; direct claim cannot bypass i
     409,
     "seq_mismatch",
   );
-  expect(await (await req("/v1/packs/pack/slots")).json()).toEqual({
+  expect(await (await req("/v1/packs/pack/slots", undefined, b)).json()).toEqual({
     slots: [],
   });
   await code(
@@ -428,4 +428,21 @@ it("simultaneous identical pack registrations both succeed", async () => {
   const p = await pack();
   const results = await Promise.all([req("/v1/packs", p), req("/v1/packs", p)]);
   expect(results.map((r) => r.status)).toEqual([200, 200]);
+});
+
+it("only the authenticated pack maker receives drawer hashes, including prize slots", async () => {
+  await req("/v1/packs", await pack());
+  expect(await (await req("/v1/packs/pack/slots")).json()).toEqual({ slots: [], drawers: [] });
+  const claim = await move("pack-edition", 1, "claim", b, "pack:slot-0");
+  expect((await req("/v1/packs/pack/slots/0/claim", { claim }, b)).status).toBe(200);
+  expect((await req("/v1/packs/pack/slots/1/claim", {}, c)).status).toBe(200);
+  const author = await (await req("/v1/packs/pack/slots")).json();
+  expect(author).toEqual({ slots: [0, 1], drawers: [
+    { slot: 0, keyHash: await sha256(unbase64(await pub(b), 32)) },
+    { slot: 1, keyHash: await sha256(unbase64(await pub(c), 32)) },
+  ] });
+  expect(JSON.stringify(author)).not.toContain(await pub(b));
+  expect(JSON.stringify(author)).not.toContain(await pub(c));
+  for (const other of [b, c]) expect(await (await req("/v1/packs/pack/slots", undefined, other)).json()).toEqual({ slots: [0, 1] });
+  await code(await req("/v1/packs/pack/slots", undefined, a, { bad: true }), 401, "bad_signature");
 });

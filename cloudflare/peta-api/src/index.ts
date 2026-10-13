@@ -9,7 +9,7 @@ import {
   sha256,
   verify,
 } from "./proofs";
-import { inbox, MAX_GIFT } from "./inbox";
+import { inbox, MAX_GIFT, keyHash } from "./inbox";
 export interface Env {
   DB: D1Database;
   RATE_LIMITER?: RateLimit;
@@ -680,16 +680,18 @@ async function route(request: Request, env: Env): Promise<Response> {
     if (request.method === "POST" && action === "slots" && num !== undefined)
       return claimSlot(env, key, id, Number(num), data);
     if (request.method === "GET" && action === "slots" && num === undefined) {
-      if (
-        !(await stmt(env.DB, "SELECT 1 FROM packs WHERE pack_id=?", id).first())
-      )
-        fail(404, "unknown_pack");
+      const owner = await stmt(env.DB, "SELECT creator_key FROM packs WHERE pack_id=?", id).first<{ creator_key: string }>();
+      if (!owner) fail(404, "unknown_pack");
       const rows = await stmt(
         env.DB,
-        "SELECT slot_no FROM pack_slots WHERE pack_id=? AND claimer_key IS NOT NULL ORDER BY slot_no",
+        "SELECT slot_no,claimer_key FROM pack_slots WHERE pack_id=? AND claimer_key IS NOT NULL ORDER BY slot_no",
         id,
-      ).all<{ slot_no: number }>();
-      return Response.json({ slots: rows.results.map((r) => r.slot_no) });
+      ).all<{ slot_no: number; claimer_key: string }>();
+      const slots = rows.results.map((r) => r.slot_no);
+      // Only the authenticated maker can see who drew a slot; never return raw signing keys.
+      if (owner.creator_key !== key) return Response.json({ slots });
+      const drawers = await Promise.all(rows.results.map(async (r) => ({ slot: r.slot_no, keyHash: await keyHash(r.claimer_key) })));
+      return Response.json({ slots, drawers });
     }
   }
   fail(404, "not_found");
