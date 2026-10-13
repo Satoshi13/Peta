@@ -273,10 +273,11 @@ input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; backgro
 :root[data-motion="reduce"] .about-photo.ready:hover { transform:rotate(-2deg); }
 dialog.tour-dialog { border:0; padding:0; background:none; box-shadow:none; overflow:visible; max-width:calc(100% - 32px); }
 dialog.tour-dialog::backdrop { background:rgba(30,24,14,.42); }
-.tour-frame { position:relative; width:min(760px,calc(100vw - 64px)); padding:14px 14px 40px; background:#fbfaf6; border-radius:2px; transform:rotate(-.6deg); box-shadow:2px 2px 6px rgba(43,43,43,.28); }
+.tour-frame { position:relative; width:min(760px,calc(100vw - 64px)); padding:46px 14px 14px; background:#fbfaf6; border-radius:2px; transform:rotate(-.6deg); box-shadow:2px 2px 6px rgba(43,43,43,.28); }
 .tour-video { display:block; width:100%; aspect-ratio:16 / 9; background:#1d1b18; }
-.tour-tape { position:absolute; top:-14px; left:50%; width:120px; transform:translateX(-50%) rotate(-2deg); pointer-events:none; }
-dialog.tour-dialog button.close-control.tour-x { position:absolute; right:8px; bottom:4px; top:auto; width:32px; height:32px; background:none; color:#2b2a28; }
+.tour-video:focus, .tour-video:focus-visible { outline:none; }
+.tour-tape { position:absolute; top:-18px; left:50%; width:110px; transform:translateX(-50%) rotate(-2deg); pointer-events:none; }
+dialog.tour-dialog button.close-control.tour-x { position:absolute; right:8px; top:7px; bottom:auto; width:32px; height:32px; background:none; color:#2b2a28; }
 dialog.tour-dialog button.close-control.tour-x:hover { background:rgba(60,45,20,.08); }
 
 /* ---------- Packs: a pack on sale, as its maker sees it (js/packs.js PackSales) ---------- */

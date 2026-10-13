@@ -87,8 +87,8 @@ const RefereeSettings = {
   },
 };
 
-/* About Peta: a still taped to the card like a photo; the tour plays in a paper frame.
-   The film is optional: drop it at TOUR and the button wakes up, otherwise it reads "coming soon". */
+/* About Peta: a still taped to the card like a photo; the tour plays in a paper frame, with its music
+   (muted only if the webview refuses sound). The film is optional: drop it at TOUR and the button wakes up, otherwise it reads "coming soon". */
 const AboutPeta = {
   TOUR: "art/tour/peta-tour.mp4",
   card() {
@@ -102,11 +102,11 @@ const AboutPeta = {
   },
   play() {
     if(document.querySelector("dialog")) return;
-    const video=h("video.tour-video",{controls:true,playsInline:true,muted:true,preload:"auto",poster:A.tourStill,src:this.TOUR});
+    const video=h("video.tour-video",{controls:true,playsInline:true,preload:"auto",poster:A.tourStill,src:this.TOUR});
     const close=CloseButton("Close",{on:{click:()=>dialog.close()}},".tour-x");
-    const dialog=h("dialog.tour-dialog",{"aria-label":"Peta tour",on:{keydown:e=>{if(e.key==="Escape")e.stopPropagation();},close:()=>{video.pause();video.removeAttribute("src");video.load();dialog.remove();Bridge.dialogOpen=!!document.querySelector("dialog");}}},
+    const dialog=h("dialog.tour-dialog",{"aria-label":"Peta tour",on:{keydown:e=>{if(e.key==="Escape")e.stopPropagation();},click:e=>{if(e.target===dialog)dialog.close();},close:()=>{video.pause();video.removeAttribute("src");video.load();dialog.remove();Bridge.dialogOpen=!!document.querySelector("dialog");}}},
       h("div.tour-frame",h("img.tour-tape",{src:A.peekTape,alt:"",draggable:false}),video,close));
     Bridge.dialogOpen=true;document.body.append(dialog);dialog.showModal();
-    if(document.documentElement.dataset.motion!=="reduce") video.play().catch(()=>{});
+    if(document.documentElement.dataset.motion!=="reduce") video.play().catch(()=>{video.muted=true;video.play().catch(()=>{});});
   },
 };
