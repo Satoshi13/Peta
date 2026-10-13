@@ -88,16 +88,16 @@ const RefereeSettings = {
 };
 
 /* About Peta: a still taped to the card like a photo; the tour plays in a paper frame, with its music
-   (muted only if the webview refuses sound). The film is optional: drop it at TOUR and the button wakes up, otherwise it reads "coming soon". */
+   (muted only if the webview refuses sound). Enable playback once its metadata has loaded. */
 const AboutPeta = {
   TOUR: "art/tour/peta-tour.mp4",
   card() {
-    const button=h("button.btn.paper.small.about-watch",{type:"button",disabled:true,on:{click:()=>this.play()}},"Tour coming soon");
+    const button=h("button.btn.paper.small.about-watch",{type:"button",disabled:true,"aria-busy":"true",on:{click:()=>this.play()}},"Loading…");
     const photo=h("button.about-photo",{type:"button",disabled:true,"aria-label":"Watch the tour",on:{click:()=>this.play()}},
       h("span.about-window",h("img.about-still",{src:A.tourStill,alt:"",draggable:false})),h("img.about-tape",{src:A.peekTape,alt:"",draggable:false}),h("span.about-play",{"aria-hidden":"true"}));
     const probe=h("video",{preload:"metadata",muted:true});
-    const ready=()=>{button.disabled=false;photo.disabled=false;button.textContent="Watch the tour";photo.classList.add("ready");probe.removeAttribute("src");probe.load();};
-    probe.addEventListener("loadedmetadata",ready,{once:true});probe.addEventListener("error",()=>probe.removeAttribute("src"),{once:true});probe.src=this.TOUR;
+    const ready=()=>{button.disabled=false;photo.disabled=false;button.setAttribute("aria-busy","false");button.textContent="Watch the tour";photo.classList.add("ready");probe.removeAttribute("src");probe.load();};
+    probe.addEventListener("loadedmetadata",ready,{once:true});probe.addEventListener("error",()=>{button.setAttribute("aria-busy","false");button.textContent="Tour unavailable";probe.removeAttribute("src");},{once:true});probe.src=this.TOUR;
     const legal=h("div.row-btns",{hidden:true});
     queueMicrotask(()=>Bridge.invoke("about_links").then(links=>{if(!legal.isConnected)return;for(const link of links)legal.append(h("button.btn.paper.small",{type:"button",on:{click:async()=>{try{await Bridge.invoke("about_open_link",{id:link.id});}catch(e){Shell.toast(String(e));}}}},link.label));legal.hidden=!links.length;}).catch(()=>{}));
     return h("section.setcard.about-card",photo,h("div.about-text",h("h2","About Peta"),h("p.small","A short film of how Peta works: make a sticker, stick it on your desktop, and send one to a friend."),button,h("button.btn.paper.small",{type:"button",on:{click:async()=>{try{await Bridge.invoke("about_notices");}catch(e){Shell.toast(String(e));}}}},"Third-party notices…"),legal));

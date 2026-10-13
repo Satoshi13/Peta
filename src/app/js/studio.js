@@ -336,7 +336,6 @@ Pages.studio = {
       };
       const coverE = p.cover ? stEntry(p.cover) : null, coverUrl = p.cover ? stUrl(p.cover) : null;
       const bagSw = h("span.st-bagsw", { style: { backgroundImage: `var(--a-${bag.art})` } });
-      const layout = pills([["center", "Center"], ["corner", "Corner"], ["band", "Top"]], p.layout.comp, (c) => { p.layout.comp = c; p.layout.cover = null; if(!p.cover) p.cover=ids[0]||null; stSave(); Snd.tap(); paint(); }, !ids.length);
       const coverBody = h("div.st-covers", h("button.st-cv.none", { type: "button", "aria-pressed": String(!p.cover), on: { click: () => { p.cover = null; ST.open = null; stSave(); paint(); } } }, "None"),
         ids.map((id) => { const e = stEntry(id); return e ? tile(e, { class: "st-cv", "aria-pressed": String(p.cover === id), on: { click: () => { p.cover = id; ST.open = null; stSave(); Snd.tap(); paint(); } } }, null, 38) : null; }));
       const accentBody = h("div.st-accs", [["none", "None", null], ["clip", "Silver clip", A.marketClip], ["seal", "Wax seal", A.waxSeal], ["tape", "Tape", null]].map(([k, n, img]) => h("button.st-acc", { type: "button", "aria-pressed": String(k === "none" ? !p.layout.accents.length : has(k)), on: { click: () => accent(k) } },
@@ -346,7 +345,6 @@ Pages.studio = {
       const body = [heading("Dress your pack", "A few details. Make it yours."),
         h("div.st-scroll", row("wrap", "Wrapping", bagSw, bag.name, "Change…", bagPicker(p, PACK_BAG_IDS)),
           sec("Name label", field(p.title, STUDIO.limits.name, "Pack name", (v) => { p.title = v; stSave(); paintBench(); next.set(!!v.trim(), need); }, "", true)),
-          sec("Cover position", layout, !p.cover ? h("small.st-fine", ids.length ? "Choose a position to add a cover sticker." : "A cover needs one of your own designs.") : null),
           row("cover", "Cover sticker", swatch(coverUrl, coverE ? MAT[coverE.material]?.rarity : null), coverE ? titleOf(coverE) : "None", "Choose…", coverBody),
           row("accent", "Accent", accentThumb, accentName, "Change…", accentBody), h("p.st-fine", "Up to 2 accents. Drag them onto a fold or edge.")),
         foot(true, next.el, "Drag the sticker or an accent in the preview.")];

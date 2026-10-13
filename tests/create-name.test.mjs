@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
@@ -22,7 +23,7 @@ test('the native side checks the name before it makes anything, and stores it la
   assert.match(rs, /peta_core::clean_title\(n\)\.map_err/);
   const finish = rs.slice(rs.indexOf('fn finish('), rs.indexOf('/// Reopen the original source'));
   assert.ok(finish.indexOf('lib.add_made_with_editor') < finish.indexOf('set_sticker_title'), 'the name is saved after the sticker exists');
-  assert.match(rs, /creator_save_original\(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: f32, name: Option<String>\)/);
+  assert.match(rs, /creator_save_original\(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: f32, name: Option<String>, save_as_new: Option<bool>\)/);
 });
 
 test('the name field is drawn on the delivered paper (2400×360): its left and right 200px are kept and the middle stretches', () => {
@@ -59,6 +60,23 @@ test('the bottom row of Create uses the app\'s standard sizes: the name field is
   assert.match(css, /\.cs-foot \.go-btns \{[^}]*height:44px/);
   assert.doesNotMatch(css, /\.cs-foot \.go-btns \.btn \{/, 'no private button size');
   assert.doesNotMatch(css, /\.nt-notes > \*/, 'no private text size for the notes');
-  assert.match(js, /h\("div\.cs-foot-left", this\.nameField\(\), h\("div\.nt-notes", h\("small\.muted\.nt-hint"/);
+  assert.match(js, /h\("div\.cs-foot-left", this\.nameField\(syncMake\), h\("div\.nt-notes", h\("small\.muted\.nt-hint"/);
   assert.match(js, /CR\.editing \? "Cancel" : "Start over"/);
+});
+
+test('blank names cannot start either creation or an edit save', async () => {
+  const calls = [], ctx = vm.createContext({
+    Pages:{}, document:{addEventListener(){}},
+    window:{__TAURI__:{webview:{getCurrentWebview:()=>({onDragDropEvent(){}})}}},
+    Bridge:{listen(){},invoke:async (...args)=>calls.push(args),printAction:async (...args)=>calls.push(args)},
+    Shell:{toast:message=>calls.push(['toast',message])}, $:()=>({focus(){}}),
+  });
+  vm.runInContext(read('src/app/js/create.js'), ctx);
+  for (const editing of [null,'original']) {
+    vm.runInContext(`CR.res={}; CR.editing=${JSON.stringify(editing)}; CR.name='   ';`,ctx);
+    await vm.runInContext('Pages.create.make()',ctx);
+    assert.equal(vm.runInContext('CR.finishing',ctx),undefined);
+  }
+  assert.equal(calls.length,2);
+  assert.ok(calls.every(([kind])=>kind==='toast'), 'no native mutation occurs for a blank name');
 });

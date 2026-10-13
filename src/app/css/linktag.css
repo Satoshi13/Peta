@@ -72,6 +72,9 @@ dialog.lt-dialog button.close-control.lt-x { top: 14px; right: 14px; background:
 .mk-art-egg { left: 35px; top: 42px; width: 135px; height: 124px; background-image: var(--a-toolsEgg); }
 .mk-art-hang { position: absolute; left: 158px; top: 14px; z-index: 2; }
 .mk-art-hang .lt-pic { --w: 108px !important; filter: drop-shadow(0 4px 5px rgba(60, 45, 20, .26)); }
+/* Match the paper's angle and compensate for the icon PNG's transparent margin. */
+.mk-art-hang .mk-tag-face { left: 58%; top: 68%; rotate: -16deg; }
+.mk-art-hang .mk-tag-face img { scale: 1.1; filter: drop-shadow(1px 1px 1px rgba(60, 45, 20, .12)); }
 .mk-art-board i:nth-child(1), .mk-art-board i:nth-child(2) { width: 196px; aspect-ratio: 960 / 589; background-image: var(--a-boardLinen); filter: drop-shadow(1.5px 3px 3px rgba(60, 45, 20, .22)); }
 .mk-art-board i:nth-child(1) { left: 54px; top: 34px; rotate: 4deg; }
 .mk-art-board i:nth-child(2) { left: 16px; top: 62px; rotate: -3deg; }

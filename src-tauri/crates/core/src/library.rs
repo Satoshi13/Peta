@@ -125,13 +125,21 @@ impl Library {
         Ok((sticker, original, mask, editor))
     }
 
-    /// Write immutable revision files first, then switch the database pointer. Failed writes preserve the old sticker.
-    pub fn update_original(&mut self, id: &str, rendered: &crate::creator::Rendered, editor: &crate::creator::EditorState) -> Result<()> {
-        let (sticker, _, _, _) = self.original_for_edit(id)?;
+    /// Once registration may have reached the referee, its signed pixels must stay unchanged.
+    pub fn original_edit_requires_new(&self, id: &str) -> Result<bool> {
         if crate::server::enabled(&self.db)? {
             let check=crate::server::checked(&self.db,id)?;
             let attempted:bool=self.db.conn.query_row("SELECT EXISTS(SELECT 1 FROM referee_outbox WHERE target=?1 AND (kind!='register' OR attempts>0))",[id],|r|r.get(0))?;
-            if check.as_deref()==Some("checked") || attempted {return Err(Error::Invalid("A checked original cannot be edited. Make a new sticker.".into()));}
+            return Ok(check.as_deref()==Some("checked") || attempted);
+        }
+        Ok(false)
+    }
+
+    /// Write immutable revision files first, then switch the database pointer. Failed writes preserve the old sticker.
+    pub fn update_original(&mut self, id: &str, rendered: &crate::creator::Rendered, editor: &crate::creator::EditorState) -> Result<()> {
+        let (sticker, _, _, _) = self.original_for_edit(id)?;
+        if self.original_edit_requires_new(id)? {
+            return Err(Error::Invalid("This original has been checked. Save your edit as a new Peta.".into()));
         }
         let dir = format!("stickers/{}/revisions/{}", sticker.id, new_sticker_id());
         let png = format!("{dir}/rendered.png"); let mask = format!("{dir}/mask.png");

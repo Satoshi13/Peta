@@ -174,6 +174,7 @@ pub struct CreatorInfo {
     default_smooth: f32,
     default_outline: f32,
     editing_sticker_id: Option<String>,
+    edit_as_new: bool,
 }
 
 #[cfg_attr(feature="server",tauri::command(async))]
@@ -219,6 +220,8 @@ pub fn creator_info(app: AppHandle, creator: State<Creator>, store: State<Store>
         default_smooth: active.as_ref().and_then(|a| a.settings).map(|s| s.1).unwrap_or(DEFAULT_SMOOTH),
         default_outline: active.as_ref().and_then(|a| a.settings).map(|s| s.0).unwrap_or(20.0),
         editing_sticker_id: active.as_ref().and_then(|a| a.editing_id.clone()),
+        edit_as_new: active.as_ref().and_then(|a| a.editing_id.as_deref())
+            .is_some_and(|id| lib.original_edit_requires_new(id).unwrap_or(true)),
     }
 }
 
@@ -332,13 +335,13 @@ impl History {
 #[serde(rename_all="camelCase")]
 pub struct Made { pub sticker_id:String,pub new_image:bool,#[serde(skip_serializing_if="Option::is_none")] pub reward:Option<peta_core::scraps::Reward> }
 
-/// "Make this Peta": render at full size, keep it in the library, consume one material (except Matte), and enqueue it for printing.
+/// "Make this Peta": render at full size, keep it in the library, consume one material, and enqueue it for printing.
 #[tauri::command]
-/// `name` is what the person called it (optional). It is checked before anything is made, so a refused name makes nothing.
+/// The required name is checked before rendering or consuming any material.
 pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: Option<f32>, name: Option<String>) -> Result<Made, String> {
-    let title = match name.as_deref() { Some(n) => peta_core::clean_title(n).map_err(|e| e.to_string())?, None => None };
+    let title = required_name(name.as_deref())?;
     let app2 = app.clone();
-    let result=tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth, outline, title.as_deref()))
+    let result=tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth, outline, Some(&title), false))
         .await
         .map_err(|e| e.to_string())??;
     clear(&app);
@@ -346,15 +349,20 @@ pub async fn creator_finish(app: AppHandle, material_id: String, strength: f32, 
     Ok(result)
 }
 
-fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outline: Option<f32>, title: Option<&str>) -> Result<Made, String> {
+fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outline: Option<f32>, title: Option<&str>, edit_as_new: bool) -> Result<Made, String> {
     let creator = app.state::<Creator>();
-    let (rendered, original, ext, target, editor) = {
+    let (rendered, original, ext, target, editor, editing_id) = {
         let active = creator.active.lock().unwrap();
         let a = active.as_ref().ok_or("no image is open")?;
-        if a.editing_id.is_some() { return Err("save changes to the original instead of making a new sticker".into()); }
+        if edit_as_new {
+            if a.editing_id.is_none() { return Err("no original is being edited".into()); }
+            if a.target.material_hint.as_deref() != Some(material_id) { return Err("keep the original material when editing".into()); }
+        } else if a.editing_id.is_some() { return Err("save changes to the original instead of making a new sticker".into()); }
         let rendered = a.session.render(&params_for(material_id, strength, smooth, outline)).map_err(|e| e.to_string())?;
         let editor = EditorState::capture(&a.session, outline.unwrap_or(20.0).clamp(4.0, 64.0), smooth, strength);
-        (rendered, a.session.original.clone(), a.session.original_ext, a.target.clone(), editor)
+        let mut target = a.target.clone();
+        if edit_as_new { target.counts_for_today = true; }
+        (rendered, a.session.original.clone(), a.session.original_ext, target, editor, a.editing_id.clone())
     };
     let material = materials::get(material_id).map(|m| m.id).unwrap_or_else(|| materials::DEFAULT_MATERIAL.to_owned());
 
@@ -364,6 +372,13 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
     let result;
     {
         let mut lib = store.lock();
+        if edit_as_new {
+            let id = editing_id.as_deref().ok_or("no original is being edited")?;
+            lib.original_for_edit(id).map_err(|e| e.to_string())?;
+            if !lib.original_edit_requires_new(id).map_err(|e| e.to_string())? {
+                return Err("This original can still be edited in place. Reopen the editor to save changes.".into());
+            }
+        }
         if target.counts_for_today && !lib.db().has_material(&material).map_err(|e| e.to_string())? {
             return Err(peta_core::Error::MaterialUnavailable.to_string()); // used up elsewhere while the Cutting Mat was open
         }
@@ -373,7 +388,7 @@ fn finish(app: &AppHandle, material_id: &str, strength: f32, smooth: f32, outlin
             // developer tools: no daily rule, no print — straight onto the desktop
             lib.stick_new(&sticker, &target.display_id, target.x, target.y).map_err(|e| e.to_string())?;
         } else {
-            // the material is used up by making a sticker with it (plain paper never is)
+            // The material is used up by making a sticker with it.
             lib.db_mut().consume_material(&material).map_err(|e| e.to_string())?;
             // Keep every creation in the durable queue and Book; no daily sticker quota.
             daily::confirm(lib.db_mut(), &date, &sticker.id, SourceType::Created, random_unit()).map_err(|e| e.to_string())?;
@@ -433,11 +448,19 @@ pub async fn creator_edit_original(app: AppHandle, sticker_id: String) -> Result
 }
 
 #[tauri::command]
-/// `name`: `None` leaves the name as it is; `Some("")` takes it away.
-pub async fn creator_save_original(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: f32, name: Option<String>) -> Result<Made, String> {
-    let rename = match name.as_deref() { Some(n) => Some(peta_core::clean_title(n).map_err(|e| e.to_string())?), None => None };
+/// Saving requires a nonempty name, including when editing an older unnamed sticker.
+pub async fn creator_save_original(app: AppHandle, material_id: String, strength: f32, smooth: f32, outline: f32, name: Option<String>, save_as_new: Option<bool>) -> Result<Made, String> {
+    let rename = required_name(name.as_deref())?;
     if !strength.is_finite() || !(0.0..=1.0).contains(&strength) || !smooth.is_finite() || !(0.0..=1.0).contains(&smooth) || !outline.is_finite() || !(4.0..=64.0).contains(&outline) {
         return Err("invalid cutout settings".into());
+    }
+    if save_as_new.unwrap_or(false) {
+        let app2 = app.clone();
+        let made = tauri::async_runtime::spawn_blocking(move || finish(&app2, &material_id, strength, smooth, Some(outline), Some(&rename), true))
+            .await.map_err(|e| e.to_string())??;
+        clear(&app);
+        crate::referee_access::kickoff(&app);
+        return Ok(made);
     }
     let app2 = app.clone();
     let id = tauri::async_runtime::spawn_blocking(move || -> Result<String, String> {
@@ -452,7 +475,7 @@ pub async fn creator_save_original(app: AppHandle, material_id: String, strength
         };
         let store = app2.state::<Store>(); let mut lib = store.lock();
         lib.update_original(&id, &rendered, &editor).map_err(|e| e.to_string())?;
-        if let Some(title) = rename { lib.db_mut().set_sticker_title(&id, title.as_deref()).map_err(|e| format!("Saved, but the name could not be changed: {e}"))?; }
+        lib.db_mut().set_sticker_title(&id, Some(&rename)).map_err(|e| format!("Saved, but the name could not be changed: {e}"))?;
         Ok(id)
     }).await.map_err(|e| e.to_string())??;
     clear(&app); let _ = app.emit("sticker-updated", &id); today::announce(&app);
@@ -485,6 +508,31 @@ mod open_image_tests {
     fn only_formats_the_cutter_reads_are_taken() {
         for ok in ["a.png", "b.JPG", "c.jpeg", "d.WebP", "/x/y z/e.png"] { assert!(is_cuttable_image(Path::new(ok)), "{ok}"); }
         for no in ["a.peta", "b.gif", "c.heic", "d", "e.png.txt", ".png"] { assert!(!is_cuttable_image(Path::new(no)), "{no}"); }
+    }
+}
+
+fn required_name(name: Option<&str>) -> Result<String, String> {
+    let n = name.unwrap_or("");
+    peta_core::clean_title(n).map_err(|e| e.to_string())?
+        .ok_or_else(|| "Give your Peta a name to save it.".into())
+}
+
+#[cfg(test)]
+mod required_name_tests {
+    use super::required_name;
+
+    #[test]
+    fn missing_blank_and_invisible_names_are_refused() {
+        for name in [None, Some(""), Some(" \t\n "), Some("\u{200B}\u{202E}")] {
+            assert!(required_name(name).is_err());
+        }
+    }
+
+    #[test]
+    fn names_are_cleaned_and_length_checked() {
+        assert_eq!(required_name(Some("  My   Peta  ")).unwrap(), "My Peta");
+        assert_eq!(required_name(Some("目玉焼き 🍳")).unwrap(), "目玉焼き 🍳");
+        assert!(required_name(Some(&"あ".repeat(41))).is_err());
     }
 }
 

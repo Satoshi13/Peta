@@ -201,8 +201,10 @@ Pages.market = {
   tools(paint) {
     const stock = LinkTags.stock(), price = LT_PRICE(), cannot = !S.developer && S.scraps.balance < price;
     const sheet = (...kids) => h("article.mk-tool", h("i.mk-tool-tape", { "aria-hidden": "true" }), ...kids);
+    const tagPic = LinkTagPic();
+    tagPic.append(h("span.lt-face.mk-tag-face", img("marketPetaIcon")));
     const tag = sheet(h("h3", "Link tag"), h("p.mk-tool-sub", "Open an app, website or folder from any Peta."),
-      h("div.mk-tool-art.mk-art-tag", { "aria-hidden": "true" }, h("i.mk-art-card"), h("i.mk-art-egg"), h("span.mk-art-hang", LinkTagPic())),
+      h("div.mk-tool-art.mk-art-tag", { "aria-hidden": "true" }, h("i.mk-art-card"), h("i.mk-art-egg"), h("span.mk-art-hang", tagPic)),
       h("p.mk-tool-cap", "Reusable · Hidden on desktop"),
       h("button.btn.mk-tool-get", { type: "button", disabled: cannot, on: { click: () => LinkTags.buy(paint) } }, cannot ? "Not enough Scraps" : "Get a tag"),
       h("p.mk-tool-price", S.developer ? "Free · Developer" : ScrapAmt(price)), h("p.mk-tool-note", "Returns to you when removed."),

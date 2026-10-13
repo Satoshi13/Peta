@@ -7,6 +7,7 @@ body[data-shell="desk"] { --window-radius:20px; }
 input { user-select: text; -webkit-user-select: text; }
 #win-layer, body[data-shell] #win-layer { position: fixed; inset: 0; padding: 0; }
 .win { width: 100%; height: 100%; --win-w: 100vw; --win-h: 100vh; }
+.page { color:var(--ink); }
 .drag-strip { height: 46px; } /* a wider grip along the top; the first page buttons start at 51px */
 
 /* Delivered notes/book art replaces the paper stand-ins below; original files stay untouched. */
@@ -33,11 +34,20 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 }
 .rv-info .seal { height: 30px; }
 
-/* Keep the supplied paper dots, with a shorter backing and even centres. */
-.wctl { width: 96px; }
-.wctl .wc-red { left: 8px; }
-.wctl .wc-yellow { left: 36px; }
-.wctl .wc-green { left: 64px; }
+/* The PNG includes transparent gutters: 18px artwork makes the visible dots about 14px. */
+.wctl { width: 72px; height: 28px; }
+.wctl .wc { top:4px; width:20px; height:20px; background-size:18px 18px; }
+.wctl .wc-red { left: 6px; }
+.wctl .wc-yellow { left: 26px; }
+.wctl .wc-green { left: 46px; }
+[data-shell="studio"] .nav::before { width:88px; height:39px; top:58px; }
+/* Give the logo an even gap above and below, while keeping every section visible
+   in the native 1060×700 default window. Compact icon rails keep their own layout. */
+@media (min-width:881px) {
+  [data-shell="studio"] .nav { padding-top:112px; }
+  [data-shell="studio"] .nav-top { gap:3px; }
+  [data-shell="studio"] .nav-group { margin:12px 0 4px; }
+}
 /* The corner remains a native resize target, without the folded-paper decoration. */
 .resize-h, [data-shell="desk"] .resize-h { background: none; opacity: 1; }
 
@@ -165,10 +175,16 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .det-arrow svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
 .det-arrow.prev { left:-6px; } .det-arrow.next { right:-6px; }
 .det-count { position:absolute; left:20px; top:20px; font:400 12px/1 ui-monospace,"SF Mono",Menlo,monospace; letter-spacing:.04em; color:#4a463f; font-variant-numeric:tabular-nums; }
-/* the name: the paper label art, stretched to the card's width (the art's own shadow margin is the negative inset) */
-.det-label { position:relative; height:54px; margin:-6px 4px 14px; display:grid; align-items:center; padding:0 20px 2px; z-index:2; }
-.det-label::before { content:""; position:absolute; inset:-14.77% -3.63% -8.72% -4.04%; background:var(--a-inspNameLabel) 0 0 / 100% 100% no-repeat; filter:drop-shadow(0 2px 2px rgba(60,45,20,.26)) drop-shadow(0 6px 7px rgba(60,45,20,.16)); pointer-events:none; }
-.det-label b { position:relative; font:400 26px/1.1 "Patrick Hand","Kiwi Maru","Hiragino Maru Gothic ProN","Klee One",cursive; letter-spacing:.005em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#3a3526; }
+/* Center the name on the ivory paper. Its visible bounds are (61,171)-(2119,536)
+   in the 2169×725 PNG; negative insets remove its transparent gutters in CSS. */
+.det-label { position:relative; height:46px; margin:-6px 4px 14px; display:grid; place-items:center; padding:0 18px; z-index:2; }
+.det-label::before { content:""; position:absolute; inset:-46.85% -2.43% -51.78% -2.96%; background:var(--a-inspNameLabel) 0 0 / 100% 100% no-repeat; filter:drop-shadow(0 2px 2px rgba(60,45,20,.18)) drop-shadow(0 5px 6px rgba(60,45,20,.12)); pointer-events:none; }
+.det-label b { position:relative; width:100%; min-width:0; text-align:center; font:400 24px/1.2 "Courier Prime","Kiwi Maru","Courier New",monospace; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#2b241c; }
+/* Holographic stock shows its full spectrum on both sides of the backing card. */
+.back-card[data-mat="holographic"], .backing[data-mat="holographic"] {
+  background:linear-gradient(115deg,transparent 24%,rgba(255,255,255,.48) 40%,transparent 56%),
+    linear-gradient(125deg,#efaed7 0%,#bba7ec 19%,#a6d6ef 37%,#a9e1c5 55%,#ece5a4 73%,#f0bfac 89%,#d9b5eb 100%);
+}
 .det-info { display:grid; grid-template-columns:1fr 1fr; gap:10px 18px; margin:0 4px 18px; font-family:ui-monospace,"SF Mono",Menlo,"Courier New",monospace; }
 .det-info small { display:block; margin-bottom:5px; font:400 12px/1 ui-monospace,"SF Mono",Menlo,monospace; color:#655e51; }
 .det-info b { font:400 15px/1.2 ui-monospace,"SF Mono",Menlo,monospace; color:#2b2a28; white-space:nowrap; }
@@ -345,6 +361,11 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .lead, .empty-note, .addnote, .cr-cutting p { font-family:var(--sys); }
 .empty-note { font:400 14px/21px var(--sys); color:var(--muted); }
 .datestamp, .envelope-clock, .calendar-complete { font:400 13px/1.4 var(--type); letter-spacing:.04em; }
+.datestamp { --stamp-ink:#99463a; position:relative; isolation:isolate; display:inline-grid; place-items:center; height:40px; padding:0 20px; background:none; color:var(--stamp-ink); }
+/* The supplied artwork is transparent stamp ink. Tint its alpha silhouette,
+   so the distressed border and the text share one color without a dark plate. */
+.datestamp::before { content:""; position:absolute; inset:0; z-index:0; background:var(--stamp-ink); -webkit-mask:var(--a-dateStamp) center / 100% 100% no-repeat; mask:var(--a-dateStamp) center / 100% 100% no-repeat; pointer-events:none; }
+.datestamp-text { position:relative; z-index:1; display:block; transform:translateY(2px); color:var(--stamp-ink); }
 .scraps-count { font:500 15px/1 var(--sys); }
 .scrap-summary b { font-family:var(--type); font-size:16px; }
 .scrap-summary input { font:500 16px/20px var(--sys); }
@@ -473,7 +494,7 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 @container page (max-width:640px) { .create .panes { flex-direction:row; height:176px; } .create .panes .pane { min-height:0; } .create .arrow { display:block; } .create .cr-mat { padding:14px 12px; } }
 
 /* Night changes the room, while physical papers keep their own ink and texture. */
-[data-theme="night"] :is(.btn.paper, .detail, .back-card, .backing, .datestamp, .envelope-ticket, .tile-date,
+[data-theme="night"] :is(.btn.paper, .detail, .back-card, .backing, .envelope-ticket, .st-panel, .st-card, .st-note,
   .mcard .lab, .pack-tag, .mk-hero-text, .seal, .calendar-complete, .ev-note, .env-label, .note, .setcard, .cer, .cs-steps, .cs-dock, .cs-refine, .cs-rail),
 [data-theme="night"] [data-shell="desk"] .page,
 [data-theme="night"] [data-shell="desk"] .nav-item[aria-current="page"] {
@@ -481,6 +502,12 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
   --w-win:#f6f1e6; --w-side:#efe9dc; --w-surface:#fffdf8; --w-surface2:#f8f3e7; --w-sunken:#efe8d7;
   --w-line:#e3dac7; --w-line2:#ece5d4; --w-btn:#2b2a28; --w-btnfg:#ffffff; --w-ok:#456a40;
 }
+:is(.st-panel, .st-card, .st-note) { color:var(--ink); }
+[data-theme="night"] .datestamp { --stamp-ink:#ce917c; opacity:1; }
+/* The count is written on the room's wall, rather than on a light paper object. */
+[data-theme="night"] .pk-count { color:var(--ink2); mix-blend-mode:normal; }
+/* Text fields receive WebKit focus rings even on a mouse click. Keep this quantity field plain. */
+.scrap-trade input[type="number"]:focus { outline:none; }
 [data-theme="night"] [data-shell="studio"] { --studio-paper:radial-gradient(ellipse at 30% 10%,rgba(97,76,44,.08),transparent 70%),var(--w-win); }
 [data-theme="night"] [data-shell="studio"] .win-frame { background:var(--w-win); }
 [data-theme="night"] [data-shell="studio"] .nav::before { background-image:var(--a-logoWhite); }
@@ -639,7 +666,6 @@ html[data-motion="reduce"] button.t-ghost .t-plus { transition:none; }
   html[data-vibrancy="on"][data-theme="day"] [data-shell="studio"] .book { background:#f3efe6; }
   html[data-vibrancy="on"][data-theme="day"] [data-shell="studio"] .nav { background:rgba(242,235,221,.5); }
 }
-[data-theme="night"] .t-stamp { background-color:#f3ebdb; border-radius:4px; }
 
 /* Create: one mat, one subject. The sticker sits large at the centre; tools, steps and stock float over the mat. */
 .create .cr-wrap { display:grid; gap:12px; }

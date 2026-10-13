@@ -50,7 +50,7 @@ test('a pack is made of eight wrappings and a gift of six; only the three pouche
 
 test('Studio is in the nav under Make with no shortcut of its own, and the others keep theirs', () => {
   const { NAV } = catalog(), by = Object.fromEntries(NAV.map((n) => [n.id, n]));
-  assert.equal(NAV.findIndex((n) => n.id === 'studio'), NAV.findIndex((n) => n.id === 'create') + 1);
+  assert.equal(NAV.findIndex((n) => n.id === 'studio'), NAV.findIndex((n) => n.id === 'book') + 1);
   assert.equal(by.studio.key, undefined);
   assert.deepEqual(['today', 'create', 'book', 'packs', 'gifts', 'materials', 'market'].map((id) => by[id].key), [1, 2, 3, 4, 5, 6, 7]);
 });

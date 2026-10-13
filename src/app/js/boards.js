@@ -77,7 +77,7 @@ Pages.boards = {
           "aria-label": `${s.name}, ${stored ? "stored" : b ? `showing ${b.name}` : "unsaved look"}`, on: { click: () => { BD.target = s.id; Snd.tap(); paint(); } } },
           h("span.bd-display", {style:{aspectRatio:s.aspect}}, h("span.bd-glass", BoardLook(s.items))), h("i.bd-stand", { "aria-hidden": "true" }),
           h("b.bd-sname", s.name), stored ? h("small.bd-slook.muted", "Stored · back when connected") : h(b ? "span.bd-slook.hand" : "span.bd-slook.muted", b ? b.name : s.items.length ? "Unsaved look" : "No stickers yet"));
-        return h("div.bd-screen-wrap", screen, stored ? h("button.link",{type:"button",disabled:!BD.target,on:{click:()=>this.run("boards_bring_here",{fromDisplay:s.id,toDisplay:BD.target},paint,()=>Shell.toast("The stickers are here."))}},"Bring them here") : null);
+        return h("div.bd-screen-wrap", screen, h("div.bd-screen-foot", stored ? h("button.link",{type:"button",disabled:!BD.target,on:{click:()=>this.run("boards_bring_here",{fromDisplay:s.id,toDisplay:BD.target},paint,()=>Shell.toast("The stickers are here."))}},"Bring them here") : null));
       })));
   },
   /* A board is the button: click it to put its look on the chosen screen. Under it, one line for the name (and its menu) and one quiet line of facts. */

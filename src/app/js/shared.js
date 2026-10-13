@@ -2,7 +2,7 @@
 function PageHead(title, sub, ...extra) {
   return h("header.ph", h("div.ph-text", h("p.eyebrow", sub || ""), h("h1", title)), h("div.ph-extra", ...extra));
 }
-const DateStamp = () => h("span.datestamp", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" }));
+const DateStamp = () => h("span.datestamp", h("span.datestamp-text", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" })));
 const usableMats = () => Object.keys(MAT).filter((id) => !MAT[id].locked && (MAT[id].unlimited || S.stock[id] > 0));
 
 /** The active choice is circled along a pen stroke; the decorative SVG never affects text layout. */
@@ -179,7 +179,7 @@ const Scraps = {
     return h("button.btn.paper.small.scrap-action", { disabled:disabled || this.inFlight, data:{scrapKind:kind,scrapItem:id}, on:{click:() => {
       if(this.inFlight) return;
       this.selection = {kind,itemId:id,quantity:1,request:null,error:""}; Snd.tap(); Shell.refresh();
-      const form = $(".scrap-trade"); if(form) { form.closest(".page-in").scrollTop = 0; (form.querySelector("input") || form).focus({preventScroll:true}); }
+      const form = $(".scrap-trade"); if(form) form.closest(".page-in").scrollTop = 0;
     }} }, label);
   },
   finish() {

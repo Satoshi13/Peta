@@ -1,14 +1,14 @@
 /* The prototype's controls call the real Rust cutting session. */
-const CR = {name:"",stage:"empty",src:null,photo:null,original:null,border:20,smooth:4,strength:.5,editing:null,editMaterial:null,tool:"erase",brush:12,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve(),zoom:{scale:1,x:0,y:0}};
+const CR = {name:"",stage:"empty",src:null,photo:null,original:null,border:20,smooth:4,strength:.5,editing:null,editMaterial:null,editAsNew:false,tool:"erase",brush:12,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve(),zoom:{scale:1,x:0,y:0}};
 const SAMPLE_KEYS = ["sCat","sBlueFlower","sCoffee","sCamera","sEgg","sGoodDay","sPlant","sPolaroid","sCassette","sComputer","sScribble","sBubble"];
 const PHOTO_W = 720;
-const usesText = () => !S.chosen ? "No material sheets left" : CR.editing ? "Editing original · no material used" : (MAT[S.chosen].unlimited ? "Uses one "+MAT[S.chosen].name+" (never runs out)" : `Uses 1 ${MAT[S.chosen].name} · ${S.stock[S.chosen]} left`);
+const usesText = () => !S.chosen ? "No material sheets left" : CR.editing && !CR.editAsNew ? "Editing original · no material used" : (MAT[S.chosen].unlimited ? "Uses one "+MAT[S.chosen].name+" (never runs out)" : `Uses 1 ${MAT[S.chosen].name} · ${S.stock[S.chosen]} left`);
 const usesLabel = () => {
   const text=usesText(); if(!S.chosen) return text;
   const name=MAT[S.chosen].name, at=text.indexOf(name);
-  return CR.editing ? text : [text.slice(0,at),h("b",name),text.slice(at+name.length)];
+  return CR.editing && !CR.editAsNew ? text : [text.slice(0,at),h("b",name),text.slice(at+name.length)];
 };
-function crReset() { if(CR.preview?.startsWith('blob:')) URL.revokeObjectURL(CR.preview); CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{name:'',preview:null,reveal:false,stage:'empty',src:null,photo:null,original:null,res:null,note:'',editing:null,editMaterial:null,urls:[],history:{canUndo:false,canRedo:false},zoom:{scale:1,x:0,y:0}}); }
+function crReset() { if(CR.preview?.startsWith('blob:')) URL.revokeObjectURL(CR.preview); CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{name:'',preview:null,reveal:false,stage:'empty',src:null,photo:null,original:null,res:null,note:'',editing:null,editMaterial:null,editAsNew:false,urls:[],history:{canUndo:false,canRedo:false},zoom:{scale:1,x:0,y:0}}); }
 async function crBegin(bytes) {
   if(!usableMats().includes(S.chosen)) { Shell.toast("No material sheets left. Visit Market to exchange Scraps."); return; }
   CR.stage='cutting'; Shell.refresh();
@@ -26,7 +26,7 @@ async function crSync() {
   if(info.phase==='failed') { const editing=CR.editing; crReset(); if(editing) await Shell.open('book'); else Shell.refresh(); Shell.toast(info.error); return; }
   if(info.phase==='loading') { CR.stage='cutting'; if(S.page==='create') Shell.refresh(); return; }
   if(info.phase!=='ready') return;
-  CR.editing=info.editingStickerId || null; CR.editMaterial=CR.editing ? info.defaultMaterial : null; CR.strength=info.defaultStrength;
+  CR.editing=info.editingStickerId || null; CR.editAsNew=!!info.editAsNew; CR.editMaterial=CR.editing ? info.defaultMaterial : null; CR.strength=info.defaultStrength;
   if(CR.editing) { S.chosen=CR.editMaterial; CR.border=info.defaultOutline; CR.smooth=Math.round(info.defaultSmooth*12); CR.strength=info.defaultStrength; }
   const bytes=await Bridge.invoke('creator_original'), url=URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:'image/jpeg'}));
   const i=await Stk.load(url), photo=Stk.cv(info.width,info.height); photo.getContext('2d').drawImage(i,0,0,info.width,info.height); URL.revokeObjectURL(url);
@@ -281,8 +281,8 @@ Pages.create = {
     document.addEventListener("keydown", CR.keys);
     const slider = (label, key, min, max, unit, onChange) => { const out = h("output", CR[key] + unit); const inp = h("input", { type: "range", min, max, value: CR[key], on: { input: (e) => { CR[key] = +e.target.value; out.textContent = CR[key] + unit; onChange(); } } }); return h("label.slider", h("span", label), inp, out); };
     const seg = h("div.seg.only-edit", ["erase", "restore"].map((t) => SegButton(t === "erase" ? "Erase" : "Restore", { "aria-pressed": String(CR.tool === t), on: { click: (e) => { CR.tool = t; $$(".seg button", mat).forEach((b) => b.setAttribute("aria-pressed", String(b === e.currentTarget))); Snd.tap(); } } })));
-    const make = h("button.btn", { on: { click: () => this.make() } }, CR.editing ? "Save changes" : "Make this Peta");
-    const syncMake = () => { make.disabled = !CR.res || painting || Boolean(rendering); };
+    const make = h("button.btn", { on: { click: () => this.make() } }, CR.editing ? CR.editAsNew ? "Save as new Peta" : "Save changes" : "Make this Peta");
+    const syncMake = () => { make.disabled = !CR.res || !CR.name.trim() || (CR.editAsNew && !MAT[S.chosen].unlimited && !(S.stock[S.chosen] > 0)) || painting || Boolean(rendering) || !!CR.finishing; };
 
     const steps = createSteps(1);
     const tray = CR.editing ? h("div.edit-material", h("div.material-plate", {data:{m:S.chosen}}, MaterialPlateContents(MAT[S.chosen], "Original material"))) : MaterialTray({w:86,onPick:()=>{steps.set(2);redraw();const u=$(".uses");if(u)u.replaceChildren(...usesLabel());}});
@@ -303,30 +303,31 @@ Pages.create = {
       h("div.cs-center", photoCard, stickerBox, h("div.cs-editor", cutFrame, orig)),
       h("aside.cs-rail", h("label.lbl", CR.editing ? "Material" : "Stock"), tray),
       refine, dock);
-    const foot = h("div.cs-foot.g-go", h("div.cs-foot-left", this.nameField(), h("div.nt-notes", h("small.muted.nt-hint", CR.editing ? "Rename it any time." : "A little label for your Peta."), h("span.muted.small.uses", usesLabel()))), h("div.go-btns", h("button.btn.quiet", { on: { click: async () => { const editing=CR.editing; CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open(editing ? "book" : "create"); } } }, CR.editing ? "Cancel" : "Start over"), make));
+    const foot = h("div.cs-foot.g-go", h("div.cs-foot-left", this.nameField(syncMake), h("div.nt-notes", h("small.muted.nt-hint", CR.editAsNew ? "Saves a new Peta. Your original stays unchanged." : "Give your Peta a name to save it."), h("span.muted.small.uses", usesLabel()))), h("div.go-btns", h("button.btn.quiet", { on: { click: async () => { const editing=CR.editing; CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open(editing ? "book" : "create"); } } }, CR.editing ? "Cancel" : "Start over"), make));
     Stk.tilt(stkHost, {max:8,scale:1.02,trigger:stickerBox});
     syncUndo(); syncMake(); redraw();
     return h("div.cr-wrap", mat, foot);
   },
-  /* What to call it. Optional; kept in CR.name while the page is redrawn, sent with Make this Peta / Save changes, and shown in the Collection. */
-  nameField() {
-    const input = h("input", { type: "text", maxlength: 40, placeholder: "Name your Peta", value: CR.name, autocomplete: "off", spellcheck: false, "aria-label": "Name", enterkeyhint: "done", disabled: !!CR.finishing });
-    input.addEventListener("input", () => { CR.name = input.value; });
+  /* Required for creation and editing; kept while the cutting mat redraws. */
+  nameField(onChange = () => {}) {
+    const input = h("input", { type: "text", maxlength: 40, required: true, placeholder: "Name your Peta", value: CR.name, autocomplete: "off", spellcheck: false, "aria-label": "Name (required)", enterkeyhint: "done", disabled: !!CR.finishing });
+    input.addEventListener("input", () => { CR.name = input.value; onChange(); });
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); input.blur(); } e.stopPropagation(); });
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"), path = document.createElementNS(svg.namespaceURI, "path");
     svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("aria-hidden", "true"); svg.classList.add("nt-return");
     path.setAttribute("d", "M19 5v7a2 2 0 0 1-2 2H6m0 0 4-4m-4 4 4 4"); svg.append(path);
-    return h("div.nametag", h("label.nt-label", { for: "cr-name" }, "Name"), h("div.nt-paper", Object.assign(input, { id: "cr-name" }), svg));
+    return h("div.nametag", h("label.nt-label", { for: "cr-name" }, "Name *"), h("div.nt-paper", Object.assign(input, { id: "cr-name" }), svg));
   },
   suspend() { CR.flushStroke?.(); },
   leave() { CR.flushStroke?.(); CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener("keydown",CR.keys); },
   async make() {
     if (!CR.res || CR.finishing) return;
+    if (!CR.name.trim()) { Shell.toast("Give your Peta a name to save it."); $("#cr-name")?.focus({preventScroll:true}); return; }
     CR.flushStroke?.(); CR.finishing = true; Bridge.busy = true;
     $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=true; });
     if(CR.editing) {
-      try { await CR.queue; const made=await Bridge.invoke("creator_save_original",{materialId:CR.editMaterial,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,name:CR.name}); console.debug("newImage",made.newImage); crReset(); BK.sel=made.stickerId; await Bridge.reload(); await Shell.open("book"); Shell.toast("Changes saved."); }
-      catch(e) { Shell.toast(String(e)); $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=false; }); } finally { CR.finishing=false; Bridge.busy=false; }
+      try { await CR.queue; const asNew=CR.editAsNew; const made=await (asNew ? Bridge.printAction : Bridge.invoke)("creator_save_original",{materialId:CR.editMaterial,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,saveAsNew:asNew,name:CR.name}); crReset(); BK.sel=made.stickerId; await Bridge.reload(); await Shell.open("book"); Shell.toast(asNew ? "Saved as a new Peta. Your original is unchanged." : "Changes saved."); }
+      catch(e) { Shell.toast(String(e)); CR.finishing=false; try { const info=await Bridge.invoke("creator_info"); CR.editAsNew=!!info.editAsNew; await Bridge.reload(); Shell.refresh(); } catch { $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=false; }); } } finally { CR.finishing=false; Bridge.busy=false; }
       return;
     }
     try { await CR.queue; const made=await Bridge.printAction("creator_finish",{materialId:S.chosen,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,name:CR.name}); crReset(); await Bridge.reload(); Shell.refresh(); Scraps.earned(made.reward); }

@@ -18,12 +18,12 @@ const SAMPLE_TITLES = {
 const NAV = [
   { id: "today", key: 1, label: "Today", tab: "tab1", icon: "envBack" },
   { id: "create", key: 2, group:"Make", label: "Create", tab: "tab3", icon: "chCreate" },
+  { id: "book", key: 3, label: "Collection", tab: "tab2", icon: "chCollection" },
   { id: "studio", label: "Studio", tab: "tab5", icon: "bagGlassine" },
-  { id: "book", key: 3, group:"Collect", label: "Collection", tab: "tab2", icon: "chCollection" },
-  { id: "boards", label: "Boards", tab: "tab4", icon: "peekPaper" },
-  { id: "packs", key: 4, label: "Packs", tab: "tab5", icon: "chPack" },
+  { id: "packs", key: 4, group:"Collect", label: "Packs", tab: "tab5", icon: "chPack" },
   { id: "gifts", key: 5, label: "Gifts", tab: "tab4", icon: "chGift" },
   { id: "materials", key: 6, label: "Materials", tab: "tab6", icon: "cardHolo" },
+  { id: "boards", label: "Boards", tab: "tab4", icon: "peekPaper" },
   { id: "market", key: 7, group:"Discover", label: "Market", tab: "tab3", icon: "shop" },
   { id: "settings", label: "Settings", tab: "tab6", icon: "gear" },
 ];

@@ -69,7 +69,8 @@ Pages.today = {
       h("div.wk-days", days.map((d) => h("div.wk-day" + (d.today ? ".today" : ""), h("span", name(d.key)), h("i", { class: d.filled ? "f" : "" })))), h("i.wk-rule"), h("small", `${n} of the last 7 days`));
   },
   fillSlot(slot, entries) {
-    const wrap = h("div.t-landed"), stamp = h("span.datestamp.t-stamp", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" })), ripple = h("i.t-ripple");
+    const wrap = h("div.t-landed"), stamp = DateStamp(), ripple = h("i.t-ripple");
+    stamp.classList.add("t-stamp");
     const shown = entries.slice(0, 12), thumbs = h("div.t-others", { role: "group", "aria-label": "Stickers stuck today" });
     const show = async (e, first) => {
       const res = await resOf(e); if (!wrap.isConnected && !first) return;

@@ -259,7 +259,7 @@ Pages.book = {
       CloseButton("Close", {on: { click: () => { BK.sel = null; BK.deleteId = null; paint(S.bookView !== "calendar"); } }}, ".x"),
       many ? h("small.det-count", { "aria-live": "polite" }, `${at + 1} / ${list.length}`) : null,
       stage,
-      h("div.det-label", h("b", { title: name, style: { fontSize: Math.max(14, Math.min(26, 190 / Math.max(nameWidth, 1))) + "px" } }, name)),
+      h("div.det-label", h("b", { title: name, style: { fontSize: Math.max(14, Math.min(24, 190 / Math.max(nameWidth, 1))) + "px" } }, name)),
       h("div.det-info",
         h("div", h("small", "Material"), h("span.det-mat", MaterialSwatch({ id: mat.id || e.material, sw: mat.sw, card: mat.card }), h("b", mat.name))),
         h("div", h("small", "Made"), h("b", fmtDate(e.date, { month: "short", day: "numeric", year: "numeric" })))),
@@ -269,7 +269,7 @@ Pages.book = {
       LinkTags.row(e, paint),
       (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions", main,
         h("div.book-action-row", e.lineage !== "copy" ? act("det-link", "gift", Icon("gift"), "Gift", () => { BK.deleteId = null; StudioOpen("gift", e.id); }) : null,
-          e.canManage && e.lineage !== "copy" && e.checked !== "checked" ? act("det-link.quiet2", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,
+          e.canManage && e.lineage !== "copy" ? act("det-link.quiet2", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,
           e.canManage ? act("det-link.quiet2.danger", "delete", Icon("trash"), "Delete", () => { BK.deleteId = e.id; paint(); }) : null))));
   },
   existingCopies(e,paint) {

@@ -90,3 +90,34 @@ fn pack_and_received_stickers_cannot_be_edited_or_deleted() {
     }
     drop(lib);fs::remove_dir_all(dir).unwrap();
 }
+
+#[test]
+fn registered_or_attempted_originals_require_a_new_identity() {
+    let (dir,mut lib,mut session,id)=fixture();
+    assert!(!lib.original_edit_requires_new(&id).unwrap());
+    let conn=rusqlite::Connection::open(dir.join("peta.db")).unwrap();
+    conn.execute("INSERT OR REPLACE INTO meta(key,value) VALUES ('server.migrated_at','2026-10-13')",[]).unwrap();
+    conn.execute("UPDATE stickers SET checked='pending' WHERE id=?1",[&id]).unwrap();
+    assert!(!lib.original_edit_requires_new(&id).unwrap());
+    conn.execute("INSERT INTO referee_outbox(kind,target,body,queued_at,attempts) VALUES ('register',?1,'{}','2026-10-13',0)",[&id]).unwrap();
+    assert!(!lib.original_edit_requires_new(&id).unwrap());
+    conn.execute("UPDATE referee_outbox SET attempts=1 WHERE target=?1",[&id]).unwrap();
+    assert!(lib.original_edit_requires_new(&id).unwrap());
+    let before=lib.db().sticker(&id).unwrap().unwrap(); let old_png=lib.read_rendered(&id).unwrap();
+    session.stroke(&[(50.0,40.0)],12.0,false,true);
+    let rendered=session.render(&params()).unwrap(); let state=EditorState::capture(&session,20.0,0.3,0.5);
+    assert!(lib.update_original(&id,&rendered,&state).is_err());
+    assert_eq!(lib.db().sticker(&id).unwrap().unwrap(),before);
+    assert_eq!(lib.read_rendered(&id).unwrap(),old_png);
+    conn.execute("DELETE FROM referee_outbox WHERE target=?1",[&id]).unwrap();
+    conn.execute("UPDATE stickers SET checked='checked' WHERE id=?1",[&id]).unwrap();
+    assert!(lib.original_edit_requires_new(&id).unwrap());
+    let next=lib.add_made_with_editor(&rendered,&original(),"png","kraft",&state).unwrap();
+    assert_ne!(next.id,id); assert_ne!(next.original_number,before.original_number);
+    assert_eq!(next.lineage,"real"); assert!(next.copy_of.is_none()); assert!(!next.new_image);
+    assert_eq!(lib.read_rendered(&id).unwrap(),old_png);
+    assert_eq!(lib.read_rendered(&next.id).unwrap(),rendered.sticker_png);
+    assert_eq!(peta_core::server::checked(lib.db(),&id).unwrap().as_deref(),Some("checked"));
+    assert_eq!(peta_core::server::checked(lib.db(),&next.id).unwrap().as_deref(),Some("pending"));
+    drop(conn); drop(lib); fs::remove_dir_all(dir).unwrap();
+}
