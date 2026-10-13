@@ -67,3 +67,9 @@ Step 8 commit: `e000a56`。
 Step 9の実ビルドで通常版に1件の個人パスが見つかった。Rustの位置情報ではなく、同梱の名前札PNGのtEXt（元画像の保存先）だったため、このchunkのみ除去した。PNGのIDAT bytes/SHA-256は前後で完全一致し、画素・見た目・color情報は変更なし。ソース/同梱assetsのバイナリも再走査した。通常版のcargo tree -e normalにはureq/reqwest/hyper/rustlsがなく、server版にはureq 2.12.1とTLS依存がある。
 
 Step 9: 必須5コマンドがすべて成功（JS198・Worker56）。非Developerのserver付きworkspaceテストも成功。通常版/ベータ版の実releaseビルドと再検査が成功し、残存個人パス0件、bundle IDは両方app.peta.desktop。実行して本番へ接続する検証はしていない。生成物はtarget/release/verified/{offline,beta}/Peta.appに保持（正式配布用署名・公証なし）。全featureの実機操作はチェックリストに残す。
+
+## Step 10 — B2
+
+Step 9 commit: `44acea6`。owner-runの署名・公証scriptを追加。Apple ID/password/API鍵を引数やリポジトリへ保存せず、Developer ID名義とキーチェーンprofile名を環境変数で受け取る。資格情報なしではApple接続前に停止する。実際の登録・資格情報設定・署名・公証は未実施。mockのみで欠落、拒否、Accepted後のstaple/検証/再zip、上書き防止を確認した。既存distribution文書のk1差し替え指示も、現行のk2末尾追加と暗号化保管手順へ統一した。新規crateなし。
+
+Step 10: mock検証とbash構文検査、必須5コマンドがすべて成功（JS198・Worker56）。Appleの実資格情報を使うコマンドは実行していない。

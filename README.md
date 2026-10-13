@@ -386,3 +386,5 @@ CSPを通常版・Developer共通で有効にし、スクリプトは同梱フ�
 Settings の Move to a new Mac は、DB・画像・鍵をパスフレーズ付き `.petamove` にまとめるローカル移行です。復元は変更前の初回起動のライブラリに限り、検証後にフォルダを交換して再起動します。旧Macとの同時利用は避けてください。[移行手順](docs/server-howto.md)。
 
 友達限定ベータは `npm run build:beta`。通常版と同じ `app.peta.desktop` の保存先でserverを有効にし、本番APIの固定値へ接続する。既定のbuildはserverなし、Developerはdev。友達も申請相手もいないときに自動通信しない。本番のオーナー準備が終わるまで配布しない。
+
+Developer ID署名・公証はオーナー準備後に `bash scripts/release-mac.sh beta`（通信なし版はoffline）。資格情報が無ければbuild前に停止する。手順はdocs/distribution-howto.md。

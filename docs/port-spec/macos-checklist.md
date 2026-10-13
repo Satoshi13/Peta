@@ -376,3 +376,5 @@ Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に
 
 - [ ] 通常版は友達UIなし・HTTP clientなし。ベータは通常版と同じ保存先で友達/受信箱/Market/Peta checksが出る。空の友達・申請一覧では、既登録mailboxでも起動/フォーカス/自動受信確認で通信しない。申請を追加した後は承認を確認できる。手動確認は利用者の操作として区別する。
 - [ ] 隔離した未稼働endpointで受取/送付/Market drawが既存のcould-not-check表示で止まり、在庫と所有者が変わらない。本番での確認はオーナー準備後のみ。
+
+- [ ] オーナーのDeveloper ID証明書・キーチェーンprofileでrelease-mac.shを実行し、Accepted、stapler validate、codesign verify、spctlが成功する。zipを別Macへ渡し、ネット接続なしでもGatekeeperと全機能を確認する。署名名義・必要最小限のentitlements・透明窓も確認する。

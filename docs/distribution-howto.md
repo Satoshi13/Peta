@@ -1,6 +1,6 @@
 # 署名付き配布の使い方（オーナー向け）
 
-通信・アカウント・決済は使わない。ファイルはAirDrop／メッセージ等で運び、添付なしの配布はコードを投稿できる。受け取りはその端末のDBで1イベントにつき1回。
+§1〜7は公式ファイル・コードの配布手順です。ファイルはAirDrop／メッセージ等で運び、添付なしの配布はコードを投稿できます。受け取りはその端末のDBで1イベントにつき1回。後半にアプリ自体の通常版・ベータ版のビルドとDeveloper ID署名・公証の手順を記載します。
 
 ## 1. ツールをビルドする
 
@@ -13,19 +13,7 @@ src-tauri/target/release/peta-pass --help
 
 ## 2. 本物の公式鍵をオーナーが作る
 
-**Codexは本物の公式秘密鍵を生成していない。以下はオーナー自身が実行する。**
-
-```sh
-mkdir -m 700 "$HOME/Peta-private"
-peta-pass keygen --out "$HOME/Peta-private/official.key"
-peta-pass pubkey "$HOME/Peta-private/official.key"
-```
-
-keygenは既存ファイルを上書きしない。秘密鍵は32バイトの生データ、Unixで0600。画面に出るBase64は**公開鍵**で、秘密鍵をBase64化して貼る操作ではない。
-
-`src-tauri/crates/core/src/official_keys.rs`のTODO箇所で仮公開鍵を差し替え、`("k1", "表示された公開鍵")`をアプリに同梱して再ビルドする。仮キーのまま本番配布しない。鍵を入れ替えるときは`k2`などを**末尾へ追加**し、古いキーIDを再利用・並べ替え・削除しない（コードは追記専用のキー位置を持つ）。新しい公式キーIDは`--key-id k2`で指定する。
-
-秘密鍵はリポジトリ外に置き、安全な暗号化バックアップを取る。LINE等に秘密鍵を送らない。`.gitignore`だけを保護策にせず、公開鍵の出力を除きファイルの内容をログ／チャットへ貼らない。`PETA_SIGNING_KEY`環境変数も**内容ではなくパス**。
+**Codexは本物の公式秘密鍵を生成していません。** オフラインのMacで、パスワード付き暗号化ディスクイメージ内に既存peta-passを使って作る手順は [`official-key-howto.md`](official-key-howto.md) を参照してください。公開鍵だけをk2として末尾へ追加します。k1はRFCテスト鍵のため、通常版・ベータ版では信用しません。配列の古い位置やIDを削除・置換・並べ替えしないでください。以下の `PETA_SIGNING_KEY` は暗号化イメージ内の秘密鍵ファイルへのパスです。鍵そのもの・パスフレーズをログやチャットへ出さないでください。
 
 ## 3. 追加封筒／素材／無効化の通知
 
@@ -123,3 +111,31 @@ npm audit
 ```
 
 cargo auditが無ければ、その導入はオーナーが判断します。この作業はcargo audit/cargo aboutを新しくインストールしません。監査は当日時点の情報なので、実際に配る直前にも行います。検出を機械的な一括更新で消さず、影響と修正版を確認してテストします。
+
+## 2026-10-14: Developer ID署名・公証（B2）
+
+オーナーが一度だけ行うこと:
+
+1. Apple Developer Programの登録と配布名義を決める。個人登録は法的氏名を用い、Developer ID証明書にもその名義が含まれる。コードの匿名化とは別なので、公開前に証明書の名義を確認する。[Appleの登録案内](https://developer.apple.com/programs/enroll/)と[Developer ID証明書の方針](https://images.apple.com/certificateauthority/pdf/Apple_Developer_ID_CPS_v3.2.pdf)を参照。
+2. **Developer ID Application**証明書と対応する秘密鍵をMacのキーチェーンに準備する。Developer/Distribution/Installer証明書はこの.app用と混同しない。[Appleの作成手順](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/)。
+3. Xcodeのnotarytoolで資格情報をキーチェーンへ登録する。対話式に入力し、パスワードをコマンド・文書・リポジトリへ書かない。
+
+```sh
+xcrun notarytool store-credentials "Peta-notary"
+```
+
+毎回の実行（オーナー自身が行う。これを実行するとAppleへ署名のtimestamp取得と公証用.appを送信する）:
+
+```sh
+export APPLE_SIGNING_IDENTITY='Developer ID Application: <証明書に表示される名義> (<Team ID>)'
+export PETA_NOTARY_PROFILE='Peta-notary'
+bash scripts/release-mac.sh beta
+# 通信なし版を配る場合
+bash scripts/release-mac.sh offline
+```
+
+順序はbuild → 個人パス検査 → hardened runtime＋timestamp署名 → zip送信＋wait → Accepted確認 → staple/validate → codesign verify/spctl → **staple済み.appをもう一度zipへまとめる**。最終zipは `src-tauri/target/release/distribution/Peta-beta.zip`（offlineはPeta-offline.zip）。既存zipは上書きせず止まるので、別の版は `PETA_RELEASE_OUTPUT` に新しいファイル名を指定する。`PETA_APP_PATH` は検査・署名するbundleを変更する場合だけ使い、直前にビルドしたものと一致させる。署名IDまたはprofile名が無い場合は、ビルド・Apple接続前に手順を表示して止まる。証明書と秘密鍵の有無もbuild前にローカルで照合する。profileが未登録・無効の場合はnotarytoolが失敗し、配布zipは作らない。
+
+ビルドラッパーはApple資格情報を子プロセスへ渡さず、Tauriの署名はadhocに限定する。正式署名・公証の順序はこのスクリプトだけで管理する。`PETA_ENTITLEMENTS`は必要性を確認したplistへの任意のパス。現行のWKWebView・画像処理・透明窓のために、debug/JIT/unsigned libraryの権限をまとめて追加していない。macOSPrivateApiは透明窓に必要な既存設定で、App Store向けにはしない。Developer IDでの実公証と別Macの動作は未確認で、公証ログとGatekeeperに合格してから配布する。
+
+[Appleの公証要件](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)と[Tauriの署名・公証案内](https://v2.tauri.app/distribute/sign/macos/)に基づく。Codexは登録・証明書作成・profile登録・実署名・実公証を行っていない。`python3 scripts/test-release-mac.py` は偽のツールと一時bundleだけで順序・拒否・staple後の再zipを検証し、Appleへ接続しない。

@@ -328,3 +328,7 @@ CSPはselfのscript、ローカル画像/data/blob/Tauri asset、selfのfont/med
 通常設定のserver feature版をbuild:betaとして用意した。本番APIはreferee.rsの非Developer定数1か所で、環境変数による上書きはDeveloperだけ。受信箱・審判・Marketの自動処理は友達または進行中の申請が存在する場合だけ起動する。明示したCheck now/Sync nowや送付・受取などの操作は既存の事前確認を維持する。通常版とベータは同じデータフォルダを使うため同時利用しない。通常buildは通信clientなし。ビルド時のApple資格情報を遮断し、署名はadhocに限定、正式署名と公証は別スクリプトに委ねる。
 
 実バイナリ検査で見つかった画像由来の個人パスは、名前札PNGのtEXtだけを除去した。IDATは前後同一で画素は変わらない。Rustのremapだけでは同梱媒体のメタデータは消えないので、配布検査は実ファイルを対象にする。
+
+## 2026-10-14: Step 10（B2）
+
+署名・公証は明示的なowner-run scriptにまとめる。資格情報なし・証明書なしではビルド前に停止する。パス検査→hardened runtime/timestamp→Accepted→staple→検証を順に実行し、staple後に配布zipを再作成する。未承認・検証失敗・既存成果物には配布zipを書かない。実公証は実施せず、mockツールだけで順序を検証する。透明窓のprivate API設定は維持し、App Storeには出さない。
