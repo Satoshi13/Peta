@@ -11,6 +11,7 @@
 | [`sticker-shop-preview.html`](sticker-shop-preview.html) | **ステッカーのお店の見せ方+「寄る」詳細**。袋を押すとカメラがその袋に寄り、そこで初めて詳細と Get / Exchange / Open が出る(Esc・✕・背景クリックで引く)。Market(買う)/ Packs(持っている)と、店先の棚(日よけ・看板・値札)/ 吊るす壁を切り替え。袋の名前は袋の白い札に印字。`python3 -m http.server` で配信して開く |
 | [`sticker-shop-v2-preview.html`](sticker-shop-v2-preview.html) | **ステッカーのお店 v2(背景は紙の面のまま、モノだけ写実)**。左上1灯の光(接地影・環境遮蔽・紙に落ちる影)、壁付けの棚(金具・天面・値札レール)/ 金属レールに吊るす案(ユーロ穴ヘッダー・フック・値付けシール)、在庫の厚み、寄って詳細(傾き・ホロ)。Market / Packs 切替。`python3 -m http.server` で配信して開く |
 | [`sticker-shop-v3-preview.html`](sticker-shop-v3-preview.html) | **Market=レール(先頭にピックアップ)/ Packs=棚**。ページに入るとレールの袋が2Dで順に揺れる(3Dの傾きは全廃)。影はアート規約(薄く短く右下2px)に合わせた。下に「依頼する部品」の見本。部品の依頼文は [`../codex-shop-parts-prompt.md`](../codex-shop-parts-prompt.md) |
+| [`pack-count-fonts-preview.html`](pack-count-fonts-preview.html) | **Packs の「n left」実フォント6案比較**。Kalam / Patrick Hand / Klee One / Kiwi Maru / Special Elite / System Medium。実アートの棚と袋で、サイズ・インクの粒・手書きの揺れ・数字を切り替え。`file://` で開ける。採用: Special Elite、Ink grain / Hand variation ともに OFF |
 | [`index.html`](index.html) | 最初の静的な比較(素材ピッカー3案・全体3方向)。プロトタイプの前段 |
 
 開発中にソースの `app/index.html` を開くときは、ファイルを直接開かず `python3 -m http.server` などで配信する(canvas が `file://` の画像で汚染されるため)。

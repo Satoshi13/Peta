@@ -4,12 +4,12 @@ import fs from 'node:fs';
 
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
-test('the remaining count is written letter by letter, with its own tilt, lift, size and pressure, and gets its grain from a mask', () => {
+test('the remaining count uses clean typewriter text without grain or hand variation', () => {
   const js = read('src/app/js/packs.js'), css = read('src/app/css/native.css'), html = read('src/app.html');
   assert.match(js, /const WallInk = \{/);
   assert.match(js, /WallInk\.write\(`\$\{p\.left\.length\} left`, p\.id\)/);
-  assert.match(css, /\.pk-count \{[^}]*mask-image:var\(--a-wallInkGrain\)/);
-  assert.match(css, /\.pk-count \.ink \{[^}]*translateY\(var\(--y,0\)\) rotate\(var\(--r,0deg\)\) scale\(var\(--s,1\)\)/);
+  assert.match(css, /\.pk-count \{[^}]*"Special Elite"[^}]*mask-image:none[^}]*transform:none/);
+  assert.match(css, /\.pk-count \.ink \{[^}]*transform:none; opacity:1/);
   assert.doesNotMatch(html, /wall-ink|<filter/, 'no SVG filter: WebKit renders it at 1x and smears 2px strokes on Retina');
   assert.doesNotMatch(css.slice(css.indexOf('.pk-count {'), css.indexOf('\n', css.indexOf('.pk-count {'))), /filter:\s*(?!none)/, 'no CSS filter on the count either');
 });

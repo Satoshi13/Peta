@@ -887,9 +887,9 @@ html[data-motion="reduce"] .cer-aura .spin { animation:none; }
 .shelf-row .pack::after { left: 15%; right: 15%; bottom: 17px; height: 13px; opacity: 1; background: radial-gradient(ellipse at 50% 45%, rgba(35, 25, 10, .62), rgba(35, 25, 10, .26) 42%, rgba(35, 25, 10, 0) 70%); }
 .shelf-row .pack::before { content: ""; position: absolute; z-index: -1; left: 22%; right: 12%; top: calc(44px + 12%); bottom: 28px; border-radius: 14px; background: rgba(60, 45, 20, .24); filter: blur(12px); transform: translate(14px, -10px); pointer-events: none; }
 .shelf-row .pack[data-empty="true"]::before { opacity: .5; }
-/* Written on the wall: letters tilt and lift a little each, and the wall's grain makes the ink uneven (a mask, never a filter: WebKit renders an SVG/CSS filter at 1x and scales it up, which smears 2px strokes on a Retina screen). */
-.pk-count { position:absolute; left:0; right:0; top:30px; text-align:center; font:400 26px/1 "Kalam","Bradley Hand","Segoe Print",var(--hand),cursive; letter-spacing:.03em; word-spacing:.28em; color:#38342f; opacity:.96; mix-blend-mode:multiply; text-shadow:none; filter:none; -webkit-mask-image:var(--a-wallInkGrain); mask-image:var(--a-wallInkGrain); -webkit-mask-size:128px 128px; mask-size:128px 128px; -webkit-mask-repeat:repeat; mask-repeat:repeat; transform:translateX(var(--dx,0)) rotate(var(--tilt,0deg)); pointer-events:none; white-space:nowrap; }
-.pk-count .ink { display:inline-block; transform:translateY(var(--y,0)) rotate(var(--r,0deg)) scale(var(--s,1)); opacity:var(--o,1); }
+/* Shelf counts use clean typewriter text, with no grain or hand variation. */
+.pk-count { position:absolute; left:0; right:0; top:30px; text-align:center; font:400 26px/1 "Special Elite","Courier New",monospace; letter-spacing:.03em; word-spacing:.28em; color:#38342f; opacity:.96; mix-blend-mode:multiply; text-shadow:none; filter:none; -webkit-mask-image:none; mask-image:none; transform:none; pointer-events:none; white-space:nowrap; }
+.pk-count .ink { display:inline-block; transform:none; opacity:1; }
 .pack[data-empty="true"] .pk-count { opacity:.45; }
 
 .shelf-note { font:400 14px/1.4 var(--sys); color:#5f5a52; margin-top:6px; }
