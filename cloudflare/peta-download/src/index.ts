@@ -1,6 +1,8 @@
 /* The friends-only download page. Every request (page, API and disk image) passes Cloudflare Access and is re-checked here.
    The disk image lives in a private R2 bucket with no public URL; releases/latest.json, written last by
    scripts/publish-release.sh, says which file is current. Invites are shared with peta-api through the same D1 database. */
+import { emailHash } from "../../shared/identity";
+export { emailHash } from "../../shared/identity";
 import { accessEmail, fetchKeys, KeySource, AccessConfig } from "./access";
 
 export interface Env extends AccessConfig {
@@ -35,10 +37,6 @@ function respond(body: BodyInit | null, init: ResponseInit & { headers?: Record<
 const api = (data: unknown, status = 200) => respond(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
 const now = () => Math.floor(Date.now() / 1000);
 
-export async function emailHash(email: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`peta.invite.v1\n${email.trim().toLowerCase()}`));
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
-}
 export function newCode(): string {
   // 50 random bits, Crockford base32 (the app's friend-code alphabet).
   const bytes = crypto.getRandomValues(new Uint8Array(7));

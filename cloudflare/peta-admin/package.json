@@ -1,0 +1,18 @@
+{
+  "name": "peta-admin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "check": "tsc --noEmit",
+    "deploy:dev": "wrangler deploy --env dev",
+    "deploy:prod": "wrangler deploy --env prod"
+  },
+  "devDependencies": {
+    "wrangler": "4.149.0",
+    "vitest": "4.1.0",
+    "@cloudflare/vitest-pool-workers": "0.23.0",
+    "@cloudflare/workers-types": "5.20261012.1",
+    "typescript": "5.9.3"
+  }
+}

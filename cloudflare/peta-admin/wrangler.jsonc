@@ -1,0 +1,66 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "peta-admin",
+  "main": "src/index.ts",
+  "account_id": "7ebfd4fac7f7545a9e34a963af32ae7c",
+  "compatibility_date": "2026-10-12",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": { "directory": "public", "binding": "ASSETS", "run_worker_first": true },
+  // Requests and errors must never include signing secrets or Cloudflare API response bodies.
+  "observability": { "enabled": false },
+  "env": {
+    "dev": {
+        "name": "peta-admin-dev",
+        "vars": {
+            "ACCESS_TEAM_DOMAIN": "",
+            "ACCESS_AUD": "",
+            "OWNER_EMAILS": "",
+            "CF_ACCOUNT_ID": "7ebfd4fac7f7545a9e34a963af32ae7c",
+            "ACCESS_FRIENDS_POLICY_ID": "",
+            "COUPON_KEY_ID": "c1",
+            "DOWNLOAD_PAGE_URL": "https://peta-download-dev.peta-api.workers.dev"
+        },
+        "d1_databases": [
+            {
+                "binding": "DB",
+                "database_name": "peta-dev",
+                "database_id": "806da135-64f5-4063-8bce-0dca96d969db",
+                "migrations_dir": "../peta-api/migrations"
+            }
+        ],
+        "r2_buckets": [
+            {
+                "binding": "RELEASES",
+                "bucket_name": "peta-downloads-dev"
+            }
+        ]
+    },
+    "prod": {
+        "name": "peta-admin-prod",
+        "vars": {
+            "ACCESS_TEAM_DOMAIN": "",
+            "ACCESS_AUD": "",
+            "OWNER_EMAILS": "",
+            "CF_ACCOUNT_ID": "7ebfd4fac7f7545a9e34a963af32ae7c",
+            "ACCESS_FRIENDS_POLICY_ID": "",
+            "COUPON_KEY_ID": "c2",
+            "DOWNLOAD_PAGE_URL": "https://peta-download-prod.peta-api.workers.dev"
+        },
+        "d1_databases": [
+            {
+                "binding": "DB",
+                "database_name": "peta-prod",
+                "database_id": "9517d6ae-1676-4dc4-a906-462650d21586",
+                "migrations_dir": "../peta-api/migrations"
+            }
+        ],
+        "r2_buckets": [
+            {
+                "binding": "RELEASES",
+                "bucket_name": "peta-downloads-prod"
+            }
+        ]
+    }
+  }
+}
