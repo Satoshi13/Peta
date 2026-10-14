@@ -15,6 +15,7 @@
     button.setAttribute('download', r.file);
     $('release-meta').textContent = `Version ${r.version} · ${size(r.size)} · Private beta`;
     $('download-status').textContent = [macos(r.minimumSystemVersion), chips(r.architectures), 'Disk image'].filter(Boolean).join(' · ');
+    $('first-open').hidden = r.notarized !== false;
   }
   function showInvite(i) {
     if (i.paused) {

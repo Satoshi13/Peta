@@ -1,9 +1,32 @@
 #!/bin/bash
-# Explicit owner-run Developer ID signing and notarization. No credentials are stored here.
+# Explicit owner-run Developer ID signing and notarization (or --unsigned, without Apple). No credentials are stored here.
 set -euo pipefail
 umask 077
 mode=${1:-beta}
-case "$mode" in beta) build=build:beta;; offline) build=build;; *) echo 'Usage: bash scripts/release-mac.sh [beta|offline]' >&2; exit 2;; esac
+case "$mode" in beta) build=build:beta;; offline) build=build;; *) echo 'Usage: bash scripts/release-mac.sh [beta|offline] [--unsigned]' >&2; exit 2;; esac
+unsigned=false
+case "${2:-}" in --unsigned) unsigned=true;; '') ;; *) echo 'Usage: bash scripts/release-mac.sh [beta|offline] [--unsigned]' >&2; exit 2;; esac
+if $unsigned; then
+  # Without the Apple Developer Program: the build keeps its ad-hoc signature and the disk image is neither signed nor
+  # notarized. Friends open it once through System Settings → Privacy & Security → Open Anyway (again after each update).
+  root=$(cd "$(dirname "$0")/.." && pwd)
+  cd "$root"
+  app=${PETA_APP_PATH:-$root/src-tauri/target/universal-apple-darwin/release/bundle/macos/Peta.app}
+  version=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["version"])' "$root/src-tauri/tauri.conf.json")
+  name=Peta-$version; [[ $mode == offline ]] && name=Peta-offline-$version
+  output=${PETA_RELEASE_OUTPUT:-$root/src-tauri/target/release/distribution/$name.dmg}
+  if [[ -e "$output" ]]; then echo 'Choose a new PETA_RELEASE_OUTPUT or raise the version; this disk image already exists.' >&2; exit 2; fi
+  npm run "$build"
+  python3 scripts/check-binary-paths.py "$app"
+  codesign --verify --deep --strict --verbose=2 "$app"
+  work=$(mktemp -d "${TMPDIR:-/tmp}/peta-release.XXXXXX")
+  trap 'rm -rf "$work"' EXIT
+  bash "$root/scripts/make-dmg.sh" "$app" "$work/Peta.dmg"
+  mkdir -p "$(dirname "$output")"
+  mv "$work/Peta.dmg" "$output"
+  printf 'Unsigned disk image (ad-hoc app, not notarized): %s\nPublish it with: bash scripts/publish-release.sh %q prod --unsigned\n' "$output" "$output"
+  exit 0
+fi
 if [[ ${APPLE_SIGNING_IDENTITY:-} != 'Developer ID Application: '* || -z ${PETA_NOTARY_PROFILE:-} ]]; then
   cat >&2 <<'HELP'
 Set APPLE_SIGNING_IDENTITY to your Developer ID Application certificate name,

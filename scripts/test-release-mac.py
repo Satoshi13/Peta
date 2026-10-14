@@ -51,4 +51,11 @@ elif name=='xcrun':
  assert calls[13][1:3]==['notarytool','submit'] and calls[13][3].endswith('.dmg') and '--wait' in calls[13]
  assert calls[16][1:]==['-a','-vv','--type','open','--context','context:primary-signature',calls[16][-1]]
  log.unlink();r=run();assert r.returncode==2 and not log.exists()
- print('PASS: missing credentials stop before tools; a rejected app or disk image stops before output; Accepted signs, notarizes and staples the app, then the disk image made from the stapled app; existing output is protected. Mock tools only.')
+ # --unsigned: no Apple tools or credentials; the ad-hoc app goes straight into the disk image.
+ output.unlink();log.unlink(missing_ok=True);(app/'ticket').unlink()
+ for key in ['APPLE_SIGNING_IDENTITY','PETA_NOTARY_PROFILE']:env.pop(key,None)
+ r=subprocess.run(['bash',str(SCRIPT),'beta','--unsigned'],env=env,capture_output=True,text=True);assert r.returncode==0,(r.stdout,r.stderr)
+ assert output.read_text()=='app-unstapled\n' and '--unsigned' in r.stdout
+ names=[json.loads(l)[0] for l in log.read_text().splitlines()];assert names==['npm','codesign','make-dmg'],names
+ r=subprocess.run(['bash',str(SCRIPT),'beta','--sign-later'],env=env,capture_output=True,text=True);assert r.returncode==2
+ print('PASS: missing credentials stop before tools; a rejected app or disk image stops before output; Accepted signs, notarizes and staples the app, then the disk image made from the stapled app; existing output is protected; --unsigned packs the ad-hoc app without Apple. Mock tools only.')

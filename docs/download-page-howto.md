@@ -85,6 +85,9 @@
 
 ## 版を出すたびに
 
+**Apple Developer Program に登録していない間**(2026-10-15 に追加): `bash scripts/release-mac.sh beta --unsigned` で署名・公証なしの DMG を作り、`bash scripts/publish-release.sh <DMG> prod --unsigned` で置きます。アプリは ad-hoc 署名のまま、DMG は署名なし。ページは `latest.json` の `"notarized": false` を見て、「最初に開くとき(システム設定 → プライバシーとセキュリティ → このまま開く)」の案内を出します。友達は版を更新するたびにこの手順をやり直します。macOS の許可(位置情報など)を更新のたびに聞き直されることがあります。登録したら、`--unsigned` を外すだけで署名・公証つきに戻ります。
+
+
 ```bash
 bash scripts/release-mac.sh beta        # 署名・公証済みの .app → 背景つき DMG → DMG も署名・公証・staple
 bash scripts/publish-release.sh src-tauri/target/release/distribution/Peta-<版>.dmg prod

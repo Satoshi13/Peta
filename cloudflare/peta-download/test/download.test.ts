@@ -132,4 +132,6 @@ it("codes and manifests are well formed", () => {
   expect(validRelease({ ...release, file: "../x.dmg" })).toBe(false);
   expect(validRelease({ ...release, file: "Peta.zip" })).toBe(false);
   expect(validRelease({ ...release, architectures: ["ppc"] })).toBe(false);
+  expect(validRelease({ ...release, notarized: false })).toBe(true);
+  expect(validRelease({ ...release, notarized: "no" })).toBe(false);
 });

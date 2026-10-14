@@ -18,6 +18,8 @@ export interface Release {
   minimumSystemVersion: string;
   architectures: string[];
   publishedAt: string;
+  /** false when built without the Apple Developer Program (release-mac.sh --unsigned); the page then explains Open Anyway. */
+  notarized?: boolean;
 }
 
 const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -76,7 +78,7 @@ export function validRelease(r: unknown): r is Release {
     Number.isSafeInteger(v.size) && v.size > 0 && typeof v.sha256 === "string" && /^[a-f0-9]{64}$/.test(v.sha256) &&
     typeof v.minimumSystemVersion === "string" && /^\d+(?:\.\d+){0,2}$/.test(v.minimumSystemVersion) &&
     Array.isArray(v.architectures) && v.architectures.every((a) => a === "arm64" || a === "x86_64") &&
-    typeof v.publishedAt === "string";
+    typeof v.publishedAt === "string" && (v.notarized === undefined || typeof v.notarized === "boolean");
 }
 async function release(env: Env): Promise<Release | null> {
   const o = await env.RELEASES.get("releases/latest.json");
