@@ -17,4 +17,4 @@
 - D1 の ID は秘密ではない(Worker の設定ファイルに書く)。API トークンや Webhook の URL は `wrangler secret put` で入れ、リポジトリに書かない。
 - 開発用 Worker: [peta-api-dev](https://peta-api-dev.peta-api.workers.dev)。D1 `0001_ledger.sql` 適用済み。Rate Limiting binding と D1 カウンタを使用。
 - 開発用には `0002_inbox.sql`・`0003_market.sql`・`0004_reports.sql` も適用済み。
-- **本番(2026-10-14、オーナーが実行)**: `peta-prod` に `0001`〜`0004` を適用、`peta-api-prod` をデプロイ([peta-api-prod](https://peta-api-prod.peta-api.workers.dev)、Version ID `47b22798-ba28-4a22-aee4-b1d6091697fe`、`/v1/health` 200)。Cron `15 3 * * *`(対応済みから30日の通報を削除)。`REPORT_WEBHOOK` の secret と Cloudflare の使用量の通知は未設定(オーナー)。独自ドメインは未実装で、ベータ版(`npm run build:beta`)はこの workers.dev の住所につなぐ。
+- **本番(2026-10-14、オーナーが実行)**: `peta-prod` に `0001`〜`0004` を適用、`peta-api-prod` をデプロイ([peta-api-prod](https://peta-api-prod.peta-api.workers.dev)、Version ID `47b22798-ba28-4a22-aee4-b1d6091697fe`、`/v1/health` 200)。Cron `15 3 * * *`(対応済みから30日の通報を削除)。`REPORT_WEBHOOK` は 2026-10-14 にオーナーの新しい Discord Webhook へ差し替え済み(値はリポジトリに書かない)。Cloudflare の使用量の通知は未設定(オーナー)。独自ドメインは未実装で、ベータ版(`npm run build:beta`)はこの workers.dev の住所につなぐ。
