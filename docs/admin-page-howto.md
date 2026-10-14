@@ -2,7 +2,7 @@
 
 2026-10-14。`cloudflare/peta-admin` の Friends / Coupons / Release を使い、友達のメール登録、招待停止・再開、クーポン発行・停止、配布状況の確認を1ページで行います。UI とコードのコメントは英語です。
 
-本番のデプロイ、Access 設定、API トークンの作成、秘密鍵の登録は、以下を読んだ**オーナーが手動で**行います。この実装作業では実行していません。
+初回の依存準備・D1 マイグレーション・認証設定が空の管理 Worker デプロイは、2026-10-15 にオーナーの依頼と既存の Wrangler ログインで実施しました（各手順に記録）。Access 設定・API トークンの作成・秘密鍵の登録は、引き続き**オーナーが手動で**行います。
 
 ## 最初の準備（この順番）
 
@@ -14,6 +14,8 @@
    npx wrangler login
    ```
 
+   **実施済み（2026-10-15、00:04 JST）**: `cloudflare/peta-admin` で `npm ci` 成功（99パッケージ）。既存のオーナー OAuth ログインを `wrangler whoami` で確認し、対象アカウントと `d1 (write)` 権限が一致したため、`wrangler login` のやり直しは不要でした。アカウント・権限は変更していません。インストール後の `npm test` は21件成功、`npm run check` は型エラーなし。依存バージョンは変更していません。`npm ci` の監査は開発用依存に7件（moderate 2 / high 5）を報告しており、このセットアップでは依存の自動修正を行っていません。
+
 2. **D1 に追加の表を作る**。`0007_admin.sql` は `admin_log` と変更を直列化する `admin_locks` を追加します。既存の表や値を変えません。管理 Worker の migrations_dir は `../peta-api/migrations` です。
 
    ```bash
@@ -21,12 +23,25 @@
    npx wrangler d1 migrations apply peta-prod --env prod --remote
    ```
 
+   **実施済み（2026-10-15、dev 00:02:57 / prod 00:03:23 JST に適用開始）**: `cloudflare/peta-api` から両環境の `migrations list ... --remote` を確認し、未適用の `0006_coupons.sql` と `0007_admin.sql` を dev → prod の順で適用しました。両環境とも成功し、適用後の `migrations list` は `No migrations to apply!`。**peta-api 本体の再デプロイはしていません**。
+
+   同日 Claude の確認時に発生したエラー7403は、今回の dev/prod の一覧取得・適用・再確認では再現しませんでした。既存 OAuth ログインと同じアカウント `7ebfd4fac7f7545a9e34a963af32ae7c` で成功しているため、今回の作業にログインのやり直しは不要でした。以前の7403の直接原因は特定していません。
+
 3. **設定が空のまま初回デプロイ**して Worker を作ります。`secret list` に Worker が必要なため、この順番です。最初は全要求が403になります。dev から試してください。
 
    ```bash
    npm run deploy:dev
    npm run deploy:prod
    ```
+
+   **実施済み（2026-10-15、dev 00:05:28 / prod 00:06:40 JST にデプロイ開始）**: dev を先にデプロイして403を検証後、prod をデプロイしました。`ACCESS_TEAM_DOMAIN`・`ACCESS_AUD`・`OWNER_EMAILS` は両環境とも空、`assets.run_worker_first=true`、`preview_urls=false` のままです。Access の設定、`CF_API_TOKEN`・`COUPON_SIGNING_KEY` の登録はしていません。
+
+   | 環境 | 公開 URL | バージョン ID | curl 確認（JST） |
+   |---|---|---|---|
+   | dev | [peta-admin-dev](https://peta-admin-dev.peta-api.workers.dev) | `a7fef90e-f611-4daf-b02c-664c5a4b9a1d` | 2026-10-15 00:06:24、全9件403 |
+   | prod | [peta-admin-prod](https://peta-admin-prod.peta-api.workers.dev) | `a04dc4c2-91cb-42a3-90b7-a3595560b9d4` | 2026-10-15 00:07:01、全9件403 |
+
+   確認先は `/`、`/api/release`、静的ファイル全7件（`/index.html`、`/admin.js`、`/friends.js`、`/coupons.js`、`/release.js`、`/style.css`、`/ui.js`）。すべて HTTP 403 と管理 Worker の `forbidden` 応答を確認しました。次は以下の **手順4（管理専用 Access）**からオーナーが設定します。
 
 4. **管理 Worker の workers.dev に、別の Access アプリケーションを作る**。Workers & Pages → `peta-admin-prod`（dev は `peta-admin-dev`）→ Settings → Domains & Routes → workers.dev の Cloudflare Access を「すべての Traffic」に有効化します。Zero Trust のチームは既存の `peta-friends` を使えます。Settings → Authentication → Login methods の **One-time PIN** を有効にします。
 
