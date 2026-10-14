@@ -72,6 +72,8 @@ mod online {
                 InviteState { needed: false, offline: false }
             }
             Ok(false) => InviteState { needed: true, offline: false },
+            // A server from before invites has no /v1/invite and gates nothing; ask nothing, remember nothing.
+            Err(code) if code == "not_found" => InviteState { needed: false, offline: false },
             Err(code) => InviteState { needed: true, offline: code == "offline" },
         }
     }
@@ -212,5 +214,13 @@ mod tests {
         std::fs::write(dir.as_path().join("invite.ok"), r.public_key()).unwrap();
         assert!(!online::lapsed(dir.as_path(), &r));
         assert!(dir.as_path().join("invite.ok").exists());
+    }
+
+    #[test]
+    fn a_server_without_invites_asks_nothing() {
+        let dir = dir("old-server");
+        let r = referee(serve(vec![("404 Not Found", r#"{"error":"not_found"}"#)]));
+        assert_eq!(online::check(dir.as_path(), &r), InviteState { needed: false, offline: false });
+        assert!(!dir.as_path().join("invite.ok").exists());
     }
 }
