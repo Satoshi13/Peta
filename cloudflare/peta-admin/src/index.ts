@@ -1,3 +1,4 @@
+import { release } from "./release";
 import { friends, type Fetch } from "./friends";
 import { coupons } from "./coupons";
 import { mutate } from "./lock";
@@ -53,6 +54,7 @@ export async function handle(request: Request, env: Env, keys: KeySource = fetch
   if (!email || !allowed?.includes(email)) return secure(api({ error: "forbidden", message: "This page is for the Peta owner." }, 403));
   const url = new URL(request.url);
   try {
+    if (url.pathname === "/api/release" && request.method === "GET") return secure(await release(env));
     if (url.pathname === "/api/me" && request.method === "GET") return secure(api({ email }));
     if (url.pathname.startsWith("/api/")) {
       let data: unknown = null;

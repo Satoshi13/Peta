@@ -17,7 +17,7 @@ export async function loadFriends() {
     };
     remove.onclick = async () => {
       if (!await confirmAction("Remove this friend?", `${f.email} will lose access to the download page. Their invite will also stop, so their Mac cannot connect to online features.`)) return;
-      await action(remove, async () => { try { await api("/api/friends/remove", { email: f.email, revision, confirm: true }); notice("Friend removed and invite stopped."); } finally { await loadFriends(); } });
+      await action(remove, async () => { try { await api("/api/friends/remove", { email: f.email, revision, confirm: true }); notice("Friend removed and invite stopped."); } catch (error) { try { await loadFriends(); } catch { /* Keep the original partial-change message. */ } throw error; } await loadFriends(); });
     };
     controls.append(toggle, remove); card.append(controls); $("friend-list").append(card);
   }

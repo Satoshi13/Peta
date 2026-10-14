@@ -22,9 +22,9 @@
 <div class="section-head"><h2>Coupons</h2><div class="actions"><button type="button" id="refresh-coupons" class="subtle">Refresh</button><button type="button" id="stop-all" class="danger">Stop all</button></div></div>
 <div id="coupon-list" class="list"></div>
 </section>
-<section role="tabpanel" id="release" aria-labelledby="tab-release" hidden><h2>Release</h2><p>Loading release…</p></section>
+<section role="tabpanel" id="release" aria-labelledby="tab-release" hidden><div class="section-head"><div><p class="eyebrow">OUT IN THE WORLD</p><h2>Release</h2></div><button type="button" id="refresh-release" class="subtle">Refresh</button></div><div id="latest-release"></div><h3>Downloads by version</h3><div id="release-list" class="list"></div></section>
 <footer><span>PETA · ONE STICKER A DAY</span><span>Only you can open this desk.</span></footer>
 </main>
-<dialog id="review"><p class="eyebrow">BEFORE IT GOES OUT</p><h2 id="review-name"></h2><div id="review-details"></div><div class="actions"><button type="button" id="cancel-review" class="subtle">Go back</button><button type="button" id="issue-coupon">Issue coupon</button></div></dialog>
+<dialog id="review"><p class="eyebrow">BEFORE IT GOES OUT</p><h2 id="review-name"></h2><div id="review-details"></div><p id="review-status" role="status" aria-live="polite"></p><div class="actions"><button type="button" id="cancel-review" class="subtle">Go back</button><button type="button" id="issue-coupon">Issue coupon</button></div></dialog>
 <dialog id="confirm"><h2 id="confirm-title"></h2><p id="confirm-detail"></p><div class="actions"><button type="button" id="cancel-confirm" class="subtle">Cancel</button><button type="button" id="accept-confirm" class="danger">Confirm</button></div></dialog>
 </body></html>
