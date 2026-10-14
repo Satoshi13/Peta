@@ -1,22 +1,24 @@
 # Peta 利用規約下書き / Terms of use draft
 
+2026-10-15 更新: 空欄に案を記入し、ベータ版・招待制とクーポンの条項を追加(ダウンロードページ、招待コード、クーポンの実装に合わせた)。
+
 **法的な判断はオーナーが専門家と行う下書きです。正式な利用規約ではありません。** 公開地域、利用者の年齢、運営主体、連絡先と適用日、消費者保護法等に沿った免責・終了・紛争処理の条項を確認してから公開してください。
 
 **This draft requires legal decisions by the owner with qualified advisers. It is not effective terms or legal advice.** Confirm the operator, regions, ages, effective date, mandatory consumer protections and dispute provisions before publication.
 
-未記入・要決定項目:
+未記入・要決定項目(2026-10-15 に Claude が案を入れた。**「案」はオーナーが確認して確定**し、【】はオーナーにしか書けないもの):
 
-| 項目 | 値 |
+| 項目 | 案 |
 | --- | --- |
-| 運営者 / Operator | 【オーナーが記入】 |
-| 連絡先 / Contact | 【オーナーが記入】 |
-| 施行日 / Effective date | 【オーナーが記入】 |
-| 提供地域・利用年齢・保護者の同意 / Regions, ages and consent | 【オーナーが記入】 |
-| 準拠法 / Governing law | 【オーナーが記入】 |
-| 裁判管轄・紛争処理 / Jurisdiction and dispute procedure | 【オーナーが記入】 |
-| 変更・終了の告知方法と期間 / Notice method and period | 【オーナーが記入】 |
-| 削除・拒否への問い合わせと再検討手順 / Review procedure | 【オーナーが記入】 |
-| 日本語版・英語版の優先関係 / Language precedence | 【オーナーが記入】 |
+| 運営者 / Operator | 案: Peta 運営(個人)。氏名・住所は請求があれば遅滞なく知らせる / Peta (run by an individual); name and address on request |
+| 連絡先 / Contact | 案: Peta の Discord の #ヘルプ または運営への DM。Discord を使わない人は 【連絡用メールアドレス】 |
+| 施行日 / Effective date | 案: 最初のベータ版を配る日 【YYYY-MM-DD】 |
+| 提供地域・利用年齢・保護者の同意 / Regions, ages and consent | 案: 運営者が招待した友達だけに日本で提供。13歳未満は利用不可、18歳未満は保護者の同意が必要 |
+| 準拠法 / Governing law | 案: 日本法 |
+| 裁判管轄・紛争処理 / Jurisdiction and dispute procedure | 案: まず連絡先で話し合う。訴訟は、法令で別に定める場合を除き、運営者の住所地を管轄する地方裁判所または簡易裁判所を第一審の専属的合意管轄とする |
+| 変更・終了の告知方法と期間 / Notice method and period | 案: Discord の #お知らせ とダウンロードページで告知。利用者に不利な重要な変更とサービス終了は、原則として効力が生じる14日前まで |
+| 削除・拒否への問い合わせと再検討手順 / Review procedure | 案: 連絡先へ連絡 → 運営が確認し、原則14日以内に結果と理由を返す |
+| 日本語版・英語版の優先関係 / Language precedence | 案: 日本語版を優先 |
 
 ## 日本語
 
@@ -58,6 +60,14 @@ Giftや有限の版を持つパックの送付は、対象のステッカーや�
 
 運営は違反またはサービス保護上の必要が認められる場合、サーバー上の配達・出品の削除、鍵による利用の拒否等を行うことがあります。すでに他人のMacへ保存されたデータを遠隔で消去することは保証しません。問い合わせ・再検討は上記の窓口と正式化した手順で受け付けます。保有データと保存期間はプライバシーポリシーを確認してください。
 
+### 8-2. ベータ版・招待制
+
+Petaは現在ベータ版で、運営者が招待した人だけが利用できます。ダウンロードページは、運営者が登録したメールアドレスでログインした人だけが開けます。ページに表示される招待コードは本人用で、同時に1台のMacだけで使えます。ページのリンク・招待コード・アプリのファイルを他人に渡さないでください。新しいMacへ移るときは、ページで新しいコードを出してください(前のMacはつながらなくなります)。運営は、招待の停止、ダウンロードページからの登録解除を行うことがあります。ベータ版は予告なく変更され、不具合やデータの消失が起きることがあります。大事なものは利用者自身でも保存してください。
+
+### 8-3. クーポン
+
+運営は、Discordなどでクーポンを配ることがあります。クーポンは無償の特典で、Scraps・封筒・素材・ツール・パックの補充などが入ります。現金・金券等との交換はできず、売買・譲渡の対象ではありません。1つのクーポンは1台のMacにつき1回、期限と先着の数の範囲で受け取れます。運営はクーポンを予告なく締め切ることがあります。持てる上限(ボード・封をしたパックの枚数など)を超える分は届きません。不正な手段で受け取った場合、運営は利用を拒否することがあります。受け取った特典は通常のScraps等と同じ扱いです。
+
 ### 9. 退会
 
 Leaveはサーバーの受信箱への参加を終了する機能です。所有権の台帳、通報、運営の拒否の記録や他人が受取済みの内容をすべて消す操作ではありません。端末内のライブラリは利用者が管理します。鍵の拒否により退会操作が使えない場合を含む問い合わせ方法は、正式なポリシーで案内します。
@@ -72,7 +82,7 @@ Leaveはサーバーの受信箱への参加を終了する機能です。所有
 
 ### 12. 準拠法・管轄・連絡先
 
-準拠法: 【オーナーが記入】。管轄・紛争処理: 【オーナーが記入】。連絡先: 【オーナーが記入】。適用法が認める利用者の権利・管轄を妨げない条文として専門家と確定します。
+準拠法は日本法とします。紛争はまず下の連絡先で話し合いによる解決を目指し、訴訟となった場合は、法令で別に定める場合を除き、運営者の住所地を管轄する地方裁判所または簡易裁判所を第一審の専属的合意管轄裁判所とします。連絡先: Peta の Discord の #ヘルプ または運営への DM、Discord を使わない方は 【連絡用メールアドレス】。日本語版と英語版に違いがある場合は日本語版を優先します。(案。適用法が認める利用者の権利・管轄を妨げない条文として専門家と確定します。)
 
 ## English
 
@@ -114,6 +124,14 @@ Ordinary Gifts and Market contents are delivered encrypted. If you choose to rep
 
 Where a violation or service-protection need is established, the operator may remove server deliveries or listings or refuse service to a key. Remote deletion of data already saved on other Macs is not guaranteed. Questions and requests for review use the contact and procedure completed above. See the privacy policy for data handling and retention.
 
+### 8-2. Beta and invitations
+
+Peta is in beta and is available only to people the operator has invited. The download page opens only for people who sign in with an email address the operator has registered. The invite code shown there is yours and works on one Mac at a time. Do not share the page link, your invite code or the app files. When moving to a new Mac, get a new code on the page (the previous Mac stops connecting). The operator may pause an invitation or remove a registration. The beta may change without notice and may have bugs or lose data; keep your own copies of anything important.
+
+### 8-3. Coupons
+
+The operator may share coupons, for example in Discord. A coupon is a free bonus that may include Scraps, envelopes, materials, tools or pack refills. Coupons and their contents have no cash value and cannot be sold or transferred. Each coupon can be received once per Mac, within its dates and any first-come limit. The operator may close a coupon without notice. Anything beyond what a library can hold (such as boards or sealed stickers in a pack) is not delivered. The operator may refuse service if a coupon is obtained by improper means. Received bonuses are treated like any other Scraps or items.
+
 ### 9. Leaving
 
 Leave ends participation in the server inbox. It does not erase all ledger entries, reports, service blocks or data already received by others. You manage your local library. The effective privacy policy must explain contact procedures, including when a blocked key cannot use Leave.
@@ -128,7 +146,7 @@ Even a free service may experience outages, network or storage failures and data
 
 ### 12. Law, jurisdiction and contact
 
-Governing law: 【オーナーが記入】. Jurisdiction and dispute procedure: 【オーナーが記入】. Contact: 【オーナーが記入】. Final provisions must respect mandatory rights and jurisdiction rules under applicable law.
+These terms are governed by the laws of Japan. Disputes should first be raised through the contact below; any lawsuit, unless the law provides otherwise, is subject to the exclusive first-instance jurisdiction of the district or summary court with jurisdiction over the operator's address. Contact: #help in the Peta Discord or a direct message to the operator; if you don't use Discord, 【contact email】. If the Japanese and English versions differ, the Japanese version prevails. (Proposed; final provisions must respect mandatory rights and jurisdiction rules under applicable law.)
 
 ## 確定時の照合資料
 

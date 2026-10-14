@@ -1,35 +1,37 @@
 # Peta プライバシーポリシー下書き / Privacy policy draft
 
+2026-10-15 更新: 空欄に案を記入し、ダウンロードページ(Cloudflare Access のメールアドレス)・招待コード・クーポン・運営の管理ページ・共有画像の扱いを追加。
+
 2026-10-14、S1〜S3と公開前修正の現行実装に基づく公開前の文案。**法的な判断はオーナーと専門家が行います。この文書は正式なポリシーでも法的助言でもありません。** 責任主体・連絡先・適用地域・法的根拠・委託契約・保存期間と例外を決めてから公開してください。
 
 **This is a pre-release draft based on the S1–S3 and release-hardening implementation, not a final policy or legal advice. The owner and qualified advisers must make the legal decisions before publication.** The operator, contact details, applicable regions, legal basis, processor arrangements and retention exceptions remain to be confirmed.
 
 ## 未記入・要決定項目 / Owner completion list
 
-以下はすべて **【オーナーが記入】**。公開前に専門家と実際の契約・運用へ合わせて確定する。
+2026-10-15 に Claude が案を入れた。**「案」はオーナーが確認して確定**し、【】はオーナーにしか書けないもの。公開前に専門家と実際の契約・運用へ合わせて確定する。
 
-| 項目 / Item | 値 / Value |
+| 項目 / Item | 案 / Proposal |
 | --- | --- |
-| 運営者 / Operator | 【オーナーが記入】 |
-| 問い合わせ窓口 / Privacy contact | 【オーナーが記入】 |
-| 施行日 / Effective date | 【オーナーが記入】 |
-| 提供地域・法的根拠 / Applicable regions and legal basis | 【オーナーが記入】 |
-| Cloudflareの契約・処理国・再委託先・保護措置 / Processor terms, countries, subprocessors and safeguards | 【オーナーが記入】 |
-| IP情報等のCloudflare側の保持条件 / Cloudflare network-data retention | 【オーナーが記入】 |
-| 開示・訂正・削除の本人確認と応答方法 / Verification and privacy-request procedure | 【オーナーが記入】 |
-| 法的保存例外・変更の告知方法 / Required retention exceptions and policy-change notices | 【オーナーが記入】 |
+| 運営者 / Operator | 案: Peta 運営(個人)。氏名・住所は請求があれば遅滞なく知らせる(個人情報保護法の公表事項は「本人の求めに応じて遅滞なく回答する」形でもよいとされる点を専門家に確認) |
+| 問い合わせ窓口 / Privacy contact | 案: Peta の Discord の #ヘルプ または運営への DM。Discord を使わない人は 【連絡用メールアドレス】 |
+| 施行日 / Effective date | 案: 最初のベータ版を配る日 【YYYY-MM-DD】 |
+| 提供地域・法的根拠 / Applicable regions and legal basis | 案: 招待した友達だけに日本で提供し、日本の個人情報保護法に従う。EU 等の利用者は想定しない |
+| Cloudflareの契約・処理国・再委託先・保護措置 / Processor terms, countries, subprocessors and safeguards | 案: Cloudflare, Inc.(米国)に、Access・Workers・D1・R2 の運用を委託。Cloudflare の DPA(データ処理補遺)と再委託先一覧による。米国の制度と相当措置の情報提供は専門家と確定(下の本文) |
+| IP情報等のCloudflare側の保持条件 / Cloudflare network-data retention | 【Zero Trust の Access ログ(ログイン記録)の保存期間をダッシュボードで確認して記入】。Peta のコードは IP を保存しない |
+| 開示・訂正・削除の本人確認と応答方法 / Verification and privacy-request procedure | 案: 窓口へ連絡 → 登録済みのメールアドレスでのログイン、または登録済みの Discord アカウントからの連絡で本人確認 → 原則14日以内に無料で回答 |
+| 法的保存例外・変更の告知方法 / Required retention exceptions and policy-change notices | 案: 法令で保存が必要な場合を除き、下の保存期間に従う。変更は Discord の #お知らせ とダウンロードページで告知し、重要な変更は原則14日前まで |
 
 ## 日本語
 
 ### 運営・対象
 
-運営者: **【オーナーが記入】**。問い合わせ・削除等の窓口: **【オーナーが記入】**。施行日: **【オーナーが記入】**。
+運営者: **Peta 運営(個人)**。氏名・住所は請求があれば遅滞なくお知らせします。問い合わせ・削除等の窓口: **Peta の Discord の #ヘルプ または運営への DM(Discord を使わない方は 【連絡用メールアドレス】)**。施行日: **【YYYY-MM-DD】**。(案)
 
 この文案は、Petaの所有権確認、友達とGift受信箱、友達のMarket、通報、端末内の移行を扱います。通信なしの通常版にサーバー通信のコード・依存は含めません。Developerはdev、友達限定ベータは本番用の固定接続先を使います。本番はオーナー準備後に運用し、その準備が済むまで配布しません。現金決済とライブラリの同期は実装していません。
 
 ### 端末で扱うもの・サーバーへ送るもの
 
-Collection、ステッカーの完成画像・元写真、配置、ローカルの友達の記録、秘密鍵、鍵バックアップのパスフレーズはMacで扱います。元写真・秘密鍵・パスフレーズはサーバーへ送りません。`.petakey` は鍵だけで、ステッカー帳や友達を含むデータフォルダのバックアップではありません。`.petamove` はDB・assets・鍵をまとめた暗号化移行ファイルで、作成・読み込みでサーバーに何も送りません。移行後は元のMacでPetaを使わないでください。
+Collection、ステッカーの完成画像・元写真、配置、ローカルの友達の記録、秘密鍵、鍵バックアップのパスフレーズはMacで扱います。元写真・秘密鍵・パスフレーズはサーバーへ送りません。ステッカーの「Share」で作る共有用の画像は、Macの中で描いてクリップボードか利用者が選んだ場所に置くだけで、Petaのサーバーへは送りません(Discord等へ貼った後は、そのサービスの扱いになります)。`.petakey` は鍵だけで、ステッカー帳や友達を含むデータフォルダのバックアップではありません。`.petamove` はDB・assets・鍵をまとめた暗号化移行ファイルで、作成・読み込みでサーバーに何も送りません。移行後は元のMacでPetaを使わないでください。
 
 サーバーは、配達・認証・持ち主確認・不正利用防止のため、次の情報を受け取ります。
 
@@ -43,6 +45,15 @@ Collection、ステッカーの完成画像・元写真、配置、ローカル�
 パックの作者には、引かれた枠と、引いた人の鍵ハッシュを返します。他の人には枠番号だけです。アプリは承認済み友達のハッシュを端末内の名前に対応させ、知らない人は `Someone` と表示します。友達の一覧やこの名前の対応表を作者へ送る仕組みではありません。
 
 友達の Market(S3)では、出品のカード(題名・説明・見本の絵など)とパックを、出品ごとの鍵で端末で暗号化してから送ります。その鍵は、承認済みの友達1人ずつの暗号公開鍵に封をして渡します。Peta 運営とWorkerは鍵を持たないので、出品の中身を復号できません。サーバーが受け取るのは、出品ID・パックID・値段・状態・暗号文の大きさとダイジェスト、封筒の宛先の鍵ハッシュ、売上の記録(買い手の鍵ハッシュ・売り手の公開鍵・枠・値段・取り分・時刻)です。Scraps の残高はMacにあり、サーバーへ送りません。
+
+### ダウンロードページ・招待コード・クーポン
+
+- **ダウンロードページのログイン**: 運営は、招待した人のメールアドレスを Cloudflare Access の許可リストに登録します(Discord の DM 等で受け取ったもの)。ログインのとき、Cloudflare がそのメールアドレスへ6桁のコードを送り、ログインの記録(メールアドレス・日時・接続元 IP 等)を Cloudflare の管理画面に残します。
+- **Peta のサーバー(D1)に保存するもの**: メールアドレスそのものではなく、そのハッシュ(SHA-256)。招待コード、それを使った Mac の署名鍵のハッシュ、使い始めた日時、停止した日時。DMG をダウンロードした記録(ハッシュ・版・日時)。
+- **クーポン**: 受け取った Mac の署名鍵のハッシュ、クーポン名、日時。
+- **運営の管理ページ**: 運営の操作の記録(操作の種類、日時、対象のメールアドレスのハッシュ)。
+- **利用目的**: 招待した人だけに配る、1つのコードを1台に限る、クーポンを1台1回にする、配布と不正の状況を確認する。広告や第三者への提供には使いません。
+- **Discord**: Peta の Discord サーバーは Discord Inc. のサービスで、そこでのやりとりは Discord の規約とプライバシーポリシーに従います。通報があったときの運営への通知は、Discord の Webhook で件数と ID だけを送ります。
 
 ### 通報の例外
 
@@ -60,12 +71,15 @@ Collection、ステッカーの完成画像・元写真、配置、ローカル�
 | 所有権の台帳・運営の拒否 | 退会しても残します。持ち主確認と不正利用防止に必要なため、現行実装に期限付き削除はありません。 |
 | nonce・回数カウンタ | 有効期間を過ぎた古い行をAPIの書き込み時に掃除。クラウド側バックアップは契約・設定に従い、即時消去を保証しません。 |
 | 受取済みGift・Collection・友達・鍵 | Mac上に保持。アプリの操作またはデータフォルダの管理によります。 |
+| Access の許可リスト(メールアドレス) | 運営が友達の登録を外すまで。外すと次のログインから入れません(すでにログイン中の人は、セッションの期限まで残り得ます)。 |
+| Access のログイン記録 | Cloudflare の保存期間に従います(【確認して記入】)。 |
+| 招待コード・ダウンロード記録・クーポンの受け取り記録・運営の操作記録 | 現行実装に期限付きの削除はありません。【案: 友達の登録を外してから1年で削除する運用、または実装を決める】 |
 
 出品の配送証拠は、封筒の削除後にも通報できるよう出品ID・受取人と送り手の鍵ハッシュの組だけを残します。内容鍵・暗号化封筒は含めません。現行ではこの証拠の時限削除はありません。
 
 ### 委託先・海外での処理
 
-Workers、D1、R2にCloudflareを使用します。日本国外での処理・保管があり得ます。具体的な国・再委託先・契約上の保護・Cloudflareが扱うIPの保存期間等は、公開前にオーナーが実際の契約と設定を確認し、必要な告知を完成させます。[Cloudflare Data Processing Addendum](https://www.cloudflare.com/cloudflare-customer-dpa/) とその再委託先一覧が確認資料です。この文案だけで海外移転に関する法的要件を満たしたとは判断しません。
+Access(ダウンロードページと運営の管理ページのログイン)、Workers、D1、R2にCloudflare, Inc.(米国)を使用し、その運用を委託します。案: 個人情報保護法の「外国にある第三者」への提供(委託)として、移転先の国(米国)、その国の個人情報保護の制度、Cloudflare が講じる措置(DPA、標準契約条項等)の情報を、求めに応じて提供します(個人情報保護委員会の外国制度の調査結果を参照)。日本国外での処理・保管があり得ます。具体的な国・再委託先・契約上の保護・Cloudflareが扱うIPの保存期間等は、公開前にオーナーが実際の契約と設定を確認し、必要な告知を完成させます。[Cloudflare Data Processing Addendum](https://www.cloudflare.com/cloudflare-customer-dpa/) とその再委託先一覧が確認資料です。この文案だけで海外移転に関する法的要件を満たしたとは判断しません。
 
 ### 退会・問い合わせ
 
@@ -77,13 +91,13 @@ SettingsのLeaveは、本人の受信箱・許可／拒否・そこに届いた�
 
 ### Operator and scope
 
-Operator: **【オーナーが記入】**. Contact for privacy requests: **【オーナーが記入】**. Effective date: **【オーナーが記入】**.
+Operator: **Peta (run by an individual)**; the operator's name and address are provided without delay on request. Contact for privacy requests: **#help in the Peta Discord or a direct message to the operator (if you don't use Discord, 【contact email】)**. Effective date: **【YYYY-MM-DD】**. (Proposed.)
 
 This draft covers ownership checks, friends and the Gift inbox, the friends' Market, reports and local migration. The offline standard build does not include server networking code or dependencies. Developer builds use dev; the friends-only beta has a fixed production endpoint and must not be distributed until the owner has prepared production. Cash payments and library sync are not implemented.
 
 ### Local and server data
 
-Your Collection, finished sticker images, source photos, placements, local friend records, private keys and key-backup passphrase are handled on your Mac. Source photos, private keys and passphrases are not sent to the server. A `.petakey` file contains keys only; it is not a backup of your Collection or friends. A `.petamove` is an encrypted migration file containing the database, assets and keys. Export and restore do not send data to the server. Stop using Peta on the old Mac after moving.
+Your Collection, finished sticker images, source photos, placements, local friend records, private keys and key-backup passphrase are handled on your Mac. Source photos, private keys and passphrases are not sent to the server. A share picture made with Share is drawn on the Mac and only put on the clipboard or saved where you choose; it is not sent to Peta's servers (once you post it to Discord or elsewhere, that service's terms apply). A `.petakey` file contains keys only; it is not a backup of your Collection or friends. A `.petamove` is an encrypted migration file containing the database, assets and keys. Export and restore do not send data to the server. Stop using Peta on the old Mac after moving.
 
 For delivery, authentication, ownership checks and abuse prevention, the server receives:
 
@@ -97,6 +111,15 @@ Friend request contents and Gifts are sealed on the sender's Mac with HPKE to th
 Only a pack's authenticated maker receives hashes identifying who drew its slots. Other callers receive slot numbers only. The app matches accepted friends to names locally and shows other people as `Someone`. It does not send your friend list or local name mapping to a pack maker.
 
 In the friends' Market (S3), a listing's card (title, description, peek pictures and so on) and pack are encrypted on the Mac with a per-listing key before they are sent. That key is sealed to each approved friend's encryption public key. Peta's operator and Worker do not hold the key and cannot decrypt listings. The server receives the listing and pack IDs, price, state, the size and digest of the encrypted files, the key hashes of the friends who received the key, and sale records (buyer key hash, seller public key, slot, price, seller's share, time). Scraps balances stay on the Mac and are not sent.
+
+### Download page, invite codes and coupons
+
+- **Download page sign-in**: The operator adds invited people's email addresses (received by Discord DM or similar) to the Cloudflare Access allow list. When you sign in, Cloudflare sends a 6-digit code to that address and keeps a sign-in record (email address, time, source IP and similar) in the Cloudflare dashboard.
+- **Stored on Peta's server (D1)**: not the email address itself but its SHA-256 hash; your invite code; a hash of the signing key of the Mac that used it; when it was first used and when it was paused; and records of disk-image downloads (hash, version, time).
+- **Coupons**: a hash of the receiving Mac's signing key, the coupon name and the time.
+- **Operator's admin page**: a record of operator actions (action, time, hash of the affected email address).
+- **Purposes**: giving the app only to invited people, limiting each code to one Mac, limiting each coupon to once per Mac, and checking distribution and misuse. Not used for advertising or provided to third parties.
+- **Discord**: The Peta Discord server is a Discord Inc. service; conversations there follow Discord's terms and privacy policy. Report notifications to the operator are sent through a Discord webhook and contain only the count and IDs.
 
 ### Reports are an exception
 
@@ -114,12 +137,15 @@ If you choose Report… and consent to send it, **the decrypted original Gift fi
 | Ownership ledger and service blocks | Retained after leaving for ownership checks and abuse prevention. The current implementation has no expiry-based deletion. |
 | Nonces and rate counters | Older rows are swept on API writes after their validity window. Cloud-provider backups follow the actual contract and settings and are not guaranteed to disappear immediately. |
 | Received Gifts, Collection, friend records and keys | Kept on the Mac, managed through app actions or the data folder. |
+| Access allow list (email addresses) | Until the operator removes your registration. You cannot sign in again after that; an existing session may last until it expires. |
+| Access sign-in records | Follow Cloudflare's retention (【confirm and fill in】). |
+| Invite codes, download records, coupon receipts and operator action records | No timed deletion in the current implementation. 【Proposal: delete one year after a registration is removed, by procedure or implementation】 |
 
 Listing-delivery proof retains only the listing ID, recipient key hash and sender key hash after an envelope is deleted, so a recipient can still report it. It contains no content key or encrypted envelope. There is currently no timed deletion rule for this proof.
 
 ### Cloudflare and international processing
 
-Peta uses Cloudflare Workers, D1 and R2. Processing or storage may occur outside Japan. Before publication the owner must verify the actual contract, countries, subprocessors, protections and Cloudflare IP-retention arrangements and complete the necessary notice. The [Cloudflare Data Processing Addendum](https://www.cloudflare.com/cloudflare-customer-dpa/) and linked subprocessor list are reference material, not a determination that legal transfer requirements are met.
+Peta entrusts Cloudflare, Inc. (United States) with Access (sign-in for the download page and the operator's admin page), Workers, D1 and R2. Proposed: as a transfer to a third party in a foreign country under Japan's Act on the Protection of Personal Information, information on the destination country (the United States), its privacy regime and Cloudflare's safeguards (DPA, standard contractual clauses and so on) is provided on request. Processing or storage may occur outside Japan. Before publication the owner must verify the actual contract, countries, subprocessors, protections and Cloudflare IP-retention arrangements and complete the necessary notice. The [Cloudflare Data Processing Addendum](https://www.cloudflare.com/cloudflare-customer-dpa/) and linked subprocessor list are reference material, not a determination that legal transfer requirements are met.
 
 ### Leaving and requests
 
