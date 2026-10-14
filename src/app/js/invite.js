@@ -25,7 +25,11 @@ const Invite = {
         finally { pending=false; submit.disabled=false; }
       }}}, h("h2","Welcome to Peta"), h("p.rd-sub","Enter the invite code from your download page."), h("div.rd-ticket",input), status, submit, quit,
         h("small.rd-note","Each code works on one Mac. Yours is on the Peta download page."));
-      const dialog=h("dialog.rd-dialog",{"aria-label":"Peta invite code",on:{cancel:e=>{e.preventDefault();},keydown:e=>{if(e.key==="Escape")e.stopPropagation();},close:()=>{dialog.remove();Bridge.dialogOpen=false;this.open=false;resolve();}}},form);
+      const dialog=h("dialog.rd-dialog",{"aria-label":"Peta invite code",on:{
+        // Modal dialogs make the titlebar inert. The backdrop and paper can still move the window.
+        mousedown:e=>{if(e.button===0 && !e.target.closest('input, textarea, select, button, a, [contenteditable]')){e.preventDefault();Bridge.window.startDragging();}},
+        cancel:e=>{e.preventDefault();},keydown:e=>{if(e.key==="Escape")e.stopPropagation();},close:()=>{dialog.remove();Bridge.dialogOpen=false;this.open=false;resolve();}
+      }},form);
       Bridge.dialogOpen=true; document.body.append(dialog); dialog.showModal(); input.focus();
     });
   },
