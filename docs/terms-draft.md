@@ -11,8 +11,8 @@
 | 項目 | 案 |
 | --- | --- |
 | 運営者 / Operator | 案: Peta 運営(個人)。氏名・住所は請求があれば遅滞なく知らせる / Peta (run by an individual); name and address on request |
-| 連絡先 / Contact | 案: Peta の Discord の #ヘルプ または運営への DM。Discord を使わない人は 【連絡用メールアドレス】 |
-| 施行日 / Effective date | 案: 最初のベータ版を配る日 【YYYY-MM-DD】 |
+| 連絡先 / Contact | 案: Peta の Discord の #ヘルプ または運営への DM。Discord を使わない人は satoshi_t1213@icloud.com |
+| 施行日 / Effective date | 案: 最初のベータ版を配る日(配布時に Claude が記入) |
 | 提供地域・利用年齢・保護者の同意 / Regions, ages and consent | 案: 運営者が招待した友達だけに日本で提供。13歳未満は利用不可、18歳未満は保護者の同意が必要 |
 | 準拠法 / Governing law | 案: 日本法 |
 | 裁判管轄・紛争処理 / Jurisdiction and dispute procedure | 案: まず連絡先で話し合う。訴訟は、法令で別に定める場合を除き、運営者の住所地を管轄する地方裁判所または簡易裁判所を第一審の専属的合意管轄とする |
@@ -82,7 +82,7 @@ Leaveはサーバーの受信箱への参加を終了する機能です。所有
 
 ### 12. 準拠法・管轄・連絡先
 
-準拠法は日本法とします。紛争はまず下の連絡先で話し合いによる解決を目指し、訴訟となった場合は、法令で別に定める場合を除き、運営者の住所地を管轄する地方裁判所または簡易裁判所を第一審の専属的合意管轄裁判所とします。連絡先: Peta の Discord の #ヘルプ または運営への DM、Discord を使わない方は 【連絡用メールアドレス】。日本語版と英語版に違いがある場合は日本語版を優先します。(案。適用法が認める利用者の権利・管轄を妨げない条文として専門家と確定します。)
+準拠法は日本法とします。紛争はまず下の連絡先で話し合いによる解決を目指し、訴訟となった場合は、法令で別に定める場合を除き、運営者の住所地を管轄する地方裁判所または簡易裁判所を第一審の専属的合意管轄裁判所とします。連絡先: Peta の Discord の #ヘルプ または運営への DM、Discord を使わない方は satoshi_t1213@icloud.com。日本語版と英語版に違いがある場合は日本語版を優先します。(案。適用法が認める利用者の権利・管轄を妨げない条文として専門家と確定します。)
 
 ## English
 
@@ -146,7 +146,7 @@ Even a free service may experience outages, network or storage failures and data
 
 ### 12. Law, jurisdiction and contact
 
-These terms are governed by the laws of Japan. Disputes should first be raised through the contact below; any lawsuit, unless the law provides otherwise, is subject to the exclusive first-instance jurisdiction of the district or summary court with jurisdiction over the operator's address. Contact: #help in the Peta Discord or a direct message to the operator; if you don't use Discord, 【contact email】. If the Japanese and English versions differ, the Japanese version prevails. (Proposed; final provisions must respect mandatory rights and jurisdiction rules under applicable law.)
+These terms are governed by the laws of Japan. Disputes should first be raised through the contact below; any lawsuit, unless the law provides otherwise, is subject to the exclusive first-instance jurisdiction of the district or summary court with jurisdiction over the operator's address. Contact: #help in the Peta Discord or a direct message to the operator; if you don't use Discord, satoshi_t1213@icloud.com. If the Japanese and English versions differ, the Japanese version prevails. (Proposed; final provisions must respect mandatory rights and jurisdiction rules under applicable law.)
 
 ## 確定時の照合資料
 

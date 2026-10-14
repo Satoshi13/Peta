@@ -2,7 +2,7 @@ import { env, applyD1Migrations } from "cloudflare:test";
 import { beforeAll, beforeEach, expect, it } from "vitest";
 import worker, { Env } from "../src/index";
 import { keyHash } from "../src/inbox";
-import { normalizeCode } from "../src/invites";
+import { normalizeCode, sweepRecords } from "../src/invites";
 import { base64, requestBytes, utf8 } from "../src/proofs";
 
 const db = (env as unknown as Env).DB;
@@ -86,4 +86,23 @@ it("a lost race for the same invite reports invite_used, not invalid", async () 
   expect(statuses).toEqual([200, 409]);
   const loser = a.status === 409 ? a : b;
   expect(((await loser.json()) as { error: string }).error).toBe("invite_used");
+});
+
+it("records older than a year are swept, newer ones stay", async () => {
+  const t = 2_000_000_000, old = t - 366 * 86400, recent = t - 10 * 86400;
+  await db.batch([
+    db.prepare("DELETE FROM downloads"), db.prepare("DELETE FROM coupon_claims"), db.prepare("DELETE FROM coupons"), db.prepare("DELETE FROM admin_log"),
+    db.prepare("INSERT INTO downloads VALUES('h',?,?),('h',?,?)").bind("0.1.0", old, "0.2.0", recent),
+    db.prepare("INSERT INTO coupons(name,event,ends_at,created_at) VALUES('OLD','E',?,0),('NEW','E',?,0)").bind(old, recent),
+    db.prepare("INSERT INTO coupon_claims VALUES('OLD','k',?),('NEW','k',?)").bind(old, recent),
+    db.prepare("INSERT INTO admin_log VALUES(?,'a','{}'),(?,'b','{}')").bind(old, recent),
+    db.prepare("INSERT INTO invites(email_hash,code,created_at,revoked_at) VALUES('x','AAAAA11111',0,?),('y','BBBBB22222',0,?),('z','CCCCC33333',0,NULL)").bind(old, recent),
+  ]);
+  await sweepRecords({ ...open, DB: db } as Env, t);
+  const left = async (sql: string) => (await db.prepare(sql).all<any>()).results.map((r: any) => Object.values(r)[0]);
+  expect(await left("SELECT version FROM downloads")).toEqual(["0.2.0"]);
+  expect(await left("SELECT name FROM coupons")).toEqual(["NEW"]);
+  expect(await left("SELECT name FROM coupon_claims")).toEqual(["NEW"]);
+  expect(await left("SELECT action FROM admin_log")).toEqual(["b"]);
+  expect((await left("SELECT email_hash FROM invites ORDER BY email_hash"))).toEqual(["y", "z"]);
 });

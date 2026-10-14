@@ -1,6 +1,6 @@
 # Peta プライバシーポリシー下書き / Privacy policy draft
 
-2026-10-15 更新: 空欄に案を記入し、ダウンロードページ(Cloudflare Access のメールアドレス)・招待コード・クーポン・運営の管理ページ・共有画像の扱いを追加。
+2026-10-15 更新: 空欄に案を記入(連絡先メール、Access のログイン記録24時間、記録の1年削除を確定)し、ダウンロードページ(Cloudflare Access のメールアドレス)・招待コード・クーポン・運営の管理ページ・共有画像の扱いを追加。
 
 2026-10-14、S1〜S3と公開前修正の現行実装に基づく公開前の文案。**法的な判断はオーナーと専門家が行います。この文書は正式なポリシーでも法的助言でもありません。** 責任主体・連絡先・適用地域・法的根拠・委託契約・保存期間と例外を決めてから公開してください。
 
@@ -13,11 +13,11 @@
 | 項目 / Item | 案 / Proposal |
 | --- | --- |
 | 運営者 / Operator | 案: Peta 運営(個人)。氏名・住所は請求があれば遅滞なく知らせる(個人情報保護法の公表事項は「本人の求めに応じて遅滞なく回答する」形でもよいとされる点を専門家に確認) |
-| 問い合わせ窓口 / Privacy contact | 案: Peta の Discord の #ヘルプ または運営への DM。Discord を使わない人は 【連絡用メールアドレス】 |
-| 施行日 / Effective date | 案: 最初のベータ版を配る日 【YYYY-MM-DD】 |
+| 問い合わせ窓口 / Privacy contact | 案: Peta の Discord の #ヘルプ または運営への DM。Discord を使わない人は satoshi_t1213@icloud.com |
+| 施行日 / Effective date | 案: 最初のベータ版を配る日(配布時に Claude が記入) |
 | 提供地域・法的根拠 / Applicable regions and legal basis | 案: 招待した友達だけに日本で提供し、日本の個人情報保護法に従う。EU 等の利用者は想定しない |
 | Cloudflareの契約・処理国・再委託先・保護措置 / Processor terms, countries, subprocessors and safeguards | 案: Cloudflare, Inc.(米国)に、Access・Workers・D1・R2 の運用を委託。Cloudflare の DPA(データ処理補遺)と再委託先一覧による。米国の制度と相当措置の情報提供は専門家と確定(下の本文) |
-| IP情報等のCloudflare側の保持条件 / Cloudflare network-data retention | 【Zero Trust の Access ログ(ログイン記録)の保存期間をダッシュボードで確認して記入】。Peta のコードは IP を保存しない |
+| IP情報等のCloudflare側の保持条件 / Cloudflare network-data retention | Access のログイン記録は、Cloudflare の無料プランで24時間(2026-10-15 に Cloudflare の公式ドキュメント「Zero Trust logs」で確認。プランを変えたら見直す)。Peta のコードは IP を保存しない |
 | 開示・訂正・削除の本人確認と応答方法 / Verification and privacy-request procedure | 案: 窓口へ連絡 → 登録済みのメールアドレスでのログイン、または登録済みの Discord アカウントからの連絡で本人確認 → 原則14日以内に無料で回答 |
 | 法的保存例外・変更の告知方法 / Required retention exceptions and policy-change notices | 案: 法令で保存が必要な場合を除き、下の保存期間に従う。変更は Discord の #お知らせ とダウンロードページで告知し、重要な変更は原則14日前まで |
 
@@ -25,7 +25,7 @@
 
 ### 運営・対象
 
-運営者: **Peta 運営(個人)**。氏名・住所は請求があれば遅滞なくお知らせします。問い合わせ・削除等の窓口: **Peta の Discord の #ヘルプ または運営への DM(Discord を使わない方は 【連絡用メールアドレス】)**。施行日: **【YYYY-MM-DD】**。(案)
+運営者: **Peta 運営(個人)**。氏名・住所は請求があれば遅滞なくお知らせします。問い合わせ・削除等の窓口: **Peta の Discord の #ヘルプ または運営への DM(Discord を使わない方は satoshi_t1213@icloud.com)**。施行日: **【最初のベータ版を配る日。配布時に記入】**。(案)
 
 この文案は、Petaの所有権確認、友達とGift受信箱、友達のMarket、通報、端末内の移行を扱います。通信なしの通常版にサーバー通信のコード・依存は含めません。Developerはdev、友達限定ベータは本番用の固定接続先を使います。本番はオーナー準備後に運用し、その準備が済むまで配布しません。現金決済とライブラリの同期は実装していません。
 
@@ -72,8 +72,8 @@ Collection、ステッカーの完成画像・元写真、配置、ローカル�
 | nonce・回数カウンタ | 有効期間を過ぎた古い行をAPIの書き込み時に掃除。クラウド側バックアップは契約・設定に従い、即時消去を保証しません。 |
 | 受取済みGift・Collection・友達・鍵 | Mac上に保持。アプリの操作またはデータフォルダの管理によります。 |
 | Access の許可リスト(メールアドレス) | 運営が友達の登録を外すまで。外すと次のログインから入れません(すでにログイン中の人は、セッションの期限まで残り得ます)。 |
-| Access のログイン記録 | Cloudflare の保存期間に従います(【確認して記入】)。 |
-| 招待コード・ダウンロード記録・クーポンの受け取り記録・運営の操作記録 | 現行実装に期限付きの削除はありません。【案: 友達の登録を外してから1年で削除する運用、または実装を決める】 |
+| Access のログイン記録 | Cloudflare が24時間保存します(無料プランの場合)。 |
+| 招待コード・ダウンロード記録・クーポンの受け取り記録・運営の操作記録 | 1年で自動削除します。ダウンロード記録と運営の操作記録は記録から1年、クーポンとその受け取り記録はクーポンの終了・停止から1年、招待コードは停止から1年(毎日の定期処理)。使用中の招待コードは、運営が登録を外すまで残します。 |
 
 出品の配送証拠は、封筒の削除後にも通報できるよう出品ID・受取人と送り手の鍵ハッシュの組だけを残します。内容鍵・暗号化封筒は含めません。現行ではこの証拠の時限削除はありません。
 
@@ -91,7 +91,7 @@ SettingsのLeaveは、本人の受信箱・許可／拒否・そこに届いた�
 
 ### Operator and scope
 
-Operator: **Peta (run by an individual)**; the operator's name and address are provided without delay on request. Contact for privacy requests: **#help in the Peta Discord or a direct message to the operator (if you don't use Discord, 【contact email】)**. Effective date: **【YYYY-MM-DD】**. (Proposed.)
+Operator: **Peta (run by an individual)**; the operator's name and address are provided without delay on request. Contact for privacy requests: **#help in the Peta Discord or a direct message to the operator (if you don't use Discord, satoshi_t1213@icloud.com)**. Effective date: **【最初のベータ版を配る日。配布時に記入】**. (Proposed.)
 
 This draft covers ownership checks, friends and the Gift inbox, the friends' Market, reports and local migration. The offline standard build does not include server networking code or dependencies. Developer builds use dev; the friends-only beta has a fixed production endpoint and must not be distributed until the owner has prepared production. Cash payments and library sync are not implemented.
 
@@ -138,8 +138,8 @@ If you choose Report… and consent to send it, **the decrypted original Gift fi
 | Nonces and rate counters | Older rows are swept on API writes after their validity window. Cloud-provider backups follow the actual contract and settings and are not guaranteed to disappear immediately. |
 | Received Gifts, Collection, friend records and keys | Kept on the Mac, managed through app actions or the data folder. |
 | Access allow list (email addresses) | Until the operator removes your registration. You cannot sign in again after that; an existing session may last until it expires. |
-| Access sign-in records | Follow Cloudflare's retention (【confirm and fill in】). |
-| Invite codes, download records, coupon receipts and operator action records | No timed deletion in the current implementation. 【Proposal: delete one year after a registration is removed, by procedure or implementation】 |
+| Access sign-in records | Kept by Cloudflare for 24 hours (on the Free plan). |
+| Invite codes, download records, coupon receipts and operator action records | Deleted automatically after one year: download and operator records one year after they are made, coupons and their receipts one year after the coupon ends or is stopped, and invite codes one year after they are paused (a daily job). An invite code in use stays until the operator removes the registration. |
 
 Listing-delivery proof retains only the listing ID, recipient key hash and sender key hash after an envelope is deleted, so a recipient can still report it. It contains no content key or encrypted envelope. There is currently no timed deletion rule for this proof.
 

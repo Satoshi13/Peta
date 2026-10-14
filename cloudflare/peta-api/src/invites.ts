@@ -35,3 +35,15 @@ export async function invites(request: Request, env: Env, path: string, hash: st
   ]);
   return ok();
 }
+/** The privacy policy's one year: download records, finished coupons and their claims, operator actions, and paused
+ *  invites are deleted a year after they stop mattering. Runs with the daily Cron. */
+export async function sweepRecords(env: Env, timestamp: number): Promise<void> {
+  const cutoff = timestamp - 365 * 86400;
+  await env.DB.batch([
+    stmt(env.DB, "DELETE FROM downloads WHERE at<?", cutoff),
+    stmt(env.DB, "DELETE FROM coupon_claims WHERE name IN (SELECT name FROM coupons WHERE ends_at<? OR stopped_at<?)", cutoff, cutoff),
+    stmt(env.DB, "DELETE FROM coupons WHERE ends_at<? OR stopped_at<?", cutoff, cutoff),
+    stmt(env.DB, "DELETE FROM admin_log WHERE at<?", cutoff),
+    stmt(env.DB, "DELETE FROM invites WHERE revoked_at IS NOT NULL AND revoked_at<?", cutoff),
+  ]);
+}

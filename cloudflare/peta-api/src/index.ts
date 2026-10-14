@@ -11,7 +11,7 @@ import {
 } from "./proofs";
 import { inbox, MAX_GIFT, keyHash, sweepReports } from "./inbox";
 import { market, contentLimit, MARKET_CARD_MAX, MARKET_PACK_MAX } from "./market";
-import { invites, invited, invitesRequired } from "./invites";
+import { invites, invited, invitesRequired, sweepRecords } from "./invites";
 import { coupons } from "./coupons";
 export interface Env {
   DB: D1Database;
@@ -723,7 +723,9 @@ async function route(request: Request, env: Env): Promise<Response> {
 }
 export default {
   async scheduled(event: ScheduledController, env: Env): Promise<void> {
-    await sweepReports(env,Math.floor(event.scheduledTime/1000));
+    const t=Math.floor(event.scheduledTime/1000);
+    await sweepRecords(env,t);
+    await sweepReports(env,t);
   },
   async fetch(request: Request, env: Env): Promise<Response> {
     try {
