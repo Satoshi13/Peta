@@ -40,6 +40,8 @@ pub enum ProvenanceKind {
     PackOpened,
     Duplicated,
     Released,
+    /// A gift a friend never received came back to its sender.
+    Returned,
 }
 
 impl ProvenanceKind {
@@ -51,6 +53,7 @@ impl ProvenanceKind {
             ProvenanceKind::PackOpened => "pack_opened",
             ProvenanceKind::Duplicated => "duplicated",
             ProvenanceKind::Released => "released",
+            ProvenanceKind::Returned => "returned",
         }
     }
     pub fn parse(s: &str) -> Option<Self> {
@@ -61,6 +64,7 @@ impl ProvenanceKind {
             "pack_opened" => ProvenanceKind::PackOpened,
             "duplicated" => ProvenanceKind::Duplicated,
             "released" => ProvenanceKind::Released,
+            "returned" => ProvenanceKind::Returned,
             _ => return None,
         })
     }

@@ -146,7 +146,7 @@ server_command!(/// Remove this Mac's mailbox, lists and waiting gifts from the 
 
 #[derive(Serialize, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct Checked { pub gifts: u32, pub requests: u32, pub accepted: u32, pub discarded: u32, pub skipped: bool }
+pub struct Checked { pub gifts: u32, pub requests: u32, pub accepted: u32, pub discarded: u32, pub skipped: bool, pub returned: u32 }
 
 /// Every few minutes while Peta runs, and once soon after launch.
 pub fn start(app: &AppHandle) {
@@ -166,7 +166,7 @@ pub fn start(app: &AppHandle) {
 }
 
 #[cfg(feature = "server")]
-mod net {
+pub(crate) mod net {
     use super::*;
     use crate::referee::HttpReferee;
     use base64::{engine::general_purpose::STANDARD, Engine};
@@ -294,7 +294,7 @@ mod net {
         let (talk, registered) = {
             let store = app.state::<Store>();
             let lib = store.lock();
-            (lib.db().friends_anyone().map_err(text)?, lib.db().inbox_value("registered").map_err(text)?.is_some())
+            (lib.db().friends_anyone().map_err(text)? || gift::outgoing_any(lib.db()).map_err(text)?, lib.db().inbox_value("registered").map_err(text)?.is_some())
         };
         if !talk && (!manual || !registered) { return Ok(Checked { skipped: true, ..Checked::default() }); } // Automatic checks need a friend or an active request.
         LAST_PASS.store(now(), Ordering::Relaxed);
@@ -360,6 +360,10 @@ mod net {
             app.state::<Store>().lock().db_mut().mark_inbox_seen(&m.id, Some(&sender.public_key)).map_err(text)?;
             let _ = done(&c, "DELETE", &path, None);
         }
+        // 4. Gifts of mine nobody received in 7 days come back.
+        let returned = take_back_unreceived(app, &c, &mine.sign_key)?;
+        out.returned = returned.len() as u32;
+        if !returned.is_empty() { let _ = app.emit("gifts-returned", &returned); }
         app.state::<Store>().lock().db_mut().set_inbox_value("last_check", Some(&peta_core::events::current_time().to_rfc3339())).map_err(text)?;
         if out.gifts > 0 { crate::today::announce(app); }
         let _ = app.emit("inbox-changed", &out);
@@ -378,6 +382,8 @@ mod net {
         crate::referee_access::before_operation(app);
         let c = client(app)?;
         let mut uploaded = false;
+        // Watched from before the upload, so an unreceived gift can be taken back even after a crash.
+        gift::outgoing_begin(app.state::<Store>().lock().db(), &message_id, &sticker_id, &to_key).map_err(text)?;
         let result = {
             let store = app.state::<Store>();
             let mut lib = store.lock();
@@ -389,15 +395,62 @@ mod net {
                 uploaded = true; Ok(())
             })
         };
-        if let Err(e) = result {
-            if uploaded { let _ = done(&c, "DELETE", &path, None); }
-            return Err(say(e, &friend.name));
-        }
+        let gift_id = match result {
+            Ok((gift_id, _)) => gift_id,
+            Err(e) => {
+                if uploaded { let _ = done(&c, "DELETE", &path, None); }
+                let _ = gift::outgoing_forget(app.state::<Store>().lock().db(), &message_id);
+                return Err(say(e, &friend.name));
+            }
+        };
+        gift::outgoing_sent(app.state::<Store>().lock().db(), &message_id, &gift_id).map_err(text)?;
         let _ = app.emit("sticker-updated", &sticker_id);
         let _ = app.emit("link-tags-changed", ());
         crate::today::announce(app);
         let _ = crate::layers::sync(app);
         Ok(())
+    }
+
+    /// For each gift sent through the inbox more than 7 days ago: if the friend received it, stop watching; if it is still released,
+    /// cancel the release with the referee and hold the sticker here again. A refusal (someone claimed it at that moment) is looked
+    /// at again next time; offline stops the pass. Returns the names of the friends whose gifts came back.
+    fn take_back_unreceived(app: &AppHandle, c: &HttpReferee, me: &str) -> Result<Vec<String>, String> {
+        let age = chrono::Duration::days(gift::INBOX_GIFT_DAYS) + chrono::Duration::hours(gift::TAKE_BACK_MARGIN_HOURS);
+        let back = take_back_with(&*app.state::<Store>(), c, me, age).map_err(text)?;
+        for (sticker, _) in &back { let _ = app.emit("sticker-updated", sticker); }
+        Ok(back.into_iter().map(|(_, name)| name).collect())
+    }
+    /// The same pass without the app, so it can be checked against the service. Returns (sticker, friend's name) for each gift back.
+    pub(crate) fn take_back_with(store: &impl peta_core::market::Locked, c: &impl peta_core::ownership::Referee, me: &str, age: chrono::Duration) -> Result<Vec<(String, String)>, Error> {
+        use peta_core::ownership::Status;
+        let due = store.with(|lib| gift::outgoing_older_than(lib.db(), age))?;
+        let mut back = Vec::new();
+        for o in due {
+            let release = store.with(|lib| gift::outgoing_release(lib.db(), &o.sticker_id, &o.gift_id))?;
+            let Some(release) = release else { store.with(|lib| gift::outgoing_forget(lib.db(), &o.message_id))?; continue };
+            let cancelled = match c.status(&o.sticker_id) {
+                Ok(Status::Held { holder }) if holder != me => { store.with(|lib| gift::outgoing_forget(lib.db(), &o.message_id))?; continue }
+                Ok(Status::Held { .. }) => true,   // already cancelled with the service; only this Library is behind
+                Ok(Status::Released) => {
+                    store.with(|lib| gift::outgoing_taking_back(lib.db(), &o.message_id))?;
+                    match c.cancel_release(&release) {
+                        Ok(()) => true,
+                        Err(Error::Referee(RefereeError::Offline)) => break,
+                        Err(_) => false,
+                    }
+                }
+                Ok(Status::Unknown) => { store.with(|lib| gift::outgoing_forget(lib.db(), &o.message_id))?; continue }
+                Err(Error::Referee(RefereeError::Offline)) => break,
+                Err(_) => false,
+            };
+            if !cancelled { continue; }
+            let name = store.with(|lib| {
+                if !gift::take_back(lib.db_mut(), &o.sticker_id, &release)? { return Ok(None); }
+                Ok(Some(lib.db().friend(&o.to_key)?.map(|f| f.name).unwrap_or_else(|| "a friend".into())))
+            })?;
+            if let Some(name) = name { back.push((o.sticker_id.clone(), name)); }
+        }
+        Ok(back)
     }
 
     pub fn report(app: &AppHandle, gift_id: String, reason: String) -> Result<(), String> {
@@ -478,5 +531,36 @@ mod live {
         ok(a.request("DELETE", &format!("/v1/mailbox/{a_box}"), None::<&()>));
         ok(b.request("DELETE", &format!("/v1/mailbox/{b_box}"), None::<&()>));
         for d in [a_dir, b_dir] { std::fs::remove_dir_all(d).unwrap(); }
+    }
+
+    /// Against the dev service: a gift released by sealing and never received is cancelled and held again by its sender.
+    /// Run explicitly: `cargo test --features developer -p peta gift_take_back_live -- --ignored`.
+    #[test]
+    #[ignore]
+    fn gift_take_back_live() {
+        use peta_core::{gift, ownership::{Referee, Status}, Library};
+        struct One(std::cell::RefCell<Library>);
+        impl peta_core::market::Locked for One { fn with<T>(&self, f: impl FnOnce(&mut Library) -> peta_core::Result<T>) -> peta_core::Result<T> { f(&mut self.0.borrow_mut()) } }
+        let mut lib = Library::open(&lib("take-back")).unwrap();
+        lib.db_mut().set_display_name("Alice").unwrap();
+        peta_core::server::migrate(&mut lib).unwrap();
+        let referee = HttpReferee::with_url(peta_core::device_key::load_or_create(lib.root()).unwrap(), crate::referee::endpoint()).unwrap();
+        let me = peta_core::sign::public_key(&peta_core::device_key::load_or_create(lib.root()).unwrap());
+        let rendered = peta_core::pack::render_pack_sticker(include_bytes!("../assets/sample-cat.png")).unwrap();
+        let s = lib.add_made(&rendered, format!("take back {}", peta_core::ids::new_sticker_id()).as_bytes(), "png", None, "kraft").unwrap();
+        gift::outgoing_begin(lib.db(), "live-take-back-1", &s.id, &me).unwrap();
+        let (gift_id, _) = gift::transfer_gift(&mut lib, &s.id, "Bob", None, &gift::GiftDress::default(), &referee, |_| Ok(())).unwrap();
+        gift::outgoing_sent(lib.db(), "live-take-back-1", &gift_id).unwrap();
+        assert_eq!(referee.status(&s.id).unwrap(), Status::Released, "sealing released it on the service");
+        let store = One(std::cell::RefCell::new(lib));
+        let none = crate::inbox::net::take_back_with(&store, &referee, &me, chrono::Duration::days(7)).unwrap();
+        assert!(none.is_empty(), "nothing is taken back before 7 days");
+        let back = crate::inbox::net::take_back_with(&store, &referee, &me, chrono::Duration::zero()).unwrap();
+        assert_eq!(back.len(), 1);
+        assert_eq!(referee.status(&s.id).unwrap(), Status::Held { holder: me.clone() }, "the service holds it for the sender again");
+        let lib = store.0.into_inner();
+        assert!(lib.db().held_sticker(&s.id).unwrap().is_some(), "and so does this Library");
+        assert!(!gift::outgoing_any(lib.db()).unwrap());
+        let _ = std::fs::remove_dir_all(lib.root());
     }
 }

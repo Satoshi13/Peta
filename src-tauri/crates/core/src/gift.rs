@@ -1,12 +1,14 @@
 //! Gifts move real stickers. V3 preserves creation signatures and transfer history.
 //! V1/v2 remain readable, with unverified authorship. An offline chain cannot prevent forks.
 
+use rusqlite::OptionalExtension as _;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     db::now,
     error::{Error, Result},
     ids::new_gift_id,
+    db::Database,
     library::Library,
     models::{SourceType, Sticker},
 };
@@ -347,6 +349,42 @@ mod tests {
         (lib, s)
     }
 
+    #[test]
+    fn an_unreceived_inbox_gift_is_watched_and_taken_back_once() {
+        let (mut mine, s) = sender_with_sticker();
+        outgoing_begin(mine.db(), "msg-1", &s.id, "friend-key").unwrap();
+        assert!(outgoing_any(mine.db()).unwrap());
+        let (gift_id, _) = transfer_gift(&mut mine, &s.id, "Nao", None, &GiftDress::default(), &crate::ownership::NoReferee, |_| Ok(())).unwrap();
+        outgoing_sent(mine.db(), "msg-1", &gift_id).unwrap();
+        assert!(mine.db().held_sticker(&s.id).unwrap().is_none(), "sealing gives the sticker away");
+        // Not due before 7 days; due after.
+        assert!(outgoing_older_than(mine.db(), chrono::Duration::days(7)).unwrap().is_empty());
+        mine.db().conn.execute("UPDATE inbox_outbox SET created_at='2026-01-01T00:00:00+00:00'", []).unwrap();
+        let due = outgoing_older_than(mine.db(), chrono::Duration::days(7)).unwrap();
+        assert_eq!((due.len(), due[0].gift_id.as_str(), due[0].state.as_str()), (1, gift_id.as_str(), "sent"));
+        let release = outgoing_release(mine.db(), &s.id, &gift_id).unwrap().expect("the sealing release");
+        assert_eq!((release.kind.as_str(), release.reference.as_str()), ("release", gift_id.as_str()));
+        // A different release is never undone.
+        let mut other = release.clone(); other.sig = "other".into();
+        assert!(!take_back(mine.db_mut(), &s.id, &other).unwrap());
+        assert!(take_back(mine.db_mut(), &s.id, &release).unwrap());
+        let back = mine.db().held_sticker(&s.id).unwrap().expect("held again");
+        assert_eq!(back.provenance.last().unwrap().kind, ProvenanceKind::Returned);
+        assert_eq!(crate::ownership::stored_transfers(&mine.db().conn, &s.id).unwrap().len(), release.seq as usize, "the release is gone from the history");
+        assert!(!outgoing_any(mine.db()).unwrap());
+        assert!(!take_back(mine.db_mut(), &s.id, &release).unwrap(), "a second take-back does nothing");
+        // Taken back, it can be given again.
+        assert!(transfer_gift(&mut mine, &s.id, "Nao", None, &GiftDress::default(), &crate::ownership::NoReferee, |_| Ok(())).is_ok());
+    }
+    #[test]
+    fn a_send_that_never_left_is_forgotten() {
+        let (mine, s) = sender_with_sticker();
+        outgoing_begin(mine.db(), "msg-2", &s.id, "friend-key").unwrap();
+        assert!(outgoing_release(mine.db(), &s.id, "").unwrap().is_none(), "still held: nothing to take back");
+        outgoing_forget(mine.db(), "msg-2").unwrap();
+        assert!(!outgoing_any(mine.db()).unwrap());
+    }
+
     struct Refuse;
     impl crate::ownership::Referee for Refuse {
         fn register(&self,_:&crate::ownership::Creation)->Result<()> {Err(bad("referee refused"))}
@@ -497,4 +535,69 @@ mod tests {
         let _ = receive_gift(&mut theirs, &broken); // either refused, or a still-valid png: never a panic
         assert_eq!(theirs.db().gifts_received().unwrap().len() <= 1, true);
     }
+}
+
+/* Gifts sent through a friend's inbox (server S2). A gift leaves this Library when it is sealed: the referee holds it as released to
+   the friend's claim. The inbox keeps it for 7 days; if it is never received, nobody can claim it any more, so the sender takes it
+   back: the service cancels the release and this Library holds the sticker again. `inbox_outbox` (V16) is the record of what is
+   waiting. Only inbox gifts are taken back; a gift saved as a file may still be opened by whoever has the file. */
+
+/// How long the inbox keeps an unopened gift, and the margin before taking it back (clocks and the service's sweep).
+pub const INBOX_GIFT_DAYS: i64 = 7;
+pub const TAKE_BACK_MARGIN_HOURS: i64 = 2;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Outgoing { pub message_id: String, pub gift_id: String, pub sticker_id: String, pub to_key: String, pub state: String, pub created_at: String }
+
+/// Remember a gift before it is sent (`sending`), so a crash between upload and commit still leaves something to check.
+pub fn outgoing_begin(db: &Database, message_id: &str, sticker_id: &str, to_key: &str) -> Result<()> {
+    db.conn.execute("INSERT INTO inbox_outbox(message_id,gift_id,sticker_id,to_key,state,created_at) VALUES (?1,'',?2,?3,'sending',?4)",
+        rusqlite::params![message_id, sticker_id, to_key, crate::db::now()])?;
+    Ok(())
+}
+/// The gift is sealed, uploaded and committed here.
+pub fn outgoing_sent(db: &Database, message_id: &str, gift_id: &str) -> Result<()> {
+    db.conn.execute("UPDATE inbox_outbox SET gift_id=?2,state='sent' WHERE message_id=?1", rusqlite::params![message_id, gift_id])?;
+    Ok(())
+}
+/// Sending failed before anything left: nothing to wait for.
+pub fn outgoing_forget(db: &Database, message_id: &str) -> Result<()> {
+    db.conn.execute("DELETE FROM inbox_outbox WHERE message_id=?1", [message_id])?;
+    Ok(())
+}
+pub fn outgoing_taking_back(db: &Database, message_id: &str) -> Result<()> {
+    db.conn.execute("UPDATE inbox_outbox SET state='taking_back' WHERE message_id=?1", [message_id])?;
+    Ok(())
+}
+/// Whether any sent gift is still being watched (so the inbox check runs even without friends).
+pub fn outgoing_any(db: &Database) -> Result<bool> { Ok(db.conn.query_row("SELECT EXISTS(SELECT 1 FROM inbox_outbox)", [], |r| r.get(0))?) }
+/// Gifts sent at least `age` ago that may still be waiting.
+pub fn outgoing_older_than(db: &Database, age: chrono::Duration) -> Result<Vec<Outgoing>> {
+    let cutoff = chrono::Utc::now() - age;
+    let mut stmt = db.conn.prepare("SELECT message_id,gift_id,sticker_id,to_key,state,created_at FROM inbox_outbox ORDER BY created_at")?;
+    let rows = stmt.query_map([], |r| Ok(Outgoing { message_id: r.get(0)?, gift_id: r.get(1)?, sticker_id: r.get(2)?, to_key: r.get(3)?, state: r.get(4)?, created_at: r.get(5)? }))?
+        .collect::<std::result::Result<Vec<_>, _>>()?;
+    Ok(rows.into_iter().filter(|o| chrono::DateTime::parse_from_rfc3339(&o.created_at).map(|t| t <= cutoff).unwrap_or(true)).collect())
+}
+/// The release that sent this gift, if this Library still shows the sticker as given away by it.
+pub fn outgoing_release(db: &Database, sticker_id: &str, gift_id: &str) -> Result<Option<crate::ownership::Transfer>> {
+    let state: Option<String> = db.conn.query_row("SELECT state FROM stickers WHERE id=?1", [sticker_id], |r| r.get(0)).optional()?;
+    if state.as_deref() != Some("gone") { return Ok(None); }
+    let last = crate::ownership::stored_transfers(&db.conn, sticker_id)?.pop();
+    Ok(last.filter(|t| t.kind == "release" && (gift_id.is_empty() || t.reference == gift_id)))
+}
+/// The service has cancelled the release: hold the sticker here again, as it was before it was sealed (its desktop places and
+/// copies are not restored). Returns false when there is nothing to take back.
+pub fn take_back(db: &mut Database, sticker_id: &str, release: &crate::ownership::Transfer) -> Result<bool> {
+    let tx = db.conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let state: Option<String> = tx.query_row("SELECT state FROM stickers WHERE id=?1", [sticker_id], |r| r.get(0)).optional()?;
+    let last = crate::ownership::stored_transfers(&tx, sticker_id)?.pop();
+    if state.as_deref() != Some("gone") || last.as_ref() != Some(release) { return Ok(false); }
+    tx.execute("DELETE FROM transfers WHERE sticker_id=?1 AND seq=?2", rusqlite::params![sticker_id, release.seq])?;
+    tx.execute("UPDATE stickers SET state='held' WHERE id=?1", [sticker_id])?;
+    let to: Option<String> = tx.query_row("SELECT to_label FROM gifts_sent WHERE gift_id=?1", [&release.reference], |r| r.get(0)).optional()?;
+    crate::ownership::provenance(&tx, sticker_id, "returned", to.as_deref(), &now())?;
+    tx.execute("DELETE FROM inbox_outbox WHERE sticker_id=?1", [sticker_id])?;
+    tx.commit()?;
+    Ok(true)
 }

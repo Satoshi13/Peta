@@ -20,6 +20,7 @@ async function boot() {
   await Bridge.listen('distribution-result', async e => {await Bridge.reload(); Shell.refresh(); if(e.payload.pack) Distribution.offer(e.payload.pack);else Shell.toast(e.payload.result);});
   await Bridge.listen('referee-synced', Bridge.changed);
   await Bridge.listen('inbox-changed', Bridge.changed);
+  await Bridge.listen('gifts-returned', async e => { const names=[...new Set(e.payload||[])]; if(!names.length) return; await Bridge.changed(); const one=e.payload.length===1; Shell.toast(`${one ? 'A gift' : 'Gifts'} to ${names.join(', ')} ${one ? "wasn't" : "weren't"} opened in 7 days, so ${one ? 'it' : 'they'} came back to your Collection.`); });
   await Bridge.listen('market-changed', () => { FriendShop.stale(); return Bridge.changed(); });
   await Bridge.listen('market-earned', e => { Shell.toast(`You earned ${e.payload} Scraps from friends' pulls.`); });
   await Bridge.listen('friend-link-pending', () => { Friends.openPendingLinks().catch(e => Shell.toast(Friends.error(e))); });
