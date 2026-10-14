@@ -2,8 +2,7 @@ import { expect, it } from "vitest";
 import { signBundle, header, CATALOG, checkGrants, unbase64 } from "../src/bundle";
 import input from "./vector-input.json";
 import vector from "./coupon-vector.json";
-// Public RFC 8032 test vector; it is never a production secret.
-export const TEST_SEED = btoa(String.fromCharCode(..."9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60".match(/../g)!.map(s => parseInt(s, 16))));
+import { TEST_SEED } from "./test-key";
 it("produces the immutable Rust contract vector byte for byte", async () => {
   const event = await signBundle(input, "c1", TEST_SEED);
   expect(event).toBe(vector.event);

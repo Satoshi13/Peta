@@ -1,1 +1,27 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Peta · Owner</title></head><body><main><h1>Peta owner</h1></main></body></html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Peta · Owner</title><link rel="stylesheet" href="style.css"><script type="module" src="admin.js"></script></head>
+<body><main>
+<header><p class="eyebrow">PETA FOR MAC · OWNER'S DESK</p><h1>A little care,<br>all in one place.</h1><p class="muted" id="account">Checking your sign-in…</p></header>
+<nav role="tablist" aria-label="Owner tools"><button role="tab" id="tab-friends" aria-controls="friends" aria-selected="true">Friends</button><button role="tab" id="tab-coupons" aria-controls="coupons" aria-selected="false" tabindex="-1">Coupons</button><button role="tab" id="tab-release" aria-controls="release" aria-selected="false" tabindex="-1">Release</button></nav>
+<p id="notice" role="status" aria-live="polite"></p>
+<section role="tabpanel" id="friends" aria-labelledby="tab-friends"><div class="section-head"><h2>Friends</h2></div><p>Loading friends…</p></section>
+<section role="tabpanel" id="coupons" aria-labelledby="tab-coupons" hidden>
+<div class="section-head"><div><p class="eyebrow">A SMALL GIFT</p><h2>Make a coupon</h2></div></div>
+<form id="coupon-form">
+<label>Coupon name<input id="coupon-name" required minlength="3" maxlength="24" pattern="[A-Z0-9][A-Z0-9-]{2,23}" placeholder="THANKYOU" autocomplete="off"></label>
+<fieldset><legend>What arrives</legend><div id="items"></div><button type="button" id="add-item" class="subtle" disabled>+ Add an item</button><p class="hint">Up to 10 different things. Each item appears once.</p></fieldset>
+<div class="fields"><label>Starts (optional)<input type="datetime-local" id="starts"></label><label>Last day<input type="date" id="ends" required></label><label>First Macs (optional)<input type="number" id="limit" min="1" max="1000000" step="1" placeholder="No limit"></label></div>
+<p class="hint" id="timezone"></p>
+<label>Heading<input id="title" required maxlength="120" value="From Peta"></label><label>A little message<textarea id="message" maxlength="1000" rows="2"></textarea></label>
+<button type="submit" id="preview-coupon" disabled>Review coupon</button>
+</form>
+<div id="issued" class="card" hidden><p class="eyebrow">READY TO SHARE</p><h3 id="issued-name"></h3><p id="issued-detail"></p><button type="button" id="copy-coupon">Copy Discord message</button></div>
+<div class="section-head"><h2>Coupons</h2><div class="actions"><button type="button" id="refresh-coupons" class="subtle">Refresh</button><button type="button" id="stop-all" class="danger">Stop all</button></div></div>
+<div id="coupon-list" class="list"></div>
+</section>
+<section role="tabpanel" id="release" aria-labelledby="tab-release" hidden><h2>Release</h2><p>Loading release…</p></section>
+<footer><span>PETA · ONE STICKER A DAY</span><span>Only you can open this desk.</span></footer>
+</main>
+<dialog id="review"><p class="eyebrow">BEFORE IT GOES OUT</p><h2 id="review-name"></h2><div id="review-details"></div><div class="actions"><button type="button" id="cancel-review" class="subtle">Go back</button><button type="button" id="issue-coupon">Issue coupon</button></div></dialog>
+<dialog id="confirm"><h2 id="confirm-title"></h2><p id="confirm-detail"></p><div class="actions"><button type="button" id="cancel-confirm" class="subtle">Cancel</button><button type="button" id="accept-confirm" class="danger">Confirm</button></div></dialog>
+</body></html>

@@ -1,3 +1,5 @@
+import { coupons } from "./coupons";
+import { mutate } from "./lock";
 import { Problem, fail } from "./validation";
 export { Problem, fail } from "./validation";
 import { accessEmail, fetchKeys, type AccessConfig, type KeySource } from "../../shared/access";
@@ -52,15 +54,18 @@ export async function handle(request: Request, env: Env, keys: KeySource = fetch
   try {
     if (url.pathname === "/api/me" && request.method === "GET") return secure(api({ email }));
     if (url.pathname.startsWith("/api/")) {
+      let data: unknown = null;
       if (request.method === "POST") {
         if (request.headers.get("Origin") !== url.origin || request.headers.get("Content-Type")?.split(";")[0].trim().toLowerCase() !== "application/json")
           fail(403, "forbidden", "Refresh this page and try again.");
         if (Number(request.headers.get("Content-Length")) > 16384) fail(413, "too_large", "This request is too large.");
         const raw = await request.text();
         if (new TextEncoder().encode(raw).length > 16384) fail(413, "too_large", "This request is too large.");
-        try { JSON.parse(raw); } catch { fail(400, "invalid", "Check the form and try again."); }
+        try { data = JSON.parse(raw); } catch { fail(400, "invalid", "Check the form and try again."); }
       } else if (request.method !== "GET") fail(405, "method_not_allowed", "This action is not available.");
-      return secure(api({ error: "not_found" }, 404));
+      const actor = await emailHash(email);
+      const route = async () => await coupons(request, env, url.pathname, actor, data) ?? api({ error: "not_found" }, 404);
+      return secure(request.method === "POST" ? await mutate(env, route) : await route());
     }
     if (request.method !== "GET" && request.method !== "HEAD") return secure(new Response(null, { status: 405 }));
     return secure(await env.ASSETS.fetch(request));
