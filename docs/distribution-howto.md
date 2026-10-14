@@ -95,6 +95,8 @@ npm run build
 npm run check:binary-paths
 ```
 
+2026-10-14から `build` と `build:beta` は Apple シリコンと Intel の両方を含むユニバーサル版（`--target universal-apple-darwin`）です。初回は `rustup target add x86_64-apple-darwin` が要ります。.appは `src-tauri/target/universal-apple-darwin/release/bundle/macos/Peta.app` にでき、パス検査は両方のアーキテクチャを調べます。`build:developer` は手元のMac用のままです。
+
 検査は.appのContents/MacOS内の実行ファイルにstringsをかけ、個人のホームパスが1つでも残れば一覧を出して失敗します。別の成果物は `python3 scripts/check-binary-paths.py '<成果物>/Peta.app'` で検査します。失敗した成果物は配布せず、依存ライブラリを含めてビルドフラグを確認します。
 
 ## 2026-10-14: ライセンスと脆弱性の確認

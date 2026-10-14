@@ -91,7 +91,7 @@ bash scripts/publish-release.sh src-tauri/target/release/distribution/Peta-<版>
 - `release-mac.sh` は Developer ID の準備が要ります(docs/distribution-howto.md の B2)。DMG の見た目は `scripts/make-dmg.sh` と `assets-src/dmg/`(背景は `source/installer.html?export` を 768×512 と 2倍で書き出したもの)。
 - `publish-release.sh` は、本番では署名・公証・staple を確かめてから、DMG の中のアプリから **版・最低 macOS・対応 CPU** を読み、サイズと SHA-256 を計算して表示し、`y` で R2 に DMG → `releases/latest.json` の順に置きます。ページはこの JSON を読むので、手で何かを書き換える必要はありません。
 - DMG のファイル名には版を入れます(`Peta-0.1.0.dmg`)。同じ名前は上書きされます。
-- いまのビルドは Apple シリコン(arm64)だけです。Intel の Mac の友達がいるなら、ユニバーサルでビルドしてください(`--target universal-apple-darwin`)。ページの「Apple silicon and Intel」は実際の中身から出ます。
+- `npm run build` / `build:beta` は Apple シリコンと Intel の両方で動くユニバーサル版を作ります(`--target universal-apple-darwin`。初回だけ `rustup target add x86_64-apple-darwin`)。2つ分ビルドするので、ディスクの空きは 6GB ほど見ておいてください。ページの「Apple silicon and Intel」は DMG の中身から出ます。
 
 ## 友達を足す・止める
 

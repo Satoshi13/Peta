@@ -18,7 +18,7 @@ HELP
 fi
 root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root"
-app=${PETA_APP_PATH:-$root/src-tauri/target/release/bundle/macos/Peta.app}
+app=${PETA_APP_PATH:-$root/src-tauri/target/universal-apple-darwin/release/bundle/macos/Peta.app}
 version=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["version"])' "$root/src-tauri/tauri.conf.json")
 name=Peta-$version; [[ $mode == offline ]] && name=Peta-offline-$version
 output=${PETA_RELEASE_OUTPUT:-$root/src-tauri/target/release/distribution/$name.dmg}
