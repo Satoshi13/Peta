@@ -70,6 +70,7 @@ publish-release.sh ── R2 peta-downloads-<env>: releases/<file>.dmg(今まで
 - `release-mac.sh`(署名あり・`--unsigned` の両方): `bundle.createUpdaterArtifacts` で `Peta.app.tar.gz` と `.sig` を作る。署名にはオーナーの手元の鍵(環境変数 `TAURI_SIGNING_PRIVATE_KEY_PATH` などでファイルを指す。**中身を引数や画面に出さない**。鍵がなければ、何もビルドせず案内を出して止まる)。署名あり(公証)の流れでは、**staple 済みの .app から** tar.gz を作る(公証の印が更新後も残るように)。
 - `publish-release.sh`: DMG と一緒に `releases/updates/<version>/` に tar.gz と .sig を置き、`latest.json` に `update: { version, file, signature, notes }` を足す。`notes` は `--notes "…"` で指定(英語。省略可)。**更新ファイルを置いてから `latest.json` を書く**(途中で止まっても半端な更新を配らない)。
 - `latest.json` の形が変わるので、`peta-download` の `validRelease` と `peta-admin` の Release タブも対応(`update` 欄は任意)。
+- **古い版の片付け**(R2 の無料枠 10GB を超えないように): `publish-release.sh` は公開の後、R2 の容量の合計と版の数を表示し、**最新の3版より古い** DMG と `releases/updates/<version>/` を一覧にして、確認(`y`)してから消す。`--keep N` で残す数を変えられる。`latest.json` が指す版は絶対に消さない。消す対象の一覧を出す部分と、消さないものの判定はテストする(偽の wrangler で)。手順書にも、手で消す方法と、容量の確認の仕方を書く。
 - `scripts/test-release-mac.py` に、鍵なしで止まる・tar.gz と .sig ができる・公証ありは staple 後に作る、を足す(偽のツールで)。
 
 # 5. 更新用の鍵(オーナー用)
