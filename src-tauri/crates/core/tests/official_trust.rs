@@ -18,3 +18,12 @@ fn published_test_key_keeps_its_slot_but_is_not_trusted_in_release() {
     }
     assert_eq!(sign::public_key(&key),"11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=");
 }
+
+#[test]
+fn coupon_test_key_is_not_trusted_in_shipped_builds_or_other_file_formats() {
+    assert_eq!(official_keys::COUPON_KEYS[0].0,"c1");
+    assert!(!official_keys::KEYS.iter().any(|(id,_)|id.starts_with('c')));
+    let signer=Signer::Official{key_id:"c1".into()};
+    assert!(sign::resolve(&signer).is_err());
+    assert_eq!(official_keys::coupon("c1").is_ok(),cfg!(feature="developer"));
+}

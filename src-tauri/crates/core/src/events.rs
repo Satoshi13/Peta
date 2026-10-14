@@ -40,6 +40,10 @@ pub fn decode_with(bytes:&[u8],trust:impl FnOnce(&Signer)->Result<VerifyingKey>)
     let (header,body)=sign::unseal_with(bytes,MAGIC,1,trust)?;
     let header:Event=serde_json::from_value(header).map_err(|_|invalid("This event has a damaged header."))?;
     if !matches!(header.signer,Signer::Official{..}) {return Err(invalid("Only Peta can issue an official event."));}
+    if matches!(&header.signer,Signer::Official{key_id} if crate::official_keys::is_coupon(key_id))
+        && (header.kind!="bundle" || !header.attachments.is_empty() || !body.is_empty()) {
+        return Err(invalid("This coupon key can only give bundles."));
+    }
     if !safe_id(&header.event_id) || !text(&header.title,120) || header.message.chars().count()>1000 || header.attachments.len()>24 {return Err(invalid("This event has an invalid header."));}
     DateTime::parse_from_rfc3339(&header.issued_at).map_err(|_|invalid("This event has an invalid issue date."))?;
     let mut rest=body;let mut attachments=Vec::new();let mut keys=std::collections::HashSet::new();
@@ -54,7 +58,11 @@ pub fn decode_with(bytes:&[u8],trust:impl FnOnce(&Signer)->Result<VerifyingKey>)
     if !rest.is_empty() {return Err(invalid("This file has unexpected attachments."));}
     Ok(Verified{header,attachments,bytes:bytes.to_vec()})
 }
-pub fn decode(bytes:&[u8])->Result<Verified> {decode_with(bytes,sign::resolve)}
+// Coupon trust belongs only to events; pack and sticker file signatures keep official-key trust.
+pub fn decode(bytes:&[u8])->Result<Verified> {decode_with(bytes,|signer| match signer {
+    Signer::Official{key_id} if crate::official_keys::is_coupon(key_id) => crate::official_keys::coupon(key_id),
+    _ => sign::resolve(signer),
+})}
 fn count(e:&Event,max:i64)->Result<i64> {let n=e.payload["count"].as_i64().unwrap_or(0);if !(1..=max).contains(&n){return Err(invalid("This event grants too many items."));}Ok(n)}
 fn period(e:&Event,time:DateTime<Utc>)->Result<()> {
     for (bound,before) in [(&e.not_before,true),(&e.not_after,false)] {if let Some(v)=bound {
@@ -180,6 +188,30 @@ pub fn from_code(value:&str)->Result<Verified> {from_code_with(value,sign::resol
     fn verified(e:Event)->Verified {let key=sign::generate().unwrap();decode_with(&encode(&e,&[],&key).unwrap(),|_|Ok(key.verifying_key())).unwrap()}
     fn time()->DateTime<Utc>{DateTime::parse_from_rfc3339("2026-10-05T00:00:00Z").unwrap().with_timezone(&Utc)}
     fn meta(lib:&Library,key:&str)->String {lib.db().conn.query_row("SELECT value FROM meta WHERE key=?1",[key],|r|r.get(0)).unwrap()}
+    // Public RFC 8032 test vector, never a production secret.
+    fn coupon_key()->SigningKey {
+        let hex="9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60";
+        let mut seed=[0u8;32];
+        for (i,b) in seed.iter_mut().enumerate(){*b=u8::from_str_radix(&hex[i*2..i*2+2],16).unwrap();}
+        SigningKey::from_bytes(&seed)
+    }
+    fn coupon_file(mut e:Event)->Vec<u8> {e.signer=Signer::Official{key_id:"c1".into()};encode(&e,&[],&coupon_key()).unwrap()}
+    #[test]
+    fn coupon_keys_only_give_bounded_bundles_without_attachments() {
+        let mut lib=lib();
+        let valid=event("coupon-test","bundle",serde_json::json!({"items":[{"kind":"scraps","count":50}]}));
+        let v=decode(&coupon_file(valid.clone())).unwrap();
+        assert!(apply_event(&mut lib,&v,"coupon",time()).unwrap().result.contains("50 Scraps"));
+        for kind in ["grant_pack","grant_sticker","extra_envelope","revoke"] {
+            let mut e=valid.clone();e.kind=kind.into();
+            assert_eq!(decode(&coupon_file(e)).err().unwrap().to_string(),"This coupon key can only give bundles.");
+        }
+        let mut e=valid.clone();e.attachments.push(Attachment{key:"picture".into(),png_len:1,mask_len:0});
+        assert_eq!(decode(&coupon_file(e)).err().unwrap().to_string(),"This coupon key can only give bundles.");
+        let over=event("coupon-over","bundle",serde_json::json!({"items":[{"kind":"scraps","count":1001}]}));
+        let v=decode(&coupon_file(over)).unwrap();
+        assert!(apply_event(&mut lib,&v,"coupon",time()).is_err());
+    }
     #[test]
     fn a_bundle_gives_everything_once_and_stops_at_what_fits(){
         let mut lib=lib();
