@@ -72,6 +72,8 @@
    | COUPON_PUBLIC_KEY | スクリプトが表示する公開鍵（秘密ではない）。dev は RFC テスト公開鍵が設定済み |
    | DOWNLOAD_PAGE_URL | 既存のダウンロードページ。prod/dev の既定値は設定済み |
 
+   **prod では `OWNER_EMAILS` は var ではなく secret**です(オーナーのメールをリポジトリに残さないため。`wrangler.jsonc` の prod.vars から外してあり、同じ名前の var と secret は両立しません)。変えるときは `printf '%s' 'a@example.com' | npx wrangler secret put OWNER_EMAILS --env prod`。
+
    ACCESS_TEAM_DOMAIN / ACCESS_AUD / OWNER_EMAILS のどれかが空・不正なら全員403です。OWNER_EMAILS に入れるだけでは Access のポリシーは変わりません。両方を同じオーナーにしてください。vars は env 間で自動継承しません。
 
 8. **クーポン専用の秘密鍵を作成・登録する**。リポジトリのルートで、オーナーが手動実行します。
@@ -140,3 +142,13 @@
 署名の契約ファイルは `cloudflare/peta-admin/test/coupon-vector.json`。公開テスト鍵・固定日時・base64 イベント・期待 items・全上限を含み、Worker テストが再生成結果と照合し、Rust の `include_str!` テストが decode → apply_event とバイト一致・上限一致を確認します。更新が必要なときだけ `cd cloudflare/peta-admin && node scripts/coupon-vector.mjs` を実行し、差分をレビューしてください。通常のテストは契約ファイルを書き換えません。
 
 検証結果と未確認項目は [admin-page-report.md](admin-page-report.md)。既存の手元署名は [coupon-howto.md](coupon-howto.md)、配布は [download-page-howto.md](download-page-howto.md) を参照してください。
+
+## 2026-10-15 の本番セットアップ(実施済み)
+
+- Access: `peta-admin-prod` の workers.dev に「すべての Traffic」で Access を有効化。ポリシーは手順4の `Peta owner` の代わりに、**既定の `Cloudflare account members`**(このアカウントのメンバー=オーナーだけ)を使用。ログインは「Cloudflare でログイン」。AUD は `wrangler.jsonc` の prod に記入。
+- `ACCESS_FRIENDS_POLICY_ID`: 再利用可能ポリシー `Peta friends` の ID を記入。
+- `CF_API_TOKEN`: オーナーが作成・登録(権限は Access: Policies の編集のみ、対象はこのアカウントだけ、期限なし)。権限不足のエラーが出たら Access: Apps の読み取りを足す。
+- `COUPON_SIGNING_KEY`: `coupon-key.sh prod` で登録。公開鍵 `bnSW7bDoApbt1Gb5AgowuBXL441K0oqN/iOJea+Xy4I=` を `COUPON_PUBLIC_KEY` と、アプリの `COUPON_KEYS` の `c2` に記入。**c2 入りのアプリを配るまで、本番のクーポンは友達のアプリで受け取れない。**
+- `OWNER_EMAILS`: secret で登録。
+- 再デプロイ後、未ログインの要求は Access のログインへ転送されることを確認。オーナーのログインと友達一覧の読み込みはオーナーがブラウザで確認する。
+

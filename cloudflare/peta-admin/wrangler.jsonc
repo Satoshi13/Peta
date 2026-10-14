@@ -40,13 +40,12 @@
     "prod": {
         "name": "peta-admin-prod",
         "vars": {
-            "ACCESS_TEAM_DOMAIN": "",
-            "ACCESS_AUD": "",
-            "OWNER_EMAILS": "",
+            "ACCESS_TEAM_DOMAIN": "https://peta-friends.cloudflareaccess.com",
+            "ACCESS_AUD": "d942773456dd841d0c7cd1cae56c06bc16941ed5c5346dbbf6dfda310bfde5b8",
             "CF_ACCOUNT_ID": "7ebfd4fac7f7545a9e34a963af32ae7c",
-            "ACCESS_FRIENDS_POLICY_ID": "",
+            "ACCESS_FRIENDS_POLICY_ID": "e153d1b3-f94c-4878-a275-d033cb968dd7",
             "COUPON_KEY_ID": "c2",
-            "COUPON_PUBLIC_KEY": "",
+            "COUPON_PUBLIC_KEY": "bnSW7bDoApbt1Gb5AgowuBXL441K0oqN/iOJea+Xy4I=",
             "DOWNLOAD_PAGE_URL": "https://peta-download-prod.peta-api.workers.dev"
         },
         "d1_databases": [
