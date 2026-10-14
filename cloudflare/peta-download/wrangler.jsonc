@@ -23,7 +23,7 @@
     },
     "prod": {
       "name": "peta-download-prod",
-      "vars": { "ACCESS_TEAM_DOMAIN": "", "ACCESS_AUD": "" },
+      "vars": { "ACCESS_TEAM_DOMAIN": "https://peta-friends.cloudflareaccess.com", "ACCESS_AUD": "3a3e07950e17e6628f2500b88000b196c1183415b02211848dde9dd4928dcaa3" },
       "d1_databases": [
         { "binding": "DB", "database_name": "peta-prod", "database_id": "9517d6ae-1676-4dc4-a906-462650d21586", "migrations_dir": "../peta-api/migrations" }
       ],

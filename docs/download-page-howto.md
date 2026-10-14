@@ -28,7 +28,7 @@
 
 コマンドは自分の Cloudflare ログイン(`npx wrangler login`)で動きます。鍵やトークンはリポジトリに書きません。
 
-**2026-10-14 実施済み: 1〜3**(R2 の2つのバケットは r2.dev 公開なし、0005 を dev/prod の D1 に適用、`peta-download-prod` をデプロイ。Access 未設定のため全リクエストが 403 になることを確認)。残りは 4〜8。
+**2026-10-14 実施済み: 1〜3**(R2 の2つのバケットは r2.dev 公開なし、0005 を dev/prod の D1 に適用、`peta-download-prod` をデプロイ。Access 未設定のため全リクエストが 403 になることを確認)。同日 4〜7 も実施: チーム `peta-friends`(`https://peta-friends.cloudflareaccess.com`)、workers.dev の Access は「すべての Traffic」、ポリシーは `Cloudflare account members` と `Peta friends`(Emails、セッション1か月)、AUD を `wrangler.jsonc` の prod に設定して再デプロイ。未ログインの要求はすべて Access のログインへ転送されることを確認。**8 は、招待コード入力のあるベータ版を自分の Mac に入れてから**(今入っている版にはコード入力画面がないので、先に必須にするとつながらなくなる)。
 
 1. **R2 バケットを作る**(非公開のまま。「公開アクセス」も「カスタムドメイン」も付けない)
 
