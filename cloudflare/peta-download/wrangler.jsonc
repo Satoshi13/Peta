@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "peta-download",
+  "main": "src/index.ts",
+  "account_id": "7ebfd4fac7f7545a9e34a963af32ae7c",
+  "compatibility_date": "2026-10-12",
+  // Only the workers.dev address, which Cloudflare Access protects. No version preview URLs that could sit outside Access.
+  "workers_dev": true,
+  "preview_urls": false,
+  // The Worker runs before every asset so the page itself is never served without the Access check.
+  "assets": { "directory": "public", "binding": "ASSETS", "run_worker_first": true },
+  "observability": { "enabled": true },
+  "env": {
+    "dev": {
+      "name": "peta-download-dev",
+      // Fill in from Zero Trust after creating the Access application (docs/download-page-howto.md). Not secrets.
+      // Left empty, every request is refused.
+      "vars": { "ACCESS_TEAM_DOMAIN": "", "ACCESS_AUD": "" },
+      "d1_databases": [
+        { "binding": "DB", "database_name": "peta-dev", "database_id": "806da135-64f5-4063-8bce-0dca96d969db", "migrations_dir": "../peta-api/migrations" }
+      ],
+      "r2_buckets": [{ "binding": "RELEASES", "bucket_name": "peta-downloads-dev" }]
+    },
+    "prod": {
+      "name": "peta-download-prod",
+      "vars": { "ACCESS_TEAM_DOMAIN": "", "ACCESS_AUD": "" },
+      "d1_databases": [
+        { "binding": "DB", "database_name": "peta-prod", "database_id": "9517d6ae-1676-4dc4-a906-462650d21586", "migrations_dir": "../peta-api/migrations" }
+      ],
+      "r2_buckets": [{ "binding": "RELEASES", "bucket_name": "peta-downloads-prod" }]
+    }
+  }
+}

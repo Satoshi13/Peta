@@ -134,11 +134,11 @@ bash scripts/release-mac.sh beta
 bash scripts/release-mac.sh offline
 ```
 
-順序はbuild → 個人パス検査 → hardened runtime＋timestamp署名 → zip送信＋wait → Accepted確認 → staple/validate → codesign verify/spctl → **staple済み.appをもう一度zipへまとめる**。最終zipは `src-tauri/target/release/distribution/Peta-beta.zip`（offlineはPeta-offline.zip）。既存zipは上書きせず止まるので、別の版は `PETA_RELEASE_OUTPUT` に新しいファイル名を指定する。`PETA_APP_PATH` は検査・署名するbundleを変更する場合だけ使い、直前にビルドしたものと一致させる。署名IDまたはprofile名が無い場合は、ビルド・Apple接続前に手順を表示して止まる。証明書と秘密鍵の有無もbuild前にローカルで照合する。profileが未登録・無効の場合はnotarytoolが失敗し、配布zipは作らない。
+順序はbuild → 個人パス検査 → hardened runtime＋timestamp署名 → zip送信＋wait → Accepted確認 → staple/validate → codesign verify/spctl → **staple済み.appから背景つきDMGを作る（`scripts/make-dmg.sh`）→ DMGをtimestamp署名 → DMGも公証・staple → `spctl --type open`**。最終DMGは `src-tauri/target/release/distribution/Peta-<版>.dmg`（offlineはPeta-offline-<版>.dmg。版はtauri.conf.jsonのversion）。既存のDMGは上書きせず止まるので、版を上げるか `PETA_RELEASE_OUTPUT` に新しいファイル名を指定する。友達への配布は [download-page-howto.md](download-page-howto.md) の `publish-release.sh` で行う。`PETA_APP_PATH` は検査・署名するbundleを変更する場合だけ使い、直前にビルドしたものと一致させる。署名IDまたはprofile名が無い場合は、ビルド・Apple接続前に手順を表示して止まる。証明書と秘密鍵の有無もbuild前にローカルで照合する。profileが未登録・無効の場合はnotarytoolが失敗し、配布zipは作らない。
 
 ビルドラッパーはApple資格情報を子プロセスへ渡さず、Tauriの署名はadhocに限定する。正式署名・公証の順序はこのスクリプトだけで管理する。`PETA_ENTITLEMENTS`は必要性を確認したplistへの任意のパス。現行のWKWebView・画像処理・透明窓のために、debug/JIT/unsigned libraryの権限をまとめて追加していない。macOSPrivateApiは透明窓に必要な既存設定で、App Store向けにはしない。Developer IDでの実公証と別Macの動作は未確認で、公証ログとGatekeeperに合格してから配布する。
 
-[Appleの公証要件](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)と[Tauriの署名・公証案内](https://v2.tauri.app/distribute/sign/macos/)に基づく。Codexは登録・証明書作成・profile登録・実署名・実公証を行っていない。`python3 scripts/test-release-mac.py` は偽のツールと一時bundleだけで順序・拒否・staple後の再zipを検証し、Appleへ接続しない。
+[Appleの公証要件](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)と[Tauriの署名・公証案内](https://v2.tauri.app/distribute/sign/macos/)に基づく。Codexは登録・証明書作成・profile登録・実署名・実公証を行っていない。`python3 scripts/test-release-mac.py` は偽のツールと一時bundleだけで順序・拒否・staple済み.appからのDMG作成とDMGの署名・公証を検証し、Appleへ接続しない。DMGの窓（Finder）の確認は実際に `make-dmg.sh` で作って開いて行う。
 
 配布前にdocs/terms-draft.md・privacy-policy-draft.mdの未記入と法的確認を終え、正式なHTTPSの規約・ポリシーURLをsrc-tauri/src/about.rsのSERVICE_LINKSへ設定してビルドする。未設定ではAboutに表示されない。
 

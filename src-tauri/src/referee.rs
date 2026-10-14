@@ -64,6 +64,9 @@ impl HttpReferee {
                 .build(),
         })
     }
+    pub(crate) fn public_key(&self) -> String {
+        sign::public_key(&self.key)
+    }
     /// One signed exchange. `body` is sent as is (JSON or sealed bytes); at most `max` bytes are read back.
     pub(crate) fn exchange(&self, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
         self.exchange_with(&self.agent, method, path, body, content_type, max)

@@ -63,7 +63,8 @@
         "MARKET_PULLS_PER_DAY": "20",
         "MARKET_CARD_MAX": "1048576",
         "REPORTS_PER_DAY": "5",
-        "REPORTS_PENDING": "500"
+        "REPORTS_PENDING": "500",
+        "INVITE_REQUIRED": "1"
       },
       "ratelimits": [
         {

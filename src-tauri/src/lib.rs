@@ -1,6 +1,7 @@
 #[cfg(feature="server")]
 mod referee;
 mod referee_access;
+mod invite;
 mod app_window;
 mod about;
 mod migration;
@@ -199,6 +200,9 @@ pub fn run() {
             app_window::window_vibrancy,
             referee_access::referee_status,
             referee_access::referee_sync,
+            invite::invite_status,
+            invite::invite_redeem,
+            invite::invite_quit,
             developer_next_day,
             developer_sync_displays,
             arrival::developer_show_arrival,

@@ -11,6 +11,7 @@ import {
 } from "./proofs";
 import { inbox, MAX_GIFT, keyHash, sweepReports } from "./inbox";
 import { market, contentLimit, MARKET_CARD_MAX, MARKET_PACK_MAX } from "./market";
+import { invites, invited, invitesRequired } from "./invites";
 export interface Env {
   DB: D1Database;
   MARKET?: R2Bucket;
@@ -31,6 +32,8 @@ export interface Env {
   REQUESTS_PER_DAY?: string;
   PENDING_GIFTS?: string;
   GIFTS_PER_DAY?: string;
+  /** "1" in production: signed routes other than /v1/invite need a redeemed private beta invite. */
+  INVITE_REQUIRED?: string;
 }
 class ApiError extends Error {
   constructor(
@@ -128,7 +131,7 @@ const sqlCodes = [
   "already_released",
   "time_order",
   "invalid",
-  "for_sale", "not_friend", "listing_closed", "price_changed", "pull_used", "too_many_pulls", "too_many_listings", "sold_out", "own_pack", "blocked",
+  "for_sale", "not_friend", "listing_closed", "price_changed", "pull_used", "too_many_pulls", "too_many_listings", "sold_out", "own_pack", "blocked", "invite_used",
 ];
 export async function batch(db: D1Database, statements: D1PreparedStatement[]) {
   try {
@@ -251,6 +254,8 @@ async function authenticate(
   )
     fail(429, "slow_down");
   await counter(env, hash, "minute", 60, minute);
+  if (path !== "/v1/invite" && invitesRequired(env) && !(await invited(env, hash)))
+    fail(403, "not_invited");
   if (request.method === "POST" && path === "/v1/packs")
     await counter(env, hash, "packs", 3600, hour);
   if (request.method !== "GET") {
@@ -594,6 +599,8 @@ async function route(request: Request, env: Env): Promise<Response> {
     if (!data || typeof data !== "object" || Array.isArray(data))
       fail(400, "invalid");
   }
+  const fromInvites = await invites(request, env, path, await sha256(unbase64(key, 32)), data);
+  if (fromInvites) return fromInvites;
   const fromMarket = await market(request, env, path, key, body, data);
   if (fromMarket) return fromMarket;
   const fromInbox = await inbox(request, env, path, key, body, data);

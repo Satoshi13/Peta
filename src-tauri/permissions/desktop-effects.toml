@@ -88,3 +88,8 @@ commands.allow = ["about_notices", "about_links", "about_open_link"]
 identifier = "allow-library-move"
 description = "Export a passphrase-protected full library and restore only into a frozen fresh installation."
 commands.allow = ["move_bootstrap_done", "move_status", "library_move_export", "library_move_import"]
+
+[[permission]]
+identifier = "allow-private-beta-invite"
+description = "Check and redeem this Mac's private beta invite, or quit from the invite sheet."
+commands.allow = ["invite_status", "invite_redeem", "invite_quit"]

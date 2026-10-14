@@ -8,6 +8,7 @@ async function boot() {
   const displayUnits = () => { document.documentElement.style.setProperty('--desktop-height',screen.height+'px'); document.documentElement.style.setProperty('--desktop-width',screen.width+'px'); };
   displayUnits(); window.addEventListener('resize',displayUnits);
   Shell.applyAssetVars(); Shell.initChrome(); Shell.setShell(S.shell); Bridge.savePreferences();
+  document.body.inert=false; await Invite.ensure(); document.body.inert=true;   // private beta: before any page reads the library
   await Bridge.listen('app-page', async e => {
     if(e.payload==='redeem') {
       PackZoom.dispose(true);
