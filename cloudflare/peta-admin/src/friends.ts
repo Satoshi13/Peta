@@ -82,7 +82,10 @@ export async function friends(request: Request, env: Env, path: string, actor: s
     if (path === "/api/friends/pause" || path === "/api/friends/resume") {
       if (!existing.includes(values[0])) fail(404, "not_found", "That friend isn't in the list. Refresh and try again.");
       if (path.endsWith("pause")) await revoke(env, subjects[0], actor);
-      else await env.DB.batch([env.DB.prepare("UPDATE invites SET revoked_at=NULL WHERE email_hash=?").bind(subjects[0]), audit(env.DB, actor, "friend.invite_resumed", { emailHash: subjects[0] })]);
+      else {
+        if (!await env.DB.prepare("SELECT 1 FROM invites WHERE email_hash=?").bind(subjects[0]).first()) fail(404, "not_found", "That friend hasn't opened the download page yet.");
+        await env.DB.batch([env.DB.prepare("UPDATE invites SET revoked_at=NULL WHERE email_hash=?").bind(subjects[0]), audit(env.DB, actor, "friend.invite_resumed", { emailHash: subjects[0] })]);
+      }
       return api({ changed: true });
     }
     if (path.endsWith("add")) {
@@ -91,6 +94,7 @@ export async function friends(request: Request, env: Env, path: string, actor: s
       p.include.push(...values.map(email => ({ email: { email } })));
       await audit(env.DB, actor, "friend.add_requested", { emailHashes: subjects }).run();
     } else {
+      if (!existing.includes(values[0])) fail(404, "not_found", "That friend is already absent from the list. Refresh to check its status.");
       if (data?.confirm !== true) fail(400, "confirm", "Confirm removing this friend and stopping their invite.");
       p.include = p.include.filter(rule => address(rule) !== values[0]);
       // Cloudflare requires at least one Include rule. Keep the owner email in this reusable policy.

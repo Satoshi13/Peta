@@ -17,6 +17,7 @@ export interface Env extends AccessConfig {
   ACCESS_FRIENDS_POLICY_ID?: string;
   COUPON_SIGNING_KEY?: string;
   COUPON_KEY_ID?: string;
+  COUPON_PUBLIC_KEY?: string;
   DOWNLOAD_PAGE_URL?: string;
 }
 export const now = () => Math.floor(Date.now() / 1000);

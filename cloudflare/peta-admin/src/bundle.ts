@@ -31,7 +31,7 @@ export function header(bundle: Bundle, keyId: string) {
     notAfter: bundle.notAfter, title: bundle.title, message: bundle.message, payload: { items: checkGrants(bundle.items) },
     signer: { kind: "official", keyId }, attachments: [] };
 }
-export async function signBundle(bundle: Bundle, keyId: string, secret: string): Promise<string> {
+export async function signBundle(bundle: Bundle, keyId: string, secret: string, publicKey?: string): Promise<string> {
   if (!/^c[1-9][0-9]*$/.test(keyId)) fail(503, "signing_unavailable", "Coupon signing isn't configured.");
   let key: CryptoKey;
   try {
@@ -52,6 +52,15 @@ export async function signBundle(bundle: Bundle, keyId: string, secret: string):
   const signed = new Uint8Array(unsigned.length + 64); signed.set(unsigned);
   try { signed.set(new Uint8Array(await crypto.subtle.sign("Ed25519", key, unsigned)), unsigned.length); }
   catch { fail(503, "signing_unavailable", "Peta couldn't sign this coupon."); }
+  if (publicKey !== undefined) {
+    try {
+      if (!/^[A-Za-z0-9+/]{43}=$/.test(publicKey)) throw new Error();
+      const publicBytes = unbase64(publicKey);
+      if (publicBytes.length !== 32 || base64(publicBytes) !== publicKey) throw new Error();
+      const verifier = await crypto.subtle.importKey("raw", publicBytes, "Ed25519", false, ["verify"]);
+      if (!await crypto.subtle.verify("Ed25519", verifier, signed.slice(-64), unsigned)) throw new Error();
+    } catch { fail(503, "signing_unavailable", "Coupon signing key doesn't match its configured public key."); }
+  }
   return base64(signed);
 }
 /** Display only: trust verification and grant application happen in the app. */

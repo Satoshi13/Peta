@@ -11,7 +11,9 @@ export async function coupons(request: Request, env: Env, path: string, actor: s
     const rows = await env.DB.prepare("SELECT * FROM coupons ORDER BY created_at DESC,name").all<Coupon>();
     return api({ catalog: CATALOG, coupons: rows.results.map(c => {
       const event = readEvent(c.event);
-      return { name: c.name, items: Array.isArray(event?.payload?.items) ? event.payload.items : [], title: typeof event?.title === "string" ? event.title : "From Peta", message: typeof event?.message === "string" ? event.message : "", startsAt: c.starts_at, endsAt: c.ends_at, claims: c.claims, maxClaims: c.max_claims, state: state(c), readable: !!event };
+      let items: ReturnType<typeof checkGrants> = [], readable = false;
+      try { if (event?.kind === "bundle") { items = checkGrants(event.payload?.items); readable = true; } } catch { /* One damaged legacy event must not break the list. */ }
+      return { name: c.name, items, title: typeof event?.title === "string" ? event.title : "From Peta", message: typeof event?.message === "string" ? event.message : "", startsAt: c.starts_at, endsAt: c.ends_at, claims: c.claims, maxClaims: c.max_claims, state: state(c), readable };
     }) });
   }
   if (request.method !== "POST") fail(405, "method_not_allowed", "This action is not available.");
@@ -29,7 +31,7 @@ export async function coupons(request: Request, env: Env, path: string, actor: s
     if (await env.DB.prepare("SELECT 1 FROM coupons WHERE name=?").bind(name).first()) fail(409, "duplicate", "That coupon name has already been used.");
     const iso = (seconds: number) => new Date(seconds * 1000).toISOString().replace(".000Z", "Z");
     const eventId = `cpn-${name.toLowerCase()}-${iso(t).replace(/[-:T]/g, "").slice(0, 12)}`;
-    const event = await signBundle({ eventId, issuedAt: iso(t), notBefore: iso(start), notAfter: iso(end), title, message, items }, env.COUPON_KEY_ID ?? "", env.COUPON_SIGNING_KEY ?? "");
+    const event = await signBundle({ eventId, issuedAt: iso(t), notBefore: iso(start), notAfter: iso(end), title, message, items }, env.COUPON_KEY_ID ?? "", env.COUPON_SIGNING_KEY ?? "", env.COUPON_PUBLIC_KEY ?? "");
     await env.DB.batch([
       env.DB.prepare("INSERT INTO coupons(name,event,starts_at,ends_at,max_claims,created_at) VALUES(?,?,?,?,?,?)").bind(name, event, start, end, limit, t),
       audit(env.DB, actor, "coupon.created", { name, eventId, items, startsAt: start, endsAt: end, maxClaims: limit }),

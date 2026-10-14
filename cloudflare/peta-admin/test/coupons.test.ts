@@ -53,3 +53,17 @@ it("fails signing safely, never echoes secrets, and refuses mutations with a bus
   expect((await post("/api/coupons", coupon(), use)).status).toBe(409);
   expect((await use.DB.prepare("SELECT COUNT(*) AS n FROM coupons").first<any>()).n).toBe(0);
 });
+
+it("keeps malformed legacy coupon rows isolated and rejects a mismatched signing public key", async () => {
+  const { signBundle } = await import("../src/bundle");
+  const event = await signBundle({ eventId: "legacy", issuedAt: "2026-10-14T00:00:00Z", notBefore: null, notAfter: "2026-11-01T00:00:00Z", title: "From Peta", message: "", items: [{ kind: "scraps", id: "", count: 1 }] }, "c1", TEST_SEED);
+  const bytes = Uint8Array.from(atob(event), c => c.charCodeAt(0));
+  const text = new TextDecoder().decode(bytes.slice(13,-64)), invalid = JSON.parse(text);
+  invalid.payload.items = [null];
+  const json = new TextEncoder().encode(JSON.stringify(invalid)), malformed = new Uint8Array(13 + json.length + 64);
+  malformed.set(new TextEncoder().encode("PETAEVNT")); malformed[8] = 1; new DataView(malformed.buffer).setUint32(9, json.length, false); malformed.set(json,13);
+  await use.DB.prepare("INSERT INTO coupons(name,event,ends_at,created_at) VALUES(?,?,?,?)").bind("LEGACY", btoa(String.fromCharCode(...malformed)), t()+3600, t()).run();
+  const list = await (await req("/api/coupons")).json<any>(); expect(list.coupons[0]).toMatchObject({ name: "LEGACY", items: [], readable: false });
+  for (const key of ["", btoa("x".repeat(32))]) expect((await post("/api/coupons", coupon(), { ...use, COUPON_PUBLIC_KEY: key })).status).toBe(503);
+  expect((await use.DB.prepare("SELECT COUNT(*) AS n FROM coupons WHERE name='THANKYOU'").first<any>()).n).toBe(0);
+});

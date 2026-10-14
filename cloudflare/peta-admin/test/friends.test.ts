@@ -77,3 +77,10 @@ it("serializes competing tabs and permits retrying the second change without los
   expect((await change("/api/friends/add", { emails: missing })).status).toBe(200);
   for (const email of ["first@example.com", "second@example.com"]) expect(policy.include).toContainEqual({ email: { email } });
 });
+
+it("does not revoke absent addresses or claim to resume a missing invite", async () => {
+  expect((await change("/api/friends/remove", { email: "absent@example.com", confirm: true })).status).toBe(404);
+  expect((await change("/api/friends/resume", { email: "friend@example.com" })).status).toBe(404);
+  expect((await use.DB.prepare("SELECT COUNT(*) AS n FROM invites").first<any>()).n).toBe(0);
+  expect(calls.some(c => c.method === "PUT")).toBe(false);
+});
