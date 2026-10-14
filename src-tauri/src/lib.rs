@@ -2,6 +2,7 @@
 mod referee;
 mod referee_access;
 mod invite;
+mod coupon;
 mod app_window;
 mod about;
 mod migration;

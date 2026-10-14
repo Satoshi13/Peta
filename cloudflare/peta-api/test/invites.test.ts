@@ -78,3 +78,12 @@ it("guessing is limited per key", async () => {
   for (let i = 0; i < 10; i++) await refused(await call("POST", "/v1/invite", alice, { code: `ZZZZZ0000${i}` }), 404, "unknown_invite");
   await refused(await call("POST", "/v1/invite", alice, { code: "ZZZZZ11111" }), 429, "slow_down");
 });
+
+it("a lost race for the same invite reports invite_used, not invalid", async () => {
+  await issue("a".repeat(64), "ABCDE12345");
+  const [a, b] = await Promise.all([call("POST", "/v1/invite", alice, { code: "ABCDE12345" }), call("POST", "/v1/invite", bob, { code: "ABCDE12345" })]);
+  const statuses = [a.status, b.status].sort();
+  expect(statuses).toEqual([200, 409]);
+  const loser = a.status === 409 ? a : b;
+  expect(((await loser.json()) as { error: string }).error).toBe("invite_used");
+});

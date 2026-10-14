@@ -81,7 +81,7 @@ const Distribution = {
   },
   redeem() {
     if(document.querySelector("dialog")) return;
-    const input=h("input", {type:"text",maxLength:1024,required:true,placeholder:"Enter code",autocapitalize:"characters",autocomplete:"off",spellcheck:false,"aria-label":"Peta code"});
+    const input=h("input", {type:"text",maxLength:1024,required:true,placeholder:"Coupon or code",autocapitalize:"characters",autocomplete:"off",spellcheck:false,"aria-label":"Peta code"});
     const status=h("p.small.rd-status",{role:"status"}), submit=h("button.btn.rd-go",{type:"submit"},"Redeem"),cancel=h("button.rd-cancel.link",{type:"button",on:{click:()=>dialog.close()}},"Cancel");let pending=false;
     const close=CloseButton("Cancel",{on:{click:()=>{if(!pending)dialog.close();}}},".rd-x");
     // the paper (art/ui/redeem-paper.png) is the card; the code goes on its own ticket (art/ui/redeem-ticket.png); the words are drawn here
@@ -90,8 +90,8 @@ const Distribution = {
       try {const result=await Bridge.invoke("redeem_code",{code:input.value});await Bridge.reload();dialog.close();Shell.refresh();Shell.toast(result.result);}
       catch(error){status.textContent=this.error(error);}
       finally {pending=false;submit.disabled=false;cancel.disabled=false;input.disabled=false;}
-    }}},close,h("h2","Redeem code"),h("p.rd-sub","Enter the code you received."),h("div.rd-ticket",input),status,submit,cancel,
-      h("small.rd-note","Codes work once on this device. Files with pictures use Open Peta file…"));
+    }}},close,h("h2","Redeem code"),h("p.rd-sub","Enter the coupon or code you received."),h("div.rd-ticket",input),status,submit,cancel,
+      h("small.rd-note","Coupon names like THANKYOU and long codes both work, once on this Mac. Files with pictures use Open Peta file…"));
     const dialog=h("dialog.rd-dialog",{"aria-label":"Redeem Peta code",on:{cancel:e=>{e.stopPropagation();if(pending)e.preventDefault();},keydown:e=>{if(e.key==="Escape")e.stopPropagation();},close:()=>{dialog.remove();this.afterClose();}}},form);
     Bridge.dialogOpen=true;document.body.append(dialog);dialog.showModal();input.focus();
   },

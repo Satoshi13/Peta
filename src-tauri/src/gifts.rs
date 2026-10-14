@@ -99,8 +99,14 @@ pub fn receive_path(app:&AppHandle,path:&std::path::Path)->Result<FileResult,Str
 #[cfg_attr(feature="server",tauri::command(async))]
 #[cfg_attr(not(feature="server"),tauri::command)]
 pub fn redeem_code(app:AppHandle,code:String)->Result<FileResult,String> {
-    let verified=events::from_code(&code).map_err(|e|e.to_string())?;
-    let receipt={let store=app.state::<Store>();let mut lib=store.lock();events::apply_event(&mut lib,&verified,"code",events::current_time()).map_err(|e|e.to_string())?};
+    // A short name is a coupon: fetch the signed bundle behind it (no library lock during HTTP), then apply it like any code.
+    let (verified,source)=if crate::coupon::looks_like(&code) {
+        #[cfg(feature="server")]
+        {let (_,referee)=crate::invite::referee(&app)?;(events::decode(&crate::coupon::fetch(&referee,&code)?).map_err(|e|e.to_string())?,"coupon")}
+        #[cfg(not(feature="server"))]
+        {return Err(crate::coupon::unavailable());}
+    } else {(events::from_code(&code).map_err(|e|e.to_string())?,"code")};
+    let receipt={let store=app.state::<Store>();let mut lib=store.lock();events::apply_event(&mut lib,&verified,source,events::current_time()).map_err(|e|e.to_string())?};
     today::announce(&app);Ok(FileResult{kind:"event".into(),result:receipt.result,pack:None})
 }
 #[cfg_attr(feature="server",tauri::command(async))]

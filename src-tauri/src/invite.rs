@@ -92,7 +92,7 @@ mod online {
 }
 
 #[cfg(feature = "server")]
-fn referee(app: &tauri::AppHandle) -> Result<(std::path::PathBuf, crate::referee::HttpReferee), String> {
+pub(crate) fn referee(app: &tauri::AppHandle) -> Result<(std::path::PathBuf, crate::referee::HttpReferee), String> {
     use tauri::Manager;
     let store = app.state::<crate::store::Store>();
     let lib = store.lock();

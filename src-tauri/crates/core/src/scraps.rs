@@ -375,6 +375,95 @@ mod tests {
    STREAK_EVERY such days in a row earn STREAK_BONUS more. A re-cut of a picture seen before earns nothing, and so does a second new
    picture on the same day. Each grant is written with its receipt in one transaction and is keyed (by sticker, by day, or once), so a
    retry can never pay twice. "Day" is the app's own local day, passed in by the caller (the developer edition can move it forward). */
+/// One thing an official bundle (a coupon) gives, free. Caps keep a coupon a gift rather than a reset of the economy.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct Grant { pub kind: GrantKind, #[serde(default)] pub id: String, pub count: i64 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum GrantKind { Scraps, Envelope, Material, Tool, Pack }
+pub const MAX_GRANTS: usize = 10;
+/// The most one bundle may give of each thing.
+pub fn grant_cap(kind: GrantKind, id: &str) -> Option<i64> {
+    match kind {
+        GrantKind::Scraps if id.is_empty() => Some(1000),
+        GrantKind::Envelope if id.is_empty() => Some(3),
+        GrantKind::Material if MATERIALS.iter().any(|m| m.id==id && id!="matte") => Some(50),
+        GrantKind::Tool if id=="link-tag" => Some(20),
+        GrantKind::Tool if id=="board" => Some(crate::boards::MAX_OWNED),
+        GrantKind::Pack if PACKS.iter().any(|(p,_)| *p==id) => Some(5),
+        _ => None,
+    }
+}
+/// Check a bundle without touching the library: known things, within caps, each named once.
+pub fn check_grants(items: &[Grant]) -> Result<()> {
+    if items.is_empty() || items.len()>MAX_GRANTS { return Err(invalid("A bundle gives 1 to 10 things.")); }
+    let mut seen = std::collections::HashSet::new();
+    for g in items {
+        let cap = grant_cap(g.kind, &g.id).ok_or_else(|| invalid("This bundle has something Peta doesn't know. Please update."))?;
+        if !(1..=cap).contains(&g.count) { return Err(invalid("This bundle gives too many of something.")); }
+        if !seen.insert((g.kind, g.id.as_str())) { return Err(invalid("This bundle names something twice.")); }
+    }
+    Ok(())
+}
+/// Give a checked bundle inside the caller's transaction and say what arrived. Boards and pack refills stop at what the
+/// library can hold instead of failing the whole bundle; the words say what was left out.
+pub(crate) fn apply_grants(tx: &Connection, items: &[Grant]) -> Result<String> {
+    check_grants(items)?;
+    let mut got = Vec::new();
+    let mut notes = Vec::new();
+    let plural = |n: i64, one: &str, many: &str| if n==1 { format!("1 {one}") } else { format!("{n} {many}") };
+    for g in items {
+        match g.kind {
+            GrantKind::Scraps => {
+                let next = balance(tx)?.checked_add(g.count).filter(|v| *v<=MAX_SAFE_COUNT).ok_or_else(|| invalid("Scraps balance is out of range."))?;
+                tx.execute("INSERT INTO meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![BALANCE_KEY,next.to_string()])?;
+                got.push(format!("{} Scraps", g.count));
+            }
+            GrantKind::Envelope => {
+                tx.execute("UPDATE meta SET value=CAST(value AS INTEGER)+?1 WHERE key='bonus_envelopes'", [g.count])?;
+                got.push(plural(g.count, "extra envelope", "extra envelopes"));
+            }
+            GrantKind::Material => {
+                let held: i64 = tx.query_row("SELECT count FROM material_stock WHERE material_id=?1", [&g.id], |r| r.get(0)).optional()?.unwrap_or(0);
+                if held>MAX_SAFE_COUNT-g.count { return Err(invalid("Material stock is out of range.")); }
+                tx.execute("INSERT INTO material_stock(material_id,count) VALUES(?1,?2) ON CONFLICT(material_id) DO UPDATE SET count=count+excluded.count", params![g.id,g.count])?;
+                tx.execute("INSERT OR IGNORE INTO material_unlocks(material_id,unlocked_at) VALUES(?1,?2)", params![g.id,chrono::Utc::now().to_rfc3339()])?;
+                got.push(format!("{} ×{}", crate::materials::get(&g.id).map(|m| m.name).unwrap_or_else(|| g.id.clone()), g.count));
+            }
+            GrantKind::Tool => {
+                let board = g.id=="board";
+                let key = if board { crate::boards::OWNED_KEY } else { crate::link_tag::OWNED_KEY };
+                let raw: Option<String> = tx.query_row("SELECT value FROM meta WHERE key=?1", [key], |r| r.get(0)).optional()?;
+                let owned: i64 = if board {
+                    raw.as_deref().and_then(|v| v.parse().ok()).filter(|v| (2..=crate::boards::MAX_OWNED).contains(v)).ok_or_else(|| invalid("invalid_board_stock"))?
+                } else { raw.and_then(|v| v.parse().ok()).unwrap_or(0) };
+                let add = if board { g.count.min(crate::boards::MAX_OWNED-owned) } else { g.count.min(1_000_000-owned) };
+                if add<g.count { notes.push(if board { format!("you already have all {} boards", crate::boards::MAX_OWNED) } else { "you hold as many link tags as Peta keeps".into() }); }
+                if add>0 {
+                    tx.execute("INSERT INTO meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![key,(owned+add).to_string()])?;
+                    got.push(if board { plural(add, "board", "boards") } else { plural(add, "link tag", "link tags") });
+                }
+            }
+            GrantKind::Pack => {
+                let p = pack::market_pack(&g.id).ok_or_else(|| invalid("This pack is not available."))?;
+                let own: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM packs WHERE id=?1)", [&g.id], |r| r.get(0))?;
+                if !own { tx.execute("INSERT INTO packs(id,title,by_name,created_at) VALUES(?1,?2,?3,?4)", params![p.id,p.title,p.by,chrono::Utc::now().to_rfc3339()])?; }
+                let left: i64 = tx.query_row("SELECT COUNT(*) FROM pack_items WHERE pack_id=?1 AND opened_at IS NULL", [&g.id], |r| r.get(0))?;
+                let room = (MAX_SEALED_PER_PACK-left).max(0) / p.keys.len() as i64;
+                let sets = g.count.min(room);
+                if sets<g.count { notes.push(format!("{} already holds as many sealed stickers as it can", p.title)); }
+                for _ in 0..sets { for item in p.keys.iter() { tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES(?1,?2)", params![g.id,item])?; } }
+                if sets>0 { got.push(if sets==1 { format!("a {} pack", p.title) } else { format!("{} {} packs", sets, p.title) }); }
+            }
+        }
+    }
+    let mut text = if got.is_empty() { "Nothing new arrived".to_string() } else { format!("{} arrived", got.join(", ")) };
+    if !notes.is_empty() { text.push_str(&format!(" ({})", notes.join("; "))); }
+    text.push('.');
+    Ok(text)
+}
+
 pub const WELCOME: i64 = 20;
 pub const MADE_BONUS: i64 = 2;
 pub const STREAK_EVERY: u32 = 7;

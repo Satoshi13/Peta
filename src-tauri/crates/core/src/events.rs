@@ -69,10 +69,11 @@ pub fn apply_event(lib:&mut Library,verified:&Verified,source:&str,time:DateTime
     if conn.query_row("SELECT 1 FROM revoked_events WHERE event_id=?1",[&e.event_id],|_|Ok(())).optional()?.is_some(){return Err(invalid("This event is no longer available."));}
     use sha2::{Digest,Sha256};
     let content_id=Sha256::digest(&verified.bytes).iter().map(|b|format!("{b:02x}")).collect::<String>();
-    let mut paths=Vec::new();let result:String;
+    let mut paths=Vec::new();let mut result:String;let mut bundle=Vec::new();
     match e.kind.as_str() {
         "extra_envelope"=>{count(e,3)?;result=format!("{} extra envelope(s) arrived.",count(e,3)?);},
         "grant_material"=>{count(e,10)?;let id=e.payload["materialId"].as_str().unwrap_or("");let m=materials::get(id).filter(|m|!m.unlimited).ok_or_else(||invalid("This material is not supported."))?;result=format!("{} ×{} arrived.",m.name,count(e,10)?);},
+        "bundle"=>{bundle=serde_json::from_value::<Vec<crate::scraps::Grant>>(e.payload["items"].clone()).map_err(|_|invalid("This bundle needs a newer Peta. Please update."))?;crate::scraps::check_grants(&bundle)?;result=String::new();},
         "revoke"=>{if !safe_id(e.payload["eventId"].as_str().unwrap_or("")){return Err(invalid("Invalid revoked event ID."));}result="This event notice was saved.".into();},
         "grant_pack"=>{
             let id=e.payload["packId"].as_str().unwrap_or("");let title=e.payload["title"].as_str().unwrap_or("");let author=e.payload["author"].as_str().unwrap_or("");
@@ -94,6 +95,7 @@ pub fn apply_event(lib:&mut Library,verified:&Verified,source:&str,time:DateTime
     match e.kind.as_str() {
         "extra_envelope"=>{tx.execute("UPDATE meta SET value=CAST(value AS INTEGER)+?1 WHERE key='bonus_envelopes'",[count(e,3)?])?;},
         "grant_material"=>{let id=e.payload["materialId"].as_str().unwrap();tx.execute("INSERT OR IGNORE INTO material_unlocks VALUES (?1,?2)",params![id,now()])?;tx.execute("INSERT INTO material_stock VALUES (?1,?2) ON CONFLICT(material_id) DO UPDATE SET count=count+excluded.count",params![id,count(e,10)?])?;},
+        "bundle"=>{result=crate::scraps::apply_grants(&tx,&bundle)?;},
         "revoke"=>{tx.execute("INSERT OR IGNORE INTO revoked_events VALUES (?1,?2)",params![e.payload["eventId"].as_str().unwrap(),now()])?;},
         "grant_sticker"=>{
             let id=format!("GIFT-E-{}",e.event_id);tx.execute("INSERT INTO gifts_received(gift_id,from_name,note,sent_at,received_at,package) VALUES (?1,'Peta',?2,?3,?4,?5)",params![id,e.message,e.issued_at,now(),paths[0]])?;
@@ -177,6 +179,42 @@ pub fn from_code(value:&str)->Result<Verified> {from_code_with(value,sign::resol
     fn event(id:&str,kind:&str,payload:serde_json::Value)->Event {Event{event_id:id.into(),kind:kind.into(),issued_at:"2026-10-04T00:00:00Z".into(),not_before:Some("2026-10-04T00:00:00Z".into()),not_after:Some("2026-11-04T00:00:00Z".into()),title:"From Peta".into(),message:String::new(),payload,signer:Signer::Official{key_id:"k1".into()},attachments:vec![]}}
     fn verified(e:Event)->Verified {let key=sign::generate().unwrap();decode_with(&encode(&e,&[],&key).unwrap(),|_|Ok(key.verifying_key())).unwrap()}
     fn time()->DateTime<Utc>{DateTime::parse_from_rfc3339("2026-10-05T00:00:00Z").unwrap().with_timezone(&Utc)}
+    fn meta(lib:&Library,key:&str)->String {lib.db().conn.query_row("SELECT value FROM meta WHERE key=?1",[key],|r|r.get(0)).unwrap()}
+    #[test]
+    fn a_bundle_gives_everything_once_and_stops_at_what_fits(){
+        let mut lib=lib();
+        let items=serde_json::json!([{"kind":"scraps","count":50},{"kind":"envelope","count":1},{"kind":"material","id":"kraft","count":2},
+            {"kind":"tool","id":"link-tag","count":3},{"kind":"tool","id":"board","count":12},{"kind":"pack","id":"cats","count":1}]);
+        let scraps=lib.db().scrap_status().unwrap().balance;let boards:i64=meta(&lib,crate::boards::OWNED_KEY).parse().unwrap();
+        let receipt=apply_event(&mut lib,&verified(event("cpn-fall","bundle",serde_json::json!({"items":items}))),"coupon",time()).unwrap();
+        assert!(receipt.result.starts_with("50 Scraps, 1 extra envelope, Kraft ×2, 3 link tags, "),"{}",receipt.result);
+        assert!(receipt.result.contains("a Cats pack") || receipt.result.contains("Cats"),"{}",receipt.result);
+        assert!(receipt.result.contains(&format!("{} boards",crate::boards::MAX_OWNED-boards)) && receipt.result.contains("you already have all 12 boards"),"{}",receipt.result);
+        assert_eq!(lib.db().scrap_status().unwrap().balance,scraps+50);
+        assert_eq!(lib.db().bonus_envelopes().unwrap(),1);
+        assert_eq!(lib.db().material_count("kraft").unwrap(),2);
+        assert_eq!(meta(&lib,crate::link_tag::OWNED_KEY),"3");
+        assert_eq!(meta(&lib,crate::boards::OWNED_KEY),crate::boards::MAX_OWNED.to_string());
+        let sealed:i64=lib.db().conn.query_row("SELECT COUNT(*) FROM pack_items WHERE pack_id='cats' AND opened_at IS NULL",[],|r|r.get(0)).unwrap();
+        assert_eq!(sealed,crate::pack::market_pack("cats").unwrap().keys.len() as i64);
+        assert!(apply_event(&mut lib,&verified(event("cpn-fall","bundle",serde_json::json!({"items":[{"kind":"scraps","count":1}]}))),"coupon",time()).is_err());
+        assert_eq!(lib.db().scrap_status().unwrap().balance,scraps+50);
+    }
+    #[test]
+    fn bundles_outside_the_caps_change_nothing(){
+        let mut lib=lib();let before=lib.db().scrap_status().unwrap().balance;
+        for items in [serde_json::json!([]),serde_json::json!([{"kind":"scraps","count":1001}]),serde_json::json!([{"kind":"material","id":"matte","count":1}]),
+            serde_json::json!([{"kind":"material","id":"kraft","count":51}]),serde_json::json!([{"kind":"envelope","count":4}]),serde_json::json!([{"kind":"tool","id":"hammer","count":1}]),
+            serde_json::json!([{"kind":"pack","id":"cats","count":6}]),serde_json::json!([{"kind":"scraps","count":1},{"kind":"scraps","count":2}]),
+            serde_json::json!([{"kind":"sticker","count":1}]),serde_json::json!([{"kind":"scraps","count":0}]),serde_json::json!([{"kind":"scraps","count":1,"extra":true}])]{
+            assert!(apply_event(&mut lib,&verified(event("cpn-bad","bundle",serde_json::json!({"items":items}))),"coupon",time()).is_err());
+        }
+        // A bad grant late in the list must not leave earlier ones applied.
+        let mixed=serde_json::json!([{"kind":"scraps","count":5},{"kind":"material","id":"nope","count":1}]);
+        assert!(apply_event(&mut lib,&verified(event("cpn-mixed","bundle",serde_json::json!({"items":mixed}))),"coupon",time()).is_err());
+        assert_eq!(lib.db().scrap_status().unwrap().balance,before);
+        assert_eq!(lib.db().conn.query_row("SELECT COUNT(*) FROM applied_events",[],|r|r.get::<_,i64>(0)).unwrap(),0);
+    }
     #[test] fn events_apply_once_and_revocation_only_blocks_unapplied() {
         let mut lib=lib();let e=verified(event("one","grant_material",serde_json::json!({"materialId":"kraft","count":2})));
         apply_event(&mut lib,&e,"file",time()).unwrap();assert_eq!(lib.db().material_count("kraft").unwrap(),2);assert!(apply_event(&mut lib,&e,"file",time()).is_err());

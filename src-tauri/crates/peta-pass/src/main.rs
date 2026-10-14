@@ -28,6 +28,8 @@ enum Command {
         #[arg(long)] count:Option<i64>,
         #[arg(long)] material:Option<String>,
         #[arg(long)] revoke_id:Option<String>,
+        /// For --kind bundle, repeated: scraps=50, envelope=1, material:kraft=2, tool:link-tag=1, tool:board=1, pack:cats=1.
+        #[arg(long="item")] items:Vec<String>,
         #[arg(long)] png:Option<PathBuf>,
         #[arg(long)] mask:Option<PathBuf>,
         #[arg(long)] out:Option<PathBuf>,
@@ -40,6 +42,15 @@ enum Command {
 fn read(path:&Path,limit:usize)->Result<Vec<u8>,String> {
     let mut bytes=Vec::new();std::fs::File::open(path).map_err(|e|e.to_string())?.take((limit+1) as u64).read_to_end(&mut bytes).map_err(|e|e.to_string())?;
     if bytes.len()>limit{return Err("Input file exceeds its size limit.".into());}Ok(bytes)
+}
+/// `scraps=50`, `envelope=1`, `material:kraft=2`, `tool:link-tag=1`, `pack:cats=1`.
+fn grant(spec:&str)->Result<peta_core::scraps::Grant,String> {
+    use peta_core::scraps::{Grant,GrantKind};
+    let (thing,count)=spec.rsplit_once('=').ok_or_else(||format!("Write --item as thing=count: {spec}"))?;
+    let count:i64=count.trim().parse().map_err(|_|format!("Not a number: {spec}"))?;
+    let (kind,id)=thing.split_once(':').unwrap_or((thing,""));
+    let kind=match kind.trim() {"scraps"=>GrantKind::Scraps,"envelope"|"envelopes"=>GrantKind::Envelope,"material"=>GrantKind::Material,"tool"=>GrantKind::Tool,"pack"=>GrantKind::Pack,other=>return Err(format!("Unknown item kind: {other}"))};
+    Ok(Grant{kind,id:id.trim().into(),count})
 }
 fn header(i:&Issuer,kind:&str,payload:serde_json::Value)->Event {
     Event{event_id:i.id.clone(),kind:kind.into(),issued_at:peta_core::db::now(),not_before:i.not_before.clone(),not_after:Some(i.not_after.clone()),title:i.title.clone(),message:i.message.clone(),payload,signer:Signer::Official{key_id:i.key_id.clone()},attachments:vec![]}
@@ -59,11 +70,12 @@ fn run(cli:Cli)->Result<(),String> {
     match cli.command {
         Command::Keygen{out}=>{let key=sign::generate().map_err(|e|e.to_string())?;device_key::save_new(&out,&key).map_err(|e|e.to_string())?;println!("Private key saved. Back it up securely; never commit it.");},
         Command::Pubkey{key}=>{let key=device_key::load(&key).map_err(|e|e.to_string())?;println!("{}\nFingerprint: {}",sign::public_key(&key),sign::fingerprint(&key.verifying_key()));},
-        Command::Event{issuer,kind,count,material,revoke_id,png,mask,out,as_code}=>{
+        Command::Event{issuer,kind,count,material,revoke_id,items,png,mask,out,as_code}=>{
             let mut attachments=Vec::new();let mut body=Vec::new();
             let payload=match kind.as_str(){
                 "extra_envelope"=>{let count=count.filter(|c|(1..=3).contains(c)).ok_or("Use --count 1..3.")?;serde_json::json!({"count":count})},
                 "grant_material"=>{let count=count.filter(|c|(1..=10).contains(c)).ok_or("Use --count 1..10.")?;let material=material.ok_or("Use --material.")?;if peta_core::materials::get(&material).is_none_or(|m|m.unlimited){return Err("Unknown material, or unlimited Matte.".into());}serde_json::json!({"count":count,"materialId":material})},
+                "bundle"=>{let grants=items.iter().map(|i|grant(i)).collect::<Result<Vec<_>,_>>()?;peta_core::scraps::check_grants(&grants).map_err(|e|e.to_string())?;serde_json::json!({"items":grants})},
                 "revoke"=>{let id=revoke_id.filter(|s|events::safe_id(s)).ok_or("Use --revoke-id with a valid event ID.")?;serde_json::json!({"eventId":id})},
                 "grant_sticker"=>{let png=read(&png.ok_or("Use --png.")?,8*1024*1024)?;let mask=if let Some(path)=mask{read(&path,8*1024*1024)?}else{vec![]};attachments.push(Attachment{key:"sticker".into(),png_len:png.len(),mask_len:mask.len()});body.extend(png);body.extend(mask);serde_json::json!({})},
                 _=>return Err("Unsupported kind. Packs use grant-pack.".into()),

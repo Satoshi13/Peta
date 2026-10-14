@@ -12,6 +12,7 @@ import {
 import { inbox, MAX_GIFT, keyHash, sweepReports } from "./inbox";
 import { market, contentLimit, MARKET_CARD_MAX, MARKET_PACK_MAX } from "./market";
 import { invites, invited, invitesRequired } from "./invites";
+import { coupons } from "./coupons";
 export interface Env {
   DB: D1Database;
   MARKET?: R2Bucket;
@@ -131,7 +132,7 @@ const sqlCodes = [
   "already_released",
   "time_order",
   "invalid",
-  "for_sale", "not_friend", "listing_closed", "price_changed", "pull_used", "too_many_pulls", "too_many_listings", "sold_out", "own_pack", "blocked", "invite_used",
+  "for_sale", "not_friend", "listing_closed", "price_changed", "pull_used", "too_many_pulls", "too_many_listings", "sold_out", "own_pack", "blocked", "invite_used", "coupon_used_up",
 ];
 export async function batch(db: D1Database, statements: D1PreparedStatement[]) {
   try {
@@ -601,6 +602,8 @@ async function route(request: Request, env: Env): Promise<Response> {
   }
   const fromInvites = await invites(request, env, path, await sha256(unbase64(key, 32)), data);
   if (fromInvites) return fromInvites;
+  const fromCoupons = await coupons(request, env, path, await sha256(unbase64(key, 32)), data);
+  if (fromCoupons) return fromCoupons;
   const fromMarket = await market(request, env, path, key, body, data);
   if (fromMarket) return fromMarket;
   const fromInbox = await inbox(request, env, path, key, body, data);
