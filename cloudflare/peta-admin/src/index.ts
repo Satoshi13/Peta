@@ -1,3 +1,4 @@
+import { friends, type Fetch } from "./friends";
 import { coupons } from "./coupons";
 import { mutate } from "./lock";
 import { Problem, fail } from "./validation";
@@ -46,7 +47,7 @@ export function audit(db: D1Database, actor: string, action: string, detail: Rec
   // Call sites pass only explicitly chosen hashes, names, statuses and provider numeric error codes.
   return db.prepare("INSERT INTO admin_log(at,action,detail) VALUES(?,?,?)").bind(now(), action, JSON.stringify({ actor, ...detail }));
 }
-export async function handle(request: Request, env: Env, keys: KeySource = fetchKeys): Promise<Response> {
+export async function handle(request: Request, env: Env, keys: KeySource = fetchKeys, transport: Fetch = fetch): Promise<Response> {
   const allowed = owners(env);
   const email = allowed ? await accessEmail(request, env, keys) : null;
   if (!email || !allowed?.includes(email)) return secure(api({ error: "forbidden", message: "This page is for the Peta owner." }, 403));
@@ -64,7 +65,7 @@ export async function handle(request: Request, env: Env, keys: KeySource = fetch
         try { data = JSON.parse(raw); } catch { fail(400, "invalid", "Check the form and try again."); }
       } else if (request.method !== "GET") fail(405, "method_not_allowed", "This action is not available.");
       const actor = await emailHash(email);
-      const route = async () => await coupons(request, env, url.pathname, actor, data) ?? api({ error: "not_found" }, 404);
+      const route = async () => await coupons(request, env, url.pathname, actor, data) ?? await friends(request, env, url.pathname, actor, data, transport) ?? api({ error: "not_found" }, 404);
       return secure(request.method === "POST" ? await mutate(env, route) : await route());
     }
     if (request.method !== "GET" && request.method !== "HEAD") return secure(new Response(null, { status: 405 }));

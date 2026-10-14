@@ -4,7 +4,10 @@
 <header><p class="eyebrow">PETA FOR MAC · OWNER'S DESK</p><h1>A little care,<br>all in one place.</h1><p class="muted" id="account">Checking your sign-in…</p></header>
 <nav role="tablist" aria-label="Owner tools"><button role="tab" id="tab-friends" aria-controls="friends" aria-selected="true">Friends</button><button role="tab" id="tab-coupons" aria-controls="coupons" aria-selected="false" tabindex="-1">Coupons</button><button role="tab" id="tab-release" aria-controls="release" aria-selected="false" tabindex="-1">Release</button></nav>
 <p id="notice" role="status" aria-live="polite"></p>
-<section role="tabpanel" id="friends" aria-labelledby="tab-friends"><div class="section-head"><h2>Friends</h2></div><p>Loading friends…</p></section>
+<section role="tabpanel" id="friends" aria-labelledby="tab-friends"><div class="section-head"><div><p class="eyebrow">BY INVITATION</p><h2>Friends</h2></div><button type="button" id="refresh-friends" class="subtle">Refresh</button></div>
+<form id="friend-form"><label>Email addresses<textarea id="friend-emails" rows="3" required placeholder="friend@example.com"></textarea></label><p class="hint">One address per line, or separated by commas. Up to 200 friends.</p><button type="submit" id="add-friends" disabled>Add friends</button></form>
+<div id="friend-share" class="card" hidden><h3>Ready to invite</h3><p>Send the download page and steps privately through Discord or LINE.</p><button type="button" id="copy-invite">Copy invitation</button></div>
+<div id="friend-list" class="list"><p class="empty">Loading friends…</p></div></section>
 <section role="tabpanel" id="coupons" aria-labelledby="tab-coupons" hidden>
 <div class="section-head"><div><p class="eyebrow">A SMALL GIFT</p><h2>Make a coupon</h2></div></div>
 <form id="coupon-form">

@@ -1,4 +1,5 @@
 import { env, applyD1Migrations } from "cloudflare:test";
+import { type Fetch } from "../src/friends";
 import { handle, type Env } from "../src/index";
 export const TEAM = "https://peta-friends.cloudflareaccess.com", AUD = "a".repeat(64), ORIGIN = "https://peta-admin.test";
 export const base = { ...env, ACCESS_TEAM_DOMAIN: TEAM, ACCESS_AUD: AUD, OWNER_EMAILS: "Owner@Example.com", ASSETS: { fetch: async () => new Response("<h1>Owner</h1>") } } as unknown as Env;
@@ -16,10 +17,10 @@ export async function setup() {
   signer = await rsa();
   jwk = { ...((await crypto.subtle.exportKey("jwk", signer.publicKey)) as JsonWebKey), kid: "owner" } as JsonWebKey;
 }
-export async function req(path: string, init: RequestInit = {}, use: Env = base, token?: string | null) {
+export async function req(path: string, init: RequestInit = {}, use: Env = base, token?: string | null, transport?: Fetch) {
   const headers = new Headers(init.headers);
   if (token !== null) headers.set("Cf-Access-Jwt-Assertion", token ?? await jwt());
-  return handle(new Request(ORIGIN + path, { ...init, headers }), use, keys);
+  return handle(new Request(ORIGIN + path, { ...init, headers }), use, keys, transport);
 }
-export const post = (path: string, body: unknown, use: Env = base) => req(path, { method: "POST", headers: { Origin: ORIGIN, "Content-Type": "application/json" }, body: JSON.stringify(body) }, use);
+export const post = (path: string, body: unknown, use: Env = base, transport?: Fetch) => req(path, { method: "POST", headers: { Origin: ORIGIN, "Content-Type": "application/json" }, body: JSON.stringify(body) }, use, undefined, transport);
 export const clear = () => base.DB.batch(["admin_log", "admin_locks", "coupon_claims", "coupons", "downloads", "invites", "nonces", "rate_counters"].map(t => base.DB.prepare(`DELETE FROM ${t}`)));
