@@ -40,6 +40,7 @@ const ICONS = {
   edit: "M4 20l1-4L16 5l3 3L8 19zM14 7l3 3",
   trash: "M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v6M14 11v6",
   desk: "M3 5h18v11H3zM8 20h8M12 16v4",
+  share: "M12 3v12M7 8l5-5 5 5M5 13v7h14v-7",
   left: "M15 5l-7 7 7 7",
   right: "M9 5l7 7-7 7",
 };

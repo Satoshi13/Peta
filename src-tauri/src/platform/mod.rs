@@ -1,7 +1,7 @@
 //! OS adapters (spec §69-70). The rest of the app only calls `apply_layer_mode`.
 
 mod macos;
-pub use macos::{activate_app, apply_layer_mode, cursor_position, layer_frame, haptic, set_sidebar_vibrancy, clipboard_image, invalidate_shadow};
+pub use macos::{activate_app, apply_layer_mode, cursor_position, layer_frame, haptic, set_sidebar_vibrancy, clipboard_image, set_clipboard_png, invalidate_shadow};
 
 /// How a desktop layer window should behave.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

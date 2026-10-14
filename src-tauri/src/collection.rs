@@ -154,12 +154,12 @@ fn poster_file_name(name: &str) -> String {
     format!("{}.png", if stem.is_empty() { "Peta poster" } else { stem })
 }
 
-/// Save a month poster that the page drew. Rust only checks that it is a PNG of sane size and writes it
+/// Save a picture the page drew (a month poster or a sticker's share card). Rust only checks that it is a PNG of sane size and writes it
 /// where the person picks; cancelling the panel writes nothing and uses nothing up.
 #[tauri::command]
 pub async fn poster_save(window: WebviewWindow, app: AppHandle, name: String, png: Vec<u8>) -> Result<Option<String>, String> {
     if png.len() > POSTER_MAX_BYTES || !png.starts_with(&PNG_SIGNATURE) {
-        return Err("The poster picture could not be saved.".into());
+        return Err("The picture could not be saved.".into());
     }
     let Some(path) = app.dialog().file().set_parent(&window).add_filter("PNG image", &["png"]).set_file_name(poster_file_name(&name)).blocking_save_file().and_then(|p| p.into_path().ok()) else {
         return Ok(None);
@@ -175,9 +175,21 @@ pub async fn poster_save(window: WebviewWindow, app: AppHandle, name: String, pn
     })();
     if let Err(error) = saved {
         let _ = std::fs::remove_file(&temp);
-        return Err(format!("Could not save the poster: {error}"));
+        return Err(format!("Could not save the picture: {error}"));
     }
     Ok(Some(path.display().to_string()))
+}
+
+/// Put a picture the page drew (a sticker's share card) on the clipboard, to paste into Discord or anywhere else.
+/// The same PNG checks as saving; the pasteboard is written on the main thread.
+#[tauri::command]
+pub async fn share_copy(app: AppHandle, png: Vec<u8>) -> Result<(), String> {
+    if png.len() > POSTER_MAX_BYTES || !png.starts_with(&PNG_SIGNATURE) {
+        return Err("The picture could not be copied.".into());
+    }
+    let (tx, rx) = std::sync::mpsc::channel();
+    app.run_on_main_thread(move || { let _ = tx.send(crate::platform::set_clipboard_png(&png)); }).map_err(|e| e.to_string())?;
+    if rx.recv().unwrap_or(false) { Ok(()) } else { Err("The picture could not be copied.".into()) }
 }
 
 #[cfg(test)]

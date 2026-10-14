@@ -1077,6 +1077,30 @@ dialog.rd-dialog::backdrop { background:rgba(30,24,14,.32); }
 dialog.rd-dialog button.close-control.rd-x { top:7%; right:7%; background:none; color:#2b2a28; width:34px; height:34px; }
 dialog.rd-dialog button.close-control.rd-x:hover { background:rgba(60,45,20,.08); }
 
+/* Share as a picture: the card it will post (3:2), then Copy / Save. Paper like the redeem sheet, fixed ink in the night theme. */
+dialog.share-dialog { border:0; padding:0; background:none; box-shadow:none; overflow:visible; max-width:calc(100% - 32px); color:#2b2a28; }
+dialog.share-dialog::backdrop { background:rgba(30,24,14,.32); }
+.share-sheet { position:relative; width:min(520px,calc(100vw - 48px)); padding:26px 26px 20px; border-radius:14px; background:var(--a-pagePaper) 0 0 / 420px repeat, #fbf8f1; box-shadow:0 18px 40px rgba(40,30,15,.28); display:grid; gap:14px; box-sizing:border-box; }
+.share-sheet h2 { margin:0; font:700 22px/1.2 var(--sys); letter-spacing:-.02em; color:#2b2a28; }
+.share-preview { display:block; width:100%; aspect-ratio:3 / 2; object-fit:cover; border-radius:8px; background:#efe8da; box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 6px 16px rgba(40,30,15,.16); }
+.share-bg { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.share-bg small { font:600 11px/1 var(--sys); color:#7a7466; letter-spacing:.04em; text-transform:uppercase; }
+.share-sheets { display:flex; gap:7px; flex-wrap:wrap; }
+.share-swatch { position:relative; width:28px; height:28px; padding:0; border-radius:50%; border:1px solid rgba(60,45,20,.22); cursor:pointer; box-shadow:0 1px 2px rgba(40,30,15,.12); }
+.share-swatch.auto { width:auto; padding:0 10px; border-radius:14px; background:linear-gradient(135deg,#f6e7c9,#dfe7ee 55%,#f3e1de); font:600 11px/26px var(--sys); color:#2b2a28; }
+.share-swatch.custom { overflow:hidden; background:conic-gradient(#f3c9c3,#f1e3b4,#cfe6c8,#c7dcec,#dccdf0,#f3c9c3); }
+.share-custom { position:absolute; inset:-6px; width:calc(100% + 12px); height:calc(100% + 12px); opacity:0; cursor:pointer; }
+.share-swatch[aria-pressed="true"] { outline:2px solid #2b2a28; outline-offset:2px; }
+.share-swatch:focus-visible, .share-swatch:focus-within { outline:2px solid #527d93; outline-offset:2px; }
+.share-actions { display:flex; gap:10px; }
+.share-actions .btn { flex:1; height:44px; border-radius:24px; font:600 15px/1 var(--sys); }
+.share-sheet .share-copy { background:#2b2a28; color:#fff; box-shadow:0 2px 0 rgba(0,0,0,.35); }
+.share-sheet .share-copy:disabled, .share-sheet .share-save:disabled { opacity:.5; }
+.share-status { min-height:16px; margin:-4px 0 0; color:#4f6a45; text-align:center; font-size:13px; }
+.share-note { font:400 11px/1.4 var(--sys); color:#7a7466; text-align:center; }
+dialog.share-dialog button.close-control.share-x { top:14px; right:14px; background:none; color:#2b2a28; width:34px; height:34px; }
+dialog.share-dialog button.close-control.share-x:hover { background:rgba(60,45,20,.08); }
+
 /* an amount of Scraps wherever one is shown: the offcuts, then the number */
 .sc-amt { display:inline-flex; align-items:center; gap:.3em; vertical-align:middle; white-space:nowrap; }
 .sc-amt .sc-ico { flex:none; width:1.5em; height:1.4em; background:var(--a-scrapsIcon) center / contain no-repeat; filter:drop-shadow(0 1px 1px rgba(60,45,20,.28)); }

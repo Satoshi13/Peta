@@ -161,6 +161,20 @@ pub fn clipboard_image() -> Option<Vec<u8>> {
     }
 }
 
+/// Main thread only. Replace the clipboard with one PNG picture (what Discord and most apps paste with ⌘V).
+pub fn set_clipboard_png(png: &[u8]) -> bool {
+    unsafe {
+        let board: *mut AnyObject = msg_send![objc2::class!(NSPasteboard), generalPasteboard];
+        if board.is_null() { return false; }
+        let data: *mut AnyObject = msg_send![objc2::class!(NSData), dataWithBytes: png.as_ptr() as *const std::ffi::c_void, length: png.len()];
+        if data.is_null() { return false; }
+        let kind: *mut AnyObject = msg_send![objc2::class!(NSString), stringWithUTF8String: c"public.png".as_ptr()];
+        let _: isize = msg_send![board, clearContents];
+        let ok: Bool = msg_send![board, setData: data, forType: kind];
+        ok.as_bool()
+    }
+}
+
 /// Main thread only. A transparent window's shadow follows what was painted when it was computed (the rounded page),
 /// so ask AppKit to compute it again after the page has painted or the window changed size.
 pub fn invalidate_shadow(window: &WebviewWindow) {

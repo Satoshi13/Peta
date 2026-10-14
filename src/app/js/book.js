@@ -269,6 +269,7 @@ Pages.book = {
       LinkTags.row(e, paint),
       (BK.deleteId === e.id ? this.deleteForm(e, paint) : h("div.actions.book-actions", main,
         h("div.book-action-row", e.lineage !== "copy" ? act("det-link", "gift", Icon("gift"), "Gift", () => { BK.deleteId = null; StudioOpen("gift", e.id); }) : null,
+          act("det-link.quiet2", "share", Icon("share"), "Share", () => ShareCard.open(e)),
           e.canManage && e.lineage !== "copy" ? act("det-link.quiet2", "edit", Icon("edit"), "Edit", () => this.edit(e)) : null,
           e.canManage ? act("det-link.quiet2.danger", "delete", Icon("trash"), "Delete", () => { BK.deleteId = e.id; paint(); }) : null))));
   },
