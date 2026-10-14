@@ -26,4 +26,8 @@ fn coupon_test_key_is_not_trusted_in_shipped_builds_or_other_file_formats() {
     let signer=Signer::Official{key_id:"c1".into()};
     assert!(sign::resolve(&signer).is_err());
     assert_eq!(official_keys::coupon("c1").is_ok(),cfg!(feature="developer"));
+    use base64::Engine;
+    let vector:serde_json::Value=serde_json::from_str(include_str!("../../../../cloudflare/peta-admin/test/coupon-vector.json")).unwrap();
+    let bytes=base64::engine::general_purpose::STANDARD.decode(vector["event"].as_str().unwrap()).unwrap();
+    assert_eq!(events::decode(&bytes).is_ok(),cfg!(feature="developer"));
 }

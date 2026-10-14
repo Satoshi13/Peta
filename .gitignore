@@ -14,3 +14,6 @@ __pycache__/
 *.key
 *.pem
 *.secret
+
+# Local shared dependency link for admin development.
+/cloudflare/peta-admin/node_modules

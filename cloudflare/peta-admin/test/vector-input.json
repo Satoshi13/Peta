@@ -1,0 +1,10 @@
+{
+  "eventId": "cpn-contract-202610140000", "issuedAt": "2026-10-14T00:00:00Z",
+  "notBefore": "2026-10-14T00:00:00Z", "notAfter": "2026-11-01T00:00:00Z",
+  "title": "From Peta", "message": "A little paper for you.",
+  "items": [
+    {"kind":"scraps","id":"","count":50}, {"kind":"envelope","id":"","count":1},
+    {"kind":"material","id":"kraft","count":2}, {"kind":"tool","id":"link-tag","count":3},
+    {"kind":"tool","id":"board","count":1}, {"kind":"pack","id":"cats","count":1}
+  ]
+}

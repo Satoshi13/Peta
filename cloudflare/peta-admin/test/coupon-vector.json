@@ -1,0 +1,135 @@
+{
+  "note": "Public RFC 8032 test vector, never a production key.",
+  "keyId": "c1",
+  "publicKey": "11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+  "event": "UEVUQUVWTlQBAAACFHsiZXZlbnRJZCI6ImNwbi1jb250cmFjdC0yMDI2MTAxNDAwMDAiLCJraW5kIjoiYnVuZGxlIiwiaXNzdWVkQXQiOiIyMDI2LTEwLTE0VDAwOjAwOjAwWiIsIm5vdEJlZm9yZSI6IjIwMjYtMTAtMTRUMDA6MDA6MDBaIiwibm90QWZ0ZXIiOiIyMDI2LTExLTAxVDAwOjAwOjAwWiIsInRpdGxlIjoiRnJvbSBQZXRhIiwibWVzc2FnZSI6IkEgbGl0dGxlIHBhcGVyIGZvciB5b3UuIiwicGF5bG9hZCI6eyJpdGVtcyI6W3siY291bnQiOjUwLCJpZCI6IiIsImtpbmQiOiJzY3JhcHMifSx7ImNvdW50IjoxLCJpZCI6IiIsImtpbmQiOiJlbnZlbG9wZSJ9LHsiY291bnQiOjIsImlkIjoia3JhZnQiLCJraW5kIjoibWF0ZXJpYWwifSx7ImNvdW50IjozLCJpZCI6ImxpbmstdGFnIiwia2luZCI6InRvb2wifSx7ImNvdW50IjoxLCJpZCI6ImJvYXJkIiwia2luZCI6InRvb2wifSx7ImNvdW50IjoxLCJpZCI6ImNhdHMiLCJraW5kIjoicGFjayJ9XX0sInNpZ25lciI6eyJraW5kIjoib2ZmaWNpYWwiLCJrZXlJZCI6ImMxIn0sImF0dGFjaG1lbnRzIjpbXX1i0flLpPtXup9soxc5Ck9wk3d2TvFsTC+Uc9Vm5khfhJd5kosP4IQ0kjLrgMeUwAgtx1MNXUhF7AtMM+C/6VgA",
+  "items": [
+    {
+      "count": 50,
+      "id": "",
+      "kind": "scraps"
+    },
+    {
+      "count": 1,
+      "id": "",
+      "kind": "envelope"
+    },
+    {
+      "count": 2,
+      "id": "kraft",
+      "kind": "material"
+    },
+    {
+      "count": 3,
+      "id": "link-tag",
+      "kind": "tool"
+    },
+    {
+      "count": 1,
+      "id": "board",
+      "kind": "tool"
+    },
+    {
+      "count": 1,
+      "id": "cats",
+      "kind": "pack"
+    }
+  ],
+  "caps": [
+    {
+      "kind": "scraps",
+      "id": "",
+      "cap": 1000
+    },
+    {
+      "kind": "envelope",
+      "id": "",
+      "cap": 3
+    },
+    {
+      "kind": "material",
+      "id": "kraft",
+      "cap": 50
+    },
+    {
+      "kind": "material",
+      "id": "holographic",
+      "cap": 50
+    },
+    {
+      "kind": "material",
+      "id": "gold",
+      "cap": 50
+    },
+    {
+      "kind": "material",
+      "id": "riso",
+      "cap": 50
+    },
+    {
+      "kind": "material",
+      "id": "vintage",
+      "cap": 50
+    },
+    {
+      "kind": "material",
+      "id": "clear",
+      "cap": 50
+    },
+    {
+      "kind": "material",
+      "id": "pixel",
+      "cap": 50
+    },
+    {
+      "kind": "material",
+      "id": "washi",
+      "cap": 50
+    },
+    {
+      "kind": "material",
+      "id": "sakura",
+      "cap": 50
+    },
+    {
+      "kind": "tool",
+      "id": "link-tag",
+      "cap": 20
+    },
+    {
+      "kind": "tool",
+      "id": "board",
+      "cap": 12
+    },
+    {
+      "kind": "pack",
+      "id": "tokyo",
+      "cap": 5
+    },
+    {
+      "kind": "pack",
+      "id": "coffee",
+      "cap": 5
+    },
+    {
+      "kind": "pack",
+      "id": "plants",
+      "cap": 5
+    },
+    {
+      "kind": "pack",
+      "id": "pixel",
+      "cap": 5
+    },
+    {
+      "kind": "pack",
+      "id": "cats",
+      "cap": 5
+    },
+    {
+      "kind": "pack",
+      "id": "night",
+      "cap": 5
+    }
+  ]
+}

@@ -202,15 +202,41 @@ pub fn from_code(value:&str)->Result<Verified> {from_code_with(value,sign::resol
         let valid=event("coupon-test","bundle",serde_json::json!({"items":[{"kind":"scraps","count":50}]}));
         let v=decode(&coupon_file(valid.clone())).unwrap();
         assert!(apply_event(&mut lib,&v,"coupon",time()).unwrap().result.contains("50 Scraps"));
-        for kind in ["grant_pack","grant_sticker","extra_envelope","revoke"] {
+        for kind in ["grant_pack","grant_sticker","extra_envelope","grant_material","revoke"] {
             let mut e=valid.clone();e.kind=kind.into();
             assert_eq!(decode(&coupon_file(e)).err().unwrap().to_string(),"This coupon key can only give bundles.");
         }
         let mut e=valid.clone();e.attachments.push(Attachment{key:"picture".into(),png_len:1,mask_len:0});
         assert_eq!(decode(&coupon_file(e)).err().unwrap().to_string(),"This coupon key can only give bundles.");
+        let mut body_event=valid.clone();body_event.signer=Signer::Official{key_id:"c1".into()};
+        assert_eq!(decode(&encode(&body_event,b"x",&coupon_key()).unwrap()).err().unwrap().to_string(),"This coupon key can only give bundles.");
         let over=event("coupon-over","bundle",serde_json::json!({"items":[{"kind":"scraps","count":1001}]}));
         let v=decode(&coupon_file(over)).unwrap();
         assert!(apply_event(&mut lib,&v,"coupon",time()).is_err());
+    }
+    #[test]
+    fn worker_coupon_contract_decodes_applies_and_matches_rust_framing_and_caps() {
+        use base64::Engine;
+        let vector:serde_json::Value=serde_json::from_str(include_str!("../../../../cloudflare/peta-admin/test/coupon-vector.json")).unwrap();
+        let bytes=base64::engine::general_purpose::STANDARD.decode(vector["event"].as_str().unwrap()).unwrap();
+        assert_eq!(sign::public_key(&coupon_key()),vector["publicKey"].as_str().unwrap());
+        let v=decode(&bytes).unwrap();
+        assert_eq!(v.header().payload["items"],vector["items"]);
+        assert_eq!(encode(v.header(),&[],&coupon_key()).unwrap(),bytes);
+        let mut lib=lib();let balance=lib.db().scrap_status().unwrap().balance;
+        let t=DateTime::parse_from_rfc3339("2026-10-15T00:00:00Z").unwrap().with_timezone(&Utc);
+        let receipt=apply_event(&mut lib,&v,"coupon",t).unwrap();
+        assert!(receipt.result.contains("50 Scraps"));assert_eq!(lib.db().scrap_status().unwrap().balance,balance+50);
+        assert_eq!(lib.db().material_count("kraft").unwrap(),2);
+        assert!(apply_event(&mut lib,&v,"coupon",t).is_err());
+        use crate::scraps::{Grant,GrantKind,grant_cap};
+        let caps=vector["caps"].as_array().unwrap();
+        assert_eq!(caps.len(),19);
+        for cap in caps {
+            let grant:Grant=serde_json::from_value(serde_json::json!({"kind":cap["kind"],"id":cap["id"],"count":1})).unwrap();
+            assert_eq!(grant_cap(grant.kind,&grant.id),cap["cap"].as_i64());
+        }
+        assert_eq!(grant_cap(GrantKind::Material,"matte"),None);
     }
     #[test]
     fn a_bundle_gives_everything_once_and_stops_at_what_fits(){

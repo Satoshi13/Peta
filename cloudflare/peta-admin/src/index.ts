@@ -1,3 +1,5 @@
+import { Problem, fail } from "./validation";
+export { Problem, fail } from "./validation";
 import { accessEmail, fetchKeys, type AccessConfig, type KeySource } from "../../shared/access";
 import { emailHash } from "../../shared/identity";
 
@@ -38,10 +40,6 @@ function secure(response: Response): Response {
   return new Response(response.body, { status: response.status, headers });
 }
 export const api = (data: unknown, status = 200) => Response.json(data, { status });
-export class Problem extends Error {
-  constructor(public status: number, public code: string, message: string) { super(message); }
-}
-export function fail(status: number, code: string, message: string): never { throw new Problem(status, code, message); }
 export function audit(db: D1Database, actor: string, action: string, detail: Record<string, unknown> = {}) {
   // Call sites pass only explicitly chosen hashes, names, statuses and provider numeric error codes.
   return db.prepare("INSERT INTO admin_log(at,action,detail) VALUES(?,?,?)").bind(now(), action, JSON.stringify({ actor, ...detail }));
