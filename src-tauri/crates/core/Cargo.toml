@@ -25,6 +25,8 @@ argon2 = "0.5"
 chacha20poly1305 = "0.10"
 rand_core = { version = "0.6", features = ["getrandom"] }
 
+# Apple Vision (segment.rs). macOS only, so the core library and its tests also build on Linux CI.
+[target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
 objc2-core-foundation = { version = "0.3.2", default-features = false, features = ["std", "CFData", "CFString"] }
 objc2-core-graphics = { version = "0.3.2", default-features = false, features = ["std", "CGColorSpace", "CGDataProvider", "CGImage", "objc2"] }

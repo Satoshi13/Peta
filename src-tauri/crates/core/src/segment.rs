@@ -27,6 +27,13 @@ pub fn foreground_mask(image: &RgbaImage) -> Result<GrayImage> {
 }
 fn no_subject() -> Error { Error::Model("Nothing was cut out. Try another picture.".into()) }
 
+#[cfg(not(target_os = "macos"))]
+mod native {
+    use super::*;
+    pub(super) fn mask(_input: &RgbaImage) -> Result<GrayImage> { Err(Error::Model("Cutting out needs macOS 14 or later.".into())) }
+}
+
+#[cfg(target_os = "macos")]
 mod native {
     use super::*;
     use objc2::{rc::autoreleasepool, AnyThread};

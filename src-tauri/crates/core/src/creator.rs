@@ -488,6 +488,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(target_os = "macos"), ignore = "needs Apple Vision")]
     fn vision_finds_the_cat_in_a_busy_photo() {
         let (jpeg, truth, (w, h)) = cat_on_background();
         let session = Session::new(&jpeg, Some(&segmenter())).unwrap();
@@ -506,6 +507,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(target_os = "macos"), ignore = "needs Apple Vision")]
     fn vision_mask_is_bounded_repeatable_and_uses_exif_orientation() {
         let (jpeg, _, (w, h)) = cat_on_background();
         let (image, _) = decode_oriented(&jpeg).unwrap();
@@ -532,6 +534,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(not(target_os = "macos"), ignore = "needs Apple Vision")]
     fn cutout_adjust_and_brush_edits_change_the_result() {
         let (jpeg, _, _) = cat_on_background();
         let mut session = Session::new(&jpeg, Some(&segmenter())).unwrap();

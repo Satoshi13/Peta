@@ -45,7 +45,10 @@ pub(crate) fn recover(root:&Path,db:&Database)->Result<()> {
     #[test] fn journal_failure_does_not_leave_a_temp_file_or_touch_the_target() {
         use std::os::unix::fs::PermissionsExt;
         let root=std::env::temp_dir().join(crate::ids::new_gift_id());let dir=root.join("exports");fs::create_dir_all(&dir).unwrap();let target=root.join("pack.peta");fs::write(&target,b"previous").unwrap();
-        fs::set_permissions(&dir,fs::Permissions::from_mode(0o500)).unwrap();let result=Export::publish(&root,&target,b"new","failure");fs::set_permissions(&dir,fs::Permissions::from_mode(0o700)).unwrap();
+        fs::set_permissions(&dir,fs::Permissions::from_mode(0o500)).unwrap();
+        // Root (some CI containers) writes through read-only folders, so the failure cannot be staged there.
+        if fs::write(dir.join(".probe"),b"").is_ok() {fs::set_permissions(&dir,fs::Permissions::from_mode(0o700)).unwrap();fs::remove_dir_all(root).unwrap();return;}
+        let result=Export::publish(&root,&target,b"new","failure");fs::set_permissions(&dir,fs::Permissions::from_mode(0o700)).unwrap();
         assert!(result.is_err());assert_eq!(fs::read(&target).unwrap(),b"previous");
         assert_eq!(fs::read_dir(&root).unwrap().count(),2);assert_eq!(fs::read_dir(dir).unwrap().count(),0);fs::remove_dir_all(root).unwrap();
     }
