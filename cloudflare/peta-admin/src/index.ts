@@ -1,3 +1,4 @@
+import { daily } from "./daily";
 import { release } from "./release";
 import { friends, type Fetch } from "./friends";
 import { coupons } from "./coupons";
@@ -68,7 +69,7 @@ export async function handle(request: Request, env: Env, keys: KeySource = fetch
         try { data = JSON.parse(raw); } catch { fail(400, "invalid", "Check the form and try again."); }
       } else if (request.method !== "GET") fail(405, "method_not_allowed", "This action is not available.");
       const actor = await emailHash(email);
-      const route = async () => await coupons(request, env, url.pathname, actor, data) ?? await friends(request, env, url.pathname, actor, data, transport) ?? api({ error: "not_found" }, 404);
+      const route = async () => await daily(request,env,url.pathname,actor,data) ?? await coupons(request, env, url.pathname, actor, data) ?? await friends(request, env, url.pathname, actor, data, transport) ?? api({ error: "not_found" }, 404);
       return secure(request.method === "POST" ? await mutate(env, route) : await route());
     }
     if (request.method !== "GET" && request.method !== "HEAD") return secure(new Response(null, { status: 405 }));
