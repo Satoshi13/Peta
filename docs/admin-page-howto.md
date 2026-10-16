@@ -154,4 +154,57 @@
 
 ## Daily
 
-素材の通常表と期間限定イベントは[毎日の素材の使い方](daily-table-howto.md)を参照してください。素材の新規実装は[新しい素材を追加する手順](new-material-howto.md)。クーポン鍵の権限はbundleとdaily_tableだけです。
+素材の通常表と期間限定イベントは[毎日の素材の使い方](daily-table-howto.md)を参照してください。素材の新規実装は[新しい素材を追加する手順](new-material-howto.md)。クーポン鍵の権限はbundle・daily_table・announcement・shop_configだけです(それ以外は拒否)。
+
+## 第2弾: Reports / News / Shop / Market(2026-10-16)
+
+指示書は [codex-admin-round2-prompt.md](codex-admin-round2-prompt.md)、実装の報告は [admin-round2-report.md](admin-round2-report.md)。
+
+### 反映の準備(オーナー)
+
+1. D1 に `0010_signed_configs.sql` を適用する(`signed_configs` 表を足すだけ。既存の表は変えない。指示書の「0009」は更新用に使用済みだったため 0010)。
+
+   ```bash
+   cd cloudflare/peta-api
+   npx wrangler d1 migrations apply peta-dev --env dev --remote
+   npx wrangler d1 migrations apply peta-prod --env prod --remote
+   ```
+
+2. `peta-admin` を再デプロイする(`npm run deploy:dev` → 確認 → `npm run deploy:prod`)。`wrangler.jsonc` に R2 `peta-reports-<env>` を `REPORTS` として足してある(管理ページは読むだけ。消すのは `peta-api` の日次 Cron)。
+3. `peta-api` は dev だけ再デプロイしてよい。**prod は配布の日にまとめて**。prod が古いままでも、アプリは `/v1/config` が 404 なら従来の `/v1/daily-table` を読む(お知らせとショップ設定はその間届かない)。
+4. お知らせの Discord リンクを使うには、`src-tauri/src/daily_supply.rs` の `link_url` の `NoticeLink::Discord => None` を招待 URL(`https://discord.gg/…`)に置き換えた版のアプリを配る。それまで Discord を選んだお知らせはリンクなしで出る。ダウンロードページのリンクは版ごとに埋め込み済み(Developer は dev、それ以外は prod)。
+
+### Reports(通報)
+
+- タブの赤い数字は未対応の件数。一覧は未対応が上、次に新しい順。送り手・通報者は**鍵ハッシュの先頭8文字**だけ(サーバーに名前はない)。「Sender … · N reports」は同じ送り手への通報の合計。
+- **View contents** で R2 の `reports/<ID>.json` を読み、Gift の絵とメモ(またはマーケットの出品のカードの絵とパックの絵・文)を出す。絵は PNG だけを `blob:` の画像として表示し、文字はすべてプレーンテキスト。ダウンロードのボタンはない。中身が消えている(対応後30日の削除)・アップロードが途中で終わった通報は、その旨を表示する。
+- 操作はすべて確認つきで `admin_log` に残る(`report.resolved` / `report.sender_blocked` / `report.sender_unblocked`。送り手は64桁の鍵ハッシュで記録)。
+
+**対応の流れ**
+
+1. Discord の Webhook で「新しい通報(ID)」を知る(件数と ID だけ。今までどおり)。
+2. 管理ページの Reports で該当 ID を開き、View contents で中身と理由を見る。通報は本人の同意で送られたもので、内容の真偽はサーバーでは確かめていない。通報だけで処分を決めない。
+3. 問題がなければ **Resolve**。日次 Cron が30日後に中身と行を消す。
+4. 送り手を止めるときは **Block sender**。理由を書き、「この送り手の未対応の通報もまとめて対応済みにする」を選べる。止めた鍵は `peta-api` の認証後の API 全般で `403 blocked` になる(配達済みの物は戻らない。新しい鍵での再参加は止められない)。
+5. 誤りなら Blocked senders の **Unblock**。先頭8文字が同じ鍵が2つあるときは画面からは外せないので、[server-howto.md](server-howto.md) の Wrangler の手順で外す。
+6. 出品そのものを閉じる必要があるときは、従来どおり [server-howto.md](server-howto.md) の「出品を止める」の手順。
+
+### News(アプリ内のお知らせ)
+
+- 本文(英語、1行、140字まで)、種類(Info / Event / Maintenance)、リンク(なし / ダウンロードページ / Discord の招待。自由な URL は入れられない)、開始・終了(端末の時間帯で入力、最長1年)。「How it looks」は友達のアプリと同じくプレーンテキストで表示する。
+- 保存するとクーポン鍵で `announcement` に署名して `signed_configs` に入れる。同時に有効・予定にできるのは10件まで。**Stop** で止める。
+- アプリ(server 入りの版)は6時間に1回 `/v1/config` を読み、期間中で閉じていないもののうち**開始が一番新しい1件**を Today の上に帯で出す。友達が×で閉じると、その Mac では同じお知らせは二度と出ない。止めたお知らせは次の確認で消える。offline 版にはない。
+- アプリ側にも同じ上限(種類・リンクの2択・140字・1行・期間)があり、外れたお知らせは丸ごと無視する。
+
+### Shop(Market の Featured と公式パック)
+
+- Market の Featured は**各 Mac の中だけで**決まる: 見られる友達の出品(自分のでない・売り切れでない・知っている友達・カードが開けた・オンライン)があればランダムに1つ、なければここで選んだ公式パック(複数ならランダム、何も選ばなければ Tokyo Pack)、売っていない・袋がいっぱいのものは除き、どちらもなければ Featured の枠ごと出ない。Market を開くたびに選び直し、開いている間は変わらない。友達の出品の情報は管理ページにもサーバーにも来ない。
+- **Official first** を付けると、期間中は公式パックが友達の出品より先になる(新しい公式パックを出した週など)。
+- **New and popular の並び**(↑↓)、各パックの **On sale**、**値段**(Scraps)、**Market の一行**(英語、120字まで)。値段は組み込みの値段の **50%〜200%**(例: Pixel Dream 12 → 6〜24)。**無料のパック(Tokyo / Coffee / Houseplants)には値段を付けられない**。On sale を外すと、そのパックの交換も無料の Get もできなくなり、New and popular からも消える(持っている人の Packs の棚はそのまま)。
+- **Standing setting** は今の設定を置き換える(内部では400日の期限で署名。400日たつと組み込みのショップに戻るので、それまでに一度保存し直す)。**For a period** は期間中だけ Standing より優先する。
+- アプリは同じ上限を検査し、外れた設定は丸ごと無視する(部分的に直して使わない)。表示される値段と実際に引かれる Scraps は同じ関数から出る(`scraps::pack_offer`)。
+
+### Market(見るだけ)
+
+- 公開中の出品数、出品している友達の数、30日の引かれた回数と使われた Scraps、売り手に入った取り分(全期間と30日)。日ごとの棒グラフ2つ(回数 / Scraps)と表。日付は UTC。
+- 集計だけを返す。誰が・何を・いくつ、鍵ハッシュ、出品 ID は出さない。公式ショップの交換は各 Mac の中だけなので出ない。
