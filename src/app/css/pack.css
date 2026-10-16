@@ -38,7 +38,7 @@
 .ev-note small { font: 11px var(--sys); letter-spacing: .12em; text-transform: uppercase; opacity: .6; } .ev-note b { font: 600 26px var(--hand); } .ev-note span { font: 14px var(--hand); opacity: .85; }
 .wax { position: absolute; z-index: 8; translate: -50% -50%; aspect-ratio: 1; filter: drop-shadow(1px 2px 2px rgba(60, 10, 5, .35)); }
 .wax img { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; } .wax:not(.cracked):hover { animation: wiggle .5s ease-in-out infinite; }
-.wax:not(.cracked)::after { content: ""; position: absolute; inset: -30%; border-radius: 50%; border: 2px solid rgba(216, 69, 58, .5); animation: ring 1.6s ease-out infinite; pointer-events: none; }
+.wax:not(.cracked)::after { content: ""; position: absolute; inset: -30%; border-radius: 50%; border: 2px solid rgba(216, 69, 58, .5); animation: ring 1.6s ease-out 2 both; pointer-events: none; }
 @keyframes ring { from { transform: scale(.7); opacity: 1; } to { transform: scale(1.3); opacity: 0; } }
 .wax .w-l, .wax .w-r { opacity: 0; } .wax.cracked .w-l, .wax.cracked .w-r { opacity: 1; } .wax.one { aspect-ratio: 1; }
 .env-wrap.send .slide-stk { position: absolute; left: 50%; top: 32%; translate: -50% -50%; z-index: 2; }
@@ -54,7 +54,7 @@
 .print-sheet { position: relative; aspect-ratio: 2 / 3; background: var(--a-sheet) center / 100% 100% no-repeat; filter: drop-shadow(3px 6px 12px rgba(0, 0, 0, .2)); pointer-events: none; }
 .print-sheet .sheet-stk { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: grid; place-items: center; }
 .print-sheet.ready .stk { pointer-events: auto; cursor: grab; } .print-sheet.ready .stk img { pointer-events: auto; }
-.print-sheet.ready .stk { animation: ready-bob 2.4s ease-in-out infinite; } .print-sheet.grabbing .stk { animation: none; }
+.print-sheet.ready .stk { animation: ready-bob 2.4s ease-in-out 2; } .print-sheet.grabbing .stk { animation: none; }
 @keyframes ready-bob { 50% { transform: translateY(-3px) rotate(.6deg); } }
 .print-slot { position: absolute; top: 28px; left: 50%; translate: -50% 0; width: min(520px, 54vw); height: 8px; z-index: 2; pointer-events: none; }
 .slot-bar { position: absolute; inset: 0; background: var(--a-slot) center / 100% 100% no-repeat; }
