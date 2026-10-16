@@ -1,4 +1,5 @@
 import { daily } from "./daily";
+import { reports } from "./reports";
 import { release } from "./release";
 import { friends, type Fetch } from "./friends";
 import { coupons } from "./coupons";
@@ -13,6 +14,8 @@ export interface Env extends AccessConfig {
   ASSETS: Fetcher;
   DB: D1Database;
   RELEASES: R2Bucket;
+  /** Consented reports, read and deleted only by their own retention sweep in peta-api. */
+  REPORTS: R2Bucket;
   CF_API_TOKEN?: string;
   CF_ACCOUNT_ID?: string;
   ACCESS_FRIENDS_POLICY_ID?: string;
@@ -33,7 +36,7 @@ export function owners(env: Env): string[] | null {
   return parts.length > 0 && parts.length <= 200 && emails.every(Boolean) ? [...new Set(emails as string[])] : null;
 }
 const SECURITY = {
-  "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+  "Content-Security-Policy": "default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
   "X-Robots-Tag": "noindex, nofollow",
   "Referrer-Policy": "no-referrer",
   "X-Content-Type-Options": "nosniff",
@@ -69,7 +72,7 @@ export async function handle(request: Request, env: Env, keys: KeySource = fetch
         try { data = JSON.parse(raw); } catch { fail(400, "invalid", "Check the form and try again."); }
       } else if (request.method !== "GET") fail(405, "method_not_allowed", "This action is not available.");
       const actor = await emailHash(email);
-      const route = async () => await daily(request,env,url.pathname,actor,data) ?? await coupons(request, env, url.pathname, actor, data) ?? await friends(request, env, url.pathname, actor, data, transport) ?? api({ error: "not_found" }, 404);
+      const route = async () => await reports(request, env, url.pathname, actor, data) ?? await daily(request,env,url.pathname,actor,data) ?? await coupons(request, env, url.pathname, actor, data) ?? await friends(request, env, url.pathname, actor, data, transport) ?? api({ error: "not_found" }, 404);
       return secure(request.method === "POST" ? await mutate(env, route) : await route());
     }
     if (request.method !== "GET" && request.method !== "HEAD") return secure(new Response(null, { status: 405 }));
