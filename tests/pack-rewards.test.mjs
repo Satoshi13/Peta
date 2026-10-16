@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 
 // Exercise the production ceremony through its tear callback; no native IPC or animations.
 function fixture({remaining=0,credits=1,fail=false,daily=true,metadataFails=false,reloadFails=false,fillFails=false,printFails=false,previewFails=false,pendingOpen=null}={}) {
-  const calls=[],toasts=[];let tear,pull,reveal,closed=false,overlays=0;
+  const calls=[],toasts=[],refreshes=[];let tear,pull,reveal,closed=false,overlays=0;
   const pack={id:'welcome',title:'Welcome Pack',daily,left:Array(remaining).fill(null),freeOpenings:credits};
   const element=()=>({style:{},classList:{add(){}},getBoundingClientRect:()=>({left:0,top:0,width:100}),append(){}});
   const rig={PW:200,PH:260,cutY:40,focus(){},pullable:(_el,{onPull})=>{pull=onPull;},linger(){},done:false};
@@ -17,7 +17,7 @@ function fixture({remaining=0,credits=1,fail=false,daily=true,metadataFails=fals
     h:element,img(){},PackLabel:()=>({}),S:{packs:[pack],packAvailable:true},
     buildRig:(_cer,_stage,options)=>{tear=options.onTear;return rig;},
     Bridge:{busy:false,invoke:async(cmd,args)=>{calls.push({cmd,args:{...args}});if(fail)throw Error('retry');return pendingOpen || {stickerId:'bonus',remaining};},packEntry:async()=>{if(metadataFails)throw Error('metadata');return {id:'bonus',title:'Sticker'};},reload:async()=>{if(reloadFails)throw Error('refresh');},printAction:async(cmd,args)=>{calls.push({cmd,args:{...args}});if(printFails)throw Error('print');}},
-    Shell:{error:s=>toasts.push(String(s)),renderNav(){},refresh(){},toast:s=>toasts.push(s)},Desktop:{print:async()=>{}},anim:async()=>{},fix(){},EASE:{out:'ease-out'},pack,
+    Shell:{error:s=>toasts.push(String(s)),renderNav(){},refresh:o=>refreshes.push(o||{}),toast:s=>toasts.push(s)},Desktop:{print:async()=>{}},anim:async()=>{},fix(){},EASE:{out:'ease-out'},pack,
     packSheet:()=>({slot:element(),place(){},fill:async()=>{if(fillFails)throw Error('decode');}}),
     peelAndReveal:async options=>{if(previewFails)throw Error('decode');reveal=options;},
   });
@@ -27,7 +27,7 @@ function fixture({remaining=0,credits=1,fail=false,daily=true,metadataFails=fals
   assert.ok(begin>=0 && end>begin,'production pack ceremony boundaries must be present');
   vm.runInContext(source.slice(source.indexOf('async function closeCommittedPreview'),source.indexOf('const Cer =')),context);
   vm.runInContext(source.slice(begin,end),context);
-  return {pack,calls,toasts,context,open:free=>vm.runInContext(`openPack(pack,{free:${free}})`,context),tear:()=>{rig.done=true;return tear(rig);},pull:()=>pull(),keep:()=>reveal.onKeep(),escape:()=>cer.root._esc(),get closed(){return closed;},get overlays(){return overlays;}};
+  return {pack,calls,toasts,refreshes,context,open:free=>vm.runInContext(`openPack(pack,{free:${free}})`,context),tear:()=>{rig.done=true;return tear(rig);},pull:()=>pull(),keep:()=>reveal.onKeep(),escape:()=>cer.root._esc(),get closed(){return closed;},get overlays(){return overlays;}};
 }
 
 test('a free opening works on an empty Welcome pack and spends nothing before the tear',async()=>{
@@ -76,4 +76,11 @@ test('Escape while the opening command is pending waits for an entry',async()=>{
   let resolve;const pendingOpen=new Promise(r=>resolve=r);const f=fixture({pendingOpen});await f.open(true);
   const opening=f.tear();assert.doesNotThrow(()=>f.escape());assert.equal(f.closed,false);
   resolve({stickerId:'bonus',remaining:0});await opening;await f.escape();assert.equal(f.closed,true);
+});
+
+test('the shelf behind is rebuilt while the ceremony covers it, and not again when it closes',async()=>{
+  const f=fixture({remaining:3});await f.open(true);await f.tear();
+  assert.equal(JSON.stringify(f.refreshes),JSON.stringify([{quiet:true}]));                   // after the commit, before the sheet is even pulled out
+  await f.pull();await f.keep();
+  assert.equal(JSON.stringify(f.refreshes),JSON.stringify([{quiet:true},{ifStale:true}]));  // closing only rebuilds if something changed since
 });

@@ -52,6 +52,8 @@ async function boot() {
     if(S.page==="settings") Shell.refresh();
     if(welcome!=null) Scraps.note(`A welcome gift: ${welcome} Scraps.`); requestAnimationFrame(() => requestAnimationFrame(() => Vibrancy.sync()));if(page==='redeem') Distribution.redeem();if(S.packOffer)Distribution.offer(S.packOffer);
     Friends.linksReady = true;
+    // what the other pages show is fetched while nothing else is happening, so opening them later shows it at once
+    setTimeout(() => { Pages.book.warm?.(); for (const p of S.packs) if (PackArt.decorated(p)) PackArt.cover(p); }, 1500);
     await Friends.openPendingLinks();
   };
   try { await finish(); } catch(error) { Shell.error(error, {retry:finish}); }

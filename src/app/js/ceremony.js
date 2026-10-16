@@ -769,7 +769,7 @@ const Cer = (() => {
       try { Bridge.busy = true; id=await Bridge.invoke("gift_open", {giftId:gift.id}); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.error(e); return; }
       gift.opened=true;const savedGift=S.gifts.find(g=>g.id===gift.id);if(savedGift)savedGift.opened=true;
-      try {entry=await Bridge.entry(id);await Bridge.reload();}
+      try {entry=await Bridge.entry(id);await Bridge.reload();Shell.refresh({quiet:true});}
       catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; find it in your Collection.');return;}
       let pulled = false, rustle=Snd.paperMotion(); const base = sleeve.style.transform;
       drag(sleeve, {
@@ -788,8 +788,8 @@ const Cer = (() => {
         catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; find it in your Collection.');}
       }
     };
-    const keep = async () => { if(settling)return;settling=true;Bridge.busy=false;await cer.close();Shell.refresh();try {await Desktop.print(entry);Shell.toast("A gift from " + gift.from + ".");} catch {Shell.toast('Gift saved. Stick it from your Collection whenever you like.');} };
-    const later = async () => { if(settling)return;settling=true;try {await Bridge.invoke("print_later");} catch {await closeCommittedPreview(cer,'Gift saved. Stick it from your Collection whenever you like.');return;}Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast("Saved in your Collection for later.");Shell.renderNav(); };
+    const keep = async () => { if(settling)return;settling=true;Bridge.busy=false;await cer.close();Shell.refresh({ifStale:true});try {await Desktop.print(entry);Shell.toast("A gift from " + gift.from + ".");} catch {Shell.toast('Gift saved. Stick it from your Collection whenever you like.');} };
+    const later = async () => { if(settling)return;settling=true;try {await Bridge.invoke("print_later");} catch {await closeCommittedPreview(cer,'Gift saved. Stick it from your Collection whenever you like.');return;}Bridge.busy=false;await cer.close();Shell.refresh({ifStale:true});Shell.toast("Saved in your Collection for later.");Shell.renderNav(); };
     wax.addEventListener("click", crack); wax.addEventListener("pointerdown", () => Snd.tap()); wax.tabIndex = 0; wax.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && crack());
     wax.style.cursor = "pointer"; cer.root._esc = () => { if (!opened) cer.close(); else if(entry)later(); };
   }
@@ -805,7 +805,7 @@ const Cer = (() => {
       catch(e) { Bridge.busy=false; await cer.close(); Shell.error(e); return; }
       pack.left=Array(opened.remaining).fill(null);if(free)pack.freeOpenings=Math.max(0,(pack.freeOpenings||0)-1);else if(pack.daily)S.packAvailable=false;
       const savedPack=S.packs.find(p=>p.id===pack.id);if(savedPack){savedPack.left=pack.left;if(free)savedPack.freeOpenings=pack.freeOpenings;}
-      try {entry=await Bridge.packEntry(opened);await Bridge.reload();Shell.renderNav();await sheet.fill(entry);}
+      try {entry=await Bridge.packEntry(opened);await Bridge.reload();Shell.renderNav();Shell.refresh({quiet:true});await sheet.fill(entry);}
       catch {await closeCommittedPreview(cer,'Opened and saved to your Collection / stock. The preview could not load.');return;}
       // the pull is committed: from here the light leaking from the mouth is the pull's own colour
       rig.light?.(entry); cer.hint("Pull the sheet out.");
@@ -827,12 +827,12 @@ const Cer = (() => {
     // "Keep in Collection" (or Esc) just closes, and nothing is left waiting at the print slot.
     const keep = async () => {
       if(settling)return;settling=true;
-      if(entry.prize) {Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast("Added to your stock.");return;}
+      if(entry.prize) {Bridge.busy=false;await cer.close();Shell.refresh({ifStale:true});Shell.toast("Added to your stock.");return;}
       try { await Bridge.printAction("daily_stick_from_collection", { stickerId: entry.id }); }
       catch {await closeCommittedPreview(cer,'Kept in your Collection. Could not place it on the desktop.');return;}
-      Bridge.busy=false;await cer.close();Shell.refresh();try {await Desktop.print(entry);Shell.toast("It's yours.");} catch {Shell.toast('Sticker saved. Stick it from your Collection whenever you like.');}
+      Bridge.busy=false;await cer.close();Shell.refresh({ifStale:true});try {await Desktop.print(entry);Shell.toast("It's yours.");} catch {Shell.toast('Sticker saved. Stick it from your Collection whenever you like.');}
     };
-    const leave = async () => { if(settling)return;settling=true;Bridge.busy=false;await cer.close();Shell.refresh();Shell.toast(entry.prize ? "Added to your stock." : "Kept in your Collection."); };
+    const leave = async () => { if(settling)return;settling=true;Bridge.busy=false;await cer.close();Shell.refresh({ifStale:true});Shell.toast(entry.prize ? "Added to your stock." : "Kept in your Collection."); };
     cer.root._esc = () => { if (!rig.done) cer.close(); else if(entry)leave(); };
     rig.focus();
   }
@@ -851,7 +851,7 @@ const Cer = (() => {
     stack.append(...sheets.map((s) => s.el).reverse());
     const got = []; let committed = false, settled = false, current = null, next = null;
     const keepIt = async () => {
-      if (settled) return; settled = true; Bridge.busy = false; await cer.close(); Shell.refresh(); Shell.renderNav();
+      if (settled) return; settled = true; Bridge.busy = false; await cer.close(); Shell.refresh({ ifStale: true }); Shell.renderNav();
       const prizes = got.filter((g) => g.entry?.prize).length, stickers = got.length - prizes;
       Shell.toast(prizes ? `${stickers} stickers in Collection · ${prizes} ${prizes === 1 ? "prize" : "prizes"} added to stock.` : `${stickers} stickers in your Collection.`);
     };
@@ -865,7 +865,7 @@ const Cer = (() => {
       }
       committed = true;
       const savedPack = S.packs.find((p) => p.id === pack.id); if (savedPack) savedPack.left = pack.left;
-      try { await Bridge.reload(); } catch {} Shell.renderNav();
+      try { await Bridge.reload(); Shell.refresh({ quiet: true }); } catch {} Shell.renderNav();   // the shelf behind is up to date before the desk lifts
       if (!got.length) { Bridge.busy = false; await cer.close(); Shell.error(failure); return; }
       if (failure) Shell.toast(`Stopped after ${got.length}. ${failure?.message || failure}`);
       for (const s of sheets.slice(got.length)) s.el.remove();

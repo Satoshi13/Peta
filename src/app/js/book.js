@@ -89,6 +89,12 @@ async function peelFromDesk(id) {
 Pages.book = {
   observer: null,
   leave() { this.observer?.disconnect(); this.observer = null; },
+  /** The newest tiles' pictures, fetched and decoded two at a time while nothing else is happening, so the Collection opens with them already in. */
+  warm(count = 48) {
+    const list = PetaMath.newestBookEntries(S.lib).slice(0, count); let i = 0;
+    const step = () => { if (i >= list.length) return; if (Bridge.busy || document.hidden) { setTimeout(step, 1500); return; } thumbOf(list[i++]).catch(() => {}).finally(() => setTimeout(step, 40)); };
+    step(); step();
+  },
   build() {
     const root = h("div.page-in.bookpage");
     const select = (e) => { BK.sel = BK.sel === e.id && BK.day === PetaMath.bookDateKey(e.date) ? null : e.id; BK.day = PetaMath.bookDateKey(e.date); BK.deleteId = null; Snd.tap(); paint(true); };

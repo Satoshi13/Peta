@@ -189,6 +189,49 @@ const Shell = (() => {
     return c;
   }
 
+  /* ---------- loading that is not seen ----------
+     A page is shown once its pictures are in: what is built is laid out first, and shown when every picture it holds has decoded and
+     nothing has been added to it for a moment (or when `cap` ms have passed, whichever is first). */
+  function settle(el, cap, stop = () => false) {
+    return new Promise(resolve => {
+      let quiet = 0, done = false;
+      const finish = () => { if (done) return; done = true; observer.disconnect(); clearTimeout(quiet); clearTimeout(limit); resolve(); };
+      const loading = () => [...el.querySelectorAll("img")].filter(i => i.src && !i.complete);
+      const check = () => {
+        if (done) return; if (stop()) return finish();
+        const waiting = loading();
+        if (waiting.length) Promise.all(waiting.map(i => i.decode().catch(() => {}))).then(arm); else arm();
+      };
+      const arm = () => { clearTimeout(quiet); quiet = setTimeout(check2, 48); };
+      const check2 = () => { if (stop() || !loading().length) finish(); else check(); };
+      const observer = new MutationObserver(arm); observer.observe(el, { subtree:true, childList:true, attributes:true, attributeFilter:["src"] });
+      const limit = setTimeout(finish, cap);
+      // nothing to wait for: shown on the next frame
+      requestAnimationFrame(() => { if (!loading().length && !done) quiet ||= setTimeout(check2, 16); });
+      check();
+    });
+  }
+  /** One-shot entrance animations (tiles sliding in) are for arriving at a page, not for the same page being rebuilt. */
+  function holdStill(el) {
+    if (typeof CSSAnimation === "undefined") return;
+    for (const a of el.getAnimations({ subtree:true })) if (a instanceof CSSAnimation && a.effect?.getComputedTiming().iterations !== Infinity) { try { a.finish(); } catch {} }
+  }
+  /* While a rebuilt page fetches its pictures, a still copy of the page as it was stays over it, so nothing blinks. */
+  let cover = null;
+  function dropCover() { cover?.remove(); cover = null; }
+  function coverWhileLoading(prev, next, vp) {
+    dropCover();
+    const sel = ".page-in,.st-scroll,.st-grid,.nav-top,[data-preserve-scroll]", from = [prev, ...prev.querySelectorAll(sel)];
+    const shot = cloneStatic(prev); shot.classList.add("page-cover"); Object.assign(shot.style, { zIndex: 6 });
+    vp.append(shot); cover = shot;
+    const to = [shot, ...shot.querySelectorAll(sel)]; from.forEach((e, i) => { if (to[i]) { to[i].scrollTop = e.scrollTop; to[i].scrollLeft = e.scrollLeft; } });
+    settle(next, 450).then(async () => {
+      if (cover !== shot) return;
+      if (!reduced()) await shot.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: "ease-out", fill: "forwards" }).finished.catch(() => {});
+      if (cover === shot) dropCover();
+    });
+  }
+
   /* ---------- transitions ---------- */
   const pageTransitions = new Set();
   function transitionAnim(el,frames,options) {
@@ -248,7 +291,13 @@ const Shell = (() => {
     try { next = build(id); }
     catch (cause) { S.page = prevId; markNav(); throw cause; }
     if(o.resetScroll)pagePositions.delete(next._scrollKey);
-    syncResources(next,id);
+    syncResources(next,id); dropCover();
+    if (previous && !win().hidden) {
+      // laid out where it will be, unseen, so its pictures are decoded before it appears (never more than a moment)
+      Object.assign(next.style, { visibility:"hidden", pointerEvents:"none" }); next.setAttribute("aria-hidden", "true"); vp.append(next); restorePagePosition(next);
+      await settle(next, 180, () => !!requested);
+      next.style.visibility = next.style.pointerEvents = ""; next.removeAttribute("aria-hidden"); next.remove();
+    }
     Pages[prevId]?.leave?.(previous);
     try {
       if (!previous || o.instant || win().hidden) {
@@ -303,23 +352,31 @@ const Shell = (() => {
     if (!navigationTask) navigationTask = drainNavigation();
     return done;
   }
-  function refresh({changes = null} = {}) {
+  /* `quiet`: rebuilt where it cannot be seen (behind a ceremony), so it settles without motion. `ifStale`: only if something changed since the page
+     was last built, which after a ceremony is usually not the case: it was rebuilt behind it. */
+  function refresh({changes = null, quiet = false, ifStale = false} = {}) {
     if (!current) return Promise.resolve();
     syncResources();
+    if (ifStale && !refreshPending && current._revision === Bridge.revision) return Promise.resolve();
     if (changes && (current._revision === Bridge.revision || !PAGE_DATA[S.page]?.some(key=>changes.has(key)))) return Promise.resolve();
     if (navigating || changes && (blockedRefresh() || editing() || !!document.querySelector("dialog[open]"))) {
       refreshPending = true;
       if (!changes) fullRefresh = true; else for (const key of changes) refreshChanges.add(key);
       return new Promise(resolve=>refreshWaiters.push(resolve));
     }
-    const saved = ViewState.capture(current);
+    const saved = ViewState.capture(current), behind = quiet || !!document.querySelector(".cer"), previous = current, vp = viewport();
     PackZoom.dispose(); Pages[S.page]?.leave?.(current);
     const next = build(S.page);
-    viewport().replaceChildren(next); current = next;
+    dropCover(); vp.replaceChildren(next); current = next;
     Pages[S.page].enter?.(next, {refresh:true});
+    if (document.body.dataset.scene === "ceremony" && S.page === "today") Pages.today.suspend();   // still under the ceremony
     ViewState.restore(next, saved); renderNav();
-    // Background updates keep their position and focus; explicit panel changes settle gently.
-    if (!changes) revealContent(next);
+    // everything that was waiting is now on the page
+    refreshPending = fullRefresh = false; refreshChanges.clear(); for (const resolve of refreshWaiters.splice(0)) resolve(true);
+    // Background updates keep their position and focus, and show once their pictures are in; explicit panel changes settle gently.
+    if (behind || changes) holdStill(next);
+    if (changes && !behind) coverWhileLoading(previous, next, vp);
+    else if (!changes && !behind) revealContent(next);
     return Promise.resolve();
   }
   function flushRefresh() {
