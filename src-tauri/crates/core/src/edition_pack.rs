@@ -426,7 +426,7 @@ pub fn header_of(db:&Database,id:&str)->Result<Option<Header>> {
     #[test] fn market_listing_rejects_non_owners_legacy_demo_and_file_only_packs() {
         let (mut mine,selection)=fixture(3,1);let bytes=export(&mut mine,&selection,&[]);let package=creator_pack::decode(&bytes).unwrap();let id=creator_pack::internal_id(&package.header).unwrap();
         assert!(set_listed(&mut mine,&id,true).is_err());assert!(set_listed(&mut mine,"missing",true).is_err());
-        mine.db_mut().pack_install("demo","Demo","Peta", &["sample".into()]).unwrap();assert!(set_listed(&mut mine,"demo",true).is_err());
+        mine.db_mut().pack_install("demo","Demo","Peta", &["sample"]).unwrap();assert!(set_listed(&mut mine,"demo",true).is_err());
         store_archived(&mut mine,&id).unwrap();
         let mut friend=lib();let foreign=install(&mut friend,&package).unwrap();friend.db().conn.execute("UPDATE pack_distributions SET status='mine'",[]).unwrap();assert!(set_listed(&mut friend,&foreign,true).is_err());
         mine.db().conn.execute("DELETE FROM edition_pack_frames WHERE pack_id=?1",[&id]).unwrap();assert!(set_listed(&mut mine,&id,true).is_err());

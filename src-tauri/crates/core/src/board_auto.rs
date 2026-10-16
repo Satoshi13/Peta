@@ -24,9 +24,7 @@ pub struct Evaluation {
 fn window(rule: &Rule, now: NaiveDateTime) -> Option<NaiveDate> {
     let (start, end) = (rule.start_min?, rule.end_min?);
     let minute = (now.hour() * 60 + now.minute()) as u16;
-    let anchor = if start < end && minute >= start && minute < end {
-        now.date()
-    } else if start > end && minute >= start {
+    let anchor = if (start < end && minute >= start && minute < end) || (start > end && minute >= start) {
         now.date()
     } else if start > end && minute < end {
         now.date().pred_opt()?

@@ -533,7 +533,7 @@ mod tests {
         let n = broken.len();
         broken[n - 40] ^= 0xFF;
         let _ = receive_gift(&mut theirs, &broken); // either refused, or a still-valid png: never a panic
-        assert_eq!(theirs.db().gifts_received().unwrap().len() <= 1, true);
+        assert!(theirs.db().gifts_received().unwrap().len() <= 1);
     }
 }
 

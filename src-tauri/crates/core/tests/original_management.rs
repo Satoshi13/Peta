@@ -85,7 +85,8 @@ fn pack_and_received_stickers_cannot_be_edited_or_deleted() {
     let pack=lib.add_from_pack(&rendered,&bytes,"png","Pack","Nao","kraft").unwrap();
     let (_,sealed)=gift::build_gift(&mut lib,&pack.id,"Me",None).unwrap();let mut other=Library::open(&dir.join("receiver")).unwrap();let incoming=gift::receive_gift(&mut other,&sealed).unwrap();let received=gift::open_gift(&mut other,&incoming.gift_id).unwrap();
     assert!(other.original_for_edit(&received.id).is_err());assert!(other.delete_original(&received.id).is_err());
-    for id in [pack.id] {
+    {
+        let id = pack.id;
         assert!(lib.original_for_edit(&id).is_err());assert!(lib.delete_original(&id).is_err());assert!(lib.db().sticker(&id).unwrap().is_some());
     }
     drop(lib);fs::remove_dir_all(dir).unwrap();

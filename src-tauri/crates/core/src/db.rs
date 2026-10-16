@@ -338,7 +338,7 @@ const BACKUPS_KEPT: usize = 3;
 /// one that is already current. A failed copy stops the upgrade: the old app can still open the old file.
 fn backup_before_upgrade(conn: &Connection, path: &Path) -> Result<()> {
     let version: i64 = conn.query_row("PRAGMA user_version", [], |r| r.get(0))?;
-    if version < 1 || version >= SCHEMA_VERSION { return Ok(()); }
+    if !(1..SCHEMA_VERSION).contains(&version) { return Ok(()); }
     let (Some(dir), Some(name)) = (path.parent(), path.file_name().and_then(|n| n.to_str())) else { return Ok(()) };
     let backups = dir.join(BACKUP_DIR);
     std::fs::create_dir_all(&backups)?;
@@ -365,7 +365,7 @@ fn prune_backups(backups: &Path, name: &str) -> Result<()> {
             Some((version, e.path()))
         })
         .collect();
-    found.sort_by(|a, b| b.0.cmp(&a.0));
+    found.sort_by_key(|f| std::cmp::Reverse(f.0));
     for (_, old) in found.into_iter().skip(BACKUPS_KEPT) { std::fs::remove_file(old)?; }
     Ok(())
 }

@@ -52,7 +52,7 @@ mod tests {
     #[test]
     fn the_rim_of_a_sticker_keeps_its_colour_and_gets_no_dark_halo() {
         // a white disc on a transparent background whose hidden colour is black (as in the app's finished stickers)
-        let src = png(256, 256, |x, y| { let d = (((x as f32 - 128.0).powi(2) + (y as f32 - 128.0).powi(2))).sqrt(); if d < 90.0 { [255, 255, 255, 255] } else { [0, 0, 0, 0] } });
+        let src = png(256, 256, |x, y| { let d = ((x as f32 - 128.0).powi(2) + (y as f32 - 128.0).powi(2)).sqrt(); if d < 90.0 { [255, 255, 255, 255] } else { [0, 0, 0, 0] } });
         let t = image::load_from_memory(&thumbnail_png(&src, 64).unwrap()).unwrap().to_rgba8();
         let mut partial = 0;
         for p in t.pixels() { if p[3] > 20 && p[3] < 235 { partial += 1; assert!(p[0] > 235, "a half-covered rim pixel went grey: {:?}", p); } }

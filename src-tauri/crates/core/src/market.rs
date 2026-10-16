@@ -336,9 +336,9 @@ pub fn install_pack(lib: &mut Library, listing_id: &str, sealed: &[u8]) -> Resul
 #[derive(Clone, Debug, PartialEq)]
 pub struct PullStart { pub pull_id: String, pub listing_id: String, pub pack_id: String, pub external_id: String, pub slot: u32, pub claim: Option<Transfer>, pub price: u32 }
 fn start_row(db: &Connection, pull_id: &str) -> Result<Option<(PullStart, String)>> {
-    Ok(db.query_row("SELECT p.pull_id,p.listing_id,p.pack_id,s.external_id,p.slot_no,p.claim,p.quoted_price,p.state FROM market_pulls p JOIN pack_distributions s ON s.pack_id=p.pack_id WHERE p.pull_id=?1",
+    db.query_row("SELECT p.pull_id,p.listing_id,p.pack_id,s.external_id,p.slot_no,p.claim,p.quoted_price,p.state FROM market_pulls p JOIN pack_distributions s ON s.pack_id=p.pack_id WHERE p.pull_id=?1",
         [pull_id], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?, r.get::<_, String>(2)?, r.get::<_, String>(3)?, r.get::<_, u32>(4)?, r.get::<_, Option<String>>(5)?, r.get::<_, u32>(6)?, r.get::<_, String>(7)?))).optional()?
-        .map(|(pull_id, listing_id, pack_id, external_id, slot, claim, price, state)| Ok::<_, Error>((PullStart { pull_id, listing_id, pack_id, external_id, slot, claim: claim.map(|c| serde_json::from_str(&c)).transpose().map_err(|_| invalid())?, price }, state))).transpose()?)
+        .map(|(pull_id, listing_id, pack_id, external_id, slot, claim, price, state)| Ok::<_, Error>((PullStart { pull_id, listing_id, pack_id, external_id, slot, claim: claim.map(|c| serde_json::from_str(&c)).transpose().map_err(|_| invalid())?, price }, state))).transpose()
 }
 pub fn pending_pulls(db: &Database) -> Result<Vec<PullStart>> {
     let ids: Vec<String> = { let mut stmt = db.conn.prepare("SELECT pull_id FROM market_pulls WHERE state='pending' ORDER BY created_at")?; let rows = stmt.query_map([], |r| r.get(0))?.collect::<std::result::Result<Vec<_>, _>>()?; rows };

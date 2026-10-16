@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "codex/**", "claude/**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: Screens (node:test + browser checks)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - name: Install Playwright's Chromium
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Real screens with isolated IPC
+        run: |
+          node scripts/check-csp.mjs
+          node scripts/check-responsive.mjs
+          node scripts/check-boards.mjs
+          node scripts/check-ui-feedback.mjs
+          node scripts/check-updater-ui.mjs
+
+  core:
+    name: Rules and storage (peta-core, peta-pass, harnesses)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: cargo test --manifest-path src-tauri/Cargo.toml --locked -p peta-core -p peta-pass
+      - run: cargo test --manifest-path src-tauri/Cargo.toml --locked -p peta-core --features developer,daily-tables
+      - run: cargo clippy --manifest-path src-tauri/Cargo.toml --locked -p peta-core -p peta-pass --all-targets -- -D warnings
+      - name: Rust harnesses (production code against a fake Tauri)
+        run: python3 scripts/test-harness.py
+
+  cloudflare:
+    name: Workers (${{ matrix.package }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [peta-api, peta-admin, peta-download]
+    defaults:
+      run:
+        working-directory: cloudflare/${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: cloudflare/${{ matrix.package }}/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - run: npm test
+
+  mac:
+    name: The app on macOS (Vision, Tauri)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Core tests including Apple Vision
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked -p peta-core
+      - name: Release app
+        run: cargo check --manifest-path src-tauri/Cargo.toml --locked
+      - name: Beta app
+        run: cargo check --manifest-path src-tauri/Cargo.toml --locked --features beta
+      - name: Developer app
+        run: cargo check --manifest-path src-tauri/Cargo.toml --locked --features developer
+      - name: App unit tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked -p peta

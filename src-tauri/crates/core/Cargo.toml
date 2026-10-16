@@ -4,6 +4,16 @@ version = "0.0.1"
 edition = "2021"
 description = "Peta core: sticker library (SQLite), image import. No UI; Apple Vision for foreground extraction."
 
+[lints.clippy]
+# Style, not defects: pixel loops index several buffers by the same position, signed records carry many fields,
+# tests build one-item slices with clone, and a few modules keep helpers below their tests.
+needless_range_loop = "allow"
+too_many_arguments = "allow"
+type_complexity = "allow"
+large_enum_variant = "allow"
+cloned_ref_to_slice_refs = "allow"
+items_after_test_module = "allow"
+
 [features]
 daily-tables = []
 developer = []

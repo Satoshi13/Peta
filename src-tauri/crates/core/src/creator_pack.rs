@@ -156,7 +156,10 @@ pub fn record_made(lib:&mut Library,h:&Header)->Result<()> {
 pub fn weighted_pick(weights:&[f64],roll:f64)->Option<usize> {
     let total:f64=weights.iter().filter(|w|**w>0.0).sum();if total<=0.0{return None;}
     let mut target=roll.clamp(0.0,0.999999)*total;
-    for (i,w) in weights.iter().enumerate(){if *w<=0.0{continue;}if target<*w{return Some(i);}target-=w;}
+    for (i,w) in weights.iter().enumerate(){if *w<=0.0{continue;}
+        if target<*w{return Some(i);}
+        target-=w;
+    }
     weights.iter().rposition(|w|*w>0.0)
 }
 /// What an item's weight is: its own, or what its legacy grade reads as.
