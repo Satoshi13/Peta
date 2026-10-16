@@ -417,7 +417,7 @@ const Cer = (() => {
       const side = (q) => (q[0] - M[0]) * n[0] + (q[1] - M[1]) * n[1];
       const rest = clip(rect, (q) => -side(q)), peeled = clip(rect, side), refl = peeled.map((q) => { const d = side(q); return [q[0] - 2 * d * n[0], q[1] - 2 * d * n[1]]; });
       sh.glass.style.clipPath = pc(rest); sh.gflap.style.clipPath = pc(refl, W, H);
-      sh.gflap.style.background = `linear-gradient(${Math.atan2(-n[1], -n[0]) * 180 / Math.PI + 90}deg, rgba(214,212,204,.95), rgba(248,248,244,.97) 35%, rgba(255,255,255,.98))`;
+      sh.gflap.style.background = `linear-gradient(${Math.atan2(-n[1], -n[0]) * 180 / Math.PI + 90}deg, rgba(228,226,219,.95), rgba(250,250,247,.97) 35%, rgba(255,255,255,.98))`;
       return area(peeled) / (W * H);
     };
     const local = (cx, cy) => { const b = sh.el.getBoundingClientRect(), kk = b.width / W; return { x: (cx - b.left) / kk, y: (cy - b.top) / kk }; };
@@ -427,11 +427,11 @@ const Cer = (() => {
     const complete = () => end ||= (async () => {
       finished = true; sh.el.removeAttribute("aria-label"); sh.el.removeAttribute("tabindex"); sh.el.classList.add("peeled");
       if (!cer.skipped) { Snd.duck(hold + 400); Haptic.tap("level"); }
-      // the cover comes away past the corner and is gone by the time the sheet is bare
-      // it ends past the far corner, so the fold line clears the whole sheet and no corner of the cover is left behind
+      // it ends past the far corner, so the fold line clears the whole sheet and no corner of the cover is left behind;
+      // the folded-back cover grows to the sheet's size on the way, so it is gone quickly before it can read as a grey board
       const from = { ...P }, to = { x: -W * 1.1, y: -H * 1.1 }; let last = 0, away = null;
-      const lose = () => away ||= cer.motion(sh.flapwrap, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translate(-30px,-60px) rotate(-8deg)" }], { duration: 380, easing: "ease-out" });
-      await tween(cer, 520 + hold * .9, (e, q) => { P = { x: lerp(from.x, to.x, e), y: lerp(from.y, to.y, e) }; paint(); if (q - last > .08) { last = q; Snd.peel(q); } if (q > .55) lose(); }, curve.inOut);
+      const lose = () => away ||= cer.motion(sh.flapwrap, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translate(-18px,-34px) rotate(-5deg) scale(.94)" }], { duration: 200, easing: "ease-in" });
+      await tween(cer, 520 + hold * .9, (e, q) => { P = { x: lerp(from.x, to.x, e), y: lerp(from.y, to.y, e) }; paint(); if (q - last > .08) { last = q; Snd.peel(q); } if (q > .45) lose(); }, curve.inOut);
       lose(); sh.glass.style.visibility = "hidden";
       resolve();
     })();

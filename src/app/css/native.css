@@ -602,6 +602,8 @@ html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
 .t-stage .make-label { margin:6px 0 0; }
 .t-hero { display:grid; grid-template-columns:minmax(0,1.04fr) minmax(0,1fr); min-height:330px; border-radius:22px; overflow:hidden; background:var(--w-surface) var(--a-pageDots) 0 0 / 256px; box-shadow:inset 0 0 0 1px var(--w-line),var(--sh2); }
 .t-slot { position:relative; display:grid; place-items:center; min-height:340px; padding:20px; } /* the same height empty and with a sticker */
+/* the last line of the card is a note before the first sticker and a button after it: one height for both, so the card does not move */
+.t-info > :is(.t-cta,.t-ready-note) { min-height:48px; margin-bottom:0; }
 .t-die { position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; }
 .t-die svg { width:min(320px,86%); height:auto; overflow:visible; }
 .t-die path { fill:rgba(60,45,20,.035); stroke:rgba(60,45,20,.38); stroke-width:2; stroke-dasharray:7 7; stroke-linecap:round; }
@@ -634,7 +636,7 @@ html[data-motion="reduce"] button.t-ghost .t-plus { transition:none; }
 .more .choice small { grid-area:sub; align-self:start; font:var(--meta); max-width:none; white-space:normal; }
 .more .choice-count { right:12px; top:10px; }
 [data-theme="night"] .t-hero { background-image:none; }
-@container page (max-width:700px) { .t-hero { grid-template-columns:minmax(0,1fr); } .t-info { padding:0 24px 22px; } .t-slot { min-height:240px; } }
+@container page (max-width:700px) { .t-hero { grid-template-columns:minmax(0,1fr); } .t-info { padding:0 24px 22px; } .t-slot { min-height:340px; } }
 
 /* Calendar as a poster: stickers sit on the page with a little overhang, rest days are quiet dashed rings. */
 .calendar-day { overflow:visible; min-height:98px; }

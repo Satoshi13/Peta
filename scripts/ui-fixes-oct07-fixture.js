@@ -32,6 +32,19 @@
       case 'link_tag_icon':return new Uint8Array();
       case 'redeem_code':if(window.reviewRedeemError)throw Error('invalid_signature: Example error');window.reviewBonus=1;return {result:'Code received.'};
       case 'window_vibrancy':return false;
+      // Status reads with nothing to report: invited, no update, no move, nothing being cut, friends' Market off, no announcement.
+      case 'invite_status':return {needed:false,offline:false};
+      case 'scrap_welcome':case 'announcement_current':case 'friend_link_take':case 'move_bootstrap_done':return null;
+      case 'inbox_status':return {enabled:false,friends:[]};
+      case 'update_status':return {enabled:false,version:'0.0.0-review',ready:null};
+      case 'daily_table_status':return {enabled:false,lastAttempt:null,lastSuccess:null,error:null};
+      case 'move_status':return false;
+      case 'about_links':return [];
+      case 'creator_info':return {phase:'idle'};
+      case 'market_friend_listings':return {enabled:false,offline:false,price:6,listings:[],mine:[]};
+      case 'sticker_thumb':return [...new Uint8Array(await (await fetch('/src/art/samples/good-day.png')).arrayBuffer())];
+      case 'sticker_back':{const e=entries.find(x=>x.stickerId===args?.stickerId);return {material:{id:e?.materialId || 'matte'},kind:'original',receivedFrom:null,originalNumber:e?.originalNumber ?? null,editionNumber:null,editionTotal:null};}
+      case 'haptic_tap':return null;
       default:throw new Error('Unexpected fixture command: '+cmd);
     }
   }}};
