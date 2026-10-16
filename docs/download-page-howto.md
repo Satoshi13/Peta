@@ -85,7 +85,7 @@
 
 ## 版を出すたびに
 
-**Apple Developer Program に登録していない間**(2026-10-15 に追加): `bash scripts/release-mac.sh beta --unsigned` で署名・公証なしの DMG を作り、`bash scripts/publish-release.sh <DMG> prod --unsigned` で置きます。アプリは ad-hoc 署名のまま、DMG は署名なし。ページは `latest.json` の `"notarized": false` を見て、「最初に開くとき(システム設定 → プライバシーとセキュリティ → このまま開く)」の案内を出します。友達は版を更新するたびにこの手順をやり直します。macOS の許可(位置情報など)を更新のたびに聞き直されることがあります。登録したら、`--unsigned` を外すだけで署名・公証つきに戻ります。
+**Apple Developer Program に登録していない間**(2026-10-15 に追加): `bash scripts/release-mac.sh beta --unsigned` で署名・公証なしの DMG を作り、`bash scripts/publish-release.sh <DMG> prod --unsigned` で置きます。アプリは ad-hoc 署名のまま、DMG は署名なし。ページは `latest.json` の `"notarized": false` を見て、「最初に開くとき(システム設定 → プライバシーとセキュリティ → このまま開く)」の案内を出します。DMGで入れ直す場合はこの手順が再び必要になることがあります。公開鍵入りベータの通常更新はアプリ内更新を使います。macOSの確認・許可の保持は[実機確認結果](updater-report.md)を参照してください。登録したら、`--unsigned` を外すだけで署名・公証つきに戻ります。
 
 
 ```bash
@@ -119,3 +119,7 @@ R2(月10GBまで無料、外への転送は無料)、Workers(1日10万リクエ�
 - DMG の窓は、Finder の表示設定で「タブバー」「パスバー」を出している Mac ではその分だけ狭く見えます(背景の上のほうと下のほうが少し隠れる)。初期設定の Finder では 768×512 の背景がぴったり収まります。
 - ページの文言は英語(Codex の見本のまま)。`cloudflare/peta-download/public/` を直してデプロイします。
 - テスト: `cd cloudflare/peta-download && npm test`(Access の署名確認・コード・DMG の配信)、`cd cloudflare/peta-api && npm test`(招待の確認)、`python3 scripts/test-release-mac.py`(署名・公証・DMG の順序。偽のツールだけ)。
+
+## 新しい版にするとき
+
+公開鍵入りの友達限定ベータでは、アプリの「Restart to update」を基本にします。SettingsのCheck for updatesから手動確認もできます。DMGは初回導入・鍵の紛失や更新失敗時の予備として残します。手順と未公証アプリの実機確認は[アプリ内アップデート](updater-howto.md)と[確認結果](updater-report.md)を参照してください。

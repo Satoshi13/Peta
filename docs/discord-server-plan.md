@@ -196,14 +196,15 @@ Peta の **Redeem Code…** に  `【名前】`  と入れてください。
 🔓 **最初に開くとき**(Apple の確認をまだ通していないベータなので、1回だけ)
 ・「開発元を検証できません」と出たら **完了** を押す
 ・**システム設定 → プライバシーとセキュリティ** を開き、下のほうの「Peta は…」の横の **このまま開く** → Mac のパスワード
-・新しい版にするたびに、もう一度この手順がいります
+・DMGで入れ直した場合は、この手順をもう一度求められることがあります。通常の更新は下のアプリ内更新を使ってください。
 
 ⚠️ ページのリンクも招待コードも、外に渡さないでください。コードは Mac 1台だけで使えます。
 
 ## 新しい版にするとき
-1. Peta を終了(メニューバーの Peta → Quit)
-2. 同じページから新しい .dmg を落として、同じように「Applications」へドラッグ(置き換え)
-→ ステッカー・友達・Scraps はそのまま。招待コードの入れ直しもいりません(「このまま開く」はもう一度)
+1. アプリに「Peta … is ready.」が出たら **Restart to update** を押します。後でよければLater。
+2. 手動で確認したいときはSettings → About Peta → Check for updates。
+→ ステッカー・友達・Scraps・招待はそのままです。更新がうまくいかないときだけ、ダウンロードページのDMGで入れ直してください。
+→ 未公証アプリの確認は配布時の実機結果に従います。DMGで入れ直すと「このまま開く」が再び必要になることがあります。
 
 ## 新しい Mac に変えたとき
 ページの「Moving to a new Mac? Get a new code」で新しいコードを出して、新しい Mac で入れてください。古い Mac は友達とつながらなくなります。
@@ -343,9 +344,9 @@ Market で見られるのは友達だけなので、まだ友達じゃない人�
 
 ### 新しい版を出すとき
 1. 直したバグのスレッドに `修正済み・次の版` を付けておく
-2. コミット済みのきれいな状態で、`tauri.conf.json` の version を上げて `bash scripts/release-mac.sh beta`(署名・公証・DMG まで。docs/distribution-howto.md)
-3. `bash scripts/publish-release.sh src-tauri/target/release/distribution/Peta-<版>.dmg prod`(確認に y で、ページが新しい版に切り替わる)
-4. 別のブラウザでページを開き、版・サイズが変わったこと、落とした .dmg が開けることを確かめる
+2. コミット済みの状態で版を上げ、暗号化ディスク上の更新鍵を指定して`bash scripts/release-mac.sh beta`（未公証なら`--unsigned`）。公開鍵入りアプリ・DMG・更新アーカイブ・署名を作る。docs/updater-howto.mdを参照。
+3. まずdevへ公開し、アプリ内更新と再起動・データ保持を確認する。DMGも初回と復旧用に確認する。
+4. 確認後、`bash scripts/publish-release.sh src-tauri/target/release/distribution/Peta-<版>.dmg prod --notes "What changed"`（未公証なら`--unsigned`も付ける。ファイルが揃ってから案内が切り替わる）
 5. `#お知らせ`(§5.2)と `#変更履歴` に書く
 6. バグのスレッドを `リリース済み` にして、報告してくれた人にひとこと
 
