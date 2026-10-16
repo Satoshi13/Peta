@@ -47,6 +47,13 @@ export async function loadDaily() {
   root.append(el('h3','Scheduled and recent tables'));
   for(const t of data.tables) {
     const card=el('article',undefined,'card');card.append(el('h3',t.title),el('p',`${t.kind==='default'?'Normal table':'Event'} · ${t.state}`),el('p',`${date(t.startsAt)} – ${date(t.endsAt)}`,'hint'));
+    const total=t.items.reduce((n,i)=>n+i.weight,0);
+    if(total>0 && t.items.every(i=>contract.materials.some(m=>m.id===i.id))) {
+      card.append(el('p',t.items.map(i=>`${contract.materials.find(m=>m.id===i.id).name} ${(i.weight/total*100).toFixed(1)}%`).join(' · ')));
+      card.append(el('p','Expected in one week: '+t.items.map(i=>`${contract.materials.find(m=>m.id===i.id).name} ${(i.weight/total*7).toFixed(2)}`).join(' · '),'hint'));
+      const scraps=t.items.reduce((n,i)=>n+i.weight/total*7*contract.materials.find(m=>m.id===i.id).dismantle,0);
+      card.append(el('p',`${scraps.toFixed(2)} Scraps if all seven sheets are dismantled.`,'hint'));
+    }
     if(['active','scheduled'].includes(t.state)){const button=el('button','Stop','subtle');button.type='button';button.onclick=()=>stop(t,button);card.append(button);}root.append(card);
   }
 }

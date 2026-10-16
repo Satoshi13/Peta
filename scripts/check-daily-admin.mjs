@@ -25,7 +25,7 @@ try {
   let saved;
   await page.route('**/api/**',async route=>{
     const path=new URL(route.request().url()).pathname;
-    const data=path==='/api/me'?{email:'owner@example.test'}:path==='/api/friends'?{friends:[],revision:'1',downloadPage:''}:path==='/api/daily' && route.request().method()==='POST'?(saved=route.request().postDataJSON(),{id:'test'}):{contract,tables:[]};
+    const data=path==='/api/me'?{email:'owner@example.test'}:path==='/api/friends'?{friends:[],revision:'1',downloadPage:''}:path==='/api/daily' && route.request().method()==='POST'?(saved=route.request().postDataJSON(),{id:'test'}):{contract,tables:[{id:'current',kind:'default',title:'Daily supply',state:'active',items:contract.fixed,startsAt:1,endsAt:2000000000,stoppedAt:null}]};
     await route.fulfill({json:data});
   });
   await page.goto(`http://127.0.0.1:${server.address().port}/cloudflare/peta-admin/public/index.html`);
