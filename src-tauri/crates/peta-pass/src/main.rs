@@ -18,6 +18,8 @@ struct Issuer {
 }
 #[derive(Subcommand)]
 enum Command {
+    /// Print the public material catalog contract for the owner page.
+    Materials,
     /// Generate a private key in a NEW 0600 file. The owner runs this outside the repository.
     Keygen {#[arg(long)] out:PathBuf},
     /// Print only the Base64 public key and fingerprint.
@@ -25,6 +27,7 @@ enum Command {
     Event {
         #[command(flatten)] issuer:Issuer,
         #[arg(long)] kind:String,
+        #[arg(long,default_value="default")] table_kind:String,
         #[arg(long)] count:Option<i64>,
         #[arg(long)] material:Option<String>,
         #[arg(long)] revoke_id:Option<String>,
@@ -68,19 +71,26 @@ fn issue(i:&Issuer,event:&Event,body:&[u8],out:Option<&Path>,as_code:bool)->Resu
 }
 fn run(cli:Cli)->Result<(),String> {
     match cli.command {
+        Command::Materials=>println!("{}",serde_json::to_string_pretty(&peta_core::daily_tables::catalog_contract()).unwrap()),
         Command::Keygen{out}=>{let key=sign::generate().map_err(|e|e.to_string())?;device_key::save_new(&out,&key).map_err(|e|e.to_string())?;println!("Private key saved. Back it up securely; never commit it.");},
         Command::Pubkey{key}=>{let key=device_key::load(&key).map_err(|e|e.to_string())?;println!("{}\nFingerprint: {}",sign::public_key(&key),sign::fingerprint(&key.verifying_key()));},
-        Command::Event{issuer,kind,count,material,revoke_id,items,png,mask,out,as_code}=>{
+        Command::Event{issuer,kind,table_kind,count,material,revoke_id,items,png,mask,out,as_code}=>{
             let mut attachments=Vec::new();let mut body=Vec::new();
             let payload=match kind.as_str(){
                 "extra_envelope"=>{let count=count.filter(|c|(1..=3).contains(c)).ok_or("Use --count 1..3.")?;serde_json::json!({"count":count})},
                 "grant_material"=>{let count=count.filter(|c|(1..=10).contains(c)).ok_or("Use --count 1..10.")?;let material=material.ok_or("Use --material.")?;if peta_core::materials::get(&material).is_none_or(|m|m.unlimited){return Err("Unknown material, or unlimited Matte.".into());}serde_json::json!({"count":count,"materialId":material})},
+                "daily_table"=>{
+                    let items=items.iter().map(|s|{let (id,w)=s.split_once('=').ok_or("Use --item matte=50.")?;Ok(peta_core::daily_tables::Item{id:id.into(),weight:w.parse().map_err(|_|"Weights are integers.")?})}).collect::<Result<Vec<_>,String>>()?;
+                    let table=peta_core::daily_tables::DailyTable{table_id:issuer.id.clone(),table_kind:match table_kind.as_str(){"event"=>peta_core::daily_tables::TableKind::Event,"default"=>peta_core::daily_tables::TableKind::Default,_=>return Err("Use --table-kind default or event.".into())},items};
+                    peta_core::daily_tables::validate(&table).map_err(|e|e.to_string())?;
+                    serde_json::to_value(table).unwrap()
+                },
                 "bundle"=>{let grants=items.iter().map(|i|grant(i)).collect::<Result<Vec<_>,_>>()?;peta_core::scraps::check_grants(&grants).map_err(|e|e.to_string())?;serde_json::json!({"items":grants})},
                 "revoke"=>{let id=revoke_id.filter(|s|events::safe_id(s)).ok_or("Use --revoke-id with a valid event ID.")?;serde_json::json!({"eventId":id})},
                 "grant_sticker"=>{let png=read(&png.ok_or("Use --png.")?,8*1024*1024)?;let mask=if let Some(path)=mask{read(&path,8*1024*1024)?}else{vec![]};attachments.push(Attachment{key:"sticker".into(),png_len:png.len(),mask_len:mask.len()});body.extend(png);body.extend(mask);serde_json::json!({})},
                 _=>return Err("Unsupported kind. Packs use grant-pack.".into()),
             };
-            let mut event=header(&issuer,&kind,payload);event.attachments=attachments;issue(&issuer,&event,&body,out.as_deref(),as_code)?;
+            let mut event=header(&issuer,&kind,payload);if kind=="daily_table" && event.not_before.is_none(){event.not_before=Some(event.issued_at.clone());}event.attachments=attachments;issue(&issuer,&event,&body,out.as_deref(),as_code)?;
         },
         Command::GrantPack{issuer,pack,dir,out}=>{
             let payload:serde_json::Value=serde_json::from_slice(&read(&pack,64*1024)?).map_err(|e|e.to_string())?;

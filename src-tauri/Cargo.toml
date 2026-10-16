@@ -10,7 +10,7 @@ members = ["crates/core", "crates/peta-pass"]
 
 [features]
 developer = ["peta-core/developer", "server"]
-server = ["dep:ureq", "dep:ed25519-dalek", "dep:base64", "dep:getrandom"]
+server = ["peta-core/daily-tables", "dep:ureq", "dep:ed25519-dalek", "dep:base64", "dep:getrandom"]
 
 [lib]
 name = "peta_lib"

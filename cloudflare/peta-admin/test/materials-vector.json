@@ -1,0 +1,94 @@
+{
+  "limits": {
+    "maxItems": 20,
+    "maxWeight": 1000,
+    "matteMinPercent": 20,
+    "limitedMaxPercent": 5
+  },
+  "fixed": [
+    {
+      "id": "matte",
+      "weight": 60
+    },
+    {
+      "id": "kraft",
+      "weight": 30
+    },
+    {
+      "id": "holographic",
+      "weight": 10
+    }
+  ],
+  "materials": [
+    {
+      "id": "matte",
+      "name": "Matte",
+      "rarity": "common",
+      "dismantle": 1,
+      "swatch": "#eee7d7"
+    },
+    {
+      "id": "kraft",
+      "name": "Kraft",
+      "rarity": "uncommon",
+      "dismantle": 1,
+      "swatch": "#bc9259"
+    },
+    {
+      "id": "holographic",
+      "name": "Holographic",
+      "rarity": "rare",
+      "dismantle": 3,
+      "swatch": "#b9cad4"
+    },
+    {
+      "id": "gold",
+      "name": "Gold Foil",
+      "rarity": "special",
+      "dismantle": 6,
+      "swatch": "#caa747"
+    },
+    {
+      "id": "riso",
+      "name": "Riso",
+      "rarity": "uncommon",
+      "dismantle": 1,
+      "swatch": "#d6c7b2"
+    },
+    {
+      "id": "vintage",
+      "name": "Vintage",
+      "rarity": "archive",
+      "dismantle": 4,
+      "swatch": "#b9a17c"
+    },
+    {
+      "id": "clear",
+      "name": "Clear",
+      "rarity": "rare",
+      "dismantle": 3,
+      "swatch": "#d5dedb"
+    },
+    {
+      "id": "pixel",
+      "name": "Pixel",
+      "rarity": "uncommon",
+      "dismantle": 1,
+      "swatch": "#b8bdc7"
+    },
+    {
+      "id": "washi",
+      "name": "Washi",
+      "rarity": "uncommon",
+      "dismantle": 1,
+      "swatch": "#ddd5bb"
+    },
+    {
+      "id": "sakura",
+      "name": "Sakura",
+      "rarity": "archive",
+      "dismantle": 4,
+      "swatch": "#e0b8ba"
+    }
+  ]
+}

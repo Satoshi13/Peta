@@ -90,6 +90,9 @@ impl Material {
 }
 
 /// Plain paper is known from the first launch; making one still requires a sheet.
+pub const DAILY_MATTE_MIN_PERCENT:u32=20;
+pub const DAILY_LIMITED_MAX_PERCENT:u32=5;
+pub use crate::daily_tables::DailyTable;
 pub const DEFAULT_MATERIAL: &str = "matte";
 /// The very first Today's Material is always this one (the Alpha story, spec §88).
 pub const FIRST_DRAW_MATERIAL: &str = "holographic";
@@ -189,9 +192,14 @@ pub fn get(id: &str) -> Option<Material> {
 
 /// Pick the day's material. `roll` is uniform in 0..1 (injected so this is testable).
 /// The weight of a rarity is shared evenly by the materials of that rarity.
-pub fn draw(roll: f64, first_ever: bool) -> String {
+pub fn draw(roll: f64, first_ever: bool, table: Option<&DailyTable>) -> String {
     if first_ever {
         return FIRST_DRAW_MATERIAL.into();
+    }
+    if let Some(table)=table.filter(|t|crate::daily_tables::validate(t).is_ok()) {
+        let total:u32=table.items.iter().map(|i|i.weight).sum();
+        let target=roll.clamp(0.0,0.999_999_999)*total as f64;let mut sum=0;
+        for item in &table.items {sum+=item.weight;if target<(sum as f64){return item.id.clone();}}
     }
     let all: Vec<_> = catalog().into_iter().filter(|m| ["matte", "kraft", "holographic"].contains(&m.id.as_str())).collect();
     let weight_of = |m: &Material| {
@@ -229,26 +237,26 @@ mod tests {
     #[test]
     fn first_draw_is_always_holographic() {
         for roll in [0.0, 0.5, 0.99] {
-            assert_eq!(draw(roll, true), "holographic");
+            assert_eq!(draw(roll, true, None), "holographic");
         }
     }
 
     #[test]
     fn draw_follows_rarity_weights() {
         // Weights (owner decision, 2026-10-10): matte 60, kraft 30, holographic 10.
-        assert_eq!(draw(0.0, false), "matte");
-        assert_eq!(draw(0.59, false), "matte");
-        assert_eq!(draw(0.61, false), "kraft");
-        assert_eq!(draw(0.89, false), "kraft");
-        assert_eq!(draw(0.91, false), "holographic");
-        assert_eq!(draw(1.0, false), "holographic"); // clamped
+        assert_eq!(draw(0.0, false, None), "matte");
+        assert_eq!(draw(0.59, false, None), "matte");
+        assert_eq!(draw(0.61, false, None), "kraft");
+        assert_eq!(draw(0.89, false, None), "kraft");
+        assert_eq!(draw(0.91, false, None), "holographic");
+        assert_eq!(draw(1.0, false, None), "holographic"); // clamped
     }
 
     #[test]
     fn draw_distribution_roughly_matches() {
         let mut counts = std::collections::HashMap::new();
         for i in 0..1000 {
-            *counts.entry(draw(i as f64 / 1000.0, false)).or_insert(0) += 1;
+            *counts.entry(draw(i as f64 / 1000.0, false, None)).or_insert(0) += 1;
         }
         assert_eq!(counts["matte"], 600);
         assert_eq!(counts["kraft"], 300);

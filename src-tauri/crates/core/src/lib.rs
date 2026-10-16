@@ -5,6 +5,8 @@ pub mod book;
 pub mod creator;
 pub mod cutout;
 pub mod daily;
+pub mod daily_tables;
+mod settings_store;
 pub mod db;
 pub mod error;
 pub mod gift;

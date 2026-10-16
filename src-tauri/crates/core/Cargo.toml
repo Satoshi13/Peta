@@ -5,6 +5,7 @@ edition = "2021"
 description = "Peta core: sticker library (SQLite), image import. No UI; Apple Vision for foreground extraction."
 
 [features]
+daily-tables = []
 developer = []
 
 [dependencies]

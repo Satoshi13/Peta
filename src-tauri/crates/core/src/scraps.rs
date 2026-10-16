@@ -27,6 +27,7 @@ const MATERIALS: [MaterialRate; 10] = [
     MaterialRate { id:"washi", dismantle:1, exchange:Some(2) },
     MaterialRate { id:"sakura", dismantle:4, exchange:None },
 ];
+pub fn material_rates()->Vec<MaterialRate> {MATERIALS.to_vec()}
 const PACKS: [(&str, i64); 6] = [("tokyo",16),("coffee",12),("plants",10),("pixel",12),("cats",10),("night",12)];
 
 #[derive(Debug, Serialize)]

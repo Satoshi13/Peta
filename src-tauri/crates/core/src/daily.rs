@@ -59,6 +59,8 @@ impl DailyRecord {
     }
 }
 
+pub use crate::daily_tables::accept_table;
+
 /// Today's local date, `offset_days` ahead (0 in production; the developer "next day" switch uses it).
 pub fn local_today(offset_days: i64) -> String {
     (chrono::Local::now().date_naive() + chrono::Duration::days(offset_days))
@@ -72,14 +74,14 @@ pub fn ensure_today(db: &mut Database, today: &str, roll: f64) -> Result<DailyRe
         return Ok(r);
     }
     let first_ever = db.daily_count()? == 0;
-    db.daily_insert(today, &materials::draw(roll, first_ever))?;
+    db.daily_insert(today, &materials::draw(roll, first_ever, crate::daily_tables::selected(&db.conn,chrono::Utc::now()).as_ref()))?;
     db.daily_get(today)?.ok_or_else(|| Error::Invalid("daily record vanished".into()))
 }
 
 /// Initialize a day within the same transaction as an award and its print queue entry.
 pub(crate) fn ensure_today_in(conn:&rusqlite::Connection,today:&str,roll:f64)->Result<()> {
     let first:bool=conn.query_row("SELECT NOT EXISTS(SELECT 1 FROM daily_records)",[],|r|r.get(0))?;
-    conn.execute("INSERT OR IGNORE INTO daily_records(date,material_id) VALUES (?1,?2)",rusqlite::params![today,materials::draw(roll,first)])?;Ok(())
+    conn.execute("INSERT OR IGNORE INTO daily_records(date,material_id) VALUES (?1,?2)",rusqlite::params![today,materials::draw(roll,first,crate::daily_tables::selected(conn,chrono::Utc::now()).as_ref())])?;Ok(())
 }
 
 /// Open the envelope: Today's Material is yours. It is written into the Material Book for good, and one of it
@@ -90,7 +92,7 @@ pub fn open_material(db: &mut Database, today: &str, roll: f64) -> Result<(Daily
     let record = ensure_today(db, today, roll)?;
     let bonus=record.material_opened_at.is_some();
     if bonus && !db.unrestricted && db.bonus_envelopes()?==0 {return Ok((record,false));}
-    let material=if bonus {materials::draw(roll,false)} else {record.material_id.clone()};
+    let material=if bonus {materials::draw(roll,false,None)} else {record.material_id.clone()};
     let tx=db.conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     if bonus && !db.unrestricted {
         let changed=tx.execute("UPDATE meta SET value=CAST(value AS INTEGER)-1 WHERE key='bonus_envelopes' AND CAST(value AS INTEGER)>0",[])?;

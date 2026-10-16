@@ -1,0 +1,32 @@
+{
+  "note": "Public RFC 8032 test vector, never a production key.",
+  "keyId": "c1",
+  "publicKey": "11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+  "policy": {
+    "id": "daily-contract",
+    "kind": "default",
+    "issuedAt": "2026-10-16T00:00:00Z",
+    "startsAt": "2026-10-16T00:00:00Z",
+    "endsAt": "2026-11-01T00:00:00Z",
+    "title": "Daily supply",
+    "items": [
+      {
+        "id": "matte",
+        "weight": 50
+      },
+      {
+        "id": "kraft",
+        "weight": 25
+      },
+      {
+        "id": "holographic",
+        "weight": 15
+      },
+      {
+        "id": "riso",
+        "weight": 10
+      }
+    ]
+  },
+  "event": "UEVUQUVWTlQBAAABr3siZXZlbnRJZCI6ImRhaWx5LWNvbnRyYWN0Iiwia2luZCI6ImRhaWx5X3RhYmxlIiwiaXNzdWVkQXQiOiIyMDI2LTEwLTE2VDAwOjAwOjAwWiIsIm5vdEJlZm9yZSI6IjIwMjYtMTAtMTZUMDA6MDA6MDBaIiwibm90QWZ0ZXIiOiIyMDI2LTExLTAxVDAwOjAwOjAwWiIsInRpdGxlIjoiRGFpbHkgc3VwcGx5IiwibWVzc2FnZSI6IiIsInBheWxvYWQiOnsiaXRlbXMiOlt7ImlkIjoibWF0dGUiLCJ3ZWlnaHQiOjUwfSx7ImlkIjoia3JhZnQiLCJ3ZWlnaHQiOjI1fSx7ImlkIjoiaG9sb2dyYXBoaWMiLCJ3ZWlnaHQiOjE1fSx7ImlkIjoicmlzbyIsIndlaWdodCI6MTB9XSwidGFibGVJZCI6ImRhaWx5LWNvbnRyYWN0IiwidGFibGVLaW5kIjoiZGVmYXVsdCJ9LCJzaWduZXIiOnsia2luZCI6Im9mZmljaWFsIiwia2V5SWQiOiJjMSJ9LCJhdHRhY2htZW50cyI6W119Ni7WA6HErwia95TaX0uExT61y3d9xIFiReGIZOrxU1aMfPgHwNRY60HRA8pEQS21NLb17q1pZ0/WphYljDdeAA=="
+}
