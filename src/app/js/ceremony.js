@@ -474,10 +474,11 @@ const Cer = (() => {
       finished = true; sh.el.removeAttribute("aria-label"); sh.el.removeAttribute("tabindex"); sh.el.classList.add("peeled");
       if (!cer.skipped) { Snd.duck(hold + 400); Haptic.tap("level"); }
       // the cover comes away past the corner and is gone by the time the sheet is bare
-      const from = { ...P }, to = { x: -W * .9, y: -H * .5 }; let last = 0, away = null;
+      // it ends past the far corner, so the fold line clears the whole sheet and no corner of the cover is left behind
+      const from = { ...P }, to = { x: -W * 1.1, y: -H * 1.1 }; let last = 0, away = null;
       const lose = () => away ||= cer.motion(sh.flapwrap, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translate(-30px,-60px) rotate(-8deg)" }], { duration: 380, easing: "ease-out" });
       await tween(cer, 520 + hold * .9, (e, q) => { P = { x: lerp(from.x, to.x, e), y: lerp(from.y, to.y, e) }; paint(); if (q - last > .08) { last = q; Snd.peel(q); } if (q > .55) lose(); }, curve.inOut);
-      lose();
+      lose(); sh.glass.style.visibility = "hidden";
       resolve();
     })();
     drag(sh.el, {
