@@ -593,22 +593,6 @@ html[data-motion="reduce"] :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.
   :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.sample:hover img,.pack:hover .pk-stack,.mk-tile:hover .pk-stack,.stuck-t:hover .stk,.env-scene:hover .env-lift) { transform:none!important; }
 }
 
-.cer[data-kind="material"] .cer-bg { background:var(--w-surface,var(--paper)); }
-.cer[data-kind="material"] :is(.cer-hint,.rv-info) { color:var(--ink); text-shadow:none; }
-.material-envelope { position:absolute; left:50%; top:46%; translate:-50% -50%; width:min(400px,75%,50vh); margin:0; }
-.material-envelope .env-lift, .material-envelope:hover .env-lift { transform:none; transition:none; }
-.material-envelope::after { animation:none; }
-.material-envelope .env-float, .material-envelope:hover .env-float { animation:none; transform:none; transition:none; transform-style:flat; isolation:isolate; }
-.material-card-slot { position:absolute; inset:0; z-index:1; pointer-events:none; clip-path:polygon(-100% -100%,200% -100%,200% 12%,90% 12%,50% 54%,10% 12%,-100% 12%); }
-.material-envelope .mcard { position:absolute; left:26%; top:45%; z-index:1; cursor:grab; touch-action:none; pointer-events:auto; }
-.material-envelope .mcard[data-concealed] .art { background:var(--a-backMatte) center / cover; }
-.material-envelope .mcard[data-concealed] .lab { visibility:hidden; }
-.material-envelope .mcard:active { cursor:grabbing; }
-.material-envelope .pocket { z-index:2; }
-.material-envelope .flap { z-index:4; }
-.material-envelope .flap-open { z-index:0; transform-origin:50% 12.5%; }
-.material-envelope .mcard:focus-visible { outline:2px solid #527d93; outline-offset:3px; border-radius:6px; }
-.cer[data-kind="material"] .rv-info { gap:6px; }
 .rv-rays { animation:none; }
 [data-shell] .nav-item:hover .ni-icon, [data-shell="studio"] .nav-item:hover .ni-icon { transform:none; } /* the sidebar icons stay put on hover; only the row lights up */
 html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
@@ -844,14 +828,6 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 .material-preview > button.close-control { top:12px; right:12px; background:var(--w-sunken); color:var(--ink2); }
 .material-preview > button.close-control:hover { background:var(--w-line); color:var(--ink); }
 
-/* Sticker reveals take a palette once the committed sticker is visible. (Today's material no longer gets a frame: its light is in the .cer-exp / .cer-aura layers below.) */
-.cer { --cer-center:#71604c; --cer-edge:#211a13; }
-.cer[data-rarity="rare"] { --cer-center:#d4c9e1; --cer-edge:#655575; }
-.cer[data-rarity="special"], .cer[data-rarity="archive"] { --cer-center:#e5d4a5; --cer-edge:#71410b; }
-.cer[data-material="kraft"] { --cer-center:#d8c49c; --cer-edge:#786343; }
-.cer[data-material="holographic"] { --cer-center:#ded3e5; --cer-edge:#7a6b8a; }
-.cer[data-material="gold"] { --cer-center:#e6d5ae; --cer-edge:#75450d; }
-.cer[data-reveal] .cer-bg { background:radial-gradient(ellipse at 50% 38%,var(--cer-center),var(--cer-edge) 85%); }
 .cer:not([data-kind="gift"]):not([data-kind="seal"]) .btn:not(.paper) { background:#f5efdf; color:#2b2720; }
 .cer:not([data-kind="gift"]):not([data-kind="seal"]) .btn:not(.paper):hover { background:#e9dfc8; }
 .cer:not([data-kind="gift"]):not([data-kind="seal"]) .btn.paper:hover { background:#ffffff26; color:#f5efe2; box-shadow:inset 0 0 0 1px #ffffff66; }
@@ -862,41 +838,12 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 
 
 
-/* ---- The light of a pulled rarity (Today's material and the ten-at-once sheet) ----
-   The room darkens in proportion to the rarity (.cer-exp), a pool of light sits behind the thing that was pulled (.cer-pool),
-   a band of light writes the face (.glint / .veil), and from rare upwards the window's edge glows (.cer-aura).
-   Common and uncommon have no edge and no frame: the paper just gets a little warmer. */
-@property --wp { syntax:"<percentage>"; inherits:true; initial-value:-20%; }
 @property --gl { syntax:"<percentage>"; inherits:false; initial-value:-50%; }
-.cer-exp { position:absolute; inset:0; pointer-events:none; opacity:0; background:radial-gradient(ellipse var(--r,50%) calc(var(--r,50%) * 1.05) at var(--cx,50%) var(--cy,44%), #fff 0, #fff 12%, rgb(var(--tint,120,100,80)) 100%); mix-blend-mode:multiply; border-radius:inherit; }
-.cer[data-kind="pack"] .cer-exp { background:radial-gradient(ellipse var(--r,50%) calc(var(--r,50%) * 1.05) at var(--cx,50%) var(--cy,44%), rgba(6,4,2,0) 0, rgba(6,4,2,.5) 55%, rgba(6,4,2,.92) 100%), rgba(6,4,2,.3); mix-blend-mode:normal; }
-.cer-pool { position:absolute; z-index:0; translate:-50% -50%; border-radius:50%; pointer-events:none; opacity:0; background:radial-gradient(closest-side, rgba(var(--rgb,255,240,214),.95), rgba(var(--rgb,255,240,214),.35) 55%, rgba(var(--rgb,255,240,214),0)); mix-blend-mode:screen; filter:blur(6px); }
-.cer-pool[data-aura="prism"] { background:conic-gradient(rgba(255,160,214,.9), rgba(255,226,140,.9), rgba(150,255,206,.9), rgba(140,198,255,.9), rgba(190,150,255,.9), rgba(255,160,214,.9)); -webkit-mask:radial-gradient(closest-side,#000 18%,transparent 100%); mask:radial-gradient(closest-side,#000 18%,transparent 100%); filter:blur(14px); }
-.cer[data-kind="material"] .cer-pool { mix-blend-mode:normal; }
-.cer-aura { position:absolute; inset:0; z-index:11; pointer-events:none; border-radius:inherit; opacity:0; }
-.cer-aura .line, .cer-aura .glow { position:absolute; inset:0; border-radius:inherit; overflow:hidden; padding:2px; -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask:linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); mask-composite:exclude; }
-.cer-aura .glow { padding:18px; filter:blur(14px); opacity:.8; }
-.cer-aura .spin { position:absolute; left:50%; top:50%; width:150%; aspect-ratio:1; transform:translate(-50%,-50%); background:conic-gradient(#ff7ac6,#ffc861,#7dffc0,#6fb7ff,#b48aff,#ff7ac6); animation:cer-aura-spin 7s linear infinite; will-change:transform; }
-.cer-aura[data-kind="gold"] .spin { background:conic-gradient(#fff2b8,#f2b441,#ffe28a,#d89a2a,#fff2b8); }
-.cer-aura[data-kind="sepia"] .spin { background:conic-gradient(#f3dcae,#b98a4a,#e6c58f,#8c6a35,#f3dcae); animation-duration:14s; }
-@keyframes cer-aura-spin { to { transform:translate(-50%,-50%) rotate(360deg); } }
-html[data-motion="reduce"] .cer-aura .spin { animation:none; }
-@media(prefers-reduced-motion:reduce) { .cer-aura .spin { animation:none; } }
-.cer[data-tone="dim"]:is([data-kind="material"]) :is(.cer-hint,.rv-info) { color:#f6efe0; text-shadow:0 1px 10px #0006; }
-.cer[data-kind="material"] .rv-meta { flex-wrap:wrap; justify-content:center; }
-.cer[data-kind="material"] .rv-meta .no { display:inline; font:12px/1.4 var(--sys); }
-.cer[data-tone="dim"][data-kind="material"] .rv-meta .no { color:#f6efe0b0; }
-/* the card's face is written by a band of light: .veil is the concealed back, wiped away left to right */
-.mcard .veil, .mcard .glint { position:absolute; inset:12.63% 7.86% 12.37%; border-radius:var(--card-radius); pointer-events:none; }
-.mcard .veil { background:var(--a-backMatte) center / cover; -webkit-mask:linear-gradient(100deg, transparent calc(var(--wp) - 5%), #000 calc(var(--wp) + 5%)); mask:linear-gradient(100deg, transparent calc(var(--wp) - 5%), #000 calc(var(--wp) + 5%)); }
-.mcard.reveal .veil { z-index:2; } .mcard.reveal .glint { z-index:3; }
-.mcard.shown .veil { display:none; }
+/* a band of light written across a material card's face (Today's material, as the card is turned over) */
+.mcard .glint { position:absolute; inset:12.63% 7.86% 12.37%; border-radius:var(--card-radius); pointer-events:none; z-index:3; }
 .mcard .glint { mix-blend-mode:soft-light; background:linear-gradient(108deg, transparent calc(var(--gl) - 16%), rgba(255,255,255,.9) var(--gl), transparent calc(var(--gl) + 16%)); }
 .mcard[data-m="holographic"] .glint { background:linear-gradient(108deg, transparent calc(var(--gl) - 20%), rgba(255,170,230,.55) calc(var(--gl) - 10%), rgba(255,255,255,.95) var(--gl), rgba(150,225,255,.6) calc(var(--gl) + 9%), transparent calc(var(--gl) + 20%)); }
-.mcard.reveal:not(.shown) .lab { -webkit-mask:linear-gradient(100deg, #000 calc(var(--wp) - 5%), transparent calc(var(--wp) + 5%)); mask:linear-gradient(100deg, #000 calc(var(--wp) - 5%), transparent calc(var(--wp) + 5%)); }
 .rv-info h2 .ch { display:inline-block; }
-.cer-ink { position:absolute; inset:0; width:100%; height:100%; z-index:7; pointer-events:none; overflow:visible; }
-.cer-caption { position:absolute; left:50%; z-index:9; white-space:nowrap; pointer-events:none; text-shadow:0 1px 8px rgba(40,25,10,.5); font:500 21px/1.4 var(--hand); transform:translateX(-50%) rotate(-3deg); }
 
 .cer[data-skipped="true"] .spark { visibility:hidden; }
 
@@ -1155,12 +1102,6 @@ dialog.share-dialog button.close-control.share-x:hover { background:rgba(60,45,2
 .t-plus, .slot-plus { position:relative; font-size:0; }
 .t-plus::before, .t-plus::after, .slot-plus::before, .slot-plus::after { content:""; position:absolute; left:50%; top:50%; width:14px; height:1.5px; border-radius:1px; background:currentColor; transform:translate(-50%,-50%); }
 .t-plus::after, .slot-plus::after { transform:translate(-50%,-50%) rotate(90deg); }
-[data-theme="night"] .cer[data-kind="material"] .cer-bg { background:var(--w-win); }
-[data-theme="night"] .cer[data-kind="material"] :is(.cer-hint,.rv-info) { color:var(--ink); }
-[data-theme="night"] .cer[data-kind="material"] .cer-exp { background:radial-gradient(ellipse at var(--cx,50%) var(--cy,44%),transparent 20%,rgba(0,0,0,.65)); mix-blend-mode:normal; }
-[data-theme="night"] .cer[data-kind="material"] .cer-pool { mix-blend-mode:screen; }
-.cer[data-kind="material"] .cer-skip { background:var(--w-surface2); color:var(--ink2); }
-.cer[data-kind="material"] .cer-skip:hover { background:var(--w-surface); }
 /* Paging settles at the same position rather than replaying the card's slide. */
 .detail.stay { animation:detail-settle .24s var(--ease-out); }
 @keyframes detail-settle { from {opacity:.35; transform:translateY(4px);} }

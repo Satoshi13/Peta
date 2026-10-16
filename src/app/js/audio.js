@@ -52,6 +52,10 @@ const Snd = {
   rip() { this.noise(0, 0.28, { f: 2600, f2: 900, q: 1.4, gain: 0.12 }); },
   land() { this.tone(0, 110, 0.16, { gain: 0.06 }); this.noise(0, 0.07, { f: 900, type: "lowpass", gain: 0.05 }); },
   peel(level = 0.5) { this.noise(0, 0.05, { f: 2400 + level * 1800, q: 4, gain: 0.02 + level * 0.04 }); },
+  /* Today's envelope: the seal giving, the flap falling open, a card turned over. */
+  unseal() { this.noise(0, 0.16, { f: 3200, f2: 1800, q: 2.2, gain: 0.08 }); this.noise(0.03, 0.05, { f: 5000, type: "highpass", gain: 0.04 }); },
+  flap() { this.noise(0, 0.22, { f: 1400, f2: 300, type: "lowpass", gain: 0.09 }); this.tone(0, 140, 0.14, { gain: 0.05 }); },
+  turn() { this.noise(0, 0.18, { f: 1800, f2: 600, q: 1, gain: 0.06 }); },
   stamp() { this.tone(0, 92, 0.2, { gain: 0.14, f2: 60 }); this.noise(0, 0.06, { f: 1800, type: "lowpass", gain: 0.08 }); },
   /** A breath of quiet before a reveal: everything drops, then comes back over `ms`. */
   duck(ms = 600) {

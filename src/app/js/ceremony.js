@@ -38,15 +38,11 @@ const Cer = (() => {
       hint: (t) => { if (top.textContent === t) return; top.textContent = t; anim(top, [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 400 }); } };
   }
 
-  function revealTheme(cer, material, rarity, kind="material") {
-    Object.assign(cer.root.dataset,{reveal:kind,material,rarity});
-  }
 
   /* After the sleeve is pulled out: unwrap it, reveal the sticker, let the person play with it. */
   async function unwrapAndReveal({ cer, stage, sleeve, entry, source, onKeep, onLater, laterLabel = "Later" }) {
     cer.hint("Tilt it to catch the light.");
     const res = entry.prize ? {aspect:1} : await resOf(entry, { max: 560 }), mat = MAT[entry.material], fx = RAR_FX[entry.rarity || mat.rarity];
-    if(cer.root.dataset.kind==="pack") { revealTheme(cer,entry.material,entry.rarity || mat.rarity,"sticker");cer.allowSkip(); }
     const W = stage.clientWidth, Hh = stage.clientHeight;
     const holder = h("div.rv-holder");
     const max = Math.min(280, W * .45, Hh * .4);
@@ -559,176 +555,150 @@ const Cer = (() => {
     cer.motion(cap, [{ opacity: 0, clipPath: "inset(0 100% 0 0)" }, { opacity: 1, clipPath: "inset(0 0 0 0)" }], { duration: 800, delay: 300, easing: "cubic-bezier(.3,.6,.3,1)" });
   }
 
-  /* ------------------------------------------------------------------ THE LIGHT OF A PULLED RARITY
-     Shared by Today's material and the ten-at-once sheet. Rarity is how light behaves, not how many sparks fly:
-     the room darkens in proportion (.cer-exp), a pool of light sits behind what was pulled (.cer-pool), a band of light writes the face,
-     and from rare upwards the window's edge glows (.cer-aura). Common and uncommon have no edge and no frame. */
-  const LIGHT_RGB = { common: "255,242,214", uncommon: "244,190,114", rare: "207,200,255", special: "255,216,119", archive: "230,197,143" };
-  const CAPTION = { uncommon: "Nice find.", rare: "Oh \u2014 a rare one.", special: "Gold. Look at that.", archive: "From the archive." };
-  function lightFor(cer) {
-    const exp = h("i.cer-exp"), aura = h("i.cer-aura", { data: { kind: "prism" } }, h("i.glow", h("i.spin")), h("i.line", h("i.spin")));
-    $(".cer-bg", cer.root).after(exp); cer.root.insertBefore(aura, $(".cer-skip", cer.root) || null);
-    const pools = [], inks = [], dark = cer.root.dataset.kind === "pack", rel = (x, y) => { const r = cer.root.getBoundingClientRect(); return [x - r.left, y - r.top]; };
-    const level = (plan) => dark ? plan.dim : Math.min(1, plan.dim / .66);
-    const api = {
-      /** darken the room around a lit spot; (x, y) are viewport pixels. */
-      async dim(plan, x, y, ms = 800) {
-        const [cx, cy] = rel(x, y); exp.style.setProperty("--cx", cx + "px"); exp.style.setProperty("--cy", cy + "px"); exp.style.setProperty("--tint", plan.tint || "120,100,80");
-        const from = getComputedStyle(exp).opacity, to = level(plan);
-        if (!dark) cer.root.dataset.tone = plan.dark ? "dim" : "";
-        await cer.motion(exp, [{ opacity: from }, { opacity: to }], { duration: ms, easing: EASE.inOut }); exp.style.opacity = to;
-      },
-      pool(plan, x, y, size) {
-        const st = cer.stage.getBoundingClientRect(), s = size * ({ common: .85, uncommon: .95, rare: 1.25, special: 1.45, archive: .8 }[plan.rarity] || 1);
-        const e = h("i.cer-pool", { data: { aura: plan.rarity === "rare" ? "prism" : "" }, style: { left: x - st.left + "px", top: y - st.top + "px", width: s + "px", height: s + "px", "--rgb": LIGHT_RGB[plan.rarity] } });
-        cer.stage.append(e); pools.push(e); const a = { common: .35, uncommon: .5, rare: .62, special: .75, archive: .28 }[plan.rarity];
-        cer.motion(e, [{ opacity: 0, transform: "scale(.5)" }, { opacity: a, transform: "scale(1)" }], { duration: 900, easing: EASE.out });
-      },
-      showAura(plan) {
-        if (!plan.aura) return; aura.dataset.kind = plan.aura;
-        if (reduced()) { aura.style.opacity = .6; return; }
-        cer.motion(aura, [{ opacity: 0 }, { opacity: 1, offset: .35 }, { opacity: plan.rarity === "special" ? .7 : .55 }], { duration: 1900, easing: "ease-out" });
-      },
-      /** radiating pen strokes and a line of handwriting, drawn as the light arrives (the archive) */
-      ink(plan, x, y, size, ink) {
-        if (reduced() || cer.skipped) return; const NS = "http://www.w3.org/2000/svg", st = cer.stage.getBoundingClientRect(), cx = x - st.left, cy = y - st.top;
-        const svg = document.createElementNS(NS, "svg"); svg.setAttribute("class", "cer-ink"); svg.setAttribute("viewBox", `0 0 ${st.width} ${st.height}`); cer.stage.append(svg); inks.push(svg);
-        const n = plan.rarity === "archive" ? 7 : 12, R0 = size * .62; let k = 1;
-        for (let i = 0; i < n; i++) {
-          k = (k * 16807) % 2147483647; const jitter = (k / 2147483647 - .5) * .22, a = i / n * Math.PI * 2 + jitter, r1 = R0 * 1.02, r2 = r1 + 16 + (k % 24);
-          const p = document.createElementNS(NS, "path"); p.setAttribute("d", `M${cx + Math.cos(a) * r1} ${cy + Math.sin(a) * r1 * .8} L${cx + Math.cos(a) * r2} ${cy + Math.sin(a) * r2 * .8}`);
-          p.setAttribute("fill", "none"); p.setAttribute("stroke", ink); p.setAttribute("stroke-width", "2.4"); p.setAttribute("stroke-linecap", "round"); svg.append(p);
-          const len = p.getTotalLength(); p.style.strokeDasharray = len; cer.motion(p, [{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 260, delay: 80 + i * 26, easing: "ease-out" });
-        }
-        if (size < 250) return; // a cell of the sheet is too small to hold a line of handwriting
-        const cap = h("div.cer-caption", { style: { top: Math.max(86, cy - R0 - 40) + "px", color: ink } }, CAPTION[plan.rarity] || ""); cer.stage.append(cap); inks.push(cap);
-        cer.motion(cap, [{ opacity: 0, clipPath: "inset(0 100% 0 0)" }, { opacity: 1, clipPath: "inset(0 0 0 0)" }], { duration: 700, delay: 360, easing: "cubic-bezier(.3,.6,.3,1)" });
-      },
-      /** the light goes back to the paper (the next sticker, or Keep it) */
-      async end(ms = 600) {
-        cer.root.dataset.tone = "";
-        const els = [exp, aura, ...pools, ...inks];
-        await Promise.all(els.map(e => cer.motion(e, [{ opacity: getComputedStyle(e).opacity }, { opacity: 0 }], { duration: ms })));
-        for (const e of [...pools, ...inks]) e.remove(); pools.length = inks.length = 0; exp.style.opacity = 0; aura.style.opacity = 0;
-      },
-    };
-    return api;
-  }
-  /** Sound, touch, light and sparks for one pulled thing. `face` carries the .glint bands. Resolves when the first sweep has gone across. */
-  function climax(cer, light, plan, { face, x, y, size, ink }) {
-    Snd.reveal(plan.rarity); if (plan.hot) Haptic.tap("seal");
-    if (plan.dim) light.dim(plan, x, y, 900);
-    light.pool(plan, x, y, size); light.showAura(plan);
-    if (!cer.skipped && !reduced()) {
-      const st = cer.stage.getBoundingClientRect(), fx = (x - st.left) / st.width, fy = (y - st.top) / st.height;
-      if (plan.rarity === "rare") sparkBurst(cer.stage, plan.sparks, { cx: fx, cy: fy, power: 1.2 });
-      else if (plan.rarity === "special") sparkBurst(cer.stage, plan.sparks, { cx: fx, cy: fy, power: 1.1, colors: ["#ffe9a3", "#ffd05a", "#fff6d6", "#f2b441"] });
-      else if (plan.rarity === "uncommon") sparkBurst(cer.stage, 8, { cx: fx, cy: fy, power: .6, colors: ["#f2d9a8", "#fff", "#e8bf80"] });
-      if (plan.ink) light.ink(plan, x, y, size, plan.dark || cer.root.dataset.kind === "pack" ? "rgba(246,226,186,.95)" : "#6d4f2a");
-    }
-    const glints = $$(".glint", face);
-    return Promise.all(glints.map((g, i) => cer.motion(g, [{ "--gl": "-60%" }, { "--gl": "150%" }], { duration: plan.rarity === "archive" ? 1 : plan.sweep, easing: "cubic-bezier(.35,.1,.2,1)" })));
-  }
   /** A name that comes into focus one letter at a time. The words stay whole for VoiceOver. */
   function typeIn(cer, el) {
     const text = el.textContent; el.setAttribute("aria-label", text); el.textContent = "";
     return Promise.all([...text].map((ch, i) => { const s = h("span.ch", { "aria-hidden": "true" }, ch === " " ? "\u00a0" : ch); el.append(s); return cer.motion(s, [{ opacity: 0, filter: "blur(8px)", transform: "translateY(8px)" }, { opacity: 1, filter: "blur(0)", transform: "none" }], { duration: 520, delay: i * 26, easing: EASE.out }); }));
   }
 
-  /* ------------------------------------------------------------------ TODAY'S MATERIAL: one envelope, one card */
-  /** Resolves when the person keeps the card; the daily receipt is committed by Today only once. */
+  /* ------------------------------------------------------------------ TODAY'S MATERIAL: one envelope, one card
+     The same desk as a pack. The flap is lifted by hand from its fold (past half it opens on release, short of it it falls shut), the
+     card peeks out showing its back, is pulled out, and is turned over under the lamp. The material was decided when Open was pressed,
+     so the light leaking from the envelope is already its own. Resolves when the card is kept; Today settles it into its slot. */
+  const CARD = { top: .1263, side: .0786, bottom: .1237 };   // where the visible card sits inside a .mcard box (native.css .mcard .art)
   function openMaterial(m) {
-    return new Promise(resolve => {
-      const cer=overlay("material"), stage=cer.stage, envelope=EnvelopeScene();
-      envelope.classList.add("material-envelope");
-      for (const name of ["role","tabindex","aria-label"]) envelope.removeAttribute(name);
-      const openedFlap=img("envFlap","layer flap-open"); openedFlap.style.opacity=0;
-      $(".env-float",envelope).append(openedFlap);
-      const card=h("div.mcard.big", {data:{concealed:"true"},role:"button",tabindex:-1,"aria-label":"Pull out the material card"}, h("i.art"),h("span.lab"));
-      $(".card",envelope).replaceWith(h("div.material-card-slot",card)); stage.append(envelope);
-      const envelopeSize=new ResizeObserver(()=>card.style.setProperty("--w",envelope.clientWidth*.48+"px"));
-      envelopeSize.observe(envelope); card.style.setProperty("--w",envelope.clientWidth*.48+"px");
-      let opened=false, pulled=false;
-      const base="translateY(-92%) rotate(-2deg)";
-      const pull=async () => {
-        if (!opened || pulled) return; pulled=true; envelopeSize.disconnect();
-        for (const name of ["role","tabindex","aria-label"]) card.removeAttribute(name);
-        cer.hint("Tilt it to catch the light."); Snd.swoosh();
-        anim(envelope,[{opacity:1},{opacity:0}],{duration:280}).then(()=>envelope.remove());
-        const r = card.getBoundingClientRect(), sr = stage.getBoundingClientRect();
-        const position = h("div.material-card-position", {style:{position:"absolute",left:r.left-sr.left+"px",top:r.top-sr.top+"px",width:r.width+"px",zIndex:8}});
-        stage.append(position); position.append(card);
-        card.classList.add("reveal"); card.append(h("i.veil"),h("i.glint")); card.setAttribute("aria-hidden","true"); // the face stays covered until the light writes it
-        delete card.dataset.concealed; card.dataset.m=m.id;
-        Object.assign(cer.root.dataset,{material:m.id,rarity:m.rarity});cer.allowSkip();
-        $(".lab",card).append(h("b",m.name),h("small",m.rarity));
-        card.style.cssText = `position:relative;transform:none;--w:${r.width}px;`;
-        const {width,height} = card.getBoundingClientRect();
-        let resize;
-        let kept=false, light=null;
-        const info = h("div.rv-info", {"aria-hidden":"true",style:{opacity:0,pointerEvents:"none"}}, h("p.eyebrow", "Today's Material"), h("h2", m.name), h("div.rv-meta", h("span.seal", { data: { rarity: m.rarity } }, m.rarity), h("span.no", m.recipe)),
-          h("div.rv-btns", h("button.btn.keep", { disabled:true, on: { click: async e => {
-            if (kept) return; kept=true; e.currentTarget.disabled=true; resize?.disconnect(); light?.end(320); Snd.tap(); const rect = card.getBoundingClientRect(), node = card.cloneNode(true); node.classList.remove("in-wrap", "big", "out"); node.getAnimations?.().forEach((a) => a.cancel());
-            resolve({ rect, node, close: opts => cer.close(opts) });
-          } } }, "Keep it")));
-        stage.append(info);
-        const hint = $(".cer-hint", cer.root);
-        const layout = () => {
-          const st = stage.getBoundingClientRect(), hr = hint.getBoundingClientRect();
-          const fit = PetaMath.fitMaterialCard({stageWidth:stage.clientWidth,stageHeight:stage.clientHeight,cardWidth:width,cardHeight:height,maxWidth:400,hintBottom:hr.bottom-st.top,infoTop:stage.clientHeight-info.offsetHeight});
-          return {dx:fit.cx-(position.offsetLeft+width/2),dy:fit.cy-(position.offsetTop+height/2),k:fit.scale,cy:fit.cy};
-        };
-        const target = ({dx,dy,k}) => `translate(${dx}px, ${dy}px) scale(${k})`;
-        const snap = fit => {
-          const w = width * fit.k;
-          position.style.left = stage.clientWidth/2-w/2+"px"; position.style.top = fit.cy-height*fit.k/2+"px";
-          position.style.width = w+"px"; card.style.setProperty("--w",w+"px");
-          fix(position,"none"); // Render the final size crisply instead of enlarging a small GPU surface.
-        };
-        const fit = layout();
-        await cer.motion(position, [{transform:"none"},{transform:target(fit)}], {duration:520,easing:EASE.out});
-        snap(fit); fix(card,"rotate(-2deg)");
-        // The light of the rarity writes the face: the room dims in proportion, a band sweeps across, and the name comes into focus.
-        const plan=PetaMath.revealPlan(m.rarity); light=lightFor(cer);
-        { const cr=card.getBoundingClientRect(), cx=cr.left+cr.width/2, cy=cr.top+cr.height/2;
-          if(plan.pre) { light.dim({...plan,dim:plan.dim*.4},cx,cy,plan.pre+200); if(plan.rarity==="special"||plan.rarity==="archive")Snd.hush(); await cer.wait(plan.pre); }
-          const lit=climax(cer,light,plan,{face:card,x:cx,y:cy,size:cr.width*1.1});
-          await cer.motion(card,[{"--wp":"-18%"},{"--wp":"122%"}],{duration:plan.sweep,easing:"cubic-bezier(.35,.1,.2,1)"});
-          card.classList.add("shown"); card.removeAttribute("aria-hidden"); await lit; }
-        Stk.tilt(card, { max:4, scale:1.01, baseTransform:"rotate(-2deg)", trigger:position });
-        resize = new ResizeObserver(() => { const fit = layout(); snap(fit); });
-        resize.observe(stage); resize.observe(info); resize.observe(hint);
-        info.removeAttribute("aria-hidden"); info.style.opacity = 1; info.style.pointerEvents = "";
-        const seal=$(".seal",info); seal.style.opacity=0;
-        cer.motion(info, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 }); typeIn(cer,$("h2",info));
-        await cer.wait(260); Snd.seal();
-        await cer.motion(seal, [{ opacity: 0, transform: "scale(2.5) rotate(-16deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 380, easing: EASE.out }); seal.style.opacity=1;
-        info.append(h("p",{role:"status",style:{position:"absolute",width:"1px",height:"1px",overflow:"hidden",clip:"rect(0 0 0 0)"}},`${m.rarity[0].toUpperCase()+m.rarity.slice(1)}. ${m.name}.`));
-        const keep=$(".keep",info); keep.disabled=false; keep.focus({preventScroll:true});
-        cer.endSkip();
-      };
-      drag(card, {
-        down:()=> { if (!opened || pulled) return false; fix(card,base); },
-        move:(dx,dy)=> {
-          if (pulled) return;
-          const up=clamp(-dy,0,envelope.clientHeight*.6);
-          card.style.transform=`translateY(calc(-92% - ${up}px)) rotate(-2deg)`;
-          if (up>envelope.clientHeight*.22) pull();
-        },
-        up:()=> { if (!pulled) anim(card,[{transform:card.style.transform},{transform:base}],{duration:240,easing:EASE.out}).then(()=>{if(!pulled)fix(card,base);}); },
+    return new Promise((resolve) => {
+      const cer = overlay("envelope"), stage = cer.stage, desk = deskFor(cer), rarity = DESK[m.rarity] ? m.rarity : "common", D = DESK[rarity];
+      const SW = stage.clientWidth, SH = stage.clientHeight, portrait = narrow(stage);
+      const W = Math.min(portrait ? SW * .78 : SW * .6, 470, SH * .93), H = W * 2 / 3;
+      // the card is built at the size it is shown at, and shrunk into the envelope, so its face stays sharp
+      const visible = W * .6, boxIn = visible / (1 - 2 * CARD.side), fit = PetaMath.fitMaterialCard({ stageWidth: SW, stageHeight: SH, cardWidth: boxIn, cardHeight: boxIn * 380 / 560, maxWidth: 400, hintBottom: 40, infoTop: SH - 170 });
+      const fw = Math.max(boxIn, boxIn * fit.scale), fh = fw * 380 / 560, k0 = boxIn / fw;
+      const date = fmtDate(S.today || new Date()), back = img("envBack", "mx-part"), pocket = img("envPocket", "mx-part mx-pocket");
+      const glow = h("i.mx-glow" + (rarity === "rare" ? ".prism" : "")), flapFront = img("envFlap", "mx-part"), flapInside = img("envFlap", "mx-part mx-flap-in"), tab = h("i.mx-tab"), flap = h("div.mx-flap", flapFront, flapInside, tab);
+      const face = h("div.mcard.big.mx-face", { data: { m: m.id }, style: { "--w": fw + "px" } }, h("i.art"), h("span.lab", h("b", m.name), h("small", m.rarity)), h("i.glint"));
+      const cardBack = h("div.mx-cardback", h("b", "Peta"), h("small", `Today's material · ${date}`));
+      const flip = h("div.mx-flip", cardBack, face);
+      const card = h("div.mx-card", { style: { width: fw + "px", height: fh + "px", "--w": fw + "px", left: W * .2 - boxIn * CARD.side + "px", top: H * .19 - boxIn * 380 / 560 * CARD.top + "px", transform: `scale(${k0})` } }, flip);
+      // its shadow lies flat on the desk, outside the card's 3D space, so a turning card never passes behind it
+      const cardShadow = h("i.mx-cardshadow", { style: { width: fw * .84 + "px", height: fh * .7 + "px" } });
+      const env = h("div.mx-desk", { style: { width: W + "px", height: H + "px", "--light": D.light }, tabindex: 0, role: "button", "aria-label": "Lift the flap" }, h("i.mx-shadow"), back, glow, card, pocket, flap);
+      stage.append(env);
+      const x0 = SW / 2 - W / 2, y0 = SH * (portrait ? .55 : .56) - H / 2, at = (x, y) => { const s = stage.getBoundingClientRect(); return [s.left + x, s.top + y]; };
+      { const [lx, ly] = at(SW / 2, y0 + H / 2); desk.lamp(.38, lx, ly, "common", 20, 80); }
+      const Y = new Spring(SH * .75, 140, 17).to(0), ROT = new Spring(9, 140, 17).to(-1.2), LIFT = new Spring(0, 260, 26), FLAP = new Spring(0, 210, 19), UP = new Spring(0, 240, 26);
+      let drop = 0, state = null, sealed = true, opening = false, free = false, peek = 0, grab = null, done = false, rustle = Snd.paperMotion();
+      frames(cer, (dt) => {
+        if (done) return false;
+        for (const s of [Y, ROT, LIFT, FLAP, UP]) s.step(dt, cer.skipped);
+        env.style.transform = `translate(${x0}px, ${y0 + Y.x + LIFT.x + drop * H * 1.1}px) rotate(${ROT.x + drop * 6}deg) scale(${1 - drop * .1})`;
+        env.style.filter = drop ? `blur(${drop * 7}px)` : ""; env.style.opacity = 1 - drop; env.style.visibility = drop >= 1 ? "hidden" : "";
+        env.style.setProperty("--z", (Math.max(0, -LIFT.x) / 40 + (Y.x > 2 ? .4 : 0)).toFixed(3));
+        // past upright the flap shows its inside (chosen here rather than by backface-visibility, which WebKit and Chromium judge differently)
+        const a = clamp(FLAP.x, -10, 190), over = a > 90; flap.style.transform = `rotateX(${a}deg)`; flap.style.zIndex = over ? 0 : 6;
+        flapFront.style.visibility = tab.style.visibility = over ? "hidden" : ""; flapInside.style.visibility = over ? "visible" : "hidden";
+        flapFront.style.filter = `brightness(${1 - .22 * Math.sin(clamp(a, 0, 90) * Math.PI / 180)})`;
+        if (!free) { card.style.transform = `translateY(${-UP.x}px) scale(${k0})`; glow.style.opacity = (smooth(.08, .85, a / 180) * .95 + (UP.x > 0 ? .1 : 0)) * (rarity === "common" ? .55 : 1); }
       });
-      card.addEventListener("dblclick",pull);
-      card.addEventListener("keydown",e=>{if(e.key==="Enter" || e.key===" "){e.preventDefault();pull();}});
-      const show=async () => {
-        cer.hint("Opening your envelope."); Snd.crinkle(4,.2);
-        const back=anim(openedFlap,[{opacity:0,transform:"scaleY(0)"},{opacity:0,transform:"scaleY(0)",offset:.5},{opacity:1,transform:"scaleY(-1)"}],{duration:420,easing:EASE.inOut});
-        await anim($(".flap",envelope),[{transform:"rotateX(0)"},{transform:"rotateX(-172deg)"}],{duration:420,easing:EASE.inOut});
-        await back;
-        await anim(card,[{transform:"none"},{transform:base}],{duration:360,easing:EASE.out});
-        fix(card,base); opened=true;
-        cer.hint("Pull it out."); card.tabIndex=0; card.focus({preventScroll:true});
+      Snd.swoosh(); cer.wait(520).then(() => Snd.land());
+      const until = (test) => new Promise((res) => frames(cer, () => { if (test()) { res(); return false; } }));
+      const open = () => {
+        if (opening) return; opening = true; state = null;
+        if (sealed) { sealed = false; Snd.unseal(); Haptic.tap("align"); }
+        FLAP.to(180, 190, 17); cer.wait(160).then(() => Snd.flap());
       };
-      show(); cer.root._esc=()=>{};
+      const limit = () => fh * k0 * (1 - CARD.bottom) + H * .19;
+      const pullOut = () => { if (state !== "pull") return; state = null; UP.to(limit() * 1.1, 160, 20); until(() => UP.x > limit()).then(release); };
+      drag(env, {
+        down: (e) => {
+          const r = env.getBoundingClientRect(), fy = (e.clientY - r.top) / r.height;
+          if (state === "flap" && fy < .7) { grab = "flap"; return; }
+          if (state === "pull" && fy < .55) { grab = "card"; rustle = Snd.paperMotion(); return; }
+          return false;
+        },
+        move: (dx, dy) => {
+          if (grab === "flap") {
+            const p = clamp(-dy / (H * .62), 0, 1.06); FLAP.set(p * 180);
+            if (p > .1 && sealed) { sealed = false; Snd.unseal(); Haptic.tap("align"); }
+          } else if (grab === "card") {
+            const up = Math.max(0, -dy); UP.set(peek + up * .94); LIFT.to(-Math.min(up, 70) * .22); rustle(up / H);
+            if (peek + up * .94 > limit()) { grab = null; release(); }
+          }
+        },
+        up: () => {
+          if (grab === "flap") { grab = null; if (FLAP.x > 80) open(); else { FLAP.to(0); Snd.flap(); } }
+          else if (grab === "card") { grab = null; if (!free) { UP.to(peek); LIFT.to(0); } }
+        },
+      });
+      const advance = () => state === "flap" ? open() : pullOut();
+      env.addEventListener("dblclick", advance);
+      env.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && !e.repeat) { e.preventDefault(); advance(); } });
+
+      // springs for the card once it is out: where it is, how big, how it is turned, and the tilt it takes from the pointer
+      let X, CY, K, RY, RZ, TX, TY, cx0 = 0, cy0 = 0;
+      function release() {
+        if (free) return; free = true; state = null; Snd.swoosh(); Haptic.tap("level");
+        env.removeAttribute("role"); env.removeAttribute("tabindex"); env.removeAttribute("aria-label");
+        const r = card.getBoundingClientRect(), st = stage.getBoundingClientRect();
+        cx0 = r.left - st.left + r.width / 2; cy0 = r.top - st.top + r.height / 2;
+        stage.append(cardShadow, card); card.classList.add("free");
+        Object.assign(card.style, { left: cx0 - fw / 2 + "px", top: cy0 - fh / 2 + "px", transform: `scale(${k0})` });
+        Object.assign(cardShadow.style, { left: cx0 - fw * .42 + "px", top: cy0 - fh * .35 + "px" });
+        X = new Spring(cx0, 120, 18); CY = new Spring(cy0, 120, 18); K = new Spring(k0, 120, 18); RY = new Spring(0, 120, 20); RZ = new Spring(-3, 120, 18); TX = new Spring(0, 90, 16); TY = new Spring(0, 90, 16);
+        frames(cer, (dt) => {
+          if (!card.isConnected) return false;
+          for (const s of [X, CY, K, RZ, TX, TY]) s.step(dt, cer.skipped);
+          card.style.transform = `translate(${X.x - cx0}px, ${CY.x - cy0}px) scale(${K.x}) rotateZ(${RZ.x}deg) rotateX(${TY.x * -7}deg) rotateY(${TX.x * 9}deg)`;
+          flip.style.transform = `rotateY(${RY.x}deg)`; desk.tilt.x = TX.x; desk.tilt.y = TY.x;
+          const edge = Math.abs(Math.cos(RY.x * Math.PI / 180));   // edge-on, a card throws almost no shadow
+          cardShadow.style.transform = `translate(${X.x - cx0 + 10 - TX.x * 6}px, ${CY.x - cy0 + 16 + TY.x * 6}px) scale(${K.x * (.35 + .65 * edge)}, ${K.x}) rotate(${RZ.x}deg)`;
+        });
+        tween(cer, 700, (k) => { drop = k; LIFT.set(0); }, (t) => t * t * t);
+        reveal();
+      }
+      async function reveal() {
+        cer.allowSkip(); cer.hint("");
+        const tx = SW / 2, ty = fit.cy, [lx, ly] = at(tx, ty);
+        X.to(tx); CY.to(ty); K.to(1); RZ.to(-1.5);
+        desk.lamp(D.dim, lx, ly, rarity, 14, 70);
+        await cer.wait(560);
+        // a breath: the room goes quiet, and only the true colour shows at the rim
+        Snd.duck(D.hold + 300); await cer.wait(D.hold);
+        let turned = false;
+        const turn = () => { if (turned) return; turned = true; Snd.turn(); Snd.reveal(rarity); Haptic.tap("seal"); };
+        await tween(cer, 620, (e, p) => { RY.set(e * 180); if (p > .5) turn(); }, curve.inOut); turn();
+        desk.bloom(rarity, lx, ly, fw);
+        const glint = $(".glint", face); if (glint) await cer.motion(glint, [{ "--gl": "-60%" }, { "--gl": "150%" }], { duration: rarity === "common" ? 600 : 900, easing: "cubic-bezier(.35,.1,.2,1)" });
+        if (!reduced()) cer.root.addEventListener("pointermove", (e) => { if (done) return; const b = card.getBoundingClientRect(); TX.to(clamp((e.clientX - (b.left + b.width / 2)) / (b.width * .9), -1, 1)); TY.to(clamp((e.clientY - (b.top + b.height / 2)) / (b.height * 1.6), -1, 1)); });
+        const info = h("div.rv-info.pk-info.mx-info", { style: { opacity: 0 } }, h("p.eyebrow", `Today's material · ${date}`), h("h2", m.name),
+          h("div.rv-meta", h("span.seal", { data: { rarity }, style: { opacity: 0 } }, m.rarity), h("span.no", m.recipe || "")),
+          h("div.rv-btns", h("button.btn.keep", { on: { click: keep } }, "Keep it")),
+          h("p.pk-sr", { role: "status" }, `${m.rarity[0].toUpperCase() + m.rarity.slice(1)}. ${m.name}.`));
+        stage.append(info); cer.hint(reduced() ? "" : "Tilt it to catch the light.");
+        info.style.opacity = 1; cer.motion(info, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 });
+        const name = $("h2", info), seal = $(".seal", info), letters = typeIn(cer, name);
+        await cer.wait(260 + m.name.length * 20); Snd.stamp(); Haptic.tap("align");
+        seal.style.opacity = 1; await cer.motion(seal, [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 340, easing: "cubic-bezier(.3,1.4,.5,1)" });
+        if (rarity === "archive") inkLine(cer, info, name);
+        await letters; cer.endSkip(); $(".keep", info).focus({ preventScroll: true });
+      }
+      // Keep it: the card's face, as it is on screen, is handed to Today, which settles it into its slot
+      function keep(e) {
+        if (done) return; done = true; e.currentTarget.disabled = true; Snd.tap();
+        TX.set(0); TY.set(0); card.style.transform = `translate(${X.t - cx0}px, ${CY.t - cy0}px) scale(1) rotateZ(${RZ.t}deg)`;
+        desk.fade(320); { const [lx, ly] = at(X.t, CY.t); desk.lamp(0, lx, ly, rarity); }
+        const rect = face.getBoundingClientRect(), node = face.cloneNode(true);
+        node.classList.remove("big", "mx-face"); $(".glint", node)?.remove(); node.removeAttribute("style");
+        resolve({ rect, node, close: (o) => cer.close(o) });
+      }
+      cer.root._esc = () => {};
+      (async () => {
+        await until(() => Y.rest || cer.skipped);
+        state = "flap"; cer.hint("Lift the flap."); env.focus({ preventScroll: true });
+        await until(() => opening && FLAP.x > 170);
+        await cer.wait(140); Snd.crinkle(3, .2); peek = H * .2; UP.to(peek, 160, 18); await cer.wait(420);
+        state = "pull"; env.setAttribute("aria-label", "Pull the card out"); cer.hint("Pull it out.");
+      })();
     });
   }
 

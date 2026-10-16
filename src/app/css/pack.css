@@ -202,3 +202,28 @@ img.peta-tag { width: 120px; }
 .pk-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); margin: 0; }
 html[data-motion="reduce"] .cer-lamp { transition: none; }
 @media (prefers-reduced-motion: reduce) { .cer-lamp { transition: none; } }
+
+/* ===== Today's material on the desk (Cer.openMaterial) =====
+   The envelope's own art in layers: back, the light leaking from inside, the card, the front pocket and the flap. The flap turns on its
+   fold, 12.5% from the top of the art, so opened it stands on the envelope's mouth instead of floating above it. */
+.mx-desk { --z: 0; position: absolute; left: 0; top: 0; transform-style: preserve-3d; cursor: grab; touch-action: none; outline: none; will-change: transform; }
+.mx-desk:focus-visible { outline: none; } .mx-desk:focus-visible .mx-flap { filter: drop-shadow(0 0 2px #527d93); }
+.mx-desk .mx-part { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; -webkit-user-drag: none; }
+.mx-shadow { position: absolute; left: 3%; top: 16%; width: 94%; height: 80%; border-radius: 12px; background: rgba(38, 26, 14, .5); filter: blur(calc(12px + var(--z) * 8px)); transform: translate(calc(10px + var(--z) * 8px), calc(18px + var(--z) * 10px)); opacity: calc(.55 - var(--z) * .1); pointer-events: none; }
+.mx-glow { --light: 255, 244, 224; position: absolute; z-index: 2; left: 10%; right: 10%; top: -30%; height: 90%; border-radius: 50%; opacity: 0; filter: blur(16px); pointer-events: none; background: radial-gradient(closest-side, rgba(var(--light), .95), rgba(var(--light), 0)); }
+.mx-glow.prism { background: conic-gradient(#ffb3d9, #ffe9a6, #b7f3d4, #a9d8ff, #d4b8ff, #ffb3d9); -webkit-mask: radial-gradient(closest-side, #000, transparent); mask: radial-gradient(closest-side, #000, transparent); }
+.mx-desk > .mx-part:first-of-type { z-index: 1; } .mx-pocket { z-index: 4; }
+.mx-flap { position: absolute; inset: 0; z-index: 6; transform-origin: 50% 12.5%; transform-style: preserve-3d; pointer-events: none; }
+.mx-flap .mx-flap-in { visibility: hidden; filter: brightness(.8) saturate(.9); }
+.mx-tab { position: absolute; left: 44.5%; top: 50%; width: 11%; height: 9%; border-radius: 2px; background: rgba(250, 232, 226, .85); box-shadow: 0 1px 1px rgba(0, 0, 0, .12); transform: rotate(-4deg); }
+/* the card: its back (Peta, the date) and its face (the material) */
+.mx-card { position: absolute; z-index: 3; transform-origin: 0 0; transform-style: preserve-3d; }   /* what peeks out of the mouth can be taken */
+.mx-card.free { z-index: 10; transform-origin: 50% 50%; pointer-events: none; }
+.mx-flip { position: absolute; inset: 0; transform-style: preserve-3d; }
+.mx-flip > * { position: absolute; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.mx-flip > .mx-face { inset: 0; width: 100%; transform: rotateY(180deg); }
+.mx-cardback { inset: 12.63% 7.86% 12.37%; display: grid; place-content: center; gap: calc(var(--w) * .03); border-radius: calc(var(--w) * .032); background: #f3ede1; box-shadow: 0 1px 1px rgba(0, 0, 0, .18), inset 0 0 0 1px rgba(60, 48, 30, .12); text-align: center; color: #4b4234; }
+.mx-cardback::before { content: ""; position: absolute; inset: 6%; border: 1px solid rgba(70, 58, 40, .32); border-radius: calc(var(--w) * .02); }
+.mx-cardback b { font: 600 calc(var(--w) * .085) / 1 var(--hand); letter-spacing: .02em; }
+.mx-cardback small { font: calc(var(--w) * .03) / 1.4 "Special Elite", "Courier New", ui-monospace, monospace; letter-spacing: .16em; text-transform: uppercase; color: #7a6c56; }
+.mx-cardshadow { position: absolute; z-index: 9; border-radius: 12px; background: rgba(38, 26, 14, .45); filter: blur(16px); transform-origin: 50% 50%; pointer-events: none; }
