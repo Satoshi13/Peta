@@ -1,4 +1,4 @@
-/* Ceremonies: opening a Pack (tear -> pull out -> unwrap -> reveal), opening a Gift (break the seal -> ...), sealing a gift.
+/* Ceremonies: opening a Pack (tear -> pull out -> peel the cover -> reveal), opening a Gift (break the seal -> ...), sealing a gift.
    The point: every step is something you do with your hand, and the last one is yours to play with (tilt the sticker). */
 const fix = (el, tf) => { el.getAnimations().forEach((a) => a.cancel()); el.style.transform = tf; };
 async function closeCommittedPreview(cer,message) {
@@ -78,91 +78,299 @@ const Cer = (() => {
     await cer.motion(seal, [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 360, easing: EASE.spring });cer.endSkip();
   }
 
-  /* ------------------------------------------------------------------ PACK */
-  function jagged(n = 26, base = 21, amp = .8) { const pts = []; for (let i = 0; i <= n; i++) pts.push([+(i * 100 / n).toFixed(2), +(base + rand(-amp, amp)).toFixed(2)]); return pts; }
-  const polyTop = (j) => `polygon(0 0, 100% 0, ${[...j].reverse().map((p) => `${p[0]}% ${p[1]}%`).join(", ")})`;
-  const polyBody = (j) => `polygon(${j.map((p) => `${p[0]}% ${p[1]}%`).join(", ")}, 100% 100%, 0 100%)`;
+  /* ------------------------------------------------------------------ THE DESK (one pack)
+     One pack is opened on a desk under one lamp. The room darkens around what is held, and the pull's light lands on the desk:
+     a pool for every rarity, spectral streaks that follow the tilt (rare), gold leaf (special), dust in the beam (archive).
+     The light is only ever the pull's own, and only once the pull is committed. */
+  const DESK = {
+    common: { light: "255,247,232", tint: "18,14,10", dim: .55, hold: 0 },
+    uncommon: { light: "255,200,140", tint: "22,14,6", dim: .6, hold: 200 },
+    rare: { light: "214,206,255", tint: "12,10,20", dim: .72, hold: 520 },
+    special: { light: "255,205,112", tint: "24,14,4", dim: .78, hold: 780 },
+    archive: { light: "226,190,138", tint: "26,18,10", dim: .74, hold: 640 },
+  };
+  const rarityOf = (e) => DESK[e?.rarity] ? e.rarity : DESK[MAT[e?.material]?.rarity] ? MAT[e.material].rarity : "common";
+  const curve = { out: (t) => 1 - Math.pow(1 - t, 3), inOut: (t) => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, outBack: (t) => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2) };
+  /** Too narrow to put the words beside the sheet: then the pack is set aside above, and the words go below. */
+  const narrow = (stage) => stage.clientWidth < 560;
+  const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  /** A damped spring. With reduced motion (or a skipped ceremony) it is simply where it is going. */
+  class Spring {
+    constructor(x = 0, k = 170, c = 24) { this.x = this.t = x; this.v = 0; this.k = k; this.c = c; }
+    to(t, k, c) { this.t = t; if (k) this.k = k; if (c) this.c = c; return this; }
+    set(x) { this.x = this.t = x; this.v = 0; }
+    step(dt, snap = false) {
+      if (snap || reduced()) { this.x = this.t; this.v = 0; return; }
+      const n = Math.max(1, Math.ceil(dt / .004)), s = dt / n;
+      for (let i = 0; i < n; i++) { this.v += (-this.k * (this.x - this.t) - this.c * this.v) * s; this.x += this.v * s; }
+    }
+    get rest() { return Math.abs(this.x - this.t) < .05 && Math.abs(this.v) < .05; }
+  }
+  /** fn(dt) on every frame while the ceremony is on screen, until it returns false. */
+  function frames(cer, fn) {
+    let last = performance.now();
+    const f = (now) => { if (!cer.root.isConnected) return; const dt = Math.min(.05, Math.max(0, now - last) / 1000); last = now; if (fn(dt, now) !== false) requestAnimationFrame(f); };
+    requestAnimationFrame(f);
+  }
+  /** fn(eased, linear) over `ms`; at once when the ceremony is skipped or motion is reduced. */
+  function tween(cer, ms, fn, e = curve.out) {
+    if (cer.skipped || reduced()) { fn(1, 1); return Promise.resolve(); }
+    return new Promise((res) => { let t = 0; frames(cer, (dt) => { t += dt * 1000; const p = cer.skipped ? 1 : clamp(t / ms, 0, 1); fn(e(p), p); if (p >= 1) { res(); return false; } }); });
+  }
 
-  /* One tearable wrapper, used by Packs (the sticker comes out) and by Today's material (the card comes out).
-     `content` sits inside, behind the front of the wrapper; `onTear(rig)` runs once, the moment the top is torn off. */
-  function buildRig(cer, stage, { kind, hue, color, content, onTear, label, decoration }) {
-    const K = PACK_KINDS[kind] || PACK_KINDS.holo, PW = Math.min(310, stage.clientHeight * .48, stage.clientWidth * .55), PH = PW * 4 / 3, CUT = K.cut;
-    const colorFilter=packColorFilter(kind,color);
-    const jag = jagged(26, CUT), tint = colorFilter!=="none" ? ".pack-colored" : K.foil && hue ? ".tinted" : "";
-    const mk = (cls, clip) => h("div.pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--pack-filter":colorFilter, "--hue": (hue || 0) + "deg" } }, PackPaper(kind,color), K.foil ? h("i.sheen") : null);
-    const body = mk("pk-body", polyBody(jag)), topStrip = mk("pk-top", polyTop(jag)), inside = h("div.pk-inside");
-    if(decoration) { body.append(decoration); topStrip.append(decoration.cloneNode(true)); }
-    const tab = h("i.pk-tab", h("b", "tear")), line = h("i.pk-line");
-    const pouch = h("div.pouch", { data: { kind: kind || "holo" }, style: { width: PW + "px", height: PH + "px", "--pk": packVar(kind) } }, inside, content, body, label || null, topStrip, line, tab);
-    line.style.top = CUT + "%"; tab.style.top = CUT - 3.6 + "%";
-    const wrapper = h("div.pk-wrap", pouch); stage.append(wrapper);
-    anim(wrapper, [{ opacity: 0, transform: "translateY(60px) rotate(8deg) scale(.86)" }, { opacity: 1, transform: "none" }], { duration: 720, easing: EASE.spring });
-    const xL = PW * K.xl, xR = PW * K.xr, cutY = PH * CUT / 100, span = xR - xL;
-    const rig = { K, PW, PH, cutY, xL, xR, pouch, wrapper, topStrip, inside, content, done: false, prog: 0 };
-    const setProg = (p) => {
-      rig.prog = clamp(p, 0, 1); const th = rig.prog * 30 * Math.PI / 180, deg = -rig.prog * 30;
-      topStrip.style.transformOrigin = `${xR}px ${cutY}px`; topStrip.style.transform = `rotate(${deg}deg) translate(${rig.prog * 5}px, ${-rig.prog * 6}px)`;
-      const bx = xR - span * Math.cos(th), by = cutY - span * Math.sin(th);
-      inside.style.clipPath = `polygon(${xL}px ${cutY - 3}px, ${xR}px ${cutY - 3}px, ${bx}px ${by}px)`; inside.style.opacity = rig.prog > .01 ? 1 : 0;
-      line.style.opacity = rig.prog > .02 ? 0 : 1; tab.style.opacity = rig.prog > .02 ? 0 : 1;
-      content.style.transform = `translateY(${-rig.prog * PH * .06}px)`;
+  /** The desk of one ceremony: a lamp over the room and two canvases of light, one under the objects and one over them. Coordinates are viewport pixels. */
+  function deskFor(cer) {
+    if (cer.desk) return cer.desk;
+    const root = cer.root, lampEl = h("i.cer-lamp"), under = h("canvas.cer-fx.under"), over = h("canvas.cer-fx.over");
+    root.dataset.look = "desk"; $(".cer-bg", root).after(lampEl, under); cer.stage.after(over);
+    const tilt = { x: 0, y: 0 }; let sys = [], w = 1, hh = 1, running = false, cu = null, co = null;
+    const size = () => {
+      const r = root.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); w = Math.max(1, r.width); hh = Math.max(1, r.height);
+      for (const c of [under, over]) { c.width = w * d; c.height = hh * d; c.getContext("2d")?.setTransform(d, 0, 0, d, 0, 0); }
+      cu = under.getContext("2d"); co = over.getContext("2d");
     };
-    setProg(0);
-    // the foil / paper catches the light wherever the pointer is on the stage
-    onPointerFollow(stage, (x,y,e,amount) => { pouch.style.setProperty("--sx",lerp(30,(1-x)*100,amount)+"%"); pouch.style.setProperty("--sy",lerp(30,(1-y)*100,amount)+"%"); }, () => { pouch.style.setProperty("--sx","30%"); pouch.style.setProperty("--sy","30%"); });
-    let rustle = Snd.paperMotion(), autoTearing = false;
-    drag(pouch, {
-      down: (e) => { if (rig.done || autoTearing) return false; const r = pouch.getBoundingClientRect(); if ((e.clientY - r.top) / r.height > .42) return false; rustle=Snd.paperMotion(); pouch.classList.add("pulling"); },
-      move: (dx) => {
-        if (rig.done) return;
-        setProg(dx / (span * .9));
-        const j = Math.sin(performance.now() / 28) * rig.prog * 1.6; wrapper.style.transform = `translate(${j}px, ${Math.cos(performance.now() / 33) * rig.prog * 1.1}px) rotate(${j * .08}deg)`;
-        if(rig.prog < 1)rustle(rig.prog);
-        if (rig.prog >= 1) finish();
-      },
-      up: () => { pouch.classList.remove("pulling"); wrapper.style.transform = ""; if (!rig.done && rig.prog < 1) springBack(); },
-    });
-    const springBack = async () => { if(reduced()) { setProg(0); return; } const from = rig.prog, t0 = performance.now(); Snd.tap(); await new Promise((res) => { (function f(now) { const t = clamp((now - t0) / 380, 0, 1), e = 1 - Math.pow(1 - t, 3); setProg(from * (1 - e) * (1 + Math.sin(t * 9) * .08 * (1 - t))); t < 1 ? requestAnimationFrame(f) : res(); })(t0); }); setProg(0); };
-    const autoTear = async () => { if (rig.done || autoTearing) return; autoTearing=true; rustle=Snd.paperMotion(); try { if(reduced()) { setProg(1); finish(); return; } const t0 = performance.now(); await new Promise((res) => { (function f(now) { if(!pouch.isConnected || rig.done) {res();return;} const t = clamp((now - t0) / 620, 0, 1); setProg(t); rustle(t); t < 1 ? requestAnimationFrame(f) : res(); })(t0); }); if(pouch.isConnected)finish(); } finally {autoTearing=false;} };
-    pouch.tabIndex = 0; pouch.addEventListener("keydown", (e) => {if(e.key !== "Enter" && e.key !== " ")return;e.preventDefault();if(!e.repeat)autoTear();}); pouch.addEventListener("dblclick", autoTear);
-    const finish = async () => {
-      if (rig.done) return; rig.done = true; pouch.classList.remove("pulling"); pouch.classList.add("torn"); wrapper.style.transform = ""; Snd.tear(); cer.hint("");
-      anim(topStrip, [{ transform: topStrip.style.transform, opacity: 1 }, { transform: `translate(${PW * .6}px, ${-PH * .55}px) rotate(-85deg)`, opacity: 0 }], { duration: 760, easing: "cubic-bezier(.3,.1,.6,1)", composite: "replace" });
-      inside.style.clipPath = `polygon(${xL}px ${cutY - 3}px, ${xR}px ${cutY - 3}px, ${xR}px ${cutY - PH * .035}px, ${xL}px ${cutY - PH * .035}px)`;
-      await sleep(180); Snd.swoosh(); await onTear(rig);
-    };
-    rig.focus = () => pouch.focus({ preventScroll: true });
-    /** The emptied wrapper stays on the table, crumpled to one side. It is part of the picture, not something that disappears. */
-    rig.linger = () => anim(pouch, [{ transform: "none" }, { transform: `translate(${-PW * .9}px, ${PH * .34}px) rotate(-13deg) scale(.72)` }], { duration: 850, easing: EASE.inOut, delay: 100 });
-    /** Pull gesture for whatever comes out of the mouth. */
-    rig.pullable = (el, { rise = .3, need = .34, onPull }) => {
-      let pulled = false, rustle=Snd.paperMotion(); const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
-      drag(el, {
-        down: () => { if (pulled) return false; rustle=Snd.paperMotion(); },
-        move: (dx, dy) => { const up = clamp(-dy, 0, PH * .8), rb = up > PH * .5 ? PH * .5 + (up - PH * .5) * .3 : up; el.style.transform = `translateY(${-PH * rise - rb}px) rotate(${-1.5 + dx * .03}deg)`; rustle(up / PH); if (up > PH * need && !pulled) go(); },
-        up: () => { if (!pulled) anim(el, [{ transform: el.style.transform }, { transform: base }], { duration: 300, easing: EASE.spring }).then(() => fix(el, base)); },
+    size(); new ResizeObserver(size).observe(root);
+    const rel = (x, y) => { const r = root.getBoundingClientRect(); return [x - r.left, y - r.top]; };
+    const run = () => {
+      if (running || !cu || !co) return; running = true;
+      frames(cer, (dt) => {
+        cu.clearRect(0, 0, w, hh); co.clearRect(0, 0, w, hh);
+        sys = sys.filter((s) => {
+          s.t += dt; let k = 1; if (s.out) { s.out.t += dt * 1000; k = 1 - s.out.t / s.out.ms; if (k <= 0) return false; }
+          const c = s.over ? co : cu; c.save(); c.globalAlpha = k; const alive = s.draw(c, dt, s.t); c.restore(); return alive !== false;
+        });
+        if (!sys.length) { running = false; return false; }
       });
-      const go = () => { if (pulled) return; pulled = true; el.style.cursor = "default"; onPull(); };
-      el.addEventListener("dblclick", go); el.tabIndex = 0; el.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && go());
-      return base;
+    };
+    const add = (s) => { if (s.decor && reduced()) return s; s.t ??= 0; sys.push(s); run(); return s; };
+    const rgba = (rgb, a) => `rgba(${rgb},${a})`;
+    /* a pool of light under whatever was revealed: it swells, then rests */
+    const pool = (x, y, r, rgb, peak = .9, rest = .45) => add({ t: reduced() ? 2 : 0, draw(c, dt, t) {
+      const a = t < .5 ? lerp(0, peak, curve.out(t / .5)) : lerp(peak, rest, smooth(.5, 1.6, t)), rr = r * (t < .5 ? lerp(.6, 1, curve.out(t / .5)) : 1);
+      const g = c.createRadialGradient(x, y, 0, x, y, rr); g.addColorStop(0, rgba(rgb, a)); g.addColorStop(.55, rgba(rgb, a * .35)); g.addColorStop(1, rgba(rgb, 0));
+      c.fillStyle = g; c.fillRect(x - rr, y - rr, rr * 2, rr * 2);
+    } });
+    /* light split by the foil: spectral streaks falling away from the lamp, moving with the tilt of what is held, like real reflections */
+    const prism = (x, y, r) => {
+      const st = [[.35, .78, 1], [.62, .7, .8], [.9, .74, .9], [1.15, .82, .7], [-2.6, .8, .55]].map(([a, d, k]) => ({ a, d: r * d, len: r * .2 * k, w: 13 * k + 5, ph: Math.random() * 6 }));
+      const hues = ["255,70,140", "255,180,60", "90,230,140", "70,160,255", "170,100,255"];
+      add({ decor: true, draw(c, dt, t) {
+        const fin = smooth(.1, 1, t); c.globalCompositeOperation = "lighter";
+        for (const s of st) {
+          const a = s.a - tilt.x * .45 + Math.sin(t * .45 + s.ph) * .03, d = s.d * (1 - tilt.y * .14);
+          c.save(); c.translate(x + Math.cos(a) * d, y + Math.sin(a) * d * .72); c.rotate(a + Math.PI / 2 - tilt.x * .25); c.filter = "blur(2.5px)";
+          const g = c.createLinearGradient(-s.w, 0, s.w, 0);
+          hues.forEach((col, k) => g.addColorStop(.1 + k * .2, `rgba(${col},${.42 * fin * (.75 + .25 * Math.sin(t * 1.1 + s.ph))})`));
+          g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,0)");
+          c.fillStyle = g; c.beginPath(); c.ellipse(0, 0, s.w, s.len, 0, 0, Math.PI * 2); c.fill(); c.restore();
+        }
+      } });
+    };
+    /* gold leaf falling slowly through the lamp light */
+    const goldLeaf = (x, y, s) => {
+      const fl = Array.from({ length: 16 }, () => ({ x: x + (Math.random() - .5) * s * 1.5, y: y - Math.random() * s * .8 - 30, vy: 12 + Math.random() * 16, sw: Math.random() * 6, s: 1.6 + Math.random() * 2.6, ph: Math.random() * 6, rot: Math.random() * 6 }));
+      add({ decor: true, over: true, draw(c, dt, t) {
+        for (const f of fl) {
+          f.y += f.vy * dt; f.ph += dt * (2 + f.sw * .2); f.rot += dt; const sx = Math.cos(f.ph), a = smooth(0, .4, t) * (1 - smooth(4.5, 6, t)), glint = Math.pow(Math.abs(sx), 6);
+          c.save(); c.translate(f.x + Math.sin(f.ph * .7) * 10, f.y); c.rotate(f.rot); c.scale(Math.max(.15, Math.abs(sx)), 1);
+          c.fillStyle = `hsla(43,${72 + 18 * Math.abs(sx)}%,${46 + 36 * Math.abs(sx) + glint * 12}%,${a * (.7 + .3 * glint)})`; c.fillRect(-f.s * 1.4, -f.s * .55, f.s * 2.8, f.s * 1.1); c.restore();
+        }
+        return t < 6;
+      } });
+    };
+    /* dust in the beam, for the archive */
+    const dust = (x, y, r) => {
+      const ms = Array.from({ length: 40 }, () => ({ x: x + (Math.random() - .5) * r * 2, y: y + (Math.random() - .5) * r * 1.4, vx: (Math.random() - .5) * 6, vy: -3 - Math.random() * 6, s: .6 + Math.random() * 1.6, p: Math.random() * 6 }));
+      add({ decor: true, over: true, draw(c, dt, t) {
+        for (const m of ms) { m.x += m.vx * dt; m.y += m.vy * dt; m.p += dt; c.fillStyle = `rgba(255,236,200,${(.25 + .25 * Math.sin(m.p * 1.7)) * smooth(0, 1, t)})`; c.beginPath(); c.arc(m.x, m.y, m.s, 0, Math.PI * 2); c.fill(); }
+      } });
+    };
+    return cer.desk = {
+      tilt,
+      /** Darken the room around (x, y): `alpha` is how dark the edge gets; the lamp's rim takes the pull's tint. */
+      lamp(alpha, x, y, rarity = "common", inner = 16, outer = 74) {
+        const [lx, ly] = rel(x, y), D = DESK[rarity] || DESK.common;
+        for (const [k, v] of [["--lx", lx / w * 100 + "%"], ["--ly", ly / hh * 100 + "%"], ["--lr1", inner + "%"], ["--lr2", outer + "%"], ["--tint", D.tint], ["--la", Math.min(.97, alpha * 1.28).toFixed(3)]]) lampEl.style.setProperty(k, v);
+        lampEl.style.opacity = alpha > 0 ? 1 : 0; root.dataset.dim = String(alpha > .3);
+      },
+      /** The light that belongs to a rarity, centred on (x, y) for an object `s` pixels wide. */
+      bloom(rarity, x, y, s) {
+        const [px, py] = rel(x, y), D = DESK[rarity] || DESK.common;
+        pool(px, py, s * (rarity === "common" ? .75 : rarity === "uncommon" ? .95 : 1.2), D.light, rarity === "common" ? .5 : .85, rarity === "common" ? .28 : .42);
+        if (rarity === "rare") prism(px, py, s * .95);
+        if (rarity === "special") { pool(px, py, s * 1.9, "255,190,90", .35, .2); goldLeaf(px, py, s); }
+        if (rarity === "archive") dust(px, py, s);
+      },
+      /** Flecks from a tear: rainbow foil, or bits of paper of the colour `rgb`. */
+      flecks(x, y, n, rgb = null) {
+        const [px, py] = rel(x, y), ps = Array.from({ length: n }, () => ({ x: px, y: py, vx: (Math.random() - .3) * 120, vy: -60 - Math.random() * 90, s: 1 + Math.random() * 2.2, life: .5 + Math.random() * .5, hue: Math.random() * 360 }));
+        add({ decor: true, over: true, draw(c, dt, t) {
+          let alive = false;
+          for (const p of ps) { if (t > p.life) continue; alive = true; p.vy += 320 * dt; p.x += p.vx * dt; p.y += p.vy * dt; c.fillStyle = rgb ? rgba(rgb, 1 - t / p.life) : `hsla(${p.hue},80%,82%,${1 - t / p.life})`; c.fillRect(p.x, p.y, p.s, p.s); }
+          return alive;
+        } });
+      },
+      fade(ms = 700) { for (const s of sys) s.out = { t: 0, ms }; },
+    };
+  }
+
+  /* ------------------------------------------------------------------ PACK
+     The pouch is torn along its top by hand. The torn piece lifts and curls in two parts as the tear runs, the edge is jagged and bows
+     open, and the lining of the mouth shows. Torn through, the strip flies off with the hand's speed and stays on the desk. */
+  const MOUTH = { holo: ["#e9ebee", "#a7acb3", "#5d636b"], kraft: ["#d9bb8c", "#a98457", "#6e5232"], matte: ["#f6f2ea", "#d2cbbe", "#8f877a"] };
+  const FLECK = { holo: null, kraft: "201,170,120", matte: "236,231,220" };
+  /* One tearable pouch. `content` sits inside, behind the front; `onTear(rig)` runs once, the moment the top is torn off. */
+  function buildRig(cer, stage, { kind, hue, color, content, onTear, label, decoration }) {
+    const desk = deskFor(cer), k = PACK_KINDS[kind] ? kind : "holo", K = PACK_KINDS[k];
+    const PW = Math.min(310, stage.clientHeight * .48, stage.clientWidth * .55), PH = PW * 4 / 3, C = K.cut / 100, colorFilter = packColorFilter(kind, color);
+    const tint = colorFilter !== "none" ? ".pack-colored" : K.foil && hue ? ".tinted" : "";
+    // the torn pieces are drawn from the same art, so they take the same colour as the pouch
+    const tintFilter = colorFilter !== "none" ? colorFilter + " " : tint ? `sepia(.55) saturate(1.9) hue-rotate(${(hue || 0) - 40}deg) brightness(1.03) ` : "";
+    const mk = (cls) => h("div.pk-layer." + cls + tint, { style: { "--pack-filter": colorFilter, "--hue": (hue || 0) + "deg" } }, PackPaper(kind, color), K.foil ? h("i.sheen") : null);
+    const body = mk("pk-body"), attached = mk("pk-attached"), free = h("div.pk-free"), segA = h("i.pk-seg"), segB = h("i.pk-seg");
+    const mouth = h("i.pk-mouth", { style: { "--m1": MOUTH[k][0], "--m2": MOUTH[k][1], "--m3": MOUTH[k][2] } }), leak = h("i.pk-leak", { style: { top: PH * (C - .16) + "px" } });
+    const tearMark = h("i.pk-tear", { style: { left: PW * .04 + "px", top: PH * (C - .085) + "px" } }, "tear");
+    if (decoration) { body.append(decoration); attached.append(decoration.cloneNode(true)); }
+    free.append(segA, segB);
+    const pouch = h("div.pouch", { data: { kind: k }, style: { width: PW + "px", height: PH + "px", "--pk": packVar(kind), "--cut": C * 100 + "%" } }, mouth, leak, content, body, label || null, attached, free, tearMark);
+    const wrapper = h("div.pk-wrap", pouch); stage.append(wrapper);
+    const portrait = () => narrow(stage);
+    { const st = stage.getBoundingClientRect(); desk.lamp(.4, st.left + st.width / 2, st.top + st.height * .46, "common", 20, 80); }
+    // a jagged line for the torn edge, fixed per pack
+    const jag = Array.from({ length: 41 }, (_, i) => (i % 2 ? 1 : -1) * (.004 + Math.random() * .007) + (Math.random() - .5) * .004);
+    const Y = new Spring(stage.clientHeight * .7, 130, 16).to(0), ROT = new Spring(-10, 130, 15).to(-1), LIFT = new Spring(0, 240, 26), UP = new Spring(0, 200, 24);
+    let p = 0, laid = 0, state = "tear", grab = null, tearing = false, stripGone = false, sheetFree = false, leakK = .55, painted = "", fling = { vx: .6, vy: -.6 };
+    const rig = { K, PW, PH, cutY: PH * C, pouch, wrapper, content, done: false };
+    const pct = (v) => (v * 100).toFixed(2) + "%";
+    const piece = (el, x0, pw, hgt, transform, turn, pts) => {
+      const inRange = pts.filter(([a]) => a * PW >= x0 - 1 && a * PW <= x0 + pw + 1).map(([a, b]) => `${((a * PW - x0) / Math.max(1, pw) * 100).toFixed(1)}% ${(b * PH / hgt * 100).toFixed(1)}%`);
+      Object.assign(el.style, { left: x0 + "px", width: pw + "px", height: hgt + "px", backgroundSize: `${PW}px ${PH}px`, backgroundPosition: `${-x0}px 0`, transform, filter: `${tintFilter}brightness(${(1.04 - turn / 220).toFixed(3)})`,
+        clipPath: inRange.length > 1 ? `polygon(0 0, 100% 0, ${inRange.reverse().join(",")})` : `polygon(0 0, 100% 0, 100% ${pct(C * PH / hgt)}, 0 ${pct(C * PH / hgt)})` });
+    };
+    /* the torn edge is jagged from the left up to the tear, straight beyond it; the torn piece is two parts hinged at the tear point: the near one
+       lifts, the far one bends a little more, and a soft shadow falls under them */
+    const paintTear = () => {
+      const n = jag.length - 1, upto = Math.round(p * n), pts = [];
+      const bow = (x) => .026 * Math.sin(Math.PI * clamp(x / Math.max(p, .001), 0, 1)) * smooth(0, .5, p) * (stripGone ? 1.2 : 1);
+      for (let i = 0; i <= upto; i++) pts.push([i / n, C + jag[i] + bow(i / n)]);
+      body.style.clipPath = `polygon(${[...pts, [p, C], [1, C]].map(([a, b]) => `${pct(a)} ${pct(b)}`).join(",")}, 100% 100%, 0 100%)`;
+      attached.style.clipPath = `polygon(${pct(p)} 0, 100% 0, 100% ${pct(C)}, ${pct(p)} ${pct(C)})`;
+      free.hidden = stripGone || p <= .002;
+      if (!free.hidden) {
+        const hgt = C * PH + PH * .03, len = p * PW, near = len * .55, far = len - near, lift = Math.min(34, p * 58), bend = Math.min(26, p * 44);
+        piece(segA, len - near, near, hgt, `rotate(${lift}deg)`, lift, pts);
+        piece(segB, 0, far, hgt, `translate(${near}px, 0) rotate(${lift}deg) translate(${-near}px, 0) rotate(${bend}deg)`, lift + bend, pts);
+      }
+      const open = smooth(.05, .9, p) * (stripGone ? 1 : .9);
+      mouth.style.opacity = open; tearMark.style.opacity = p > .02 || state !== "tear" ? 0 : 1;
+      return open;
+    };
+    frames(cer, (dt) => {
+      for (const s of [Y, ROT, LIFT, UP]) s.step(dt);
+      const pt = portrait(), L = laid;
+      wrapper.style.transform = `translate(${L * (pt ? -PW * .62 : -PW * 1.05)}px, ${Y.x + LIFT.x + L * PH * (pt ? -.5 : .2)}px) rotate(${ROT.x - L * 16}deg) scale(${1 - L * (pt ? .5 : .26)})`;
+      pouch.style.setProperty("--z", (Math.max(0, -LIFT.x) / 30).toFixed(3));
+      const key = p + "|" + stripGone + "|" + state;
+      if (key !== painted) { painted = key; rig.open = paintTear(); }
+      leak.style.opacity = (sheetFree ? 0 : UP.x > 1 ? .95 : (rig.open || 0) * .75) * leakK;
+      if (!sheetFree && content) content.style.transform = `translateY(${-UP.x}px)`;
+    });
+    Snd.crinkle(4, .35); cer.wait(560).then(() => Snd.land());
+    // the foil / paper catches the light wherever the pointer is on the stage
+    onPointerFollow(stage, (x, y, e, amount) => { pouch.style.setProperty("--sx", lerp(30, (1 - x) * 100, amount) + "%"); pouch.style.setProperty("--sy", lerp(30, (1 - y) * 100, amount) + "%"); }, () => { pouch.style.setProperty("--sx", "30%"); pouch.style.setProperty("--sy", "30%"); });
+    const fleck = () => { const r = pouch.getBoundingClientRect(); desk.flecks(r.left + p * r.width, r.top + C * r.height, 3, FLECK[k]); };
+    let p0 = 0, lastP = 0, lastT = 0, peekH = 0, needH = 0, onPull = null, mv = null, rustle = Snd.paperMotion();
+    drag(pouch, {
+      down: (e) => {
+        const r = pouch.getBoundingClientRect(), fy = (e.clientY - r.top) / r.height; mv = { x: e.clientX, y: e.clientY, t: performance.now() };
+        if (state === "tear" && fy < C + .14) { grab = "tear"; p0 = lastP = p; lastT = performance.now(); pouch.classList.add("pulling"); return; }
+        if (state === "pull" && fy < .5) { grab = "pull"; rustle = Snd.paperMotion(); pouch.classList.add("pulling"); return; }
+        return false;
+      },
+      move: (dx, dy, e) => {
+        const now = performance.now(), mdt = Math.max(1, now - mv.t); fling = { vx: (e.clientX - mv.x) / mdt, vy: (e.clientY - mv.y) / mdt }; mv = { x: e.clientX, y: e.clientY, t: now };
+        if (grab === "tear") {
+          const np = clamp(p0 + (dx - dy * .25) / (PW * .95), p, 1), dp = np - lastP;
+          if (dp > .004) { Snd.grain(clamp(dp / Math.max(1, now - lastT) * 400, 0, 1)); lastP = np; lastT = now; if (Math.random() < .5) fleck(); }
+          for (const mark of [1 / 3, 2 / 3]) if (p < mark && np >= mark) Haptic.tap("align");
+          p = np; LIFT.to(-Math.min(dx, 60) * .1);
+          if (p >= 1) { grab = null; finish(); }
+        } else if (grab === "pull") {
+          const up = Math.max(0, -dy); UP.set(peekH + up * .92); LIFT.to(-Math.min(up, 60) * .25); rustle(up / PH);
+          if (peekH + up * .92 > needH) { grab = null; release(); }
+        }
+      },
+      up: () => {
+        pouch.classList.remove("pulling");
+        if (grab === "tear") { grab = null; LIFT.to(0); if (p > .72) autoTear(); }
+        else if (grab === "pull") { grab = null; if (!sheetFree) { UP.to(peekH); LIFT.to(0); } }
+      },
+    });
+    const autoTear = async () => {
+      if (tearing || stripGone) return; tearing = true; state = null; const from = p;
+      await tween(cer, 260 + (1 - from) * 500, (e) => { p = lerp(from, 1, e); if (Math.random() < .5) { Snd.grain(.6); fleck(); } }, curve.inOut);
+      finish();
+    };
+    /* the strip keeps flying with the hand's speed, then rests on the desk */
+    const fly = () => {
+      const st = stage.getBoundingClientRect(), r = pouch.getBoundingClientRect(), hgt = C * PH, pt = portrait();
+      const strip = h("i.pk-strip", { style: { width: PW + "px", height: hgt + "px", backgroundSize: `${PW}px ${PH}px`, "--pk": packVar(kind), filter: `${tintFilter}drop-shadow(2px 4px 4px rgba(30,20,10,.3))`,
+        clipPath: `polygon(0 0,100% 0,100% 100%,${jag.map((j, i) => `${(i / (jag.length - 1) * 100).toFixed(1)}% ${((C + j) / C * 100).toFixed(1)}%`).reverse().join(",")})` } });
+      stage.prepend(strip);
+      let x = r.left - st.left, y = r.top - st.top, vx = clamp(fling.vx * 700, 140, 620), vy = clamp(fling.vy * 700, -520, -220), a = -6, va = 70;
+      const floor = Math.min(st.height - hgt - 24, r.top - st.top + PH * .9), right = st.width - PW * .95;
+      const put = () => { strip.style.transform = `translate(${x}px, ${y}px) rotate(${a % 360}deg) scale(.82)`; };
+      if (pt) { const fx = x, fy = y, to = [st.width - PW * .9, -hgt * .2]; tween(cer, 700, (e) => { x = lerp(fx, to[0], e); y = lerp(fy, to[1], e) - Math.sin(e * Math.PI) * 40; a = lerp(-6, 8, e); put(); }).then(() => Snd.land()); return; }
+      if (reduced()) { x = right; y = floor; a = 9; put(); return; }
+      frames(cer, (dt) => {
+        vy += 1500 * dt; x += vx * dt; y += vy * dt; a += va * dt;
+        if (x > right) { x = right; vx = -vx * .3; }
+        if (y > floor) { y = floor; vy = -vy * .22; vx *= .55; va = (Math.round(a / 180) * 180 + 9 - a) * 3; if (Math.abs(vy) < 40) { put(); Snd.land(); return false; } }
+        put();
+      });
+    };
+    const finish = async () => {
+      if (rig.done) return; rig.done = true; stripGone = true; state = null; p = 1;
+      pouch.classList.remove("pulling"); pouch.classList.add("torn"); LIFT.to(0); cer.hint(""); Snd.rip(); Haptic.tap("seal"); fly();
+      await sleep(180); await onTear(rig);
+    };
+    const release = () => {
+      if (sheetFree) return; sheetFree = true; state = null; Snd.swoosh(); Haptic.tap("level");
+      LIFT.to(0); onPull?.();
+    };
+    const pullOut = () => { if (state !== "pull") return; state = null; UP.to(needH * 1.1, 150, 20); frames(cer, () => { if (UP.x > needH) { release(); return false; } }); };
+    const advance = () => state === "tear" ? autoTear() : pullOut();
+    pouch.tabIndex = 0; pouch.setAttribute("aria-label", "Tear the pack open");
+    pouch.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!e.repeat) advance(); } }); pouch.addEventListener("dblclick", advance);
+    rig.focus = () => pouch.focus({ preventScroll: true });
+    /** The colour leaking from the mouth is the pull's own; until the pull is committed it is plain lamp light. */
+    rig.light = (entry) => { const r = rarityOf(entry); leak.style.setProperty("--light", DESK[r].light); leak.classList.toggle("prism", r === "rare"); leakK = r === "common" ? .55 : 1; };
+    /** The emptied pouch stays on the desk, laid aside. It is part of the picture, not something that disappears. */
+    rig.linger = () => tween(cer, 850, (e) => { laid = e; }, curve.inOut);
+    /** What is inside peeks out of the mouth, and comes out when it is pulled up far enough (or on Enter / double-click). */
+    rig.pullable = async (el, { onPull: pulled }) => {
+      const sh = el.getBoundingClientRect().height || PW * .87; peekH = sh * .26; needH = sh * .82; onPull = pulled;
+      await cer.wait(240); Snd.crinkle(3, .2); UP.to(peekH, 150, 18); await cer.wait(460);
+      state = "pull"; pouch.setAttribute("aria-label", "Pull the sheet out");
     };
     return rig;
   }
 
-  /* The same rig for a wrapping that is not a pouch (a Studio pack): the picture of the wrapping stands where the pouch stood, the sleeve of stickers sits
-     behind it, and opening is a tap, a drag, or Enter (there is no top to tear). It gives the same things back (PW, PH, cutY, pullable, linger), measured
-     on the object's own box, so the rest of the opening does not care which one it is. */
+  /* The same rig for a wrapping that is not a pouch (a Studio pack): the picture of the wrapping stands where the pouch stood, the sheet
+     sits behind it, and opening is a tap, a drag, or Enter (there is no top to tear). It gives the same things back (PW, PH, cutY, pullable,
+     linger), measured on the object's own box, so the rest of the opening does not care which one it is. */
   function buildBagRig(cer, stage, { pack, content, onTear, cover }) {
-    const bag = BAGS[pack.bag], [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, ratio = (bh * bag.H) / (bw * bag.W);
+    const desk = deskFor(cer), bag = BAGS[pack.bag], [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, ratio = (bh * bag.H) / (bw * bag.W);
     let PW = Math.min(300, stage.clientWidth * .5); if (PW * ratio > stage.clientHeight * .5) PW = stage.clientHeight * .5 / ratio;
     const PH = PW * ratio, picW = PW / (bw / 100), picH = picW * bag.H / bag.W;
-    const pic = BagPic({ bag: pack.bag, color:pack.color, title: pack.title, sub: "by " + pack.by, cover, deco: pack.deco || "none", layout: pack.layout, fit: PW, k: 99, id: pack.id });
+    const pic = BagPic({ bag: pack.bag, color: pack.color, title: pack.title, sub: "by " + pack.by, cover, deco: pack.deco || "none", layout: pack.layout, fit: PW, k: 99, id: pack.id });
     Object.assign(pic.style, { position: "absolute", left: -(x0 / 100) * picW + "px", top: -(y0 / 100) * picH + "px", zIndex: 4 });
     const pouch = h("div.bagrig", { style: { width: PW + "px", height: PH + "px" }, tabIndex: 0, role: "button", "aria-label": "Open the pack" }, content, pic);
     const wrapper = h("div.pk-wrap", pouch); stage.append(wrapper);
+    { const st = stage.getBoundingClientRect(); desk.lamp(.4, st.left + st.width / 2, st.top + st.height * .46, "common", 20, 80); }
     anim(wrapper, [{ opacity: 0, transform: "translateY(60px) rotate(8deg) scale(.86)" }, { opacity: 1, transform: "none" }], { duration: 720, easing: EASE.spring });
-    // the sleeve of stickers sits inside the object's own box, so a flat envelope never has it hanging out of its bottom
-    const sw = Math.min(PW * .72, PH * .68), rig = { PW, PH, cutY: PH * .18, pouch, wrapper, content, done: false, prog: 0, rise: .5, sleeveCss: `width:${sw}px;left:${(PW - sw) / 2}px;top:${PH * .12}px` };
+    // the sheet sits inside the object's own box, so a flat envelope never has it hanging out of its bottom
+    const sw = Math.min(PW * .72, PH * .68 / 1.24), rig = { PW, PH, cutY: PH * .18, pouch, wrapper, content, done: false, prog: 0, sheetW: sw, sheetLeft: (PW - sw) / 2, sheetTop: PH * .12 };
     const finish = async () => {
       if (rig.done) return; rig.done = true; cer.hint(""); Snd.crinkle(4, .25);
       if (!reduced()) await pic.animate([{ transform: "none" }, { transform: "translateY(-5px) rotate(-1.4deg) scale(1.025)", offset: .4 }, { transform: "none" }], { duration: 420, easing: "ease-out" }).finished;
@@ -172,18 +380,149 @@ const Cer = (() => {
     pouch.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && finish());
     rig.focus = () => pouch.focus({ preventScroll: true });
     rig.linger = () => anim(pouch, [{ transform: "none" }, { transform: `translate(${-PW * .9}px, ${PH * .34}px) rotate(-13deg) scale(.72)` }], { duration: 850, easing: EASE.inOut, delay: 100 });
-    rig.pullable = (el, { rise = .5, need = .5, onPull }) => {
-      let pulled = false, rustle=Snd.paperMotion(); const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
+    rig.pullable = async (el, { rise = .5, need = .5, onPull }) => {
+      let pulled = false, rustle = Snd.paperMotion(); const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
+      await anim(el, [{ transform: "none" }, { transform: base }], { duration: 760, easing: EASE.out }); fix(el, base);
       drag(el, {
-        down: () => { if (pulled) return false; rustle=Snd.paperMotion(); },
+        down: () => { if (pulled) return false; rustle = Snd.paperMotion(); },
         move: (dx, dy) => { const up = clamp(-dy, 0, PH * .8), rb = up > PH * .5 ? PH * .5 + (up - PH * .5) * .3 : up; el.style.transform = `translateY(${-PH * rise - rb}px) rotate(${-1.5 + dx * .03}deg)`; rustle(up / PH); if (up > PH * need && !pulled) go(); },
         up: () => { if (!pulled) anim(el, [{ transform: el.style.transform }, { transform: base }], { duration: 300, easing: EASE.spring }).then(() => fix(el, base)); },
       });
-      const go = () => { if (pulled) return; pulled = true; el.style.cursor = "default"; onPull(); };
+      const go = () => { if (pulled) return; pulled = true; el.style.cursor = "default"; Snd.swoosh(); Haptic.tap("level"); onPull(); };
       el.addEventListener("dblclick", go); el.tabIndex = 0; el.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && go());
-      return base;
     };
     return rig;
+  }
+
+  /* What is inside a pack: one sticker on its backing card, under a glassine cover. Through the cover its colours and shape are the real
+     sticker's; the cover is peeled off to see it. It is built at the size it is revealed at and shrunk into the pack, so it stays sharp. */
+  function packSheet(cer, pack) {
+    const st = cer.stage, portrait = narrow(st);
+    const W = Math.round(Math.min(portrait ? st.clientWidth * .56 : st.clientWidth * .32, st.clientHeight * (portrait ? .4 : .62) / 1.24, 300)), H = W * 1.24;
+    const stk = h("div.ps-stk"), ed = h("div.ps-ed"), glass = h("div.ps-glass"), gflap = h("div.ps-gflap"), flapwrap = h("div.ps-flapwrap", gflap);
+    const el = h("div.pk-sheet", { style: { width: W + "px", height: H + "px", "--w": W + "px" } }, h("i.ps-shadow"), h("i.ps-backing"),
+      h("div.ps-print", h("span", "Peta · " + pack.title), pack.by ? h("span", "by " + pack.by) : null), stk, ed, glass, flapwrap);
+    const slot = h("div.pk-sheet-slot", el);
+    return { el, slot, stk, ed, glass, gflap, flapwrap, w: W, h: H,
+      /** sit inside the rig's mouth, at the rig's scale */
+      place(rig) {
+        const sw = rig.sheetW || rig.PW * .7, k = sw / W;
+        Object.assign(slot.style, { width: sw + "px", height: H * k + "px", left: (rig.sheetLeft ?? (rig.PW - sw) / 2) + "px", top: (rig.sheetTop ?? rig.cutY + rig.PH * .02) + "px" });
+        el.style.transform = `scale(${k})`;
+      },
+      /** the pulled sticker (or prize) goes on the backing, with its edition stamped once it is uncovered */
+      async fill(entry) {
+        if (entry.prize) stk.append(PrizeCard(entry, W * .62));
+        else { const res = await resOf(entry); stk.append(Stk.el(res, Math.min(W * .78, H * .64 * res.aspect))); }
+        if (entry.edition != null) ed.textContent = `No. ${String(entry.edition).padStart(2, "0")}${entry.editionTotal ? " / " + entry.editionTotal : ""}`; else ed.remove();
+      },
+    };
+  }
+
+  /* After the sheet is pulled out: it comes to the middle of the desk, the cover is peeled back by its corner (the fold line is the
+     perpendicular bisector between the corner and the finger), and the light of the pull lands on the desk. Then it is yours to tilt. */
+  async function peelAndReveal({ cer, stage, sheet: sh, entry, source, onKeep, onLater, laterLabel = "Later" }) {
+    const desk = deskFor(cer), mat = MAT[entry.material] || MAT.matte, rarity = rarityOf(entry), D = DESK[rarity], W = sh.w, H = sh.h;
+    const st = stage.getBoundingClientRect(), r = sh.el.getBoundingClientRect(), portrait = narrow(stage);
+    const x0 = r.left - st.left + r.width / 2, y0 = r.top - st.top + r.height / 2, k0 = r.width / W;
+    stage.append(sh.el); sh.slot.remove();
+    Object.assign(sh.el.style, { left: x0 - W / 2 + "px", top: y0 - H / 2 + "px", transformOrigin: "50% 50%", transform: `scale(${k0})`, zIndex: 8 });
+    const tx = stage.clientWidth * (portrait ? .5 : .4), ty = stage.clientHeight * (portrait ? .4 : .47), at = () => { const s = stage.getBoundingClientRect(); return [s.left + tx, s.top + ty]; };
+    const X = new Spring(x0, 120, 18).to(tx), Y = new Spring(y0, 120, 18).to(ty), K = new Spring(k0, 120, 18).to(1), RZ = new Spring(-2, 120, 18).to(1.2), TX = new Spring(0, 90, 16), TY = new Spring(0, 90, 16);
+    let lift = 0; const face = () => $(".stk", sh.stk);
+    frames(cer, (dt) => {
+      for (const s of [X, Y, K, RZ, TX, TY]) s.step(dt, cer.skipped);
+      sh.el.style.transform = `translate(${X.x - x0}px, ${Y.x - y0}px) scale(${K.x}) rotate(${RZ.x}deg) rotateX(${TY.x * -6}deg) rotateY(${TX.x * 8}deg)`;
+      sh.stk.style.transform = `translate(calc(-50% + ${TX.x * 4}px), calc(-50% + ${TY.x * 4 - lift * 4}px)) scale(${1 + lift * .03})`; sh.stk.style.setProperty("--lift", lift.toFixed(3));
+      const f = face(); if (f) { f.style.setProperty("--sx", 50 - TX.x * 45 + "%"); f.style.setProperty("--sy", 50 - TY.x * 45 + "%"); }
+      desk.tilt.x = TX.x; desk.tilt.y = TY.x;
+    });
+    desk.lamp(D.dim * .78, ...at(), rarity, 14, 72);
+    await cer.wait(700);
+
+    cer.hint("Peel the cover.");
+    let P = { x: W - 18, y: H - 18 }, grabbed = false, done = false, settling = false, breathe = 0, crossed = false, off = { x: 0, y: 0 };
+    const area = (poly) => { let a = 0; for (let i = 0; i < poly.length; i++) { const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % poly.length]; a += x1 * y2 - x2 * y1; } return Math.abs(a) / 2; };
+    const clip = (poly, keep) => { const out = []; for (let i = 0; i < poly.length; i++) { const A = poly[i], B = poly[(i + 1) % poly.length], fa = keep(A), fb = keep(B); if (fa >= 0) out.push(A); if ((fa >= 0) !== (fb >= 0)) { const t = fa / (fa - fb); out.push([A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t]); } } return out; };
+    const rect = [[0, 0], [W, 0], [W, H], [0, H]], corner = [W, H];
+    const pc = (pts) => pts.length > 2 ? `polygon(${pts.map(([a, b]) => `${a.toFixed(1)}px ${b.toFixed(1)}px`).join(",")})` : "polygon(0 0,0 0,0 0)";
+    const paint = () => {
+      const dx = corner[0] - P.x, dy = corner[1] - P.y, L = Math.hypot(dx, dy) || 1, n = [dx / L, dy / L], M = [(corner[0] + P.x) / 2, (corner[1] + P.y) / 2];
+      const side = (q) => (q[0] - M[0]) * n[0] + (q[1] - M[1]) * n[1];
+      const rest = clip(rect, (q) => -side(q)), peeled = clip(rect, side), refl = peeled.map((q) => { const d = side(q); return [q[0] - 2 * d * n[0], q[1] - 2 * d * n[1]]; });
+      sh.glass.style.clipPath = pc(rest); sh.gflap.style.clipPath = pc(refl);
+      sh.gflap.style.background = `linear-gradient(${Math.atan2(-n[1], -n[0]) * 180 / Math.PI + 90}deg, rgba(214,212,204,.95), rgba(248,248,244,.97) 35%, rgba(255,255,255,.98))`;
+      return area(peeled) / (W * H);
+    };
+    const local = (cx, cy) => { const b = sh.el.getBoundingClientRect(), kk = b.width / W; return { x: (cx - b.left) / kk, y: (cy - b.top) / kk }; };
+    let progress = paint();
+    // the corner breathes until it is taken
+    frames(cer, (dt) => { if (done) return false; if (grabbed || settling) return; breathe += dt; const b = reduced() ? 20 : 16 + 8 * (.5 + .5 * Math.sin(breathe * 2.4)); P = { x: W - b, y: H - b }; progress = paint(); });
+    let revealed;
+    const complete = () => revealed ||= (async () => {
+      done = true; cer.hint(""); Snd.duck(D.hold + 400); Haptic.tap("level");
+      const from = { ...P }, to = { x: -W * .9, y: -H * .5 }; let last = 0;
+      await tween(cer, 520 + D.hold * .9, (e, q) => { P = { x: lerp(from.x, to.x, e), y: lerp(from.y, to.y, e) }; paint(); if (q - last > .08) { last = q; Snd.peel(q); } }, curve.inOut);
+      cer.motion(sh.flapwrap, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translate(-30px,-60px) rotate(-8deg)" }], { duration: 520, easing: "ease-out" });
+      await reveal();
+    })();
+    drag(sh.el, {
+      down: (e) => { if (done) return false; const q = local(e.clientX, e.clientY); if (q.x < W * .45 || q.y < H * .45) return false; grabbed = true; settling = false; off = { x: q.x - P.x, y: q.y - P.y }; },
+      move: (dx, dy, e) => {
+        if (!grabbed || done) return; const q = local(e.clientX, e.clientY);
+        P = { x: clamp(q.x - off.x, -W * .6, W - 4), y: clamp(q.y - off.y, -H * .4, H - 4) };
+        const before = progress; progress = paint(); if (progress - before > .01) Snd.peel(progress);
+        if (!crossed && progress > .35) { crossed = true; Haptic.tap("level"); }
+      },
+      up: () => {
+        if (!grabbed || done) return; grabbed = false;
+        if (progress > .35) { complete(); return; }
+        const from = { ...P }; settling = true;
+        tween(cer, 260, (e) => { if (grabbed || done) return; P = { x: lerp(from.x, W - 18, e), y: lerp(from.y, H - 18, e) }; progress = paint(); }, curve.outBack).then(() => { settling = false; });
+      },
+    });
+    sh.el.tabIndex = 0; sh.el.setAttribute("aria-label", "Peel the cover");
+    sh.el.addEventListener("dblclick", () => complete()); sh.el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!e.repeat) complete(); } });
+    sh.el.focus({ preventScroll: true }); cer.allowSkip(() => complete());
+
+    async function reveal() {
+      sh.el.removeAttribute("aria-label"); sh.el.removeAttribute("tabindex");
+      Snd.reveal(rarity); Haptic.tap("seal");
+      desk.lamp(D.dim, ...at(), rarity, 14, 70); desk.bloom(rarity, ...at(), W);
+      await tween(cer, 700, (e) => { lift = e; }, curve.outBack);
+      await cer.wait(240);
+      if (sh.ed.isConnected) { Snd.stamp(); Haptic.tap("align"); sh.ed.style.opacity = 1; cer.motion(sh.ed, [{ opacity: 0, transform: "scale(2.2) rotate(-16deg)" }, { opacity: 1, transform: "scale(1) rotate(-6deg)" }], { duration: 320, easing: "cubic-bezier(.3,1.4,.5,1)" }); }
+      if (!reduced()) {
+        const onMove = (e) => { const b = sh.el.getBoundingClientRect(); TX.to(clamp((e.clientX - (b.left + b.width / 2)) / (b.width * 1.2), -1, 1)); TY.to(clamp((e.clientY - (b.top + b.height / 2)) / (b.height * 1.4), -1, 1)); };
+        cer.root.addEventListener("pointermove", onMove); cer.root.addEventListener("pointerleave", () => { TX.to(0); TY.to(0); });
+      }
+      const edition = entry.edition != null ? `Edition ${entry.edition}${entry.editionTotal ? " of " + entry.editionTotal : ""}` : "";
+      const info = h("div.rv-info.pk-info", { style: { opacity: 0 } }, h("p.eyebrow", source), h("h2", titleOf(entry)),
+        h("div.rv-meta", h("span.seal", { data: { rarity }, style: { opacity: 0 } }, rarity), h("span.no", [mat.name, edition].filter(Boolean).join(" · "))),
+        h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, entry.prize ? "Done" : "Stick it"), onLater && !entry.prize ? h("button.btn.paper", { on: { click: onLater } }, laterLabel) : null),
+        h("p.pk-sr", { role: "status" }, `${rarity[0].toUpperCase() + rarity.slice(1)}. ${titleOf(entry)}.`));
+      stage.append(info);
+      if (!portrait) { // beside the sheet on a wide desk, so nothing sits on top of the sticker
+        const left = tx + W / 2 + 40; info.classList.add("beside");
+        Object.assign(info.style, { left: left + "px", width: Math.max(200, stage.clientWidth - left - 8) + "px", top: Math.max(0, ty - info.offsetHeight / 2) + "px" });
+      }
+      cer.hint(reduced() ? "" : "Tilt it to catch the light.");
+      info.style.opacity = 1; cer.motion(info, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 });
+      const name = $("h2", info), seal = $(".seal", info), letters = typeIn(cer, name);
+      await cer.wait(260 + titleOf(entry).length * 20); Snd.seal();
+      seal.style.opacity = 1; await cer.motion(seal, [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 340, easing: "cubic-bezier(.3,1.4,.5,1)" });
+      if (rarity === "archive") inkLine(cer, info, name);
+      await letters; cer.endSkip(); $(".keep", info).focus({ preventScroll: true });
+    }
+  }
+  /** A pen stroke under the name and a line of handwriting above it (the archive). */
+  function inkLine(cer, info, name) {
+    const NS = "http://www.w3.org/2000/svg", w = name.getBoundingClientRect().width + 16, svg = document.createElementNS(NS, "svg"), p = document.createElementNS(NS, "path");
+    svg.setAttribute("class", "pk-ink"); svg.setAttribute("width", w); svg.setAttribute("height", 10); p.setAttribute("d", `M4 6 C ${w * .3} 2, ${w * .6} 9, ${w - 4} 4`); svg.append(p); name.after(svg);
+    const cap = h("p.pk-hand-cap", "From the archive."); info.prepend(cap);
+    const len = p.getTotalLength(); p.style.strokeDasharray = len;
+    cer.motion(p, [{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 700, easing: "cubic-bezier(.3,.6,.3,1)" });
+    cer.motion(cap, [{ opacity: 0, clipPath: "inset(0 100% 0 0)" }, { opacity: 1, clipPath: "inset(0 0 0 0)" }], { duration: 800, delay: 300, easing: "cubic-bezier(.3,.6,.3,1)" });
   }
 
   /* ------------------------------------------------------------------ THE LIGHT OF A PULLED RARITY
@@ -425,22 +764,20 @@ const Cer = (() => {
   async function openPack(pack, { free = false, pull = null } = {}) {
     if (!pull && (free ? !packHasFreeOpening(pack) : (!packOpenable(pack) || packHasFreeOpening(pack)))) return; // a ready free opening always comes first
     const cer = overlay("pack"), stage = cer.stage; cer.hint("Tear along the top.");
-    const sleeve = h("div.pk-sleeve", img("mystery")); let entry = null, settling=false;
+    const sheet = packSheet(cer, pack); let entry = null, settling=false;
     const onTear = async (rig) => {
       let opened;
       try { Bridge.busy = true; opened=await (pull ? pull() : Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false})); }
       catch(e) { Bridge.busy=false; await cer.close(); Shell.error(e); return; }
       pack.left=Array(opened.remaining).fill(null);if(free)pack.freeOpenings=Math.max(0,(pack.freeOpenings||0)-1);else if(pack.daily)S.packAvailable=false;
       const savedPack=S.packs.find(p=>p.id===pack.id);if(savedPack){savedPack.left=pack.left;if(free)savedPack.freeOpenings=pack.freeOpenings;}
-      try {entry=await Bridge.packEntry(opened);await Bridge.reload();Shell.renderNav();}
+      try {entry=await Bridge.packEntry(opened);await Bridge.reload();Shell.renderNav();await sheet.fill(entry);}
       catch {await closeCommittedPreview(cer,'Opened and saved to your Collection / stock. The preview could not load.');return;}
-      await anim(sleeve, [{ transform: sleeve.style.transform }, { transform: `translateY(${-rig.PH * (rig.rise ?? .3)}px) rotate(-1.5deg)` }], { duration: 760, easing: EASE.out });
-      fix(sleeve, `translateY(${-rig.PH * (rig.rise ?? .3)}px) rotate(-1.5deg)`); sleeve.classList.add("out"); cer.hint("Pull it out.");
-      rig.pullable(sleeve, { onPull: async () => {
+      // the pull is committed: from here the light leaking from the mouth is the pull's own colour
+      rig.light?.(entry); cer.hint("Pull the sheet out.");
+      await rig.pullable(sheet.slot, { onPull: async () => {
         rig.linger();
-        const r = sleeve.getBoundingClientRect(), sr = stage.getBoundingClientRect();
-        stage.append(sleeve); sleeve.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;`;
-        try {await unwrapAndReveal({ cer, stage, sleeve, entry, source: `${pack.title} · ${pack.left.length} left`, onKeep: keep, onLater: leave, laterLabel: entry.prize ? "Done" : "Keep in Collection" });}
+        try {await peelAndReveal({ cer, stage, sheet, entry, source: `${pack.title} · ${pack.left.length} left`, onKeep: keep, onLater: leave, laterLabel: entry.prize ? "Done" : "Keep in Collection" });}
         catch {await closeCommittedPreview(cer,'Opened and saved to your Collection / stock. The preview could not load.');}
       } });
     };
@@ -449,9 +786,9 @@ const Cer = (() => {
     const decoration = !generic && pack.bag && PackArt.decorated(pack) ? BagPic({bag:pack.bag,color:pack.color,title:pack.title,sub:"by "+pack.by,cover,deco:pack.deco||"none",layout:pack.layout,id:pack.id,shut:true}) : null;
     if(decoration) { decoration.querySelector(".bp-art")?.remove(); decoration.classList.add("pk-dress"); }
     if (generic) cer.hint("Open it.");
-    const rig = generic ? buildBagRig(cer, stage, { pack, content: sleeve, cover, onTear })
-      : buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, color:pack.color, content: sleeve, label: decoration ? null : PackLabel({ ...pack, kind: pack.kind || "holo" }), decoration, onTear });
-    sleeve.style.cssText = rig.sleeveCss || `width:${rig.PW * .72}px;left:${rig.PW * .14}px;top:${rig.cutY - rig.PW * .72 * .12}px`;
+    const rig = generic ? buildBagRig(cer, stage, { pack, content: sheet.slot, cover, onTear })
+      : buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, color:pack.color, content: sheet.slot, label: decoration ? null : PackLabel({ ...pack, kind: pack.kind || "holo" }), decoration, onTear });
+    sheet.place(rig);
     // A pull is already in the Collection. "Stick it" sends it to the desktop the same way the Collection's "Stick on desktop" does;
     // "Keep in Collection" (or Esc) just closes, and nothing is left waiting at the print slot.
     const keep = async () => {

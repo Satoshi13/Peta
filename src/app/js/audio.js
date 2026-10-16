@@ -47,6 +47,18 @@ const Snd = {
   chime(n = 3, base = 880) { for (let i = 0; i < n; i++) { this.tone(i * 0.09, base * Math.pow(1.5, i % 3) * (i > 2 ? 2 : 1), 0.9, { gain: 0.035, attack: 0.01 }); } },
   seal() { this.tone(0, 140, 0.18, { gain: 0.12, f2: 55 }); this.noise(0, 0.08, { f: 900, q: 0.6, gain: 0.05 }); },
   feed(steps = 14, span = 2) { for (let i = 0; i < steps; i++) this.noise(i * (span / steps), 0.05, { f: 1500 + (i % 2) * 400, q: 1.2, gain: 0.03 }); },
+  /* Opening one pack: grains of foil under the finger, the strip coming away, landing on the desk, a cover peeling, an edition stamp. */
+  grain(level = 0.5) { for (let i = 0; i < 3; i++) this.noise(i * 0.012, rand(0.015, 0.04), { f: rand(2200, 4700), q: 3, gain: 0.03 + level * 0.06 }); },
+  rip() { this.noise(0, 0.28, { f: 2600, f2: 900, q: 1.4, gain: 0.12 }); },
+  land() { this.tone(0, 110, 0.16, { gain: 0.06 }); this.noise(0, 0.07, { f: 900, type: "lowpass", gain: 0.05 }); },
+  peel(level = 0.5) { this.noise(0, 0.05, { f: 2400 + level * 1800, q: 4, gain: 0.02 + level * 0.04 }); },
+  stamp() { this.tone(0, 92, 0.2, { gain: 0.14, f2: 60 }); this.noise(0, 0.06, { f: 1800, type: "lowpass", gain: 0.08 }); },
+  /** A breath of quiet before a reveal: everything drops, then comes back over `ms`. */
+  duck(ms = 600) {
+    const c = this.ensure(); if (!c) return;
+    const g = this.master.gain, t = c.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(0.2, t + 0.08); g.linearRampToValueAtTime(0.55, t + ms / 1000 + 0.05);
+  },
   crack() { this.noise(0, 0.07, { f: 3000, q: 1.5, gain: 0.1 }); this.tone(0, 420, 0.08, { type: "triangle", gain: 0.05, f2: 180 }); },
   /* The sound of a rarity: the same family of notes, brighter and longer as the light does more.
      Common is a soft paper pop; the archive is a small music box in a quiet room. */
@@ -65,10 +77,11 @@ const Snd = {
 };
 
 // Tactile feedback is independent of sounds and reduced motion; unsupported hardware is silent.
+// "align" and "level" are the trackpad's alignment and level-change patterns (a tear passing a third, a sheet coming free).
 const Haptic = {
   on: true,
   tap(kind) {
-    if (!this.on || !["paste", "peel", "seal"].includes(kind)) return;
+    if (!this.on || !["paste", "peel", "seal", "align", "level"].includes(kind)) return;
     window.__TAURI__?.core.invoke("haptic_tap", { kind }).catch(() => {});
   },
 };

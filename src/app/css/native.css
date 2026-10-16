@@ -379,7 +379,6 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .mcard .lab small { font:400 max(11px,calc(var(--w) * .06))/1 var(--sys); }
 .cr-controls .mtray .mcard .lab b, .cr-controls .mtray .mcard .lab small { font-size:11px; }
 .g-from small, .ev-note small { font:var(--meta); opacity:1; }
-.pk-tab b { font-size:11px; }
 .preview-reset { font-size:12px; }
 .back-card .label { font-size:max(12px,3.6cqw); opacity:1; color:#655e51; }
 .back-card .value { font-size:max(12px,6.6cqw); }

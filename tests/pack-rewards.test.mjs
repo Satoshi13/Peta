@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 // Exercise the production ceremony through its tear callback; no native IPC or animations.
-function fixture({remaining=0,credits=1,fail=false,daily=true,metadataFails=false,reloadFails=false,printFails=false,previewFails=false,pendingOpen=null}={}) {
+function fixture({remaining=0,credits=1,fail=false,daily=true,metadataFails=false,reloadFails=false,fillFails=false,printFails=false,previewFails=false,pendingOpen=null}={}) {
   const calls=[],toasts=[];let tear,pull,reveal,closed=false,overlays=0;
   const pack={id:'welcome',title:'Welcome Pack',daily,left:Array(remaining).fill(null),freeOpenings:credits};
   const element=()=>({style:{},classList:{add(){}},getBoundingClientRect:()=>({left:0,top:0,width:100}),append(){}});
@@ -18,7 +18,8 @@ function fixture({remaining=0,credits=1,fail=false,daily=true,metadataFails=fals
     buildRig:(_cer,_stage,options)=>{tear=options.onTear;return rig;},
     Bridge:{busy:false,invoke:async(cmd,args)=>{calls.push({cmd,args:{...args}});if(fail)throw Error('retry');return pendingOpen || {stickerId:'bonus',remaining};},packEntry:async()=>{if(metadataFails)throw Error('metadata');return {id:'bonus',title:'Sticker'};},reload:async()=>{if(reloadFails)throw Error('refresh');},printAction:async(cmd,args)=>{calls.push({cmd,args:{...args}});if(printFails)throw Error('print');}},
     Shell:{error:s=>toasts.push(String(s)),renderNav(){},refresh(){},toast:s=>toasts.push(s)},Desktop:{print:async()=>{}},anim:async()=>{},fix(){},EASE:{out:'ease-out'},pack,
-    unwrapAndReveal:async options=>{if(previewFails)throw Error('decode');reveal=options;},
+    packSheet:()=>({slot:element(),place(){},fill:async()=>{if(fillFails)throw Error('decode');}}),
+    peelAndReveal:async options=>{if(previewFails)throw Error('decode');reveal=options;},
   });
   const source=readFileSync(new URL('../src/app/js/ceremony.js',import.meta.url),'utf8');
   const begin=source.indexOf('  async function openPack(');
@@ -57,7 +58,7 @@ test('a ready free opening comes first: a regular opening of an openable pack do
   assert.equal(none.overlays,1);
 });
 
-for(const failure of ['metadataFails','reloadFails','previewFails']) test(`a committed pull survives ${failure} and closes without another opening`,async()=>{
+for(const failure of ['metadataFails','reloadFails','fillFails','previewFails']) test(`a committed pull survives ${failure} and closes without another opening`,async()=>{
   const f=fixture({remaining:1,[failure]:true});await f.open(true);await f.tear();if(failure==='previewFails')await f.pull();
   assert.equal(f.pack.left.length,1);assert.equal(f.pack.freeOpenings,0);
   assert.equal(f.closed,true);assert.equal(f.context.Bridge.busy,false);

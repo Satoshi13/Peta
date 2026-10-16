@@ -147,7 +147,7 @@ fn exit_edit_mode(app: AppHandle) {
 
 #[tauri::command]
 fn haptic_tap(app: AppHandle, kind: String) -> Result<(), String> {
-    if !["paste", "peel", "seal"].contains(&kind.as_str()) { return Err("unknown haptic".into()); }
+    if !["paste", "peel", "seal", "align", "level"].contains(&kind.as_str()) { return Err("unknown haptic".into()); }
     app.run_on_main_thread(move || platform::haptic(&kind)).map_err(|e| e.to_string())
 }
 

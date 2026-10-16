@@ -93,7 +93,8 @@ pub fn haptic(kind: &str) {
     unsafe {
         let performer: *mut AnyObject = msg_send![manager, defaultPerformer];
         if !performer.is_null() {
-            let pattern: isize = if kind == "paste" { 2 } else { 0 };
+            // NSHapticFeedbackPattern: generic 0, alignment 1, levelChange 2
+            let pattern: isize = match kind { "paste" | "level" => 2, "align" => 1, _ => 0 };
             let _: () = msg_send![performer, performFeedbackPattern: pattern, performanceTime: 0isize];
         }
     }
