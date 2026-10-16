@@ -20,6 +20,12 @@ const Cer = (() => {
       const action=skipAction;skipAction=null;action?.();
     }}},"Skip ⏭");
     root.append(h("i.cer-bg"), top, stage, skip); $("#overlay").append(root);
+    // the window still moves by its top edge while a ceremony covers the title bar
+    root.addEventListener("mousedown", (e) => {
+      if (e.button !== 0 || e.target.closest("button, a, input, .pk-sheet, .pouch, .bagrig, .wax, .mcard, .env-wrap, .gift-scene")) return;
+      if (e.clientY > Math.max(46, $("#titlebar")?.getBoundingClientRect().bottom || 0)) return;
+      e.preventDefault(); Bridge.window.startDragging();
+    });
     anim(root, [{ opacity: 0 }, { opacity: 1 }], { duration: 420 });
     const close = ({keepScene=false} = {}) => closing ||= (async()=>{for(const done of [...waits])done();try {await anim(root, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 });} finally {root.remove();document.removeEventListener("keydown", onKey);if(!keepScene) await Bridge.leaveCeremony();}})();
     const onKey = (e) => { if (e.key === "Escape") root._esc && root._esc(); };
@@ -268,7 +274,7 @@ const Cer = (() => {
     frames(cer, (dt) => {
       for (const s of [Y, ROT, LIFT, UP]) s.step(dt);
       const pt = portrait(), L = laid;
-      wrapper.style.transform = `translate(${L * (pt ? -PW * .62 : -PW * 1.05)}px, ${Y.x + LIFT.x + L * PH * (pt ? -.5 : .2)}px) rotate(${ROT.x - L * 16}deg) scale(${1 - L * (pt ? .5 : .26)})`;
+      wrapper.style.transform = `translate(${L * (pt ? -PW * .62 : -PW * 1.45)}px, ${Y.x + LIFT.x + L * PH * (pt ? -.5 : .24)}px) rotate(${ROT.x - L * 16}deg) scale(${1 - L * (pt ? .5 : .3)})`;
       pouch.style.setProperty("--z", (Math.max(0, -LIFT.x) / 30).toFixed(3));
       const key = p + "|" + stripGone + "|" + state;
       if (key !== painted) { painted = key; rig.open = paintTear(); }
@@ -379,7 +385,7 @@ const Cer = (() => {
     drag(pouch, { down: () => { if (rig.done) return false; }, move: (dx, dy) => { if (!rig.done && Math.hypot(dx, dy) > 16) finish(); }, up: (e, moved) => { if (!moved && !rig.done) finish(); } });
     pouch.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && finish());
     rig.focus = () => pouch.focus({ preventScroll: true });
-    rig.linger = () => anim(pouch, [{ transform: "none" }, { transform: `translate(${-PW * .9}px, ${PH * .34}px) rotate(-13deg) scale(.72)` }], { duration: 850, easing: EASE.inOut, delay: 100 });
+    rig.linger = () => anim(pouch, [{ transform: "none" }, { transform: `translate(${-PW * 1.3}px, ${PH * .34}px) rotate(-13deg) scale(.68)` }], { duration: 850, easing: EASE.inOut, delay: 100 });
     rig.pullable = async (el, { rise = .5, need = .5, onPull }) => {
       let pulled = false, rustle = Snd.paperMotion(); const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
       await anim(el, [{ transform: "none" }, { transform: base }], { duration: 760, easing: EASE.out }); fix(el, base);
@@ -405,9 +411,9 @@ const Cer = (() => {
     const slot = h("div.pk-sheet-slot", el);
     return { el, slot, stk, ed, glass, gflap, flapwrap, w: W, h: H,
       /** sit inside the rig's mouth, at the rig's scale */
-      place(rig) {
+      place(rig, into = slot) {
         const sw = rig.sheetW || rig.PW * .7, k = sw / W;
-        Object.assign(slot.style, { width: sw + "px", height: H * k + "px", left: (rig.sheetLeft ?? (rig.PW - sw) / 2) + "px", top: (rig.sheetTop ?? rig.cutY + rig.PH * .02) + "px" });
+        Object.assign(into.style, { width: sw + "px", height: H * k + "px", left: (rig.sheetLeft ?? (rig.PW - sw) / 2) + "px", top: (rig.sheetTop ?? rig.cutY + rig.PH * .02) + "px" });
         el.style.transform = `scale(${k})`;
       },
       /** the pulled sticker (or prize) goes on the backing, with its edition stamped once it is uncovered */
@@ -416,104 +422,131 @@ const Cer = (() => {
         else { const res = await resOf(entry); stk.append(Stk.el(res, Math.min(W * .78, H * .64 * res.aspect))); }
         if (entry.edition != null) ed.textContent = `No. ${String(entry.edition).padStart(2, "0")}${entry.editionTotal ? " / " + entry.editionTotal : ""}`; else ed.remove();
       },
+      /** a pull whose picture could not load is still in the Collection */
+      missing() { stk.replaceChildren(h("span.ps-missing", "Saved to Collection")); ed.remove(); },
     };
   }
 
-  /* After the sheet is pulled out: it comes to the middle of the desk, the cover is peeled back by its corner (the fold line is the
-     perpendicular bisector between the corner and the finger), and the light of the pull lands on the desk. Then it is yours to tilt. */
-  async function peelAndReveal({ cer, stage, sheet: sh, entry, source, onKeep, onLater, laterLabel = "Later" }) {
-    const desk = deskFor(cer), mat = MAT[entry.material] || MAT.matte, rarity = rarityOf(entry), D = DESK[rarity], W = sh.w, H = sh.h;
-    const st = stage.getBoundingClientRect(), r = sh.el.getBoundingClientRect(), portrait = narrow(stage);
+  /** Springs that carry a sheet across the desk. It leaves the pack where it is, at its own size; (x, y) are stage pixels of its centre. */
+  function carry(cer, stage, sh) {
+    const st = stage.getBoundingClientRect(), r = sh.el.getBoundingClientRect(), W = sh.w, H = sh.h;
     const x0 = r.left - st.left + r.width / 2, y0 = r.top - st.top + r.height / 2, k0 = r.width / W;
-    stage.append(sh.el); sh.slot.remove();
+    stage.append(sh.el);
     Object.assign(sh.el.style, { left: x0 - W / 2 + "px", top: y0 - H / 2 + "px", transformOrigin: "50% 50%", transform: `scale(${k0})`, zIndex: 8 });
-    const tx = stage.clientWidth * (portrait ? .5 : .4), ty = stage.clientHeight * (portrait ? .4 : .47), at = () => { const s = stage.getBoundingClientRect(); return [s.left + tx, s.top + ty]; };
-    const X = new Spring(x0, 120, 18).to(tx), Y = new Spring(y0, 120, 18).to(ty), K = new Spring(k0, 120, 18).to(1), RZ = new Spring(-2, 120, 18).to(1.2), TX = new Spring(0, 90, 16), TY = new Spring(0, 90, 16);
-    let lift = 0; const face = () => $(".stk", sh.stk);
+    const c = { sh, lift: 0, X: new Spring(x0, 120, 18), Y: new Spring(y0, 120, 18), K: new Spring(k0, 120, 18), RZ: new Spring(-2, 120, 18), TX: new Spring(0, 90, 16), TY: new Spring(0, 90, 16), tilt: null };
+    c.to = (x, y, k = 1, rz = 1.2, sk = 120, sc = 18) => { c.X.to(x, sk, sc); c.Y.to(y, sk, sc); c.K.to(k, sk, sc); c.RZ.to(rz, sk, sc); };
+    c.at = () => { const s = stage.getBoundingClientRect(); return [s.left + c.X.t, s.top + c.Y.t]; };
+    const face = () => $(".stk", sh.stk);
     frames(cer, (dt) => {
-      for (const s of [X, Y, K, RZ, TX, TY]) s.step(dt, cer.skipped);
-      sh.el.style.transform = `translate(${X.x - x0}px, ${Y.x - y0}px) scale(${K.x}) rotate(${RZ.x}deg) rotateX(${TY.x * -6}deg) rotateY(${TX.x * 8}deg)`;
-      sh.stk.style.transform = `translate(calc(-50% + ${TX.x * 4}px), calc(-50% + ${TY.x * 4 - lift * 4}px)) scale(${1 + lift * .03})`; sh.stk.style.setProperty("--lift", lift.toFixed(3));
-      const f = face(); if (f) { f.style.setProperty("--sx", 50 - TX.x * 45 + "%"); f.style.setProperty("--sy", 50 - TY.x * 45 + "%"); }
-      desk.tilt.x = TX.x; desk.tilt.y = TY.x;
+      if (!sh.el.isConnected) return false;
+      for (const s of [c.X, c.Y, c.K, c.RZ, c.TX, c.TY]) s.step(dt, cer.skipped);
+      sh.el.style.transform = `translate(${c.X.x - x0}px, ${c.Y.x - y0}px) scale(${c.K.x}) rotate(${c.RZ.x}deg) rotateX(${c.TY.x * -6}deg) rotateY(${c.TX.x * 8}deg)`;
+      sh.stk.style.transform = `translate(calc(-50% + ${c.TX.x * 4}px), calc(-50% + ${c.TY.x * 4 - c.lift * 4}px)) scale(${1 + c.lift * .03})`; sh.stk.style.setProperty("--lift", c.lift.toFixed(3));
+      const f = face(); if (f) { f.style.setProperty("--sx", 50 - c.TX.x * 45 + "%"); f.style.setProperty("--sy", 50 - c.TY.x * 45 + "%"); }
+      if (c.tilt) { c.tilt.x = c.TX.x; c.tilt.y = c.TY.x; }
     });
-    desk.lamp(D.dim * .78, ...at(), rarity, 14, 72);
-    await cer.wait(700);
+    return c;
+  }
 
-    cer.hint("Peel the cover.");
-    let P = { x: W - 18, y: H - 18 }, grabbed = false, done = false, settling = false, breathe = 0, crossed = false, off = { x: 0, y: 0 };
+  /* The cover is peeled back by its corner: the fold line is the perpendicular bisector between the corner and the finger. Past a third it
+     comes off by itself; Enter or a double-click peels it at once. `done` resolves once it is off. */
+  function peel(cer, sh, hold = 0) {
+    const W = sh.w, H = sh.h; let P = { x: W - 18, y: H - 18 }, grabbed = false, finished = false, settling = false, breathe = 0, crossed = false, off = { x: 0, y: 0 }, end, resolve;
+    const done = new Promise((r) => { resolve = r; });
     const area = (poly) => { let a = 0; for (let i = 0; i < poly.length; i++) { const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % poly.length]; a += x1 * y2 - x2 * y1; } return Math.abs(a) / 2; };
     const clip = (poly, keep) => { const out = []; for (let i = 0; i < poly.length; i++) { const A = poly[i], B = poly[(i + 1) % poly.length], fa = keep(A), fb = keep(B); if (fa >= 0) out.push(A); if ((fa >= 0) !== (fb >= 0)) { const t = fa / (fa - fb); out.push([A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t]); } } return out; };
     const rect = [[0, 0], [W, 0], [W, H], [0, H]], corner = [W, H];
-    const pc = (pts) => pts.length > 2 ? `polygon(${pts.map(([a, b]) => `${a.toFixed(1)}px ${b.toFixed(1)}px`).join(",")})` : "polygon(0 0,0 0,0 0)";
+    // the turned-back flap reaches past the sheet's edge, so its box is three sheets wide and tall, centred on the sheet
+    const pc = (pts, dx = 0, dy = 0) => pts.length > 2 ? `polygon(${pts.map(([a, b]) => `${(a + dx).toFixed(1)}px ${(b + dy).toFixed(1)}px`).join(",")})` : "polygon(0 0,0 0,0 0)";
     const paint = () => {
       const dx = corner[0] - P.x, dy = corner[1] - P.y, L = Math.hypot(dx, dy) || 1, n = [dx / L, dy / L], M = [(corner[0] + P.x) / 2, (corner[1] + P.y) / 2];
       const side = (q) => (q[0] - M[0]) * n[0] + (q[1] - M[1]) * n[1];
       const rest = clip(rect, (q) => -side(q)), peeled = clip(rect, side), refl = peeled.map((q) => { const d = side(q); return [q[0] - 2 * d * n[0], q[1] - 2 * d * n[1]]; });
-      sh.glass.style.clipPath = pc(rest); sh.gflap.style.clipPath = pc(refl);
+      sh.glass.style.clipPath = pc(rest); sh.gflap.style.clipPath = pc(refl, W, H);
       sh.gflap.style.background = `linear-gradient(${Math.atan2(-n[1], -n[0]) * 180 / Math.PI + 90}deg, rgba(214,212,204,.95), rgba(248,248,244,.97) 35%, rgba(255,255,255,.98))`;
       return area(peeled) / (W * H);
     };
     const local = (cx, cy) => { const b = sh.el.getBoundingClientRect(), kk = b.width / W; return { x: (cx - b.left) / kk, y: (cy - b.top) / kk }; };
     let progress = paint();
     // the corner breathes until it is taken
-    frames(cer, (dt) => { if (done) return false; if (grabbed || settling) return; breathe += dt; const b = reduced() ? 20 : 16 + 8 * (.5 + .5 * Math.sin(breathe * 2.4)); P = { x: W - b, y: H - b }; progress = paint(); });
-    let revealed;
-    const complete = () => revealed ||= (async () => {
-      done = true; cer.hint(""); Snd.duck(D.hold + 400); Haptic.tap("level");
-      const from = { ...P }, to = { x: -W * .9, y: -H * .5 }; let last = 0;
-      await tween(cer, 520 + D.hold * .9, (e, q) => { P = { x: lerp(from.x, to.x, e), y: lerp(from.y, to.y, e) }; paint(); if (q - last > .08) { last = q; Snd.peel(q); } }, curve.inOut);
-      cer.motion(sh.flapwrap, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translate(-30px,-60px) rotate(-8deg)" }], { duration: 520, easing: "ease-out" });
-      await reveal();
+    frames(cer, (dt) => { if (finished) return false; if (grabbed || settling) return; breathe += dt; const b = reduced() ? 20 : 16 + 8 * (.5 + .5 * Math.sin(breathe * 2.4)); P = { x: W - b, y: H - b }; progress = paint(); });
+    const complete = () => end ||= (async () => {
+      finished = true; sh.el.removeAttribute("aria-label"); sh.el.removeAttribute("tabindex"); sh.el.classList.add("peeled");
+      if (!cer.skipped) { Snd.duck(hold + 400); Haptic.tap("level"); }
+      // the cover comes away past the corner and is gone by the time the sheet is bare
+      const from = { ...P }, to = { x: -W * .9, y: -H * .5 }; let last = 0, away = null;
+      const lose = () => away ||= cer.motion(sh.flapwrap, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translate(-30px,-60px) rotate(-8deg)" }], { duration: 380, easing: "ease-out" });
+      await tween(cer, 520 + hold * .9, (e, q) => { P = { x: lerp(from.x, to.x, e), y: lerp(from.y, to.y, e) }; paint(); if (q - last > .08) { last = q; Snd.peel(q); } if (q > .55) lose(); }, curve.inOut);
+      lose();
+      resolve();
     })();
     drag(sh.el, {
-      down: (e) => { if (done) return false; const q = local(e.clientX, e.clientY); if (q.x < W * .45 || q.y < H * .45) return false; grabbed = true; settling = false; off = { x: q.x - P.x, y: q.y - P.y }; },
+      down: (e) => { if (finished) return false; const q = local(e.clientX, e.clientY); if (q.x < W * .45 || q.y < H * .45) return false; grabbed = true; settling = false; off = { x: q.x - P.x, y: q.y - P.y }; },
       move: (dx, dy, e) => {
-        if (!grabbed || done) return; const q = local(e.clientX, e.clientY);
+        if (!grabbed || finished) return; const q = local(e.clientX, e.clientY);
         P = { x: clamp(q.x - off.x, -W * .6, W - 4), y: clamp(q.y - off.y, -H * .4, H - 4) };
         const before = progress; progress = paint(); if (progress - before > .01) Snd.peel(progress);
         if (!crossed && progress > .35) { crossed = true; Haptic.tap("level"); }
       },
       up: () => {
-        if (!grabbed || done) return; grabbed = false;
+        if (!grabbed || finished) return; grabbed = false;
         if (progress > .35) { complete(); return; }
         const from = { ...P }; settling = true;
-        tween(cer, 260, (e) => { if (grabbed || done) return; P = { x: lerp(from.x, W - 18, e), y: lerp(from.y, H - 18, e) }; progress = paint(); }, curve.outBack).then(() => { settling = false; });
+        tween(cer, 260, (e) => { if (grabbed || finished) return; P = { x: lerp(from.x, W - 18, e), y: lerp(from.y, H - 18, e) }; progress = paint(); }, curve.outBack).then(() => { settling = false; });
       },
     });
     sh.el.tabIndex = 0; sh.el.setAttribute("aria-label", "Peel the cover");
     sh.el.addEventListener("dblclick", () => complete()); sh.el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!e.repeat) complete(); } });
-    sh.el.focus({ preventScroll: true }); cer.allowSkip(() => complete());
+    return { done, complete, focus: () => sh.el.focus({ preventScroll: true }) };
+  }
 
-    async function reveal() {
-      sh.el.removeAttribute("aria-label"); sh.el.removeAttribute("tabindex");
-      Snd.reveal(rarity); Haptic.tap("seal");
-      desk.lamp(D.dim, ...at(), rarity, 14, 70); desk.bloom(rarity, ...at(), W);
-      await tween(cer, 700, (e) => { lift = e; }, curve.outBack);
-      await cer.wait(240);
-      if (sh.ed.isConnected) { Snd.stamp(); Haptic.tap("align"); sh.ed.style.opacity = 1; cer.motion(sh.ed, [{ opacity: 0, transform: "scale(2.2) rotate(-16deg)" }, { opacity: 1, transform: "scale(1) rotate(-6deg)" }], { duration: 320, easing: "cubic-bezier(.3,1.4,.5,1)" }); }
-      if (!reduced()) {
-        const onMove = (e) => { const b = sh.el.getBoundingClientRect(); TX.to(clamp((e.clientX - (b.left + b.width / 2)) / (b.width * 1.2), -1, 1)); TY.to(clamp((e.clientY - (b.top + b.height / 2)) / (b.height * 1.4), -1, 1)); };
-        cer.root.addEventListener("pointermove", onMove); cer.root.addEventListener("pointerleave", () => { TX.to(0); TY.to(0); });
-      }
-      const edition = entry.edition != null ? `Edition ${entry.edition}${entry.editionTotal ? " of " + entry.editionTotal : ""}` : "";
-      const info = h("div.rv-info.pk-info", { style: { opacity: 0 } }, h("p.eyebrow", source), h("h2", titleOf(entry)),
-        h("div.rv-meta", h("span.seal", { data: { rarity }, style: { opacity: 0 } }, rarity), h("span.no", [mat.name, edition].filter(Boolean).join(" · "))),
-        h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, entry.prize ? "Done" : "Stick it"), onLater && !entry.prize ? h("button.btn.paper", { on: { click: onLater } }, laterLabel) : null),
-        h("p.pk-sr", { role: "status" }, `${rarity[0].toUpperCase() + rarity.slice(1)}. ${titleOf(entry)}.`));
-      stage.append(info);
-      if (!portrait) { // beside the sheet on a wide desk, so nothing sits on top of the sticker
-        const left = tx + W / 2 + 40; info.classList.add("beside");
-        Object.assign(info.style, { left: left + "px", width: Math.max(200, stage.clientWidth - left - 8) + "px", top: Math.max(0, ty - info.offsetHeight / 2) + "px" });
-      }
-      cer.hint(reduced() ? "" : "Tilt it to catch the light.");
-      info.style.opacity = 1; cer.motion(info, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 });
-      const name = $("h2", info), seal = $(".seal", info), letters = typeIn(cer, name);
-      await cer.wait(260 + titleOf(entry).length * 20); Snd.seal();
-      seal.style.opacity = 1; await cer.motion(seal, [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 340, easing: "cubic-bezier(.3,1.4,.5,1)" });
-      if (rarity === "archive") inkLine(cer, info, name);
-      await letters; cer.endSkip(); $(".keep", info).focus({ preventScroll: true });
+  /** The uncovered sticker rises off its backing, the light of its rarity lands on the desk, and the edition is stamped. */
+  async function lightUp(cer, c, rarity, { quiet = false } = {}) {
+    const desk = deskFor(cer), D = DESK[rarity];
+    if (!quiet) { Snd.reveal(rarity); Haptic.tap("seal"); desk.bloom(rarity, ...c.at(), c.sh.w * c.K.t); }
+    desk.lamp(D.dim, ...c.at(), rarity, 14, 70);
+    await tween(cer, 700, (e) => { c.lift = e; }, curve.outBack);
+    await cer.wait(240);
+    const ed = c.sh.ed;
+    if (ed.isConnected) { if (!quiet) { Snd.stamp(); Haptic.tap("align"); } ed.style.opacity = 1; cer.motion(ed, [{ opacity: 0, transform: "scale(2.2) rotate(-16deg)" }, { opacity: 1, transform: "scale(1) rotate(-6deg)" }], { duration: 320, easing: "cubic-bezier(.3,1.4,.5,1)" }); }
+  }
+
+  /* After the sheet is pulled out: it comes to the middle of the desk and the cover is peeled off. Then the light of the pull lands on the
+     desk, and the sheet makes room for its name beside it; the two sit together in the middle. Then it is yours to tilt. */
+  async function peelAndReveal({ cer, stage, sheet: sh, entry, source, onKeep, onLater, laterLabel = "Later" }) {
+    const desk = deskFor(cer), mat = MAT[entry.material] || MAT.matte, rarity = rarityOf(entry), D = DESK[rarity], W = sh.w;
+    const portrait = narrow(stage), c = carry(cer, stage, sh); sh.slot.remove(); c.tilt = desk.tilt;
+    const tx = stage.clientWidth * .5, ty = stage.clientHeight * (portrait ? .4 : .47);
+    c.to(tx, ty); desk.lamp(D.dim * .78, ...c.at(), rarity, 14, 72);
+    await cer.wait(700);
+    cer.hint("Peel the cover.");
+    const p = peel(cer, sh, D.hold); p.focus(); cer.allowSkip(() => p.complete());
+    await p.done; cer.hint("");
+    // the words go beside the sheet on a wide desk (below on a narrow one), and the pair is centred
+    const edition = entry.edition != null ? `Edition ${entry.edition}${entry.editionTotal ? " of " + entry.editionTotal : ""}` : "";
+    const info = h("div.rv-info.pk-info", { style: { opacity: 0 } }, h("p.eyebrow", source), h("h2", titleOf(entry)),
+      h("div.rv-meta", h("span.seal", { data: { rarity }, style: { opacity: 0 } }, rarity), h("span.no", [mat.name, edition].filter(Boolean).join(" · "))),
+      h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, entry.prize ? "Done" : "Stick it"), onLater && !entry.prize ? h("button.btn.paper", { on: { click: onLater } }, laterLabel) : null),
+      h("p.pk-sr", { role: "status" }, `${rarity[0].toUpperCase() + rarity.slice(1)}. ${titleOf(entry)}.`));
+    stage.append(info);
+    if (!portrait) {
+      const gap = 40; info.classList.add("beside"); info.style.maxWidth = Math.max(200, Math.min(320, stage.clientWidth - W - gap - 24)) + "px";
+      const iw = info.offsetWidth, left = (stage.clientWidth - (W + gap + iw)) / 2, sx = left + W / 2;
+      c.to(sx, ty, 1, 1.2, 150, 22);
+      Object.assign(info.style, { left: left + W + gap + "px", top: Math.max(0, ty - info.offsetHeight / 2) + "px" });
     }
+    await lightUp(cer, c, rarity);
+    if (!reduced()) {
+      const onMove = (e) => { const b = sh.el.getBoundingClientRect(); c.TX.to(clamp((e.clientX - (b.left + b.width / 2)) / (b.width * 1.2), -1, 1)); c.TY.to(clamp((e.clientY - (b.top + b.height / 2)) / (b.height * 1.4), -1, 1)); };
+      cer.root.addEventListener("pointermove", onMove); cer.root.addEventListener("pointerleave", () => { c.TX.to(0); c.TY.to(0); });
+    }
+    cer.hint(reduced() ? "" : "Tilt it to catch the light.");
+    info.style.opacity = 1; cer.motion(info, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 });
+    const name = $("h2", info), seal = $(".seal", info), letters = typeIn(cer, name);
+    await cer.wait(260 + titleOf(entry).length * 20); Snd.seal();
+    seal.style.opacity = 1; await cer.motion(seal, [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 340, easing: "cubic-bezier(.3,1.4,.5,1)" });
+    if (rarity === "archive") inkLine(cer, info, name);
+    await letters; cer.endSkip(); $(".keep", info).focus({ preventScroll: true });
   }
   /** A pen stroke under the name and a line of handwriting above it (the archive). */
   function inkLine(cer, info, name) {
@@ -803,21 +836,102 @@ const Cer = (() => {
     rig.focus();
   }
 
-  /* Ten at once: one tear commits the batch (ten pack_open calls); the rest is presentation. The ceremony itself is js/gx.js,
-     a port of the "Sheet" proposal in docs/ui-proposals/gacha-aaa-preview.html. */
+  /* Several at once: one tear commits the batch (one pack_open per sticker; the rest is presentation). The sheets come out together and
+     are peeled one by one; each uncovered sheet rests a moment under the lamp, then is set aside on the desk, and at the end they all come
+     back side by side. They go straight to the Collection. */
   const RARITY_RANK = ["common", "uncommon", "rare", "special", "archive"];
+  const REST = { common: 650, uncommon: 800, rare: 1500, special: 1800, archive: 1600 };
   async function openPackMany(pack, n) {
     n = Math.min(10, n, pack.left.length);
     if (n < 2) return openPack(pack);
     if (!packOpenable(pack) || packHasFreeOpening(pack)) return; // a ready free opening always comes first
-    const cer = overlay("pack"); let sheet = null;
-    // Ten stickers never queue ten prints: they go straight to the Collection and nothing waits at the print slot.
+    const cer = overlay("pack"), stage = cer.stage; cer.hint(`Tear along the top · ${n} stickers inside`);
+    const sheets = Array.from({ length: n }, () => packSheet(cer, pack)), stack = h("div.pk-sheet-slot.pk-stack");
+    stack.append(...sheets.map((s) => s.el).reverse());
+    const got = []; let committed = false, settled = false, current = null, next = null;
     const keepIt = async () => {
-      await cer.close(); Bridge.busy = false; Shell.refresh(); Shell.renderNav();
-      const prizes=sheet?.got.filter(x=>x.entry.prize).length || 0;
-      Shell.toast(`${(sheet?.got.length || n)-prizes} stickers in Collection · ${prizes} prizes added to stock.`);
+      if (settled) return; settled = true; Bridge.busy = false; await cer.close(); Shell.refresh(); Shell.renderNav();
+      const prizes = got.filter((g) => g.entry?.prize).length, stickers = got.length - prizes;
+      Shell.toast(prizes ? `${stickers} stickers in Collection · ${prizes} ${prizes === 1 ? "prize" : "prizes"} added to stock.` : `${stickers} stickers in your Collection.`);
     };
-    sheet = await Gx.sheet(cer, pack, n, { keepIt });
+    const onTear = async (rig) => {
+      Bridge.busy = true; let failure = null;
+      for (let i = 0; i < n; i++) {
+        let opened; try { opened = await Bridge.invoke("pack_open", { packId: pack.id, queue: false }); } catch (e) { failure = e; break; }
+        // the committed pull is recorded first: a preview that cannot load never loses it
+        const one = { sheet: sheets[i], rarity: DESK[opened.rarity] ? opened.rarity : "common", entry: null }; got.push(one); pack.left = Array(opened.remaining).fill(null);
+        one.ready = (async () => { try { one.entry = await Bridge.packEntry(opened); one.rarity = rarityOf(one.entry); await one.sheet.fill(one.entry); } catch { one.sheet.missing(); } })();
+      }
+      committed = true;
+      const savedPack = S.packs.find((p) => p.id === pack.id); if (savedPack) savedPack.left = pack.left;
+      try { await Bridge.reload(); } catch {} Shell.renderNav();
+      if (!got.length) { Bridge.busy = false; await cer.close(); Shell.error(failure); return; }
+      if (failure) Shell.toast(`Stopped after ${got.length}. ${failure?.message || failure}`);
+      for (const s of sheets.slice(got.length)) s.el.remove();
+      await Promise.all(got.map((g) => g.ready));
+      rig.light?.({ rarity: got.reduce((best, g) => RARITY_RANK.indexOf(g.rarity) > RARITY_RANK.indexOf(best) ? g.rarity : best, "common") });
+      cer.hint("Pull the sheets out.");
+      await rig.pullable(stack, { onPull: () => peelAll(rig) });
+    };
+    const peelAll = async (rig) => {
+      rig.linger(); const desk = deskFor(cer), cards = got.map((g) => carry(cer, stage, g.sheet)); stack.remove();
+      const W = sheets[0].w, H = sheets[0].h, tx = stage.clientWidth * .5, ty = stage.clientHeight * .47;
+      const stackFrom = (from) => cards.slice(from).forEach((c, j) => { c.to(tx + j * 1.5, ty + j * 2.5, 1, j ? (j % 2 ? -1 : 1) * (1 + j * .4) : 1.2); c.sh.el.style.zIndex = 40 - j; c.sh.el.classList.toggle("under", j > 0); });
+      stackFrom(0); desk.lamp(.5, ...cards[0].at(), "common", 16, 74);
+      await cer.wait(700);
+      cer.allowSkip(() => { current?.complete(); next?.(); });
+      for (let i = 0; i < cards.length; i++) {
+        const c = cards[i], g = got[i], r = g.rarity, D = DESK[r]; stackFrom(i); c.tilt = desk.tilt;
+        desk.lamp(D.dim * .78, ...c.at(), r, 14, 72);
+        cer.hint(`Peel the cover · ${i + 1} of ${cards.length}`);
+        current = peel(cer, c.sh, D.hold); current.focus(); if (cer.skipped) current.complete();
+        await current.done; cer.hint("");
+        const cap = h("div.pk-cap", { style: { left: tx + "px", top: ty + H / 2 + 34 + "px" } }, h("b", g.entry ? titleOf(g.entry) : "Sticker"), h("span.seal", { data: { rarity: r } }, r));
+        stage.append(cap); cer.motion(cap, [{ opacity: 0, transform: "translate(-50%, 6px)" }, { opacity: 1, transform: "translate(-50%, 0)" }], { duration: 300, easing: EASE.out });
+        await lightUp(cer, c, r, { quiet: cer.skipped });
+        // it rests a moment under the lamp (longer for the rarer ones), or until it is clicked or Enter is pressed
+        if (i < cards.length - 1 || !cer.skipped) await Promise.race([cer.wait(REST[r]), new Promise((res) => { next = res; c.sh.el.addEventListener("click", res, { once: true }); })]);
+        next = null; c.tilt = null; c.TX.to(0); c.TY.to(0);
+        cer.motion(cap, [{ opacity: 1 }, { opacity: 0 }], { duration: 240 }).then(() => cap.remove());
+        desk.fade(500); c.sh.el.classList.add("aside"); c.sh.el.style.zIndex = 60;
+        const [px, py] = [stage.clientWidth - W * .2 - 14 + (i % 2 ? 3 : -3), H * .2 + 18 + i * 5];
+        c.to(px, py, .4, rand(-7, 7), 150, 20); if (!cer.skipped) Snd.crinkle(2, .1);
+        cer.wait(500).then(() => { c.sh.el.style.zIndex = 10 + i; });
+      }
+      await summary(cards);
+    };
+    const summary = async (cards) => {
+      cer.endSkip(); cer.hint("");
+      const desk = deskFor(cer), k = cards.length, cols = Math.min(5, k), rows = Math.ceil(k / cols), gap = 16, W = sheets[0].w, H = sheets[0].h, infoH = 132;
+      const s = Math.min(.62, (stage.clientWidth - 24 - gap * (cols - 1)) / cols / W, (stage.clientHeight - infoH - 16 - gap * (rows - 1)) / rows / H);
+      const gw = cols * W * s + (cols - 1) * gap, gh = rows * H * s + (rows - 1) * gap, gx0 = (stage.clientWidth - gw) / 2, gy0 = Math.max(8, (stage.clientHeight - infoH - gh) / 2);
+      desk.fade(600); { const st = stage.getBoundingClientRect(); desk.lamp(.34, st.left + st.width / 2, st.top + gy0 + gh / 2, "common", 30, 95); }
+      for (const el of $$(".pk-wrap, .pk-strip", stage)) cer.motion(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 500 }).then(() => { el.style.visibility = "hidden"; });
+      for (let i = 0; i < k; i++) {
+        const c = cards[i], col = i % cols, row = Math.floor(i / cols); c.sh.el.classList.remove("aside", "under"); c.sh.el.classList.add("sum"); c.sh.el.dataset.rarity = got[i].rarity; c.sh.el.style.zIndex = 20 + i;
+        c.to(gx0 + col * (W * s + gap) + W * s / 2, gy0 + row * (H * s + gap) + H * s / 2, s, (i % 3 - 1) * 1.2, 140, 20); await cer.wait(60);
+      }
+      Snd.crinkle(4, .4);
+      // the whole sheet catches the light together as the pointer moves
+      if (!reduced()) cer.root.addEventListener("pointermove", (e) => { const b = stage.getBoundingClientRect(); for (const c of cards) { c.TX.to(clamp((e.clientX - b.left - c.X.t) / b.width, -1, 1) * .7); c.TY.to(clamp((e.clientY - b.top - c.Y.t) / b.height, -1, 1) * .7); } });
+      const tally = RARITY_RANK.map((r) => [r, got.filter((g) => g.rarity === r).length]).filter(([, c]) => c), best = tally.at(-1)?.[0] || "common";
+      const info = h("div.rv-info.pk-info.pk-sum", { style: { top: gy0 + gh + 18 + "px", bottom: "auto", opacity: 0 } }, h("p.eyebrow", `${pack.title} · ${pack.left.length} left`), h("h2", `${k} new ${k === 1 ? "sticker" : "stickers"}`),
+        h("div.rv-meta", h("span.seal", { data: { rarity: best } }, best), h("span.no", tally.map(([r, c]) => `${c} ${r}`).join(" · "))),
+        h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); keepIt(); } } }, "Done")));
+      stage.append(info); info.style.opacity = 1; cer.motion(info, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 }); typeIn(cer, $("h2", info));
+      $(".keep", info).focus({ preventScroll: true });
+    };
+    // a pouch is torn along its top; every other wrapping (Studio) is simply opened
+    const generic = !!(pack.bag && BAGS[pack.bag]?.gen), cover = pack.bag && PackArt.decorated(pack) ? await PackArt.cover(pack) : null;
+    const decoration = !generic && pack.bag && PackArt.decorated(pack) ? BagPic({bag:pack.bag,color:pack.color,title:pack.title,sub:"by "+pack.by,cover,deco:pack.deco||"none",layout:pack.layout,id:pack.id,shut:true}) : null;
+    if(decoration) { decoration.querySelector(".bp-art")?.remove(); decoration.classList.add("pk-dress"); }
+    if (generic) cer.hint(`Open it · ${n} stickers inside`);
+    const rig = generic ? buildBagRig(cer, stage, { pack, content: stack, cover, onTear })
+      : buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, color: pack.color, content: stack, label: decoration ? null : PackLabel({ ...pack, kind: pack.kind || "holo" }), decoration, onTear });
+    for (const s of sheets) s.place(rig, stack);
+    cer.root.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && next && !e.repeat) { e.preventDefault(); next(); } });
+    cer.root._esc = () => { if (!rig.done) cer.close(); else if (committed && got.length) keepIt(); };
+    rig.focus();
   }
 
   return { openMaterial, openGift, openPack, openPackMany };
