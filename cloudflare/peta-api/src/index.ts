@@ -13,6 +13,7 @@ import { inbox, MAX_GIFT, keyHash, sweepReports } from "./inbox";
 import { market, contentLimit, MARKET_CARD_MAX, MARKET_PACK_MAX } from "./market";
 import { invites, invited, invitesRequired, sweepRecords } from "./invites";
 import { coupons } from "./coupons";
+import { dailyTables } from "./daily-tables";
 import { updates } from "./updates";
 export interface Env {
   RELEASES?: R2Bucket;
@@ -604,6 +605,8 @@ async function route(request: Request, env: Env): Promise<Response> {
   }
   const fromInvites = await invites(request, env, path, await sha256(unbase64(key, 32)), data);
   if (fromInvites) return fromInvites;
+  const fromDaily = await dailyTables(request,env,path);
+  if (fromDaily) return fromDaily;
   const fromUpdates = await updates(request, env, path, await sha256(unbase64(key, 32)));
   if (fromUpdates) return fromUpdates;
   const fromCoupons = await coupons(request, env, path, await sha256(unbase64(key, 32)), data);

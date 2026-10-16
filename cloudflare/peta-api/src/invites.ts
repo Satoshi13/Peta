@@ -40,6 +40,7 @@ export async function invites(request: Request, env: Env, path: string, hash: st
 export async function sweepRecords(env: Env, timestamp: number): Promise<void> {
   const cutoff = timestamp - 365 * 86400;
   await env.DB.batch([
+    stmt(env.DB, 'DELETE FROM daily_tables WHERE ends_at<? OR stopped_at<?', cutoff, cutoff),
     stmt(env.DB, "DELETE FROM downloads WHERE at<?", cutoff),
     stmt(env.DB, "DELETE FROM coupon_claims WHERE name IN (SELECT name FROM coupons WHERE ends_at<? OR stopped_at<?)", cutoff, cutoff),
     stmt(env.DB, "DELETE FROM coupons WHERE ends_at<? OR stopped_at<?", cutoff, cutoff),
