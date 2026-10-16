@@ -6,7 +6,6 @@ async function closeCommittedPreview(cer,message) {
   Bridge.busy=false;await cer.close();Shell.refresh();Shell.renderNav();Shell.toast(message);
 }
 const Cer = (() => {
-  const RAR_FX = { common: { n: 0, chime: 1 }, uncommon: { n: 16, chime: 3 }, rare: { n: 46, chime: 6 }, special: { n: 60, chime: 7 }, archive: { n: 30, chime: 4 } };
 
   function overlay(kind) {
     Bridge.enterCeremony();
@@ -38,47 +37,6 @@ const Cer = (() => {
       hint: (t) => { if (top.textContent === t) return; top.textContent = t; anim(top, [{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 400 }); } };
   }
 
-
-  /* After the sleeve is pulled out: unwrap it, reveal the sticker, let the person play with it. */
-  async function unwrapAndReveal({ cer, stage, sleeve, entry, source, onKeep, onLater, laterLabel = "Later" }) {
-    cer.hint("Tilt it to catch the light.");
-    const res = entry.prize ? {aspect:1} : await resOf(entry, { max: 560 }), mat = MAT[entry.material], fx = RAR_FX[entry.rarity || mat.rarity];
-    const W = stage.clientWidth, Hh = stage.clientHeight;
-    const holder = h("div.rv-holder");
-    const max = Math.min(280, W * .45, Hh * .4);
-    const sw = max * Math.min(1, res.aspect);
-    const stk = entry.prize ? PrizeCard(entry,sw) : Stk.el(res, sw); holder.append(stk);
-    const glow = h("i.rv-glow", { data: { m: entry.material } }), rays = h("i.rv-rays", { data: { m: entry.material } });
-    stage.append(glow, rays, holder); holder.style.opacity = 0;
-    // sleeve glides to the middle and gets a little crumpled
-    const sr = sleeve.getBoundingClientRect(), st = stage.getBoundingClientRect();
-    const cx = st.left + W * .5, cy = st.top + Hh * .44;
-    const dx = cx - (sr.left + sr.width / 2), dy = cy - (sr.top + sr.height / 2);
-    Snd.swoosh();
-    await cer.motion(sleeve, [{ transform: sleeve.style.transform || "none" }, { transform: `translate(${dx}px, ${dy}px) scale(1.1)` }], { duration: 560, easing: EASE.inOut, composite: "replace" });
-    Snd.crinkle(18, .55);
-    await cer.motion(sleeve, [{ transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(0)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(-3deg)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(3deg)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(-2deg)` }, { transform: `translate(${dx}px, ${dy}px) scale(1.1) rotate(0)` }], { duration: 480, easing: "ease-in-out" });
-    // pop
-    Snd.chime(fx.chime, 880);
-    anim(sleeve, [{ opacity: 1, transform: `translate(${dx}px, ${dy}px) scale(1.1)` }, { opacity: 0, transform: `translate(${dx}px, ${dy - 20}px) scale(1.42) rotate(6deg)` }], { duration: 480, easing: EASE.out });
-    anim(glow, [{ opacity: 0, transform: "scale(.3)" }, { opacity: 1, transform: "scale(1)" }], { duration: 900, easing: EASE.out });
-    if (entry.material !== "matte") anim(rays, [{ opacity: 0, transform: "scale(.5) rotate(0)" }, { opacity: .9, transform: "scale(1) rotate(40deg)" }], { duration: 1200, easing: EASE.out });
-    if (fx.n && !cer.skipped && !reduced()) sparkBurst(stage, fx.n, { cx: .5, cy: .44, power: (entry.rarity || mat.rarity) === "rare" ? 1.5 : 1, colors: entry.material === "kraft" ? ["#f2d9a8", "#fff", "#e8bf80"] : undefined });
-    await cer.motion(holder, [{ opacity: 0, transform: "scale(.5) rotate(-12deg)" }, { opacity: 1, transform: "scale(1.06) rotate(2deg)", offset: .6 }, { opacity: 1, transform: "scale(1) rotate(0)" }], { duration: 760, easing: EASE.out });
-    sleeve.remove();
-    holder.style.opacity = 1; holder.getAnimations().forEach((a) => a.cancel());
-    // alive: tilt + sheen
-    const tilter = h("div.rv-tilt", stk); holder.append(tilter); Stk.tilt(tilter, { max:5, scale:1.015, trigger:holder });
-    cer.hint("Tilt it to catch the light.");
-    // who/what is it
-    const info = h("div.rv-info", h("p.eyebrow", source), h("h2", titleOf(entry)),
-      h("div.rv-meta", h("span.seal.stamp-in", { data: { rarity: entry.rarity || mat.rarity } }, mat.name + " · " + (entry.rarity || mat.rarity)), h("span.no", entry.kind === "received" && entry.edition != null ? `Edition #${entry.edition}${entry.editionTotal ? "/"+entry.editionTotal : ""}` : "")),
-      h("div.rv-btns", h("button.btn.keep", { on: { click: () => { Snd.tap(); onKeep(); } } }, entry.prize ? "Done" : "Stick it"), onLater ? h("button.btn.paper", { on: { click: onLater } }, laterLabel) : null));
-    stage.append(info);
-    anim(info, [{ opacity: 0, transform: "translateY(16px)" }, { opacity: 1, transform: "none" }], { duration: 520, easing: EASE.out });
-    const seal = $(".seal", info); await cer.wait(260); Snd.seal();
-    await cer.motion(seal, [{ opacity: 0, transform: "scale(2.4) rotate(-14deg)" }, { opacity: 1, transform: "scale(1) rotate(-2.5deg)" }], { duration: 360, easing: EASE.spring });cer.endSkip();
-  }
 
   /* ------------------------------------------------------------------ THE DESK (one pack)
      One pack is opened on a desk under one lamp. The room darkens around what is held, and the pull's light lands on the desk:
@@ -398,12 +356,12 @@ const Cer = (() => {
 
   /* What is inside a pack: one sticker on its backing card, under a glassine cover. Through the cover its colours and shape are the real
      sticker's; the cover is peeled off to see it. It is built at the size it is revealed at and shrunk into the pack, so it stays sharp. */
-  function packSheet(cer, pack) {
+  function packSheet(cer, pack, { print = ["Peta · " + pack.title, pack.by ? "by " + pack.by : null] } = {}) {
     const st = cer.stage, portrait = narrow(st);
     const W = Math.round(Math.min(portrait ? st.clientWidth * .56 : st.clientWidth * .32, st.clientHeight * (portrait ? .4 : .62) / 1.24, 300)), H = W * 1.24;
     const stk = h("div.ps-stk"), ed = h("div.ps-ed"), glass = h("div.ps-glass"), gflap = h("div.ps-gflap"), flapwrap = h("div.ps-flapwrap", gflap);
     const el = h("div.pk-sheet", { style: { width: W + "px", height: H + "px", "--w": W + "px" } }, h("i.ps-shadow"), h("i.ps-backing"),
-      h("div.ps-print", h("span", "Peta · " + pack.title), pack.by ? h("span", "by " + pack.by) : null), stk, ed, glass, flapwrap);
+      h("div.ps-print", ...print.filter(Boolean).map((t) => h("span", t))), stk, ed, glass, flapwrap);
     const slot = h("div.pk-sheet-slot", el);
     return { el, slot, stk, ed, glass, gflap, flapwrap, w: W, h: H,
       /** sit inside the rig's mouth, at the rig's scale */
@@ -704,66 +662,87 @@ const Cer = (() => {
     });
   }
 
-  /* ------------------------------------------------------------------ GIFT (open) */
+  /* ------------------------------------------------------------------ GIFT (open)
+     The same desk as a pack. The wax seal is broken with a click (that is when the gift is opened and saved; the flap and the note play while
+     it is), the note comes out and is laid on the desk, and the light of what is inside leaks from the mouth. Then the sheet is pulled out and
+     its glassine cover peeled off, as from a pack. */
   async function openGift(gift) {
-    const cer = overlay("gift"), stage = cer.stage; cer.hint("Break the seal.");
-    const EW = Math.min(420, stage.clientWidth * .6, stage.clientHeight * .75), EH = EW * 340 / 480;
+    const cer = overlay("letter"), stage = cer.stage, desk = deskFor(cer); cer.hint("Break the seal.");
+    const EW = Math.min(440, stage.clientWidth * .6, stage.clientHeight * .75), EH = EW * 340 / 480;
     const flapPoly = "polygon(10% 14%, 90% 14%, 50% 57%)", bodyPoly = "polygon(0 0, 10% 14%, 50% 57%, 90% 14%, 100% 0, 100% 100%, 0 100%)";
     const hole = `radial-gradient(circle at 50% 54.5%, transparent 0, transparent ${EW * .066}px, #000 ${EW * .074}px)`;
     const mk = (cls, clip, extra = {}) => h("img.ev-layer." + cls, { src: A.arrGift, alt: "", style: { clipPath: clip, webkitMaskImage: hole, maskImage: hole, ...extra } });
-    const inside = h("i.ev-inside"), body = mk("ev-body", bodyPoly), flap = mk("ev-flap", flapPoly);
+    const inside = h("i.ev-inside"), body = mk("ev-body", bodyPoly), flap = mk("ev-flap", flapPoly), leak = h("i.gift-leak");
     const wax = h("div.wax", { style: { width: EW * .17 + "px", left: "50%", top: "54.5%" } }, img("waxSeal", "w-full"), img("waxL", "w-l"), img("waxR", "w-r"));
-    const note = h("div.ev-note", { style: { width: EW * .86 + "px" } }, img("noteBlank"), h("p.hand", h("small", "from"), h("b", gift.from), gift.note ? h("span", "“" + gift.note + "”") : null));
-    const sleeve = h("div.pk-sleeve.gsleeve", { style: { width: EW * .5 + "px" } }, img("mystery"));
-    const env = h("div.env-wrap", { style: { width: EW + "px", height: EH + "px", "--ew": EW + "px" } }, inside, sleeve, note, body, flap, wax);
+    // the note sits wholly inside the envelope until it is taken out (lower, its foot showed under the envelope)
+    const note = h("div.ev-note", { style: { width: EW * .86 + "px", transform: "translate(-50%, 0)" } }, img("noteBlank"), h("p.hand", h("small", "from"), h("b", gift.from), gift.note ? h("span", "“" + gift.note + "”") : null));
+    // the sheet sits inside the envelope, its whole height hidden behind the front
+    const sheet = packSheet(cer, { title: "Gift", by: null }, { print: ["Peta · Gift", "from " + gift.from] }), sw = Math.min(EW * .46, EH * .56 / 1.24);
+    // the envelope's paper runs from 15% to 85% of its picture; the sheet stays between 25% and 81%
+    sheet.place({ PW: EW, PH: EH, cutY: EH * .25, sheetW: sw, sheetLeft: (EW - sw) / 2, sheetTop: EH * .25 });
+    const env = h("div.env-wrap", { style: { width: EW + "px", height: EH + "px", "--ew": EW + "px" } }, inside, leak, sheet.slot, note, body, flap, wax);
     const sc = h("div.gift-scene", env); stage.append(sc);
-    anim(sc, [{ opacity: 0, transform: "translateY(50px) rotate(-6deg) scale(.88)" }, { opacity: 1, transform: "none" }], { duration: 700, easing: EASE.spring });
-    let opened = false, entry = null, settling=false;
+    { const st = stage.getBoundingClientRect(); desk.lamp(.38, st.left + st.width / 2, st.top + st.height * .56, "common", 20, 80); }
+    anim(sc, [{ opacity: 0, transform: "translateY(50px) rotate(-6deg) scale(.88)" }, { opacity: 1, transform: "none" }], { duration: 700, easing: EASE.spring }).then(() => Snd.land?.());
+    let opened = false, entry = null, settling = false;
     const crack = async () => {
       if (opened) return; opened = true; cer.hint(""); Snd.crack(); Haptic.tap("seal");
+      // opening is committed now; the flap and the note play while it is saved
+      const saving = (async () => { try { Bridge.busy = true; return { id: await Bridge.invoke("gift_open", { giftId: gift.id }) }; } catch (error) { return { error }; } })();
       wax.classList.add("cracked");
       anim($(".w-l", wax), [{ transform: "none", opacity: 1 }, { transform: "translate(-34px, 70px) rotate(-28deg)", opacity: 0 }], { duration: 760, easing: "cubic-bezier(.3,0,.7,.6)" });
       anim($(".w-r", wax), [{ transform: "none", opacity: 1 }, { transform: "translate(40px, 84px) rotate(32deg)", opacity: 0 }], { duration: 820, easing: "cubic-bezier(.3,0,.7,.6)" });
       anim($(".w-full", wax), [{ opacity: 1 }, { opacity: 0 }], { duration: 40 });
-      await sleep(260); Snd.swoosh();
+      await sleep(260); Snd.flap?.();
       flap.style.transformOrigin = "50% 14%"; inside.style.opacity = 1;
       await anim(flap, [{ transform: "rotateX(0)" }, { transform: "rotateX(180deg)", filter: "brightness(.92)" }], { duration: 640, easing: EASE.out });
       fix(flap, "rotateX(180deg)"); flap.style.zIndex = 0;
-      // the note comes out first
+      // the note comes out and is laid on the desk, to the lower left, where it stays while the sticker is uncovered
       Snd.crinkle(6, .3);
-      await anim(note, [{ transform: "translate(-50%, 10%) rotate(0)", opacity: 1 }, { transform: `translate(-62%, -${EH * .78}px) rotate(-6deg)`, opacity: 1 }], { duration: 760, easing: EASE.out });
+      await anim(note, [{ transform: "translate(-50%, 0) rotate(0)" }, { transform: `translate(-62%, -${EH * .78}px) rotate(-6deg)` }], { duration: 640, easing: EASE.out });
       fix(note, `translate(-62%, -${EH * .78}px) rotate(-6deg)`);
-      cer.hint("Pull the sticker out.");
-      sleeve.classList.add("out");
-      await anim(sleeve, [{ transform: "translateY(0)" }, { transform: `translateY(-${EH * .34}px) rotate(1.5deg)` }], { duration: 640, easing: EASE.out });
-      fix(sleeve, `translateY(-${EH * .34}px) rotate(1.5deg)`);
-      let id;
-      try { Bridge.busy = true; id=await Bridge.invoke("gift_open", {giftId:gift.id}); }
-      catch(e) { Bridge.busy=false; await cer.close(); Shell.error(e); return; }
-      gift.opened=true;const savedGift=S.gifts.find(g=>g.id===gift.id);if(savedGift)savedGift.opened=true;
-      try {entry=await Bridge.entry(id);await Bridge.reload();Shell.refresh({quiet:true});}
-      catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; find it in your Collection.');return;}
-      let pulled = false, rustle=Snd.paperMotion(); const base = sleeve.style.transform;
-      drag(sleeve, {
-        down: () => {if(pulled)return false;rustle=Snd.paperMotion();},
-        move: (dx, dy) => { const up = clamp(-dy, 0, 300); sleeve.style.transform = `translateY(${-EH * .34 - up}px) rotate(${1.5 + dx * .03}deg)`; rustle(up / 300); if (up > 110 && !pulled) pull(); },
-        up: () => { if (!pulled) { anim(sleeve, [{ transform: sleeve.style.transform }, { transform: base }], { duration: 300, easing: EASE.spring }).then(() => fix(sleeve, base)); } },
+      layNote();
+      const saved = await saving;
+      if (saved.error) { Bridge.busy = false; await cer.close(); Shell.error(saved.error); return; }
+      gift.opened = true; const savedGift = S.gifts.find((g) => g.id === gift.id); if (savedGift) savedGift.opened = true;
+      try { entry = await Bridge.entry(saved.id); await Bridge.reload(); Shell.refresh({ quiet: true }); await sheet.fill(entry); }
+      catch { await closeCommittedPreview(cer, 'Gift opened and saved. The preview could not load; find it in your Collection.'); return; }
+      // the light from the mouth is the gift's own
+      leak.style.setProperty("--light", (DESK[rarityOf(entry)] || DESK.common).light); leak.classList.toggle("prism", rarityOf(entry) === "rare");
+      anim(leak, [{ opacity: 0 }, { opacity: rarityOf(entry) === "common" ? .5 : .9 }], { duration: 600 });
+      cer.hint("Pull it out."); Snd.crinkle(3, .2);
+      const base = `translateY(${-EH * .26}px)`, slot = sheet.slot;
+      await anim(slot, [{ transform: "none" }, { transform: base }], { duration: 560, easing: EASE.out }); fix(slot, base);
+      let pulled = false, rustle = Snd.paperMotion();
+      drag(slot, {
+        down: () => { if (pulled) return false; rustle = Snd.paperMotion(); },
+        move: (dx, dy) => { const up = clamp(-dy, 0, 300); slot.style.transform = `translateY(${-EH * .26 - up}px) rotate(${dx * .02}deg)`; rustle(up / 300); if (up > EH * .34 && !pulled) pull(); },
+        up: () => { if (!pulled) anim(slot, [{ transform: slot.style.transform }, { transform: base }], { duration: 300, easing: EASE.spring }).then(() => fix(slot, base)); },
       });
-      sleeve.addEventListener("dblclick", () => !pulled && pull()); sleeve.tabIndex = 0; sleeve.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && !pulled && pull());
+      slot.addEventListener("dblclick", () => !pulled && pull()); slot.tabIndex = 0; slot.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && !pulled && pull());
+      slot.focus?.({ preventScroll: true });
       async function pull() {
-        pulled = true; gift.opened = true; Shell.renderNav();
-        anim(note, [{ opacity: 1 }, { opacity: 0, transform: note.style.transform + " translateY(-30px)" }], { duration: 500, delay: 100 });
-        anim(env, [{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(200px) rotate(4deg)", opacity: 0 }], { duration: 700, easing: "cubic-bezier(.5,0,.8,.4)", delay: 120 });
-        const r = sleeve.getBoundingClientRect(), sr = stage.getBoundingClientRect();
-        stage.append(sleeve); sleeve.style.cssText = `position:absolute;left:${r.left - sr.left}px;top:${r.top - sr.top}px;width:${r.width}px;z-index:8;transform:none;`;
-        try {await unwrapAndReveal({ cer, stage, sleeve, entry, source: `Gift from ${gift.from}`, onKeep: keep, onLater: later });}
-        catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; find it in your Collection.');}
+        pulled = true; Shell.renderNav(); Snd.swoosh(); Haptic.tap("level");
+        anim(leak, [{ opacity: .9 }, { opacity: 0 }], { duration: 400 });
+        anim(sc, [{ transform: "none", opacity: 1 }, { transform: "translateY(200px) rotate(4deg)", opacity: 0 }], { duration: 700, easing: "cubic-bezier(.5,0,.8,.4)", delay: 120 });   // the emptied envelope falls away
+        try { await peelAndReveal({ cer, stage, sheet, entry, source: `Gift from ${gift.from}`, onKeep: keep, onLater: later }); }
+        catch { await closeCommittedPreview(cer, 'Gift opened and saved. The preview could not load; find it in your Collection.'); }
       }
     };
+    /* the note leaves the envelope for the desk: same place on screen, then a small slide to the lower left, slightly turned */
+    function layNote() {
+      const r = note.getBoundingClientRect(), st = stage.getBoundingClientRect(), k = .52;
+      if (!r.width) return;
+      stage.append(note); note.classList.add("note-laid");
+      Object.assign(note.style, { position: "absolute", left: r.left - st.left + "px", top: r.top - st.top + "px", bottom: "auto", width: r.width + "px", transform: "rotate(-6deg)", zIndex: 2 });
+      const tx = -st.width * .02 - (r.left - st.left), ty = st.height * 1.02 - r.height * k - (r.top - st.top);
+      anim(note, [{ transform: "rotate(-6deg)" }, { transform: `translate(${tx}px, ${ty}px) rotate(-9deg) scale(${k})` }], { duration: 760, easing: EASE.inOut }).then(() => fix(note, `translate(${tx}px, ${ty}px) rotate(-9deg) scale(${k})`));
+      note.style.transformOrigin = "0 0";
+    }
     const keep = async () => { if(settling)return;settling=true;Bridge.busy=false;await cer.close();Shell.refresh({ifStale:true});try {await Desktop.print(entry);Shell.toast("A gift from " + gift.from + ".");} catch {Shell.toast('Gift saved. Stick it from your Collection whenever you like.');} };
     const later = async () => { if(settling)return;settling=true;try {await Bridge.invoke("print_later");} catch {await closeCommittedPreview(cer,'Gift saved. Stick it from your Collection whenever you like.');return;}Bridge.busy=false;await cer.close();Shell.refresh({ifStale:true});Shell.toast("Saved in your Collection for later.");Shell.renderNav(); };
     wax.addEventListener("click", crack); wax.addEventListener("pointerdown", () => Snd.tap()); wax.tabIndex = 0; wax.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && crack());
-    wax.style.cursor = "pointer"; cer.root._esc = () => { if (!opened) cer.close(); else if(entry)later(); };
+    wax.style.cursor = "pointer"; wax.focus?.({ preventScroll: true }); cer.root._esc = () => { if (!opened) cer.close(); else if(entry)later(); };
   }
 
   /* `pull` (friends' packs in Market) replaces the native opening with a paid pull; the ceremony is the same. */

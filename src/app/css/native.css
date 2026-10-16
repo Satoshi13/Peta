@@ -593,7 +593,6 @@ html[data-motion="reduce"] :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.
   :is(.choice:hover .choice-obj,.drop:hover .drop-obj,.sample:hover img,.pack:hover .pk-stack,.mk-tile:hover .pk-stack,.stuck-t:hover .stk,.env-scene:hover .env-lift) { transform:none!important; }
 }
 
-.rv-rays { animation:none; }
 [data-shell] .nav-item:hover .ni-icon, [data-shell="studio"] .nav-item:hover .ni-icon { transform:none; } /* the sidebar icons stay put on hover; only the row lights up */
 html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
 @media(prefers-reduced-motion:reduce) { [data-shell] .nav-item:hover .ni-icon { transform:none; } }
@@ -828,9 +827,9 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 .material-preview > button.close-control { top:12px; right:12px; background:var(--w-sunken); color:var(--ink2); }
 .material-preview > button.close-control:hover { background:var(--w-line); color:var(--ink); }
 
-.cer:not([data-kind="gift"]):not([data-kind="seal"]) .btn:not(.paper) { background:#f5efdf; color:#2b2720; }
-.cer:not([data-kind="gift"]):not([data-kind="seal"]) .btn:not(.paper):hover { background:#e9dfc8; }
-.cer:not([data-kind="gift"]):not([data-kind="seal"]) .btn.paper:hover { background:#ffffff26; color:#f5efe2; box-shadow:inset 0 0 0 1px #ffffff66; }
+.cer:not([data-kind="seal"]) .btn:not(.paper) { background:#f5efdf; color:#2b2720; }
+.cer:not([data-kind="seal"]) .btn:not(.paper):hover { background:#e9dfc8; }
+.cer:not([data-kind="seal"]) .btn.paper:hover { background:#ffffff26; color:#f5efe2; box-shadow:inset 0 0 0 1px #ffffff66; }
 .cer-skip { position:absolute; z-index:12; top:20px; right:22px; padding:5px 13px; border:0; border-radius:999px; background:#ffffff14; color:#f5efe2; font:500 12px/1.4 var(--sys); cursor:pointer; transition:background-color .22s ease; }
 .cer-skip:hover { background:#ffffff2b; }
 .cer-skip[hidden] { display:none; }
