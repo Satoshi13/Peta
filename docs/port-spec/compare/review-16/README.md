@@ -23,4 +23,4 @@
 
 `npm test`（44件）、`npm run check:mac`、`npm run check:mac:developer` を確認する。Mac向けcheckはLinux上のC／Objective-C依存スタブでの型検査で、Macのリンク／release bundle／実行ではない。実機の描画速度・Retina・触覚・透過・複数画面はmacos-checklist §20。
 
-再現用の `scripts/port-verify-upgrades.py peel` は `/tmp` の専用fixtureだけで実行する。2枚剥がすため通常のデータに向けない。JSの新しい純関数テストは折り返す向きと回転、紙の面積・輪郭、復帰、追従停止を検証する。
+再現用の `scripts/archive/port-verify-upgrades.py peel` は `/tmp` の専用fixtureだけで実行する。2枚剥がすため通常のデータに向けない。JSの新しい純関数テストは折り返す向きと回転、紙の面積・輪郭、復帰、追従停止を検証する。

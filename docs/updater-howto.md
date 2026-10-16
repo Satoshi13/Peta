@@ -36,7 +36,7 @@ SettingsのAbout Petaに現在の版とCheck for updatesがあります。新し
 
 ## 実機の確認と配布日
 
-実機確認の結果・未確認範囲は[updater-report.md](updater-report.md)。ローカルで生成したad-hocアプリの結果と、ブラウザから初めてダウンロードするDMGのGatekeeper判定を混同しないでください。今回のローカルad-hoc版の更新・自動再起動は追加操作なしで通りました。初回DMGでは引き続き「このまま開く」が必要になる場合があります。許可済みの位置情報が保持されるかは未確認です。配布前に実際のDMG経路で確認してください。
+実機確認の結果・未確認範囲は[updater-report.md](archive/reports/updater-report.md)。ローカルで生成したad-hocアプリの結果と、ブラウザから初めてダウンロードするDMGのGatekeeper判定を混同しないでください。今回のローカルad-hoc版の更新・自動再起動は追加操作なしで通りました。初回DMGでは引き続き「このまま開く」が必要になる場合があります。許可済みの位置情報が保持されるかは未確認です。配布前に実際のDMG経路で確認してください。
 
 prodへのD1・R2・Worker反映や秘密の登録は今回行っていません。配布日にオーナーが0008〜0010のD1適用、公開鍵入りアプリ、R2の公開、peta-apiの招待必須化をまとめて行います。順番は[release-day-runbook.md](release-day-runbook.md)。`updater-test`は使い捨て実機テスト専用で、配布ビルドでは拒否します。
 

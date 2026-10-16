@@ -273,7 +273,7 @@ Linuxでのハーネス確認とmacOSでの起動確認は、サイドバー素�
 - [ ] まとめ開封の伏せトレイ→Turn them over→結果→Stick them／Laterを実DBで確認。Skip・連打・途中失敗・再起動で獲得済みのステッカーが増減せず、無料進捗と印刷待ちが維持される。
 - [ ] VoiceOverで伏せ状態の名前が漏れず、めくった後に名前とレア度が分かる。アプリ／OSのReduce motionで移動演出を短縮し、キーで操作できる。
 
-Chromiumとfixture IPCの確認結果は`docs/ui-fixes-oct07-report.md`末尾に記録。ここはmacOS実機の未確認項目。
+Chromiumとfixture IPCの確認結果は`docs/archive/reports/ui-fixes-oct07-report.md`末尾に記録。ここはmacOS実機の未確認項目。
 
 ## 2026-10-11: Vision 前景抽出
 

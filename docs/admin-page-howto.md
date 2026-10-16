@@ -143,7 +143,7 @@
 
 署名の契約ファイルは `cloudflare/peta-admin/test/coupon-vector.json`。公開テスト鍵・固定日時・base64 イベント・期待 items・全上限を含み、Worker テストが再生成結果と照合し、Rust の `include_str!` テストが decode → apply_event とバイト一致・上限一致を確認します。更新が必要なときだけ `cd cloudflare/peta-admin && node scripts/coupon-vector.mjs` を実行し、差分をレビューしてください。通常のテストは契約ファイルを書き換えません。
 
-検証結果と未確認項目は [admin-page-report.md](admin-page-report.md)。既存の手元署名は [coupon-howto.md](coupon-howto.md)、配布は [download-page-howto.md](download-page-howto.md) を参照してください。
+検証結果と未確認項目は [admin-page-report.md](archive/reports/admin-page-report.md)。既存の手元署名は [coupon-howto.md](coupon-howto.md)、配布は [download-page-howto.md](download-page-howto.md) を参照してください。
 
 ## 2026-10-15 の本番セットアップ(実施済み)
 
@@ -160,7 +160,7 @@
 
 ## 第2弾: Reports / News / Shop / Market(2026-10-16)
 
-指示書は [codex-admin-round2-prompt.md](codex-admin-round2-prompt.md)、実装の報告は [admin-round2-report.md](admin-round2-report.md)。
+指示書は [codex-admin-round2-prompt.md](archive/prompts/codex-admin-round2-prompt.md)、実装の報告は [admin-round2-report.md](archive/reports/admin-round2-report.md)。
 
 ### 反映の準備(オーナー)
 

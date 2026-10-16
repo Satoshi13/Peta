@@ -34,9 +34,9 @@ Delete…は詳細内に対象範囲を表示して確認し、確定した自�
 親READMEのデバッグキャプチャ設定で実アプリを起動する。`port-fixture.py`で**新しい**専用/tmpライブラリを作り、起動前にholographicのmaterial_stock.countを1にする。`XDG_DATA_HOME`を同じ専用ライブラリに設定して次を順に実行する。検証はそのfixtureの最後の素材を消費し、作ったテスト原本を削除し、NaoのGiftを開く。
 
 ```sh
-python scripts/port-review-05.py after
-python scripts/port-verify-review-05.py
-python scripts/port-review-05-states.py
+python scripts/archive/port-review-05.py after
+python scripts/archive/port-verify-review-05.py
+python scripts/archive/port-review-05-states.py
 ```
 
 撮影スクリプトはこのディレクトリのbefore.pngを使う。beforeは修正前d0de0e3で撮影済みで、撮り直す場合は同じfixture・シェル・サイズ・選択した花で`port-review-05.py before`を行う。キャプチャIPCはdebug版かつ明示的な環境変数がある場合だけ動く。

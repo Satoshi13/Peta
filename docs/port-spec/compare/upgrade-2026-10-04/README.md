@@ -50,7 +50,7 @@ Reduce motionの追加検査では、引き裂きの手動RAFも省略し、新�
 
 ## 再現と検査コマンド
 
-親READMEの実Tauriデバッグキャプチャ手順を使い、`XDG_DATA_HOME`は専用の/tmpライブラリへ設定する。`scripts/port-verify-upgrades.py reflection / haptics / countdown / book` を順に行う。reflection用fixtureには3枚目のKraft配置、Bookの空の月用には6月1日のテスト記録を加える。Bookは専用データに400日分の記録を加えるため、`book-empty` と `material / material-reduced` には別の新規/tmp fixtureを使う。Stock付与は最初の実Today開封だけ、再表示検査はUI部品だけを呼ぶ。各コマンドは実IPCへ1本ずつ送る。
+親READMEの実Tauriデバッグキャプチャ手順を使い、`XDG_DATA_HOME`は専用の/tmpライブラリへ設定する。`scripts/archive/port-verify-upgrades.py reflection / haptics / countdown / book` を順に行う。reflection用fixtureには3枚目のKraft配置、Bookの空の月用には6月1日のテスト記録を加える。Bookは専用データに400日分の記録を加えるため、`book-empty` と `material / material-reduced` には別の新規/tmp fixtureを使う。Stock付与は最初の実Today開封だけ、再表示検査はUI部品だけを呼ぶ。各コマンドは実IPCへ1本ずつ送る。
 
 ```sh
 npm test
@@ -74,7 +74,7 @@ docs/port-spec/compare/upgrade-2026-10-04/README.md
 docs/port-spec/compare/upgrade-2026-10-04/reflection.json
 docs/port-spec/macos-checklist.md
 package.json
-scripts/port-verify-upgrades.py
+scripts/archive/port-verify-upgrades.py
 src-tauri/capabilities/app.json
 src-tauri/capabilities/layer.json
 src-tauri/permissions/desktop-effects.toml
@@ -99,7 +99,7 @@ docs/decisions.md
 docs/port-spec/compare/upgrade-2026-10-04/README.md
 docs/port-spec/compare/upgrade-2026-10-04/haptics.json
 docs/port-spec/macos-checklist.md
-scripts/port-verify-upgrades.py
+scripts/archive/port-verify-upgrades.py
 src-tauri/capabilities/app.json
 src-tauri/capabilities/layer.json
 src-tauri/permissions/desktop-effects.toml
@@ -126,7 +126,7 @@ docs/decisions.md
 docs/port-spec/compare/upgrade-2026-10-04/README.md
 docs/port-spec/compare/upgrade-2026-10-04/countdown.json
 docs/port-spec/macos-checklist.md
-scripts/port-verify-upgrades.py
+scripts/archive/port-verify-upgrades.py
 src-tauri/src/today.rs
 src/app.html
 src/app/css/native.css
@@ -160,7 +160,7 @@ docs/port-spec/compare/upgrade-2026-10-04/studio-book-list-720.png
 docs/port-spec/compare/upgrade-2026-10-04/studio-calendar-complete.png
 docs/port-spec/compare/upgrade-2026-10-04/studio-calendar-empty-month.png
 docs/port-spec/macos-checklist.md
-scripts/port-verify-upgrades.py
+scripts/archive/port-verify-upgrades.py
 src-tauri/src/collection.rs
 src/app/css/native.css
 src/app/js/book.js
@@ -185,7 +185,7 @@ docs/port-spec/compare/upgrade-2026-10-04/studio-material-actual-1060.png
 docs/port-spec/compare/upgrade-2026-10-04/studio-today-countdown-1060.png
 docs/port-spec/macos-checklist.md
 docs/port-spec/open-questions.md
-scripts/port-verify-upgrades.py
+scripts/archive/port-verify-upgrades.py
 src/app/js/ceremony.js
 src/ui-math.js
 tests/material-layout.test.mjs

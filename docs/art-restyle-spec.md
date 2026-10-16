@@ -6,7 +6,7 @@
 
 > **【2026-10-02 追記】STYLE-sample(§4)と題材プロンプト(§5)は `docs/art-restyle-v2-spec.md` が置き換える**(「AIっぽさ」を減らす改訂)。それ以外は本書のまま有効。
 
-> この仕様は `docs/codex-art-prompt.md` §8.7(見本ステッカー)の絵柄指定を**置き換える**(§8.7 の「4色まで」「フラットなベクター風」は無効)。
+> この仕様は `docs/archive/prompts/codex-art-prompt.md` §8.7(見本ステッカー)の絵柄指定を**置き換える**(§8.7 の「4色まで」「フラットなベクター風」は無効)。
 > それ以外(寸法・透過・余白・白フチを付けない・文字列の正確さ・原本を Git に入れない・コミットは小さく)は従来どおり。
 
 ---
@@ -85,7 +85,7 @@ Avoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plasti
 1. 題材ごとに**候補を4枚**生成し、**参考画像に最も近く、質感が静かなもの**を選ぶ。迷ったら静かな方。
 2. 12枚が出そろったら**1枚の一覧に並べて**(クリーム・暗い面・壁紙色の3背景)、**統一感のチェック**をしてから確定する。浮く1枚は作り直す。
 3. **フチ合成テスト**(必須): アプリが素材のフチを付けるのと同じ要領で、各枚に白フチ(長辺の約3.5%)+薄い影を合成し、**穴・ギザギザ・かけら・ハロー**が出ないことを確認する。
-4. 見本を使う素材(hero / cover-kraft / ボード)を、**既存の制作スクリプト**(`scripts/art-build-stage1.py` `scripts/art-build-stage2.py`)の入力だけ差し替えて作り直す。スクリプトに「4色に落とす」処理(`flat` / `flat_colours`)があれば、**見本には使わない**。
+4. 見本を使う素材(hero / cover-kraft / ボード)を、**既存の制作スクリプト**(`scripts/archive/art-build-stage1.py` `scripts/archive/art-build-stage2.py`)の入力だけ差し替えて作り直す。スクリプトに「4色に落とす」処理(`flat` / `flat_colours`)があれば、**見本には使わない**。
 5. `scripts/art-check.py` の見本向けの検査を更新する(§7)。`npm test` と `git diff --check` も通す。
 6. 原本は `assets-src/art/` に置く(Git 外)。**原本・候補グリッドをコミットしない**。
 
@@ -122,7 +122,7 @@ Avoid: flat vector art, cel-shading, posterised colour blocks, 3D render, plasti
 - [ ] 見本を含む他の素材(manifest 検索で洗い出した分)も差し替わっている。
 - [ ] `art-check.py` / `npm test` / `git diff --check` が通る。`manifest.json` / `preview.html` / 一覧ボードを更新。
 - [ ] 原本・候補グリッドは Git に入っていない。
-- [ ] 報告書(`docs/art-restyle-report.md`)に、**差し替えた素材の一覧と、直せなかった点**を書いた。
+- [ ] 報告書(`docs/archive/reports/art-restyle-report.md`)に、**差し替えた素材の一覧と、直せなかった点**を書いた。
 
 ## 9. コミット
 

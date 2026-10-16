@@ -1,6 +1,6 @@
 # 公開前確認への対応計画
 
-2026-10-13。[`release-readiness-audit-2026-10-13.md`](release-readiness-audit-2026-10-13.md) の指摘を、**誰が・いつまでに・何をするか**に並べ直したもの。2026-10-14にC1〜C10とB1〜B4の実装・自動検証を完了した。詳細と制限は[公開前修正の報告](release-hardening-report.md)を参照。実機確認・正式配布・本番準備は未完了。
+2026-10-13。[`release-readiness-audit-2026-10-13.md`](archive/reports/release-readiness-audit-2026-10-13.md) の指摘を、**誰が・いつまでに・何をするか**に並べ直したもの。2026-10-14にC1〜C10とB1〜B4の実装・自動検証を完了した。詳細と制限は[公開前修正の報告](archive/reports/release-hardening-report.md)を参照。実機確認・正式配布・本番準備は未完了。
 
 「いつまでに」は次の2つの節目で分ける。
 - **ベータ前**: 友達に .app を渡す前(友達限定ベータ = S2/S3 を有効にした版)。
@@ -70,7 +70,7 @@ B1ベータbuild、B2署名/公証script、B3日英規約/ポリシー下書き�
 ## 4. 全体の順番
 
 1. **S2 の実機確認**を終える(進行中)。
-2. **S3 の依頼書**([`codex-server-s3-prompt.md`](codex-server-s3-prompt.md))を Codex に渡す。並行して、オーナーは §3.1 の配布と名義を決め、Apple Developer に登録する。
+2. **S3 の依頼書**([`codex-server-s3-prompt.md`](archive/prompts/codex-server-s3-prompt.md))を Codex に渡す。並行して、オーナーは §3.1 の配布と名義を決め、Apple Developer に登録する。
 3. 公開前修正の実装は完了。§2の実機確認と監査の残りを終える。
 4. 署名・公証した .app で**友達限定ベータ**。2台での移行と S3 の実機確認もここで行う。
 5. §3.2 の法律面と §3.3 の本番準備を終える → **S4 公開**。

@@ -24,7 +24,7 @@ Golden比較は{studio,desk}-{materials,market}-golden.jpg。今回の意図し�
 親READMEのキャプチャ環境で、新しい専用/tmpデータにfixtureを作る。以下の在庫と空袋は検証用の初期条件で、実アプリがユーザーへ配布するものではない。
 
 ```sh
-python3 scripts/port-fixture.py /tmp/peta-scraps-review13-data/app.peta.desktop
+python3 scripts/archive/port-fixture.py /tmp/peta-scraps-review13-data/app.peta.desktop
 python3 - <<'PY'
 import sqlite3
 conn = sqlite3.connect('/tmp/peta-scraps-review13-data/app.peta.desktop/peta.db')
@@ -36,4 +36,4 @@ conn.close()
 PY
 ```
 
-このディレクトリをXDG_DATA_HOMEにしてデバッグアプリを起動し、`python3 scripts/port-verify-upgrades.py scraps`。同じデータで実プロセスを再起動して`python3 scripts/port-verify-upgrades.py scraps-restart`。初期条件と単一キャプチャIPCが前提のため他の検証を同時に実行しない。常時タイマー・RAF・アニメーションの追加なし。
+このディレクトリをXDG_DATA_HOMEにしてデバッグアプリを起動し、`python3 scripts/archive/port-verify-upgrades.py scraps`。同じデータで実プロセスを再起動して`python3 scripts/archive/port-verify-upgrades.py scraps-restart`。初期条件と単一キャプチャIPCが前提のため他の検証を同時に実行しない。常時タイマー・RAF・アニメーションの追加なし。

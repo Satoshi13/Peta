@@ -1,6 +1,6 @@
 # 配る日の手順(v0.1.0 友達限定ベータ)
 
-2026-10-16 作成。オーナーと Claude が**上から順に**実行するチェックリストです。各手順の詳しい説明は、リンク先の手順書にあります。点検の結果は [prerelease-audit-report.md](prerelease-audit-report.md)。
+2026-10-16 作成。オーナーと Claude が**上から順に**実行するチェックリストです。各手順の詳しい説明は、リンク先の手順書にあります。点検の結果は [prerelease-audit-report.md](archive/reports/prerelease-audit-report.md)。
 
 - コマンドはリポジトリのルートから。Cloudflare はオーナー自身の `npx wrangler login` で動きます。**秘密の値(鍵・パスワード・トークン)はチャットにもコマンドの引数にも書きません。**
 - 本番(prod)の D1 は 2026-10-16 時点で **0007 まで**。今日 0008〜0010 を足します。

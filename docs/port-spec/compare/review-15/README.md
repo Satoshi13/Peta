@@ -23,4 +23,4 @@
 
 ## 2026-10-07: ホバーと開封演出の追加フィードバック
 
-`ceremonies-before.json`／`ceremonies-after.json`はChromium DPR2、実src UI＋fixture IPCの記録。beforeは`1ed97e5`のsrc。Kraft・閉じる・exchange-hover・night-navをStudio／Desk、1060／720で比較し、holographic-reveal／gold-reveal／batch-sealed／batch-revealedに参考画像に合わせた演出を保存した。`scripts/ui-feedback-ceremonies.py before|after`で再現する。macOSのネイティブ窓・DB・実印刷の確認を意味しない。
+`ceremonies-before.json`／`ceremonies-after.json`はChromium DPR2、実src UI＋fixture IPCの記録。beforeは`1ed97e5`のsrc。Kraft・閉じる・exchange-hover・night-navをStudio／Desk、1060／720で比較し、holographic-reveal／gold-reveal／batch-sealed／batch-revealedに参考画像に合わせた演出を保存した。`scripts/archive/ui-feedback-ceremonies.py before|after`で再現する。macOSのネイティブ窓・DB・実印刷の確認を意味しない。

@@ -190,7 +190,7 @@
 
 ### 比較と検証
 
-`compare/art-03/` に元 golden を左・実 Tauri を右にした比較6枚、実画面 PNG、720×520の確認4枚、寸法・位相・スクロールの `verification.json`、全32状態の `overflow.json` を保存。再撮影は `scripts/port-art-review.py`。撮影は独立した `/tmp/peta-art-data` の実 SQLite fixture を使用し、通常のデータには触れない。
+`compare/art-03/` に元 golden を左・実 Tauri を右にした比較6枚、実画面 PNG、720×520の確認4枚、寸法・位相・スクロールの `verification.json`、全32状態の `overflow.json` を保存。再撮影は `scripts/archive/port-art-review.py`。撮影は独立した `/tmp/peta-art-data` の実 SQLite fixture を使用し、通常のデータには触れない。
 
 新規納品紙による差分は意図した置換: 詳細が黄色の付箋、表紙外周・銀とじ目・右下の紙の角、Featured の紙の縁。golden 原本・prototype・納品画像は変更していない。Linux / WebKitGTK のシステムフォント、実データの中立名 `Sticker`、素材の解放日、Today の未開封通知等は golden と異なる。**画素単位の一致・macOS の描画一致は未確認**。参考画像に合わせるための偽のタイトルや通知状態は実装していない。
 

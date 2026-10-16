@@ -1,12 +1,12 @@
 # S3 友達のMarket — Claudeへの引き継ぎ
 
-2026-10-13。Codex が Step 2 まで実装して Claude へ引き継ぎ、**Claude が Step 3 を実装・コミットして停止**(ユーザーの指示で、Step 4 以降は別のチャットへ引き継ぐ)。**2026-10-13 に Claude(別のセッション)が Step 4〜7 を完了。S3 は完了で、結果は [server-s3-report.md](server-s3-report.md)。** 以下は経緯の記録。 Step 3 の内容は下の「Step 3 の実装(Claude)」。
+2026-10-13。Codex が Step 2 まで実装して Claude へ引き継ぎ、**Claude が Step 3 を実装・コミットして停止**(ユーザーの指示で、Step 4 以降は別のチャットへ引き継ぐ)。**2026-10-13 に Claude(別のセッション)が Step 4〜7 を完了。S3 は完了で、結果は [server-s3-report.md](archive/reports/server-s3-report.md)。** 以下は経緯の記録。 Step 3 の内容は下の「Step 3 の実装(Claude)」。
 
 ## 最初に読むもの
 
 1. `docs/server-s3-market-plan.md` 全文（仕様本体）
-2. `docs/codex-server-s3-prompt.md` 全文（Step順・各Stepで検証とコミット）
-3. この引き継ぎと `docs/server-s3-report.md`
+2. `docs/archive/prompts/codex-server-s3-prompt.md` 全文（Step順・各Stepで検証とコミット）
+3. この引き継ぎと `docs/archive/reports/server-s3-report.md`
 4. 依頼書の読む順にある既存S1/S2の文書とコード
 
 ユーザーは**App Storeへ出さない**と決定している。配布方式に関する決定として扱う。S3と関係のない公開前確認の問題（公式鍵・CSP・identity復元の途中失敗・OS名の初期表示）は、依頼書どおり今回修正しない。添付依頼書はユーザーから実行を明示された。
@@ -21,7 +21,7 @@
 | 4 アプリ通信・IPC・同期 | 完了 | `e1b8721` |
 | 5 UI | 完了 | `53d74b4` |
 | 6 dev bucket・migration・deploy・実API往復 | 完了 | `351802e` |
-| 7 正式なS3文書更新 | 完了。[server-s3-report.md](server-s3-report.md) | Step 7 のコミット |
+| 7 正式なS3文書更新 | 完了。[server-s3-report.md](archive/reports/server-s3-report.md) | Step 7 のコミット |
 
 ブランチは `codex/ui-fixes-oct07`。元HEADは `0db8d95`。アプリDBは **V17**(Step 3)。既定版・Developer版のアプリのS3 UI/通信はまだ存在しない。Workerの新migrationはローカルテストでのみ適用された。`wrangler whoami` もまだ実行していない。
 
@@ -138,10 +138,10 @@ npm run check
 
 ## 既存変更の保護
 
-開始時から `docs/decisions.md`・`docs/server-plan.md`・`docs/ui-proposals/README.md`・`src/app/css/linktag.css`・`src/app/js/assets.js`・`src/app/js/market.js` にオーナーの未コミット変更があり、今回のコミットへ含めていない。S3 prompt/plan(`docs/codex-server-s3-prompt.md`・`docs/server-s3-market-plan.md`、未追跡)や `.claude/`、多数のUI試作、`docs/.codex-server-s3-prompt.md.swp` もある。**git add . / reset --hard / cleanを使わない。**
+開始時から `docs/decisions.md`・`docs/server-plan.md`・`docs/ui-proposals/README.md`・`src/app/css/linktag.css`・`src/app/js/assets.js`・`src/app/js/market.js` にオーナーの未コミット変更があり、今回のコミットへ含めていない。S3 prompt/plan(`docs/archive/prompts/codex-server-s3-prompt.md`・`docs/server-s3-market-plan.md`、未追跡)や `.claude/`、多数のUI試作、`docs/.codex-server-s3-prompt.md.swp` もある。**git add . / reset --hard / cleanを使わない。**
 
 Step 4以降も既存の編集を保持し、Step 5のmarket.js、Step 7のdecisions/server-planは自分の変更だけをコミットする。補助コピーは `/tmp/peta-s3-owner-changes.patch`、`/tmp/peta-s3-market-before.js`、`/tmp/peta-s3-decisions-before.md`。これらは全未追跡ファイルのバックアップではない。
 
-`docs/release-readiness-audit-2026-10-13.md` は前の確認依頼でCodexが作った未追跡レポート。S3には含めていない。公開前問題を勝手にS3へ混ぜない。
+`docs/archive/reports/release-readiness-audit-2026-10-13.md` は前の確認依頼でCodexが作った未追跡レポート。S3には含めていない。公開前問題を勝手にS3へ混ぜない。
 
 **本番のbucket/migration/deployは実行禁止。devはStep 6でログイン状況を確認してから、依頼書どおりに行ってよい。**

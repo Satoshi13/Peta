@@ -98,7 +98,7 @@ Peta(Mac)                                   Cloudflare
 
 ## 段階3: 友達の Market
 
-**設計は [`server-s3-market-plan.md`](server-s3-market-plan.md)**(2026-10-13、オーナーが推奨案どおりに決定。Codex への依頼書は [`codex-server-s3-prompt.md`](codex-server-s3-prompt.md))。要点: Scraps は端末のまま(決めたこと 2 を維持)で、友達のパックを引く取引だけを審判役が記録する。出品は暗号化して R2 に置き、承認済みの友達だけが見られる。引くのは1回 6 Scraps で、売り手に 70%(どちらも仮の初期値)。
+**設計は [`server-s3-market-plan.md`](server-s3-market-plan.md)**(2026-10-13、オーナーが推奨案どおりに決定。Codex への依頼書は [`codex-server-s3-prompt.md`](archive/prompts/codex-server-s3-prompt.md))。要点: Scraps は端末のまま(決めたこと 2 を維持)で、友達のパックを引く取引だけを審判役が記録する。出品は暗号化して R2 に置き、承認済みの友達だけが見られる。引くのは1回 6 Scraps で、売り手に 70%(どちらも仮の初期値)。
 
 ## 費用の見込み(2026-10 の料金表)
 
@@ -113,7 +113,7 @@ Peta(Mac)                                   Cloudflare
 | S1 | Worker(台帳・署名検証・回数制限)とテスト、`HttpReferee`、登録待ち、サーバー以前の印、枠の同期、復旧。Cargo feature `server`（Developerとbuild:betaが有効にする） | 通信なし通常版では無効、友達限定ベータで有効 |
 | S2 | 友達・受信箱・Export/Import identity・通報・拒否リスト・Settings | 友達限定ベータで有効 |
 | S3 | 友達の Market([`server-s3-market-plan.md`](server-s3-market-plan.md)) | 友達限定ベータで有効 |
-| S4 | 公開前チェックリスト(`gift-inbox-plan.md` の末尾。電気通信事業法の項は決めたこと 5 で更新)と公開前確認([`release-readiness-audit-2026-10-13.md`](release-readiness-audit-2026-10-13.md))→ 機能フラグを外す | 公開 |
+| S4 | 公開前チェックリスト(`gift-inbox-plan.md` の末尾。電気通信事業法の項は決めたこと 5 で更新)と公開前確認([`release-readiness-audit-2026-10-13.md`](archive/reports/release-readiness-audit-2026-10-13.md))→ 機能フラグを外す | 公開 |
 
 各段階で `cargo test` と `npm test`、Worker は `vitest`(`@cloudflare/vitest-pool-workers`)を通す。**本番(`--env prod`)へのデプロイはオーナーが行う**。開発用(`--env dev`)は Codex / Claude が行ってよい。
 

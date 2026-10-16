@@ -18,4 +18,4 @@ native.css でステッカーと img の高さを auto に戻す。Create は PN
 
 実データは専用 `/tmp/peta-review04-data` のSQLite fixture。Holographic解放済み・在庫1の状態で、実際の creator_begin_bytes / creator_render を呼んだ。素材を消費する Make は行わず、通常のユーザーデータにも触れない。
 
-再現: 親READMEのdebugキャプチャ設定と `port-fixture.py` を使い、アプリ起動前に専用fixtureの material_stock の holographic count を1へ設定する。修正前の同じサンプルの before.json / studio-create-before.png を用意して `python scripts/port-verify-review-04.py`。同じレンダー設定（Outline20 / Smooth4 / Holographic）が必要。
+再現: 親READMEのdebugキャプチャ設定と `port-fixture.py` を使い、アプリ起動前に専用fixtureの material_stock の holographic count を1へ設定する。修正前の同じサンプルの before.json / studio-create-before.png を用意して `python scripts/archive/port-verify-review-04.py`。同じレンダー設定（Outline20 / Smooth4 / Holographic）が必要。

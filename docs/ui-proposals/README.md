@@ -4,13 +4,13 @@
 |---|---|
 | [`peta-prototype.html`](peta-prototype.html) | **触れるプロトタイプ(1ファイル)**。ブラウザで開くだけ(`file://` でOK。画像・CSS・JS は全部埋め込み済み、約1.1MB) |
 | [`app/`](app) | そのソース(素材は `src/art/` をそのまま参照)。ビルド: `node docs/ui-proposals/app/build.mjs`(要 ImageMagick) |
-| [`design-quality-preview.html`](design-quality-preview.html) | **デザイン品質レビュー**。実機スクリーンショット(Before)と実素材を使った提案(After)を左右ワイプで比較。文字の役割・コントラスト・Today/Book/Create/Market/Packs・Sidebar・Night Desk・部品の状態表・動き・着手順。**1ファイル完結**(画像・フォント埋め込み、約1.6MB)。ソースは `design-quality-preview.src.html`、再生成は `python3 scripts/build-design-quality-preview.py` |
+| [`design-quality-preview.html`](design-quality-preview.html) | **デザイン品質レビュー**。実機スクリーンショット(Before)と実素材を使った提案(After)を左右ワイプで比較。文字の役割・コントラスト・Today/Book/Create/Market/Packs・Sidebar・Night Desk・部品の状態表・動き・着手順。**1ファイル完結**(画像・フォント埋め込み、約1.6MB)。ソースは `design-quality-preview.src.html`、再生成は `python3 scripts/archive/build-design-quality-preview.py` |
 | [`aaa-preview.html`](aaa-preview.html) | **AAA級レビュー**。現状の実機スクリーンショット(いま)と実素材で作った提案(提案)を切り替えて比較。Today の主役化・Create の切り抜き演出・Materials の棚・Collection のポスター・Mac への入口(メニューバー/ウィジェット/共有)・面と階層・動きの数値化・着手順。**`file://` では光の表現(mask)が効かない**ので `python3 -m http.server 8765` で配信して `http://localhost:8765/docs/ui-proposals/aaa-preview.html` を開く |
 | [`aaa2-preview.html`](aaa2-preview.html) | **AAA級レビュー 第2弾**。実機を全ページ撮り直し、まだ「箱・枠」に閉じ込められているモノを紙の上に置き直す4案(Today=台紙から抜く / Collection=紙に直接+絞り込み / Gifts=手紙トレイ+Sent / Materials=見本帳)と、共通文法(寄る・紙に置く・手書きで示す)、レア度の梯子、進める順番。「いま / 提案」を切り替えられ、Collection と Gifts は「寄る」まで触れる。現状の撮影は `aaa2/`。`aaa2-preview.html` は画像を埋め込んだ単体ファイル(約6MB。どのビューアでも画像が出る)で、ソースは `aaa2-preview.src.html`、再生成は `python3 docs/ui-proposals/aaa2/build.py` |
 | [`packs-shelf-preview.html`](packs-shelf-preview.html) | **Packsを「棚」に見せる3案**(A 棚に立てる / B クリップで吊るす / C コルクボードに留める)。実アプリの現状スクショと切り替えて比較。袋・棚板・タグ・画鋲は `src/art/` の実アート。`python3 -m http.server` で配信して開く |
 | [`sticker-shop-preview.html`](sticker-shop-preview.html) | **ステッカーのお店の見せ方+「寄る」詳細**。袋を押すとカメラがその袋に寄り、そこで初めて詳細と Get / Exchange / Open が出る(Esc・✕・背景クリックで引く)。Market(買う)/ Packs(持っている)と、店先の棚(日よけ・看板・値札)/ 吊るす壁を切り替え。袋の名前は袋の白い札に印字。`python3 -m http.server` で配信して開く |
 | [`sticker-shop-v2-preview.html`](sticker-shop-v2-preview.html) | **ステッカーのお店 v2(背景は紙の面のまま、モノだけ写実)**。左上1灯の光(接地影・環境遮蔽・紙に落ちる影)、壁付けの棚(金具・天面・値札レール)/ 金属レールに吊るす案(ユーロ穴ヘッダー・フック・値付けシール)、在庫の厚み、寄って詳細(傾き・ホロ)。Market / Packs 切替。`python3 -m http.server` で配信して開く |
-| [`sticker-shop-v3-preview.html`](sticker-shop-v3-preview.html) | **Market=レール(先頭にピックアップ)/ Packs=棚**。ページに入るとレールの袋が2Dで順に揺れる(3Dの傾きは全廃)。影はアート規約(薄く短く右下2px)に合わせた。下に「依頼する部品」の見本。部品の依頼文は [`../codex-shop-parts-prompt.md`](../codex-shop-parts-prompt.md) |
+| [`sticker-shop-v3-preview.html`](sticker-shop-v3-preview.html) | **Market=レール(先頭にピックアップ)/ Packs=棚**。ページに入るとレールの袋が2Dで順に揺れる(3Dの傾きは全廃)。影はアート規約(薄く短く右下2px)に合わせた。下に「依頼する部品」の見本。部品の依頼文は [`../codex-shop-parts-prompt.md`](../archive/prompts/codex-shop-parts-prompt.md) |
 | [`gacha-aaa-preview.html`](gacha-aaa-preview.html) | **ガチャ演出 AAA案(封筒 / パック / 10連 / レア)**。「Appleの精度 × Anthropicの温度」で、今日の素材の封筒(Lift / Hold / Tape)、1パック(Tear / Peel / Cinema)、10連(Deck / Sheet / Pour)、レア度の梯子と3つの演出の流儀(Light / Atmosphere / Ink、推奨 Mix)を、実アート・合成音・触覚モニタつきで触れる。結果は先に確定済みという前提で、予兆は本物の色だけ。ソースは `gacha-aaa/`(`core.js` 実行・バネ・音・触覚 / `visual.js` ステッカー・光・剥がし / `kit.js` 封筒・袋・Rare / `envelope.js` `pack.js` `multi.js` `lab.js` 各案)。`python3 -m http.server 8765` で配信して開くか、単体版 `gacha-aaa-preview.standalone.html`(約2MB、`file://` で開ける)。単体版の再生成は `python3 docs/ui-proposals/gacha-aaa/build.py`。URLパラメータ: `?auto=1`(全自動)`&style=A|B|C|M` `&reduce=1` `&speed=0.5` |
 | [`boards-preview.html`](boards-preview.html) | **Boards(台紙)の触れる画面案**。保存・呼び出し・Undo・無料 Update・削除・Scraps 交換・Auto・メニューバーの見本。状態、画面数 1 / 2 / 3、Light / Dark、Reduce motion を切り替え。`src/art/` の実素材を参照し `file://` で開ける。画像と既存フォントを埋め込んだ [`boards-preview.standalone.html`](boards-preview.standalone.html) は単体で開ける(約9.7MB)。再生成: `python3 docs/ui-proposals/boards/build.py`。説明と未決事項は [`boards-preview-notes.md`](boards-preview-notes.md) |
 | [`pack-count-fonts-preview.html`](pack-count-fonts-preview.html) | **Packs の「n left」実フォント6案比較**。Kalam / Patrick Hand / Klee One / Kiwi Maru / Special Elite / System Medium。実アートの棚と袋で、サイズ・インクの粒・手書きの揺れ・数字を切り替え。`file://` で開ける。採用: Special Elite、Ink grain / Hand variation ともに OFF |
@@ -73,7 +73,7 @@
 
 ## ステッカーの裏面
 
-裏の紙が**素材に合わせて変わる**(Matte=上質紙、Kraft=クラフト、Holographic=銀のホログラム台紙、Gold=金箔、Riso=ピンクのハーフトーン、Vintage=古紙)。ホログラムと金は、ポインターに合わせて反射が動く。紙そのものは今は CSS の代用で、本物の素材は [codex-ui-polish-prompt.md](../codex-ui-polish-prompt.md)。
+裏の紙が**素材に合わせて変わる**(Matte=上質紙、Kraft=クラフト、Holographic=銀のホログラム台紙、Gold=金箔、Riso=ピンクのハーフトーン、Vintage=古紙)。ホログラムと金は、ポインターに合わせて反射が動く。紙そのものは今は CSS の代用で、本物の素材は [codex-ui-polish-prompt.md](../archive/prompts/codex-ui-polish-prompt.md)。
 
 ## アウトライン
 
@@ -104,14 +104,14 @@ Packs / Materials / Creators の3タブ。Pack は詳細で中身をのぞける
 - 切り抜きは自動ではなくサンプル(すでに切り抜き済み)を使う。自分の画像を入れると中央の楕円から始まり、Erase / Restore で整える。
 - ファイルは書き出さない(ギフトの `.peta` も演出だけ)。
 - ダークモードは未対応(アプリ本体にはある)。
-- 付箋(見出しタブ)・メモ・ノートの紙は「システムっぽい」仮の見た目。実物らしい素材は [codex-paper-realism-prompt.md](../codex-paper-realism-prompt.md) で発注する。
+- 付箋(見出しタブ)・メモ・ノートの紙は「システムっぽい」仮の見た目。実物らしい素材は [codex-paper-realism-prompt.md](../archive/prompts/codex-paper-realism-prompt.md) で発注する。
 - 手書き風フォントは Klee One(Google Fonts)。オフラインだと Noteworthy などに落ちる。
 
 ## 本体に取り込むときの目安
 
 - ウィンドウを1つ(例 `book`)にして、`index`(ページ)をURLハッシュ/コマンドで切り替える。`today.html` `creator.html` `collection.html` は同じ DOM 部品に分解する(今回のプロトタイプの `Pages.*` がそのまま下書き)。
 - 既存の契約(`daily_*` `creator_*` `book_*` `pack_*` `gift_*` のコマンド・イベント)は変えずに呼べる。`today.js` の状態遷移(arrived / opened / done)もそのまま。
-- 新しいアート(スプリング・シール・トレイ・ラベル)は [codex-ui-parts-prompt.md](../codex-ui-parts-prompt.md) で発注済み。
+- 新しいアート(スプリング・シール・トレイ・ラベル)は [codex-ui-parts-prompt.md](../archive/prompts/codex-ui-parts-prompt.md) で発注済み。
 
 
 ## ウィンドウスタイル(2026-10-03)

@@ -10,10 +10,10 @@ The right-hand images are captures of `src/app.html` in the **real debug Tauri a
 
 Reproduce on a desktop with Rust, Tauri's platform dependencies, Python/Pillow, ImageMagick and xdotool (Linux):
 
-1. `python3 scripts/port-fixture.py /tmp/peta-port-data/app.peta.desktop`
+1. `python3 scripts/archive/port-fixture.py /tmp/peta-port-data/app.peta.desktop`
 2. Build with `cargo build --manifest-path src-tauri/Cargo.toml`.
 3. Run the debug binary with `XDG_DATA_HOME=/tmp/peta-port-data PETA_PORT_CAPTURE_DIR=/tmp/peta-capture` (create the capture directory first).
-4. `python3 scripts/port-capture.py 1 studio-20-settings`. The capture bridge is disabled in release builds and unless explicitly enabled in the debug process environment.
+4. `python3 scripts/archive/port-capture.py 1 studio-20-settings`. The capture bridge is disabled in release builds and unless explicitly enabled in the debug process environment.
 
 The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into the test library. It does not replace runtime data. Differences in fixture sticker IDs, titles and history are not fabricated to match the prototype. The Linux WebKit system sans font has different metrics from the golden Chromium font; the specified `--sys` stack and numerical sizes are preserved. Klee One and Special Elite are bundled for offline use (see `src/fonts/NOTICE.md` for the upstream licensing discrepancy).
 
@@ -61,7 +61,7 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 - Print slot/backing sheet/hint, 2400ms stepped feed, grab/return, 900ms retract, 340ms settle and four English Peta! tag variants copy the original desktop presentation. The existing real sticker layer handles placement/drag/Peel; there is still one main content window.
 - `slice-07-{studio,desk}-08-printed.jpg` compares the complete golden desktop and actual native layers. The black background is the real X11 desktop; the prototype wallpaper/menu/toolbar are deliberately excluded from the application. Native screenshots and post-paste captures are retained separately.
 - Both `*-flow.json` records prove Make → Print → 160ms grab at 1.08× → 260ms return without placement → native mouse Grab/Paste → persistent move → keyboard Peel. The displayed print scale is preserved in the saved Rust placement. The hint fades over 200ms; paste waits 450ms before the original 900ms retraction.
-- `slice-07-motion.json` verifies two queued native pastes wait for the preceding retraction before feeding the next sheet, and that returning an already-placed Book reprint retains its original placement before a subsequent paste moves it. Reproduce after all eight slices using an empty disposable v7 queue with `python3 scripts/port-verify-print.py`.
+- `slice-07-motion.json` verifies two queued native pastes wait for the preceding retraction before feeding the next sheet, and that returning an already-placed Book reprint retains its original placement before a subsequent paste moves it. Reproduce after all eight slices using an empty disposable v7 queue with `python3 scripts/archive/port-verify-print.py`.
 - `slice-07-window.json`: native drag, resize/minimum 720×520, maximize/restore, minimize/resume, red/Esc/outside hide, and persisted Sound off/Reduce motion in both main window and desktop layer passed under an X11 window manager. Native gestures use mouse events with default selection prevented; the desktop arrival envelope cannot intercept the main window's resize corner.
 - `slice-07-gift-file.json`: Book's native Save dialog → finished PNG unchanged in the gift package → Gifts' native Open dialog → sealed Inbox entry. No original photograph is exported.
 - Today was recaptured through tear/pull/Keep in both shells, preserving the expanded scene until the card's 640ms flight into the tray finishes.
@@ -77,7 +77,7 @@ The fixture is isolated under `/tmp`; its sample PNGs are copied unchanged into 
 - `slice-08-rules.json`: one daily material; two Matte creations without cost; Kraft/Holographic creations consume one each; exhausted Kraft is refused; two Market openings; Welcome once after those other operations; two full Gift wax/pull/reveal/Later ceremonies; nine retained print jobs/Book entries; two native mouse FIFO pastes; seven pending prints and Welcome's used allowance survive a native process restart. A received sticker reprinted from Book keeps its received presentation.
 - Final workspace Rust tests: **83 passed** (including migration, FIFO/restart/day-roll, independent quotas and existing cutout/gift/material/placement behavior). Placement JS tests: **13 passed**. Native debug build passed without warnings. Final all-page/two-size/two-shell audit: **0 actionable issues**, with only the unchanged paper-button artwork false positives.
 
-To reproduce the rule regression, seed a **fresh** disposable directory with `port-fixture.py`, build/run the native debug binary using that directory as `XDG_DATA_HOME`, then run `python3 scripts/port-verify-rules.py`. Restart the native process using the same directory and run `python3 scripts/port-verify-rules.py restart`. This test does not reset real user data or mock Rust IPC.
+To reproduce the rule regression, seed a **fresh** disposable directory with `port-fixture.py`, build/run the native debug binary using that directory as `XDG_DATA_HOME`, then run `python3 scripts/archive/port-verify-rules.py`. Restart the native process using the same directory and run `python3 scripts/archive/port-verify-rules.py restart`. This test does not reset real user data or mock Rust IPC.
 
 ## Review 03 — current opening behavior
 

@@ -12,4 +12,4 @@ DoneとBookを開く操作で印刷を再開しないこと、明示的なResume
 
 検証: `npm test` 31件、coreのRustテスト84件＋描画統合5件、Linux実Tauriビルド成功。`npm run check:mac` はLinuxでC依存生成を省略したRust型検査のみ成功。macOS実機は未確認、チェックリスト§13へ追加した。
 
-再現はキャプチャ環境と専用/tmp fixtureを使い、変更前の`print-before.png`を置いて`python3 scripts/port-verify-upgrades.py print-pause`を実行する。元のfixtureには実際のPack開封による印刷待ちがあり、検査でBookの2枚を後ろへ追加する。ルール修正はカウントダウンUIのコミットと分けた。
+再現はキャプチャ環境と専用/tmp fixtureを使い、変更前の`print-before.png`を置いて`python3 scripts/archive/port-verify-upgrades.py print-pause`を実行する。元のfixtureには実際のPack開封による印刷待ちがあり、検査でBookの2枚を後ろへ追加する。ルール修正はカウントダウンUIのコミットと分けた。

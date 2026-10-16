@@ -25,7 +25,7 @@
 再現: 親READMEの実Tauriキャプチャ環境を使い、既存の/tmp fixtureにKraftの配置も加える。変更前の同じ60px引きのroot画像を `/tmp/peta-peel-before.png` に保存してから実行する。印刷待ちを1枚実際に貼り、ネイティブのEdit状態へ入るため待ちを用意する。この検証は2枚剥がすので通常データでは実行しない。
 
 ```sh
-python3 scripts/port-verify-upgrades.py peel
+python3 scripts/archive/port-verify-upgrades.py peel
 npm test
 npm run check:mac
 ```
@@ -34,4 +34,4 @@ Linux/OpenboxではAlt＋左ドラッグが窓移動へ横取りされないよ�
 
 結果: `npm test` **31件成功**、上記の実マウス／Rust IPCの全検査成功、Linux debugビルド・JS／Python構文・差分チェック成功。`npm run check:mac`は前回と同じApple SDKのないLinuxでC依存の生成だけを省略し、macOS Rustの型検査成功。macOSのリンク・実行・触感の検証ではない。Rustの機能・日次ルールは今回変更していない。
 
-変更ファイル: `src/main.js`、`src/placement.js`、`src/style.css`、`tests/placement.test.mjs`、`scripts/port-verify-upgrades.py`、`README.md`、`docs/decisions.md`、`docs/port-spec/macos-checklist.md`、`docs/port-spec/compare/README.md`と、このフォルダの記録・PNG・GIF。
+変更ファイル: `src/main.js`、`src/placement.js`、`src/style.css`、`tests/placement.test.mjs`、`scripts/archive/port-verify-upgrades.py`、`README.md`、`docs/decisions.md`、`docs/port-spec/macos-checklist.md`、`docs/port-spec/compare/README.md`と、このフォルダの記録・PNG・GIF。

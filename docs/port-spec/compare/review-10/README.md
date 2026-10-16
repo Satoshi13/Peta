@@ -14,4 +14,4 @@ Createの現在のframeにpointermoveハンドラーが1つだけ、同じ場所
 
 `npm test` 31件、JS／Python構文・Linux実Tauriビルド成功。`npm run check:mac`はLinuxでC依存生成を省略したRust型検査のみ成功。macOSのリンク・実機未確認、チェックリスト§14へ追記した。新しいタイマー・RAF・常時アニメーションは追加していない。
 
-再現は親READMEのキャプチャ環境と、Matte／Kraft／Holographicの在庫がある専用/tmp fixtureで`python3 scripts/port-verify-upgrades.py hover`。既存のBubble見本から実RustのCreatorセッションを作り、Makeは押さず、最後にCancelする。比較生成には変更前の`material-before.png`が必要。
+再現は親READMEのキャプチャ環境と、Matte／Kraft／Holographicの在庫がある専用/tmp fixtureで`python3 scripts/archive/port-verify-upgrades.py hover`。既存のBubble見本から実RustのCreatorセッションを作り、Makeは押さず、最後にCancelする。比較生成には変更前の`material-before.png`が必要。

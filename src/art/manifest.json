@@ -4633,7 +4633,7 @@
     "stage2AssetCount": 36,
     "remaining": [],
     "preview": "art/preview.html#paper-realism-review",
-    "report": "docs/paper-realism-report.md",
+    "report": "docs/archive/reports/paper-realism-report.md",
     "integration": "Prototype implementation by owner; delivered images and preview only",
     "dotGrid": {
       "nativeSizePx": 512,
@@ -4654,7 +4654,7 @@
     "remainingFiles": [],
     "remainingAssetCount": 0,
     "preview": "art/preview.html#ui-polish-rest",
-    "report": "docs/ui-polish-report.md",
+    "report": "docs/archive/reports/ui-polish-report.md",
     "integration": "Prototype implementation by owner; images and art preview only"
   }
 }

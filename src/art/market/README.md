@@ -22,7 +22,7 @@
 素材に薄い影を含むので、追加の影を重ねる場合は濃さを調整してください。
 
 今回のユーザー指定に従った形状・比率で納品しています。
-`docs/codex-market-props-prompt.md` の寸法表に合わせた再書き出し、⑦コルク地、任意の紙、接続座標は未作成です。
+`docs/archive/prompts/codex-market-props-prompt.md` の寸法表に合わせた再書き出し、⑦コルク地、任意の紙、接続座標は未作成です。
 
 
 見本と素材一覧は [納品レポート](../../../docs/ui-proposals/market-assets-2026-10-08/README.md) を参照してください。

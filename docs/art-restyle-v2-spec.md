@@ -100,6 +100,6 @@ Avoid: highly detailed, hyper-detailed, intricate, 8k, photorealistic, photograp
 
 ## 9. 報告とコミット
 
-- `docs/art-restyle-v2-report.md` に、**5枚(必須)と7枚(推奨)それぞれ、作り直したか旧版を残したか、その理由**を書く。直せなかった点も書く。
+- `docs/archive/reports/art-restyle-v2-report.md` に、**5枚(必須)と7枚(推奨)それぞれ、作り直したか旧版を残したか、その理由**を書く。直せなかった点も書く。
 - 原本・候補グリッドは `assets-src/art/`(Git外)。コミットしない。
 - コミット: `art: restyle v2 — simpler, less AI-looking samples`。

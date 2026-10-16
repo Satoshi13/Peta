@@ -1,6 +1,6 @@
 # UI 引き継ぎ(画像生成・アート・演出が必要な部分)
 
-> **Codex に渡す制作指示書は [docs/codex-art-prompt.md](codex-art-prompt.md)**(雰囲気の参考画像は `docs/art-reference/`)。この文書はコードとの契約(コマンド・イベント・DOM)の説明。
+> **Codex に渡す制作指示書は [docs/archive/prompts/codex-art-prompt.md](archive/prompts/codex-art-prompt.md)**(雰囲気の参考画像は `docs/art-reference/`)。この文書はコードとの契約(コマンド・イベント・DOM)の説明。
 
 Phase 2 時点。**機能・状態遷移・文言・データの流れは実装済み**で、見た目はプレースホルダーです。
 アート担当(Codex など)は、下の「差し替えポイント」を埋めてください。ロジックは触らずに済む構造にしてあります。
@@ -195,7 +195,7 @@ AVAILABLE -> SELECTING -> CONFIRMED -> USED
 
 ## Today 画面の「Paper Desk」(2026-10-03)
 
-見た目だけの更新。id と `data-*` の契約は変わらない。画像は既存素材の流用で、専用パーツは [codex-ui-parts-prompt.md](codex-ui-parts-prompt.md) で発注する。
+見た目だけの更新。id と `data-*` の契約は変わらない。画像は既存素材の流用で、専用パーツは [codex-ui-parts-prompt.md](archive/prompts/codex-ui-parts-prompt.md) で発注する。
 
 | フック | 場所 | 今の見た目 → 差し替える画像 |
 |---|---|---|

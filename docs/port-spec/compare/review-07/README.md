@@ -13,7 +13,7 @@ FeaturedのOn your shelfは、既存のMarket.getが所有済みなら何もせ�
 再現は親READMEのデバッグキャプチャ環境で新規/tmp fixtureを使う。Tokyo／Coffeeを所有済み、Houseplantsを未取得にする。比較用の一時スタイル解除／復元とキャプチャは検査スクリプトが行う。最小窓ではFeaturedのボタンまでスクロールしてから実クリックする。
 
 ```sh
-python3 scripts/port-verify-upgrades.py market-owned
+python3 scripts/archive/port-verify-upgrades.py market-owned
 npm test
 npm run check:mac
 ```

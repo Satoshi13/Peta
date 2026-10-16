@@ -10,6 +10,6 @@
 
 実画面で00:00:00／11:11:11／88:88:88／25:59:59へ変え、札・時計・各文字枠の幅が一致すること、見出しとの重なり・横はみ出しが無いことを検証。実時間で秒が進むこと、ページ離脱・主窓を隠したときのタイマー停止と復帰も確認する。
 
-再現は親READMEのデバッグキャプチャ環境と、素材開封済みの専用/tmp fixtureを使う。変更前の同名キャプチャ4枚を置き、`python3 scripts/port-verify-upgrades.py countdown-layout` を実行する。JSの時刻処理・0時更新・Reduce motion・ルール・DB v7・画像素材・prototypeは変更していない。
+再現は親READMEのデバッグキャプチャ環境と、素材開封済みの専用/tmp fixtureを使う。変更前の同名キャプチャ4枚を置き、`python3 scripts/archive/port-verify-upgrades.py countdown-layout` を実行する。JSの時刻処理・0時更新・Reduce motion・ルール・DB v7・画像素材・prototypeは変更していない。
 
 `npm test` 31件、JS／Python構文・Linux実Tauriビルド成功。`npm run check:mac` はLinux上でC依存の生成を省略したRust型検査のみ成功。macOSのリンク・実行は未確認、実機チェックリスト§8 T5へ追記した。

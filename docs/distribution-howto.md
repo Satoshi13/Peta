@@ -148,4 +148,4 @@ bash scripts/release-mac.sh offline
 
 通常版/ベータ版の最新.appはtarget/release/verified/offline/Peta.appとtarget/release/verified/beta/Peta.appに保持する（生成物でGitには含めない）。ビルドはadhoc署名で、Developer ID署名・公証済みの配布物ではない。正式配布はrelease-mac.shと別MacのGatekeeper確認後。ベータは本番のオーナー準備後だけ配る。rootのnpm auditは0件、Worker開発依存は7件の指摘が未解消、cargo auditは未導入なので、配布直前の監査・更新判断を完了する。詳細はrelease-hardening-report.md。
 
-**2026-10-16 追記**: 配布前の総点検で Worker の開発依存を更新し、3つの Worker とも `npm audit` は0件。`cargo audit` は rustls 0.23.45 の指摘4件(beta だけに入る。パッチ版 0.23.46 で解消)を提案として残した。詳細は [prerelease-audit-report.md](prerelease-audit-report.md)、配る日の順番は [release-day-runbook.md](release-day-runbook.md)。
+**2026-10-16 追記**: 配布前の総点検で Worker の開発依存を更新し、3つの Worker とも `npm audit` は0件。`cargo audit` は rustls 0.23.45 の指摘4件(beta だけに入る。パッチ版 0.23.46 で解消)を提案として残した。詳細は [prerelease-audit-report.md](archive/reports/prerelease-audit-report.md)、配る日の順番は [release-day-runbook.md](release-day-runbook.md)。

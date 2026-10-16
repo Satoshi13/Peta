@@ -1,6 +1,6 @@
 # 段階3: 友達の Market 設計書
 
-2026-10-13 作成。**設計だけで、コードは未着手**。**同日、§9 の全項目をオーナーが推奨どおりに決定**。Codex への依頼書は [`codex-server-s3-prompt.md`](codex-server-s3-prompt.md)。前提は [`server-plan.md`](server-plan.md)(S1 審判役・S2 友達と受信箱)、[`decisions.md`](decisions.md)(2026-10-09「Market に出るのはフレンドが出品したパックだけ」、2026-10-11「Pack は版を刷る本物のガチャ」、2026-10-13「Scraps の経済」)、[`server-s2-report.md`](server-s2-report.md)、[`local-market-report.md`](local-market-report.md)、[`economy-sim.html`](economy-sim.html)。
+2026-10-13 作成。**設計だけで、コードは未着手**。**同日、§9 の全項目をオーナーが推奨どおりに決定**。Codex への依頼書は [`codex-server-s3-prompt.md`](archive/prompts/codex-server-s3-prompt.md)。前提は [`server-plan.md`](server-plan.md)(S1 審判役・S2 友達と受信箱)、[`decisions.md`](decisions.md)(2026-10-09「Market に出るのはフレンドが出品したパックだけ」、2026-10-11「Pack は版を刷る本物のガチャ」、2026-10-13「Scraps の経済」)、[`server-s2-report.md`](archive/reports/server-s2-report.md)、[`local-market-report.md`](archive/reports/local-market-report.md)、[`economy-sim.html`](economy-sim.html)。
 
 > **呼び方**: この文書では友達の Market を **S3** と呼ぶ。`server-plan.md` の作業表の「S3 公開(公開前チェックリスト)」は、採用時に **S4** へ読み替える。
 
@@ -157,7 +157,7 @@
 
 ## 5. 電気通信事業の届出
 
-> **注意**(2026-10-13 の公開前確認 [`release-readiness-audit-2026-10-13.md`](release-readiness-audit-2026-10-13.md) の指摘): この節は**オーナーの方針と設計上の前提**を書いたもので、確定した法的判断ではない。Gift・Market の実際の運用(他人の通信の媒介にあたるか、収益の構造、公開の範囲)を踏まえて、**公開前に管轄の総合通信局へ確認する**(§9 の 17)。
+> **注意**(2026-10-13 の公開前確認 [`release-readiness-audit-2026-10-13.md`](archive/reports/release-readiness-audit-2026-10-13.md) の指摘): この節は**オーナーの方針と設計上の前提**を書いたもので、確定した法的判断ではない。Gift・Market の実際の運用(他人の通信の媒介にあたるか、収益の構造、公開の範囲)を踏まえて、**公開前に管轄の総合通信局へ確認する**(§9 の 17)。
 
 - **S3 は決めたこと 5 の前提を変えない**。S3 でも Peta は完全に無料(料金・広告・アプリ内課金なし)で、Scraps は無料で配る点数で、円では買えず換金もできない。決めたこと 5 の「無料の間は届出が要らない」という判断の根拠(料金を取らない)を、S3 は新しく崩さない。
 - 出品は「売り手から友達へのファイルの受け渡し」で、他人の通信の媒介にあたりうる点は Gift の受信箱と同じ。だから**通信の秘密は設計で守る**: カードもパックも暗号化し、運営は内容鍵を持たない(§2.1)。通報のときだけ、通報した人の同意で中身を運営へ送る。
@@ -258,7 +258,7 @@ S1・S2 と同じく、**Step 順・Step ごとにコミット**(Worker・Rust �
 | 4 | アプリ: HTTP の `purchase`・出品のアップロード・一覧と精算の同期・封筒の付け外し・IPC | `src-tauri/src/` |
 | 5 | UI: 友達のレール・カード・引く・空とオフラインの表示・My shelf の出品と売れ行き | `src/app/js/market.js`、`packs.js`、CSS |
 | 6 | dev: `peta-market-dev` を作り、`wrangler.jsonc` に binding、`0003` を dev に適用して deploy | `wrangler.jsonc` |
-| 7 | 文書: `docs/server-s3-report.md`、`decisions.md`、`server-howto.md`、`server-resources.md`、`privacy-policy-draft.md`、`port-spec/macos-checklist.md` | `docs/` |
+| 7 | 文書: `docs/archive/reports/server-s3-report.md`、`decisions.md`、`server-howto.md`、`server-resources.md`、`privacy-policy-draft.md`、`port-spec/macos-checklist.md` | `docs/` |
 
 ### 受け入れ条件
 
@@ -273,7 +273,7 @@ S1・S2 と同じく、**Step 順・Step ごとにコミット**(Worker・Rust �
 - [ ] R2 のカードとパックが暗号文で、D1 に内容鍵がないこと(テストで中身を読もうとして失敗すること)。
 - [ ] 1日の上限を超えると `too_many_pulls` で何も変わらない。
 - [ ] 配布版(既定ビルド)の Market・Packs・Scraps の動きは今までどおり。
-- [ ] 報告 `docs/server-s3-report.md` に、**作ったもの・本書と違う判断とその理由・守れないこと(改造したアプリが払わずに引くこと、端末の残高の書き換え、など)・オーナーがやること(本番の R2 作成・migration・deploy)・実機で確認する項目**を日本語で書く。
+- [ ] 報告 `docs/archive/reports/server-s3-report.md` に、**作ったもの・本書と違う判断とその理由・守れないこと(改造したアプリが払わずに引くこと、端末の残高の書き換え、など)・オーナーがやること(本番の R2 作成・migration・deploy)・実機で確認する項目**を日本語で書く。
 
 **実機でしか確認できないこと**(オーナー): 2〜3台の Mac での出品 → 引く → 精算、Wi‑Fi を切ったときの文言と返金、24MB 近いパックのアップロードとダウンロードの時間、本番へのデプロイ。
 

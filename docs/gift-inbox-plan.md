@@ -5,7 +5,7 @@
 決定日: 2026-10-06(オーナー)。**方針と設計の記録であり、実装は未着手**。実装するときは本書を元に Codex 用の依頼書を起こす。
 **一般公開の前に、末尾の「公開前チェックリスト」を完了すること**(実装と並行して進めてよい。公開 = 友達限定ベータの外へ出すこと)。
 
-関連: [`codex-signed-distribution-prompt.md`](codex-signed-distribution-prompt.md)(Gift v2・署名・友達の TOFU は**実装済み**)、[`static-catalog-plan.md`](static-catalog-plan.md)(同じ Cloudflare アカウント・ドメインを使う)、[`decisions.md`](decisions.md)(「Gift は…アカウント・サーバー抜き」を本書で**拡張**する。ファイルとコードでの配布は**そのまま残す**)。
+関連: [`codex-signed-distribution-prompt.md`](archive/prompts/codex-signed-distribution-prompt.md)(Gift v2・署名・友達の TOFU は**実装済み**)、[`static-catalog-plan.md`](static-catalog-plan.md)(同じ Cloudflare アカウント・ドメインを使う)、[`decisions.md`](decisions.md)(「Gift は…アカウント・サーバー抜き」を本書で**拡張**する。ファイルとコードでの配布は**そのまま残す**)。
 
 ## 目的
 

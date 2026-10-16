@@ -83,7 +83,7 @@ node docs/ui-proposals/app/tools/audit.mjs /tmp/audit 1440 900 studio current   
 - 納品済みだが**採用しなかった**: 窓上端の帯 `window-top-*`、手作りの ✕ `close-*`(ウィンドウ操作のピルに置き換え)、掲示板 `pinboard` と `pin-red`(オーナー判断で不採用。Market の目玉は従来の厚紙ボード+インデックスカード+クリップ)。
 - 納品済みだが未使用: 空状態(`empty/*`)、半券、アバター台紙。
 - まだ仮(CSS 製)のもの: 付箋、ノートの端/とじ目/角の一部、Peta! タグの追加バリエーション。**届いたら差し替え**。それまでは今の CSS をそのまま移植し、`data-art` フックを残す。
-- **画像は加工しない**(拡大縮小は CSS のみ)。必要な新素材は作らず、`docs/codex-ui-polish-prompt.md` の該当節を見て依頼を出す。
+- **画像は加工しない**(拡大縮小は CSS のみ)。必要な新素材は作らず、`docs/archive/prompts/codex-ui-polish-prompt.md` の該当節を見て依頼を出す。
 
 ## 6. 書体
 

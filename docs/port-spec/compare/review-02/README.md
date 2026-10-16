@@ -33,6 +33,6 @@
 
 完成版は引き続き Rust で生成します。描画中の即時表示を完成版に置き換えるまでの待ち時間は残ります。今回の記録ではマウスを離してから確認用の待ち時間も含め約1.15秒（修正前は約1.40秒）。最大フレーム間隔も記録していますが、これはペンを離した後の完成版更新を含む値です。
 
-再現: 前回 e057ba2 の debug binary で `python3 scripts/port-review-02.py before`、今回の binary で `python3 scripts/port-review-02.py after`。キャプチャ橋の設定は親 README を参照。その後 `python3 scripts/port-verify-review-02.py`、`python3 scripts/port-verify-tray.py`。プロファイラーは本物のコマンドをそのまま転送し、カウントのみ追加します。ネイティブメニューの検査／表示は debug build かつ `PETA_PORT_CAPTURE_DIR` 指定時のみ有効です。
+再現: 前回 e057ba2 の debug binary で `python3 scripts/archive/port-review-02.py before`、今回の binary で `python3 scripts/archive/port-review-02.py after`。キャプチャ橋の設定は親 README を参照。その後 `python3 scripts/archive/port-verify-review-02.py`、`python3 scripts/archive/port-verify-tray.py`。プロファイラーは本物のコマンドをそのまま転送し、カウントのみ追加します。ネイティブメニューの検査／表示は debug build かつ `PETA_PORT_CAPTURE_DIR` 指定時のみ有効です。
 
 Rust の差分は描画・トレイ UI・不要になったメニュー用の補助関数の削除のみ。日次回数、素材消費、Pack / Gift、保存・移行のルールは変更していません。

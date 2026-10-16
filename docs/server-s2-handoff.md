@@ -1,6 +1,6 @@
 # S2 引き継ぎ(Step 1〜5 は済み、Step 6〜8 が残り)
 
-作成: 2026-10-13(Claude)。**依頼書は [`codex-server-s2-prompt.md`](codex-server-s2-prompt.md)**。この文書は「どこまで終わっていて、依頼書と何が違うか」だけを書く。続きを担当する人(新しい Claude のチャット、または Codex)は、**依頼書の全文 → この文書**の順に読み、依頼書の「1. 共通ルール」に従って Step 6 から進める。
+作成: 2026-10-13(Claude)。**依頼書は [`codex-server-s2-prompt.md`](archive/prompts/codex-server-s2-prompt.md)**。この文書は「どこまで終わっていて、依頼書と何が違うか」だけを書く。続きを担当する人(新しい Claude のチャット、または Codex)は、**依頼書の全文 → この文書**の順に読み、依頼書の「1. 共通ルール」に従って Step 6 から進める。
 
 ## 終わったこと
 
@@ -41,7 +41,7 @@
 
 ### Step 8: 文書(依頼書 §9)
 
-- `docs/server-howto.md` への追記、`docs/privacy-policy-draft.md`(日本語と英語。法的判断はオーナーと専門家が行う下書きであると冒頭に書く)、報告 `docs/server-s2-report.md`(Step 1〜5 はこの引き継ぎ書と各コミットを元に書く)。`README.md`、`docs/decisions.md`、`docs/port-spec/macos-checklist.md` の更新。
+- `docs/server-howto.md` への追記、`docs/privacy-policy-draft.md`(日本語と英語。法的判断はオーナーと専門家が行う下書きであると冒頭に書く)、報告 `docs/archive/reports/server-s2-report.md`(Step 1〜5 はこの引き継ぎ書と各コミットを元に書く)。`README.md`、`docs/decisions.md`、`docs/port-spec/macos-checklist.md` の更新。
 
 ## 注意
 

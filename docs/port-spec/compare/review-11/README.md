@@ -10,4 +10,4 @@ golden比較は`{studio,desk}-create-golden.jpg`。今回の意図した差は�
 
 `npm test`は31件成功。Linux実Tauriビルド成功。`npm run check:mac`はLinuxでC依存生成を省略したRust型検査のみ成功し、macOSのリンク・実機は未確認。macOSチェックリスト§14 H1へ新しい選択表示を反映した。タイマー・RAF・常時アニメーションの追加なし。
 
-再現は親READMEの専用/tmpキャプチャ環境で`python3 scripts/port-verify-upgrades.py hover review-11`。比較用の変更前画像は本ディレクトリの`material-before.png`。既存のreview-10は上書きしない。
+再現は親READMEの専用/tmpキャプチャ環境で`python3 scripts/archive/port-verify-upgrades.py hover review-11`。比較用の変更前画像は本ディレクトリの`material-before.png`。既存のreview-10は上書きしない。
