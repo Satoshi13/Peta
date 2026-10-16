@@ -140,7 +140,7 @@ pub fn decode_gift(bytes: &[u8]) -> Result<Decoded<'_>> {
         // The original event remains the package; opening verifies its official signature again.
         let n=13+u32::from_be_bytes(bytes[9..13].try_into().unwrap()) as usize;
         let header=GiftHeader{gift_id:format!("GIFT-E-{}",e.event_id),from:"Peta".into(),note:Some(e.message.clone()),sent_at:e.issued_at.clone(),edition:Some(1),history:None,
-            origin:Origin{sticker_id:format!("EVENT-{}",e.event_id),creator_name:Some("Peta".into()),created_at:e.issued_at.clone(),material_id:Some("matte".into()),aspect:{let image=image::load_from_memory(png)?;image.width() as f64/image.height() as f64}},png_len:png.len(),mask_len:mask.len(),signer:Some(e.signer.clone()),bag:None,deco:None,to:None};
+            origin:Origin{sticker_id:format!("EVENT-{}",e.event_id),creator_name:Some("Peta".into()),created_at:e.issued_at.clone(),material_id:Some("matte".into()),aspect:{let (w,h)=crate::image_limits::dimensions(png,Some(image::ImageFormat::Png),crate::image_limits::RECEIVED)?;w as f64/h as f64}},png_len:png.len(),mask_len:mask.len(),signer:Some(e.signer.clone()),bag:None,deco:None,to:None};
         return Ok(Decoded{header,png:&bytes[n..n+png.len()],mask:&bytes[n+png.len()..n+png.len()+mask.len()]});
     }
     if bytes.len() < 13 || &bytes[..8] != MAGIC {

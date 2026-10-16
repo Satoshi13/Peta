@@ -234,7 +234,7 @@ impl Session {
 
     /// Old originals have a finished mask but no editor snapshot. Preserve that cutout as the baseline.
     pub fn restore_mask(&mut self, bytes: &[u8]) -> Result<()> {
-        let mask = image::load_from_memory(bytes)?.to_luma8();
+        let mask = crate::image_limits::decode(bytes, None, crate::image_limits::STORED)?.to_luma8();
         if (mask.width() as usize, mask.height() as usize) != self.size() {
             return Err(Error::Invalid("saved cutout mask does not match the original image".into()));
         }
@@ -420,7 +420,7 @@ impl Rendered {
 
 /// Decode PNG bytes (tests, tools).
 pub fn decode_png(bytes: &[u8]) -> Result<RgbaImage> {
-    Ok(image::load_from_memory(bytes)?.to_rgba8())
+    Ok(crate::image_limits::decode(bytes, None, crate::image_limits::STORED)?.to_rgba8())
 }
 
 #[cfg(test)]

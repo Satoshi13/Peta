@@ -13,6 +13,7 @@ pub mod error;
 pub mod gift;
 pub mod ids;
 pub mod image_import;
+pub mod image_limits;
 pub mod library;
 pub mod materials;
 pub mod pack;

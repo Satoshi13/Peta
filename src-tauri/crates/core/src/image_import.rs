@@ -3,7 +3,7 @@
 
 use std::io::Cursor;
 
-use image::{imageops::FilterType, DynamicImage, ImageDecoder, ImageFormat, ImageReader, RgbaImage};
+use image::{imageops::FilterType, DynamicImage, ImageDecoder, ImageFormat, RgbaImage};
 
 use crate::error::{Error, Result};
 
@@ -37,7 +37,10 @@ pub fn decode_oriented(bytes: &[u8]) -> Result<(RgbaImage, &'static str)> {
         ImageFormat::WebP => "webp",
         _ => return Err(Error::Image("only PNG, JPEG and WebP are supported".into())),
     };
-    let mut decoder = ImageReader::with_format(Cursor::new(bytes), format).into_decoder()?;
+    let reader = crate::image_limits::reader(bytes, Some(format), crate::image_limits::PHOTO)?;
+    let mut decoder = reader.into_decoder()?;
+    decoder.set_limits(crate::image_limits::limits(crate::image_limits::PHOTO))
+        .map_err(|_| Error::Image("This picture is too large.".into()))?;
     let orientation = decoder.orientation()?;
     let mut img = DynamicImage::from_decoder(decoder)?;
     img.apply_orientation(orientation);

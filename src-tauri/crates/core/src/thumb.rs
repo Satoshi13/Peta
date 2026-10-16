@@ -8,7 +8,7 @@ use image::{codecs::png::{CompressionType, FilterType as PngFilter, PngEncoder},
 /// so the sticker's rim does not pick up a dark halo from the invisible pixels around it.
 pub fn thumbnail_png(bytes: &[u8], max: u32) -> Result<Vec<u8>> {
     let max = max.clamp(16, 2048);
-    let img = image::load_from_memory(bytes).map_err(|e| Error::Invalid(format!("thumbnail: {e}")))?.to_rgba8();
+    let img = crate::image_limits::decode(bytes, None, crate::image_limits::STORED).map_err(|e| Error::Invalid(format!("thumbnail: {e}")))?.to_rgba8();
     let (w, h) = img.dimensions();
     if w == 0 || h == 0 { return Err(Error::Invalid("thumbnail: empty picture".into())); }
     if w.max(h) <= max { return Ok(bytes.to_vec()); }

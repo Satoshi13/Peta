@@ -26,14 +26,11 @@ pub fn safe_id(id:&str)->bool {id.as_bytes().first().is_some_and(u8::is_ascii_al
 pub fn text(value:&str,max:usize)->bool {!value.trim().is_empty() && value.chars().count()<=max && !value.chars().any(char::is_control)}
 /// Bound decoded dimensions too: a small compressed PNG must not allocate arbitrary memory.
 pub fn validate_png(bytes:&[u8],limit:usize)->Result<()> {
-    use image::{ImageDecoder,ImageFormat,ImageReader,Limits};
     if bytes.is_empty() || bytes.len()>limit {return Err(invalid("This picture is too large or empty."));}
-    let mut reader=ImageReader::with_format(std::io::Cursor::new(bytes),ImageFormat::Png);
-    let mut limits=Limits::default();limits.max_image_width=Some(4096);limits.max_image_height=Some(4096);limits.max_alloc=Some(64*1024*1024);reader.limits(limits);
-    let mut decoder=reader.into_decoder().map_err(|_|invalid("This picture is not a valid PNG."))?;
-    let mut limits=Limits::default();limits.max_image_width=Some(4096);limits.max_image_height=Some(4096);limits.max_alloc=Some(64*1024*1024);
-    decoder.set_limits(limits).map_err(|_|invalid("This picture has unreasonable dimensions."))?;
-    image::DynamicImage::from_decoder(decoder).map_err(|_|invalid("This picture is damaged."))?;Ok(())
+    crate::image_limits::decode(bytes,Some(image::ImageFormat::Png),crate::image_limits::RECEIVED).map_err(|e| match e {
+        Error::Image(m) if m.contains("too large") => invalid("This picture has unreasonable dimensions."),
+        _ => invalid("This picture is not a valid PNG."),
+    })?;Ok(())
 }
 pub fn encode(event:&Event,body:&[u8],key:&SigningKey)->Result<Vec<u8>> {sign::seal(MAGIC,1,event,body,key)}
 pub fn decode_with(bytes:&[u8],trust:impl FnOnce(&Signer)->Result<VerifyingKey>)->Result<Verified> {

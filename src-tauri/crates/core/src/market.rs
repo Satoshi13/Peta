@@ -108,7 +108,7 @@ pub(crate) fn build_card(h: &Header, items: &[(Vec<u8>, Vec<u8>)], pack_digest: 
 fn parse_card(bytes: &[u8]) -> Result<Card> {
     let card: Card = serde_json::from_slice(bytes).map_err(|_| invalid())?;
     if !crate::creator_pack::color_ok(&card.pouch,card.color) || card.version != 1 || card.peek.len() > 3 || card.designs.len() + card.prizes.len() > edition_pack::MAX_PACK_SLOTS as usize { return Err(invalid()); }
-    for p in &card.peek { if STANDARD.decode(&p.png).map_err(|_| invalid())?.len() > MARKET_CARD_MAX { return Err(invalid()); } }
+    for p in &card.peek { crate::events::validate_png(&STANDARD.decode(&p.png).map_err(|_| invalid())?, MARKET_CARD_MAX).map_err(|_| invalid())?; }
     Ok(card)
 }
 /// How many slots of each card line are taken, from the service's list of claimed slots (same order as `edition_pack::sales`).
@@ -690,6 +690,12 @@ mod flow_tests {
         assert_eq!(card.peek.iter().map(|p| p.name.as_str()).collect::<Vec<_>>(), vec!["Design 1", "Design 2", "Design 3"]);
         assert!(!String::from_utf8_lossy(&card_bytes).contains("Maker"));
         assert_eq!(card_taken(&card, &[0, 1, 10]), vec![1, 1, 0, 0, 1]);
+        // A peek picture that describes an enormous image (a few hundred bytes compressed) is refused.
+        let mut bomb = card.clone();
+        let mut huge = Vec::new();
+        image::ImageEncoder::write_image(image::codecs::png::PngEncoder::new(&mut huge), &vec![0; 5000 * 10 * 4], 5000, 10, image::ExtendedColorType::Rgba8).unwrap();
+        bomb.peek[0].png = STANDARD.encode(&huge);
+        assert!(parse_card(&serde_json::to_vec(&bomb).unwrap()).is_err());
         envelopes_sent(&mut s, &l.listing_id, &changes).unwrap();
         assert!(envelope_changes(&s, &l.listing_id).unwrap().is_empty());
         s.db().conn.execute("UPDATE friends SET status='blocked' WHERE public_key=?1", [key(&friend)]).unwrap();
