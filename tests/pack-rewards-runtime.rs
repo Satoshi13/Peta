@@ -4,7 +4,11 @@ extern crate self as tauri;
 pub use tauri_test_macros::command;
 use std::{any::{Any,TypeId}, future::Future, path::PathBuf, sync::{Arc,Mutex}, task::{Context,Poll,Wake,Waker}};
 
-pub type State<T> = Arc<T>;
+pub type State<'a, T> = &'a T;
+pub mod ipc {
+    pub struct Response(#[allow(dead_code)] Vec<u8>);
+    impl Response { pub fn new(bytes: Vec<u8>) -> Self { Self(bytes) } }
+}
 #[derive(Clone)]
 pub struct AppHandle { store:Arc<store::Store>, today:Arc<today::Today>, asset:Option<Vec<u8>> }
 pub trait Manager { fn state<T:Send+Sync+'static>(&self)->Arc<T>; }
@@ -25,6 +29,10 @@ mod store {
     use super::*;
     pub struct Store(pub Mutex<peta_core::Library>);
     impl Store {pub fn lock(&self)->std::sync::MutexGuard<'_,peta_core::Library>{self.0.lock().unwrap()}}
+}
+mod referee_access {
+    pub fn before_operation(_: &super::AppHandle) {}
+    pub fn active(_: &mut peta_core::Library) -> peta_core::Result<peta_core::ownership::NoReferee> { Ok(peta_core::ownership::NoReferee) }
 }
 mod today {
     pub struct Today;
@@ -54,24 +62,24 @@ impl Fixture {
         image.write_to(&mut bytes,image::ImageFormat::Png).unwrap();
         Self{app:AppHandle{store:Arc::new(store::Store(Mutex::new(lib))),today:Arc::new(today::Today),asset:Some(bytes.into_inner())},dir}
     }
-    fn free(&self)->Result<packs::Opened,String> {run(packs::pack_open_free(self.app.clone(),"welcome".into()))}
+    fn free(&self)->Result<packs::Opened,String> {run(packs::pack_open_free(self.app.clone(),"welcome".into(),None))}
 }
 impl Drop for Fixture {fn drop(&mut self){let _=std::fs::remove_dir_all(&self.dir);}}
 
 #[test]
 fn free_command_adds_a_real_copy_and_queue_entry_without_spending_stock_or_welcome_quota() {
     let f=Fixture::new(10,12);
-    let status=packs::pack_status(f.app.clone(),f.app.store.clone()).unwrap();
+    let status=packs::pack_status(f.app.clone(),&f.app.store).unwrap();
     assert!(!status.can_open);assert_eq!(status.packs[0].free_openings,1);
     let opened=f.free().unwrap();
     assert_eq!(opened.remaining,2);
     let lib=f.app.store.lock();
     assert_eq!(lib.db().pack_free_openings("welcome").unwrap(),0);
-    assert_eq!(lib.db().next_print().unwrap().as_deref(),Some(opened.sticker_id.as_str()));
-    assert!(lib.db().book_rows().unwrap().iter().any(|r|r.sticker_id==opened.sticker_id && r.daily_date.as_deref()==Some("2026-10-07")));
-    assert!(lib.read_rendered(&opened.sticker_id).unwrap().starts_with(b"\x89PNG"));
+    assert_eq!(lib.db().next_print().unwrap().as_deref(),opened.sticker_id.as_deref());
+    assert!(lib.db().book_rows().unwrap().iter().any(|r|Some(&r.sticker_id)==opened.sticker_id.as_ref() && r.daily_date.as_deref()==Some("2026-10-07")));
+    assert!(lib.read_rendered(opened.sticker_id.as_deref().unwrap()).unwrap().starts_with(b"\x89PNG"));
     assert_eq!(lib.db().packs().unwrap()[0].total,12);
-    assert_eq!(lib.db().sticker(&opened.sticker_id).unwrap().unwrap().original_number,None);
+    assert_eq!(lib.db().sticker(opened.sticker_id.as_deref().unwrap()).unwrap().unwrap().original_number,None);
     assert!(!lib.db().welcome_available("2026-10-07").unwrap());
     drop(lib);
     assert!(f.free().is_err());
@@ -116,6 +124,6 @@ fn transaction_failure_preserves_credit_and_removes_prepared_copy_and_assets() {
 #[test]
 fn normal_command_still_obeys_welcome_limit_and_does_not_spend_a_bonus() {
     let f=Fixture::new(10,12);
-    assert_eq!(run(packs::pack_open(f.app.clone(),"welcome".into())).err().unwrap(),"welcome_already_opened_today");
+    assert_eq!(run(packs::pack_open(f.app.clone(),"welcome".into(),None)).err().unwrap(),"welcome_already_opened_today");
     assert_eq!(f.app.store.lock().db().pack_free_openings("welcome").unwrap(),1);
 }

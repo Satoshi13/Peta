@@ -111,7 +111,7 @@ mod arrival_window;
 mod platform {
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     #[allow(dead_code)]
-    pub enum LayerMode { Resting, Editing }
+    pub enum LayerMode { Resting, Editing, Notice }
     pub fn apply_layer_mode(window: &super::WebviewWindow, mode: LayerMode) -> Result<(), String> {
         window.assert_main();
         window.modes.lock().unwrap().push((window.label.clone(), mode));
@@ -147,7 +147,7 @@ mod arrival;
 
 #[test]
 fn hover_keeps_stickers_below_icons_and_dispatches_native_operations_to_main_thread() {
-    use platform::LayerMode::Editing;
+    use platform::LayerMode::Notice;
     let (queue, tasks) = mpsc::channel::<Task>();
     let main = thread::current().id();
     let pointer = Arc::new(Mutex::new(Point { x: 2700.0, y: 1500.0 }));
@@ -171,7 +171,7 @@ fn hover_keeps_stickers_below_icons_and_dispatches_native_operations_to_main_thr
     let receives_clicks = || { assert_eq!(clicks.lock().unwrap().last().unwrap(), &(arrival_window::LABEL.into(), false)); };
     let passes_clicks = || { assert_eq!(clicks.lock().unwrap().last().unwrap(), &(arrival_window::LABEL.into(), true)); };
     tick();
-    assert_eq!(*modes.lock().unwrap(), vec![(arrival_window::LABEL.into(), Editing)], "only the envelope may be raised");
+    assert_eq!(*modes.lock().unwrap(), vec![(arrival_window::LABEL.into(), Notice)], "only the envelope may be raised");
     receives_clicks();
     let notification = app.get_webview_window(arrival_window::LABEL).unwrap();
     assert_eq!(notification.size.width, 500, "envelope-only viewport at 2x Retina");
@@ -252,7 +252,7 @@ fn hover_keeps_stickers_below_icons_and_dispatches_native_operations_to_main_thr
     arrival::sync(&app);
     assert_eq!(arrival::arrival_status(app.clone()).as_deref(), Some("gift"), "new gifts must get a fresh notice");
 
-    assert!(modes.lock().unwrap().iter().all(|(label,mode)| label == arrival_window::LABEL && *mode == Editing), "hover must never raise any sticker layer");
+    assert!(modes.lock().unwrap().iter().all(|(label,mode)| label == arrival_window::LABEL && *mode == Notice), "hover must never raise any sticker layer");
     assert!(clicks.lock().unwrap().iter().all(|(label, _)| label == arrival_window::LABEL), "click-through on stickers must be untouched");
     assert!(reads.lock().unwrap().iter().all(|id| *id == main), "window reads must also use the main thread");
     app.stopped.store(true, Ordering::Relaxed);

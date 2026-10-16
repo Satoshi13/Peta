@@ -16,7 +16,7 @@ with tempfile.TemporaryDirectory(prefix='peta-pack-runtime-') as directory:
  output=Path(directory);macros=output/('libtauri_test_macros'+suffix);binary=output/'pack-runtime'
  subprocess.run(['rustc','--crate-name','tauri_test_macros','--crate-type','proc-macro','tests/support/tauri-command.rs','-o',str(macros)],cwd=root,check=True)
  command=['rustc','--edition=2021','--test','tests/pack-rewards-runtime.rs','-L',f'dependency={deps}','--extern',f'tauri_test_macros={macros}','-o',str(binary)]
- for crate in ['peta_core','serde','image','rusqlite']:
+ for crate in ['peta_core','serde','serde_json','image','rusqlite']:
   library=libraries[crate]
   command+=['--extern',f'{crate}={library}']
  subprocess.run(command,cwd=root,check=True)
