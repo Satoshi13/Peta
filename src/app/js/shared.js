@@ -212,7 +212,7 @@ const Scraps = {
   flushNote() { if (this.waiting) { const m = this.waiting; this.waiting = null; setTimeout(() => Shell.toast(m, 4200), 450); } },
   earned(reward) {
     if (!reward?.made) return;
-    this.note(reward.streak ? `+${reward.made} Scraps for a new picture, and +${reward.streak} for ${reward.streakDays} days in a row.` : `+${reward.made} Scraps for a new picture.`);
+    this.note(reward.streak ? `${reward.made} Scraps for a new picture, and ${reward.streak} more for ${reward.streakDays} days in a row.` : `${reward.made} Scraps for a new picture.`); // a plain sentence, not a score
   },
   material(id) { return S.scraps.materials.find(m => m.id === id); },
   pack(id) { return S.scraps.packs.find(p => p.id === id); },
