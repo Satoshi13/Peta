@@ -230,7 +230,7 @@ Pages.market = {
     root.addEventListener("scroll", () => { if (MK.tab === "packs") Pages.market.sway(root, 0, Pages.market.follow(root)); }, { passive: true });
     const paint = () => {
       root.replaceChildren(
-        PageHead("Market", "Packs, materials and creators", Scraps.badge()),
+        PageHead("Market", "Packs, materials and creators"),
         h("div.seg.mk-seg", ["packs", "materials", "tools", "creators"].map((t) => SegButton(t[0].toUpperCase() + t.slice(1), { "aria-pressed": String(MK.tab === t), on: { click: () => { MK.tab = t; Snd.tap(); paint(); if (t === "packs") Pages.market.sway(root); } } }))),
         MK.tab === "packs" ? this.packs(paint) : MK.tab === "materials" ? this.materials(paint) : MK.tab === "tools" ? this.tools(paint) : this.creators(paint));
       const form = Scraps.form(); if(form) root.insertBefore(form, root.children[2]);

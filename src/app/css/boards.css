@@ -42,8 +42,10 @@
 /* --- a look: stickers placed by their centres, as a share of the sheet --- */
 .bd-look { position: absolute; inset: 0; }
 .bd-stk { position: absolute; height: auto; transform: translate(-50%, -50%) rotate(var(--a)); filter: drop-shadow(1px 1.5px 1px rgba(43, 43, 43, .2)); pointer-events: none; }
-.bd-ghost { position: absolute; display: grid; place-items: center; aspect-ratio: 1; transform: translate(-50%, -50%) rotate(var(--a)); border: 1.5px dashed rgba(101, 94, 81, .65); border-radius: 42% 36% 44% 38%; background: rgba(127, 114, 92, .06); }
+.bd-ghost { position: absolute; display: grid; place-items: center; aspect-ratio: 1; transform: translate(-50%, -50%) rotate(var(--a)); border: 1.5px dashed rgba(101, 94, 81, .65); border-radius: 42% 36% 44% 38%; background: rgba(127, 114, 92, .06); container: bd-ghost / inline-size; }
 .bd-ghost small { padding: 2px; font: 600 8.5px/1.1 var(--sys); color: #6f6859; text-align: center; }
+/* on a board's small picture the outline alone says it; the reason stays in its tooltip */
+@container bd-ghost (max-width: 56px) { .bd-ghost small { display: none; } }
 
 /* --- boards: blank sheets with a look on them, taped at the top --- */
 .bd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 30px 24px; margin-top: 18px; }
