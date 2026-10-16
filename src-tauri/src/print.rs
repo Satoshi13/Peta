@@ -16,6 +16,9 @@ pub struct PendingPrint {
     pub material_id: Option<String>,
     /// Width as a fraction of the screen width: the size it will be stuck at.
     pub relative_scale: f64,
+    /// The size it had when it was last on the desktop (peeled off, now stuck again). It grows or shrinks to this
+    /// as it leaves the backing sheet, so a sticker put back from the Collection comes back at the size it had.
+    pub remembered_scale: Option<f64>,
 }
 
 /// The Peta waiting at the print slot, if any (read from the library, so it survives a restart).
@@ -24,7 +27,9 @@ pub fn pending(app: &AppHandle) -> Result<Option<PendingPrint>, String> {
     let lib = store.lock();
     let Some(id) = lib.db().next_print().map_err(|e|e.to_string())? else { return Ok(None) };
     let Some(sticker) = lib.db().sticker(&id).map_err(|e| e.to_string())? else { return Ok(None) };
+    let remembered_scale = lib.db().placement(&id).map_err(|e| e.to_string())?.map(|p| p.relative_scale.clamp(0.03, 0.8));
     Ok(Some(PendingPrint {
+        remembered_scale,
         relative_scale: default_scale(sticker.aspect),
         aspect: sticker.aspect,
         material_id: sticker.material_id,

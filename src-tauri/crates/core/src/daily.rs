@@ -68,6 +68,13 @@ pub fn local_today(offset_days: i64) -> String {
         .to_string()
 }
 
+/// The day Peta goes by: the local date, but never earlier than a day already lived (`floor`, `YYYY-MM-DD`).
+/// Turning the clock back (or flying west) does not bring back an envelope that was already given; a clock
+/// set forward is paid back by waiting, so the envelopes received never outnumber the days that passed.
+pub fn never_before(local: &str, floor: &str) -> String {
+    if local >= floor { local.to_owned() } else { floor.to_owned() }
+}
+
 /// Today's record, drawing the day's material on first access (`roll` uniform in 0..1).
 pub fn ensure_today(db: &mut Database, today: &str, roll: f64) -> Result<DailyRecord> {
     if let Some(r) = db.daily_get(today)? {
@@ -130,6 +137,18 @@ pub fn mark_used(db: &mut Database, today: &str) -> Result<DailyRecord> {
 mod tests {
     use super::*;
     use crate::models::NewSticker;
+
+    #[test]
+    fn the_day_never_goes_back_past_a_day_already_lived() {
+        assert_eq!(never_before("2026-10-16", ""), "2026-10-16");
+        assert_eq!(never_before("2026-10-17", "2026-10-16"), "2026-10-17");
+        assert_eq!(never_before("2026-10-14", "2026-10-16"), "2026-10-16", "a clock turned back keeps the latest day");
+        assert_eq!(never_before("2026-12-31", "2027-01-01"), "2027-01-01");
+        let mut db = Database::open_in_memory().unwrap();
+        assert_eq!(db.latest_daily_date().unwrap(), None);
+        for day in ["2026-10-15", "2026-10-17", "2026-10-16"] { ensure_today(&mut db, day, 0.5).unwrap(); }
+        assert_eq!(db.latest_daily_date().unwrap().as_deref(), Some("2026-10-17"));
+    }
 
     fn db_with_sticker(id: &str) -> Database {
         let mut db = Database::open_in_memory().unwrap();

@@ -30,6 +30,8 @@ pub struct Today {
     /// Developer edition day offset. Distribution always starts at 0.
     day_offset: AtomicI64,
     last_seen: Mutex<String>,
+    /// The latest day already lived (from the library at launch, then every day seen). See `daily::never_before`.
+    floor: Mutex<String>,
 }
 
 impl Today {
@@ -41,7 +43,15 @@ impl Today {
 
     /// Local date, `YYYY-MM-DD`. The slot resets when this changes (spec §13).
     pub fn date(&self) -> String {
-        daily::local_today(self.day_offset.load(Ordering::SeqCst))
+        let mut floor = self.floor.lock().unwrap();
+        *floor = daily::never_before(&daily::local_today(self.day_offset.load(Ordering::SeqCst)), &floor);
+        floor.clone()
+    }
+
+    /// Never go back past `date` (the library's latest day, read once the library is open).
+    pub fn hold_at_least(&self, date: &str) {
+        let mut floor = self.floor.lock().unwrap();
+        *floor = daily::never_before(date, &floor);
     }
 }
 

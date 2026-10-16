@@ -92,13 +92,15 @@ export async function initPrint(ctx) {
     const { pending } = job;
     const { w, h } = layerSize();
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    // A sticker stuck before comes off the sheet and settles to the size it had on the desktop.
+    const scale = pending.rememberedScale > 0 ? pending.rememberedScale : job.scale;
     const previous = nodes.get(pending.stickerId)?.placement;
     if (previous) removeNode(nodes.get(pending.stickerId));
     const grabbed = job;
     hold = { job: grabbed, previous: previous && {...previous}, node: null, x0: e.clientX, y0: e.clientY, cx, cy, moved: false, pointer: e.pointerId };
     layer.setPointerCapture(e.pointerId);
     await addSticker({
-      stickerId: pending.stickerId, displayId: "", relativeX: cx / w, relativeY: cy / h, relativeScale: job.scale,
+      stickerId: pending.stickerId, displayId: "", relativeX: cx / w, relativeY: cy / h, relativeScale: scale,
       rotation: 0, isOnDesktop: true, z: 0, placedAt: "", materialId: pending.material_id ?? pending.materialId ?? null,
     });
     const node = nodes.get(pending.stickerId);
@@ -107,7 +109,8 @@ export async function initPrint(ctx) {
     node.live = true; // while it is in the hand, reconciling with the library must leave it alone
     lift(node);
     node.el.classList.add("print-grab");
-    anim(node.body,[{transform:"scale(1)"},{transform:"scale(1.08)"}],{duration:160,easing:EASE.out});
+    const from = grabbed.scale / scale;
+    anim(node.body,[{transform:`scale(${from})`},{transform:"scale(1.08)"}],{duration:from===1?160:280,easing:EASE.out});
     grabbed.img.style.visibility = "hidden"; grabbed.sheet.classList.add("grabbing"); Snd.tap(); // it came off the sheet
     layer.classList.add("dragging");
     layer.dataset.cursor = "move";
@@ -137,12 +140,13 @@ export async function initPrint(ctx) {
     node.body.getAnimations().forEach(a=>a.cancel());
     if (!h.moved || over || e.type==="pointercancel") {
       const from=node.el.style.transform, holder=h.job.sticker.parentElement.getBoundingClientRect();
-      const {w,h:lh}=layerSize();
-      Object.assign(node.placement,fromPixels({cx:holder.x+holder.width/2,cy:holder.y+holder.height/2,w:node.placement.relativeScale*w},w,lh));
+      const {w,h:lh}=layerSize(), held=node.placement.relativeScale, sheet=h.job.scale;
+      // Back on the sheet at the printed size (a remembered size shrinks or grows back to it).
+      Object.assign(node.placement,fromPixels({cx:holder.x+holder.width/2,cy:holder.y+holder.height/2,w:sheet*w},w,lh));
       render(node);
       await Promise.all([
         anim(node.el,[{transform:from},{transform:node.el.style.transform}],{duration:260,easing:EASE.out}),
-        anim(node.body,[{transform:"scale(1.08)"},{transform:"scale(1)"}],{duration:260,easing:EASE.out}),
+        anim(node.body,[{transform:`scale(${1.08*held/sheet})`},{transform:"scale(1)"}],{duration:260,easing:EASE.out}),
       ]);
       removeNode(node);
       if(h.previous) await addSticker(h.previous);

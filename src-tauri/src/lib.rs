@@ -368,6 +368,7 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             app.state::<Store>().open(app.handle())?;
+            if let Some(latest) = app.state::<Store>().lock().db().latest_daily_date()? { app.state::<Today>().hold_at_least(&latest); }
             #[cfg(feature="updater-test")] {
                 app.set_activation_policy(tauri::ActivationPolicy::Regular);
                 tauri::WebviewWindowBuilder::new(app,"updater-test",tauri::WebviewUrl::App("updater-live-test.html".into())).title("Peta · isolated update test").inner_size(420.0,180.0).build()?;

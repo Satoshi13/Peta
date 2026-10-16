@@ -848,6 +848,11 @@ impl Database {
         saved.ok_or_else(|| Error::Invalid("placement vanished after insert".into()))
     }
 
+    /// Where a sticker is or was last stuck (a peeled sticker keeps its row, so its size is remembered).
+    pub fn placement(&self, sticker_id: &str) -> Result<Option<Placement>> {
+        Self::read_placement(&self.conn, sticker_id)
+    }
+
     /// Peel off: the sticker leaves the desktop but stays in the collection.
     pub fn peel(&mut self, sticker_id: &str) -> Result<()> {
         self.conn
@@ -1158,6 +1163,11 @@ impl Database {
 
     // ---- daily records (see `daily` for the rules) ----
 
+    /// The latest day with a record: Peta's date never goes back past it (see `daily::never_before`).
+    pub fn latest_daily_date(&self) -> Result<Option<String>> {
+        Ok(self.conn.query_row("SELECT MAX(date) FROM daily_records", [], |r| r.get(0))?)
+    }
+
     pub fn daily_get(&self, date: &str) -> Result<Option<DailyRecord>> {
         Ok(self
             .conn
@@ -1458,6 +1468,18 @@ mod tests {
         assert_eq!(db.place(moved.clone()).unwrap().placed_at, first.placed_at);
         db.peel("A").unwrap();
         assert_eq!(db.place(moved).unwrap().placed_at, "2999-01-01T00:00:00+00:00");
+    }
+
+    #[test]
+    fn a_peeled_sticker_remembers_the_size_it_was_stuck_at() {
+        let mut db = Database::open_in_memory().unwrap();
+        db.create_sticker(new("S", SourceType::Created)).unwrap();
+        assert!(db.placement("S").unwrap().is_none());
+        db.place(Placement { relative_scale: 0.27, ..placement("S") }).unwrap();
+        db.peel("S").unwrap();
+        let kept = db.placement("S").unwrap().unwrap();
+        assert!(!kept.is_on_desktop);
+        assert_eq!(kept.relative_scale, 0.27);
     }
 
     #[test]
