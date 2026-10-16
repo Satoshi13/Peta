@@ -28,6 +28,10 @@
 .ev-layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .env-wrap > img.ev-layer { object-fit: contain; }
 .ev-flap { z-index: 5; backface-visibility: visible; } .ev-body { z-index: 4; }
+.ev-mark { position: absolute; inset: 0; pointer-events: none; } .ev-mark.on-body { z-index: 4; } .ev-mark.on-flap { z-index: 5; backface-visibility: visible; }
+/* the sender's name, written on the envelope's label */
+.ev-from { position: absolute; z-index: 4; left: 62%; top: 63.5%; width: 23%; height: 14%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #2b2a28; font-size: calc(var(--ew) * .042); line-height: 1.05; transform: rotate(-1.5deg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.ev-from small { font: 600 calc(var(--ew) * .019) / 1.2 var(--sys); letter-spacing: .12em; text-transform: uppercase; opacity: .5; }
 .ev-inside { position: absolute; inset: 0; z-index: 1; opacity: 0; clip-path: polygon(10% 14%, 90% 14%, 50% 57%); background: linear-gradient(180deg, #cdbf9f, #e6dcc2); }
 .ev-note { position: absolute; left: 50%; bottom: 10%; z-index: 2; translate: 0 0; transform: translate(-50%, 10%); filter: drop-shadow(0 3px 4px rgba(40, 25, 5, .3)); }
 .ev-note img { display: block; width: 100%; } .ev-note p { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; color: #2b2a28; padding: 0 12% 0 8%; }

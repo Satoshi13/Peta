@@ -582,7 +582,8 @@ const Cer = (() => {
             if (p > .1 && sealed) { sealed = false; Snd.unseal(); Haptic.tap("align"); }
           } else if (grab === "card") {
             const up = Math.max(0, -dy); UP.set(peek + up * .94); LIFT.to(-Math.min(up, 70) * .22); rustle(up / H);
-            if (peek + up * .94 > limit()) { grab = null; release(); }
+            // halfway out is enough: the rest of the way it slides by itself (in the smallest window the full pull would run off the top)
+            if (up * .94 > (limit() - peek) * .5) { grab = null; pullOut(); }
           }
         },
         up: () => {
@@ -673,6 +674,10 @@ const Cer = (() => {
     const hole = `radial-gradient(circle at 50% 54.5%, transparent 0, transparent ${EW * .066}px, #000 ${EW * .074}px)`;
     const mk = (cls, clip, extra = {}) => h("img.ev-layer." + cls, { src: A.arrGift, alt: "", style: { clipPath: clip, webkitMaskImage: hole, maskImage: hole, ...extra } });
     const inside = h("i.ev-inside"), body = mk("ev-body", bodyPoly), flap = mk("ev-flap", flapPoly), leak = h("i.gift-leak");
+    // where the seal was, the paper is whole, with a faint stain of the wax (the picture's own seal and its shadow are painted over here)
+    const R = EW * .066, stain = `radial-gradient(circle at 50% 54.5%, rgba(170,48,38,.24) 0, rgba(170,48,38,.1) ${R * .6}px, rgba(170,48,38,0) ${R * .85}px), radial-gradient(circle at 50% 54.5%, #ecddc6 0, #ebdcc5 ${R * 1.2}px, rgba(235,220,197,.6) ${R * 1.38}px, rgba(235,220,197,0) ${R * 1.6}px)`;
+    const bodyMark = h("i.ev-mark.on-body", { style: { clipPath: bodyPoly, background: stain } }), flapMark = h("i.ev-mark.on-flap", { style: { clipPath: flapPoly, background: stain } });
+    const from = h("span.ev-from.hand", h("small", "From"), gift.from);
     const wax = h("div.wax", { style: { width: EW * .17 + "px", left: "50%", top: "54.5%" } }, img("waxSeal", "w-full"), img("waxL", "w-l"), img("waxR", "w-r"));
     // the note sits wholly inside the envelope until it is taken out (lower, its foot showed under the envelope)
     const note = h("div.ev-note", { style: { width: EW * .86 + "px", transform: "translate(-50%, 0)" } }, img("noteBlank"), h("p.hand", h("small", "from"), h("b", gift.from), gift.note ? h("span", "“" + gift.note + "”") : null));
@@ -680,7 +685,7 @@ const Cer = (() => {
     const sheet = packSheet(cer, { title: "Gift", by: null }, { print: ["Peta · Gift", "from " + gift.from] }), sw = Math.min(EW * .46, EH * .56 / 1.24);
     // the envelope's paper runs from 15% to 85% of its picture; the sheet stays between 25% and 81%
     sheet.place({ PW: EW, PH: EH, cutY: EH * .25, sheetW: sw, sheetLeft: (EW - sw) / 2, sheetTop: EH * .25 });
-    const env = h("div.env-wrap", { style: { width: EW + "px", height: EH + "px", "--ew": EW + "px" } }, inside, leak, sheet.slot, note, body, flap, wax);
+    const env = h("div.env-wrap", { style: { width: EW + "px", height: EH + "px", "--ew": EW + "px" } }, inside, leak, sheet.slot, note, body, bodyMark, from, flap, flapMark, wax);
     const sc = h("div.gift-scene", env); stage.append(sc);
     { const st = stage.getBoundingClientRect(); desk.lamp(.38, st.left + st.width / 2, st.top + st.height * .56, "common", 20, 80); }
     anim(sc, [{ opacity: 0, transform: "translateY(50px) rotate(-6deg) scale(.88)" }, { opacity: 1, transform: "none" }], { duration: 700, easing: EASE.spring }).then(() => Snd.land?.());
@@ -694,9 +699,9 @@ const Cer = (() => {
       anim($(".w-r", wax), [{ transform: "none", opacity: 1 }, { transform: "translate(40px, 84px) rotate(32deg)", opacity: 0 }], { duration: 820, easing: "cubic-bezier(.3,0,.7,.6)" });
       anim($(".w-full", wax), [{ opacity: 1 }, { opacity: 0 }], { duration: 40 });
       await sleep(260); Snd.flap?.();
-      flap.style.transformOrigin = "50% 14%"; inside.style.opacity = 1;
-      await anim(flap, [{ transform: "rotateX(0)" }, { transform: "rotateX(180deg)", filter: "brightness(.92)" }], { duration: 640, easing: EASE.out });
-      fix(flap, "rotateX(180deg)"); flap.style.zIndex = 0;
+      inside.style.opacity = 1;
+      await Promise.all([flap, flapMark].map((el) => { el.style.transformOrigin = "50% 14%"; return anim(el, [{ transform: "rotateX(0)" }, { transform: "rotateX(180deg)", filter: "brightness(.92)" }], { duration: 640, easing: EASE.out }); }));
+      for (const el of [flap, flapMark]) { fix(el, "rotateX(180deg)"); el.style.zIndex = 0; }
       // the note comes out and is laid on the desk, to the lower left, where it stays while the sticker is uncovered
       Snd.crinkle(6, .3);
       await anim(note, [{ transform: "translate(-50%, 0) rotate(0)" }, { transform: `translate(-62%, -${EH * .78}px) rotate(-6deg)` }], { duration: 640, easing: EASE.out });
