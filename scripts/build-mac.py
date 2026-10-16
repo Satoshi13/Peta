@@ -22,4 +22,21 @@ def release_env(environ=None, root=ROOT, home=None):
     return env
 
 if __name__ == '__main__':
-    raise SystemExit(subprocess.run([str(ROOT / 'node_modules/.bin/tauri'), 'build', '--config', '{"bundle":{"macOS":{"signingIdentity":"-"}}}', *sys.argv[1:]], cwd=ROOT, env=release_env()).returncode)
+    args = sys.argv[1:]
+    beta = any('beta' in a.split(',') for a in args)
+    if beta:
+        config = __import__('json').loads((ROOT / 'src-tauri/tauri.beta.conf.json').read_text())
+        key = config.get('plugins', {}).get('updater', {}).get('pubkey', '')
+        import base64
+        try:
+            decoded = base64.b64decode(key, validate=True).decode()
+            if not decoded.startswith('untrusted comment:') or len(decoded.splitlines()) != 2:
+                raise ValueError()
+            if len(base64.b64decode(decoded.splitlines()[1], validate=True)) != 42:
+                raise ValueError()
+        except Exception:
+            raise SystemExit('Beta requires the owner updater PUBLIC key in tauri.beta.conf.json. No build was started.')
+        args += ['--config', str(ROOT / 'src-tauri/tauri.beta.conf.json')]
+        if not Path(os.environ.get('TAURI_SIGNING_PRIVATE_KEY_PATH', '')).is_file():
+            raise SystemExit('Select the updater private key FILE on your encrypted disk. No build was started.')
+    raise SystemExit(subprocess.run([str(ROOT / 'node_modules/.bin/tauri'), 'build', '--config', '{"bundle":{"macOS":{"signingIdentity":"-"}}}', *args], cwd=ROOT, env=release_env()).returncode)

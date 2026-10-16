@@ -14,9 +14,9 @@
     "clean:target": "python3 scripts/clean-target.py",
     "check:binary-paths": "python3 scripts/check-binary-paths.py",
     "licenses": "python3 scripts/third-party-licenses.py",
-    "build:beta": "python3 scripts/build-mac.py --target universal-apple-darwin --features server"
+    "build:beta": "python3 scripts/build-mac.py --target universal-apple-darwin --features beta"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2"
+    "@tauri-apps/cli": "2.12.1"
   }
 }

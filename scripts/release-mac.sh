@@ -6,6 +6,15 @@ mode=${1:-beta}
 case "$mode" in beta) build=build:beta;; offline) build=build;; *) echo 'Usage: bash scripts/release-mac.sh [beta|offline] [--unsigned]' >&2; exit 2;; esac
 unsigned=false
 case "${2:-}" in --unsigned) unsigned=true;; '') ;; *) echo 'Usage: bash scripts/release-mac.sh [beta|offline] [--unsigned]' >&2; exit 2;; esac
+root=$(cd "$(dirname "$0")/.." && pwd)
+if [[ $mode == beta && ! -f ${TAURI_SIGNING_PRIVATE_KEY_PATH:-} ]]; then
+  echo 'Select your updater key on the encrypted disk with TAURI_SIGNING_PRIVATE_KEY_PATH. No build was started.' >&2
+  exit 2
+fi
+updater_artifact() {
+  [[ $mode == beta ]] || return 0
+  bash "$root/scripts/updater-artifact.sh" "$app" "$version" "${output%.dmg}.app.tar.gz"
+}
 if $unsigned; then
   # Without the Apple Developer Program: the build keeps its ad-hoc signature and the disk image is neither signed nor
   # notarized. Friends open it once through System Settings → Privacy & Security → Open Anyway (again after each update).
@@ -21,6 +30,7 @@ if $unsigned; then
   codesign --verify --deep --strict --verbose=2 "$app"
   work=$(mktemp -d "${TMPDIR:-/tmp}/peta-release.XXXXXX")
   trap 'rm -rf "$work"' EXIT
+  updater_artifact
   bash "$root/scripts/make-dmg.sh" "$app" "$work/Peta.dmg"
   mkdir -p "$(dirname "$output")"
   mv "$work/Peta.dmg" "$output"
@@ -74,6 +84,7 @@ xcrun stapler staple "$app"
 xcrun stapler validate "$app"
 codesign --verify --deep --strict --verbose=2 "$app"
 spctl -a -vv --type execute "$app"
+updater_artifact
 # The disk image holds the stapled app, so it opens offline once copied to Applications; the image itself is signed,
 # notarized and stapled too, so Gatekeeper accepts the download before it is opened.
 bash "$root/scripts/make-dmg.sh" "$app" "$work/Peta.dmg"

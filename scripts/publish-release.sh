@@ -8,8 +8,17 @@
 set -euo pipefail
 dmg=${1:?Usage: publish-release.sh <Peta-x.y.z.dmg> [prod|dev] [--unsigned]}
 target=${2:-prod}
-unsigned=false
-case "${3:-}" in --unsigned) unsigned=true;; '') ;; *) echo 'The third argument can only be --unsigned.' >&2; exit 2;; esac
+unsigned=false; notes=''; keep=3
+shift $(( $# >= 2 ? 2 : 1 ))
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --unsigned) unsigned=true; shift;;
+    --notes) notes=${2:?Supply English release notes.}; shift 2;;
+    --keep) keep=${2:?Supply a number of versions to keep.}; shift 2;;
+    *) echo 'Use --unsigned, --notes "...", or --keep N.' >&2; exit 2;;
+  esac
+done
+[[ $keep =~ ^[1-9][0-9]*$ ]] || { echo 'Keep at least one version.' >&2; exit 2; }
 case "$target" in prod|dev) ;; *) echo 'The target is prod or dev.' >&2; exit 2;; esac
 root=$(cd "$(dirname "$0")/.." && pwd)
 bucket=peta-downloads-$target
@@ -44,16 +53,28 @@ fi
 hdiutil detach "$mnt" -quiet
 [[ $file == *"$version"* ]] || { echo "The file name should carry the app's version ($version)." >&2; exit 2; }
 
+archive=${dmg%.dmg}.app.tar.gz
+[[ -s $archive && -s $archive.sig ]] || { echo 'The beta updater archive and signature must be beside the disk image.' >&2; exit 2; }
+python3 - "$archive" "$version" <<'PYARCH'
+import sys,tarfile,plistlib
+with tarfile.open(sys.argv[1],'r:gz') as t:
+ p=plistlib.loads(t.extractfile('Peta.app/Contents/Info.plist').read())
+ if p['CFBundleShortVersionString']!=sys.argv[2]:raise SystemExit('Updater and disk image versions differ.')
+PYARCH
 size=$(stat -f %z "$dmg")
 sha=$(shasum -a 256 "$dmg" | cut -d' ' -f1)
 manifest=$(mktemp "${TMPDIR:-/tmp}/peta-latest.XXXXXX")
 notarized=true; $unsigned && notarized=false
-python3 - "$manifest" "$version" "$file" "$size" "$sha" "$minimum" "$archs" "$notarized" <<'PY'
+python3 - "$manifest" "$version" "$file" "$size" "$sha" "$minimum" "$archs" "$notarized" "$archive.sig" "$notes" <<'PY'
 import json,sys,datetime
-out,version,file,size,sha,minimum,archs,notarized=sys.argv[1:]
+out,version,file,size,sha,minimum,archs,notarized,sig,notes=sys.argv[1:]
+signature=open(sig).read().strip()
+import re
+if not re.fullmatch(r"[A-Za-z0-9+/=]{40,4096}",signature):raise SystemExit("Invalid updater signature file.")
+if len(notes)>8000:raise SystemExit("Release notes must be at most 8000 characters.")
 json.dump({"version":version,"file":file,"size":int(size),"sha256":sha,"minimumSystemVersion":minimum,
   "architectures":sorted(a for a in archs.split() if a in ("arm64","x86_64")),
-  "publishedAt":datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),"notarized":notarized=="true"},open(out,"w"),indent=1)
+  "publishedAt":datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),"notarized":notarized=="true","update":{"version":version,"file":f"updates/{version}/Peta.app.tar.gz","signature":signature,"notes":notes}},open(out,"w"),indent=1)
 PY
 cat "$manifest"
 printf '\nUpload %s (%s bytes) to %s and switch the %s download page to it? [y/N] ' "$file" "$size" "$bucket" "$target"
@@ -61,6 +82,9 @@ read -r answer
 [[ $answer == y || $answer == Y ]] || { echo 'Nothing was uploaded.'; exit 1; }
 cd "$root/cloudflare/peta-download"
 npx wrangler r2 object put "$bucket/releases/$file" --file "$dmg" --content-type application/x-apple-diskimage --remote
+npx wrangler r2 object put "$bucket/releases/updates/$version/Peta.app.tar.gz" --file "$archive" --content-type application/gzip --remote
+npx wrangler r2 object put "$bucket/releases/updates/$version/Peta.app.tar.gz.sig" --file "$archive.sig" --content-type text/plain --remote
 npx wrangler r2 object put "$bucket/releases/latest.json" --file "$manifest" --content-type application/json --remote
+python3 "$root/scripts/prune-releases.py" "$target" "$manifest" --keep "$keep"
 rm -f "$manifest"
 printf 'Published %s. Friends see it on the next page load.\n' "$file"

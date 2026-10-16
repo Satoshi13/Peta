@@ -8,6 +8,10 @@ with tempfile.TemporaryDirectory(prefix='peta-release-check-') as tmp:
  for f in ['release-mac.sh','check-binary-paths.py']:shutil.copy(ROOT/'scripts'/f,repo/'scripts'/f)
  (repo/'src-tauri/tauri.conf.json').write_text(json.dumps({'version':'0.1.0'}))
  SCRIPT=repo/'scripts/release-mac.sh'
+ (repo/'scripts/updater-artifact.sh').write_text('''echo '["updater"]' >> "$MOCK_LOG"
+if [[ -f "$1/ticket" ]]; then echo app-stapled > "$3"; else echo app-unstapled > "$3"; fi
+echo signature > "$3.sig"
+''')
  (repo/'scripts/make-dmg.sh').write_text('''import=1
 echo '["make-dmg"]' >> "$MOCK_LOG"
 if [[ -f "$1/ticket" ]]; then echo app-stapled > "$2"; else echo app-unstapled > "$2"; fi
@@ -36,6 +40,7 @@ elif name=='xcrun':
  for key in ['APPLE_SIGNING_IDENTITY','PETA_NOTARY_PROFILE','MOCK_STATUS','MOCK_DMG_STATUS']:env.pop(key,None)
  run=lambda:subprocess.run(['bash',str(SCRIPT)],env=env,capture_output=True,text=True)
  r=run();assert r.returncode==2 and not log.exists(),r.stderr
+ key=t/'test-only.key';key.write_text('mock private key');env['TAURI_SIGNING_PRIVATE_KEY_PATH']=str(key)
  env.update(APPLE_SIGNING_IDENTITY='Developer ID Application: Test (TEST)',PETA_NOTARY_PROFILE='test-only',MOCK_STATUS='Invalid')
  r=run();assert r.returncode!=0 and not output.exists();assert not (app/'ticket').exists()
  log.unlink();env['MOCK_STATUS']='Accepted';env['MOCK_DMG_STATUS']='Invalid'
@@ -44,18 +49,21 @@ elif name=='xcrun':
  r=run();assert r.returncode==0,(r.stdout,r.stderr);assert output.read_text()=='app-stapled\ndmg-stapled',output.read_text()
  assert 'publish-release.sh' in r.stdout
  calls=[json.loads(l) for l in log.read_text().splitlines()];names=[c[0] for c in calls]
- assert names==['security','npm','codesign','codesign','ditto','xcrun','xcrun','xcrun','codesign','spctl','make-dmg','codesign','codesign','xcrun','xcrun','xcrun','spctl'],names
+ assert names==['security','npm','codesign','codesign','ditto','xcrun','xcrun','xcrun','codesign','spctl','updater','make-dmg','codesign','codesign','xcrun','xcrun','xcrun','spctl'],names
  sign=next(c for c in calls if c[0]=='codesign');assert '--options' in sign and 'runtime' in sign and '--timestamp' in sign
  assert calls[5][1:3]==['notarytool','submit'] and '--wait' in calls[5]
- dmg_sign=calls[11];assert '--timestamp' in dmg_sign and dmg_sign[-1].endswith('.dmg')
- assert calls[13][1:3]==['notarytool','submit'] and calls[13][3].endswith('.dmg') and '--wait' in calls[13]
- assert calls[16][1:]==['-a','-vv','--type','open','--context','context:primary-signature',calls[16][-1]]
+ assert output.with_suffix('.app.tar.gz').read_text()=='app-stapled\n'
+ dmg_sign=calls[12];assert '--timestamp' in dmg_sign and dmg_sign[-1].endswith('.dmg')
+ assert calls[14][1:3]==['notarytool','submit'] and calls[14][3].endswith('.dmg') and '--wait' in calls[14]
+ assert calls[17][1:]==['-a','-vv','--type','open','--context','context:primary-signature',calls[17][-1]]
  log.unlink();r=run();assert r.returncode==2 and not log.exists()
  # --unsigned: no Apple tools or credentials; the ad-hoc app goes straight into the disk image.
- output.unlink();log.unlink(missing_ok=True);(app/'ticket').unlink()
+ output.unlink();output.with_suffix('.app.tar.gz').unlink();output.with_suffix('.app.tar.gz.sig').unlink();log.unlink(missing_ok=True);(app/'ticket').unlink()
  for key in ['APPLE_SIGNING_IDENTITY','PETA_NOTARY_PROFILE']:env.pop(key,None)
  r=subprocess.run(['bash',str(SCRIPT),'beta','--unsigned'],env=env,capture_output=True,text=True);assert r.returncode==0,(r.stdout,r.stderr)
+ assert output.with_suffix('.app.tar.gz').read_text()=='app-unstapled\n'
  assert output.read_text()=='app-unstapled\n' and '--unsigned' in r.stdout
- names=[json.loads(l)[0] for l in log.read_text().splitlines()];assert names==['npm','codesign','make-dmg'],names
+ names=[json.loads(l)[0] for l in log.read_text().splitlines()];assert names==['npm','codesign','updater','make-dmg'],names
  r=subprocess.run(['bash',str(SCRIPT),'beta','--sign-later'],env=env,capture_output=True,text=True);assert r.returncode==2
  print('PASS: missing credentials stop before tools; a rejected app or disk image stops before output; Accepted signs, notarizes and staples the app, then the disk image made from the stapled app; existing output is protected; --unsigned packs the ad-hoc app without Apple. Mock tools only.')
+subprocess.run(['python3',str(ROOT/'scripts/test-updater-release.py')],check=True)
