@@ -42,3 +42,27 @@ nav button{flex:1 0 auto;white-space:nowrap}
 .market-table th:first-child,.market-table td:first-child{text-align:left}
 details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:13px}
 @media(max-width:600px){.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pk-editor h3{margin-top:0}
+.pk-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:96px;border:1.5px dashed var(--line);border-radius:6px;padding:14px;text-align:center;color:var(--muted);font-size:13px;background:#fbf8f1}
+.pk-drop[data-over]{border-color:var(--ink);color:var(--ink)}
+.pk-file{max-width:100%;font-size:12px}
+.pk-items{list-style:none;margin:12px 0;padding:0}
+.pk-items li{display:grid;grid-template-columns:48px minmax(0,1fr) 110px 70px auto auto auto;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding:6px 0}
+.pk-items img,.pk-stickers img{background:repeating-conic-gradient(#eee8db 0 25%,#fbf8f1 0 50%) 0 0/12px 12px;border-radius:4px}
+.pk-items img{width:48px;height:48px;object-fit:contain}
+.pk-items button{min-height:36px;padding:4px 10px}
+.pk-preview{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:start;margin:8px 0 12px}
+.pk-pouch{position:relative;aspect-ratio:3/4;border-radius:6px 6px 10px 10px;box-shadow:1px 2px 3px rgba(60,45,20,.22),3px 6px 14px rgba(60,45,20,.12)}
+.pk-pouch.pk-holo{background-image:linear-gradient(105deg,rgba(246,198,227,.55),rgba(201,195,245,.55),rgba(191,227,247,.55),rgba(200,242,220,.55))!important;background-blend-mode:multiply}
+.pk-label{position:absolute;left:14%;right:14%;top:30%;padding:10px 6px;background:#fbf8f1;text-align:center;box-shadow:.5px 1px 1.5px rgba(60,45,20,.2)}
+.pk-label strong{display:block;font-size:13px;line-height:1.25;overflow-wrap:anywhere}
+.pk-label small{display:block;font:9px/1.4 ui-monospace,"SFMono-Regular",monospace;letter-spacing:.14em;color:var(--muted)}
+.pk-meta p{margin:0 0 4px}
+.pk-stickers{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.pk-stickers figure{margin:0}
+.pk-stickers img{display:block;width:100%;height:96px;object-fit:contain;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(1px 2px 2px rgba(60,45,20,.25))}
+.pk-stickers figcaption{font-size:11px;color:var(--muted);overflow-wrap:anywhere;margin-top:4px}
+.pk-command{display:block;overflow-x:auto;white-space:nowrap;padding:10px 12px;border:1px solid var(--line);border-radius:5px;background:#fbf8f1;font:12px ui-monospace,"SFMono-Regular",monospace;margin:0 0 10px}
+.pk-period{align-items:end;margin:8px 0}
+.pk-period .check{margin-bottom:12px}
+@media(max-width:600px){.pk-preview{grid-template-columns:1fr}.pk-pouch{width:150px}.pk-items li{grid-template-columns:48px repeat(3,minmax(0,1fr));grid-template-areas:"pic name name name" "pic rarity rarity weight" "up down remove remove";row-gap:6px}.pk-items li img{grid-area:pic}.pk-items li input:not([type=number]){grid-area:name}.pk-items li select{grid-area:rarity}.pk-items li input[type=number]{grid-area:weight}.pk-items li button:nth-of-type(1){grid-area:up}.pk-items li button:nth-of-type(2){grid-area:down}.pk-items li button:nth-of-type(3){grid-area:remove}}

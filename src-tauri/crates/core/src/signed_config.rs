@@ -24,6 +24,10 @@ pub const MAX_SHOP_CONFIGS: usize = 10;
 pub const SHOP_PRICE_MIN_PERCENT: i64 = 50;
 pub const SHOP_PRICE_MAX_PERCENT: i64 = 200;
 pub const SHOP_BLURB_MAX_CHARS: usize = 120;
+/// A shop setting names at most this many packs (the six built-in ones plus official shop packs, `shop:<packId>`),
+/// and features at most `SHOP_MAX_FEATURED` of them.
+pub const SHOP_MAX_PACKS: usize = 30;
+pub const SHOP_MAX_FEATURED: usize = 6;
 const SHOP_MAX_DAYS: i64 = 400;
 const DISMISSED: &str = "config.announcements.dismissed";
 
@@ -124,21 +128,27 @@ pub struct ShopPack {
     pub price: Option<i64>,
     pub blurb: Option<String>,
 }
-/// The price range a configuration may set for a paid pack. Free packs have none.
+/// The price range a configuration may set for a paid pack. Free packs have none. A shop pack's own price is only
+/// known once its file is here, so a setting may name 50% of the lowest to 200% of the highest shop price; the shop
+/// applies the pack's own 50–200% range when it prices the pack, and ignores a price outside it for that pack.
 pub fn shop_price_range(id: &str) -> Option<(i64, i64)> {
+    if crate::shop_pack::pack_id(id).is_some() {
+        return Some(((crate::shop_pack::MIN_PRICE * SHOP_PRICE_MIN_PERCENT + 99) / 100, crate::shop_pack::MAX_PRICE * SHOP_PRICE_MAX_PERCENT / 100));
+    }
     let pack = crate::pack::market_pack(id)?;
     let base = crate::scraps::default_pack_price(id)?;
     (!pack.free).then(|| ((base * SHOP_PRICE_MIN_PERCENT + 99) / 100, base * SHOP_PRICE_MAX_PERCENT / 100))
 }
 pub fn validate_shop(c: &ShopConfig) -> Result<()> {
-    let known = |id: &String| crate::pack::market_pack(id).is_some();
+    let known = |id: &String| crate::pack::market_pack(id).is_some() || crate::shop_pack::pack_id(id).is_some();
     let unique = |ids: &[&String]| ids.iter().collect::<std::collections::HashSet<_>>().len() == ids.len();
     let packs: Vec<&String> = c.packs.iter().map(|p| &p.id).collect();
     if !events::safe_id(&c.config_id)
-        || [&c.featured, &c.order].iter().any(|ids| ids.len() > 6 || !ids.iter().all(known) || !unique(&ids.iter().collect::<Vec<_>>()))
-        || packs.len() > 6 || !packs.iter().all(|id| known(id)) || !unique(&packs)
+        || c.featured.len() > SHOP_MAX_FEATURED
+        || [&c.featured, &c.order].iter().any(|ids| ids.len() > SHOP_MAX_PACKS || !ids.iter().all(known) || !unique(&ids.iter().collect::<Vec<_>>()))
+        || packs.len() > SHOP_MAX_PACKS || !packs.iter().all(|id| known(id)) || !unique(&packs)
     {
-        return Err(invalid("Shop settings name only the packs that come with Peta, each once."));
+        return Err(invalid("Shop settings name only Peta's own packs, each once."));
     }
     for p in &c.packs {
         if let Some(price) = p.price {
@@ -355,7 +365,11 @@ mod shop_contract_tests {
         let fix = "Update with: cd cloudflare/peta-admin && node scripts/config-vector.mjs; review, then redeploy the admin page.";
         let limits = &v["shopCatalog"]["limits"];
         assert_eq!((limits["minPercent"].as_i64(), limits["maxPercent"].as_i64(), limits["blurbMax"].as_u64(), limits["maxPacks"].as_u64(), limits["maxDays"].as_i64(), limits["maxConfigs"].as_u64()),
-            (Some(SHOP_PRICE_MIN_PERCENT), Some(SHOP_PRICE_MAX_PERCENT), Some(SHOP_BLURB_MAX_CHARS as u64), Some(6), Some(SHOP_MAX_DAYS), Some(MAX_SHOP_CONFIGS as u64)), "{fix}");
+            (Some(SHOP_PRICE_MIN_PERCENT), Some(SHOP_PRICE_MAX_PERCENT), Some(SHOP_BLURB_MAX_CHARS as u64), Some(SHOP_MAX_PACKS as u64), Some(SHOP_MAX_DAYS), Some(MAX_SHOP_CONFIGS as u64)), "{fix}");
+        assert_eq!((limits["maxFeatured"].as_u64(), v["shopCatalog"]["shopPackPrefix"].as_str()), (Some(SHOP_MAX_FEATURED as u64), Some(crate::shop_pack::LOCAL_PREFIX)), "{fix}");
+        let any = shop_price_range("shop:any").unwrap();
+        assert_eq!((v["shopCatalog"]["shopPackPrice"]["min"].as_i64(), v["shopCatalog"]["shopPackPrice"]["max"].as_i64()), (Some(crate::shop_pack::MIN_PRICE), Some(crate::shop_pack::MAX_PRICE)), "{fix}");
+        assert_eq!(any, (2, 80));
         let packs = v["shopCatalog"]["packs"].as_array().unwrap();
         assert_eq!(packs.len(), crate::scraps::status(&Database::open_in_memory().unwrap().conn).unwrap().packs.len(), "{fix}");
         for p in packs {

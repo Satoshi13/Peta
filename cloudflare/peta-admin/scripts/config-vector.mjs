@@ -12,7 +12,7 @@ const announcement={id:'news-contract',issuedAt:'2026-10-16T00:00:00Z',startsAt:
 const announcementEvent=signed({eventId:announcement.id,kind:'announcement',issuedAt:announcement.issuedAt,notBefore:announcement.startsAt,notAfter:announcement.endsAt,title:'Announcement',message:'',
   payload:{announcementId:announcement.id,kind:announcement.kind,link:announcement.link,text:announcement.text},signer:{kind:'official',keyId:'c1'},attachments:[]});
 // The official packs and the shop limits as the app has them; the Rust tests fail if these drift.
-const shopCatalog={limits:{minPercent:50,maxPercent:200,blurbMax:120,maxPacks:6,maxDays:400,maxConfigs:10},packs:[
+const shopCatalog={limits:{minPercent:50,maxPercent:200,blurbMax:120,maxPacks:30,maxFeatured:6,maxDays:400,maxConfigs:10},shopPackPrefix:'shop:',shopPackPrice:{min:4,max:40},packs:[
   {id:'tokyo',title:'Tokyo Pack',price:16,free:true},{id:'coffee',title:'Coffee Club',price:12,free:true},{id:'plants',title:'Houseplants',price:10,free:true},
   {id:'pixel',title:'Pixel Dream',price:12,free:false},{id:'cats',title:'Cats',price:10,free:false},{id:'night',title:'Night Market',price:12,free:false}]};
 const shop={id:'shop-contract',kind:'event',issuedAt:'2026-10-16T00:00:00Z',startsAt:'2026-10-16T00:00:00Z',endsAt:'2026-11-01T00:00:00Z',featured:['night','pixel'],officialFirst:true,order:['night','cats'],

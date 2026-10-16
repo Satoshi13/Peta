@@ -8,7 +8,7 @@ const TOKEN_SECONDS = 600;
 type Live = { pack_id: string; version: number; size: number; sha256: string; ends_at: number | null };
 /** Packs on sale now: started, not ended, not stopped; for each pack only the newest such version. */
 export async function live(env: Env, now: number): Promise<Live[]> {
-  const sale = (t: string) => `${t}.stopped_at IS NULL AND ${t}.starts_at IS NOT NULL AND ${t}.starts_at<=?1 AND (${t}.ends_at IS NULL OR ${t}.ends_at>?1)`;
+  const sale = (t: string) => `${t}.stopped_at IS NULL AND ${t}.removed_at IS NULL AND ${t}.starts_at IS NOT NULL AND ${t}.starts_at<=?1 AND (${t}.ends_at IS NULL OR ${t}.ends_at>?1)`;
   const rows = await stmt(env.DB,
     `SELECT pack_id,version,size,sha256,ends_at FROM shop_packs s WHERE ${sale('s')} AND version=(SELECT MAX(version) FROM shop_packs t WHERE t.pack_id=s.pack_id AND ${sale('t')}) ORDER BY pack_id LIMIT ?2`,
     now, MAX_LIVE).all<Live>();

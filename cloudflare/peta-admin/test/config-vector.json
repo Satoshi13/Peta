@@ -17,9 +17,15 @@
       "minPercent": 50,
       "maxPercent": 200,
       "blurbMax": 120,
-      "maxPacks": 6,
+      "maxPacks": 30,
+      "maxFeatured": 6,
       "maxDays": 400,
       "maxConfigs": 10
+    },
+    "shopPackPrefix": "shop:",
+    "shopPackPrice": {
+      "min": 4,
+      "max": 40
     },
     "packs": [
       {

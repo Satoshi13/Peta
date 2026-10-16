@@ -2,6 +2,7 @@ import {setupDaily,loadDaily} from "./daily.js";
 import { setupReports, loadReports, showCount } from "./reports.js";
 import { setupNews, loadNews } from "./news.js";
 import { setupShop, loadShop } from "./shop.js";
+import { setupPacks, loadPacks } from "./packs.js";
 import { setupMarket, loadMarket } from "./market.js";
 import { setupRelease, loadRelease } from "./release.js";
 import { setupFriends, loadFriends } from "./friends.js";
@@ -14,6 +15,7 @@ async function activate(tab) {
     if (tab.id === "tab-friends") await loadFriends();
     if (tab.id === "tab-daily") await loadDaily();
     if (tab.id === "tab-shop") await loadShop();
+    if (tab.id === "tab-packs") await loadPacks();
     if (tab.id === "tab-news") await loadNews();
     if (tab.id === "tab-reports") await loadReports();
     if (tab.id === "tab-market") await loadMarket();
@@ -23,6 +25,6 @@ for (const tab of tabs) {
   tab.onclick = () => activate(tab);
   tab.onkeydown = e => { const index = tabs.indexOf(tab); const next = e.key === "ArrowRight" ? tabs[(index + 1) % tabs.length] : e.key === "ArrowLeft" ? tabs[(index + tabs.length - 1) % tabs.length] : e.key === "Home" ? tabs[0] : e.key === "End" ? tabs.at(-1) : null; if (next) { e.preventDefault(); next.focus(); activate(next); } };
 }
-setupDaily(); setupMarket(); setupShop(); setupNews(); setupReports(); setupCoupons(); setupFriends(); setupRelease();
+setupDaily(); setupMarket(); setupShop(); setupPacks(); setupNews(); setupReports(); setupCoupons(); setupFriends(); setupRelease();
 try { const me = await api("/api/me"); $("account").textContent = `Signed in as ${me.email}`; await loadFriends(); } catch (error) { notice(error.message, true); }
 try { showCount((await api("/api/reports")).open); } catch { /* The count appears when the Reports tab opens. */ }

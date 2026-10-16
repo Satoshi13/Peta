@@ -201,6 +201,15 @@ mod shop_tests {
         assert_eq!(db.scrap_status().unwrap().packs.iter().find(|p| p.id=="pixel").unwrap().exchange,24);assert!(!db.shop_on_sale("plants"));
     }
     #[test]
+    fn a_setting_may_name_official_shop_packs_within_the_shop_pack_price_bounds() {
+        let shop=|packs:serde_json::Value,featured:serde_json::Value|{let mut c:signed_config::ShopConfig=serde_json::from_value(serde_json::json!({"configId":"s","configKind":"default","featured":featured,"officialFirst":false,"order":["shop:autumn","night"],"packs":packs})).unwrap();c.config_id="s".into();signed_config::validate_shop(&c)};
+        shop(serde_json::json!([{"id":"shop:autumn","onSale":true,"price":20,"blurb":"Leaves."}]),serde_json::json!(["shop:autumn","pixel"])).unwrap();
+        for price in [1,81] {assert!(shop(serde_json::json!([{"id":"shop:autumn","onSale":true,"price":price,"blurb":null}]),serde_json::json!([])).is_err());}
+        for id in ["shop:","shop:a.b","shop:-x","shop"] {assert!(shop(serde_json::json!([{"id":id,"onSale":true,"price":null,"blurb":null}]),serde_json::json!([])).is_err(),"{id}");}
+        let seven:Vec<String>=(0..7).map(|i|format!("shop:p{i}")).collect();
+        assert!(shop(serde_json::json!([]),serde_json::json!(seven)).is_err(),"at most six featured");
+    }
+    #[test]
     fn a_period_setting_beats_the_standing_one_only_while_it_runs() {
         let mut db=funded();
         let price=|db:&Database| db.scrap_status().unwrap().packs.into_iter().find(|p| p.id=="night").unwrap().exchange;

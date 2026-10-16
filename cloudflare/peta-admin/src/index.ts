@@ -6,6 +6,7 @@ import { market } from "./market";
 import { release } from "./release";
 import { friends, type Fetch } from "./friends";
 import { coupons } from "./coupons";
+import { packs, packFiles } from "./packs";
 import { mutate } from "./lock";
 import { Problem, fail } from "./validation";
 export { Problem, fail } from "./validation";
@@ -26,6 +27,8 @@ export interface Env extends AccessConfig {
   COUPON_KEY_ID?: string;
   COUPON_PUBLIC_KEY?: string;
   DOWNLOAD_PAGE_URL?: string;
+  /** "dev" or "prod": which environment the sign-pack command shown for a ready draft names. */
+  PETA_ENV?: string;
 }
 export const now = () => Math.floor(Date.now() / 1000);
 export function normalizeEmail(value: unknown): string | null {
@@ -65,6 +68,8 @@ export async function handle(request: Request, env: Env, keys: KeySource = fetch
     if (url.pathname === "/api/release" && request.method === "GET") return secure(await release(env));
     if (url.pathname === "/api/me" && request.method === "GET") return secure(api({ email }));
     if (url.pathname === "/api/market" && request.method === "GET") return secure((await market(request, env, url.pathname))!);
+    const files = await packFiles(request, env, url.pathname, () => emailHash(email), work => mutate(env, work));
+    if (files) return secure(files);
     if (url.pathname.startsWith("/api/")) {
       let data: unknown = null;
       if (request.method === "POST") {
@@ -76,7 +81,7 @@ export async function handle(request: Request, env: Env, keys: KeySource = fetch
         try { data = JSON.parse(raw); } catch { fail(400, "invalid", "Check the form and try again."); }
       } else if (request.method !== "GET") fail(405, "method_not_allowed", "This action is not available.");
       const actor = await emailHash(email);
-      const route = async () => await reports(request, env, url.pathname, actor, data) ?? await news(request, env, url.pathname, actor, data) ?? await shop(request, env, url.pathname, actor, data) ?? await daily(request,env,url.pathname,actor,data) ?? await coupons(request, env, url.pathname, actor, data) ?? await friends(request, env, url.pathname, actor, data, transport) ?? api({ error: "not_found" }, 404);
+      const route = async () => await reports(request, env, url.pathname, actor, data) ?? await news(request, env, url.pathname, actor, data) ?? await shop(request, env, url.pathname, actor, data) ?? await packs(request, env, url.pathname, actor, data) ?? await daily(request,env,url.pathname,actor,data) ?? await coupons(request, env, url.pathname, actor, data) ?? await friends(request, env, url.pathname, actor, data, transport) ?? api({ error: "not_found" }, 404);
       return secure(request.method === "POST" ? await mutate(env, route) : await route());
     }
     if (request.method !== "GET" && request.method !== "HEAD") return secure(new Response(null, { status: 405 }));

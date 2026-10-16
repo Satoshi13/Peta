@@ -3,7 +3,8 @@
 -- shop/<pack_id>/<version>.peta. A signed pack is on sale while starts_at <= now < ends_at (no end: NULL) and not stopped.
 CREATE TABLE shop_pack_drafts(draft_id TEXT PRIMARY KEY, pack_id TEXT NOT NULL, version INTEGER NOT NULL, state TEXT NOT NULL CHECK(state IN ('draft','ready','signed','discarded')), manifest TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL);
 CREATE INDEX shop_pack_drafts_pack ON shop_pack_drafts(pack_id, version);
-CREATE TABLE shop_packs(pack_id TEXT NOT NULL, version INTEGER NOT NULL, title TEXT NOT NULL, file TEXT NOT NULL, size INTEGER NOT NULL, sha256 TEXT NOT NULL, starts_at INTEGER, ends_at INTEGER, created_at INTEGER NOT NULL, stopped_at INTEGER, draft_id TEXT, key_id TEXT, PRIMARY KEY(pack_id, version));
+-- price: the signed price (Scraps), for the shop setting form. removed_at: the file was cleared from R2 (an old version no longer sold).
+CREATE TABLE shop_packs(pack_id TEXT NOT NULL, version INTEGER NOT NULL, title TEXT NOT NULL, file TEXT NOT NULL, size INTEGER NOT NULL, sha256 TEXT NOT NULL, price INTEGER NOT NULL DEFAULT 0, starts_at INTEGER, ends_at INTEGER, created_at INTEGER NOT NULL, stopped_at INTEGER, draft_id TEXT, key_id TEXT, removed_at INTEGER, PRIMARY KEY(pack_id, version));
 CREATE INDEX shop_packs_sale ON shop_packs(stopped_at, starts_at, ends_at);
 -- Device-bound, ten-minute access to the files listed in one /v1/config answer (the token itself is never stored).
 CREATE TABLE shop_pack_tokens(token TEXT PRIMARY KEY, key_hash TEXT NOT NULL, expires_at INTEGER NOT NULL);

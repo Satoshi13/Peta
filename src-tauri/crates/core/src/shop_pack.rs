@@ -74,7 +74,9 @@ impl ShopPack {
 
 pub fn local_id(pack_id: &str) -> String { format!("{LOCAL_PREFIX}{pack_id}") }
 /// The shop pack id inside a local id, if it is one.
-pub fn pack_id(local: &str) -> Option<&str> { local.strip_prefix(LOCAL_PREFIX).filter(|id| events::safe_id(id)) }
+pub fn pack_id(local: &str) -> Option<&str> { local.strip_prefix(LOCAL_PREFIX).filter(|id| valid_id(id)) }
+/// A shop pack id or sticker key: letters, numbers, - and _, up to 40, starting with a letter or number (`idPattern`).
+pub fn valid_id(id: &str) -> bool { events::safe_id(id) && id.len() <= 40 && !id.contains('.') }
 /// The signed event's id: one per pack version.
 pub fn event_id(pack_id: &str, version: u32) -> String { format!("shop-{pack_id}-v{version}") }
 
@@ -82,7 +84,7 @@ fn invalid(message: &str) -> Error { Error::Invalid(message.into()) }
 
 /// The pack's own limits (§2). Pictures are checked separately.
 pub fn validate(p: &ShopPack) -> Result<()> {
-    if !events::safe_id(&p.pack_id) || p.pack_id.len() > 40 || p.pack_id.contains('.') || BUILT_IN.contains(&p.pack_id.as_str()) {
+    if !valid_id(&p.pack_id) || BUILT_IN.contains(&p.pack_id.as_str()) {
         return Err(invalid("Pack IDs use letters, numbers, - and _ (up to 40), and never a built-in pack's ID."));
     }
     if p.version < 1 { return Err(invalid("Pack versions start at 1.")); }
@@ -98,7 +100,7 @@ pub fn validate(p: &ShopPack) -> Result<()> {
     if !(MIN_ITEMS..=MAX_ITEMS).contains(&p.items.len()) { return Err(invalid("A shop pack holds 3 to 12 stickers.")); }
     let mut keys = HashSet::new();
     for item in &p.items {
-        if !events::safe_id(&item.key) || item.key.len() > 40 || item.key.contains('.') || !keys.insert(item.key.as_str()) {
+        if !valid_id(&item.key) || !keys.insert(item.key.as_str()) {
             return Err(invalid("Each sticker needs its own key (letters, numbers, - and _)."));
         }
         if !events::text(&item.name, TITLE_CHARS) { return Err(invalid("Each sticker needs a name of up to 40 characters.")); }

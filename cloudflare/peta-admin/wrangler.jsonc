@@ -19,6 +19,7 @@
             "CF_ACCOUNT_ID": "7ebfd4fac7f7545a9e34a963af32ae7c",
             "ACCESS_FRIENDS_POLICY_ID": "",
             "COUPON_KEY_ID": "c1",
+            "PETA_ENV": "dev",
             "COUPON_PUBLIC_KEY": "11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
             "DOWNLOAD_PAGE_URL": "https://peta-download-dev.peta-api.workers.dev"
         },
@@ -49,6 +50,7 @@
             "CF_ACCOUNT_ID": "7ebfd4fac7f7545a9e34a963af32ae7c",
             "ACCESS_FRIENDS_POLICY_ID": "e153d1b3-f94c-4878-a275-d033cb968dd7",
             "COUPON_KEY_ID": "c2",
+            "PETA_ENV": "prod",
             "COUPON_PUBLIC_KEY": "bnSW7bDoApbt1Gb5AgowuBXL441K0oqN/iOJea+Xy4I=",
             "DOWNLOAD_PAGE_URL": "https://peta-download-prod.peta-api.workers.dev"
         },
