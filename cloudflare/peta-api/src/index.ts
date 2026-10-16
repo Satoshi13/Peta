@@ -15,6 +15,7 @@ import { invites, invited, invitesRequired, sweepRecords } from "./invites";
 import { coupons } from "./coupons";
 import { dailyTables } from "./daily-tables";
 import { updates } from "./updates";
+import { shopPacks } from "./shop-packs";
 export interface Env {
   RELEASES?: R2Bucket;
   DB: D1Database;
@@ -605,8 +606,10 @@ async function route(request: Request, env: Env): Promise<Response> {
   }
   const fromInvites = await invites(request, env, path, await sha256(unbase64(key, 32)), data);
   if (fromInvites) return fromInvites;
-  const fromDaily = await dailyTables(request,env,path);
+  const fromDaily = await dailyTables(request,env,path,await sha256(unbase64(key, 32)));
   if (fromDaily) return fromDaily;
+  const fromShop = await shopPacks(request, env, path, await sha256(unbase64(key, 32)));
+  if (fromShop) return fromShop;
   const fromUpdates = await updates(request, env, path, await sha256(unbase64(key, 32)));
   if (fromUpdates) return fromUpdates;
   const fromCoupons = await coupons(request, env, path, await sha256(unbase64(key, 32)), data);
@@ -734,6 +737,7 @@ export default {
     await sweepRecords(env,t);
     await env.DB.batch([
       stmt(env.DB, "DELETE FROM update_tokens WHERE expires_at<=?", t),
+      stmt(env.DB, "DELETE FROM shop_pack_tokens WHERE expires_at<=?", t),
       stmt(env.DB, "DELETE FROM update_downloads WHERE at<?", t - 365 * 86400),
     ]);
     await sweepReports(env,t);

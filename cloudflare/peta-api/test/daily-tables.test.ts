@@ -32,7 +32,7 @@ it('serves tables with live and upcoming announcements and shop settings, never 
  await db.prepare('INSERT INTO daily_tables VALUES(?,?,?,?,?,?,NULL)').bind('table','default',now-10,now+100,'table',now).run();
  for(const [id,kind,start,end,stopped] of [['a-old','announcement',now-100,now+100,null],['a-new','announcement',now-10,now+100,null],['a-soon','announcement',now+10,now+100,null],['a-ended','announcement',now-100,now,null],['a-stopped','announcement',now-10,now+100,now],['s-live','shop_config',now-10,now+100,null],['s-stopped','shop_config',now-10,now+100,now]] as const)
   await db.prepare('INSERT INTO signed_configs VALUES(?,?,?,?,?,?,?)').bind(id,kind,start,end,id,now,stopped).run();
- expect(await(await config()).json()).toEqual({tables:['table'],announcements:['a-soon','a-new','a-old'],shop:['s-live']});
+ expect(await(await config()).json()).toEqual({tables:['table'],announcements:['a-soon','a-new','a-old'],shop:['s-live'],shopPacks:[]});
  expect(await(await get()).json()).toEqual({tables:['table']});
  expect((await config(true)).status).toBe(403);
  await expect(db.prepare("INSERT INTO signed_configs VALUES('x','bundle',0,1,'x',0,NULL)").run()).rejects.toThrow();
