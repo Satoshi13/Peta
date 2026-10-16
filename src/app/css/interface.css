@@ -104,7 +104,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .mk-tool-art { margin-block:20px; }
 .st-card { padding:24px; aspect-ratio:auto; }
 .st-card-art { width:100%; max-width:360px; justify-self:center; min-height:0; aspect-ratio:1.55; }
-.st-card:hover { transform:translateY(-2px); filter:none; box-shadow:0 4px 12px rgb(0 0 0 / .08); }
+.st-card:hover { transform:translateY(-2px); filter:none; box-shadow:2px 4px 12px rgb(0 0 0 / .08); }
 .st-card p { color:var(--ui-secondary); }
 .st-for { background:var(--ui-inset); color:var(--ui-secondary); box-shadow:none; border-radius:6px; rotate:0deg; }
 .t-hero { background:var(--ui-surface); box-shadow:inset 0 0 0 1px var(--ui-line); }
@@ -193,7 +193,7 @@ dialog.creator-icon-dialog { width:min(620px,calc(100vw - 40px)); max-width:none
 
 /* Coupon input keeps the quiet line of ink on the paper, including keyboard focus. */
 .rd-dialog .rd-ticket input:focus { outline:none !important; box-shadow:none; }
-.rd-ticket:focus-within { filter:drop-shadow(0 2px 2px rgb(60 45 20 / .2)); }
+.rd-ticket:focus-within { filter:drop-shadow(1px 2px 2px rgb(60 45 20 / .2)); }
 .rd-ticket:focus-within::after { background:#756f63; height:1px; opacity:.6; }
 
 /* Printed pack labels keep their type when the pack leaves a shelf button for zoom. */

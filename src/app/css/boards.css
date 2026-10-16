@@ -25,7 +25,7 @@
 .bd-screen:hover:not(:disabled) { background: rgba(255, 253, 249, .55); }
 .bd-screen[aria-pressed="true"] { background: var(--w-surface); box-shadow: inset 0 0 0 2px var(--ink), var(--sh1); }
 .bd-screen:disabled { cursor: default; opacity: 1; }
-.bd-display { display: block; width: min(196px, 100%); aspect-ratio: 16 / 9; padding: 4px; border-radius: 8px; background: #2f2d29; box-shadow: 0 1px 2px rgba(43, 43, 43, .25); }
+.bd-display { display: block; width: min(196px, 100%); aspect-ratio: 16 / 9; padding: 4px; border-radius: 8px; background: #2f2d29; box-shadow: .5px 1px 2px rgba(43, 43, 43, .25); }
 .bd-screen[data-kind="laptop"] .bd-display { width: min(158px, 100%); aspect-ratio: 16 / 10.4; border-radius: 8px 8px 3px 3px; }
 .bd-glass { position: relative; display: block; width: 100%; height: 100%; overflow: hidden; border-radius: 4px; background: linear-gradient(160deg, #eef1ee, #dfe5e2 60%, #d6ddda); }
 .bd-stand { display: block; }
@@ -77,7 +77,7 @@ html[data-motion="reduce"] button.bd-paper:hover:not(:disabled) { transform: rot
 .bd-on svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .bd-more { display: grid; place-items: center; width: 32px; height: 32px; flex: none; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink2); font: 700 10px/1 var(--sys); letter-spacing: -1px; }
 .bd-more:hover, .bd-more[aria-expanded="true"] { background: var(--w-surface); box-shadow: inset 0 0 0 1px var(--w-line); }
-.bd-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; display: grid; min-width: 210px; padding: 6px; border-radius: 12px; background: var(--w-surface); box-shadow: 0 0 0 .5px rgba(80, 60, 20, .22), 0 12px 28px rgba(40, 30, 10, .2); animation: bd-menu-in .16s ease-out both; }
+.bd-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 30; display: grid; min-width: 210px; padding: 6px; border-radius: 12px; background: var(--w-surface); box-shadow: 0 0 0 .5px rgba(80, 60, 20, .22), 3px 6px 24px rgba(40, 30, 10, .2); animation: bd-menu-in .16s ease-out both; }
 .bd-menu button { padding: 8px 11px; border: 0; border-radius: 7px; background: none; color: var(--ink); text-align: left; font: 500 13px/18px var(--sys); white-space: nowrap; }
 .bd-menu button:hover, .bd-menu button:focus-visible { background: var(--w-surface2); outline: none; }
 .bd-menu button.danger { color: #b94a3e; }

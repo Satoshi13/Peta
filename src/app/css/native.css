@@ -35,7 +35,7 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   background-image: var(--seal, var(--a-sealCommon)); background-color: transparent;
   background-position: center; background-repeat: no-repeat; background-size: 152% 116%;
   box-shadow: none; border: 0;
-  filter: drop-shadow(0 1px 1px rgba(40, 30, 10, .18));
+  filter: drop-shadow(.5px 1px 1px rgba(40, 30, 10, .18));
 }
 .rv-info .seal { height: 30px; }
 
@@ -59,9 +59,9 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
 /* Keep hit areas still; only artwork inside a control may react to hover. */
 .mtray .mcard, .mtray .mcard:hover, .mtray .mcard[data-sel="true"] { transform:none; filter:none; border-radius:6px; background:transparent; transition:background .15s, box-shadow .15s; }
 .mtray .mcard:not(:disabled):hover { background:rgba(255,253,249,.6); }
-.mtray .mcard[data-sel="true"] { box-shadow:0 1px 3px rgba(80,60,20,.12); background:rgba(255,253,249,.8); }
+.mtray .mcard[data-sel="true"] { box-shadow:.5px 1px 3px rgba(80,60,20,.12); background:rgba(255,253,249,.8); }
 .mtray .mcard[data-sel="true"]::before { content:"✓"; position:absolute; left:3px; bottom:3px; z-index:3; width:15px; height:15px; display:grid; place-items:center; border-radius:50%; background:var(--paper); color:#527365; font:600 10px/1 var(--sys); pointer-events:none; }
-.mtray .mcard[data-sel="true"] .art { filter:drop-shadow(0 1px 1.5px rgba(40,30,10,.3)); }
+.mtray .mcard[data-sel="true"] .art { filter:drop-shadow(.5px 1px 1.5px rgba(40,30,10,.3)); }
 .mtray .mcard:focus-visible { outline:2px solid #527d93; outline-offset:4px; }
 .drop:hover, .drop.over, .sample:hover, .mbook:not(:disabled):hover { transform:none; }
 .gift:not(:disabled):hover { transform:rotate(var(--r)); }
@@ -162,7 +162,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 
 /* The shared sticky details keep their prototype width, padding and scrolling behaviour.
    CSS sizing trims only the supplied transparent gutters; the PNG itself is unchanged. */
-.detail { padding:44px 20px 16px; border-radius:20px; background:linear-gradient(rgba(235,232,220,.88),rgba(235,232,220,.88)), var(--a-paperCream) 0 0 / 420px, #ebe8dc; box-shadow:0 0 0 1px rgba(90,80,55,.14), 0 14px 30px rgba(60,45,20,.18); filter:none;
+.detail { padding:44px 20px 16px; border-radius:20px; background:linear-gradient(rgba(235,232,220,.88),rgba(235,232,220,.88)), var(--a-paperCream) 0 0 / 420px, #ebe8dc; box-shadow:0 0 0 1px rgba(90,80,55,.14), 3px 6px 24px rgba(60,45,20,.18); filter:none;
   color:var(--ink); }
 .book-flip { width: 100%; border: 0; background: none; cursor: pointer; margin-bottom: 12px; }
 .book-flip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 14px; }
@@ -183,7 +183,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 /* Center the name on the ivory paper. Its visible bounds are (61,171)-(2119,536)
    in the 2169×725 PNG; negative insets remove its transparent gutters in CSS. */
 .det-label { position:relative; height:46px; margin:-6px 4px 14px; display:grid; place-items:center; padding:0 18px; z-index:2; }
-.det-label::before { content:""; position:absolute; inset:-46.85% -2.43% -51.78% -2.96%; background:var(--a-inspNameLabel) 0 0 / 100% 100% no-repeat; filter:drop-shadow(0 2px 2px rgba(60,45,20,.18)) drop-shadow(0 5px 6px rgba(60,45,20,.12)); pointer-events:none; }
+.det-label::before { content:""; position:absolute; inset:-46.85% -2.43% -51.78% -2.96%; background:var(--a-inspNameLabel) 0 0 / 100% 100% no-repeat; filter:drop-shadow(1px 2px 2px rgba(60,45,20,.18)) drop-shadow(2.5px 5px 6px rgba(60,45,20,.12)); pointer-events:none; }
 .det-label b { position:relative; width:100%; min-width:0; text-align:center; font:400 24px/1.2 "Courier Prime","Kiwi Maru","Courier New",monospace; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#2b241c; }
 /* Holographic stock shows its full spectrum on both sides of the backing card. */
 .back-card[data-mat="holographic"], .backing[data-mat="holographic"] {
@@ -194,11 +194,11 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .det-info small { display:block; margin-bottom:5px; font:400 12px/1 ui-monospace,"SF Mono",Menlo,monospace; color:#655e51; }
 .det-info b { font:400 15px/1.2 ui-monospace,"SF Mono",Menlo,monospace; color:#2b2a28; white-space:nowrap; }
 .det-mat { display:flex; align-items:center; gap:10px; }
-.det-mat .material-swatch { width:32px; height:32px; border-radius:7px; box-shadow:0 0 0 2px #fffdf6, 0 1px 3px rgba(60,45,20,.28); }
+.det-mat .material-swatch { width:32px; height:32px; border-radius:7px; box-shadow:0 0 0 2px #fffdf6, .5px 1px 3px rgba(60,45,20,.28); }
 .book-action .ico { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
 .detail .book-actions { gap:6px; margin-bottom:2px; }
-.detail .book-actions .btn.det-main { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; height:54px; padding:0 18px; border:0; border-radius:16px; background:#2b2a28; color:#fff; box-shadow:0 2px 0 rgba(0,0,0,.35), 0 8px 16px rgba(40,30,15,.22); font:600 17px/1 var(--sys); cursor:pointer; }
-.detail .book-actions .btn.det-main:hover { background:#3a3834; } .detail .book-actions .btn.det-main:active { transform:translateY(1px); box-shadow:0 1px 0 rgba(0,0,0,.35); }
+.detail .book-actions .btn.det-main { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; height:54px; padding:0 18px; border:0; border-radius:16px; background:#2b2a28; color:#fff; box-shadow:1px 2px 0 rgba(0,0,0,.35), 3px 6px 16px rgba(40,30,15,.2); font:600 17px/1 var(--sys); cursor:pointer; }
+.detail .book-actions .btn.det-main:hover { background:#3a3834; } .detail .book-actions .btn.det-main:active { transform:translateY(1px); box-shadow:.5px 1px 0 rgba(0,0,0,.35); }
 .detail .book-actions .btn.det-main .ico { width:24px; height:24px; stroke-width:1.5; }
 .detail .book-actions .book-action-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin:4px 0 0; }
 .detail .book-actions .btn.det-link { display:inline-flex; align-items:center; gap:8px; width:100%; min-height:40px; padding:9px 10px; border:0; border-radius:10px; background:none; box-shadow:none; color:var(--ink2); font:500 14px/1.2 var(--sys); cursor:pointer; }
@@ -210,7 +210,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .detail > button.close-control:hover { background:rgba(60,45,20,.08); color:#2b2a28; }
 .detail > button.close-control svg { stroke-width:1.6; }
 .book-delete { display: grid; gap: 8px; margin-bottom: 12px; }
-.detail .book-delete button.btn.book-action { height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fffdf9; box-shadow: 0 1px 2px rgba(60, 45, 20, .15); font-weight: 600; font-size: 14px; }
+.detail .book-delete button.btn.book-action { height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fffdf9; box-shadow: .5px 1px 2px rgba(60, 45, 20, .15); font-weight: 600; font-size: 14px; }
 .detail .book-delete button.btn.book-action.secondary { color: #2b2a28; }
 .detail .book-delete button.btn.book-action.danger { color: #934238; border-color: rgba(147, 66, 56, .3); }
 .book-delete p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
@@ -229,11 +229,11 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
   position: absolute; top: 8px; right: 8px; z-index: 3;
   border: 1px solid rgba(60, 45, 20, .18); border-radius: 7px; padding: 4px 8px;
   background: rgba(255, 253, 249, .94); color: var(--ink); font: 600 11px/1.4 var(--sys);
-  cursor: pointer; box-shadow: 0 1px 2px rgba(60, 45, 20, .12);
+  cursor: pointer; box-shadow: .5px 1px 2px rgba(60, 45, 20, .12);
 }
 
 /* The opened daily envelope leaves a small, quiet paper ticket. */
-.envelope-ticket { display:flex; align-items:center; gap:5px; flex:none; margin:0; padding:9px 12px; border:1px dashed #b4ab9b; border-radius:3px; color:var(--muted); background:var(--paper); box-shadow:0 2px 4px #493c2420; font-size:12px; white-space:nowrap; }
+.envelope-ticket { display:flex; align-items:center; gap:5px; flex:none; margin:0; padding:9px 12px; border:1px dashed #b4ab9b; border-radius:3px; color:var(--muted); background:var(--paper); box-shadow:1px 2px 4px #493c2420; font-size:12px; white-space:nowrap; }
 .envelope-clock { display:inline-grid; grid-template-columns:repeat(8,1ch); text-align:center; color:var(--ink); font-family:var(--type); font-variant-numeric:tabular-nums; }
 
 /* Book keeps the existing paper and detail actions; the content can be a list or a ledger. */
@@ -250,7 +250,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .bookpage .pick-banner { margin-bottom:16px; }
 .bookpage .tile-stk { width:100%; will-change:auto; }
 .bookpage .tile-stk .stk { max-width:100%; }
-.calendar-ledger { width:100%; padding:16px 12px 12px; border:1px solid var(--line); border-radius:5px; background:rgba(255,253,249,.52); box-shadow:0 2px 5px #604c2010; }
+.calendar-ledger { width:100%; padding:16px 12px 12px; border:1px solid var(--line); border-radius:5px; background:rgba(255,253,249,.52); box-shadow:1px 2px 5px #604c2010; }
 .calendar-heading { display:grid; grid-template-columns:30px minmax(0,1fr) 30px; gap:8px; align-items:center; margin-bottom:16px; }
 .calendar-heading h2 { margin:0; font-size:22px; text-align:center; }
 .calendar-heading p { margin:3px 0 0; text-align:center; font-size:12px; }
@@ -285,8 +285,8 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .bookpage .bk-main { width:100%; }
 
 /* Scraps stays a quiet paper label; confirmation controls never move under the pointer. */
-.scraps-count { display:inline-flex; align-items:center; gap:10px; padding:7px 16px 7px 10px; border-radius:14px; background:rgba(255,253,249,.92); box-shadow:inset 0 0 0 1px var(--w-line), 0 1px 4px rgba(60,45,20,.12); color:var(--muted); font:500 15px/1 var(--sys); white-space:nowrap; }
-.scraps-count .sc-ico { flex:none; width:32px; height:30px; background:var(--a-scrapsIcon) center / contain no-repeat; filter:drop-shadow(0 1px 1.5px rgba(60,45,20,.28)); }
+.scraps-count { display:inline-flex; align-items:center; gap:10px; padding:7px 16px 7px 10px; border-radius:14px; background:rgba(255,253,249,.92); box-shadow:inset 0 0 0 1px var(--w-line), .5px 1px 4px rgba(60,45,20,.12); color:var(--muted); font:500 15px/1 var(--sys); white-space:nowrap; }
+.scraps-count .sc-ico { flex:none; width:32px; height:30px; background:var(--a-scrapsIcon) center / contain no-repeat; filter:drop-shadow(.5px 1px 1.5px rgba(60,45,20,.28)); }
 .scraps-count b { min-width:2ch; text-align:right; color:var(--ink); font:700 17px/1 var(--sys); font-variant-numeric:tabular-nums; }
 .material-entry { display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:0; }
 .material-entry .mbook { width:100%; flex:1; }
@@ -296,7 +296,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .mk-item .mk-tile { width:100%; }
 .mk-hero-actions { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px; }
 .mk-mats > .scrap-action { margin-bottom:16px; }
-.scrap-trade, .material-preview { position:relative; margin:0 0 20px; padding:20px; border-radius:14px; background:rgba(255,253,249,.82); box-shadow:0 1px 3px rgba(60,45,20,.12); scroll-margin-top:56px; }
+.scrap-trade, .material-preview { position:relative; margin:0 0 20px; padding:20px; border-radius:14px; background:rgba(255,253,249,.82); box-shadow:.5px 1px 3px rgba(60,45,20,.12); scroll-margin-top:56px; }
 .scrap-trade h2, .material-preview h2 { margin:0; font:650 21px/1.3 var(--sys); letter-spacing:-.01em; }
 .scrap-trade-head { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
 .scrap-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; align-items:start; }
@@ -348,7 +348,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .mcard[data-m="kraft"] { --card-texture-y:27.5%; }
 .mcard[data-m="gold"], .mcard[data-m="riso"], .mcard[data-m="vintage"] { --card-texture-size:112% 223.5%; --card-texture-y:19%; }
 .mcard .art { inset:12.63% 7.86% 12.37%; border-radius:var(--card-radius); background-size:var(--card-texture-size); background-position:50% var(--card-texture-y); background-color:var(--paper); box-shadow:inset 0 0 0 1px rgba(80,60,20,.12); }
-.mcard .lab, .mcard.big .lab { left:10.4%; right:10.4%; top:58%; height:25%; border-radius:calc(var(--card-radius) * .7); background:#fcf9f2; box-shadow:0 1px 2px rgba(60,45,20,.08); }
+.mcard .lab, .mcard.big .lab { left:10.4%; right:10.4%; top:58%; height:25%; border-radius:calc(var(--card-radius) * .7); background:#fcf9f2; box-shadow:.5px 1px 2px rgba(60,45,20,.08); }
 .mcard.locked .art { background-image:var(--a-cardMatte); filter:grayscale(1) contrast(.7); opacity:.5; }
 .mcard[data-m="holographic"].big::after, .mcard[data-m="holographic"][data-sel="true"]::after, .mbook .mcard[data-m="holographic"]::after { inset:12.63% 7.86% 12.37%; border-radius:var(--card-radius); -webkit-mask:none; mask:none; }
 
@@ -360,7 +360,8 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 [data-shell="studio"] .ph h1 { font:700 40px/44px var(--sys); letter-spacing:-.03em; }
 h2 { font:700 22px/26px var(--sys); letter-spacing:-.02em; }
 h3 { font:650 15px/20px var(--sys); }
-.eyebrow, .rule-cap, .cr-controls .lbl { font:var(--overline); letter-spacing:.09em; text-transform:uppercase; }
+.eyebrow, .rule-cap { font:var(--tag-type); letter-spacing:var(--tag-track); text-transform:uppercase; }
+.cr-controls .lbl { font:var(--overline); letter-spacing:.09em; text-transform:uppercase; }
 small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text .stock, .choice small, .book-count, .tile small, .calendar-multiple, .calendar-rest, .calendar-weekdays, .slider output { font:var(--meta); font-variant-numeric:tabular-nums; }
 .lede, .t-top > .muted { font:400 14px/21px var(--sys); color:var(--ink2); }
 .lead, .empty-note, .addnote, .cr-cutting p { font-family:var(--sys); }
@@ -569,7 +570,7 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 .btn:not(.paper):not(.stamp):not(.quiet) { background:var(--w-btn); color:var(--w-btnfg); }
 .btn:not(.paper):not(.stamp):not(.quiet):hover:not(:disabled) { background:color-mix(in srgb,var(--w-btn) 90%,var(--w-btnfg)); }
 .btn:not(.paper):not(.stamp):not(.quiet):active:not(:disabled) { background:color-mix(in srgb,var(--w-btn) 82%,var(--w-btnfg)); }
-.choice:not(:disabled):hover .choice-obj { transform:translateY(-3px) rotate(var(--tilt,0deg)); filter:drop-shadow(0 8px 7px rgba(60,45,20,.2)); }
+.choice:not(:disabled):hover .choice-obj { transform:translateY(-3px) rotate(var(--tilt,0deg)); filter:drop-shadow(3px 6px 7px rgba(60,45,20,.2)); }
 .choice-obj, .drop-obj, .sample img, .pk-stack, .stuck-t .stk, .mbook .mc, .tile-stk { transition:transform .22s var(--ease-hover),filter .22s var(--ease-hover); }
 :is(.mbook,.mk-mat,.mk-tile,.choice,.tile,.sample,.pack,.cr-card,.stuck-t) { transition:background-color .22s var(--ease-hover),box-shadow .22s var(--ease-hover),filter .22s var(--ease-hover); }
 .mbook:not(:disabled):hover .mc { transform:translateY(-3px); }
@@ -610,7 +611,7 @@ html[data-motion="reduce"] .nav-item:hover .ni-icon { transform:none; }
 .t-ghost { position:relative; display:grid; justify-items:center; gap:2px; text-align:center; }
 button.t-ghost { position:absolute; inset:0; align-content:center; padding:0; border:0; border-radius:50%; background:none; color:inherit; font:inherit; cursor:pointer; }
 button.t-ghost .t-plus { transition:transform .2s var(--ease-hover,ease), box-shadow .2s; }
-button.t-ghost:hover .t-plus, button.t-ghost:focus-visible .t-plus { transform:translateY(-2px) scale(1.06); box-shadow:inset 0 0 0 1px var(--w-line), 0 2px 3px rgba(60,45,20,.22), 0 8px 16px rgba(60,45,20,.12); }
+button.t-ghost:hover .t-plus, button.t-ghost:focus-visible .t-plus { transform:translateY(-2px) scale(1.06); box-shadow:inset 0 0 0 1px var(--w-line), 1px 2px 3px rgba(60,45,20,.22), 3px 6px 16px rgba(60,45,20,.12); }
 button.t-ghost:focus-visible { outline:none; } button.t-ghost:focus-visible b { text-decoration:underline; text-underline-offset:3px; }
 html[data-motion="reduce"] button.t-ghost .t-plus { transition:none; }
 .t-ghost b { font:650 17px/22px var(--sys); color:var(--ink); }
@@ -618,7 +619,7 @@ html[data-motion="reduce"] button.t-ghost .t-plus { transition:none; }
 .t-plus { width:44px; height:44px; margin-bottom:10px; border-radius:50%; display:grid; place-items:center; background:var(--w-surface); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh1); font:300 26px/1 var(--sys); color:var(--ink2); }
 /* a fixed square for the sticker, whatever its shape, so choosing another one never changes the card's height */
 .t-landed { position:relative; display:grid; place-items:center; width:min(280px,100%); aspect-ratio:1; }
-.t-landed .stk { filter:drop-shadow(0 3px 3px rgba(40,28,10,.3)) drop-shadow(0 12px 16px rgba(40,28,10,.2)); }
+.t-landed .stk { filter:drop-shadow(1.5px 3px 3px rgba(40,28,10,.3)) drop-shadow(3px 6px 16px rgba(40,28,10,.2)); }
 .t-stamp { position:absolute; right:18px; bottom:14px; transform:rotate(-3deg); pointer-events:none; }
 .t-ripple { position:absolute; left:50%; top:62%; width:260px; height:80px; border-radius:50%; border:2px solid rgba(60,45,20,.28); opacity:0; pointer-events:none; transform:translate(-50%,-50%); }
 .t-others { position:absolute; left:16px; bottom:14px; display:flex; gap:6px; }
@@ -644,7 +645,7 @@ html[data-motion="reduce"] button.t-ghost .t-plus { transition:none; }
 .calendar-day.stuck:hover { background:none; }
 .calendar-day.stuck[aria-pressed="true"] { box-shadow:inset 0 0 0 1.5px var(--ink); border-radius:8px; background:rgba(255,253,249,.7); }
 .calendar-sticker { height:74px; margin-top:4px; }
-.calendar-sticker .stk { width:min(112px,115%,calc(74px * var(--aspect))) !important; filter:drop-shadow(0 2px 2px rgba(40,28,10,.3)) drop-shadow(0 6px 8px rgba(40,28,10,.16)); }
+.calendar-sticker .stk { width:min(112px,115%,calc(74px * var(--aspect))) !important; filter:drop-shadow(1px 2px 2px rgba(40,28,10,.3)) drop-shadow(3px 6px 8px rgba(40,28,10,.16)); }
 .calendar-rest { display:block; width:34px; height:34px; margin-top:8px; border:1.5px dashed rgba(60,45,20,.28); border-radius:50%; font-size:0; }
 .poster-save[disabled] { opacity:.5; }
 @container page (max-width:600px) { .calendar-day { min-height:76px; } .calendar-sticker { height:48px; } .calendar-sticker .stk { width:min(84px,100%,calc(46px * var(--aspect))) !important; } .calendar-rest { width:26px; height:26px; margin-top:6px; } }
@@ -663,28 +664,28 @@ html[data-motion="reduce"] button.t-ghost .t-plus { transition:none; }
 .cs-top { position:absolute; left:14px; top:14px; right:14px; z-index:4; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; }
 .cs-top > * { pointer-events:auto; }
 .cs-top .muted { color:#f4f0e4; }
-.cs-steps { display:inline-flex; gap:4px; padding:4px; border-radius:99px; background:rgba(250,246,236,.74); box-shadow:0 0 0 .5px rgba(60,45,20,.22),0 4px 14px rgba(20,30,30,.2); backdrop-filter:blur(18px) saturate(1.4); }
+.cs-steps { display:inline-flex; gap:4px; padding:4px; border-radius:99px; background:rgba(250,246,236,.74); box-shadow:0 0 0 .5px rgba(60,45,20,.22),2px 4px 14px rgba(20,30,30,.2); backdrop-filter:blur(18px) saturate(1.4); }
 .cs-steps span { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:99px; font:500 12.5px/16px var(--sys); color:var(--muted); transition:background .2s,color .2s; }
 .cs-steps b { font:700 11px/16px var(--sys); }
-.cs-steps span.on { background:#fff; color:var(--ink); font-weight:650; box-shadow:0 1px 2px rgba(0,0,0,.18); }
+.cs-steps span.on { background:#fff; color:var(--ink); font-weight:650; box-shadow:.5px 1px 2px rgba(0,0,0,.18); }
 .cs-steps span.done { color:#456a40; }
 .cs-center { position:absolute; inset:0 190px 0 0; display:grid; place-items:center; }
 .cs-sticker { position:absolute; inset:58px 16px 84px; display:grid; place-items:center; }
 .cs-sticker .stk-host { width:100%; height:100%; padding:0; }
-.cs-sticker .stk { filter:drop-shadow(0 3px 3px rgba(20,40,35,.3)) drop-shadow(0 14px 22px rgba(20,40,35,.34)); }
+.cs-sticker .stk { filter:drop-shadow(1.5px 3px 3px rgba(20,40,35,.3)) drop-shadow(3px 6px 22px rgba(20,40,35,.2)); }
 .cs-editor { position:absolute; inset:58px 16px 84px; display:none; }
 .cs-editor > .frame { flex:1; }
 .cr-stage[data-mode="edit"] .cs-editor { display:flex; }
-.cr-stage[data-mode="edit"] .cs-sticker { inset:auto; right:12px; top:62px; width:150px; height:150px; z-index:3; border-radius:16px; background:rgba(250,246,236,.78); box-shadow:0 0 0 .5px rgba(60,45,20,.22),0 6px 18px rgba(20,30,30,.26); backdrop-filter:blur(14px); }
+.cr-stage[data-mode="edit"] .cs-sticker { inset:auto; right:12px; top:62px; width:150px; height:150px; z-index:3; border-radius:16px; background:rgba(250,246,236,.78); box-shadow:0 0 0 .5px rgba(60,45,20,.22),3px 6px 18px rgba(20,30,30,.26); backdrop-filter:blur(14px); }
 .cr-stage[data-mode="edit"] .cs-sticker .stk-host { padding:10px; }
-.cs-photo { position:absolute; left:50%; top:50%; translate:-50% -50%; width:min(380px,calc(100% - 64px)); height:min(calc(100% - 150px),420px); padding:14px; border-radius:4px; background:#fdfbf5; box-shadow:0 2px 3px rgba(0,0,0,.22),0 18px 36px rgba(0,0,0,.3); transition:background .3s,box-shadow .3s; }
+.cs-photo { position:absolute; left:50%; top:50%; translate:-50% -50%; width:min(380px,calc(100% - 64px)); height:min(calc(100% - 150px),420px); padding:14px; border-radius:4px; background:#fdfbf5; box-shadow:1px 2px 3px rgba(0,0,0,.22),3px 6px 24px rgba(0,0,0,.2); transition:background .3s,box-shadow .3s; }
 .cs-photo[hidden] { display:none; }
 .cs-photo.fall { background:transparent; box-shadow:none; }
 .cs-photo-in { position:relative; z-index:2; width:100%; height:100%; overflow:visible; } /* above the tape: the scanned sticker flies out of the photo over it, never under it */
 .cs-photo-in > img, .cs-photo-in > canvas { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
 .cs-photo-in > .cut-anim { position:absolute; left:50%; top:50%; translate:-50% -50%; }
 .cs-ghost { pointer-events:none; }
-.cs-tape { position:absolute; left:50%; top:-12px; width:90px; height:26px; margin-left:-45px; rotate:2deg; background:rgba(238,226,190,.82); box-shadow:0 1px 2px rgba(0,0,0,.2); z-index:1; transition:opacity .28s ease-out, translate .28s ease-out; }
+.cs-tape { position:absolute; left:50%; top:-12px; width:90px; height:26px; margin-left:-45px; rotate:2deg; background:rgba(238,226,190,.82); box-shadow:.5px 1px 2px rgba(0,0,0,.2); z-index:1; transition:opacity .28s ease-out, translate .28s ease-out; }
 .cs-photo.fall .cs-tape { opacity:0; translate:0 -8px; } /* the tape lets go with the photo */
 .cs-scan { position:absolute; left:-14px; right:-14px; top:0; height:20%; z-index:2; pointer-events:none; opacity:0; background:linear-gradient(180deg,transparent,rgba(255,255,255,.7),transparent); mix-blend-mode:overlay; }
 .cs-scan.loop { animation:cs-scan 2.2s ease-in-out infinite; }
@@ -693,11 +694,11 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 @media (prefers-reduced-motion:reduce) { .cs-scan.loop { animation:none; opacity:.5; top:40%; } }
 .cs-wait-text { position:absolute; left:0; right:0; bottom:26px; margin:0; text-align:center; font:600 14px/20px var(--sys); color:#f4f0e4; text-shadow:0 1px 3px rgba(10,30,20,.5); }
 .cs-orig { position:absolute; left:10px; top:10px; z-index:3; width:84px; transition:width .16s cubic-bezier(.2,.7,.3,1); }
-.cs-orig .frame { aspect-ratio:1; flex:none; box-shadow:0 0 0 2px #fffdf9,0 4px 10px rgba(20,40,25,.35); }
+.cs-orig .frame { aspect-ratio:1; flex:none; box-shadow:0 0 0 2px #fffdf9,2px 4px 10px rgba(20,40,25,.35); }
 .cs-orig small { position:absolute; left:6px; bottom:6px; padding:1px 6px; border-radius:99px; background:rgba(30,40,35,.62); font:600 10px/14px var(--sys); letter-spacing:.06em; text-transform:uppercase; color:#fff; pointer-events:none; }
 .cs-orig:hover, .cs-orig:focus-visible { width:200px; outline:none; }
 .cs-orig:hover .frame, .cs-orig:focus-visible .frame { aspect-ratio:4 / 3; }
-.cs-dock, .cs-refine { position:absolute; left:calc((100% - 190px) / 2); translate:-50% 0; z-index:5; background:rgba(250,246,236,.82); box-shadow:0 0 0 .5px rgba(60,45,20,.22),0 6px 20px rgba(20,30,30,.24); backdrop-filter:blur(22px) saturate(1.5); }
+.cs-dock, .cs-refine { position:absolute; left:calc((100% - 190px) / 2); translate:-50% 0; z-index:5; background:rgba(250,246,236,.82); box-shadow:0 0 0 .5px rgba(60,45,20,.22),3px 6px 20px rgba(20,30,30,.24); backdrop-filter:blur(22px) saturate(1.5); }
 .cs-dock { bottom:16px; display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:99px; max-width:calc(100% - 210px); }
 .cr-stage[data-mode="view"] .only-edit, .cr-stage[data-mode="edit"] .only-view { display:none; }
 .cs-dock .seg { background:rgba(60,45,20,.08); box-shadow:none; }
@@ -715,7 +716,7 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 .cs-refine[hidden] { display:none; }
 .cs-refine .slider { display:grid; grid-template-columns:62px minmax(0,1fr) 30px; align-items:center; gap:10px; height:32px; margin:0; font:550 13px/18px var(--sys); }
 .cs-refine .slider output { color:var(--muted); font-variant-numeric:tabular-nums; }
-.cs-rail { position:absolute; right:14px; top:58px; bottom:16px; width:164px; z-index:4; display:flex; flex-direction:column; gap:8px; padding:12px 10px; border-radius:20px; background:rgba(250,246,236,.82); box-shadow:0 0 0 .5px rgba(60,45,20,.22),0 6px 20px rgba(20,30,30,.2); backdrop-filter:blur(22px) saturate(1.5); overflow:auto; scrollbar-width:none; }
+.cs-rail { position:absolute; right:14px; top:58px; bottom:16px; width:164px; z-index:4; display:flex; flex-direction:column; gap:8px; padding:12px 10px; border-radius:20px; background:rgba(250,246,236,.82); box-shadow:0 0 0 .5px rgba(60,45,20,.22),3px 6px 20px rgba(20,30,30,.2); backdrop-filter:blur(22px) saturate(1.5); overflow:auto; scrollbar-width:none; }
 .cs-rail::-webkit-scrollbar { display:none; }
 .cs-rail .lbl { margin:0 4px; font:var(--overline); letter-spacing:.09em; text-transform:uppercase; color:var(--muted); }
 .cs-rail .mtray { grid-template-columns:minmax(0,1fr); gap:6px; }
@@ -776,15 +777,15 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 .pk-label small { font:600 5.4cqw/1 var(--sys); letter-spacing:.07em; text-transform:uppercase; color:#7a705e; }
 .pack[data-empty="true"] .pk-label { opacity:.5; }
 .pk-stack[data-empty="true"] .pk-label { opacity:.5; }
-.pk-stack[data-empty="true"] .pk-img { filter:grayscale(.8) opacity(.55) drop-shadow(0 4px 4px rgba(60,45,20,.2)); }
+.pk-stack[data-empty="true"] .pk-img { filter:grayscale(.8) opacity(.55) drop-shadow(2px 4px 4px rgba(60,45,20,.2)); }
 
 /* Market: looking closer at one pack. The pouch lifts to the left and the page behind is veiled flat; details and price come after. */
 .mkz { position:absolute; inset:0; z-index:40; overflow:hidden; }
 .mkz-scrim { position:absolute; inset:0; background:var(--w-win); } /* a flat, solid ground: a blurred (or faint) shelf behind only left dirty-looking ghosts of the "N left" labels */
 .mkz-pack { position:absolute; margin:0; pointer-events:auto; transition:none; }
 /* The shadow sits on the wrapper: a filter on .pk-img would replace the hue tint of coloured pouches. */
-.mkz-pack { filter:drop-shadow(0 14px 14px rgba(60,45,20,.28)); }
-.mkz-card { position:absolute; right:20px; top:20px; bottom:20px; width:min(340px,44%); display:flex; flex-direction:column; gap:6px; padding:24px 22px 18px; border-radius:20px; background:color-mix(in srgb, var(--w-surface) 90%, transparent); box-shadow:0 0 0 1px var(--w-line),0 18px 44px rgba(50,35,10,.26); opacity:0; overflow:auto; scrollbar-width:none; }
+.mkz-pack { filter:drop-shadow(3px 6px 14px rgba(60,45,20,.2)); }
+.mkz-card { position:absolute; right:20px; top:20px; bottom:20px; width:min(340px,44%); display:flex; flex-direction:column; gap:6px; padding:24px 22px 18px; border-radius:20px; background:color-mix(in srgb, var(--w-surface) 90%, transparent); box-shadow:0 0 0 1px var(--w-line),3px 6px 24px rgba(50,35,10,.2); opacity:0; overflow:auto; scrollbar-width:none; }
 .mkz-card::-webkit-scrollbar { display:none; }
 .mkz-card.on { opacity:1; }
 .mkz-card h2 { margin:0; font:700 26px/1.12 var(--sys); letter-spacing:-.022em; }
@@ -804,7 +805,7 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 @media (max-width:760px) { .mkz-card { width:46%; padding:20px 16px 14px; } .mkz-card h2 { font-size:21px; } }
 
 /* Pouches stand on their own: the title is printed on the pouch, so only a small status chip sits at its foot. */
-.pk-badge { position:absolute; left:50%; bottom:12px; translate:-50% 0; padding:3px 10px; border-radius:999px; background:var(--w-surface); color:var(--ink2); font:500 11px/16px var(--sys); letter-spacing:0; box-shadow:0 0 0 1px var(--w-line),0 2px 6px rgba(60,45,20,.16); pointer-events:none; white-space:nowrap; }
+.pk-badge { position:absolute; left:50%; bottom:12px; translate:-50% 0; padding:3px 10px; border-radius:999px; background:var(--w-surface); color:var(--ink2); font:500 11px/16px var(--sys); letter-spacing:0; box-shadow:0 0 0 1px var(--w-line),1px 2px 6px rgba(60,45,20,.16); pointer-events:none; white-space:nowrap; }
 .pk-badge.own { color:#35563a; } .pk-badge.own::before { content:"✓ "; }
 .pack .pk-stack .pk-badge, .mkz-pack .pk-badge { z-index:7; bottom:3cqw; padding:1.8cqw 6cqw; font-size:6.55cqw; line-height:1.45; }
 .shelf .pack::after { bottom:6px; }
@@ -859,7 +860,7 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 /* Depth on the shelf (owner's reference, 2026-10-13): the board lifts off the wall (a short dark shadow right under it and a soft one
    spreading below), each pack touches the board (a small dark contact shadow where its foot meets the floor), and the wall behind the
    pack takes a faint blurred shadow up and to the right. The floor is 8.15% of the 224px pouch box above its bottom, plus the card's 6px. */
-.shelf-row .ledge { filter: drop-shadow(0 2px 1.5px rgba(50, 35, 15, .34)) drop-shadow(0 12px 14px rgba(60, 45, 20, .2)); }
+.shelf-row .ledge { filter: drop-shadow(1px 2px 1.5px rgba(50, 35, 15, .34)) drop-shadow(3px 6px 14px rgba(60, 45, 20, .2)); }
 .shelf-row .pack::after { left: 15%; right: 15%; bottom: 17px; height: 13px; opacity: 1; background: radial-gradient(ellipse at 50% 45%, rgba(35, 25, 10, .62), rgba(35, 25, 10, .26) 42%, rgba(35, 25, 10, 0) 70%); }
 .shelf-row .pack::before { content: ""; position: absolute; z-index: -1; left: 22%; right: 12%; top: calc(44px + 12%); bottom: 28px; border-radius: 14px; background: rgba(60, 45, 20, .24); filter: blur(12px); transform: translate(14px, -10px); pointer-events: none; }
 .shelf-row .pack[data-empty="true"]::before { opacity: .5; }
@@ -875,7 +876,7 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 .mkz-qty .mkz-price b { font:700 16px/22px var(--sys); }
 .mkz-stepper { display:flex; align-items:center; justify-content:space-between; font:500 13px/18px var(--sys); color:var(--muted); }
 .mkz-ctls { display:flex; align-items:center; gap:4px; padding:3px; border-radius:999px; background:var(--w-sunken); box-shadow:inset 0 0 0 1px var(--w-line); }
-.mkz-ctl { position:relative; width:30px; height:30px; padding:0; border:0; border-radius:50%; background:var(--paper); color:var(--ink); box-shadow:0 1px 2px rgba(60,45,20,.18); cursor:pointer; }
+.mkz-ctl { position:relative; width:30px; height:30px; padding:0; border:0; border-radius:50%; background:var(--paper); color:var(--ink); box-shadow:.5px 1px 2px rgba(60,45,20,.18); cursor:pointer; }
 /* The signs are drawn, not typed, so they sit exactly in the middle of the button. */
 .mkz-ctl::before, .mkz-ctl.plus::after { content:""; position:absolute; left:50%; top:50%; width:12px; height:2px; border-radius:1px; background:currentColor; transform:translate(-50%,-50%); }
 .mkz-ctl.plus::after { transform:translate(-50%,-50%) rotate(90deg); }
@@ -954,7 +955,7 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 /* The paper is art/ui/name-tag-paper.png (2400×360). The paper itself is x 28–2365, y 35–287 of it; the rest is margin and a baked shadow.
    --nt-h is the height of the paper (252 art px); everything is that height × the art's own proportions. Left and right 200px are kept. */
 .nt-paper { --nt-h:44px; position:relative; height:var(--nt-h); }
-.nt-paper::before { content:""; position:absolute; inset:calc(var(--nt-h) * -.1389) calc(var(--nt-h) * -.1389) calc(var(--nt-h) * -.2897) calc(var(--nt-h) * -.1111); border:solid transparent; border-width:0 calc(var(--nt-h) * .7937); border-image:var(--a-nameTagPaper) 0 200 0 200 fill / 0 calc(var(--nt-h) * .7937) 0 calc(var(--nt-h) * .7937) stretch; pointer-events:none; filter:drop-shadow(0 5px 5px rgba(60,45,20,.16)); } /* the shadow is always this deep; focus adds no outline */
+.nt-paper::before { content:""; position:absolute; inset:calc(var(--nt-h) * -.1389) calc(var(--nt-h) * -.1389) calc(var(--nt-h) * -.2897) calc(var(--nt-h) * -.1111); border:solid transparent; border-width:0 calc(var(--nt-h) * .7937); border-image:var(--a-nameTagPaper) 0 200 0 200 fill / 0 calc(var(--nt-h) * .7937) 0 calc(var(--nt-h) * .7937) stretch; pointer-events:none; filter:drop-shadow(2.5px 5px 5px rgba(60,45,20,.16)); } /* the shadow is always this deep; focus adds no outline */
 .nt-paper input { position:relative; width:100%; height:100%; padding:0 50px 0 20px; border:0; border-radius:inherit; background:none; color:#2b2a28; font:400 21px/1 "Patrick Hand","Kiwi Maru","Hiragino Maru Gothic ProN","Klee One",cursive; letter-spacing:.005em; caret-color:#2b2a28; }
 .nt-paper input::placeholder { color:#8a8478; opacity:1; }
 .nt-paper input:focus { outline:none; }
@@ -974,10 +975,10 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 .peek-fig { margin:18px 0 0; text-align:center; }
 .peek-fig figcaption { margin-top:8px; font:500 12.5px/1.3 var(--sys); color:var(--muted); }
 .peek-sheet { position:relative; width:94%; margin:0 auto; aspect-ratio:680 / 546; }
-.peek-sheet::before { content:""; position:absolute; inset:0; background:var(--a-peekPaper) center / 100% 100% no-repeat; filter:drop-shadow(0 1px 1px rgba(60,45,20,.28)) drop-shadow(0 4px 6px rgba(60,45,20,.18)); } /* the art has no shadow of its own */
-.peek-tape { position:absolute; left:50%; top:-3.5%; width:25%; aspect-ratio:360 / 169; translate:-50% 0; rotate:-1.5deg; background:var(--a-peekTape) center / 100% 100% no-repeat; z-index:3; pointer-events:none; filter:drop-shadow(0 1px 1.5px rgba(60,45,20,.3)); }
+.peek-sheet::before { content:""; position:absolute; inset:0; background:var(--a-peekPaper) center / 100% 100% no-repeat; filter:drop-shadow(.5px 1px 1px rgba(60,45,20,.28)) drop-shadow(2px 4px 6px rgba(60,45,20,.18)); } /* the art has no shadow of its own */
+.peek-tape { position:absolute; left:50%; top:-3.5%; width:25%; aspect-ratio:360 / 169; translate:-50% 0; rotate:-1.5deg; background:var(--a-peekTape) center / 100% 100% no-repeat; z-index:3; pointer-events:none; filter:drop-shadow(.5px 1px 1.5px rgba(60,45,20,.3)); }
 .peek-item { position:absolute; transform:translate(-50%,-50%) rotate(var(--r,0deg)); display:grid; place-items:center; }
-.peek-item > img, .peek-item > .stk { max-width:100%; max-height:100%; filter:drop-shadow(0 3px 4px rgba(60,45,20,.28)); }
+.peek-item > img, .peek-item > .stk { max-width:100%; max-height:100%; filter:drop-shadow(1.5px 3px 4px rgba(60,45,20,.28)); }
 .peek-item > img { width:100%; height:100%; object-fit:contain; }
 .peek-fig.compact .peek-sheet { width:68%; }
 
@@ -987,7 +988,7 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 
 /* Gifts with nothing waiting: the kraft pocket, what it says, and the one thing to do */
 .gifts-empty { gap:6px; min-height:0; margin-top:28px; padding-bottom:24px; }
-.gifts-empty-art { display:block; width:min(240px,62%); aspect-ratio:1; margin-bottom:22px; background:var(--a-emptyGifts) center / contain no-repeat; filter:drop-shadow(0 2px 2px rgba(60,45,20,.22)) drop-shadow(0 12px 14px rgba(60,45,20,.14)); }
+.gifts-empty-art { display:block; width:min(240px,62%); aspect-ratio:1; margin-bottom:22px; background:var(--a-emptyGifts) center / contain no-repeat; filter:drop-shadow(1px 2px 2px rgba(60,45,20,.22)) drop-shadow(3px 6px 14px rgba(60,45,20,.14)); }
 .gifts-empty h2 { margin:0; font:700 27px/1.2 var(--sys); letter-spacing:-.015em; }
 .gifts-empty p { margin:0; font:400 16px/1.5 var(--sys); }
 .gifts-empty .btn { margin-top:20px; }
@@ -998,27 +999,27 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 
 /* A pack in a wrapping that is not a pouch (Studio): the picture stands on the ledge and scales with its cell */
 .pk-stack[data-gen="1"] { aspect-ratio: 3 / 4; }
-.pk-stack[data-gen="1"] .bagpic { filter: drop-shadow(0 8px 8px rgba(60,45,20,.3)); }
-.mkz-pack[data-gen="1"] .bagpic { filter: drop-shadow(0 14px 14px rgba(60,45,20,.28)); }
+.pk-stack[data-gen="1"] .bagpic { filter: drop-shadow(3px 6px 8px rgba(60,45,20,.2)); }
+.mkz-pack[data-gen="1"] .bagpic { filter: drop-shadow(3px 6px 14px rgba(60,45,20,.2)); }
 .peek-host:empty { display: none; }
 
 /* a gift that arrived in a Studio wrapping: the wrapping itself, with the name it was written for */
 .g-env.g-bag { display: grid; justify-items: center; min-height: 150px; align-content: end; filter: none; }
-.g-env.g-bag .bagpic { filter: drop-shadow(0 10px 10px rgba(60,40,10,.28)); }
+.g-env.g-bag .bagpic { filter: drop-shadow(3px 6px 10px rgba(60,40,10,.2)); }
 
 /* Redeem code: a sheet of deckled paper with the code on its own ticket (art/ui/redeem-*.png). It stays paper in the night theme, so its ink is fixed. */
 dialog.rd-dialog { border:0; padding:0; background:none; box-shadow:none; overflow:visible; max-width:calc(100% - 32px); color:#2b2a28; }
 dialog.rd-dialog::backdrop { background:rgba(30,24,14,.32); }
-.rd-paper { position:relative; display:grid; grid-template-columns:minmax(0,1fr); justify-items:center; width:min(440px,calc(100vw - 48px)); aspect-ratio:620 / 640; padding:9% 11% 7%; align-content:start; gap:0; background:var(--a-redeemPaper) 0 0 / 100% 100% no-repeat; filter:drop-shadow(0 18px 28px rgba(40,30,15,.3)); box-sizing:border-box; }
+.rd-paper { position:relative; display:grid; grid-template-columns:minmax(0,1fr); justify-items:center; width:min(440px,calc(100vw - 48px)); aspect-ratio:620 / 640; padding:9% 11% 7%; align-content:start; gap:0; background:var(--a-redeemPaper) 0 0 / 100% 100% no-repeat; filter:drop-shadow(3px 6px 24px rgba(40,30,15,.2)); box-sizing:border-box; }
 .rd-paper h2 { margin:5% 0 0; font:700 31px/1.15 var(--sys); letter-spacing:-.02em; color:#2b2a28; }
 .rd-sub { margin:10px 0 0; font:400 15.5px/1.4 var(--sys); color:#4a463f; text-align:center; }
-.rd-ticket { position:relative; width:104%; margin-top:6%; aspect-ratio:760 / 238; background:var(--a-redeemTicket) 0 0 / 100% 100% no-repeat; display:grid; align-items:center; padding:0 11% 3% 12%; filter:drop-shadow(0 2px 2px rgba(60,45,20,.2)); }
+.rd-ticket { position:relative; width:104%; margin-top:6%; aspect-ratio:760 / 238; background:var(--a-redeemTicket) 0 0 / 100% 100% no-repeat; display:grid; align-items:center; padding:0 11% 3% 12%; filter:drop-shadow(1px 2px 2px rgba(60,45,20,.2)); }
 .rd-ticket input { width:100%; border:0; background:none; font:400 21px/1.2 var(--sys); color:#2b2a28; caret-color:#2b2a28; outline:none; letter-spacing:.01em; }
 .rd-ticket input::placeholder { color:#8a8374; opacity:1; }
-.rd-ticket:focus-within { filter:drop-shadow(0 2px 2px rgba(60,45,20,.2)) drop-shadow(0 0 0 #527d93); }
+.rd-ticket:focus-within { filter:drop-shadow(1px 2px 2px rgba(60,45,20,.2)) drop-shadow(0 0 0 #527d93); }
 .rd-ticket:focus-within::after { content:""; position:absolute; left:12%; right:11%; bottom:24%; height:2px; background:#527d93; border-radius:2px; opacity:.7; }
 .rd-status { min-height:16px; margin:4px 0 4px; color:#934238; text-align:center; font-size:13px; }
-.rd-paper .rd-go { width:92%; height:48px; margin-top:2px; border-radius:26px; background:#2b2a28; color:#fff; font:600 17px/1 var(--sys); box-shadow:0 2px 0 rgba(0,0,0,.4), 0 8px 14px rgba(40,30,15,.2); }
+.rd-paper .rd-go { width:92%; height:48px; margin-top:2px; border-radius:26px; background:#2b2a28; color:#fff; font:600 17px/1 var(--sys); box-shadow:1px 2px 0 rgba(0,0,0,.4), 3px 6px 14px rgba(40,30,15,.2); }
 .rd-paper .rd-go:disabled { opacity:.5; }
 .rd-cancel { margin-top:10px; font:500 16px/1 var(--sys); color:#2b2a28; text-decoration:underline; text-underline-offset:4px; background:none; border:0; cursor:pointer; }
 .rd-note { margin-top:10px; font:400 11px/1.35 var(--sys); color:#7a7466; text-align:center; }
@@ -1028,13 +1029,13 @@ dialog.rd-dialog button.close-control.rd-x:hover { background:rgba(60,45,20,.08)
 /* Share as a picture: the card it will post (3:2), then Copy / Save. Paper like the redeem sheet, fixed ink in the night theme. */
 dialog.share-dialog { border:0; padding:0; background:none; box-shadow:none; overflow:visible; max-width:calc(100% - 32px); color:#2b2a28; }
 dialog.share-dialog::backdrop { background:rgba(30,24,14,.32); }
-.share-sheet { position:relative; width:min(520px,calc(100vw - 48px)); padding:26px 26px 20px; border-radius:14px; background:var(--a-pagePaper) 0 0 / 420px repeat, #fbf8f1; box-shadow:0 18px 40px rgba(40,30,15,.28); display:grid; gap:14px; box-sizing:border-box; }
+.share-sheet { position:relative; width:min(520px,calc(100vw - 48px)); padding:26px 26px 20px; border-radius:14px; background:var(--a-pagePaper) 0 0 / 420px repeat, #fbf8f1; box-shadow:3px 6px 24px rgba(40,30,15,.2); display:grid; gap:14px; box-sizing:border-box; }
 .share-sheet h2 { margin:0; font:700 22px/1.2 var(--sys); letter-spacing:-.02em; color:#2b2a28; }
-.share-preview { display:block; width:100%; aspect-ratio:3 / 2; object-fit:cover; border-radius:8px; background:#efe8da; box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 6px 16px rgba(40,30,15,.16); }
+.share-preview { display:block; width:100%; aspect-ratio:3 / 2; object-fit:cover; border-radius:8px; background:#efe8da; box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 3px 6px 16px rgba(40,30,15,.16); }
 .share-bg { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 .share-bg small { font:600 11px/1 var(--sys); color:#7a7466; letter-spacing:.04em; text-transform:uppercase; }
 .share-sheets { display:flex; gap:7px; flex-wrap:wrap; }
-.share-swatch { position:relative; width:28px; height:28px; padding:0; border-radius:50%; border:1px solid rgba(60,45,20,.22); cursor:pointer; box-shadow:0 1px 2px rgba(40,30,15,.12); }
+.share-swatch { position:relative; width:28px; height:28px; padding:0; border-radius:50%; border:1px solid rgba(60,45,20,.22); cursor:pointer; box-shadow:.5px 1px 2px rgba(40,30,15,.12); }
 .share-swatch.auto { width:auto; padding:0 10px; border-radius:14px; background:linear-gradient(135deg,#f6e7c9,#dfe7ee 55%,#f3e1de); font:600 11px/26px var(--sys); color:#2b2a28; }
 .share-swatch.custom { overflow:hidden; background:conic-gradient(#f3c9c3,#f1e3b4,#cfe6c8,#c7dcec,#dccdf0,#f3c9c3); }
 .share-custom { position:absolute; inset:-6px; width:calc(100% + 12px); height:calc(100% + 12px); opacity:0; cursor:pointer; }
@@ -1042,7 +1043,7 @@ dialog.share-dialog::backdrop { background:rgba(30,24,14,.32); }
 .share-swatch:focus-visible, .share-swatch:focus-within { outline:2px solid #527d93; outline-offset:2px; }
 .share-actions { display:flex; gap:10px; }
 .share-actions .btn { flex:1; height:44px; border-radius:24px; font:600 15px/1 var(--sys); }
-.share-sheet .share-copy { background:#2b2a28; color:#fff; box-shadow:0 2px 0 rgba(0,0,0,.35); }
+.share-sheet .share-copy { background:#2b2a28; color:#fff; box-shadow:1px 2px 0 rgba(0,0,0,.35); }
 .share-sheet .share-copy:disabled, .share-sheet .share-save:disabled { opacity:.5; }
 .share-status { min-height:16px; margin:-4px 0 0; color:#4f6a45; text-align:center; font-size:13px; }
 .share-note { font:400 11px/1.4 var(--sys); color:#7a7466; text-align:center; }
@@ -1051,7 +1052,7 @@ dialog.share-dialog button.close-control.share-x:hover { background:rgba(60,45,2
 
 /* an amount of Scraps wherever one is shown: the offcuts, then the number */
 .sc-amt { display:inline-flex; align-items:center; gap:.3em; vertical-align:middle; white-space:nowrap; }
-.sc-amt .sc-ico { flex:none; width:1.5em; height:1.4em; background:var(--a-scrapsIcon) center / contain no-repeat; filter:drop-shadow(0 1px 1px rgba(60,45,20,.28)); }
+.sc-amt .sc-ico { flex:none; width:1.5em; height:1.4em; background:var(--a-scrapsIcon) center / contain no-repeat; filter:drop-shadow(.5px 1px 1px rgba(60,45,20,.28)); }
 .sc-amt .sc-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 .scrap-action .sc-amt .sc-ico { width:1.35em; height:1.25em; }
 .mkz-buy .have, .mkz-buy small.muted .sc-amt { justify-content:center; }

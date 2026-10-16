@@ -48,7 +48,7 @@ test('the name is written in the bundled Patrick Hand (OFL); Japanese comes from
 test('the name tag has no outline on focus or hover, and its shadow is always the same depth', () => {
   const css = read('src/app/css/native.css');
   assert.doesNotMatch(css, /\.nt-paper:(focus-within|hover|focus)/);
-  assert.match(css, /\.nt-paper::before \{[^}]*filter:drop-shadow\(0 5px 5px rgba\(60,45,20,\.16\)\)/);
+  assert.match(css, /\.nt-paper::before \{[^}]*filter:drop-shadow\(2\.5px 5px 5px rgba\(60,45,20,\.16\)\)/); // light from the top left
   assert.match(css, /\.nt-paper input:focus \{ outline:none; \}/);
 });
 

@@ -1,3 +1,3 @@
-.update-notice {position:fixed;z-index:900;right:24px;bottom:24px;width:min(340px,calc(100vw - 48px));margin:0;padding:18px 20px;box-shadow:0 8px 30px #2d251f26;background:var(--paper)}
+.update-notice {position:fixed;z-index:900;right:24px;bottom:24px;width:min(340px,calc(100vw - 48px));margin:0;padding:18px 20px;box-shadow:3px 6px 24px #2d251f26;background:var(--paper)}
 .update-notice p {margin:0 0 12px}
 .update-controls {margin:12px 0}.update-controls p {margin:0 0 8px}

@@ -1,5 +1,5 @@
 /* BagPic (js/bagpic.js): a wrapped pack or gift. Everything is placed in percent of the wrapping's own picture. */
-.bagpic { position: relative; width: var(--w, 200px); filter: drop-shadow(0 12px 10px rgba(50, 35, 10, .3)); container-type: inline-size; }
+.bagpic { position: relative; width: var(--w, 200px); filter: drop-shadow(3px 6px 10px rgba(50, 35, 10, .2)); container-type: inline-size; }
 .bagpic .bp-art { position: absolute; inset: 0; background: var(--art) center / 100% 100% no-repeat; z-index: 2; }
 .bagpic[data-gloss="1"]::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; mix-blend-mode: soft-light; opacity: var(--gloss, 0); -webkit-mask: var(--art) center / 100% 100% no-repeat; mask: var(--art) center / 100% 100% no-repeat;
   background: linear-gradient(115deg, transparent 22%, rgba(255,255,255,0) 36%, rgba(255,255,255,.9) 48%, rgba(255,235,255,.5) 54%, transparent 68%) var(--sx, 30%) var(--sy, 30%) / 280% 280%; }
@@ -11,11 +11,11 @@
 .bagpic[data-kind="gen"] .bp-lbl small { font-size: 6cqw; }
 .bp-cover { position: absolute; inset: -4% -3%; background: #f3ead6 var(--a-paperCream) center / 240px; box-shadow: inset 0 0 0 1px rgba(120,100,60,.2); z-index: -1; display: none; }
 .bagpic[data-nolabel="1"] .bp-cover { display: block; }
-.bp-tape { position: absolute; z-index: 6; left: 12%; right: 12%; top: 5.5%; height: 8%; background: #bfe6d3; box-shadow: 0 1px 2px rgba(60,45,20,.28); opacity: .94; pointer-events: none;
+.bp-tape { position: absolute; z-index: 6; left: 12%; right: 12%; top: 5.5%; height: 8%; background: #bfe6d3; box-shadow: .5px 1px 2px rgba(60,45,20,.28); opacity: .94; pointer-events: none;
   clip-path: polygon(0 10%, 2% 0, 4% 14%, 6% 0, 8% 10%, 92% 0, 94% 14%, 96% 0, 98% 12%, 100% 8%, 100% 92%, 98% 100%, 96% 86%, 94% 100%, 92% 90%, 8% 100%, 6% 86%, 4% 100%, 2% 88%, 0 90%); }
 .bp-tape.cream { background: #efe4c6; }
 .bp-fan { position: absolute; z-index: 1; left: 8%; right: 8%; top: -19%; height: 36%; pointer-events: none; }
-.bp-fan img { position: absolute; bottom: 0; left: 50%; width: 36%; transform-origin: 50% 100%; filter: drop-shadow(0 2px 2px rgba(50,35,10,.3)); }
+.bp-fan img { position: absolute; bottom: 0; left: 50%; width: 36%; transform-origin: 50% 100%; filter: drop-shadow(1px 2px 2px rgba(50,35,10,.3)); }
 .bp-deco { position: absolute; z-index: 4; transform: translate(-50%, -50%) rotate(var(--r, 0deg)); pointer-events: none; }
 .bp-deco img { display: block; width: 100%; filter: drop-shadow(1px 3px 3px rgba(50,35,10,.35)); }
 .bp-deco.sticker { z-index: 6; }
@@ -26,9 +26,9 @@
 .bagpic .bp-fan { z-index: 4; }
 
 /* Real stationery art keeps accents readable at both workbench and shelf scales. */
-.bp-tape:not(.cream) { background: var(--a-tape2) center / 100% 100% no-repeat; clip-path: none; box-shadow: none; filter: drop-shadow(0 1px 1px rgba(60,45,20,.2)); }
+.bp-tape:not(.cream) { background: var(--a-tape2) center / 100% 100% no-repeat; clip-path: none; box-shadow: none; filter: drop-shadow(.5px 1px 1px rgba(60,45,20,.2)); }
 .bp-deco[data-k="seal"] { z-index: 7; }
-.bp-deco[data-k="clip"] img, .bp-deco[data-k="seal"] img { filter: drop-shadow(0 1px 1px rgba(50,35,10,.3)); }
+.bp-deco[data-k="clip"] img, .bp-deco[data-k="seal"] img { filter: drop-shadow(.5px 1px 1px rgba(50,35,10,.3)); }
 .pk-layer .pk-dress { position: absolute; inset: 0; width: 100%; height: 100%; filter: none; pointer-events: none; }
 
 /* The paper label uses the original artwork, independently of the body tint. */
