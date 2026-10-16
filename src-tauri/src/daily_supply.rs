@@ -209,8 +209,8 @@ fn link_url(link: peta_core::signed_config::NoticeLink) -> Option<&'static str> 
     use peta_core::signed_config::NoticeLink;
     match link {
         NoticeLink::Download => Some(if cfg!(feature = "developer") { "https://peta-download-dev.peta-api.workers.dev" } else { "https://peta-download-prod.peta-api.workers.dev" }),
-        // TODO(owner): the Discord server's invite URL (https://discord.gg/…). Until then banners show no Discord link.
-        NoticeLink::Discord => None,
+        // The Peta Discord server's permanent invite (2026-10-16).
+        NoticeLink::Discord => Some("https://discord.gg/ugQu2Hv7HX"),
     }
 }
 #[tauri::command]
