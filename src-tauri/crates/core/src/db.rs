@@ -1039,6 +1039,10 @@ impl Database {
 
     // ---- material stock (each creation uses one sheet) ----
 
+    /// Whether the signed shop setting in effect leaves this official pack on sale (true without one).
+    pub fn shop_on_sale(&self, id: &str) -> bool {
+        crate::scraps::pack_offer(&self.conn, id).is_none_or(|(_, on_sale)| on_sale)
+    }
     pub fn scrap_status(&self) -> Result<crate::scraps::Status> {
         crate::scraps::status(&self.conn)
     }

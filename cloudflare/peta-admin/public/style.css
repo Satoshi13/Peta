@@ -16,3 +16,13 @@
 nav{flex-wrap:wrap}
 nav button{flex:1 0 auto;white-space:nowrap}
 .news-preview{border:1px solid var(--line);border-radius:6px;padding:10px 14px;background:var(--paper);min-height:44px;white-space:pre-wrap;overflow-wrap:anywhere}
+.shop-checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 16px}
+.shop-checks .check{margin:0 0 8px}
+.shop-order{margin:0;padding:0;list-style:none}
+.shop-order li{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0}
+.shop-order li span{flex:1;min-width:0}
+.shop-order button{min-height:36px;padding:4px 12px}
+.shop-pack{border-bottom:1px solid var(--line);padding:12px 0}
+.shop-pack h4{margin:0 0 8px;font-size:15px;font-weight:550}
+.shop-pack .fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.shop-pack label{margin-bottom:8px}

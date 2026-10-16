@@ -1,5 +1,5 @@
-//! Signed owner settings that are not receipts: the in-app announcement. Each setting is checked against the
-//! app's own limits; one outside them is ignored whole, never partly repaired.
+//! Signed owner settings that are not receipts: the in-app announcement and the official shop's configuration.
+//! Each setting is checked against the app's own limits; one outside them is ignored whole, never partly repaired.
 use crate::{
     error::Error,
     events::{self, Verified},
@@ -18,6 +18,13 @@ pub const ANNOUNCEMENT_MAX_CHARS: usize = 140;
 pub const MAX_ANNOUNCEMENTS: usize = 10;
 const ANNOUNCEMENT_MAX_DAYS: i64 = 366;
 const ANNOUNCEMENTS: &str = "config.announcements";
+const SHOP: &str = "config.shop";
+pub const MAX_SHOP_CONFIGS: usize = 10;
+/// A shop price may move only within this share of the built-in price (scraps.rs `PACKS`).
+pub const SHOP_PRICE_MIN_PERCENT: i64 = 50;
+pub const SHOP_PRICE_MAX_PERCENT: i64 = 200;
+pub const SHOP_BLURB_MAX_CHARS: usize = 120;
+const SHOP_MAX_DAYS: i64 = 400;
 const DISMISSED: &str = "config.announcements.dismissed";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -91,12 +98,99 @@ fn announcement(v: &Verified) -> Result<Timed<Announcement>> {
     }
     period(v, a, ANNOUNCEMENT_MAX_DAYS)
 }
+/// Which official packs the Market features and in what order, what it says about them, and what they cost.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ShopConfig {
+    pub config_id: String,
+    pub config_kind: ShopKind,
+    pub featured: Vec<String>,
+    pub official_first: bool,
+    pub order: Vec<String>,
+    pub packs: Vec<ShopPack>,
+}
+/// A standing configuration, or one for a period that takes priority while it runs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ShopKind {
+    Default,
+    Event,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ShopPack {
+    pub id: String,
+    pub on_sale: bool,
+    pub price: Option<i64>,
+    pub blurb: Option<String>,
+}
+/// The price range a configuration may set for a paid pack. Free packs have none.
+pub fn shop_price_range(id: &str) -> Option<(i64, i64)> {
+    let pack = crate::pack::market_pack(id)?;
+    let base = crate::scraps::default_pack_price(id)?;
+    (!pack.free).then(|| ((base * SHOP_PRICE_MIN_PERCENT + 99) / 100, base * SHOP_PRICE_MAX_PERCENT / 100))
+}
+pub fn validate_shop(c: &ShopConfig) -> Result<()> {
+    let known = |id: &String| crate::pack::market_pack(id).is_some();
+    let unique = |ids: &[&String]| ids.iter().collect::<std::collections::HashSet<_>>().len() == ids.len();
+    let packs: Vec<&String> = c.packs.iter().map(|p| &p.id).collect();
+    if !events::safe_id(&c.config_id)
+        || [&c.featured, &c.order].iter().any(|ids| ids.len() > 6 || !ids.iter().all(known) || !unique(&ids.iter().collect::<Vec<_>>()))
+        || packs.len() > 6 || !packs.iter().all(|id| known(id)) || !unique(&packs)
+    {
+        return Err(invalid("Shop settings name only the packs that come with Peta, each once."));
+    }
+    for p in &c.packs {
+        if let Some(price) = p.price {
+            let (low, high) = shop_price_range(&p.id).ok_or_else(|| invalid("A free pack can't be given a price."))?;
+            if !(low..=high).contains(&price) {
+                return Err(invalid("Shop prices stay within 50% to 200% of the built-in price."));
+            }
+        }
+        if p.blurb.as_ref().is_some_and(|b| !events::text(b, SHOP_BLURB_MAX_CHARS)) {
+            return Err(invalid("Pack lines are up to 120 characters on one line."));
+        }
+    }
+    Ok(())
+}
+fn shop(v: &Verified) -> Result<Timed<ShopConfig>> {
+    let e = v.header();
+    if e.kind != SHOP_CONFIG || !v.attachments().is_empty() {
+        return Err(invalid("This is not a shop setting."));
+    }
+    let c: ShopConfig = serde_json::from_value(e.payload.clone()).map_err(|_| invalid("This shop setting is not supported."))?;
+    validate_shop(&c)?;
+    if c.config_id != e.event_id {
+        return Err(invalid("Shop setting IDs must match."));
+    }
+    period(v, c, SHOP_MAX_DAYS)
+}
+/// Replace the whole shop snapshot; settings outside the limits are dropped whole.
+pub fn replace_shop(db: &mut Database, configs: &[Verified]) -> Result<()> {
+    if configs.len() > MAX_SHOP_CONFIGS || configs.iter().any(|v| v.header().kind != SHOP_CONFIG) {
+        return Err(invalid("Unexpected shop settings."));
+    }
+    let kept: Vec<String> = configs.iter().filter(|v| shop(v).is_ok()).map(|v| STANDARD.encode(v.bytes())).collect();
+    db.set_setting(SHOP, &serde_json::to_string(&kept).expect("strings serialize"))
+}
+/// The shop setting in effect: one for a period beats the standing one, then the latest start wins.
+/// Builds without the server never have one, so they keep the built-in shop.
+pub(crate) fn active_shop(conn: &rusqlite::Connection, now: DateTime<Utc>) -> Option<ShopConfig> {
+    if !cfg!(any(feature = "daily-tables", test)) {
+        return None;
+    }
+    let mut live: Vec<_> = cached(conn, SHOP).iter().filter_map(|v| shop(v).ok()).filter(|t| t.start <= now && now < t.end).collect();
+    live.sort_by(|a, b| {
+        (a.value.config_kind == ShopKind::Event, a.start, a.issued, &a.value.config_id).cmp(&(b.value.config_kind == ShopKind::Event, b.start, b.issued, &b.value.config_id))
+    });
+    live.pop().map(|t| t.value)
+}
 fn cached(conn: &rusqlite::Connection, key: &str) -> Vec<Verified> {
     let raw: Option<String> = conn.query_row("SELECT value FROM meta WHERE key=?1", [key], |r| r.get(0)).optional().ok().flatten();
     raw.and_then(|s| serde_json::from_str::<Vec<String>>(&s).ok())
         .unwrap_or_default()
         .into_iter()
-        .take(MAX_ANNOUNCEMENTS)
+        .take(MAX_ANNOUNCEMENTS.max(MAX_SHOP_CONFIGS))
         // Re-verified on every read: only the built-in trust set can ever be used.
         .filter_map(|s| STANDARD.decode(s).ok().and_then(|b| events::decode(&b).ok()))
         .collect()
@@ -250,5 +344,33 @@ mod worker_contract_tests {
         let shown = current_announcement(&db, tests::stamp("2026-10-20T00:00:00Z")).unwrap();
         assert_eq!((shown.id.as_str(), shown.kind, shown.link, shown.text.as_str()), ("news-contract", NoticeKind::Event, Some(NoticeLink::Download), v["announcement"]["text"].as_str().unwrap()));
         assert_eq!(ANNOUNCEMENT_MAX_CHARS, 140);
+    }
+}
+#[cfg(test)]
+mod shop_contract_tests {
+    use super::*;
+    #[test]
+    fn owner_worker_shop_catalog_limits_and_signature_match_the_app() {
+        let v: serde_json::Value = serde_json::from_str(include_str!("../../../../cloudflare/peta-admin/test/config-vector.json")).unwrap();
+        let fix = "Update with: cd cloudflare/peta-admin && node scripts/config-vector.mjs; review, then redeploy the admin page.";
+        let limits = &v["shopCatalog"]["limits"];
+        assert_eq!((limits["minPercent"].as_i64(), limits["maxPercent"].as_i64(), limits["blurbMax"].as_u64(), limits["maxPacks"].as_u64(), limits["maxDays"].as_i64(), limits["maxConfigs"].as_u64()),
+            (Some(SHOP_PRICE_MIN_PERCENT), Some(SHOP_PRICE_MAX_PERCENT), Some(SHOP_BLURB_MAX_CHARS as u64), Some(6), Some(SHOP_MAX_DAYS), Some(MAX_SHOP_CONFIGS as u64)), "{fix}");
+        let packs = v["shopCatalog"]["packs"].as_array().unwrap();
+        assert_eq!(packs.len(), crate::scraps::status(&Database::open_in_memory().unwrap().conn).unwrap().packs.len(), "{fix}");
+        for p in packs {
+            let id = p["id"].as_str().unwrap();
+            let pack = crate::pack::market_pack(id).expect(fix);
+            assert_eq!((p["title"].as_str(), p["price"].as_i64(), p["free"].as_bool()), (Some(pack.title), crate::scraps::default_pack_price(id), Some(pack.free)), "{fix}");
+        }
+        let bytes = STANDARD.decode(v["shopEvent"].as_str().unwrap()).unwrap();
+        let event = events::decode(&bytes).unwrap();
+        assert_eq!(events::encode(event.header(), &[], &tests::key()).unwrap(), bytes);
+        let mut db = Database::open_in_memory().unwrap();
+        replace_shop(&mut db, &[event]).unwrap();
+        let c = active_shop(&db.conn, tests::stamp("2026-10-20T00:00:00Z")).unwrap();
+        assert_eq!((c.config_id.as_str(), c.config_kind, c.featured.clone(), c.official_first), ("shop-contract", ShopKind::Event, vec!["night".to_string(), "pixel".into()], true));
+        assert_eq!(c.packs.iter().map(|p| (p.id.as_str(), p.on_sale, p.price)).collect::<Vec<_>>(), [("night", true, Some(18)), ("cats", false, None), ("tokyo", true, None)]);
+        assert!(active_shop(&db.conn, tests::stamp("2026-11-01T00:00:00Z")).is_none());
     }
 }

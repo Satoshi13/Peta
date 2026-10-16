@@ -20,6 +20,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const PNG='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 const report={id:'f'.repeat(64),reason:'Not kind',kind:'gift',createdAt:1760000000,resolvedAt:null,stored:true,sender:'aaaaaaaa',reporter:'cccccccc',senderReports:2,senderOpen:2,senderBlocked:false};
 const posts=[];
+const {shopCatalog}=JSON.parse(await readFile(resolve(root,'cloudflare/peta-admin/test/config-vector.json'),'utf8'));
 let browser;
 try {
   browser=await chromium.launch({headless:true,...(process.env.PETA_BROWSER ? {executablePath:process.env.PETA_BROWSER} : {})});
@@ -30,6 +31,7 @@ try {
     if(method==='POST'){posts.push([path,route.request().postDataJSON()]);return route.fulfill({json:path==='/api/reports/block'?{blocked:true,resolved:2}:{ok:true}});}
     const data={'/api/me':{email:'owner@example.test'},'/api/friends':{friends:[],revision:'1',downloadPage:''},
       '/api/reports':{open:1,reports:[report,{...report,id:'e'.repeat(64),resolvedAt:1760000500,reason:'<img src=x onerror=alert(1)>'}],blocked:[{key:'bbbbbbbb',reason:'Spam',at:1760000000,reports:1}]},
+      '/api/shop':{catalog:shopCatalog,configs:[{id:'shop-1',kind:'default',featured:['night'],officialFirst:false,order:['night'],packs:[{id:'night',onSale:true,price:14,blurb:'Fog.'}],startsAt:1760000000,endsAt:2000000000,stoppedAt:null,state:'active'}]},
       '/api/news':{news:[{id:'news-1',text:'<b>Autumn</b> week',kind:'event',link:'download',startsAt:1760000000,endsAt:2000000000,stoppedAt:null,state:'live'}]},
       [`/api/reports/${report.id}`]:{...report,available:true,contents:{readable:true,lines:[{label:'Note',value:'<b>not bold</b>'}],pictures:[{label:'Sticker',png:PNG}]}},
     }[path];
@@ -69,6 +71,25 @@ try {
   const published=posts.find(p=>p[0]==='/api/news')[1];
   assert.equal(published.text,'<i>Hello</i> friends');assert.equal(published.link,'discord');assert.ok(published.endsAt-published.startsAt>=6*86400);
   await page.setViewportSize({width:375,height:812});await page.screenshot({path:join(shots,'news-mobile.png'),fullPage:true});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.setViewportSize({width:1060,height:800});
+
+  // Shop: starts from the setting in effect, refuses a price out of range, saves only what differs from the built-in shop.
+  await page.getByRole('tab',{name:'Shop',exact:true}).click();await page.locator('.shop-price[data-pack="pixel"]').waitFor();
+  assert.equal(await page.locator('#shop-featured input[value="night"]').isChecked(),true);
+  assert.equal(await page.locator('.shop-price[data-pack="night"]').inputValue(),'14');
+  assert.equal(await page.locator('.shop-price[data-pack="tokyo"]').isDisabled(),true,'free packs have no price');
+  await page.locator('.shop-price[data-pack="pixel"]').fill('30');await page.getByRole('button',{name:'Save shop setting'}).click();
+  assert.equal(await page.locator('.shop-price[data-pack="pixel"]').evaluate(e=>e.validity.valid),false);assert.equal(posts.some(p=>p[0]==='/api/shop'),false);
+  await page.locator('.shop-price[data-pack="pixel"]').fill('20');await page.locator('.shop-sale[data-pack="cats"]').uncheck();
+  await page.locator('#shop-featured input[value="pixel"]').check();await page.locator('#shop-official-first').check();
+  await page.getByRole('button',{name:'Move Pixel Dream up'}).click();
+  await page.getByRole('button',{name:'Save shop setting'}).click();await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('Shop setting saved'));
+  const saved=posts.find(p=>p[0]==='/api/shop')[1];
+  assert.deepEqual(saved.featured,['pixel','night']);assert.equal(saved.officialFirst,true);assert.equal(saved.kind,'default');
+  assert.deepEqual(saved.packs,[{id:'pixel',onSale:true,price:20,blurb:null},{id:'cats',onSale:false,price:null,blurb:null},{id:'night',onSale:true,price:14,blurb:'Fog.'}]);
+  assert.equal(saved.order.length,6);
+  await page.setViewportSize({width:375,height:812});await page.screenshot({path:join(shots,'shop-mobile.png'),fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.setViewportSize({width:1060,height:800});
 

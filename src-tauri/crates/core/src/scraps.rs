@@ -13,7 +13,11 @@ pub const MAX_SEALED_PER_PACK: i64 = 100;
 pub struct MaterialRate { pub id: &'static str, pub dismantle: i64, pub exchange: Option<i64> }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PackRate { pub id: &'static str, pub exchange: i64, pub stickers: usize }
+pub struct PackRate { pub id: &'static str, pub exchange: i64, pub stickers: usize, pub on_sale: bool }
+/// What the Market shows about the official shop, from the signed shop setting in effect (none: the built-in shop).
+#[derive(Clone, Debug, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ShopView { pub featured: Vec<String>, pub official_first: bool, pub order: Vec<String>, pub blurbs: std::collections::BTreeMap<String, String> }
 
 const MATERIALS: [MaterialRate; 10] = [
     MaterialRate { id:"matte", dismantle:1, exchange:Some(1) },
@@ -29,10 +33,22 @@ const MATERIALS: [MaterialRate; 10] = [
 ];
 pub fn material_rates()->Vec<MaterialRate> {MATERIALS.to_vec()}
 const PACKS: [(&str, i64); 6] = [("tokyo",16),("coffee",12),("plants",10),("pixel",12),("cats",10),("night",12)];
+pub fn default_pack_price(id: &str) -> Option<i64> { PACKS.iter().find(|(p,_)| *p==id).map(|(_,price)| *price) }
+/// One price for both what the Market shows and what a trade takes: the signed shop setting's, else the built-in one.
+pub(crate) fn pack_offer(conn: &Connection, id: &str) -> Option<(i64, bool)> {
+    let base = default_pack_price(id)?;
+    let shop = crate::signed_config::active_shop(conn, chrono::Utc::now());
+    let entry = shop.as_ref().and_then(|c| c.packs.iter().find(|p| p.id==id));
+    Some((entry.and_then(|p| p.price).unwrap_or(base), entry.is_none_or(|p| p.on_sale)))
+}
+fn shop_view(conn: &Connection) -> Option<ShopView> {
+    let c = crate::signed_config::active_shop(conn, chrono::Utc::now())?;
+    Some(ShopView { featured:c.featured, official_first:c.official_first, order:c.order, blurbs:c.packs.into_iter().filter_map(|p| Some((p.id, p.blurb?))).collect() })
+}
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Status { pub balance: i64, pub materials: Vec<MaterialRate>, pub packs: Vec<PackRate>, pub tools: Vec<ToolRate> }
+pub struct Status { pub balance: i64, pub materials: Vec<MaterialRate>, pub packs: Vec<PackRate>, pub tools: Vec<ToolRate>, pub shop: Option<ShopView> }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ToolRate { pub id: &'static str, pub exchange: i64 }
@@ -56,7 +72,7 @@ fn balance(conn: &Connection) -> Result<i64> {
     Ok(n)
 }
 pub(crate) fn status(conn: &Connection) -> Result<Status> {
-    Ok(Status { balance:balance(conn)?, materials:MATERIALS.to_vec(), packs:PACKS.iter().map(|(id,exchange)| PackRate { id, exchange:*exchange, stickers:pack::market_pack(id).unwrap().keys.len() }).collect(), tools:TOOLS.to_vec() })
+    Ok(Status { balance:balance(conn)?, materials:MATERIALS.to_vec(), packs:PACKS.iter().map(|(id,_)| { let (exchange,on_sale)=pack_offer(conn,id).expect("built-in pack"); PackRate { id, exchange, stickers:pack::market_pack(id).unwrap().keys.len(), on_sale } }).collect(), tools:TOOLS.to_vec(), shop:shop_view(conn) })
 }
 
 pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, unrestricted: bool) -> Result<Receipt> {
@@ -79,7 +95,9 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
         Kind::Material => -rate.and_then(|m| m.exchange).ok_or_else(|| invalid("This material is not available to exchange."))? * request.quantity,
         Kind::Pack => {
             // Sets are bought together: one price per set, all added to the same bag in one transaction.
-            -PACKS.iter().find(|(id,_)| *id==request.item_id).ok_or_else(|| invalid("This pack is not available to exchange."))?.1 * request.quantity
+            let (price, on_sale) = pack_offer(&tx, &request.item_id).ok_or_else(|| invalid("This pack is not available to exchange."))?;
+            if !on_sale { return Err(invalid("This pack is not on sale right now.")); }
+            -price * request.quantity
         }
         Kind::Tool => -TOOLS.iter().find(|t| t.id==request.item_id).ok_or_else(|| invalid("This tool is not available."))?.exchange * request.quantity,
     };
@@ -132,6 +150,67 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
     tx.execute("INSERT INTO meta(key,value) VALUES(?1,?2)", params![key,saved])?;
     tx.commit()?;
     Ok(receipt)
+}
+
+#[cfg(test)]
+mod shop_tests {
+    use super::*;
+    use crate::{db::Database, signed_config::{self, tests::signed}};
+    fn at(days: i64) -> String { (chrono::Utc::now() + chrono::Duration::days(days)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true) }
+    fn config(id: &str, kind: &str, packs: serde_json::Value, from: i64, to: i64) -> crate::events::Verified {
+        signed(id, signed_config::SHOP_CONFIG, serde_json::json!({"configId":id,"configKind":kind,"featured":["pixel","cats"],"officialFirst":true,"order":["night","pixel"],"packs":packs}), &at(from), &at(to))
+    }
+    fn funded() -> Database {
+        let db=Database::open_in_memory().unwrap();
+        db.conn.execute("INSERT INTO meta(key,value) VALUES('scraps.balance','500') ON CONFLICT(key) DO UPDATE SET value='500'",[]).unwrap();db
+    }
+    fn trade(db:&mut Database,id:&str,n:i64,request:&str)->Result<Receipt> { db.scrap_trade(&Trade{kind:Kind::Pack,item_id:id.into(),quantity:n},request) }
+    #[test]
+    fn the_shown_price_is_the_charged_price_with_and_without_a_shop_setting() {
+        let mut db=funded();
+        let shown=|db:&Database,id:&str| db.scrap_status().unwrap().packs.into_iter().find(|p| p.id==id).unwrap();
+        assert_eq!((shown(&db,"pixel").exchange,shown(&db,"pixel").on_sale),(12,true));
+        assert!(db.scrap_status().unwrap().shop.is_none());
+        let r=trade(&mut db,"pixel",2,"built-in").unwrap();assert_eq!(r.delta,-2*shown(&db,"pixel").exchange);
+        signed_config::replace_shop(&mut db,&[config("shop-a","default",serde_json::json!([{"id":"pixel","onSale":true,"price":20,"blurb":"Glow"},{"id":"cats","onSale":false,"price":null,"blurb":null}]),-1,30)]).unwrap();
+        let status=db.scrap_status().unwrap();
+        assert_eq!(shown(&db,"pixel").exchange,20);assert!(!shown(&db,"cats").on_sale);assert_eq!(shown(&db,"night").exchange,12);
+        let view=status.shop.unwrap();assert_eq!((view.featured,view.official_first,view.order),(vec!["pixel".to_string(),"cats".into()],true,vec!["night".to_string(),"pixel".into()]));
+        assert_eq!(view.blurbs.get("pixel").map(String::as_str),Some("Glow"));
+        let before=status.balance;
+        let r=trade(&mut db,"pixel",3,"configured").unwrap();assert_eq!(r.delta,-3*shown(&db,"pixel").exchange);assert_eq!(r.balance,before-60);
+        assert_eq!(trade(&mut db,"cats",1,"off-sale").unwrap_err().to_string(),"This pack is not on sale right now.");
+        assert_eq!(db.scrap_status().unwrap().balance,before-60);assert!(!db.shop_on_sale("cats"));assert!(db.shop_on_sale("tokyo"));
+        // A retry keeps the receipt it was charged, even if the price changes afterwards.
+        signed_config::replace_shop(&mut db,&[]).unwrap();assert_eq!(trade(&mut db,"pixel",3,"configured").unwrap(),r);
+        assert_eq!(shown(&db,"pixel").exchange,12);
+    }
+    #[test]
+    fn prices_outside_half_to_double_or_on_free_packs_void_the_whole_setting() {
+        let mut db=funded();
+        assert_eq!(signed_config::shop_price_range("pixel"),Some((6,24)));assert_eq!(signed_config::shop_price_range("tokyo"),None);
+        for packs in [serde_json::json!([{"id":"pixel","onSale":true,"price":25,"blurb":null}]),serde_json::json!([{"id":"pixel","onSale":true,"price":5,"blurb":null}]),
+            serde_json::json!([{"id":"tokyo","onSale":true,"price":8,"blurb":null}]),serde_json::json!([{"id":"pixel","onSale":true,"price":null,"blurb":"x".repeat(121)}]),
+            serde_json::json!([{"id":"pixel","onSale":true,"price":null,"blurb":null},{"id":"pixel","onSale":false,"price":null,"blurb":null}]),
+            serde_json::json!([{"id":"unknown","onSale":true,"price":null,"blurb":null}]),serde_json::json!([{"id":"pixel","onSale":false,"price":null,"blurb":null,"url":"x"}])] {
+            signed_config::replace_shop(&mut db,&[config("shop-bad","default",packs,-1,30)]).unwrap();
+            let status=db.scrap_status().unwrap();
+            assert!(status.shop.is_none());assert!(status.packs.iter().all(|p| p.on_sale && Some(p.exchange)==default_pack_price(p.id)));
+        }
+        signed_config::replace_shop(&mut db,&[config("shop-edge","default",serde_json::json!([{"id":"pixel","onSale":true,"price":24,"blurb":null},{"id":"plants","onSale":false,"price":null,"blurb":null}]),-1,30)]).unwrap();
+        assert_eq!(db.scrap_status().unwrap().packs.iter().find(|p| p.id=="pixel").unwrap().exchange,24);assert!(!db.shop_on_sale("plants"));
+    }
+    #[test]
+    fn a_period_setting_beats_the_standing_one_only_while_it_runs() {
+        let mut db=funded();
+        let price=|db:&Database| db.scrap_status().unwrap().packs.into_iter().find(|p| p.id=="night").unwrap().exchange;
+        let standing=||config("shop-standing","default",serde_json::json!([{"id":"night","onSale":true,"price":10,"blurb":null}]),-10,300);
+        let week=config("shop-week","event",serde_json::json!([{"id":"night","onSale":true,"price":8,"blurb":null}]),-20,7);
+        let later=config("shop-later","event",serde_json::json!([{"id":"night","onSale":true,"price":6,"blurb":null}]),2,9);
+        let over=config("shop-over","event",serde_json::json!([{"id":"night","onSale":true,"price":7,"blurb":null}]),-30,-1);
+        signed_config::replace_shop(&mut db,&[standing(),week,later,over]).unwrap();assert_eq!(price(&db),8);
+        signed_config::replace_shop(&mut db,&[standing()]).unwrap();assert_eq!(price(&db),10);
+    }
 }
 
 #[cfg(test)]

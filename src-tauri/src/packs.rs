@@ -132,7 +132,9 @@ async fn open(app: AppHandle, pack_id: String, free: bool, queue: bool) -> Resul
 pub fn pack_install_demo(app: AppHandle, pack_id: String) -> Result<(), String> {
     let p = pack::market_pack(&pack_id).ok_or("This pack is not available yet")?;
     if !p.free { return Err("Exchange Scraps for this pack.".into()); }
-    app.state::<Store>().lock().db_mut().pack_install(p.id,p.title,p.by,p.keys).map_err(|e|e.to_string())?;
+    let store=app.state::<Store>();let mut lib=store.lock();
+    if !lib.db().shop_on_sale(p.id) { return Err("This pack is not on sale right now.".into()); }
+    lib.db_mut().pack_install(p.id,p.title,p.by,p.keys).map_err(|e|e.to_string())?;drop(lib);
     today::announce(&app);
     Ok(())
 }

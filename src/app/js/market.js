@@ -53,20 +53,59 @@ const FriendShop = {
   },
 };
 
+/* What the hero at the top of Packs shows, decided on this Mac only: nothing about friends' packs is sent anywhere.
+   A friend's pack this Mac can pull (not your own, not sold out, from a friend you know, its card opened) comes first, at random;
+   otherwise the owner's featured official packs (the signed shop setting; without one, the first built-in pack), leaving out any
+   that are off sale or would overfill the bag; otherwise no hero. "Official first" in the shop setting swaps the two. The choice
+   is made again each time Market opens and kept while it stays open. */
+const Featured = {
+  key: null,
+  reset() { this.key = null; },
+  friends() {
+    const d = FriendShop.data;
+    if (!d?.enabled || d.offline) return [];
+    const mine = new Set((d.mine || []).map((l) => l.listingId));
+    return (d.listings || []).filter((l) => l.card && l.state === "open" && l.slotsLeft > 0 && l.sellerName && !mine.has(l.listingId) && !l.blocked)
+      .map((l) => ({ kind: "friend", key: "friend:" + l.listingId, listing: l, pack: FriendShop.pack(l) }));
+  },
+  officials(packs) {
+    const chosen = S.scraps.shop?.featured?.length ? S.scraps.shop.featured : [MARKET_PACKS[0].id];
+    return chosen.map((id) => packs.find((p) => p.id === id)).filter((p) => p && Market.onSale(p) && !Market.full(p))
+      .map((p) => ({ kind: "official", key: "official:" + p.id, pack: p }));
+  },
+  pick(packs, random = Math.random) {
+    const friends = this.friends(), officials = this.officials(packs);
+    const group = (S.scraps.shop?.officialFirst ? [officials, friends] : [friends, officials]).find((g) => g.length) || [];
+    const kept = group.find((c) => c.key === this.key);
+    if (kept) return kept;
+    const next = group.length ? group[Math.min(group.length - 1, Math.floor(random() * group.length))] : null;
+    this.key = next?.key ?? null;
+    return next;
+  },
+};
+
 const Market = {
+  /* The official packs as the shop setting describes them: its order first, its lines in place of the built-in ones. */
+  official() {
+    const shop = S.scraps.shop, order = shop?.order || [];
+    const rank = (p) => { const i = order.indexOf(p.id); return i < 0 ? order.length + MARKET_PACKS.indexOf(p) : i; };
+    return [...MARKET_PACKS].sort((a, b) => rank(a) - rank(b)).map((p) => shop?.blurbs?.[p.id] ? { ...p, blurb: shop.blurbs[p.id] } : p);
+  },
+  onSale(pack) { return Scraps.pack(pack.id)?.onSale !== false; },
   pouch(p) { const foil = (p.kind || "holo") === "holo"; return h("div.pk-stack.mk-pouch", h("i.pk-img" + (foil && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, foil ? h("i.sheen") : null), PackLabel(p)); },
   own(id) { return !!S.owned[id]; },
   /* Sealed stickers still in the bag, and whether another set would overflow it. */
   sealed(id) { return S.packs.find((p) => p.id === id)?.left.length || 0; },
   full(pack) { const rate = Scraps.pack(pack.id); return !!rate && this.sealed(pack.id) + rate.stickers > PACK_SEALED_CAP; },
-  price(pack) { const rate = Scraps.pack(pack.id); return pack.price === "Free" && !this.own(pack.id) ? "Free" : rate ? `${rate.exchange} Scraps` : "Coming later"; },
+  price(pack) { const rate = Scraps.pack(pack.id); return !this.onSale(pack) ? "Not on sale" : pack.price === "Free" && !this.own(pack.id) ? "Free" : rate ? `${rate.exchange} Scraps` : "Coming later"; },
   exchange(pack) {
-    const rate = Scraps.pack(pack.id), own = this.own(pack.id);
-    return Scraps.button("pack", pack.id, !rate ? "Coming later" : this.full(pack) ? "The bag is full" : [`${own ? "Add another set" : "Exchange"} — `, ScrapAmt(rate.exchange)], !rate || this.full(pack) || !S.developer && S.scraps.balance < rate.exchange);
+    const rate = Scraps.pack(pack.id), own = this.own(pack.id), sale = this.onSale(pack);
+    return Scraps.button("pack", pack.id, !rate ? "Coming later" : !sale ? "Not on sale" : this.full(pack) ? "The bag is full" : [`${own ? "Add another set" : "Exchange"} — `, ScrapAmt(rate.exchange)], !rate || !sale || this.full(pack) || !S.developer && S.scraps.balance < rate.exchange);
   },
   /* Free packs are taken straight away; anything else (including a second set of a pack you already have) goes through the exchange. */
   async get(pack) {
     if(pack.local || pack.canList) return;
+    if (!this.onSale(pack)) { Shell.toast("This pack is not on sale right now."); return; }
     if (this.own(pack.id) || pack.price !== "Free") { this.exchange(pack).click(); return; }
     try { await Bridge.invoke("pack_install_demo", {packId:pack.id}); await Bridge.reload(); Snd.chime(3,784); Shell.toast(`${pack.title} is on your Packs shelf.`); Shell.refresh(); }
     catch(e) { Shell.toast(String(e)); }
@@ -76,6 +115,7 @@ const Market = {
   /* How many sets can be bought right now, and what stops more. */
   limit(pack) {
     const rate = Scraps.pack(pack.id); if (!rate) return { max: 0, stop: "Not available yet." };
+    if (!this.onSale(pack)) return { max: 0, stop: "This pack is not on sale right now.", rate };
     const room = Math.floor((PACK_SEALED_CAP - this.sealed(pack.id)) / rate.stickers), unit = this.unit(pack), afford = unit ? Math.floor(S.scraps.balance / unit) : Infinity;
     const max = Math.max(0, Math.min(room, afford, 1000));
     const stop = room < 1 ? "This bag is full. Open a few stickers to make room." : afford < 1 ? `You need ${(unit - S.scraps.balance).toLocaleString("en-US")} more Scraps.` : max === room && room <= afford ? "That fills the bag." : max === afford ? "That is all your Scraps will buy." : "";
@@ -185,6 +225,7 @@ Pages.market = {
   /* The page is still sliding in when the packs start to swing: they are real pendulums on a moving rail. */
   arrive(root, o) { if (MK.tab === "packs") requestAnimationFrame(() => Pages.market.sway(root, o?.dir, Pages.market.follow(root))); },
   build() {
+    Featured.reset();
     const root = h("div.page-in.marketpage");
     root.addEventListener("scroll", () => { if (MK.tab === "packs") Pages.market.sway(root, 0, Pages.market.follow(root)); }, { passive: true });
     const paint = () => {
@@ -233,7 +274,7 @@ Pages.market = {
     finally {this.boardBusy=false;Scraps.inFlight=false;Bridge.busy=was;paint();}
   },
   packs(paint) {
-    const feat = MARKET_PACKS[0];
+    const official = Market.official(), feat = Featured.pick(official);
     const open = (p, tile) => { Snd.tap(); PackZoom.open(p, tile, (pack) => Market.card(pack)); };
     const cell = (p, i) => {
       const own = Market.own(p.id);
@@ -241,14 +282,28 @@ Pages.market = {
       return h("div.mk-item", h("div.mk-hang", h("i.mk-clip", { "aria-hidden": "true" }), h("button.mk-tile", { "aria-label": `${p.title} by ${p.by}${own ? ", owned" : ""} — look closer`, "aria-haspopup": "dialog", data: { pack: p.id }, style: { "--i": i }, on: { click: (e) => open(p, e.currentTarget) } },
         Market.pouch(p))), own ? h("span.pk-badge.own", "Owned") : p.price === "Free" ? h("span.pk-badge.free", "Free") : null);
     };
+    const rail = official.filter((p) => p.id !== (feat?.kind === "official" ? feat.pack.id : null) && (Market.onSale(p) || Market.own(p.id)));
     const main = h("div.mk-main",
-      h("section.mk-hero", h("div.mk-hero-art", Market.pouch(feat), h("div.fan", feat.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
-        h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", feat.title), h("p.muted", `by ${feat.by} · ${feat.count} stickers`), h("p", feat.blurb),
-          h("div.mk-hero-actions", h("button.btn", { on: { click: (e) => Market.own(feat.id) ? open(feat, e.currentTarget.closest(".mk-hero").querySelector(".mk-hero-art")) : Market.get(feat) } }, Market.own(feat.id) ? "Add another set…" : "Get — Free")))),
+      feat ? this.hero(feat, open) : null,
       this.localPacks(),
-      h("p.eyebrow.mk-h", "New and popular"), this.rail(MARKET_PACKS.slice(1).map(cell)),
+      h("p.eyebrow.mk-h", "New and popular"), this.rail(rail.map(cell)),
       this.friendPacks(paint));
     return h("div.mk", main);
+  },
+  /* The hero: an official pack with three of its stickers fanned out, or a friend's pack with the pictures from its card. */
+  hero(feat, open) {
+    const art = (e) => e.currentTarget.closest(".mk-hero").querySelector(".mk-hero-art");
+    if (feat.kind === "friend") {
+      const l = feat.listing, p = feat.pack;
+      const fan = (l.card.peek || []).slice(0, 3).map((x, i) => h("div.fan-s", { style: { "--i": i, "--fan-width": "84px" } }, h("img", { src: "data:image/png;base64," + x.png, alt: x.name, width: 84 })));
+      return h("section.mk-hero.mk-hero-friend", h("div.mk-hero-art", Market.pouch(p), fan.length ? h("div.fan", fan) : null),
+        h("div.mk-hero-text", h("p.eyebrow", "From a friend"), h("h2", p.title), h("p.muted", `by ${l.sellerName} · ${FriendShop.left(l)}`), p.blurb ? h("p", p.blurb) : null,
+          h("div.mk-hero-actions", h("button.btn", { "aria-haspopup": "dialog", on: { click: (e) => open(p, art(e)) } }, "Look closer…"))));
+    }
+    const p = feat.pack, own = Market.own(p.id), free = p.price === "Free" && !own;
+    return h("section.mk-hero", h("div.mk-hero-art", Market.pouch(p), h("div.fan", p.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
+      h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", p.title), h("p.muted", `by ${p.by} · ${p.count} stickers`), h("p", p.blurb),
+        h("div.mk-hero-actions", h("button.btn", { on: { click: (e) => free ? Market.get(p) : open(p, art(e)) } }, own ? "Add another set…" : free ? "Get — Free" : ["Exchange — ", Market.price(p)]))));
   },
   /* Friends' rails, one per friend, below the packs that come with Peta. Nothing is shown in builds without the server. */
   friendPacks(paint) {

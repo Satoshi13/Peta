@@ -48,6 +48,8 @@ mod online {
             tables: Vec<String>,
             #[serde(default)]
             announcements: Option<Vec<String>>,
+            #[serde(default)]
+            shop: Option<Vec<String>>,
         }
         // The prior signed cache is retained on network, JSON, signature or policy failure.
         // A server that predates /v1/config (404) still answers the daily table alone.
@@ -61,6 +63,9 @@ mod online {
         let tables = store_response(lib.db_mut(), &response.tables, now);
         if let Some(announcements) = &response.announcements {
             let _ = store_announcements(lib.db_mut(), announcements);
+        }
+        if let Some(shop) = &response.shop {
+            let _ = store_shop(lib.db_mut(), shop);
         }
         tables
     }
@@ -80,6 +85,10 @@ mod online {
                 events::decode(&bytes)
             })
             .collect()
+    }
+    /// A response with any unverifiable shop setting keeps the previous snapshot.
+    pub fn store_shop(db: &mut peta_core::Database, items: &[String]) -> Result<()> {
+        signed_config::replace_shop(db, &decode_all(items, signed_config::MAX_SHOP_CONFIGS)?)
     }
     /// A response with any unverifiable announcement keeps the previous snapshot.
     pub fn store_announcements(db: &mut peta_core::Database, items: &[String]) -> Result<()> {
@@ -137,6 +146,9 @@ mod online {
             assert!(store_announcements(&mut db, &vec![String::new(); 11]).is_err());
             assert_eq!(db.setting("config.announcements").unwrap().as_deref(), Some("[]"));
             store_announcements(&mut db, &[]).unwrap();
+            db.set_setting("config.shop", "[]").unwrap();
+            assert!(store_shop(&mut db, &["not-base64".into()]).is_err());
+            assert_eq!(db.setting("config.shop").unwrap().as_deref(), Some("[]"));
         }
         #[test]
         fn invalid_snapshots_keep_the_last_verified_cache_and_empty_clears_it() {

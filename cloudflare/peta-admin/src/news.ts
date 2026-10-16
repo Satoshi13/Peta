@@ -6,7 +6,7 @@ export async function news(request: Request, env: Env, path: string, actor: stri
   if (!path.startsWith("/api/news")) return null;
   const t = now();
   if (request.method === "GET" && path === "/api/news") {
-    const rows = await env.DB.prepare("SELECT * FROM signed_configs WHERE kind='announcement' ORDER BY created_at DESC,id DESC LIMIT 100").all<any>();
+    const rows = await env.DB.prepare("SELECT * FROM signed_configs WHERE kind='announcement' ORDER BY created_at DESC,rowid DESC LIMIT 100").all<any>();
     return api({ news: rows.results.map(r => {
       const p = readEvent(r.event)?.payload ?? {};
       return { id: r.id, text: typeof p.text === "string" ? p.text : "", kind: p.kind ?? null, link: p.link ?? null, startsAt: r.starts_at, endsAt: r.ends_at, stoppedAt: r.stopped_at,

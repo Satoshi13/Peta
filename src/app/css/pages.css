@@ -315,3 +315,5 @@ dialog.tour-dialog button.close-control.tour-x:hover { background:rgba(60,45,20,
 .t-notice-link { flex:none; font-size:12.5px; }
 .t-notice-x { flex:none; width:26px; height:26px; border:0; border-radius:6px; background:transparent; color:var(--muted); font-size:17px; line-height:1; cursor:pointer; }
 .t-notice-x:hover { background:var(--line); color:var(--ink); }
+/* A friend's pack in the Market hero: the pictures from its card, fanned like the official packs' stickers. */
+.mk-hero-friend .fan-s img { display:block; width:var(--fan-width, 84px); height:auto; border-radius:6px; filter:drop-shadow(0 2px 3px rgba(43,42,40,.18)); }

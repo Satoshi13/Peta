@@ -1,5 +1,6 @@
 import { fail } from "./validation";
 import { signHeader } from "./bundle";
+import vector from "../test/config-vector.json";
 /* Owner settings signed with the coupon key. The app checks the same limits and ignores a setting outside them whole. */
 export const NOTICE_KINDS = ["info", "event", "maintenance"] as const, NOTICE_LINKS = ["download", "discord"] as const;
 export const NOTICE_MAX = 140, MAX_DAYS = 366;
@@ -26,3 +27,40 @@ export function announcementHeader(a: Announcement, keyId: string) {
 }
 export const signAnnouncement = (a: Announcement, keyId: string, secret: string, publicKey: string) => signHeader(announcementHeader(a, keyId), keyId, secret, publicKey);
 export const iso = (seconds: number) => new Date(seconds * 1000).toISOString().replace(".000Z", "Z");
+
+/* The official shop. Packs and limits come from the contract the Rust tests check, so the form can't offer what the app refuses. */
+export const shopCatalog = vector.shopCatalog;
+export type ShopPack = { id: string; onSale: boolean; price: number | null; blurb: string | null };
+export type ShopSetting = { featured: string[]; officialFirst: boolean; order: string[]; packs: ShopPack[] };
+export type Shop = ShopSetting & { id: string; kind: "default" | "event"; issuedAt: string; startsAt: string; endsAt: string };
+export function priceRange(id: string): [number, number] | null {
+  const p = shopCatalog.packs.find(p => p.id === id);
+  return p && !p.free ? [Math.ceil(p.price * shopCatalog.limits.minPercent / 100), Math.floor(p.price * shopCatalog.limits.maxPercent / 100)] : null;
+}
+export function checkShop(input: any): ShopSetting {
+  const ids = (value: unknown) => {
+    if (!Array.isArray(value) || value.length > shopCatalog.limits.maxPacks || new Set(value).size !== value.length || !value.every(id => shopCatalog.packs.some(p => p.id === id))) fail(400, "invalid", "Choose packs that come with Peta, each once.");
+    return value as string[];
+  };
+  const featured = ids(input?.featured), order = ids(input?.order);
+  if (typeof input?.officialFirst !== "boolean" || !Array.isArray(input?.packs)) fail(400, "invalid", "Check the form and try again.");
+  ids(input.packs.map((p: any) => p?.id));
+  const packs = input.packs.map((p: any): ShopPack => {
+    if (typeof p.onSale !== "boolean") fail(400, "invalid", "Choose whether each pack is on sale.");
+    const price = p.price ?? null, range = priceRange(p.id);
+    if (price !== null && (!range || !Number.isSafeInteger(price) || price < range[0] || price > range[1])) fail(400, "invalid", range ? `Price ${p.id} between ${range[0]} and ${range[1]} Scraps.` : "Free packs can't be given a price.");
+    const blurb = typeof p.blurb === "string" && p.blurb.trim() ? p.blurb.trim() : null;
+    if (blurb !== null && ([...blurb].length > shopCatalog.limits.blurbMax || controls.test(blurb))) fail(400, "invalid", "Write each pack line in up to 120 characters on one line.");
+    if (p.blurb !== undefined && p.blurb !== null && typeof p.blurb !== "string") fail(400, "invalid", "Check the form and try again.");
+    return { id: p.id, onSale: p.onSale, price, blurb };
+  });
+  return { featured, officialFirst: input.officialFirst, order, packs };
+}
+export function shopHeader(s: Shop, keyId: string) {
+  const c = checkShop(s);
+  // Lexical payload keys, as serde_json::Value writes them, nested objects included.
+  return { eventId: s.id, kind: "shop_config", issuedAt: s.issuedAt, notBefore: s.startsAt, notAfter: s.endsAt, title: "Shop", message: "",
+    payload: { configId: s.id, configKind: s.kind, featured: c.featured, officialFirst: c.officialFirst, order: c.order, packs: c.packs.map(p => ({ blurb: p.blurb, id: p.id, onSale: p.onSale, price: p.price })) },
+    signer: { kind: "official", keyId }, attachments: [] };
+}
+export const signShop = (s: Shop, keyId: string, secret: string, publicKey: string) => signHeader(shopHeader(s, keyId), keyId, secret, publicKey);
