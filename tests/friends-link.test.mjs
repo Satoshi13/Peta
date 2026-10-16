@@ -5,7 +5,6 @@ import fs from 'node:fs';
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
 test("Market's \"Friends in Settings\" opens Settings at the Friends card, not at the top", () => {
-  assert.match(read('src/app/js/market.js'), /"Friends in Settings "[\s\S]{0,40}|Shell\.reveal\("settings", "\.fr-card"\)/);
   assert.match(read('src/app/js/market.js'), /on: \{ click: \(\) => Shell\.reveal\("settings", "\.fr-card"\) \} \}, "Friends in Settings "/);
   const shell = read('src/app/js/shell.js');
   assert.match(shell, /async function reveal\(id, selector, o = \{\}\) \{\s*await go\(id, o\);/);
