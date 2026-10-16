@@ -1,6 +1,7 @@
 /* The friends-only download page. Every request (page, API and disk image) passes Cloudflare Access and is re-checked here.
    The disk image lives in a private R2 bucket with no public URL; releases/latest.json, written last by
    scripts/publish-release.sh, says which file is current. Invites are shared with peta-api through the same D1 database. */
+import {validUpdate,versionParts} from "../../shared/update-manifest";
 import { emailHash } from "../../shared/identity";
 export { emailHash } from "../../shared/identity";
 import { accessEmail, fetchKeys, KeySource, AccessConfig } from "./access";
@@ -11,6 +12,7 @@ export interface Env extends AccessConfig {
   RELEASES: R2Bucket;
 }
 export interface Release {
+  update?: {version:string;file:string;signature:string;notes?:string};
   version: string;
   file: string;
   size: number;
@@ -73,12 +75,12 @@ async function swap(env: Env, hash: string): Promise<void> {
 }
 export function validRelease(r: unknown): r is Release {
   const v = r as Release;
-  return !!v && typeof v.version === "string" && /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/.test(v.version) &&
+  return !!v && !!versionParts(v.version) &&
     typeof v.file === "string" && /^[A-Za-z0-9._-]{1,80}\.dmg$/.test(v.file) &&
     Number.isSafeInteger(v.size) && v.size > 0 && typeof v.sha256 === "string" && /^[a-f0-9]{64}$/.test(v.sha256) &&
     typeof v.minimumSystemVersion === "string" && /^\d+(?:\.\d+){0,2}$/.test(v.minimumSystemVersion) &&
     Array.isArray(v.architectures) && v.architectures.every((a) => a === "arm64" || a === "x86_64") &&
-    typeof v.publishedAt === "string" && (v.notarized === undefined || typeof v.notarized === "boolean");
+    typeof v.publishedAt === "string" && (v.notarized === undefined || typeof v.notarized === "boolean") && (v.update === undefined || validUpdate(v));
 }
 async function release(env: Env): Promise<Release | null> {
   const o = await env.RELEASES.get("releases/latest.json");

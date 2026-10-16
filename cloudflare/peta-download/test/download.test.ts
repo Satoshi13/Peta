@@ -135,3 +135,11 @@ it("codes and manifests are well formed", () => {
   expect(validRelease({ ...release, notarized: false })).toBe(true);
   expect(validRelease({ ...release, notarized: "no" })).toBe(false);
 });
+
+it('validates optional updater metadata without breaking older manifests',()=>{
+  const manifest={version:'0.2.0',file:'Peta-0.2.0.dmg',size:100,sha256:'a'.repeat(64),minimumSystemVersion:'14.0',architectures:['arm64','x86_64'],publishedAt:'2026-10-16T00:00:00Z'};
+  const update={version:'0.2.0',file:'updates/0.2.0/Peta.app.tar.gz',signature:'A'.repeat(88)};
+  expect(validRelease(manifest)).toBe(true);expect(validRelease({...manifest,update})).toBe(true);
+  expect(validRelease({...manifest,update:{...update,file:'../private'}})).toBe(false);
+  expect(validRelease({...manifest,update:{...update,version:'0.3.0'}})).toBe(false);
+});

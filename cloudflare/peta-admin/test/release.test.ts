@@ -6,7 +6,7 @@ it("reads only the manifest and counts distinct friends per version without side
   await base.RELEASES.put("releases/latest.json", JSON.stringify(latest));
   for (const [email, version, at] of [["one", "0.1.0", 1], ["one", "0.1.0", 2], ["two", "0.1.0", 3], ["one", "0.0.9", 0]]) await base.DB.prepare("INSERT INTO downloads VALUES(?,?,?)").bind(email, version, at).run();
   const response = await req("/api/release"); expect(response.status).toBe(200);
-  expect(await response.json()).toEqual({ latest, downloads: [{ version: "0.1.0", people: 2, downloads: 3, lastAt: 3 }, { version: "0.0.9", people: 1, downloads: 1, lastAt: 0 }] });
+  expect(await response.json()).toEqual({ latest, updates:[], downloads: [{ version: "0.1.0", people: 2, downloads: 3, lastAt: 3 }, { version: "0.0.9", people: 1, downloads: 1, lastAt: 0 }] });
   expect((await base.DB.prepare("SELECT COUNT(*) AS n FROM admin_log").first<any>()).n).toBe(0);
   expect((await post("/api/release", {})).status).toBe(404);
   expect(await (await base.RELEASES.get("releases/latest.json"))!.json()).toEqual(latest);
@@ -17,4 +17,9 @@ it("handles missing and malformed manifests without exposing raw content", async
     await base.RELEASES.put("releases/latest.json", content);
     expect((await (await req("/api/release")).json<any>()).latest).toBeNull();
   }
+});
+
+it("counts distinct updating Macs separately from page downloads",async()=>{
+ for(const key of ['one','one','two'])await base.DB.prepare("INSERT INTO update_downloads VALUES(?,'0.2.0',1)").bind(key).run();
+ expect((await(await req('/api/release')).json<any>()).updates).toEqual([{version:'0.2.0',devices:2,downloads:3,lastAt:1}]);
 });
