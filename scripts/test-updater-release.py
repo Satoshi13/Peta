@@ -1,5 +1,6 @@
 """Disposable signing key and pruning regression checks. Never print the generated private key."""
 from pathlib import Path
+import pathlib
 import importlib.util,tempfile,subprocess,os,base64,json
 ROOT=Path(__file__).resolve().parent.parent
 spec=importlib.util.spec_from_file_location('prune',ROOT/'scripts/prune-releases.py');prune=importlib.util.module_from_spec(spec);spec.loader.exec_module(prune)
@@ -64,15 +65,22 @@ with tempfile.TemporaryDirectory(prefix='peta-key-helper-') as tmp:
  shutil=__import__('shutil');shutil.copy(ROOT/'scripts/updater-key.sh',repo/'scripts/updater-key.sh')
  disk=tools/'diskutil';disk.write_text('''#!/usr/bin/env python3
 import plistlib,os,sys
-sys.stdout.buffer.write(plistlib.dumps({'Encrypted':os.environ.get('PETA_FAKE_ENCRYPTED')=='1'}))
+sys.stdout.buffer.write(plistlib.dumps({'Encrypted':os.environ.get('PETA_FAKE_ENCRYPTED')=='1','MountPoint':os.environ['PETA_FAKE_MOUNT']}))
 ''');disk.chmod(0o755)
+ image=tools/'hdiutil';image.write_text('''#!/usr/bin/env python3
+import plistlib,os,sys
+sys.stdout.buffer.write(plistlib.dumps({'images':[{'image-encrypted':os.environ.get('PETA_FAKE_IMAGE_ENCRYPTED')=='1','system-entities':[{'mount-point':os.environ['PETA_FAKE_MOUNT']}]}]}))
+''');image.chmod(0o755)
  cli=repo/'node_modules/.bin/tauri';cli.write_text('''#!/usr/bin/env python3
 import pathlib,sys
 path=pathlib.Path(sys.argv[sys.argv.index('--write-keys')+1]);path.write_text('fake private key');pathlib.Path(str(path)+'.pub').write_text('PUBLIC TEST KEY')
 print('SECRET MUST NEVER REACH THE CALLER')
 ''');cli.chmod(0o755)
- env={**os.environ,'PATH':str(tools)+os.pathsep+os.environ['PATH'],'PETA_FAKE_ENCRYPTED':'0'};key=volume/'test.key'
+ env={**os.environ,'PATH':str(tools)+os.pathsep+os.environ['PATH'],'PETA_FAKE_ENCRYPTED':'0','PETA_FAKE_IMAGE_ENCRYPTED':'0','PETA_FAKE_MOUNT':str(volume)};key=volume/'test.key'
  r=subprocess.run(['bash',str(repo/'scripts/updater-key.sh'),str(key)],env=env,capture_output=True,text=True);assert r.returncode!=0 and not key.exists()
+ # An AES-encrypted disk image: the volume says Encrypted: No, the image says image-encrypted.
+ env['PETA_FAKE_IMAGE_ENCRYPTED']='1';r=subprocess.run(['bash',str(repo/'scripts/updater-key.sh'),str(key)],env=env,capture_output=True,text=True);assert r.returncode==0 and 'PUBLIC TEST KEY' in r.stdout,r.stderr
+ key.unlink();pathlib.Path(str(key)+'.pub').unlink();env['PETA_FAKE_IMAGE_ENCRYPTED']='0'
  env['PETA_FAKE_ENCRYPTED']='1';r=subprocess.run(['bash',str(repo/'scripts/updater-key.sh'),str(key)],env=env,capture_output=True,text=True);assert r.returncode==0 and 'PUBLIC TEST KEY' in r.stdout and 'SECRET' not in r.stdout
  r=subprocess.run(['bash',str(repo/'scripts/updater-key.sh'),str(key)],env=env,capture_output=True,text=True);assert r.returncode!=0 and key.read_text()=='fake private key'
  r=subprocess.run(['bash',str(repo/'scripts/updater-key.sh'),str(repo/'inside.key')],env=env,capture_output=True,text=True);assert r.returncode!=0 and not (repo/'inside.key').exists()
