@@ -42,12 +42,14 @@ const Cer = (() => {
      One pack is opened on a desk under one lamp. The room darkens around what is held, and the pull's light lands on the desk:
      a pool for every rarity, spectral streaks that follow the tilt (rare), gold leaf (special), dust in the beam (archive).
      The light is only ever the pull's own, and only once the pull is committed. */
+  // `tint` is the dark at the room's edge and `room` the ring between it and the lamp; from rare up the room takes the pull's colour
+  // (not just its darkness), `glow` warms the lamp's own circle, and `aura` lights the window's edge.
   const DESK = {
-    common: { light: "255,247,232", tint: "18,14,10", dim: .55, hold: 0 },
-    uncommon: { light: "255,200,140", tint: "22,14,6", dim: .6, hold: 200 },
-    rare: { light: "214,206,255", tint: "12,10,20", dim: .72, hold: 520 },
-    special: { light: "255,205,112", tint: "24,14,4", dim: .78, hold: 780 },
-    archive: { light: "226,190,138", tint: "26,18,10", dim: .74, hold: 640 },
+    common: { light: "255,247,232", tint: "18,14,10", room: "64,40,22", glow: "255,214,150", ga: .22, dim: .55, hold: 0 },
+    uncommon: { light: "255,200,140", tint: "22,14,6", room: "72,44,18", glow: "255,206,140", ga: .26, dim: .6, hold: 200 },
+    rare: { light: "226,214,255", tint: "44,30,84", room: "120,92,184", glow: "236,220,255", ga: .5, dim: .66, hold: 520, aura: "prism" },
+    special: { light: "255,205,112", tint: "44,26,4", room: "138,90,22", glow: "255,222,140", ga: .48, dim: .72, hold: 780, aura: "gold" },
+    archive: { light: "226,190,138", tint: "34,24,14", room: "100,72,42", glow: "246,216,170", ga: .34, dim: .7, hold: 640, aura: "sepia" },
   };
   const rarityOf = (e) => DESK[e?.rarity] ? e.rarity : DESK[MAT[e?.material]?.rarity] ? MAT[e.material].rarity : "common";
   const curve = { out: (t) => 1 - Math.pow(1 - t, 3), inOut: (t) => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, outBack: (t) => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2) };
@@ -82,7 +84,8 @@ const Cer = (() => {
   function deskFor(cer) {
     if (cer.desk) return cer.desk;
     const root = cer.root, lampEl = h("i.cer-lamp"), under = h("canvas.cer-fx.under"), over = h("canvas.cer-fx.over");
-    root.dataset.look = "desk"; $(".cer-bg", root).after(lampEl, under); cer.stage.after(over);
+    const auraEl = h("i.cer-aura", { "aria-hidden": "true" }, h("i.glow", h("i.spin")), h("i.line", h("i.spin")));
+    root.dataset.look = "desk"; $(".cer-bg", root).after(lampEl, under); cer.stage.after(over); root.insertBefore(auraEl, $(".cer-skip", root) || null);
     const tilt = { x: 0, y: 0 }; let sys = [], w = 1, hh = 1, running = false, cu = null, co = null;
     const size = () => {
       const r = root.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); w = Math.max(1, r.width); hh = Math.max(1, r.height);
@@ -126,6 +129,33 @@ const Cer = (() => {
         }
       } });
     };
+    /* the foil's colours, pooled under the lamp and turning slowly, so the room is lit in them and not just in white */
+    const prismPool = (x, y, r) => {
+      const hues = ["255,120,190", "255,206,110", "120,236,180", "110,180,255", "184,140,255"];
+      add({ decor: true, draw(c, dt, t) {
+        const a = t < .6 ? curve.out(t / .6) : lerp(1, .62, smooth(.6, 2.2, t)); c.globalCompositeOperation = "lighter";
+        hues.forEach((col, i) => {
+          const ang = t * .18 + i / hues.length * Math.PI * 2 - tilt.x * .4, bx = x + Math.cos(ang) * r * .34, by = y + Math.sin(ang) * r * .26, br = r * .78;
+          const g = c.createRadialGradient(bx, by, 0, bx, by, br); g.addColorStop(0, `rgba(${col},${.26 * a})`); g.addColorStop(.6, `rgba(${col},${.08 * a})`); g.addColorStop(1, `rgba(${col},0)`);
+          c.fillStyle = g; c.fillRect(bx - br, by - br, br * 2, br * 2);
+        });
+      } });
+    };
+    /* four-pointed glints thrown off as the face comes into the light */
+    const sparkle = (x, y, s, colors) => {
+      const ps = Array.from({ length: 26 }, (_, i) => { const a = i / 26 * Math.PI * 2 + Math.random() * .3, v = s * (.5 + Math.random() * .7); return { a, v, d: s * .32, s: 3 + Math.random() * 5, col: colors[i % colors.length], life: .9 + Math.random() * .7, spin: (Math.random() - .5) * 3, delay: Math.random() * .12 }; });
+      add({ decor: true, over: true, draw(c, dt, t) {
+        let alive = false; c.globalCompositeOperation = "lighter";
+        for (const p of ps) {
+          const u = t - p.delay; if (u < 0) { alive = true; continue; } if (u > p.life) continue; alive = true;
+          const k = u / p.life, d = p.d + p.v * curve.out(k), px = x + Math.cos(p.a) * d, py = y + Math.sin(p.a) * d * .8, z = p.s * (k < .2 ? k / .2 : 1 - (k - .2) / .8 * .7), al = 1 - k * k;
+          c.save(); c.translate(px, py); c.rotate(p.spin * u); c.fillStyle = `rgba(${p.col},${al})`; c.beginPath();
+          for (let j = 0; j < 8; j++) { const rr = j % 2 ? z * .22 : z, aa = j * Math.PI / 4; c.lineTo(Math.cos(aa) * rr, Math.sin(aa) * rr); }
+          c.closePath(); c.fill(); c.restore();
+        }
+        return alive;
+      } });
+    };
     /* gold leaf falling slowly through the lamp light */
     const goldLeaf = (x, y, s) => {
       const fl = Array.from({ length: 16 }, () => ({ x: x + (Math.random() - .5) * s * 1.5, y: y - Math.random() * s * .8 - 30, vy: 12 + Math.random() * 16, sw: Math.random() * 6, s: 1.6 + Math.random() * 2.6, ph: Math.random() * 6, rot: Math.random() * 6 }));
@@ -150,16 +180,26 @@ const Cer = (() => {
       /** Darken the room around (x, y): `alpha` is how dark the edge gets; the lamp's rim takes the pull's tint. */
       lamp(alpha, x, y, rarity = "common", inner = 16, outer = 74) {
         const [lx, ly] = rel(x, y), D = DESK[rarity] || DESK.common;
-        for (const [k, v] of [["--lx", lx / w * 100 + "%"], ["--ly", ly / hh * 100 + "%"], ["--lr1", inner + "%"], ["--lr2", outer + "%"], ["--tint", D.tint], ["--la", Math.min(.97, alpha * 1.28).toFixed(3)]]) lampEl.style.setProperty(k, v);
+        for (const [k, v] of [["--lx", lx / w * 100 + "%"], ["--ly", ly / hh * 100 + "%"], ["--lr1", inner + "%"], ["--lr2", outer + "%"], ["--lamp-tint", `rgb(${D.tint})`], ["--lamp-room", `rgb(${D.room})`], ["--lamp-glow", `rgb(${D.glow})`], ["--lamp-ga", D.ga], ["--la", Math.min(.97, alpha * 1.28).toFixed(3)]]) lampEl.style.setProperty(k, v);
         lampEl.style.opacity = alpha > 0 ? 1 : 0; root.dataset.dim = String(alpha > .3);
       },
       /** The light that belongs to a rarity, centred on (x, y) for an object `s` pixels wide. */
       bloom(rarity, x, y, s) {
         const [px, py] = rel(x, y), D = DESK[rarity] || DESK.common;
-        pool(px, py, s * (rarity === "common" ? .75 : rarity === "uncommon" ? .95 : 1.2), D.light, rarity === "common" ? .5 : .85, rarity === "common" ? .28 : .42);
-        if (rarity === "rare") prism(px, py, s * .95);
-        if (rarity === "special") { pool(px, py, s * 1.9, "255,190,90", .35, .2); goldLeaf(px, py, s); }
+        // rare's white pool is smaller: its colour comes from the prism pool around it, and the words below stay readable
+        pool(px, py, s * (rarity === "common" ? .75 : rarity === "uncommon" ? .95 : rarity === "rare" ? .9 : 1.2), D.light, rarity === "common" ? .5 : rarity === "rare" ? .6 : .85, rarity === "common" ? .28 : rarity === "rare" ? .3 : .42);
+        if (rarity === "rare") { prismPool(px, py, s * 1.25); prism(px, py, s * .95); sparkle(px, py, s, ["255,150,210", "255,226,140", "150,255,200", "140,200,255", "200,160,255", "255,255,255"]); }
+        if (rarity === "special") { pool(px, py, s * 1.9, "255,190,90", .35, .2); goldLeaf(px, py, s); sparkle(px, py, s, ["255,236,170", "255,208,90", "255,248,220"]); }
         if (rarity === "archive") dust(px, py, s);
+        this.aura(D.aura);
+      },
+      /** The window's edge lights in the pull's colours (rare and up), or goes out. */
+      aura(kind) {
+        const was = Number(getComputedStyle(auraEl).opacity) || 0;
+        if (!kind) { if (was) cer.motion(auraEl, [{ opacity: was }, { opacity: 0 }], { duration: 500 }).then(() => { auraEl.style.opacity = 0; }); return; }
+        auraEl.dataset.kind = kind; const rest = kind === "gold" ? .7 : .55;
+        if (reduced() || cer.skipped) { auraEl.style.opacity = rest; return; }
+        cer.motion(auraEl, [{ opacity: was }, { opacity: 1, offset: .35 }, { opacity: rest }], { duration: 1900, easing: "ease-out" }).then(() => { auraEl.style.opacity = rest; });
       },
       /** Flecks from a tear: rainbow foil, or bits of paper of the colour `rgb`. */
       flecks(x, y, n, rgb = null) {
@@ -170,7 +210,7 @@ const Cer = (() => {
           return alive;
         } });
       },
-      fade(ms = 700) { for (const s of sys) s.out = { t: 0, ms }; },
+      fade(ms = 700) { for (const s of sys) s.out = { t: 0, ms }; this.aura(null); },
     };
   }
 
@@ -472,7 +512,7 @@ const Cer = (() => {
     const desk = deskFor(cer), mat = MAT[entry.material] || MAT.matte, rarity = rarityOf(entry), D = DESK[rarity], W = sh.w;
     const portrait = narrow(stage), c = carry(cer, stage, sh); sh.slot.remove(); c.tilt = desk.tilt;
     const tx = stage.clientWidth * .5, ty = stage.clientHeight * (portrait ? .4 : .47);
-    c.to(tx, ty); desk.lamp(D.dim * .78, ...c.at(), rarity, 14, 72);
+    c.to(tx, ty); desk.lamp(D.dim * .78, ...c.at(), "common", 14, 72);
     await cer.wait(700);
     cer.hint("Peel the cover.");
     const p = peel(cer, sh, D.hold); p.focus(); cer.allowSkip(() => p.complete());
@@ -530,7 +570,7 @@ const Cer = (() => {
       const SW = stage.clientWidth, SH = stage.clientHeight, portrait = narrow(stage);
       const W = Math.min(portrait ? SW * .78 : SW * .6, 470, SH * .93), H = W * 2 / 3;
       // the card is built at the size it is shown at, and shrunk into the envelope, so its face stays sharp
-      const visible = W * .6, boxIn = visible / (1 - 2 * CARD.side), fit = PetaMath.fitMaterialCard({ stageWidth: SW, stageHeight: SH, cardWidth: boxIn, cardHeight: boxIn * 380 / 560, maxWidth: 400, hintBottom: 40, infoTop: SH - 170 });
+      const visible = W * .6, boxIn = visible / (1 - 2 * CARD.side), fit = PetaMath.fitMaterialCard({ stageWidth: SW, stageHeight: SH, cardWidth: boxIn, cardHeight: boxIn * 380 / 560, maxWidth: 420, hintBottom: 34, infoTop: SH - 150 });
       const fw = Math.max(boxIn, boxIn * fit.scale), fh = fw * 380 / 560, k0 = boxIn / fw;
       const date = fmtDate(S.today || new Date()), back = img("envBack", "mx-part mx-back"), pocket = h("span.mx-part.mx-pocket", img("envPocket", "mx-part"), h("span.env-label", "Today's", h("br"), "Material"));
       const glow = h("i.mx-glow" + (rarity === "rare" ? ".prism" : "")), flapFront = img("envFlap", "mx-part"), flapInside = img("envFlap", "mx-part mx-flap-in"), flap = h("div.mx-flap", flapFront, flapInside);
@@ -618,17 +658,17 @@ const Cer = (() => {
         reveal();
       }
       async function reveal() {
-        cer.allowSkip(); cer.hint("");
+        cer.hint("");
         const tx = SW / 2, ty = fit.cy, [lx, ly] = at(tx, ty);
         X.to(tx); CY.to(ty); K.to(1); RZ.to(-1.5);
-        desk.lamp(D.dim, lx, ly, rarity, 14, 70);
+        desk.lamp(D.dim, lx, ly, "common", 14, 70);
         await cer.wait(560);
         // a breath: the room goes quiet, and only the true colour shows at the rim
         Snd.duck(D.hold + 300); await cer.wait(D.hold);
         let turned = false;
         const turn = () => { if (turned) return; turned = true; Snd.turn(); Snd.reveal(rarity); Haptic.tap("seal"); };
         await tween(cer, 620, (e, p) => { RY.set(e * 180); if (p > .5) turn(); }, curve.inOut); turn();
-        desk.bloom(rarity, lx, ly, fw);
+        desk.bloom(rarity, lx, ly, fw); desk.lamp(D.dim, lx, ly, rarity, 14, 70);
         const glint = $(".glint", face); if (glint) await cer.motion(glint, [{ "--gl": "-60%" }, { "--gl": "150%" }], { duration: rarity === "common" ? 600 : 900, easing: "cubic-bezier(.35,.1,.2,1)" });
         if (!reduced()) cer.root.addEventListener("pointermove", (e) => { if (done) return; const b = card.getBoundingClientRect(); TX.to(clamp((e.clientX - (b.left + b.width / 2)) / (b.width * .9), -1, 1)); TY.to(clamp((e.clientY - (b.top + b.height / 2)) / (b.height * 1.6), -1, 1)); });
         const info = h("div.rv-info.pk-info.mx-info", { style: { opacity: 0 } }, h("p.eyebrow", `Today's material · ${date}`), h("h2", m.name),
@@ -839,7 +879,7 @@ const Cer = (() => {
       cer.allowSkip(() => { current?.complete(); next?.(); });
       for (let i = 0; i < cards.length; i++) {
         const c = cards[i], g = got[i], r = g.rarity, D = DESK[r]; stackFrom(i); c.tilt = desk.tilt;
-        desk.lamp(D.dim * .78, ...c.at(), r, 14, 72);
+        desk.lamp(D.dim * .78, ...c.at(), "common", 14, 72);
         cer.hint(`Peel the cover · ${i + 1} of ${cards.length}`);
         current = peel(cer, c.sh, D.hold); current.focus(); if (cer.skipped) current.complete();
         await current.done; cer.hint("");
