@@ -175,10 +175,12 @@ html[data-motion="reduce"] .cer-lamp { transition: none; }
 .mx-desk { --z: 0; position: absolute; left: 0; top: 0; transform-style: preserve-3d; cursor: grab; touch-action: none; outline: none; will-change: transform; }
 .mx-desk:focus-visible { outline: none; } .mx-desk:focus-visible .mx-flap { filter: drop-shadow(0 0 2px #527d93); }
 .mx-desk .mx-part { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; -webkit-user-drag: none; }
-.mx-shadow { position: absolute; left: 3%; top: 16%; width: 94%; height: 80%; border-radius: 12px; background: rgba(38, 26, 14, .5); filter: blur(calc(12px + var(--z) * 8px)); transform: translate(calc(10px + var(--z) * 8px), calc(18px + var(--z) * 10px)); opacity: calc(.55 - var(--z) * .1); pointer-events: none; }
-.mx-glow { --light: 255, 244, 224; position: absolute; z-index: 2; left: 10%; right: 10%; top: -30%; height: 90%; border-radius: 50%; opacity: 0; filter: blur(16px); pointer-events: none; background: radial-gradient(closest-side, rgba(var(--light), .95), rgba(var(--light), 0)); }
+.mx-shadow { position: absolute; left: 3%; top: 16%; width: 94%; height: 80%; border-radius: 12px; background: rgba(38, 26, 14, .5); filter: blur(calc(12px + var(--z) * 8px)); transform: translate3d(calc(10px + var(--z) * 8px), calc(18px + var(--z) * 10px), -5px); opacity: calc(.55 - var(--z) * .1); pointer-events: none; }
+.mx-glow { --light: 255, 244, 224; position: absolute; z-index: 2; left: 12%; right: 12%; top: -12%; height: 80%; transform: translateZ(.5px); border-radius: 50%; opacity: 0; filter: blur(16px); pointer-events: none; background: radial-gradient(closest-side, rgba(var(--light), .95), rgba(var(--light), 0)); }
 .mx-glow.prism { background: conic-gradient(#ffb3d9, #ffe9a6, #b7f3d4, #a9d8ff, #d4b8ff, #ffb3d9); -webkit-mask: radial-gradient(closest-side, #000, transparent); mask: radial-gradient(closest-side, #000, transparent); }
-.mx-desk > .mx-back { z-index: 1; } .mx-desk > .mx-pocket { z-index: 4; }
+/* The desk is one 3D scene, and WebKit orders flat layers in it unreliably, so each layer also has its own depth:
+   shadow -5, open flap -3, back 0, light .5, card 1, pocket 2, closed flap 3. */
+.mx-desk > .mx-back { z-index: 1; } .mx-desk > .mx-pocket { z-index: 4; transform: translateZ(2px); }
 .mx-pocket > .mx-part { position: absolute; inset: 0; width: 100%; height: 100%; }
 .mx-pocket .env-label { font-size: calc(var(--ew, 450px) * .036); }
 .mx-flap { position: absolute; inset: 0; z-index: 6; transform-origin: 50% 12.5%; transform-style: preserve-3d; pointer-events: none; }

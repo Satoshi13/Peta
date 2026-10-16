@@ -120,6 +120,21 @@ function userError(error) {
   if (/offline|network|connection|timed? out/i.test(raw)) return "The connection could not be completed. Check your connection and try again.";
   if (/permission|denied|not permitted/i.test(raw)) return "Peta could not access this item. Check its permissions and try again.";
   if (/space|disk full/i.test(raw)) return "There is not enough disk space. Free some space and try again.";
-  if (/^(Choose|You |No |Not |This |That |Cannot |Could not |Please |Saved, but )/.test(raw) && raw.length < 200 && !/[{}\n]|SQL|sqlite|os error|panic|stack/i.test(raw)) return raw;
+  const code = raw.trim().replace(/^Error:\s*/, "");
+  if (PLAIN_ERRORS[code]) return PLAIN_ERRORS[code];
+  // Native messages written for people (the service's answers among them) are shown as they are: one short sentence, nothing technical.
+  if (/^[A-Z][^{}\n]{2,198}[.!?](\s\[[a-z_]+\])?$/.test(code) && !/SQL|sqlite|os error|panic|stack|database|io error|image error|segmentation|invalid args|command /i.test(code)) return code;
   return "This action could not be completed. Please try again.";
 }
+/* The native side's short codes, in words. */
+const PLAIN_ERRORS = {
+  welcome_already_opened_today: "Today's Welcome Pack is already open. It's back tomorrow.",
+  pack_empty: "This pack is empty.",
+  "unknown pack": "This pack isn't on this Mac anymore.", "Unknown pack": "This pack isn't on this Mac anymore.",
+  "that pack item was already opened": "That sticker was just opened. Try again.",
+  slot_taken: "That sticker was just opened. Try again.", pack_opened: "Someone opened this pack first. Try again.",
+  busy_pack: "This pack is busy. Please try again.", for_sale: "This pack is sold in Market. Pull it there.",
+  your_own_pack: "You can't open a pack you made.", market_pack: "Pull this pack in Market.",
+  already_used_today: "Today's sticker has already been made.", material_unavailable: "That material has run out.",
+  gift_already_received: "This gift is already in your Collection.",
+};

@@ -142,6 +142,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 
 .app-notice { position:absolute; z-index:80; left:max(16px,calc(204px + 24px)); right:24px; bottom:20px; display:flex; align-items:center; gap:12px; padding:14px 48px 14px 18px; border:1px solid var(--ui-line); border-radius:14px; background:var(--ui-surface); color:var(--ui-ink); box-shadow:var(--sh2); animation:resource-in 180ms var(--ease-out); }
 .app-notice p { flex:1; min-width:0; font:400 13px/20px var(--sys); }
+.app-notice-raw { display:block; margin-top:2px; font:400 11px/16px ui-monospace, Menlo, monospace; color:var(--ui-secondary); overflow-wrap:anywhere; }
 .app-notice .close-control { top:50%; right:10px; translate:0 -50%; background:none; color:var(--ui-secondary); }
 .app-notice .btn { flex:none; }
 .startup-state { display:grid; place-items:center; background:var(--ui-room); padding:32px; }

@@ -76,3 +76,13 @@ test('technical errors become actionable messages instead of database diagnostic
   assert.equal(vm.runInContext("userError('sqlite error {internal}')",ctx),'This action could not be completed. Please try again.');
   assert.match(vm.runInContext("userError('That picture is too large to cut out.')",ctx),/80 MB/);
 });
+test('a pack that will not open says why',()=>{
+  const ctx=vm.createContext({});vm.runInContext(read('ui.js'),ctx);const say=raw=>vm.runInContext(`userError(${JSON.stringify(raw)})`,ctx);
+  assert.match(say('welcome_already_opened_today'),/back tomorrow/);
+  assert.equal(say('pack_empty'),'This pack is empty.');
+  // the service's answers are already written for people, with the code a developer build adds
+  assert.equal(say('Connect to the internet to do this. Nothing was changed.'),'Connect to the internet to do this. Nothing was changed.');
+  assert.equal(say('Peta could not check this. Please try again. [unknown]'),'Peta could not check this. Please try again. [unknown]');
+  assert.equal(say('database error: no such table: x'),'This action could not be completed. Please try again.');
+  assert.equal(say('Damaged pack record {x}.'),'This action could not be completed. Please try again.');
+});

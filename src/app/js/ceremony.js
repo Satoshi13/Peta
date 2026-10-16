@@ -537,7 +537,7 @@ const Cer = (() => {
       const face = h("div.mcard.big.mx-face", { data: { m: m.id }, style: { "--w": fw + "px" } }, h("i.art"), h("span.lab", h("b", m.name), h("small", m.rarity)), h("i.glint"));
       const cardBack = h("div.mx-cardback", h("b", "Peta"), h("small", `Today's material · ${date}`));
       const flip = h("div.mx-flip", cardBack, face);
-      const card = h("div.mx-card", { style: { width: fw + "px", height: fh + "px", "--w": fw + "px", left: W * .2 - boxIn * CARD.side + "px", top: H * .19 - boxIn * 380 / 560 * CARD.top + "px", transform: `scale(${k0})` } }, flip);
+      const card = h("div.mx-card", { style: { width: fw + "px", height: fh + "px", "--w": fw + "px", left: W * .2 - boxIn * CARD.side + "px", top: H * .19 - boxIn * 380 / 560 * CARD.top + "px", transform: `translateZ(1px) scale(${k0})` } }, flip);
       // its shadow lies flat on the desk, outside the card's 3D space, so a turning card never passes behind it
       const cardShadow = h("i.mx-cardshadow", { style: { width: fw * .84 + "px", height: fh * .7 + "px" } });
       const env = h("div.mx-desk", { style: { width: W + "px", height: H + "px", "--light": D.light, "--ew": W + "px" }, tabindex: 0, role: "button", "aria-label": "Lift the flap" }, h("i.mx-shadow"), back, glow, card, pocket, flap);
@@ -553,12 +553,12 @@ const Cer = (() => {
         env.style.filter = drop ? `blur(${drop * 7}px)` : ""; env.style.opacity = 1 - drop; env.style.visibility = drop >= 1 ? "hidden" : "";
         env.style.setProperty("--z", (Math.max(0, -LIFT.x) / 40 + (Y.x > 2 ? .4 : 0)).toFixed(3));
         // past upright the flap shows its inside (chosen here rather than by backface-visibility, which WebKit and Chromium judge differently)
-        // Opened, it is set a hair behind the envelope's plane: in 3D, depth decides what is in front (not z-index), and a flap settling
-        // at 179.9° would otherwise tilt its tip over the card coming out of the mouth.
-        const a = clamp(FLAP.x, -10, 190), over = a > 90; flap.style.transform = over ? `translateZ(-3px) rotateX(${a}deg)` : `rotateX(${a}deg)`; flap.style.zIndex = over ? 0 : 6;
+        // In 3D, depth decides what is in front (not z-index), so the flap is a hair in front of the pocket while shut, and a hair behind
+        // the envelope once open (a flap settling at 179.9° would otherwise tilt its tip over the card coming out of the mouth).
+        const a = clamp(FLAP.x, -10, 190), over = a > 90; flap.style.transform = `translateZ(${over ? -3 : 3}px) rotateX(${a}deg)`; flap.style.zIndex = over ? 0 : 6;
         flapFront.style.visibility = over ? "hidden" : ""; flapInside.style.visibility = over ? "visible" : "hidden";
         flapFront.style.filter = `brightness(${1 - .22 * Math.sin(clamp(a, 0, 90) * Math.PI / 180)})`;
-        if (!free) { card.style.transform = `translateY(${-UP.x}px) scale(${k0})`; glow.style.opacity = (smooth(.08, .85, a / 180) * .95 + (UP.x > 0 ? .1 : 0)) * (rarity === "common" ? .55 : 1); }
+        if (!free) { card.style.transform = `translateZ(1px) translateY(${-UP.x}px) scale(${k0})`; glow.style.opacity = (smooth(.08, .85, a / 180) * .95 + (UP.x > 0 ? .1 : 0)) * (rarity === "common" ? .55 : 1); }
       });
       Snd.swoosh(); cer.wait(520).then(() => Snd.land());
       const until = (test) => new Promise((res) => frames(cer, () => { if (test()) { res(); return false; } }));

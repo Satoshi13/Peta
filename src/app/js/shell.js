@@ -23,7 +23,9 @@ const Shell = (() => {
       message ||= "The latest changes could not be loaded. Your current view is still available.";
     }
     clearProblem();
-    const status = h("p", message || userError(cause));
+    const shown = message || userError(cause), raw = String(cause?.message || cause || "");
+    // a developer build also says what actually went wrong, when the words above had to hide it
+    const status = h("p", shown, typeof S !== "undefined" && S.developer && !message && raw && !shown.includes(raw) ? h("small.app-notice-raw", raw.slice(0, 240)) : null);
     const retryButton = retry ? h("button.btn.paper.small", {type:"button", on:{click:async()=>{
       const shown = problem;
       retryButton.disabled=true; retryButton.textContent="Retrying…";
