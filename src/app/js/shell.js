@@ -391,6 +391,16 @@ const Shell = (() => {
     let failed = false;
     return Promise.resolve().then(()=>refresh({changes})).catch(cause=>{failed=true;error(cause);}).finally(()=>{for(const resolve of pending)resolve(!failed);});
   }
+  /** Go to a page and bring one part of it into view (e.g. Settings → Friends), with focus there for the keyboard. */
+  async function reveal(id, selector, o = {}) {
+    await go(id, o);
+    const target = current?.querySelector(selector);
+    if (!target) return;
+    target.scrollIntoView({ block: "start", behavior: reduced() ? "auto" : "smooth" });
+    const heading = target.querySelector("h2") || target;
+    if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
+  }
   function settled() {
     if(!navigationTask)return Promise.resolve();
     return new Promise(resolve=>waiters.push({resolve,reject:()=>resolve()}));
@@ -449,5 +459,5 @@ const Shell = (() => {
     if (!["studio", "desk"].includes(name)) return;
     S.shell = name; document.body.dataset.shell = name; Bridge.savePreferences(); Vibrancy.sync();
   }
-  return { applyAssetVars, toast, error, clearProblem, flushRefresh, settled, get navigating(){return navigating || !!navigationTask;}, get editing(){return editing();}, renderNav, syncResources, go, refresh, open, close, initChrome, setShell, get current() { return current; } };
+  return { applyAssetVars, toast, error, clearProblem, flushRefresh, settled, get navigating(){return navigating || !!navigationTask;}, get editing(){return editing();}, renderNav, syncResources, go, reveal, refresh, open, close, initChrome, setShell, get current() { return current; } };
 })();

@@ -312,7 +312,7 @@ Pages.market = {
     if (!d?.enabled) return null;
     const head = h("h2.pk-section-title", "From friends");
     if (!d.hasFriends) return h("section.mk-friends", head, h("p.muted.lede", "Add a friend to see the packs they make."),
-      h("button.link", { type: "button", on: { click: () => Shell.go("settings") } }, "Friends in Settings ", h("i", "→")));
+      h("button.link", { type: "button", on: { click: () => Shell.reveal("settings", ".fr-card") } }, "Friends in Settings ", h("i", "→")));
     const offline = d.offline ? h("p.small.muted.mk-offline", "Connect to the internet to pull from your friends' packs.") : null;
     const listings = (d.listings || []).filter((l) => l.card);
     if (!listings.length) return h("section.mk-friends", head, offline, h("p.muted.lede", "Your friends haven't put any packs out yet."));
