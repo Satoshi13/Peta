@@ -574,15 +574,15 @@ const Cer = (() => {
       // the card is built at the size it is shown at, and shrunk into the envelope, so its face stays sharp
       const visible = W * .6, boxIn = visible / (1 - 2 * CARD.side), fit = PetaMath.fitMaterialCard({ stageWidth: SW, stageHeight: SH, cardWidth: boxIn, cardHeight: boxIn * 380 / 560, maxWidth: 400, hintBottom: 40, infoTop: SH - 170 });
       const fw = Math.max(boxIn, boxIn * fit.scale), fh = fw * 380 / 560, k0 = boxIn / fw;
-      const date = fmtDate(S.today || new Date()), back = img("envBack", "mx-part"), pocket = img("envPocket", "mx-part mx-pocket");
-      const glow = h("i.mx-glow" + (rarity === "rare" ? ".prism" : "")), flapFront = img("envFlap", "mx-part"), flapInside = img("envFlap", "mx-part mx-flap-in"), tab = h("i.mx-tab"), flap = h("div.mx-flap", flapFront, flapInside, tab);
+      const date = fmtDate(S.today || new Date()), back = img("envBack", "mx-part mx-back"), pocket = h("span.mx-part.mx-pocket", img("envPocket", "mx-part"), h("span.env-label", "Today's", h("br"), "Material"));
+      const glow = h("i.mx-glow" + (rarity === "rare" ? ".prism" : "")), flapFront = img("envFlap", "mx-part"), flapInside = img("envFlap", "mx-part mx-flap-in"), flap = h("div.mx-flap", flapFront, flapInside);
       const face = h("div.mcard.big.mx-face", { data: { m: m.id }, style: { "--w": fw + "px" } }, h("i.art"), h("span.lab", h("b", m.name), h("small", m.rarity)), h("i.glint"));
       const cardBack = h("div.mx-cardback", h("b", "Peta"), h("small", `Today's material · ${date}`));
       const flip = h("div.mx-flip", cardBack, face);
       const card = h("div.mx-card", { style: { width: fw + "px", height: fh + "px", "--w": fw + "px", left: W * .2 - boxIn * CARD.side + "px", top: H * .19 - boxIn * 380 / 560 * CARD.top + "px", transform: `scale(${k0})` } }, flip);
       // its shadow lies flat on the desk, outside the card's 3D space, so a turning card never passes behind it
       const cardShadow = h("i.mx-cardshadow", { style: { width: fw * .84 + "px", height: fh * .7 + "px" } });
-      const env = h("div.mx-desk", { style: { width: W + "px", height: H + "px", "--light": D.light }, tabindex: 0, role: "button", "aria-label": "Lift the flap" }, h("i.mx-shadow"), back, glow, card, pocket, flap);
+      const env = h("div.mx-desk", { style: { width: W + "px", height: H + "px", "--light": D.light, "--ew": W + "px" }, tabindex: 0, role: "button", "aria-label": "Lift the flap" }, h("i.mx-shadow"), back, glow, card, pocket, flap);
       stage.append(env);
       const x0 = SW / 2 - W / 2, y0 = SH * (portrait ? .55 : .56) - H / 2, at = (x, y) => { const s = stage.getBoundingClientRect(); return [s.left + x, s.top + y]; };
       { const [lx, ly] = at(SW / 2, y0 + H / 2); desk.lamp(.38, lx, ly, "common", 20, 80); }
@@ -595,8 +595,10 @@ const Cer = (() => {
         env.style.filter = drop ? `blur(${drop * 7}px)` : ""; env.style.opacity = 1 - drop; env.style.visibility = drop >= 1 ? "hidden" : "";
         env.style.setProperty("--z", (Math.max(0, -LIFT.x) / 40 + (Y.x > 2 ? .4 : 0)).toFixed(3));
         // past upright the flap shows its inside (chosen here rather than by backface-visibility, which WebKit and Chromium judge differently)
-        const a = clamp(FLAP.x, -10, 190), over = a > 90; flap.style.transform = `rotateX(${a}deg)`; flap.style.zIndex = over ? 0 : 6;
-        flapFront.style.visibility = tab.style.visibility = over ? "hidden" : ""; flapInside.style.visibility = over ? "visible" : "hidden";
+        // Opened, it is set a hair behind the envelope's plane: in 3D, depth decides what is in front (not z-index), and a flap settling
+        // at 179.9° would otherwise tilt its tip over the card coming out of the mouth.
+        const a = clamp(FLAP.x, -10, 190), over = a > 90; flap.style.transform = over ? `translateZ(-3px) rotateX(${a}deg)` : `rotateX(${a}deg)`; flap.style.zIndex = over ? 0 : 6;
+        flapFront.style.visibility = over ? "hidden" : ""; flapInside.style.visibility = over ? "visible" : "hidden";
         flapFront.style.filter = `brightness(${1 - .22 * Math.sin(clamp(a, 0, 90) * Math.PI / 180)})`;
         if (!free) { card.style.transform = `translateY(${-UP.x}px) scale(${k0})`; glow.style.opacity = (smooth(.08, .85, a / 180) * .95 + (UP.x > 0 ? .1 : 0)) * (rarity === "common" ? .55 : 1); }
       });

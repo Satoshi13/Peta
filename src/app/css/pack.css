@@ -212,10 +212,11 @@ html[data-motion="reduce"] .cer-lamp { transition: none; }
 .mx-shadow { position: absolute; left: 3%; top: 16%; width: 94%; height: 80%; border-radius: 12px; background: rgba(38, 26, 14, .5); filter: blur(calc(12px + var(--z) * 8px)); transform: translate(calc(10px + var(--z) * 8px), calc(18px + var(--z) * 10px)); opacity: calc(.55 - var(--z) * .1); pointer-events: none; }
 .mx-glow { --light: 255, 244, 224; position: absolute; z-index: 2; left: 10%; right: 10%; top: -30%; height: 90%; border-radius: 50%; opacity: 0; filter: blur(16px); pointer-events: none; background: radial-gradient(closest-side, rgba(var(--light), .95), rgba(var(--light), 0)); }
 .mx-glow.prism { background: conic-gradient(#ffb3d9, #ffe9a6, #b7f3d4, #a9d8ff, #d4b8ff, #ffb3d9); -webkit-mask: radial-gradient(closest-side, #000, transparent); mask: radial-gradient(closest-side, #000, transparent); }
-.mx-desk > .mx-part:first-of-type { z-index: 1; } .mx-pocket { z-index: 4; }
+.mx-desk > .mx-back { z-index: 1; } .mx-desk > .mx-pocket { z-index: 4; }
+.mx-pocket > .mx-part { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mx-pocket .env-label { font-size: calc(var(--ew, 450px) * .036); }
 .mx-flap { position: absolute; inset: 0; z-index: 6; transform-origin: 50% 12.5%; transform-style: preserve-3d; pointer-events: none; }
 .mx-flap .mx-flap-in { visibility: hidden; filter: brightness(.8) saturate(.9); }
-.mx-tab { position: absolute; left: 44.5%; top: 50%; width: 11%; height: 9%; border-radius: 2px; background: rgba(250, 232, 226, .85); box-shadow: 0 1px 1px rgba(0, 0, 0, .12); transform: rotate(-4deg); }
 /* the card: its back (Peta, the date) and its face (the material) */
 .mx-card { position: absolute; z-index: 3; transform-origin: 0 0; transform-style: preserve-3d; }   /* what peeks out of the mouth can be taken */
 .mx-card.free { z-index: 10; transform-origin: 50% 50%; pointer-events: none; }
