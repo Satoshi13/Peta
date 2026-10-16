@@ -30,6 +30,7 @@
     "allow-friend-market",
     "allow-about-notices",
     "allow-library-move",
+    "allow-beta-updates",
     "allow-daily-supply"
   ]
 }

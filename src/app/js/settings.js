@@ -25,6 +25,7 @@ Pages.settings = {
         h("button.btn.paper.small",{on:{click:async()=>{try {await Bridge.invoke("developer_sync_displays");Shell.toast("Displays re-synced.");}catch(e){Shell.toast(String(e));}}}},"Re-sync Displays"))));
     if(S.inbox.enabled) root.append(RefereeSettings.card());
     const friends = Friends.settingsCard(), key = Friends.keyCard(); if(friends) root.append(friends); if(key) root.append(key);
+    if(S.developer)root.append(UpdateUI.supplyCard());
     root.append(LibraryMove.card(),AboutPeta.card());
     root.append(h("p.muted.fine", "In the real app this window also hosts Cutting Mat, Collection, Packs and Gifts — what used to be four separate windows. Stickers stay on your desktop; this window comes and goes from the menu bar."));
     return root;
@@ -100,7 +101,7 @@ const AboutPeta = {
     probe.addEventListener("loadedmetadata",ready,{once:true});probe.addEventListener("error",()=>{button.setAttribute("aria-busy","false");button.textContent="Tour unavailable";probe.removeAttribute("src");},{once:true});probe.src=this.TOUR;
     const legal=h("div.row-btns",{hidden:true});
     queueMicrotask(()=>Bridge.invoke("about_links").then(links=>{if(!legal.isConnected)return;for(const link of links)legal.append(h("button.btn.paper.small",{type:"button",on:{click:async()=>{try{await Bridge.invoke("about_open_link",{id:link.id});}catch(e){Shell.toast(String(e));}}}},link.label));legal.hidden=!links.length;}).catch(()=>{}));
-    return h("section.setcard.about-card",photo,h("div.about-text",h("h2","About Peta"),h("p.small","A short film of how Peta works: make a sticker, stick it on your desktop, and send one to a friend."),button,h("button.btn.paper.small",{type:"button",on:{click:async()=>{try{await Bridge.invoke("about_notices");}catch(e){Shell.toast(String(e));}}}},"Third-party notices…"),legal));
+    return h("section.setcard.about-card",photo,h("div.about-text",h("h2","About Peta"),UpdateUI.card(),h("p.small","A short film of how Peta works: make a sticker, stick it on your desktop, and send one to a friend."),button,h("button.btn.paper.small",{type:"button",on:{click:async()=>{try{await Bridge.invoke("about_notices");}catch(e){Shell.toast(String(e));}}}},"Third-party notices…"),legal));
   },
   play() {
     if(document.querySelector("dialog")) return;

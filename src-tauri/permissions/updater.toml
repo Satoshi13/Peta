@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-beta-updates"
+description = "Check beta status and install only the verified package held by Rust. No direct plugin commands."
+commands.allow = ["update_status", "update_check", "update_install"]

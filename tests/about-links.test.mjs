@@ -11,7 +11,7 @@ const nodes=el=>el instanceof Element?[el,...el.children.flatMap(nodes)]:[];
 const text=el=>el instanceof Element?el.children.map(text).join(''):String(el??'');
 const js=fs.readFileSync(new URL('../src/app/js/settings.js',import.meta.url),'utf8');
 async function fixture(links){
-  const calls=[],context=vm.createContext({h,queueMicrotask,A:{},Bridge:{invoke:async(cmd,args)=>{calls.push({cmd,args});return links;}},Shell:{toast(){}}});
+  const calls=[],context=vm.createContext({h,queueMicrotask,UpdateUI:{card:()=>h("div.update-controls")},A:{},Bridge:{invoke:async(cmd,args)=>{calls.push({cmd,args});return links;}},Shell:{toast(){}}});
   vm.runInContext(js.slice(js.indexOf('const AboutPeta ='),js.indexOf('const ProfileName ='))+';this.card=AboutPeta.card();',context);
   await new Promise(resolve=>setImmediate(resolve));return {card:context.card,calls};
 }

@@ -67,17 +67,8 @@ impl HttpReferee {
     pub(crate) fn public_key(&self) -> String {
         sign::public_key(&self.key)
     }
-    /// One signed exchange. `body` is sent as is (JSON or sealed bytes); at most `max` bytes are read back.
-    pub(crate) fn exchange(&self, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
-        self.exchange_with(&self.agent, method, path, body, content_type, max)
-    }
-    /// The same signed exchange with the long-running agent, for sealed Market cards and packs.
-    pub(crate) fn exchange_bulk(&self, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
-        self.exchange_with(&self.bulk, method, path, body, content_type, max)
-    }
-    /// The service signs and routes on the path alone; a query string travels with the URL but is not signed.
-    fn exchange_with(&self, agent: &ureq::Agent, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
-        let signed_path = path.split('?').next().unwrap_or(path);
+    pub(crate) fn signed_headers(&self,method:&str,path:&str,body:&[u8])->Result<Vec<(&'static str,String)>> {
+        let signed_path=path.split('?').next().unwrap_or(path);
         let time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map_err(|_| RefereeError::Rejected("clock_skew".into()))?
@@ -90,14 +81,23 @@ impl HttpReferee {
             &self.key,
             &peta_core::ownership::request_bytes(method, signed_path, &time, &nonce, body),
         ));
-        let r = agent
-            .request(method, &format!("{}{path}", self.url))
-            .set("Content-Type", content_type)
-            .set("X-Peta-Key", &sign::public_key(&self.key))
-            .set("X-Peta-Time", &time)
-            .set("X-Peta-Nonce", &nonce)
-            .set("X-Peta-Sig", &signature)
-            .send_bytes(body);
+        Ok(vec![("X-Peta-Key",sign::public_key(&self.key)),("X-Peta-Time",time),("X-Peta-Nonce",nonce),("X-Peta-Sig",signature)])
+    }
+    /// One signed exchange. `body` is sent as is (JSON or sealed bytes); at most `max` bytes are read back.
+    pub(crate) fn exchange(&self, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
+        self.exchange_with(&self.agent, method, path, body, content_type, max)
+    }
+    /// The same signed exchange with the long-running agent, for sealed Market cards and packs.
+    pub(crate) fn exchange_bulk(&self, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
+        self.exchange_with(&self.bulk, method, path, body, content_type, max)
+    }
+    /// The service signs and routes on the path alone; a query string travels with the URL but is not signed.
+    fn exchange_with(&self, agent: &ureq::Agent, method: &str, path: &str, body: &[u8], content_type: &str, max: usize) -> Result<(u16, Vec<u8>)> {
+        let signed_path = path.split('?').next().unwrap_or(path);
+        let headers=self.signed_headers(method,signed_path,body)?;
+        let mut request=agent.request(method,&format!("{}{path}",self.url)).set("Content-Type",content_type);
+        for (name,value) in headers {request=request.set(name,&value);}
+        let r=request.send_bytes(body);
         let (status, response) = match r {
             Ok(r) => (r.status(), r),
             Err(ureq::Error::Status(status, r)) => (status, r),
@@ -112,7 +112,7 @@ impl HttpReferee {
         if bytes.len() > max || status >= 500 {
             return Err(RefereeError::Offline.into());
         }
-        LAST_CONTACT.store(time.parse().unwrap_or(0), Ordering::Relaxed);
+        LAST_CONTACT.store(chrono::Utc::now().timestamp(), Ordering::Relaxed);
         Ok((status, bytes))
     }
     /// A failed status as the referee's error: 404 is Unknown, anything else carries the Worker's code.

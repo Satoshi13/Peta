@@ -34,7 +34,7 @@ async function boot() {
   await Bridge.listen('sticker-updated', e => { Bridge.invalidateAsset(e.payload); Bridge.changed(); });
   await Bridge.listen('profile-changed', e => { S.iconStickerId=e.payload.iconStickerId; Shell.renderNav(); if(['settings','market'].includes(S.page)) Shell.refresh(); });
   await Bridge.window.onFocusChanged(async e => {
-    if(e.payload) { Bridge.printFocusTransfer=false; if(await Bridge.window.isVisible() && !(await Bridge.window.isMinimized())) { S.windowOpen=true; Pages[S.page]?.resume?.(); Scraps.flushNote(); await boardNotes(); if(S.inbox?.enabled) Bridge.invoke('inbox_check',{manual:false}).catch(()=>{}); } return; }
+    if(e.payload) { UpdateUI.check(false); Bridge.printFocusTransfer=false; if(await Bridge.window.isVisible() && !(await Bridge.window.isMinimized())) { S.windowOpen=true; Pages[S.page]?.resume?.(); Scraps.flushNote(); await boardNotes(); if(S.inbox?.enabled) Bridge.invoke('inbox_check',{manual:false}).catch(()=>{}); } return; }
     if(S.page!=="today" || !(await Bridge.window.isVisible()) || await Bridge.window.isMinimized()) Pages[S.page]?.suspend?.();
     if(Bridge.printFocusTransfer) { Bridge.printFocusTransfer=false; return; }
     if(S.closeOutside && !Bridge.dialogOpen && !document.querySelector('.cer')) Shell.close();
@@ -46,6 +46,7 @@ async function boot() {
   if(page==='boards-save') Pages.boards.traySave();
   await boardNotes();
   await Bridge.invoke("move_bootstrap_done").catch(()=>{});
+  UpdateUI.init();
   if(S.page==="settings") Shell.refresh();
   if(welcome!=null) Scraps.note(`A welcome gift: ${welcome} Scraps.`); requestAnimationFrame(() => requestAnimationFrame(() => Vibrancy.sync()));if(page==='redeem') Distribution.redeem();if(S.packOffer)Distribution.offer(S.packOffer);
   Friends.linksReady = true;

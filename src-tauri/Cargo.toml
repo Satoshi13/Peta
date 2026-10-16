@@ -3,12 +3,13 @@ name = "peta"
 version = "0.0.1"
 description = "Peta — One sticker a day."
 edition = "2021"
-rust-version = "1.77.2"
+rust-version = "1.90"
 
 [workspace]
 members = ["crates/core", "crates/peta-pass"]
 
 [features]
+beta = ["server", "dep:tauri-plugin-updater", "dep:tauri-plugin-process", "dep:reqwest"]
 developer = ["peta-core/developer", "server"]
 server = ["peta-core/daily-tables", "dep:ureq", "dep:ed25519-dalek", "dep:base64", "dep:getrandom"]
 
@@ -17,6 +18,8 @@ name = "peta_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
+base64 = "0.22"
+serde_json = "1"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
@@ -26,6 +29,9 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 peta-core = { path = "crates/core" }
 tauri-plugin-dialog = "2"
+tauri-plugin-updater = { version = "=2.14.0", optional = true, default-features = false, features = ["rustls-tls"] }
+tauri-plugin-process = { version = "2", optional = true }
+reqwest = { version = "0.13", optional = true, default-features = false }
 ureq = { version = "2.12.1", default-features = false, features = ["tls"], optional = true }
 ed25519-dalek = { version = "2", optional = true }
 base64 = { version = "0.22", optional = true }
@@ -48,3 +54,6 @@ opt-level = "s"
 # Pixel loops (mask refinement, material rendering) must be fast even in `npm run dev`.
 [profile.dev.package.peta-core]
 opt-level = 3
+
+[dev-dependencies]
+tauri = { version = "2", features = ["test"] }

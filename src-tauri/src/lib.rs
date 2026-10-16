@@ -166,6 +166,7 @@ fn developer_sync_displays(app: AppHandle) -> Result<(), String> {
     layers::sync(&app).map_err(|e| e.to_string())
 }
 
+mod updater;
 mod daily_supply;
 
 pub fn run() {
@@ -191,6 +192,9 @@ pub fn run() {
         .manage(gifts::PendingPack::default())
         .invoke_handler(tauri::generate_handler![
             daily_supply::daily_table_status,
+            updater::update_status,
+            updater::update_check,
+            updater::update_install,
             about::about_notices,
             about::about_links,
             about::about_open_link,
@@ -342,6 +346,13 @@ pub fn run() {
             }
         })
         .setup(|app| {
+            #[cfg(feature="beta")] {
+                if cfg!(feature="developer") {return Err("Beta and Developer are separate editions.".into());}
+                app.handle().plugin(tauri_plugin_updater::Builder::new().build())?;
+                app.handle().plugin(tauri_plugin_process::init())?;
+                app.manage(updater::Updates::default());
+            }
+
             // Menu-bar-only app: no Dock icon, no app menu.
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
@@ -360,6 +371,7 @@ pub fn run() {
             inbox::start(app.handle());
             friend_market::kickoff(app.handle());
             friend_links::start(app.handle());
+
             Ok(())
         })
         .build(context)
