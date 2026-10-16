@@ -158,19 +158,3 @@ Pages.today = {
   },
 };
 
-/** A few pastel four-point sparkles, drawn on a canvas over `host`. */
-function sparkBurst(host, n = 24, { colors = ["#f6c6e3", "#c9c3f5", "#bfe3f7", "#c8f2dc", "#f7f0be", "#fff"], cx = .5, cy = .45, power = 1 } = {}) {
-  if (reduced()) return;
-  const c = h("canvas.spark", { style: { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 40 } });
-  host.append(c); const r = host.getBoundingClientRect(); const dpr = Math.min(2, devicePixelRatio || 1);
-  c.width = r.width * dpr; c.height = r.height * dpr; const x = c.getContext("2d"); x.scale(dpr, dpr);
-  const ps = Array.from({ length: n }, () => { const a = rand(0, Math.PI * 2), v = rand(1.5, 6) * power; return { x: r.width * cx, y: r.height * cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1.5, s: rand(5, 14), life: rand(.7, 1.2), t: 0, col: pick(colors), rot: rand(0, 3) }; });
-  let last = performance.now();
-  const star = (px, py, s, rot) => { x.save(); x.translate(px, py); x.rotate(rot); x.beginPath(); for (let i = 0; i < 4; i++) { x.rotate(Math.PI / 2); x.moveTo(0, 0); x.quadraticCurveTo(s * .12, s * .12, s, 0); x.quadraticCurveTo(s * .12, -s * .12, 0, 0); } x.fill(); x.restore(); };
-  (function tick(now) {
-    const dt = Math.min(.05, (now - last) / 1000); last = now; x.clearRect(0, 0, r.width, r.height); let alive = false;
-    for (const p of ps) { p.t += dt; if (p.t > p.life) continue; alive = true; p.vy += 4.5 * dt; p.vx *= .985; p.x += p.vx * 60 * dt; p.y += p.vy * 60 * dt; p.rot += dt * 2;
-      x.globalAlpha = Math.max(0, 1 - p.t / p.life); x.fillStyle = p.col; star(p.x, p.y, p.s * (1 - p.t / p.life * .4), p.rot); }
-    if (alive) requestAnimationFrame(tick); else c.remove();
-  })(last);
-}

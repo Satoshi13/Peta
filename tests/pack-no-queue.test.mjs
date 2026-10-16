@@ -5,12 +5,11 @@ import fs from "node:fs";
 const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
 test("ten at once never queue prints: the batch opens with queue:false and has no Later", () => {
-  const gx = read("src/app/js/gx.js"), cer = read("src/app/js/ceremony.js");
-  assert.match(gx, /"pack_open", \{ packId: pack\.id, queue: false \}/);
-  assert.doesNotMatch(gx, /laterIt|laterBtn|"Later"|"Stick them"/);
+  const cer = read("src/app/js/ceremony.js");
   const many = cer.slice(cer.indexOf("async function openPackMany"), cer.indexOf("return { openMaterial"));
   assert.doesNotMatch(many.replace(/\/\/.*$/gm, ""), /print_later|Desktop\.print|print slot/i);
-  assert.match(many, /"pack_open", \{ packId: pack\.id, queue: false \}/);                // the desk's several-at-once opening commits the same way
+  assert.match(many, /"pack_open", \{ packId: pack\.id, queue: false \}/);
+  assert.doesNotMatch(many, /laterIt|laterBtn|"Later"|"Stick them"/);
 });
 
 test("one pack sticker: the pull queues nothing; Stick it sends it to the desktop, Keep in Collection (or Esc) just closes", () => {

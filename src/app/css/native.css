@@ -582,7 +582,6 @@ html[data-motion="reduce"] .mbook:hover .mc { transform:none!important; }
 .pack:not(:disabled):hover .pk-stack { transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-3px); }
 .mk-tile:hover .pk-stack { transform:translateY(-3px); }
 .stuck-t:hover .stk { transform:translateY(-2px); }
-.pk-wrap .mcard.in-wrap.out::before { animation:none; }
 /* Keep the floating clock constant. Hover moves its parent, never retimes the animation. */
 .env-float { animation:float 2.8s ease-in-out infinite; transition:none; }
 .env-scene::after { animation:shadow-breathe 2.8s ease-in-out infinite; }
