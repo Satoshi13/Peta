@@ -96,6 +96,7 @@ fn skipped(path: &str) -> bool {
         "thumbs"
             | "tag-icons"
             | "exports"
+            | "backups"
             | "peta.db-wal"
             | "peta.db-shm"
             | "peta.db-journal"

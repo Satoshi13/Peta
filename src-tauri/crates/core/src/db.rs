@@ -328,11 +328,55 @@ pub fn now() -> String {
     chrono::Utc::now().to_rfc3339()
 }
 
+/// Where copies made before a schema upgrade are kept (next to the library, never in a move file).
+pub const BACKUP_DIR: &str = "backups";
+/// Upgrades whose copies are kept; older copies are removed.
+const BACKUPS_KEPT: usize = 3;
+
+/// Copies the library before an upgrade changes its schema, so an upgrade that goes wrong never takes the
+/// only copy of someone's stickers and ownership records with it. Nothing is copied for a new library or
+/// one that is already current. A failed copy stops the upgrade: the old app can still open the old file.
+fn backup_before_upgrade(conn: &Connection, path: &Path) -> Result<()> {
+    let version: i64 = conn.query_row("PRAGMA user_version", [], |r| r.get(0))?;
+    if version < 1 || version >= SCHEMA_VERSION { return Ok(()); }
+    let (Some(dir), Some(name)) = (path.parent(), path.file_name().and_then(|n| n.to_str())) else { return Ok(()) };
+    let backups = dir.join(BACKUP_DIR);
+    std::fs::create_dir_all(&backups)?;
+    let target = backups.join(format!("{name}.v{version}.bak"));
+    if !target.exists() {
+        let partial = backups.join(format!("{name}.v{version}.bak.partial"));
+        let _ = std::fs::remove_file(&partial);
+        let partial_str = partial.to_str().ok_or_else(|| Error::Invalid("The library path cannot be backed up.".into()))?;
+        conn.execute("VACUUM main INTO ?1", [partial_str])
+            .map_err(|e| Error::Invalid(format!("Could not back up your library before upgrading it ({e}). Free some disk space and open Peta again.")))?;
+        std::fs::File::open(&partial)?.sync_all()?;
+        std::fs::rename(&partial, &target)?;
+    }
+    prune_backups(&backups, name)
+}
+
+fn prune_backups(backups: &Path, name: &str) -> Result<()> {
+    let prefix = format!("{name}.v");
+    let mut found: Vec<(i64, std::path::PathBuf)> = std::fs::read_dir(backups)?
+        .filter_map(|e| e.ok())
+        .filter_map(|e| {
+            let file = e.file_name().into_string().ok()?;
+            let version = file.strip_prefix(&prefix)?.strip_suffix(".bak")?.parse().ok()?;
+            Some((version, e.path()))
+        })
+        .collect();
+    found.sort_by(|a, b| b.0.cmp(&a.0));
+    for (_, old) in found.into_iter().skip(BACKUPS_KEPT) { std::fs::remove_file(old)?; }
+    Ok(())
+}
+
 impl Database {
     pub fn change_count(&self)->u64 {self.conn.total_changes()}
 
     pub fn open(path: &Path) -> Result<Self> {
-        Self::init(Connection::open(path)?)
+        let conn = Connection::open(path)?;
+        backup_before_upgrade(&conn, path)?;
+        Self::init(conn)
     }
 
     pub fn open_in_memory() -> Result<Self> {
@@ -1551,6 +1595,37 @@ mod tests {
         assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),SCHEMA_VERSION);assert_eq!(db.conn.query_row("SELECT header FROM edition_pack_frames",[],|r|r.get::<_,String>(0)).unwrap(),"header");assert_eq!(db.conn.query_row("SELECT value FROM meta WHERE key='pack.archive.saved'",[],|r|r.get::<_,String>(0)).unwrap(),"digest");
         assert_eq!(crate::server::counts(&db).unwrap().registrations,0);assert_eq!(crate::server::checked(&db,"missing").unwrap(),None);
         db.conn.execute("INSERT INTO pack_market_listings VALUES ('saved','x')",[]).unwrap();db.conn.execute("DELETE FROM pack_items WHERE pack_id='saved'",[]).unwrap();db.conn.execute("DELETE FROM packs WHERE id='saved'",[]).unwrap();assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM pack_market_listings",[],|r|r.get::<_,i64>(0)).unwrap(),0);
+    }
+
+    #[test]
+    fn an_upgrade_keeps_a_copy_of_the_old_library_and_only_the_last_three() {
+        let dir = std::env::temp_dir().join(format!("peta-backup-{}", crate::ids::new_sticker_id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("peta.db");
+        {
+            let conn = Connection::open(&path).unwrap();
+            for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3] { conn.execute_batch(migration).unwrap(); }
+            conn.pragma_update(None, "user_version", 3).unwrap();
+            conn.execute("INSERT INTO stickers(id,created_at,original_asset_path,rendered_asset_path,source_type,aspect) VALUES('kept','2026-01-01','o','r','original',1.0)", []).unwrap();
+        }
+        let backups = dir.join(BACKUP_DIR);
+        std::fs::create_dir_all(&backups).unwrap();
+        for old in [1, 2, 9] { std::fs::write(backups.join(format!("peta.db.v{old}.bak")), b"old").unwrap(); }
+        let db = Database::open(&path).unwrap();
+        assert_eq!(db.conn.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0)).unwrap(), SCHEMA_VERSION);
+        let copy = Connection::open(backups.join("peta.db.v3.bak")).unwrap();
+        assert_eq!(copy.query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0)).unwrap(), 3);
+        assert_eq!(copy.query_row("SELECT id FROM stickers", [], |r| r.get::<_, String>(0)).unwrap(), "kept");
+        let mut left: Vec<String> = std::fs::read_dir(&backups).unwrap().map(|e| e.unwrap().file_name().into_string().unwrap()).collect();
+        left.sort();
+        assert_eq!(left, ["peta.db.v2.bak", "peta.db.v3.bak", "peta.db.v9.bak"]);
+        drop(db);
+        // A current library and a brand-new one are not copied.
+        Database::open(&path).unwrap();
+        let fresh = dir.join("fresh.db");
+        Database::open(&fresh).unwrap();
+        assert_eq!(std::fs::read_dir(&backups).unwrap().count(), 3);
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
