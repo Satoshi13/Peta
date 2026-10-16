@@ -11,7 +11,8 @@
 | `check-csp.mjs` | 全ページを本番の CSP で描画し、違反がないこと |
 | `check-responsive.mjs` | 480〜1440px の幅と2つの窓スタイルで、崩れ・はみ出しがないこと |
 | `check-boards.mjs` / `check-ui-feedback.mjs` / `check-updater-ui.mjs` | Boards・操作のフィードバック・更新通知の画面の動き |
-| `check-admin-round2.mjs` / `check-daily-admin.mjs` | 管理画面（cloudflare/peta-admin）の画面 |
+| `check-admin-round2.mjs` / `check-daily-admin.mjs` / `check-admin-packs.mjs` | 管理画面（cloudflare/peta-admin）の画面 |
+| `test-sign-pack.py` | `sign-pack.sh` を偽の wrangler と使い捨ての鍵で動かす |
 | `ui-fixes-oct07-fixture.js` | 上の画面チェックが共有する偽の Tauri IPC（ユーザーデータに触れない） |
 
 画面のチェックは Playwright が必要です。`PETA_PLAYWRIGHT_MODULE`（Playwright の `index.mjs`）と `PETA_BROWSER`（Chromium の実行ファイル）で、手元のものを指定できます。
@@ -28,6 +29,7 @@
 | `check-binary-paths.py` | 実行ファイルに個人のパスが残っていないこと |
 | `third-party-licenses.py` | `THIRD_PARTY_NOTICES` の生成（`npm run licenses`） |
 | `coupon.py` / `coupon-key.sh` / `beta-invites.sh` | クーポンとベータ招待の運用 |
+| `sign-pack.sh` | 管理ページで「Ready to sign」にした公式パックを、手元で確かめてから公式の鍵で署名して置く |
 | `clean-target.py` | `src-tauri/target` の掃除（`npm run clean:target`） |
 
 ## 素材と経済
