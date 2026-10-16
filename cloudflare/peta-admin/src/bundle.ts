@@ -32,6 +32,10 @@ export function header(bundle: Bundle, keyId: string) {
     signer: { kind: "official", keyId }, attachments: [] };
 }
 export async function signBundle(bundle: Bundle, keyId: string, secret: string, publicKey?: string): Promise<string> {
+  return signHeader(header(bundle,keyId),keyId,secret,publicKey);
+}
+export async function signHeader(event:Record<string,unknown>,keyId:string,secret:string,publicKey?:string):Promise<string> {
+  if (!['bundle','daily_table'].includes(String(event.kind))) fail(400,'invalid','Unsupported coupon-key event.');
   if (!/^c[1-9][0-9]*$/.test(keyId)) fail(503, "signing_unavailable", "Coupon signing isn't configured.");
   let key: CryptoKey;
   try {
@@ -44,7 +48,7 @@ export async function signBundle(bundle: Bundle, keyId: string, secret: string, 
     key = await crypto.subtle.importKey("pkcs8", pkcs8, "Ed25519", false, ["sign"]);
     seed.fill(0); pkcs8.fill(0);
   } catch { fail(503, "signing_unavailable", "Coupon signing isn't configured."); }
-  const json = new TextEncoder().encode(JSON.stringify(header(bundle, keyId)));
+  const json = new TextEncoder().encode(JSON.stringify(event));
   if (json.length > 65536) fail(400, "invalid", "This coupon is too large.");
   const unsigned = new Uint8Array(13 + json.length);
   unsigned.set(new TextEncoder().encode("PETAEVNT")); unsigned[8] = 1;
