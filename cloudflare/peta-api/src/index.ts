@@ -13,7 +13,9 @@ import { inbox, MAX_GIFT, keyHash, sweepReports } from "./inbox";
 import { market, contentLimit, MARKET_CARD_MAX, MARKET_PACK_MAX } from "./market";
 import { invites, invited, invitesRequired, sweepRecords } from "./invites";
 import { coupons } from "./coupons";
+import { updates } from "./updates";
 export interface Env {
+  RELEASES?: R2Bucket;
   DB: D1Database;
   MARKET?: R2Bucket;
   MARKET_LISTINGS?: string;
@@ -602,6 +604,8 @@ async function route(request: Request, env: Env): Promise<Response> {
   }
   const fromInvites = await invites(request, env, path, await sha256(unbase64(key, 32)), data);
   if (fromInvites) return fromInvites;
+  const fromUpdates = await updates(request, env, path, await sha256(unbase64(key, 32)));
+  if (fromUpdates) return fromUpdates;
   const fromCoupons = await coupons(request, env, path, await sha256(unbase64(key, 32)), data);
   if (fromCoupons) return fromCoupons;
   const fromMarket = await market(request, env, path, key, body, data);
@@ -725,6 +729,10 @@ export default {
   async scheduled(event: ScheduledController, env: Env): Promise<void> {
     const t=Math.floor(event.scheduledTime/1000);
     await sweepRecords(env,t);
+    await env.DB.batch([
+      stmt(env.DB, "DELETE FROM update_tokens WHERE expires_at<=?", t),
+      stmt(env.DB, "DELETE FROM update_downloads WHERE at<?", t - 365 * 86400),
+    ]);
     await sweepReports(env,t);
   },
   async fetch(request: Request, env: Env): Promise<Response> {
