@@ -29,6 +29,7 @@
     "allow-friend-links",
     "allow-friend-market",
     "allow-about-notices",
-    "allow-library-move"
+    "allow-library-move",
+    "allow-daily-supply"
   ]
 }

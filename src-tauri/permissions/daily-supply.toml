@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-daily-supply"
+description = "Read the last signed daily supply check status."
+commands.allow = ["daily_table_status"]

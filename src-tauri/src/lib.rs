@@ -166,6 +166,8 @@ fn developer_sync_displays(app: AppHandle) -> Result<(), String> {
     layers::sync(&app).map_err(|e| e.to_string())
 }
 
+mod daily_supply;
+
 pub fn run() {
     let context = tauri::generate_context!();
     #[cfg(feature="developer")]
@@ -188,6 +190,7 @@ pub fn run() {
         .manage(Creator::default())
         .manage(gifts::PendingPack::default())
         .invoke_handler(tauri::generate_handler![
+            daily_supply::daily_table_status,
             about::about_notices,
             about::about_links,
             about::about_open_link,
@@ -327,7 +330,7 @@ pub fn run() {
             collection::share_copy
         ])
         .on_window_event(|window, event| {
-            if window.label()==app_window::APP_LABEL && matches!(event,tauri::WindowEvent::Focused(true)){referee_access::kickoff(window.app_handle());friend_market::kickoff(window.app_handle());}
+            if window.label()==app_window::APP_LABEL && matches!(event,tauri::WindowEvent::Focused(true)){daily_supply::kickoff(window.app_handle());referee_access::kickoff(window.app_handle());friend_market::kickoff(window.app_handle());}
             if matches!(event, tauri::WindowEvent::Destroyed) { layers::forget_reflection(window.app_handle(), window.label()); }
             // The main window is transparent and rounded: its native shadow is recomputed whenever the shape changes.
             if window.label() == app_window::APP_LABEL && matches!(event, tauri::WindowEvent::Resized(_)) {
@@ -352,6 +355,7 @@ pub fn run() {
             today::spawn_day_watcher(app.handle().clone());
             arrival::spawn_hit_watcher(app.handle().clone());
             port_capture::start(app.handle());
+            daily_supply::kickoff(app.handle());
             referee_access::kickoff(app.handle());
             inbox::start(app.handle());
             friend_market::kickoff(app.handle());
