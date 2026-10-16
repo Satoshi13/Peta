@@ -18,12 +18,16 @@ def release_env(environ=None, root=ROOT, home=None):
     for key in ('APPLE_ID','APPLE_PASSWORD','APPLE_TEAM_ID','APPLE_API_KEY','APPLE_API_ISSUER','APPLE_API_KEY_PATH','APPLE_CERTIFICATE','APPLE_CERTIFICATE_PASSWORD','APPLE_SIGNING_IDENTITY'):
         env.pop(key, None)
     env['CARGO_ENCODED_RUSTFLAGS'] = separator.join(flags)
+    if env.get('TAURI_SIGNING_PRIVATE_KEY_PATH'):
+        env['TAURI_SIGNING_PRIVATE_KEY'] = env['TAURI_SIGNING_PRIVATE_KEY_PATH']
     env['CARGO_INCREMENTAL'] = '0'
     return env
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    beta = any('beta' in a.split(',') for a in args)
+    if any('updater-test' in a for a in args):
+        raise SystemExit('The updater-test feature is for the isolated live test only. Never distribute it.')
+    beta = any('beta' in a.replace('--features=', '').replace(' ', ',').split(',') for a in args)
     if beta:
         config = __import__('json').loads((ROOT / 'src-tauri/tauri.beta.conf.json').read_text())
         key = config.get('plugins', {}).get('updater', {}).get('pubkey', '')
@@ -32,7 +36,8 @@ if __name__ == '__main__':
             decoded = base64.b64decode(key, validate=True).decode()
             if not decoded.startswith('untrusted comment:') or len(decoded.splitlines()) != 2:
                 raise ValueError()
-            if len(base64.b64decode(decoded.splitlines()[1], validate=True)) != 42:
+            raw = base64.b64decode(decoded.splitlines()[1], validate=True)
+            if len(raw) != 42 or raw[:2] != b'Ed':
                 raise ValueError()
         except Exception:
             raise SystemExit('Beta requires the owner updater PUBLIC key in tauri.beta.conf.json. No build was started.')

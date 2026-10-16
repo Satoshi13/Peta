@@ -12,7 +12,7 @@ fn main() {
         let key=config.pointer("/plugins/updater/pubkey").and_then(|k|k.as_str()).unwrap_or("");
         let valid=base64::engine::general_purpose::STANDARD.decode(key).ok().and_then(|b|String::from_utf8(b).ok()).is_some_and(|s| {
             let lines:Vec<_>=s.lines().collect();
-            lines.len()==2 && lines[0].starts_with("untrusted comment:") && base64::engine::general_purpose::STANDARD.decode(lines[1]).is_ok_and(|b|b.len()==42)
+            lines.len()==2 && lines[0].starts_with("untrusted comment:") && base64::engine::general_purpose::STANDARD.decode(lines[1]).is_ok_and(|b|b.len()==42 && b[..2]==*b"Ed")
         });
         assert!(valid,"Beta requires the owner updater PUBLIC key in tauri.beta.conf.json. No beta can be shipped without it.");
         assert_eq!(config.pointer("/plugins/updater/requireSignedVersion").and_then(|v|v.as_bool()),Some(true),"Signed updater versions are required.");
