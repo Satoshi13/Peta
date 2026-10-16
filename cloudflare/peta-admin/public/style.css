@@ -15,3 +15,4 @@
 .tag.open{color:var(--red)}
 nav{flex-wrap:wrap}
 nav button{flex:1 0 auto;white-space:nowrap}
+.news-preview{border:1px solid var(--line);border-radius:6px;padding:10px 14px;background:var(--paper);min-height:44px;white-space:pre-wrap;overflow-wrap:anywhere}

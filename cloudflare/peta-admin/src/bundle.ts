@@ -35,7 +35,7 @@ export async function signBundle(bundle: Bundle, keyId: string, secret: string, 
   return signHeader(header(bundle,keyId),keyId,secret,publicKey);
 }
 export async function signHeader(event:Record<string,unknown>,keyId:string,secret:string,publicKey?:string):Promise<string> {
-  if (!['bundle','daily_table'].includes(String(event.kind))) fail(400,'invalid','Unsupported coupon-key event.');
+  if (!['bundle','daily_table','announcement','shop_config'].includes(String(event.kind))) fail(400,'invalid','Unsupported coupon-key event.');
   if (!/^c[1-9][0-9]*$/.test(keyId)) fail(503, "signing_unavailable", "Coupon signing isn't configured.");
   let key: CryptoKey;
   try {

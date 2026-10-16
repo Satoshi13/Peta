@@ -30,6 +30,7 @@ try {
     if(method==='POST'){posts.push([path,route.request().postDataJSON()]);return route.fulfill({json:path==='/api/reports/block'?{blocked:true,resolved:2}:{ok:true}});}
     const data={'/api/me':{email:'owner@example.test'},'/api/friends':{friends:[],revision:'1',downloadPage:''},
       '/api/reports':{open:1,reports:[report,{...report,id:'e'.repeat(64),resolvedAt:1760000500,reason:'<img src=x onerror=alert(1)>'}],blocked:[{key:'bbbbbbbb',reason:'Spam',at:1760000000,reports:1}]},
+      '/api/news':{news:[{id:'news-1',text:'<b>Autumn</b> week',kind:'event',link:'download',startsAt:1760000000,endsAt:2000000000,stoppedAt:null,state:'live'}]},
       [`/api/reports/${report.id}`]:{...report,available:true,contents:{readable:true,lines:[{label:'Note',value:'<b>not bold</b>'}],pictures:[{label:'Sticker',png:PNG}]}},
     }[path];
     await route.fulfill(data?{json:data}:{status:404,json:{error:'not_found'}});
@@ -55,6 +56,19 @@ try {
   assert.deepEqual(posts.at(-1)[1],{id:report.id,reason:'Confirmed abuse',resolveOpen:true,confirm:true});
   await page.screenshot({path:join(shots,'reports-desktop.png'),fullPage:true});
   await page.setViewportSize({width:375,height:812});await page.screenshot({path:join(shots,'reports-mobile.png'),fullPage:true});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.setViewportSize({width:1060,height:800});
+
+  // News: a plain-text preview, the two fixed links and publish.
+  await page.getByRole('tab',{name:'News',exact:true}).click();await page.getByRole('button',{name:'Stop'}).waitFor();
+  assert.match(await page.locator('#news-list').textContent(),/<b>Autumn<\/b> week/);
+  await page.locator('#news-text').fill('<i>Hello</i> friends');await page.locator('#news-link').selectOption('discord');
+  assert.match(await page.locator('#news-preview').textContent(),/Info · <i>Hello<\/i> friends  The Discord invite →/);
+  assert.equal(await page.locator('#news-link option').count(),3);
+  await page.getByRole('button',{name:'Publish'}).click();await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('published'));
+  const published=posts.find(p=>p[0]==='/api/news')[1];
+  assert.equal(published.text,'<i>Hello</i> friends');assert.equal(published.link,'discord');assert.ok(published.endsAt-published.startsAt>=6*86400);
+  await page.setViewportSize({width:375,height:812});await page.screenshot({path:join(shots,'news-mobile.png'),fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.setViewportSize({width:1060,height:800});
 

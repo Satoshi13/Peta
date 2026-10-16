@@ -1,0 +1,15 @@
+{
+  "note": "Public RFC 8032 test vector, never a production key.",
+  "keyId": "c1",
+  "publicKey": "11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+  "announcement": {
+    "id": "news-contract",
+    "issuedAt": "2026-10-16T00:00:00Z",
+    "startsAt": "2026-10-16T00:00:00Z",
+    "endsAt": "2026-11-01T00:00:00Z",
+    "kind": "event",
+    "link": "download",
+    "text": "Autumn week: a new pack is in the Market."
+  },
+  "announcementEvent": "UEVUQUVWTlQBAAABeHsiZXZlbnRJZCI6Im5ld3MtY29udHJhY3QiLCJraW5kIjoiYW5ub3VuY2VtZW50IiwiaXNzdWVkQXQiOiIyMDI2LTEwLTE2VDAwOjAwOjAwWiIsIm5vdEJlZm9yZSI6IjIwMjYtMTAtMTZUMDA6MDA6MDBaIiwibm90QWZ0ZXIiOiIyMDI2LTExLTAxVDAwOjAwOjAwWiIsInRpdGxlIjoiQW5ub3VuY2VtZW50IiwibWVzc2FnZSI6IiIsInBheWxvYWQiOnsiYW5ub3VuY2VtZW50SWQiOiJuZXdzLWNvbnRyYWN0Iiwia2luZCI6ImV2ZW50IiwibGluayI6ImRvd25sb2FkIiwidGV4dCI6IkF1dHVtbiB3ZWVrOiBhIG5ldyBwYWNrIGlzIGluIHRoZSBNYXJrZXQuIn0sInNpZ25lciI6eyJraW5kIjoib2ZmaWNpYWwiLCJrZXlJZCI6ImMxIn0sImF0dGFjaG1lbnRzIjpbXX0v4bSAGajrg9U3KUDc1HIyVMxb41U6hjj5clDObA3TP3/Ol7PpQTxYJGjNc8YAKh0KVPbLmk69KYN2A/6QfugB"
+}

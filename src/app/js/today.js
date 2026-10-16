@@ -1,3 +1,31 @@
+/* The owner's announcement: one line above Today that can be closed for good. The text is plain text; a link can only be one of the two
+   places built into the app. Builds without the server never have one. */
+const TodayNotice = {
+  data: undefined, loading: null,
+  LINKS: { download: "Open the download page", discord: "Join the Discord" },
+  KINDS: { info: "News", event: "Event", maintenance: "Maintenance" },
+  load() {
+    if (this.loading) return this.loading;
+    this.loading = Bridge.invoke("announcement_current").then((d) => (this.data = d || null), () => this.data ?? null).finally(() => { this.loading = null; });
+    return this.loading;
+  },
+  host() {
+    const host = h("div.t-notice-host");
+    const paint = (n) => host.replaceChildren(...(n ? [this.banner(n, host)] : []));
+    if (this.data !== undefined) paint(this.data);
+    this.load().then(paint);
+    return host;
+  },
+  banner(n, host) {
+    const close = h("button.t-notice-x", { type: "button", "aria-label": "Close this announcement", on: { click: () => {
+      this.data = null; host.replaceChildren(); Snd.tap(); Bridge.invoke("announcement_dismiss", { id: n.id }).catch(() => {});
+    } } }, "×");
+    const link = this.LINKS[n.link] ? h("button.link.t-notice-link", { type: "button", on: { click: () => Bridge.invoke("announcement_open", { link: n.link }).catch((e) => Shell.toast(String(e))) } }, this.LINKS[n.link], " ", h("i", "→")) : null;
+    return h("aside.t-notice", { role: "note", data: { kind: this.KINDS[n.kind] ? n.kind : "info" } },
+      h("span.t-notice-kind", this.KINDS[n.kind] || "News"), h("p.t-notice-text", String(n.text)), link, close);
+  },
+};
+
 Pages.today = {
   timer: null,
   enter() { this.resume(); },
@@ -24,7 +52,7 @@ Pages.today = {
   },
   build() {
     const st = S.dayState, root = h("div.page-in.today", { data: { state: st } });
-    root.append(PageHead("Today", fmtDate(S.today, { weekday: "long", month: "long", day: "numeric" }), st === "opened" ? EnvelopeTicket() : DateStamp()));
+    root.append(TodayNotice.host(), PageHead("Today", fmtDate(S.today, { weekday: "long", month: "long", day: "numeric" }), st === "opened" ? EnvelopeTicket() : DateStamp()));
     if (st === "arrived") {
       const scene = EnvelopeScene();
       const open = () => Pages.today.openEnvelope(root);

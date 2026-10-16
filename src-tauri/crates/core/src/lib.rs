@@ -6,6 +6,7 @@ pub mod creator;
 pub mod cutout;
 pub mod daily;
 pub mod daily_tables;
+pub mod signed_config;
 mod settings_store;
 pub mod db;
 pub mod error;

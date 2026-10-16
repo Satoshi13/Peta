@@ -200,6 +200,9 @@ pub fn run() {
         .manage(gifts::PendingPack::default())
         .invoke_handler(tauri::generate_handler![
             daily_supply::daily_table_status,
+            daily_supply::announcement_current,
+            daily_supply::announcement_dismiss,
+            daily_supply::announcement_open,
             updater::update_status,
             updater::update_check,
             updater::update_install,

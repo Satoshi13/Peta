@@ -23,4 +23,4 @@ export async function req(path: string, init: RequestInit = {}, use: Env = base,
   return handle(new Request(ORIGIN + path, { ...init, headers }), use, keys, transport);
 }
 export const post = (path: string, body: unknown, use: Env = base, transport?: Fetch) => req(path, { method: "POST", headers: { Origin: ORIGIN, "Content-Type": "application/json" }, body: JSON.stringify(body) }, use, undefined, transport);
-export const clear = () => base.DB.batch(["reports", "blocked_keys", "daily_tables", "update_downloads", "admin_log", "admin_locks", "coupon_claims", "coupons", "downloads", "invites", "nonces", "rate_counters"].map(t => base.DB.prepare(`DELETE FROM ${t}`)));
+export const clear = () => base.DB.batch(["signed_configs", "reports", "blocked_keys", "daily_tables", "update_downloads", "admin_log", "admin_locks", "coupon_claims", "coupons", "downloads", "invites", "nonces", "rate_counters"].map(t => base.DB.prepare(`DELETE FROM ${t}`)));

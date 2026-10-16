@@ -1,4 +1,4 @@
 [[permission]]
 identifier = "allow-daily-supply"
-description = "Read the last signed daily supply check status."
-commands.allow = ["daily_table_status"]
+description = "Read the last signed daily supply check status, and show, close or follow the signed in-app announcement."
+commands.allow = ["daily_table_status", "announcement_current", "announcement_dismiss", "announcement_open"]

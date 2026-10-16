@@ -23,3 +23,20 @@ it('caps future events at ten and sweeps only records older than one year',async
  await db.prepare("INSERT INTO daily_tables VALUES('old','event',0,?,'old',0,NULL),('paused','event',0,?,'paused',0,?),('recent','event',0,?,'recent',0,NULL)").bind(now-366*86400,now+86400,now-366*86400,now-10).run();
  await sweepRecords(use,now);const rows=(await db.prepare("SELECT id FROM daily_tables WHERE id IN ('old','paused','recent')").all<any>()).results;expect(rows).toEqual([{id:'recent'}]);
 });
+async function config(gated=false){const time=String(Math.floor(Date.now()/1000)),nonce=base64(crypto.getRandomValues(new Uint8Array(16))),path='/v1/config';
+ const pub=base64(new Uint8Array((await crypto.subtle.exportKey('raw',key.publicKey)) as ArrayBuffer));const sig=base64(new Uint8Array(await crypto.subtle.sign('Ed25519',key.privateKey,await requestBytes('GET',path,time,nonce,new Uint8Array()))));
+ return worker.fetch(new Request('https://peta.test'+path,{headers:{'X-Peta-Key':pub,'X-Peta-Time':time,'X-Peta-Nonce':nonce,'X-Peta-Sig':sig}}),{...use,INVITE_REQUIRED:gated?'1':undefined});}
+it('serves tables with live and upcoming announcements and shop settings, never stopped or ended ones',async()=>{
+ await db.prepare('DELETE FROM signed_configs').run();
+ const now=Math.floor(Date.now()/1000);
+ await db.prepare('INSERT INTO daily_tables VALUES(?,?,?,?,?,?,NULL)').bind('table','default',now-10,now+100,'table',now).run();
+ for(const [id,kind,start,end,stopped] of [['a-old','announcement',now-100,now+100,null],['a-new','announcement',now-10,now+100,null],['a-soon','announcement',now+10,now+100,null],['a-ended','announcement',now-100,now,null],['a-stopped','announcement',now-10,now+100,now],['s-live','shop_config',now-10,now+100,null],['s-stopped','shop_config',now-10,now+100,now]] as const)
+  await db.prepare('INSERT INTO signed_configs VALUES(?,?,?,?,?,?,?)').bind(id,kind,start,end,id,now,stopped).run();
+ expect(await(await config()).json()).toEqual({tables:['table'],announcements:['a-soon','a-new','a-old'],shop:['s-live']});
+ expect(await(await get()).json()).toEqual({tables:['table']});
+ expect((await config(true)).status).toBe(403);
+ await expect(db.prepare("INSERT INTO signed_configs VALUES('x','bundle',0,1,'x',0,NULL)").run()).rejects.toThrow();
+ await db.prepare("INSERT INTO signed_configs VALUES('gone','announcement',0,?,'gone',0,NULL)").bind(now-366*86400).run();
+ await sweepRecords(use,now);expect(await db.prepare("SELECT id FROM signed_configs WHERE id='gone'").first()).toBeNull();
+ expect(await db.prepare("SELECT id FROM signed_configs WHERE id='a-new'").first()).not.toBeNull();
+});
