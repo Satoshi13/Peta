@@ -179,7 +179,7 @@ MarketとMaterialsの右上にScraps残高を表示します。Materialsのカ�
 
 公式イベント・コード・Gift v2・作者Packをローカルで受け取れます。BookのMake a Pack…から完成ステッカー3〜24枚を署名して保存し、受け取りはOpen Peta file…の確認後に棚へ追加します。旧Gift v1もUnsignedとして読めます。DBは既存データを保つ追加マイグレーションV8です。素材／Welcome／作成／Scrapsの既存ルールは維持します。
 
-配布準備は[オーナー向け説明](distribution-howto.md)、検証・制約は[実装報告](signed-distribution-report.md)。本物の公式秘密鍵はオーナーがリポジトリ外でkeygenし、公開鍵だけを同梱します。現在の仮公開鍵は本番配布前に要差し替えです。署名は鍵と改ざんの確認であり、本人確認・配布済み取消・端末をまたぐ利用制限は提供しません。通信・決済・アカウントは追加しません。
+配布準備は[オーナー向け説明](distribution-howto.md)、検証・制約は[実装報告](archive/reports/signed-distribution-report.md)。本物の公式秘密鍵はオーナーがリポジトリ外でkeygenし、公開鍵だけを同梱します。現在の仮公開鍵は本番配布前に要差し替えです。署名は鍵と改ざんの確認であり、本人確認・配布済み取消・端末をまたぐ利用制限は提供しません。通信・決済・アカウントは追加しません。
 
 ### Cutting Mat(写真 → ステッカー)
 
@@ -195,7 +195,7 @@ Today の **Create**、またはデスクトップへの画像ドロップで開
 
 - 元から**透明な背景の PNG**は、モデルを使わずにそのまま使います(フチと素材だけ付きます)。
 - スマホ写真の**向き(EXIF)**は自動で直します。
-- 背景除去は **Apple Vision の前景抽出**を使います。macOS **14.0 以上**が必要です。モデルの同梱・選択・ダウンロードはありません。解析はバックグラウンドで行い、輪郭・ブラシの仕上げは従来どおりです。初回は OS のモデル初期化に時間がかかる場合があります。計測と比較は [Vision の報告](vision-cutout-report.md) に記録します。
+- 背景除去は **Apple Vision の前景抽出**を使います。macOS **14.0 以上**が必要です。モデルの同梱・選択・ダウンロードはありません。解析はバックグラウンドで行い、輪郭・ブラシの仕上げは従来どおりです。初回は OS のモデル初期化に時間がかかる場合があります。計測と比較は [Vision の報告](archive/reports/vision-cutout-report.md) に記録します。
 - **Holographic／Goldの光沢**はmacOSのグローバルカーソルに追従します。帯の位置・角度だけが変わり、ステッカーの傾き・影・大きさは変えません。カーソルが未移動／層の外なら従来の位置・回転による反射へ戻ります。補間は収束で停止し、反射対象0枚／Reduce motionでは33msのカーソル取得も停止します。反射対象は `REFLECTIVE_MATERIALS` に集約。`reflection_status` の activeLayers / timerRunning / cursorReads とdebugログで停止を確認できます。対応 OS は macOS 14 以上です。
 
 ### ステッカーの裏面(裏返す)
@@ -358,7 +358,7 @@ Collection の Duplicate は廃止しました。所持する1枚を貼る・剥
 
 Cloudflare Worker / D1 が本物の持ち主と有限パックの枠を確認します。`server` は optional な HTTP クライアントを有効にし、`developer` が含みます。通常版は `NoReferee` のままで通信コードを含みません。DB は既存のローカル Market の V14 を保持し、登録待ち・取り消し待ち・枠の引き待ちと未確認の印を追加します。V1〜V13 は変更していません。
 
-作成はオフラインでも可能で、接続後に登録します。確認が必要な Gift の送受取・press・Open は通信が成功してから確定します。旧 Gift / Pack は Not checked のまま扱えます。確認済み原本の画像は作成証明が固定されるため編集できません（新しいステッカーとして作成）。未送信の原本の編集は維持します。詳細・操作・検証は [運用手順](server-howto.md) と [S1 報告](server-s1-report.md) を参照してください。
+作成はオフラインでも可能で、接続後に登録します。確認が必要な Gift の送受取・press・Open は通信が成功してから確定します。旧 Gift / Pack は Not checked のまま扱えます。確認済み原本の画像は作成証明が固定されるため編集できません（新しいステッカーとして作成）。未送信の原本の編集は維持します。詳細・操作・検証は [運用手順](server-howto.md) と [S1 報告](archive/reports/server-s1-report.md) を参照してください。
 
 ### Boards（2026-10-13、通常版・開発者版）
 
@@ -372,7 +372,7 @@ Auto は無料です。時間帯は開始日を基準に、窓に入った最初
 
 有効なルールがある間だけ1分ごとに確認し、起動・スリープ復帰・画面変更でも確認します。位置情報の要求は初回 Place の説明で Continue を押したときだけです。拒否してもルールは保存でき、`Location is off for Peta` と表示します。観測した Wi‑Fi 名・位置は保存も送信もしません（入力したルール名のみ DB に保存）。自動切り替えの知らせは窓が前に出たときにも届きます。
 
-メニューバーの Boards から画面ごとの切り替え・Undo・メイン画面の保存・Boards ページを開けます。検証結果と判断は [Boards 実装報告](boards-report.md)、実機確認は [macOS チェックリスト](port-spec/macos-checklist.md) に記載しています。
+メニューバーの Boards から画面ごとの切り替え・Undo・メイン画面の保存・Boards ページを開けます。検証結果と判断は [Boards 実装報告](archive/reports/boards-report.md)、実機確認は [macOS チェックリスト](port-spec/macos-checklist.md) に記載しています。
 
 
 ### 2026-10-13: S2 友達・Gift の受信箱（開発者版限定）
@@ -383,11 +383,11 @@ Settings の Friends でコード／リンクをコピーして交換し、本�
 
 `.petakey` は署名鍵と暗号鍵だけのパスフレーズ付きバックアップです。Collection・友達・配置を移すには、移行アシスタント／Time Machine でデータフォルダ全体も移します。同じ鍵の2台同時利用と同期は対応しません。通報は本人の同意で復号済みの元の Gift を非公開の運営用 R2 へ送り、退会は受信箱を消しますが所有権台帳は残します。
 
-パック作者だけが枠ごとの引いた人の鍵ハッシュを取得し、端末内の承認済み友達の名前に置き換えます。それ以外は `Someone`、各デザイン・景品で3人までと `+N` を表示します。Scraps の取り分・友達の Market は S3 です。実装・検証・残る実機項目は [S2 報告](server-s2-report.md)、運用は [server-howto.md](server-howto.md)、公開前に専門家と確認する文案は [privacy-policy-draft.md](privacy-policy-draft.md) を参照してください。本番への操作はしていません。
+パック作者だけが枠ごとの引いた人の鍵ハッシュを取得し、端末内の承認済み友達の名前に置き換えます。それ以外は `Someone`、各デザイン・景品で3人までと `+N` を表示します。Scraps の取り分・友達の Market は S3 です。実装・検証・残る実機項目は [S2 報告](archive/reports/server-s2-report.md)、運用は [server-howto.md](server-howto.md)、公開前に専門家と確認する文案は [privacy-policy-draft.md](privacy-policy-draft.md) を参照してください。本番への操作はしていません。
 
 ### 2026-10-13: S3 友達の Market（開発者版限定）
 
-Market の公式の棚の下に、承認済みの友達が出したパックが友達ごとのレールで並びます。カードで中身と残りを見て、1回 6 Scraps(仮)で1枠ずつ引きます。Scraps は端末のまま、引く記録と売り手の取り分(70%、仮)は審判役が持ちます。出品の中身は出品ごとの鍵で暗号化され、運営は読めません。My shelf の完成パックは `Show to friends in Market` / `Take down` / `Stop selling` で出し、売れ行きに入った Scraps が出ます。アプリ DB は V17、Worker は `0003_market.sql`。詳細は [S3 報告](server-s3-report.md)、設計は [server-s3-market-plan.md](server-s3-market-plan.md)、運用は [server-howto.md](server-howto.md)。本番への操作はしていません。
+Market の公式の棚の下に、承認済みの友達が出したパックが友達ごとのレールで並びます。カードで中身と残りを見て、1回 6 Scraps(仮)で1枠ずつ引きます。Scraps は端末のまま、引く記録と売り手の取り分(70%、仮)は審判役が持ちます。出品の中身は出品ごとの鍵で暗号化され、運営は読めません。My shelf の完成パックは `Show to friends in Market` / `Take down` / `Stop selling` で出し、売れ行きに入った Scraps が出ます。アプリ DB は V17、Worker は `0003_market.sql`。詳細は [S3 報告](archive/reports/server-s3-report.md)、設計は [server-s3-market-plan.md](server-s3-market-plan.md)、運用は [server-howto.md](server-howto.md)。本番への操作はしていません。
 
 ### 2026-10-14: 公開前修正 — 公式イベントの信頼
 
@@ -415,4 +415,4 @@ Developer ID署名・公証はオーナー準備後に `bash scripts/release-mac
 
 Giftの宛先はStudioのDressで友達またはSomeone else — save a fileを選ぶ。Sealは確認だけ。通信なし版はName on the envelopeの文字欄だけを表示する。
 
-公開前修正の実装・段階別コミット・検証結果・残る準備は[報告](release-hardening-report.md)にまとめた。移行の読み込みは、新しいMacでPetaを初めて開いたまま、使用や終了の前に行う。正式配布はオーナーの本番・Apple・法律面の準備と実機確認の後。
+公開前修正の実装・段階別コミット・検証結果・残る準備は[報告](archive/reports/release-hardening-report.md)にまとめた。移行の読み込みは、新しいMacでPetaを初めて開いたまま、使用や終了の前に行う。正式配布はオーナーの本番・Apple・法律面の準備と実機確認の後。

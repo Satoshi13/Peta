@@ -206,6 +206,11 @@
 - **Standing setting** は今の設定を置き換える(内部では400日の期限で署名。400日たつと組み込みのショップに戻るので、それまでに一度保存し直す)。**For a period** は期間中だけ Standing より優先する。
 - アプリは同じ上限を検査し、外れた設定は丸ごと無視する(部分的に直して使わない)。表示される値段と実際に引かれる Scraps は同じ関数から出る(`scraps::pack_offer`)。
 
+### Packs(公式パックの下書きと掲載)
+
+- 公式パックの下書き(絵・名前・レア度・値段)を作り、オーナーの Mac で `bash scripts/sign-pack.sh <draftId> prod` を打って署名し、ここで期間を決める。**このページは署名しない・鍵を選ばせない**。手順は [official-packs-howto.md](official-packs-howto.md)。
+- 署名済みのパックは Shop タブの Featured・並び・値段にも出る(`shop:<packId>`)。
+
 ### Market(見るだけ)
 
 - 公開中の出品数、出品している友達の数、30日の引かれた回数と使われた Scraps、売り手に入った取り分(全期間と30日)。日ごとの棒グラフ2つ(回数 / Scraps)と表。日付は UTC。

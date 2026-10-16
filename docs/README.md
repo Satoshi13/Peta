@@ -10,6 +10,7 @@
 ## 運用の手順（オーナー向け）
 
 - 配布: [distribution-howto.md](distribution-howto.md)、[release-day-runbook.md](release-day-runbook.md)、[release-readiness-plan.md](release-readiness-plan.md)、[updater-howto.md](updater-howto.md)、[download-page-howto.md](download-page-howto.md)
+- 公式パック: [official-packs-howto.md](official-packs-howto.md)（報告 [official-packs-report.md](official-packs-report.md)）
 - 鍵と配布物: [official-key-howto.md](official-key-howto.md)、[coupon-howto.md](coupon-howto.md)、[daily-table-howto.md](daily-table-howto.md)、[new-material-howto.md](new-material-howto.md)
 - サーバー: [server-howto.md](server-howto.md)、[server-plan.md](server-plan.md)、[server-resources.md](server-resources.md)、[admin-page-howto.md](admin-page-howto.md)
 - 公開前の文案: [terms-draft.md](terms-draft.md)、[privacy-policy-draft.md](privacy-policy-draft.md)
