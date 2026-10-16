@@ -2,6 +2,7 @@ import { daily } from "./daily";
 import { reports } from "./reports";
 import { news } from "./news";
 import { shop } from "./shop";
+import { market } from "./market";
 import { release } from "./release";
 import { friends, type Fetch } from "./friends";
 import { coupons } from "./coupons";
@@ -63,6 +64,7 @@ export async function handle(request: Request, env: Env, keys: KeySource = fetch
   try {
     if (url.pathname === "/api/release" && request.method === "GET") return secure(await release(env));
     if (url.pathname === "/api/me" && request.method === "GET") return secure(api({ email }));
+    if (url.pathname === "/api/market" && request.method === "GET") return secure((await market(request, env, url.pathname))!);
     if (url.pathname.startsWith("/api/")) {
       let data: unknown = null;
       if (request.method === "POST") {

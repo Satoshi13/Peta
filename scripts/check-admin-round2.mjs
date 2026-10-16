@@ -32,6 +32,7 @@ try {
     const data={'/api/me':{email:'owner@example.test'},'/api/friends':{friends:[],revision:'1',downloadPage:''},
       '/api/reports':{open:1,reports:[report,{...report,id:'e'.repeat(64),resolvedAt:1760000500,reason:'<img src=x onerror=alert(1)>'}],blocked:[{key:'bbbbbbbb',reason:'Spam',at:1760000000,reports:1}]},
       '/api/shop':{catalog:shopCatalog,configs:[{id:'shop-1',kind:'default',featured:['night'],officialFirst:false,order:['night'],packs:[{id:'night',onSale:true,price:14,blurb:'Fog.'}],startsAt:1760000000,endsAt:2000000000,stoppedAt:null,state:'active'}]},
+      '/api/market':{openListings:7,sellers:3,allTime:{pulls:40,scraps:240,sellerMilli:168000},daily:Array.from({length:30},(_,i)=>({day:1760000000-1760000000%86400+i*86400,pulls:i%7,scraps:(i%7)*6,sellerMilli:(i%7)*4200}))},
       '/api/news':{news:[{id:'news-1',text:'<b>Autumn</b> week',kind:'event',link:'download',startsAt:1760000000,endsAt:2000000000,stoppedAt:null,state:'live'}]},
       [`/api/reports/${report.id}`]:{...report,available:true,contents:{readable:true,lines:[{label:'Note',value:'<b>not bold</b>'}],pictures:[{label:'Sticker',png:PNG}]}},
     }[path];
@@ -90,6 +91,17 @@ try {
   assert.deepEqual(saved.packs,[{id:'pixel',onSale:true,price:20,blurb:null},{id:'cats',onSale:false,price:null,blurb:null},{id:'night',onSale:true,price:14,blurb:'Fog.'}]);
   assert.equal(saved.order.length,6);
   await page.setViewportSize({width:375,height:812});await page.screenshot({path:join(shots,'shop-mobile.png'),fullPage:true});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.setViewportSize({width:1060,height:800});
+
+  // Market: totals, two single-measure SVG charts with per-day tooltips, a table, nothing personal.
+  await page.getByRole('tab',{name:'Market',exact:true}).click();await page.locator('#market-content svg').first().waitFor();
+  assert.equal(await page.locator('#market-content svg').count(),2);
+  assert.equal(await page.locator('#market-content svg .col').first().locator('title').textContent().then(t=>/· 0 pulls/.test(t)),true);
+  assert.equal(await page.locator('#market-content table tr').count(),31);
+  assert.match(await page.locator('#market-content').textContent(),/168 Scraps in all/);
+  await page.screenshot({path:join(shots,'market-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:375,height:812});await page.screenshot({path:join(shots,'market-mobile.png'),fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.setViewportSize({width:1060,height:800});
 
