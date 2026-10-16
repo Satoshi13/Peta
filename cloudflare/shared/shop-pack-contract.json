@@ -1,0 +1,18 @@
+{
+  "kind": "shop_pack",
+  "note": "Limits for official shop packs. Rust (peta-core shop_pack.rs), peta-admin and peta-pass check against this file; change all three together.",
+  "idPattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$",
+  "builtInIds": ["welcome", "tokyo", "coffee", "plants", "pixel", "cats", "night"],
+  "titleChars": 40,
+  "blurbChars": 120,
+  "pouches": ["kraft", "matte", "holo", "glassine"],
+  "colors": ["rose", "mint", "blue", "lavender"],
+  "colorPouches": ["matte", "holo"],
+  "rarities": ["common", "uncommon", "rare"],
+  "rarityWeights": { "common": 4, "uncommon": 2, "rare": 1 },
+  "price": { "min": 4, "max": 40 },
+  "items": { "min": 3, "max": 12 },
+  "weight": { "min": 1, "max": 100 },
+  "picture": { "maxBytes": 1572864, "maxEdge": 1024 },
+  "totalBytes": 12582912
+}

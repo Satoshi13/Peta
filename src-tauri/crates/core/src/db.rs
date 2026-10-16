@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 17;
+pub const SCHEMA_VERSION: i64 = 18;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -237,6 +237,11 @@ CREATE TABLE inbox_outbox(message_id TEXT PRIMARY KEY, gift_id TEXT NOT NULL, st
 
 /// Friend Market (server S3). Sellers keep each listing's content key and the sealed bytes they upload; buyers keep what they fetched,
 /// the packs they may only pull through Market, and one durable record per paid pull. Scraps stay in `meta` as before.
+/// Official shop packs received without an app update (shop_pack.rs): one row per verified pack version. `items` is the
+/// pack's sticker list with where each picture was saved; the pictures stay as long as any shelf may still open them.
+const MIGRATION_V18: &str = "
+CREATE TABLE shop_packs(pack_id TEXT NOT NULL, version INTEGER NOT NULL, title TEXT NOT NULL, by_name TEXT NOT NULL, blurb TEXT NOT NULL, pouch TEXT NOT NULL, color TEXT, price INTEGER NOT NULL, items TEXT NOT NULL, sha256 TEXT NOT NULL, stored_at TEXT NOT NULL, PRIMARY KEY(pack_id, version));
+";
 const MIGRATION_V17: &str = "
 CREATE TABLE market_my_listings(pack_id TEXT PRIMARY KEY, listing_id TEXT NOT NULL UNIQUE, external_id TEXT NOT NULL, content_key BLOB NOT NULL, state TEXT NOT NULL CHECK(state IN ('draft','open','paused','closed')), card_digest TEXT NOT NULL, card_size INTEGER NOT NULL, pack_digest TEXT NOT NULL, pack_size INTEGER NOT NULL, registered INTEGER NOT NULL DEFAULT 0, card_uploaded INTEGER NOT NULL DEFAULT 0, pack_uploaded INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
 CREATE TABLE market_envelopes_sent(listing_id TEXT NOT NULL REFERENCES market_my_listings(listing_id) ON DELETE CASCADE, recipient_key TEXT NOT NULL, PRIMARY KEY(listing_id, recipient_key));
@@ -521,6 +526,12 @@ impl Database {
             let tx=self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V17)?;
             tx.pragma_update(None,"user_version",17)?;
+            tx.commit()?;
+        }
+        if version < 18 {
+            let tx=self.conn.transaction()?;
+            tx.execute_batch(MIGRATION_V18)?;
+            tx.pragma_update(None,"user_version",18)?;
             tx.commit()?;
         }
         crate::server::schema(&mut self.conn)?;
@@ -1666,6 +1677,18 @@ mod tests {
         assert_eq!(crate::friends::preview(&db.conn,&key,"Nao").unwrap().status,"known");
         assert_eq!(db.conn.query_row("SELECT name FROM boards",[],|r|r.get::<_,String>(0)).unwrap(),"Work day");
         for table in ["inbox_seen","inbox_outbox"] {assert_eq!(db.conn.query_row(&format!("SELECT COUNT(*) FROM {table}"),[],|r|r.get::<_,i64>(0)).unwrap(),0);}
+    }
+
+    #[test]
+    fn v17_to_v18_keeps_the_library_and_adds_an_empty_shop_pack_table() {
+        let conn=Connection::open_in_memory().unwrap();
+        for migration in [MIGRATION_V1,MIGRATION_V2,MIGRATION_V3,MIGRATION_V4,MIGRATION_V5,MIGRATION_V6,MIGRATION_V7,MIGRATION_V8,MIGRATION_V9,MIGRATION_V10,MIGRATION_V11,MIGRATION_V12,MIGRATION_V13,MIGRATION_V14,MIGRATION_V15,MIGRATION_V16,MIGRATION_V17] {conn.execute_batch(migration).unwrap();}
+        conn.pragma_update(None,"user_version",17).unwrap();
+        conn.execute("INSERT INTO packs VALUES ('tokyo','Tokyo Pack','Peta','x')",[]).unwrap();conn.execute("INSERT INTO meta VALUES ('scraps.balance','23')",[]).unwrap();
+        let db=Database::init(conn).unwrap();
+        assert_eq!(db.conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),SCHEMA_VERSION);
+        assert_eq!(db.packs().unwrap()[0].id,"tokyo");assert_eq!(db.scrap_status().unwrap().balance,23);
+        assert_eq!(db.conn.query_row("SELECT COUNT(*) FROM shop_packs",[],|r|r.get::<_,i64>(0)).unwrap(),0);
     }
 
     #[test]

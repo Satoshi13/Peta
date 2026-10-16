@@ -91,6 +91,7 @@ pub fn apply_event(lib:&mut Library,verified:&Verified,source:&str,time:DateTime
             }
             result=format!("{title} arrived on your shelf.");
         },
+        crate::shop_pack::KIND=>return Err(invalid("This is a shop pack. It appears in Market; it is not received like a gift.")),
         "grant_sticker"=>{if verified.attachments.len()!=1 {return Err(invalid("A sticker event must contain one picture."));}let rel=format!("events/{content_id}.peta");lib.write_asset(&rel,&verified.bytes)?;paths.push(rel);result="A sealed gift from Peta arrived.".into();},
         _=>return Err(invalid("This event needs a newer Peta. Please update.")),
     }

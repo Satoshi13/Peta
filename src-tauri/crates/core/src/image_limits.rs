@@ -56,6 +56,12 @@ pub fn dimensions(bytes: &[u8], format: Option<ImageFormat>, bound: (u32, u64)) 
     Ok((w, h))
 }
 
+/// Encode RGBA pixels as a PNG (tools and tests).
+pub fn encode_rgba_png(out: &mut Vec<u8>, rgba: &[u8], width: u32, height: u32) -> Result<()> {
+    use image::ImageEncoder;
+    image::codecs::png::PngEncoder::new(out).write_image(rgba, width, height, image::ExtendedColorType::Rgba8).map_err(|e| Error::Image(e.to_string()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

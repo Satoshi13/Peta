@@ -39,6 +39,20 @@ enum Command {
         #[arg(long)] as_code:bool,
     },
     GrantPack {#[command(flatten)] issuer:Issuer,#[arg(long)] pack:PathBuf,#[arg(long)] dir:PathBuf,#[arg(long)] out:PathBuf},
+    /// Sign an official shop pack: --dir holds pack.json and one <key>.png per sticker. Only official keys (k*) may sign.
+    /// With --check, only check the folder (no key is read, nothing is written).
+    ShopPack {
+        /// Private key path, or PETA_SIGNING_KEY. Never pass the key's contents.
+        #[arg(long)] key:Option<PathBuf>,
+        #[arg(long,default_value="k2")] key_id:String,
+        #[arg(long)] dir:PathBuf,
+        #[arg(long)] out:Option<PathBuf>,
+        #[arg(long)] check:bool,
+        /// The newest version of this pack already signed; the folder's version must be greater.
+        #[arg(long)] previous_version:Option<u32>,
+        /// Print one line of JSON for scripts instead of prose.
+        #[arg(long)] json:bool,
+    },
     /// Verify without applying. --public-key tests an explicitly supplied public key, not built-in trust.
     Verify {file:PathBuf,#[arg(long)] public_key:Option<String>},
 }
@@ -102,10 +116,39 @@ fn run(cli:Cli)->Result<(),String> {
             for item in items {let key=item["key"].as_str().filter(|s|events::safe_id(s)).ok_or("Invalid item key.")?;if !keys.insert(key) || !events::text(item["name"].as_str().unwrap_or(""),40) || !["common","uncommon","rare"].contains(&item["rarity"].as_str().unwrap_or("")){return Err("Invalid pack item.".into());}let png=read(&dir.join(format!("{key}.png")),8*1024*1024)?;event.attachments.push(Attachment{key:key.into(),png_len:png.len(),mask_len:0});body.extend(png);}
             issue(&issuer,&event,&body,Some(&out),false)?;
         },
+        Command::ShopPack{key,key_id,dir,out,check,previous_version,json}=>{
+            use peta_core::shop_pack;
+            let pack:shop_pack::ShopPack=serde_json::from_slice(&read(&dir.join("pack.json"),64*1024)?).map_err(|e|format!("pack.json: {e}"))?;
+            shop_pack::validate(&pack).map_err(|e|e.to_string())?;
+            if previous_version.is_some_and(|v|pack.version<=v) {return Err(format!("{} v{} is not newer than the signed v{}. Make a new version.",pack.pack_id,pack.version,previous_version.unwrap()));}
+            let mut pictures=Vec::new();let mut total=0usize;
+            for item in &pack.items {
+                let png=read(&dir.join(format!("{}.png",item.key)),shop_pack::MAX_PICTURE).map_err(|e|format!("{}.png: {e}",item.key))?;
+                shop_pack::check_picture(&png).map_err(|e|format!("{}.png: {e}",item.key))?;
+                total+=png.len();if total>shop_pack::MAX_TOTAL {return Err("The pictures are more than 12 MB together.".into());}
+                pictures.push(png);
+            }
+            let weights:Vec<u32>=pack.items.iter().map(shop_pack::ShopPack::weight).collect();let sum:u32=weights.iter().sum();
+            let items:Vec<_>=pack.items.iter().zip(&weights).map(|(i,w)|serde_json::json!({"key":i.key,"name":i.name,"rarity":i.rarity,"weight":w,"chance":f64::from(*w)/f64::from(sum)})).collect();
+            let mut summary=serde_json::json!({"packId":pack.pack_id,"version":pack.version,"title":pack.title,"by":pack.by,"blurb":pack.blurb,"pouch":pack.pouch,"color":pack.color,"price":pack.price,"items":items,"picturesBytes":total});
+            if check {
+                if json {println!("{summary}");} else {println!("{} v{} is ready to sign: {} stickers, {} Scraps.",pack.pack_id,pack.version,pack.items.len(),pack.price);}
+                return Ok(());
+            }
+            let out=out.ok_or("Use --out to choose a new file for the signed pack.")?;
+            let path=key.or_else(||std::env::var_os("PETA_SIGNING_KEY").map(PathBuf::from)).ok_or("Use --key or PETA_SIGNING_KEY to select a private key file.")?;
+            let signing=device_key::load(&path).map_err(|e|e.to_string())?;
+            let bytes=shop_pack::build(&pack,&pictures,&key_id,&signing).map_err(|e|e.to_string())?;
+            {use std::io::Write;let mut file=std::fs::OpenOptions::new().write(true).create_new(true).open(&out).map_err(|e|format!("Choose a new output file: {e}"))?;file.write_all(&bytes).map_err(|e|e.to_string())?;file.sync_all().map_err(|e|e.to_string())?;}
+            for (k,v) in [("size",serde_json::json!(bytes.len())),("sha256",serde_json::json!(shop_pack::sha256(&bytes))),("keyId",serde_json::json!(key_id)),("publicKey",serde_json::json!(sign::public_key(&signing)))] {summary[k]=v;}
+            if json {println!("{summary}");} else {println!("Saved {} ({} v{}, {} bytes, sha256 {})",out.display(),pack.pack_id,pack.version,bytes.len(),summary["sha256"].as_str().unwrap());}
+        },
         Command::Verify{file,public_key}=>{
             let bytes=read(&file,sign::MAX_FILE)?;
             if bytes.starts_with(events::MAGIC) {
                 let verified=events::decode_with(&bytes,|signer|if let Some(key)=&public_key{sign::parse_public(key)}else{sign::resolve(signer)}).map_err(|e|e.to_string())?;
+                // A shop pack must also meet every limit the app checks (pictures, sizes, official key).
+                if verified.header().kind==peta_core::shop_pack::KIND {peta_core::shop_pack::verify_with(&bytes,|signer|if let Some(key)=&public_key{sign::parse_public(key)}else{sign::resolve(signer)}).map_err(|e|e.to_string())?;}
                 println!("Signature valid{}; not applied.\n{}",if public_key.is_some(){" for the supplied public key (not built-in trust)"}else{" for a trusted official key"},serde_json::to_string_pretty(verified.header()).unwrap());
             }else if bytes.starts_with(b"PETAGIFT") {let gift=peta_core::gift::decode_gift(&bytes).map_err(|e|e.to_string())?;println!("Gift version {} ({}); not received.\n{}",bytes[8],if bytes[8]==1{"unsigned"}else{"device signature valid"},serde_json::to_string_pretty(&gift.header).unwrap());}
             else if bytes.starts_with(peta_core::creator_pack::MAGIC) {let pack=peta_core::creator_pack::decode(&bytes).map_err(|e|e.to_string())?;println!("Device signature valid; not added to any shelf.\n{}",serde_json::to_string_pretty(pack.header()).unwrap());}
