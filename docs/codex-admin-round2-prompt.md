@@ -1,6 +1,6 @@
 # Codex への依頼: 管理ページ第2弾(通報・アプリ内のお知らせ・ショップのピックアップ・マーケットの状況)
 
-**使い方**: この文書の全文を Codex に渡す。**`docs/codex-daily-table-prompt.md`(毎日の封筒の確率表)の作業が終わってから**始める(署名つきの設定を配る仕組みを使い回すため)。作業は **Step 順**。各 Step の終わりに §8 のテストをすべて通し、**Step ごとにコミット**する。
+**使い方**: この文書の全文を Codex に渡す。毎日の封筒の確率表(`docs/codex-daily-table-prompt.md`、報告 `docs/daily-table-report.md`)は 2026-10-16 に完了済み。その「署名つきの設定を配る」仕組みを使い回す。作業は **Step 順**。各 Step の終わりに §8 のテストをすべて通し、**Step ごとにコミット**する。
 
 > 日本語で指示。コード中のコメントと UI の文言は、既存に合わせて**英語**。説明文書は日本語。
 
@@ -15,7 +15,14 @@
 
 ## 必ず最初に読む
 
-`docs/codex-admin-page-prompt.md`・`docs/admin-page-report.md`・`docs/admin-page-howto.md`、`docs/codex-daily-table-prompt.md` と `docs/daily-table-report.md`(配り方・署名・取得の間隔・上限の考え方)、`docs/server-howto.md` の通報の節、`cloudflare/peta-api/migrations/{0002_inbox,0003_market,0004_reports}.sql`、`cloudflare/peta-api/src/{index,inbox,market}.ts`、`src/app/js/market.js`(`MARKET_PACKS`、`packs()` の hero、`friendPacks()`、`FriendShop`)、`crates/core/src/{scraps,pack,events}.rs`、メモリ「Market is friends-only」の決定(マーケットは友達のパックだけ、公開のカタログにしない)。
+`docs/codex-admin-page-prompt.md`・`docs/admin-page-report.md`・`docs/admin-page-howto.md`、`docs/codex-daily-table-prompt.md` と `docs/daily-table-report.md`(配り方・署名・取得の間隔・上限の考え方)、`docs/server-howto.md` の通報の節、`cloudflare/peta-api/migrations/{0002_inbox,0003_market,0004_reports}.sql`、`cloudflare/peta-api/src/{index,inbox,market}.ts`、`src/app/js/market.js`(`MARKET_PACKS`、`packs()` の hero、`friendPacks()`、`FriendShop`)、`crates/core/src/{scraps,pack,events,daily,materials}.rs`。
+
+**オーナーの決定(変えない)**: マーケットは**友達のパックだけ**が見える場所で、誰でも見られる公開のカタログにはしない。運営は友達の出品の中身を見ない(暗号化されている)。
+
+## 作業の前に
+
+- **作業ツリーに、オーナーがコミットしていない変更がある**(`git status` で確認。画面の CSS/JS、`market.js`、`db.rs` など)。**それらをコミット・上書き・`git stash`・`git checkout` しない**。自分が変えたファイルだけを `git add` する。オーナーの変更と同じファイル(特に `market.js`)を変えるときは、オーナーの変更を消さずにその上に足す。区別が難しければ、作業を止めて報告する。
+- **ディスクの空きが少ない Mac**(約40GB)。Rust のビルドは `CARGO_INCREMENTAL=0` などで軽くし、feature の組み合わせを必要以上にビルドしない。終わったら `npm run clean:target` で片付けて、報告にディスクの空きを書く。
 
 ## 守ること
 
