@@ -1,7 +1,7 @@
 import { env, applyD1Migrations } from "cloudflare:test";
 import { beforeAll, beforeEach, expect, it } from "vitest";
 import { handle, Env, emailHash, newCode, validRelease, Release } from "../src/index";
-import { accessEmail } from "../src/access";
+import { accessEmail, fetchKeys } from "../src/access";
 
 const TEAM = "https://peta-friends.cloudflareaccess.com", AUD = "a".repeat(64), ORIGIN = "https://peta-download-prod.peta-api.workers.dev";
 const page = { fetch: async () => new Response("<p>page</p>", { headers: { "Content-Type": "text/html", "Cache-Control": "public, max-age=99" } }) } as unknown as Fetcher;
@@ -111,6 +111,9 @@ it("downloads only the current release from private storage, and counts them", a
   expect(part.status).toBe(206);
   expect(part.headers.get("Content-Range")).toBe("bytes 2-5/10");
   expect(new TextDecoder().decode(await part.arrayBuffer())).toBe("2345");
+  const head = await req("/download/Peta-0.1.0.dmg", { method: "HEAD" });
+  expect(head.status).toBe(200);
+  expect(head.headers.get("Content-Length")).toBe("10");
   expect((await db.prepare("SELECT version,email_hash FROM downloads").all<any>()).results).toEqual([{ version: "0.1.0", email_hash: await emailHash("nao@example.com") }]);
   expect((await req("/download/Other-0.0.9.dmg")).status).toBe(404);
   expect((await req("/download/Peta-0.1.0.dmg", {}, null)).status).toBe(403);
@@ -142,4 +145,37 @@ it('validates optional updater metadata without breaking older manifests',()=>{
   expect(validRelease(manifest)).toBe(true);expect(validRelease({...manifest,update})).toBe(true);
   expect(validRelease({...manifest,update:{...update,file:'../private'}})).toBe(false);
   expect(validRelease({...manifest,update:{...update,version:'0.3.0'}})).toBe(false);
+});
+
+it("a key ID missing from the cached set is looked up again, as when Access rotates its signing key", async () => {
+  const rotated = await rsa(), next = { ...((await crypto.subtle.exportKey("jwk", rotated.publicKey)) as JsonWebKey), kid: "k2" } as JsonWebKey;
+  const asked: boolean[] = [];
+  const stale = async (url: string, refresh?: boolean) => { asked.push(!!refresh); return url === `${TEAM}/cdn-cgi/access/certs` ? (refresh ? [jwk, next] : [jwk]) : []; };
+  const request = async (token: string) => new Request(ORIGIN, { headers: { "Cf-Access-Jwt-Assertion": token } });
+  expect(await accessEmail(await request(await jwt({}, "k2", rotated.privateKey)), base, stale)).toBe("nao@example.com");
+  expect(asked).toEqual([false, true]);
+  // A known key ID never asks again, and an unknown one still fails closed after the second look.
+  asked.length = 0;
+  expect(await accessEmail(await request(await jwt()), base, stale)).toBe("nao@example.com");
+  expect(await accessEmail(await request(await jwt({}, "k3", rotated.privateKey)), base, stale)).toBeNull();
+  expect(asked).toEqual([false, false, true]);
+});
+
+it("the shared certificate cache refreshes for a new key ID at most once a minute", async () => {
+  const url = `${TEAM}/cdn-cgi/access/certs`, calls: string[] = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL) => { calls.push(String(input)); return Response.json({ keys: [{ kid: `k${calls.length}` }] }); }) as typeof fetch;
+  try {
+    expect((await fetchKeys(url)).map((k: any) => k.kid)).toEqual(["k1"]);
+    expect((await fetchKeys(url)).map((k: any) => k.kid)).toEqual(["k1"]);
+    expect((await fetchKeys(url, true)).map((k: any) => k.kid)).toEqual(["k1"]); // fetched under a minute ago
+    expect(calls.length).toBe(1);
+    const clock = Date.now, now = clock();
+    Date.now = () => now + 61_000;
+    try {
+      expect((await fetchKeys(url)).map((k: any) => k.kid)).toEqual(["k1"]); // the hourly cache still holds
+      expect((await fetchKeys(url, true)).map((k: any) => k.kid)).toEqual(["k2"]);
+    } finally { Date.now = clock; }
+    expect(calls).toEqual([url, url]);
+  } finally { globalThis.fetch = original; }
 });

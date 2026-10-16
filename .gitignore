@@ -17,3 +17,8 @@ __pycache__/
 
 # Local shared dependency link for admin development.
 /cloudflare/peta-admin/node_modules
+
+# Wrangler local secrets and shell env files never belong in the repository.
+.dev.vars*
+.env
+.env.*

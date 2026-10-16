@@ -4,11 +4,13 @@ export interface AccessConfig {
   ACCESS_TEAM_DOMAIN?: string;
   ACCESS_AUD?: string;
 }
-export type KeySource = (certsUrl: string) => Promise<JsonWebKey[]>;
+/** `refresh` asks again for a key ID the cached set lacks: Access rotates its signing key and starts using the new one at once. */
+export type KeySource = (certsUrl: string, refresh?: boolean) => Promise<JsonWebKey[]>;
 
 let cached: { url: string; at: number; keys: JsonWebKey[] } | null = null;
-export const fetchKeys: KeySource = async (url) => {
-  if (cached?.url === url && Date.now() - cached.at < 3600_000) return cached.keys;
+export const fetchKeys: KeySource = async (url, refresh = false) => {
+  // A refresh is still bounded to once a minute, so tokens naming made-up key IDs can't make every request fetch.
+  if (cached?.url === url && Date.now() - cached.at < (refresh ? 60_000 : 3600_000)) return cached.keys;
   const r = await fetch(url);
   if (!r.ok) throw new Error("access_certs");
   const keys = ((await r.json()) as { keys?: JsonWebKey[] }).keys ?? [];
@@ -39,7 +41,8 @@ export async function accessEmail(request: Request, env: AccessConfig, keys: Key
   try {
     const header = json(parts[0]), payload = json(parts[1]);
     if (header.alg !== "RS256" || typeof header.kid !== "string") return null;
-    const jwk = (await keys(`${team}/cdn-cgi/access/certs`)).find((k) => (k as { kid?: string }).kid === header.kid);
+    const certs = `${team}/cdn-cgi/access/certs`, find = (set: JsonWebKey[]) => set.find((k) => (k as { kid?: string }).kid === header.kid);
+    const jwk = find(await keys(certs)) ?? find(await keys(certs, true));
     if (!jwk) return null;
     const key = await crypto.subtle.importKey("jwk", jwk, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
     const signed = new TextEncoder().encode(`${parts[0]}.${parts[1]}`);

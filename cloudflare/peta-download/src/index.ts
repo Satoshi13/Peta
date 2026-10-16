@@ -116,8 +116,8 @@ async function download(request: Request, env: Env, file: string, hash: string):
     status = 206;
   } else {
     headers["Content-Length"] = String(object.size);
-    // Only whole downloads are counted; resumed parts are the same download.
-    await env.DB.prepare("INSERT INTO downloads(email_hash,version,at) VALUES(?,?,?)").bind(hash, r.version, now()).run();
+    // Only whole downloads are counted; resumed parts are the same download, and a HEAD check is none.
+    if (request.method === "GET") await env.DB.prepare("INSERT INTO downloads(email_hash,version,at) VALUES(?,?,?)").bind(hash, r.version, now()).run();
   }
   return respond(request.method === "HEAD" ? null : (object as R2ObjectBody).body, { status, headers });
 }
