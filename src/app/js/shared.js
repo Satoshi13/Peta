@@ -1,7 +1,48 @@
 /* Shared page pieces + the Today page: envelope -> reveal -> the four ways to make today's Peta. */
 function PageHead(title, sub, ...extra) {
-  return h("header.ph", h("div.ph-text", h("p.eyebrow", sub || ""), h("h1", title)), h("div.ph-extra", ...extra));
+  return h("header.ph", h("div.ph-text", h("p.eyebrow", sub || ""), h("h1", {tabindex:-1}, title)), h("div.ph-extra", ...extra));
 }
+let actionHintId=0;
+function ActionHint(button,reason) {
+  if(!reason)return button;
+  const id=`action-hint-${++actionHintId}`;
+  button.setAttribute("aria-describedby",id);button.title=reason;
+  return h("div.action-hint",button,h("small.muted",{id},reason));
+}
+
+// Resource counts stay in the same corner while the related page scrolls.
+const Resources = {
+  kinds(id) {
+    return [id === "materials" || id === "market" ? "scraps" : null,
+      id === "boards" || id === "market" && MK.tab === "tools" ? "boards" : null].filter(Boolean);
+  },
+  amount(n) {
+    return n < 10000 ? n.toLocaleString("en-US") : n.toLocaleString("en-US",{notation:"compact",maximumFractionDigits:1});
+  },
+  rail(id) {
+    const kinds=this.kinds(id);
+    if (!kinds.length) return null;
+    return h("aside.resource-rail", { "aria-label": "Available resources" },
+      kinds.includes("scraps") ? Scraps.badge() : null,
+      kinds.includes("boards") ? h("button.resource-count.bd-stock", { type:"button", data:{resource:"boards"}, "aria-label":`${S.boards?.stock?.available || 0} blank boards. How to get Boards`, on:{click:()=>this.info("boards")} },
+        h("i", {"aria-hidden":"true"}), h("span", "Boards"), h("b", String(S.boards?.stock?.available || 0))) : null);
+  },
+  info(kind) {
+    if (document.querySelector("dialog[open]")) return;
+    const boards = kind === "boards";
+    const close = () => dialog.close();
+    const go = () => { close(); if(boards) MK.tab = "tools"; Shell.go(boards ? "market" : "materials"); };
+    const dialog = h("dialog.resource-dialog", { "aria-labelledby":"resource-title", on:{
+      keydown:e=>{ if(e.key === "Escape") e.stopPropagation(); },
+      close:()=>{ dialog.remove(); Bridge.dialogOpen = !!document.querySelector("dialog"); }
+    } }, CloseButton("Close", {on:{click:close}}, ".resource-close"),
+      h("h2", {id:"resource-title"}, boards ? "How to get Boards" : "How to get Scraps"),
+      h("p", boards ? "Exchange Scraps for a blank board in Market → Tools." : "The first Peta you make from a new picture each day earns Scraps. Keep doing this for seven days in a row to earn a bonus."),
+      h("p.muted", boards ? "Each saved screen layout uses one blank board. Delete the saved layout to get its blank board back." : "You can also dismantle unused material sheets in Materials. Choose a material to see how many Scraps it gives you."),
+      h("div.resource-actions", h("button.btn.paper", {type:"button",on:{click:close}}, "Done"), h("button.btn", {type:"button",on:{click:go}}, boards ? "Open Market Tools" : "Open Materials")));
+    Bridge.dialogOpen = true; document.body.append(dialog); Dialogs.open(dialog);
+  }
+};
 const DateStamp = () => h("span.datestamp", h("span.datestamp-text", fmtDate(S.today, { month: "short", day: "numeric" }) + " · " + fmtDate(S.today, { weekday: "short" })));
 const usableMats = () => Object.keys(MAT).filter((id) => !MAT[id].locked && (MAT[id].unlimited || S.stock[id] > 0));
 
@@ -151,8 +192,8 @@ function RevealScene(m) {
 }
 
 
-function EnvelopeTicket() {
-  return h("p.envelope-ticket", { role: "timer", "aria-label": "Next envelope" }, h("span", "Next envelope in "), h("span.envelope-clock", Array.from("00:00:00", digit => h("span", digit))));
+function EnvelopeTicket(label = "Next envelope", time = "00:00:00") {
+  return h("p.envelope-ticket", { role: "timer", "aria-label": label }, h("span", label + " in "), h("span.envelope-clock", Array.from(time, digit => h("span", digit))));
 }
 
 /* A single confirmation flow for unused sheets and the local Market. Prices come from Rust. */
@@ -175,7 +216,7 @@ const Scraps = {
   },
   material(id) { return S.scraps.materials.find(m => m.id === id); },
   pack(id) { return S.scraps.packs.find(p => p.id === id); },
-  badge() { return h("span.scraps-count", {"aria-label":`${S.scraps.balance.toLocaleString("en-US")} Scraps`}, h("i.sc-ico", {"aria-hidden":"true"}), h("span", "Scraps"), h("b", S.scraps.balance.toLocaleString("en-US"))); },
+  badge() { return h("button.scraps-count.resource-count", {type:"button", data:{resource:"scraps"}, title:`${S.scraps.balance.toLocaleString("en-US")} Scraps`, "aria-label":`${S.scraps.balance.toLocaleString("en-US")} Scraps. How to get Scraps`, on:{click:()=>Resources.info("scraps")}}, h("i.sc-ico", {"aria-hidden":"true"}), h("span", "Scraps"), h("b", Resources.amount(S.scraps.balance))); },
   button(kind, id, label, disabled = false) {
     return h("button.btn.paper.small.scrap-action", { disabled:disabled || this.inFlight, data:{scrapKind:kind,scrapItem:id}, on:{click:() => {
       if(this.inFlight) return;

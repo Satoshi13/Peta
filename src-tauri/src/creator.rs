@@ -73,6 +73,7 @@ impl Creator {
 /// background and the window is told when it is done. Fails with `already_used_today` if today's Peta
 /// is already made (and this one would count).
 pub fn begin(app: &AppHandle, bytes: Vec<u8>, target: Target) -> Result<(), String> {
+    if bytes.len() as u64 > MAX_IMAGE_BYTES { return Err("That picture is too large to cut out.".into()); }
     if target.counts_for_today {
         let store = app.state::<Store>();
         let lib = store.lock();
@@ -495,6 +496,9 @@ pub fn creator_begin_bytes(app: AppHandle, layers: State<crate::layers::Layers>,
 
 #[tauri::command]
 pub fn creator_begin_path(app: AppHandle, layers: State<crate::layers::Layers>, path: String, material_id: String) -> Result<(), String> {
+    let path = std::path::Path::new(&path);
+    if !is_cuttable_image(path) { return Err("Choose a PNG, JPEG or WebP image.".into()); }
+    if std::fs::metadata(path).map_err(|e| e.to_string())?.len() > MAX_IMAGE_BYTES { return Err("That picture is too large to cut out.".into()); }
     let bytes=std::fs::read(path).map_err(|e|e.to_string())?;
     begin(&app,bytes,Target {display_id:layers.primary_display_id(),x:0.5,y:0.5,counts_for_today:true,material_hint:Some(material_id)})
 }

@@ -33,6 +33,15 @@ const Snd = {
   tick() { this.tone(0, 1200, 0.03, { type: "square", gain: 0.02 }); },
   tap() { this.tone(0, 330, 0.06, { gain: 0.05, f2: 220 }); },
   crinkle(n = 10, span = 0.5) { for (let i = 0; i < n; i++) this.noise(Math.random() * span, rand(0.015, 0.05), { f: rand(3500, 7500), q: 0.9, type: "bandpass", gain: rand(0.03, 0.08) }); },
+  // One cadence for pointer moves and animation frames, independent of device event rate.
+  paperMotion() {
+    let lastTime=-Infinity,lastProgress=0;
+    return progress=>{
+      const now=performance.now();
+      if(!this.on || !Number.isFinite(progress) || Math.abs(progress-lastProgress)<.015 || now-lastTime<99.9)return;
+      lastTime=now;lastProgress=progress;this.crinkle(2,.06);
+    };
+  },
   tear() { this.noise(0, 0.5, { f: 4200, q: 0.6, type: "highpass", gain: 0.07, attack: 0.02 }); this.crinkle(14, 0.5); },
   peta() { this.tone(0, 190, 0.11, { gain: 0.16, f2: 62 }); this.noise(0, 0.05, { f: 1800, q: 0.7, gain: 0.08 }); this.noise(0.05, 0.12, { f: 600, q: 0.6, gain: 0.04 }); },
   chime(n = 3, base = 880) { for (let i = 0; i < n; i++) { this.tone(i * 0.09, base * Math.pow(1.5, i % 3) * (i > 2 ? 2 : 1), 0.9, { gain: 0.035, attack: 0.01 }); } },

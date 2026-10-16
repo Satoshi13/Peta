@@ -64,8 +64,17 @@ test('a stale Studio thumbnail cannot overwrite a picture requested after editin
   assert.equal(state.urls.get('sticker'),'new');
 });
 
-test('sharing stops before IPC when no profile name was chosen',async()=>{
-  let called=0,asked=0;const f=fixture(async()=>{called++;});f.context.ProfileName={request(){asked++;}};
-  for(const cmd of ['gift_send','gift_send_friend','creator_pack_save','creator_pack_shelve','friend_code_copied','friend_add','friend_approve']) await assert.rejects(f.run(`Bridge.invoke('${cmd}',{})`),/Choose your name in Settings/);
-  assert.equal(called,0);assert.equal(asked,7);f.run("S.name='Maker'");await f.run("Bridge.invoke('gift_send',{})");assert.equal(called,1);
+test('sharing waits for an inline name before invoking the original command',async()=>{
+  for(const cmd of ['gift_send','gift_send_friend','creator_pack_save','creator_pack_shelve','friend_code_copied','friend_add','friend_approve']) {
+    const calls=[];let finish;const f=fixture(async(cmd,args)=>{calls.push({cmd,args});return 'done';});
+    f.context.ProfileName={request:()=>new Promise(resolve=>finish=resolve)};
+    const action=f.run(`Bridge.invoke('${cmd}',{value:42})`);assert.equal(calls.length,0);
+    f.run("S.name='Maker'");finish(true);assert.equal(await action,'done');
+    assert.equal(calls.length,1);assert.equal(calls[0].cmd,cmd);assert.equal(calls[0].args.value,42);
+  }
+});
+test('cancelling the name prompt aborts sharing without invoking native commands',async()=>{
+  let called=0;const f=fixture(async()=>{called++;});f.context.ProfileName={request:async()=>false};
+  await assert.rejects(f.run("Bridge.invoke('gift_send',{})"),e=>e.name==='AbortError' && e.handled);
+  assert.equal(called,0);
 });

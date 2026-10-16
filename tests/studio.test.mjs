@@ -8,7 +8,7 @@ const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 /** catalog.js is plain data: run it on its own. */
 function catalog() {
   const ctx = vm.createContext({ A: new Proxy({}, { get: () => 'art.png' }) });
-  vm.runInContext(read('src/app/js/catalog.js') + '\n;this.__out = { BAGS, PACK_BAG_IDS, GIFT_BAG_IDS, isPouch, NAV };', ctx);
+  vm.runInContext(read('src/app/js/catalog.js') + '\n;this.__out = { BAGS, PACK_BAG_IDS, PACK_BAG_COMPAT_IDS, GIFT_BAG_IDS, isPouch, NAV };', ctx);
   return ctx.__out;
 }
 /** The small pure helpers at the top of studio.js, taken out by name. */
@@ -34,23 +34,24 @@ test('every wrapping has its picture, and every place on it is inside the pictur
 });
 
 test('the app and the Rust core agree on which wrappings exist', () => {
-  const { PACK_BAG_IDS, GIFT_BAG_IDS, BAGS } = catalog(), rs = read('src-tauri/crates/core/src/creator_pack.rs'), gift = read('src-tauri/crates/core/src/gift.rs');
+  const { PACK_BAG_COMPAT_IDS, GIFT_BAG_IDS, BAGS } = catalog(), rs = read('src-tauri/crates/core/src/creator_pack.rs'), gift = read('src-tauri/crates/core/src/gift.rs');
   const list = (text, name) => [...text.match(new RegExp(`${name}:\\s*\\[&str;\\s*\\d+\\]\\s*=\\s*\\[([^\\]]*)\\]`))[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
-  assert.deepEqual([...PACK_BAG_IDS].sort(), list(rs, 'BAGS').sort());
+  assert.deepEqual([...PACK_BAG_COMPAT_IDS].sort(), list(rs, 'BAGS').sort());
   assert.deepEqual([...GIFT_BAG_IDS].sort(), list(gift, 'GIFT_BAGS').sort());
-  for (const id of [...PACK_BAG_IDS, ...GIFT_BAG_IDS]) assert.ok(BAGS[id], id);
+  for (const id of [...PACK_BAG_COMPAT_IDS, ...GIFT_BAG_IDS]) assert.ok(BAGS[id], id);
   assert.equal(list(rs, 'DECOS').join(), 'clip,pin,tape,seal');
 });
 
-test('a pack is made of eight wrappings and a gift of six; only the three pouches are torn open', () => {
+test('new packs offer four paper wrappings and a gift of six; only the three pouches are torn open', () => {
   const { PACK_BAG_IDS, GIFT_BAG_IDS, isPouch } = catalog();
-  assert.equal(PACK_BAG_IDS.length, 8); assert.equal(GIFT_BAG_IDS.length, 6);
+  assert.equal(PACK_BAG_IDS.length, 4); assert.equal(GIFT_BAG_IDS.length, 6);
   assert.deepEqual([...PACK_BAG_IDS.filter(isPouch)], ['kraft', 'matte', 'holo']);
 });
 
 test('Studio is in the nav under Make with no shortcut of its own, and the others keep theirs', () => {
   const { NAV } = catalog(), by = Object.fromEntries(NAV.map((n) => [n.id, n]));
-  assert.equal(NAV.findIndex((n) => n.id === 'studio'), NAV.findIndex((n) => n.id === 'book') + 1);
+  assert.equal(NAV.findIndex((n) => n.id === 'book'), NAV.findIndex((n) => n.id === 'studio') + 1);
+  assert.equal(by.book.group,'Library');assert.equal(by.packs.group,undefined);assert.equal(NAV.filter(n=>n.group==='Library').length,1);
   assert.equal(by.studio.key, undefined);
   assert.deepEqual(['today', 'create', 'book', 'packs', 'gifts', 'materials', 'market'].map((id) => by[id].key), [1, 2, 3, 4, 5, 6, 7]);
 });
@@ -78,7 +79,7 @@ test('Studio sends exactly what the Rust commands accept', () => {
   assert.match(src, /stickerId: x\.id, name: titleOf\(stEntry\(x\.id\)\), copies: x\.copies/);   // Selection { sticker_id, name, copies }
   assert.match(edition, /pub struct Selection \{pub sticker_id:String,pub name:String,pub copies:u32\}/);
   assert.match(src,/prizes:p.prizes/);
-  assert.match(src, /dress: \{ cover: p\.cover \|\| null, deco: lay\.accents\[0\]\?\.kind \|\| null, blurb: p\.blurb\.trim\(\) \|\| null, layout: lay \}/);   // Dress { cover, deco, blurb, layout }
+  assert.match(src, /dress: \{ color:packColor\(p\.bag,p\.color\)\?\.id \|\| null, cover: p\.cover \|\| null, deco: lay\.accents\[0\]\?\.kind \|\| null, blurb: p\.blurb\.trim\(\) \|\| null, layout: lay \}/);   // Dress { cover, deco, blurb, layout }
   assert.match(rs, /pub struct Layout \{pub comp:String,#\[serde\(default\)\] pub label:Option<\[f64;2\]>,#\[serde\(default\)\] pub cover:Option<\[f64;2\]>,#\[serde\(default\)\] pub accents:Vec<Accent>\}/);
   assert.match(src, /return \{ comp: r\.comp, label: null, cover: p\.cover \? r\.cover : null, accents: r\.accents \};/);   // Layout { comp, label, cover, accents:[{kind,x,y}] }
   assert.match(src, /dress: \{ bag: g\.bag, deco: g\.deco === "none" \? null : g\.deco \}/);

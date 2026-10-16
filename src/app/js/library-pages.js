@@ -29,7 +29,7 @@ Pages.materials = {
   selected: null,
   build() {
     const root = h("div.page-in.materialspage");
-    root.append(PageHead("Materials", "Materials", Scraps.badge()));
+    root.append(PageHead("Materials", "Materials"));
     root.append(h("p.muted.lede", "Preview the materials you've found, or save unused sheets as Scraps. Each sticker uses one sheet."));
     const panel = Scraps.form() || this.preview(); if(panel) root.append(panel);
     const grid = h("div.mgrid", Object.values(MAT).map((m, i) => {
@@ -81,19 +81,20 @@ const Distribution = {
   },
   redeem() {
     if(document.querySelector("dialog")) return;
-    const input=h("input", {type:"text",maxLength:1024,required:true,placeholder:"Coupon or code",autocapitalize:"characters",autocomplete:"off",spellcheck:false,"aria-label":"Peta code"});
-    const status=h("p.small.rd-status",{role:"status"}), submit=h("button.btn.rd-go",{type:"submit"},"Redeem"),cancel=h("button.rd-cancel.link",{type:"button",on:{click:()=>dialog.close()}},"Cancel");let pending=false;
+    const input=h("input", {type:"text",maxLength:1024,required:true,placeholder:"Coupon code",lang:"en",inputmode:"url",pattern:"(?:[A-Z0-9]|\\s|-)+",title:"Use English letters, numbers and hyphens.",autocapitalize:"characters",autocomplete:"off",spellcheck:false,"aria-label":"Coupon code"});
+    const normalize=couponCodeInput(input);
+    const status=h("p.small.rd-status",{role:"status"}), submit=h("button.btn.rd-go",{type:"submit"},"Apply code"),cancel=h("button.rd-cancel.link",{type:"button",on:{click:()=>dialog.close()}},"Cancel");let pending=false;
     const close=CloseButton("Cancel",{on:{click:()=>{if(!pending)dialog.close();}}},".rd-x");
     // the paper (art/ui/redeem-paper.png) is the card; the code goes on its own ticket (art/ui/redeem-ticket.png); the words are drawn here
     const form=h("form.rd-paper",{on:{submit:async e=>{
-      e.preventDefault();if(pending) return;pending=true;submit.disabled=true;cancel.disabled=true;input.disabled=true;
-      try {const result=await Bridge.invoke("redeem_code",{code:input.value});await Bridge.reload();dialog.close();Shell.refresh();Shell.toast(result.result);}
+      e.preventDefault();if(pending) return;normalize();if(!input.reportValidity())return;pending=true;submit.disabled=true;cancel.disabled=true;input.disabled=true;
+      try {const result=await Bridge.invoke("redeem_code",{code:input.value});dialog.close();await Bridge.refreshCommitted();Shell.toast(result.result);}
       catch(error){status.textContent=this.error(error);}
       finally {pending=false;submit.disabled=false;cancel.disabled=false;input.disabled=false;}
-    }}},close,h("h2","Redeem code"),h("p.rd-sub","Enter the coupon or code you received."),h("div.rd-ticket",input),status,submit,cancel,
+    }}},close,h("h2","Coupon code"),h("p.rd-sub","Enter the code you received."),h("div.rd-ticket",input),status,submit,cancel,
       h("small.rd-note","Coupon names like THANKYOU and long codes both work, once on this Mac. Files with pictures use Open Peta file…"));
-    const dialog=h("dialog.rd-dialog",{"aria-label":"Redeem Peta code",on:{cancel:e=>{e.stopPropagation();if(pending)e.preventDefault();},keydown:e=>{if(e.key==="Escape")e.stopPropagation();},close:()=>{dialog.remove();this.afterClose();}}},form);
-    Bridge.dialogOpen=true;document.body.append(dialog);dialog.showModal();input.focus();
+    const dialog=h("dialog.rd-dialog",{"aria-label":"Coupon code",on:{cancel:e=>{e.stopPropagation();if(pending)e.preventDefault();},keydown:e=>{if(e.key==="Escape")e.stopPropagation();},close:()=>{dialog.remove();this.afterClose();}}},form);
+    Bridge.dialogOpen=true;document.body.append(dialog);Dialogs.open(dialog);input.focus();
   },
 };
 
@@ -104,11 +105,11 @@ Distribution.offer = function(offer) {
   const sender=this.sender({from:p.identity.name,signatureStatus:p.identity.status,fingerprint:p.identity.fingerprint});
   const status=h("p.small",{role:"status"}), accept=h("button.btn",{type:"button",on:{click:async()=>{
     if(pending) return;pending=true;accept.disabled=true;cancel.disabled=true;
-    try {await Bridge.invoke("creator_pack_accept",{token:offer.token});accepted=true;await Bridge.reload();dialog.close();await Shell.go("packs",{instant:true});Shell.refresh();Shell.toast("Added to your shelf.");}
+    try {await Bridge.invoke("creator_pack_accept",{token:offer.token});accepted=true;dialog.close();await Bridge.refreshCommitted({after:()=>Shell.go("packs",{force:true}),message:"The pack was added. Try again to refresh your Packs shelf."});Shell.toast("Added to your shelf.");}
     catch(error){status.textContent=this.error(error);}
     finally {pending=false;accept.disabled=false;cancel.disabled=false;}
   }}},"Add to my shelf"),cancel=h("button.btn.paper",{type:"button",on:{click:()=>dialog.close()}},"Cancel");
   const dialog=h("dialog", {style:this.dialogStyle,"aria-label":"Confirm creator pack",data:{packToken:offer.token},on:{cancel:e=>{e.stopPropagation();if(pending)e.preventDefault();},keydown:e=>{if(e.key==="Escape")e.stopPropagation();},close:()=>{if(!accepted)Bridge.invoke("creator_pack_decline",{token:offer.token}).catch(console.error);dialog.remove();this.afterClose();}}},
     h("div.gift-form",h("h2",p.title),h("p",sender),h("p.muted.small",`${p.count} stickers · Version ${p.version}`),h("p.small","Open one sticker at a time, picked at random. Adding the pack does not use a material."),status,h("div.row-btns",cancel,accept)));
-  Bridge.dialogOpen=true;document.body.append(dialog);dialog.showModal();cancel.focus({preventScroll:true});
+  Bridge.dialogOpen=true;document.body.append(dialog);Dialogs.open(dialog);cancel.focus({preventScroll:true});
 };

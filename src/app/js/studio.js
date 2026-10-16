@@ -11,7 +11,7 @@ const stClip = (text, max) => { let v = text; while (stEm(v) > max) v = v.slice(
 
 const ST = {
   mode: null, sealing: false, urls: new Map(), urlRequests: new Map(), ctx: "shelf", find: { q: "", mat: "all" }, view: "pack", open: null, chances: false,
-  pack: { step: 1, seen: new Set([1]), sealed: false, dest: "shelf", result: null, sel: [], prizes:[], bag: "kraft", deco: "none", layout: { comp: "corner", label: null, cover: null, accents: [] }, cover: null, title: "", blurb: "" },
+  pack: { step: 1, seen: new Set([1]), sealed: false, dest: "shelf", result: null, sel: [], prizes:[], bag: "kraft", color:null, deco: "none", layout: { comp: "corner", label: null, cover: null, accents: [] }, cover: null, title: "", blurb: "" },
   gift: { step: 1, seen: new Set([1]), sealed: false, result: null, dest: "file", friend: null, sticker: null, bag: "airmail", deco: "none", to: "", note: "" },
 };
 const stCopyMax = e => e?.canPress ? S.packLimits.copiesPerDesign : 1;
@@ -48,7 +48,7 @@ function stLoad() {
   try {
     const d = JSON.parse(localStorage.getItem(stDraftKey) || "null"); if(!d) return;
     const known = new Set(S.lib.filter(e => e.lineage !== "copy").map((e) => e.id));
-    if(d.pack&&!ST.pack.sealed) { const p = ST.pack; p.sel = (Array.isArray(d.pack.sel)?d.pack.sel:[]).filter((x) => x && known.has(x.id) && !stEntry(x.id)?.pressed && Number.isInteger(x.copies) && x.copies >= 1 && x.copies <= stCopyMax(stEntry(x.id))).slice(0, STUDIO.limits.max); p.bag = PACK_BAG_IDS.includes(d.pack.bag) ? d.pack.bag : "kraft"; p.deco = ["none", "clip", "pin", "tape"].includes(d.pack.deco) ? d.pack.deco : "none";
+    if(d.pack&&!ST.pack.sealed) { const p = ST.pack; p.sel = (Array.isArray(d.pack.sel)?d.pack.sel:[]).filter((x) => x && known.has(x.id) && !stEntry(x.id)?.pressed && Number.isInteger(x.copies) && x.copies >= 1 && x.copies <= stCopyMax(stEntry(x.id))).slice(0, STUDIO.limits.max); p.bag = PACK_BAG_COMPAT_IDS.includes(d.pack.bag) ? d.pack.bag : "kraft"; p.color=packColor(p.bag,d.pack.color)?.id || null; p.deco = ["none", "clip", "pin", "tape"].includes(d.pack.deco) ? d.pack.deco : "none";
       p.prizes=stCleanPrizes(d.pack.prizes,p.sel.reduce((n,x)=>n+x.copies,0));
       p.layout = stCleanLayout(d.pack.layout, p.bag);
       p.cover = p.sel.some((x) => x.id === d.pack.cover && stEntry(x.id)?.canPress) ? d.pack.cover : null; p.title = stClip(String(d.pack.title || ""), STUDIO.limits.name); p.blurb = String(d.pack.blurb || "").slice(0, STUDIO.limits.blurb); }
@@ -58,7 +58,7 @@ function stLoad() {
 }
 function stSave() {
   const p = ST.pack, g = ST.gift;
-  try { localStorage.setItem(stDraftKey, JSON.stringify({ ...(p.sealed?{}:{pack: { sel: p.sel, prizes:p.prizes, bag: p.bag, deco: p.deco, layout: p.layout, cover: p.cover, title: p.title, blurb: p.blurb }}), ...(g.sealed?{}:{gift: { dest:g.dest, friend:g.friend, sticker: g.sticker, bag: g.bag, deco: g.deco, to: g.to, note: g.note }}) })); } catch {}
+  try { localStorage.setItem(stDraftKey, JSON.stringify({ ...(p.sealed?{}:{pack: { sel: p.sel, prizes:p.prizes, bag: p.bag, color:p.color, deco: p.deco, layout: p.layout, cover: p.cover, title: p.title, blurb: p.blurb }}), ...(g.sealed?{}:{gift: { dest:g.dest, friend:g.friend, sticker: g.sticker, bag: g.bag, deco: g.deco, to: g.to, note: g.note }}) })); } catch {}
 }
 /** A saved layout, made safe: a known composition, places that are numbers, at most two different accents. The picture clamps the places again when it draws. */
 function stCleanLayout(l, bagId) {
@@ -166,7 +166,7 @@ const stName = () => S.name.trim() || "You";
 function stBag({ k = 22, fit = 0, shut = false, open = false, d = stDraft(), mode = ST.mode } = {}) {   // the stickers are not shown peeking out of the bag: the count is in the caption
   if(mode === "gift") { const url = d.sticker ? stUrl(d.sticker) : null; return BagPic({ bag: d.bag, title: d.to.trim() ? "For " + d.to.trim() : "For you", sub: "from " + stName(), deco: d.deco, k, fit, shut, items: open && url ? [url] : [], id: "gift" }); }
   const urls = d.sel.map((x) => stUrl(x.id)).filter(Boolean), cover = d.cover ? stUrl(d.cover) : null;
-  return BagPic({ bag: d.bag, title: d.title.trim() || "Untitled", sub: "by " + stName(), cover, layout: d.layout, k, fit, shut, items: open ? urls.slice(0, 6) : [], id: "pack" });
+  return BagPic({ bag: d.bag, color:d.color, title: d.title.trim() || "Untitled", sub: "by " + stName(), cover, layout: d.layout, k, fit, shut, items: open ? urls.slice(0, 6) : [], id: "pack" });
 }
 
 Pages.studio = {
@@ -180,7 +180,16 @@ Pages.studio = {
     const stage = $(".st-stage", bench), cap = $(".st-cap", bench), views = $(".st-views", bench);
     const D = () => stDraft(), count = () => (ST.mode === "gift" ? (ST.gift.sticker ? 1 : 0) : ST.pack.sel.length);
     const canGo = (to) => { const d = D(); if(to > 1 && (ST.mode === "gift" ? !d.sticker : d.sel.length < STUDIO.limits.min)) return false; if(to > 2 && !(ST.mode === "gift" ? stGiftReady(d) : d.title.trim())) return false; return true; };
-    const go = (to) => { const d = D(); if(d.sealed || ST.sealing || !canGo(to)) return; if(to>2 && ST.mode==="gift" && d.dest==="friend" && !S.name.trim()){ProfileName.request();return;} ST.enter = to !== d.step; if(to !== d.step) { ST.open = null; ST.chances = false; ST.view = "pack"; } d.step = to; d.seen.add(to); Snd.tap(); paint(); };
+    let naming=false;
+    const go = async (to) => {
+      const d=D(),mode=ST.mode;if(d.sealed || ST.sealing || naming || !canGo(to))return;
+      if(to>2 && mode==="gift" && d.dest==="friend" && !S.name.trim()) {
+        naming=true;let ready;try {ready=await ProfileName.request();}finally {naming=false;}
+        if(!ready || !root.isConnected || ST.mode!==mode || D()!==d || d.sealed || ST.sealing || !canGo(to))return;
+      }
+      ST.enter=to!==d.step;if(to!==d.step){ST.open=null;ST.chances=false;ST.view="pack";}
+      d.step=to;d.seen.add(to);Snd.tap();paint();
+    };
     const VIEWS = { pack: [["pack", "Pack"], ["shelf", "Shelf"], ["market", "Market"]], gift: [["pack", "Gift"], ["arrives", "Arrives"], ["opened", "Opened"]] };
     /* what the left side shows on the last step: the wrapped thing itself, or where it will be seen (the shelf and the Market for a pack; arriving and opened for a gift) */
     const scene = (kind) => {
@@ -225,16 +234,16 @@ Pages.studio = {
     const paintHead = () => {
       const d = ST.mode ? D() : null, names = STUDIO.steps[ST.mode || "pack"];
       const steps = ST.mode ? h("div.st-steps", { role: "group", "aria-label": "Steps" }, names.map((n, i) => h("button", { type: "button", disabled: d.sealed, "aria-pressed": String(d.step === i + 1), "aria-label": `Step ${i + 1}: ${n}`, class: d.seen.has(i + 1) && i + 1 !== d.step ? "done" : "", on: { click: () => go(i + 1) } }, h("b", String(i + 1)), n))) : null;
-      head.replaceChildren(PageHead(ST.mode === "gift" ? "Gift Studio" : ST.mode === "pack" ? "Pack Studio" : "Studio", ST.mode ? (ST.mode === "gift" ? "Make · Gift" : "Make · Pack") : "Make"),
-        h("div.st-head-r", ST.mode ? [h("button.btn.quiet.small", { on: { click: () => { if(ST.sealing) return; ST.mode = null; Snd.tap(); paint(); } } }, "← Change"), steps] : null));
+      head.replaceChildren(PageHead(ST.mode === "gift" ? "Send a Gift" : ST.mode === "pack" ? "Make a Pack" : "Share", ST.mode ? (ST.mode === "gift" ? "Make · Gift" : "Make · Pack") : "Make"),
+        h("div.st-head-r", ST.mode ? [h("button.btn.quiet.small", { on: { click: () => { if(ST.sealing) return; ST.mode = null; Snd.tap(); paint(); } } }, "← Sharing options"), steps] : null));
     };
 
     /* ---------- the first choice ---------- */
     const paintChoose = () => {
       const card = (mode, title, text, who, art) => h("button.st-card", { on: { click: () => { ST.mode = mode; ST.enter = true; Snd.tap(); paint(); } } }, h("div.st-card-art", art), h("h3", title), h("p", text), h("span.st-for", who));
       const pic = (id, css) => { const b = BAGS[id]; return h("i", { style: { backgroundImage: `var(--a-${b.art})`, ...css } }); };
-      choose.replaceChildren(h("div", h("h2", "What are you making?"), h("p.muted", "Both are three steps: choose what goes in, dress it, seal it. The difference is who it is for.")),
-        h("div.st-cards", card("pack", "A Pack", `Collect ${STUDIO.limits.min}–${STUDIO.limits.max} stickers, decide how likely each one is, and put them in a wrapping. Every opening gives one at random.`, "For the Market and friends", [pic("kraft-parcel", { left: "6%", top: "18%", width: "34%", rotate: "-5deg" }), pic("glassine", { left: "33%", top: "8%", width: "34%" }), pic("cotton", { left: "58%", top: "20%", width: "36%", rotate: "5deg" })]),
+      choose.replaceChildren(h("div", h("h2", "How would you like to share?"), h("p.muted", "Both are three steps: choose what goes in, dress it, seal it. The difference is who it is for.")),
+        h("div.st-cards", card("pack", "A Pack", `Collect ${STUDIO.limits.min}–${STUDIO.limits.max} stickers, decide how likely each one is, and put them in a wrapping. Every opening gives one at random.`, "For the Market and friends", [pic("kraft", { left: "6%", top: "18%", width: "34%", rotate: "-5deg" }), pic("glassine", { left: "33%", top: "8%", width: "34%" }), pic("holo", { left: "58%", top: "20%", width: "36%", rotate: "5deg" })]),
           card("gift", "A Gift", "One sticker, a wrapping and a few words, for one person. They open it and it joins their Collection.", "For one person", [pic("airmail", { left: "2%", top: "6%", width: "58%", rotate: "-4deg" }), pic("glassine", { left: "52%", top: "14%", width: "40%", rotate: "4deg" })])));
     };
 
@@ -250,7 +259,7 @@ Pages.studio = {
       const i = h("input", { value, maxLength: em ? 40 : max, placeholder: ph || "", "aria-label": label, autocomplete: "off", spellcheck: false, on: { input: (e) => { if(em) e.target.value = stClip(e.target.value, max); onInput(e.target.value); c.textContent = used(e.target.value); } } });
       return h("div.st-field", i, c);
     };
-    const bagPicker = (d, ids) => h("div.st-bags", ids.map((id) => h("button.st-bagt", { type: "button", "aria-pressed": String(d.bag === id), title: BAGS[id].name, on: { click: () => { if(d.bag !== id) { d.bag = id; if(d === ST.pack) stResetPlaces(d); } ST.open = null; stSave(); Snd.tap(); paint(); } } }, h("i", { style: { backgroundImage: `var(--a-${BAGS[id].art})` } }), h("span", BAGS[id].name))));
+    const bagPicker = (d, ids) => h("div.st-bags", ids.map((id) => h("button.st-bagt", { type: "button", "aria-pressed": String(d.bag === id), title: BAGS[id].name, data:{bag:id}, on: { click: e => {const keyboard=e.currentTarget.matches(":focus-visible"); if(d.bag !== id) { d.bag = id; if(d === ST.pack) {d.color=packColor(id,d.color)?.id || null;stResetPlaces(d);} } ST.open = null; stSave(); Snd.tap(); paint();if(keyboard)root.querySelector(`.st-bagt[data-bag="${id}"]`)?.focus({preventScroll:true}); } } }, h("i", { style: { backgroundImage: `var(--a-${BAGS[id].art})` } }), h("span", BAGS[id].name))));
     const tile = (e, props, extra, size = 56) => { const t = h("button.st-tile", { type: "button", title: `${titleOf(e)} · ${MAT[e.material]?.name || ""}`, data: { rarity: MAT[e.material]?.rarity || "common" }, ...props }, extra || null); thumbOf(e).then((res) => { if(t.isConnected) t.prepend(Stk.el(res, res.aspect >= 1 ? size : size * res.aspect)); }).catch(() => {}); return t; };
     /** A row of the Dress step: what is chosen now, and "Change…" opens the choices below it (one at a time). */
     const row = (key, label, thumb, name, change, body) => { const open = ST.open === key; return h("div.st-row", { data: { open: open ? "1" : "0" } }, h("label", label), h("div.st-cur", thumb, h("b", name), change ? h("button.btn.quiet.small", { type: "button", "aria-expanded": String(open), on: { click: () => { ST.open = open ? null : key; Snd.tap(); paint(); } } }, open ? "Done" : change) : null), open && body ? h("div.st-opts", body) : null); };
@@ -335,7 +344,12 @@ Pages.studio = {
         stSave(); Snd.tap(); paint();
       };
       const coverE = p.cover ? stEntry(p.cover) : null, coverUrl = p.cover ? stUrl(p.cover) : null;
-      const bagSw = h("span.st-bagsw", { style: { backgroundImage: `var(--a-${bag.art})` } });
+      const colors=PACK_COLORS[p.bag], colorName=h("span.st-color-name",packColor(p.bag,p.color)?.name || "");
+      const colorPicker=colors ? h("div.st-colors",{role:"group","aria-label":"Wrapping color"},colors.map(color=>h("button.st-color",{type:"button","aria-label":color.name,"aria-pressed":String((p.color || null)===color.id),title:color.name,style:{"--color":color.swatch},on:{click:e=>{
+        p.color=color.id;stSave();paintBench();colorName.textContent=color.name;
+        for(const button of e.currentTarget.parentElement.children)button.setAttribute("aria-pressed",String(button===e.currentTarget));
+        Snd.tap();
+      }}}))) : null;
       const coverBody = h("div.st-covers", h("button.st-cv.none", { type: "button", "aria-pressed": String(!p.cover), on: { click: () => { p.cover = null; ST.open = null; stSave(); paint(); } } }, "None"),
         ids.map((id) => { const e = stEntry(id); return e ? tile(e, { class: "st-cv", "aria-pressed": String(p.cover === id), on: { click: () => { p.cover = id; ST.open = null; stSave(); Snd.tap(); paint(); } } }, null, 38) : null; }));
       const accentBody = h("div.st-accs", [["none", "None", null], ["clip", "Silver clip", A.marketClip], ["seal", "Wax seal", A.waxSeal], ["tape", "Tape", null]].map(([k, n, img]) => h("button.st-acc", { type: "button", "aria-pressed": String(k === "none" ? !p.layout.accents.length : has(k)), on: { click: () => accent(k) } },
@@ -343,7 +357,7 @@ Pages.studio = {
       const accentName = p.layout.accents.length ? p.layout.accents.map((a) => ({clip:"Silver clip",seal:"Wax seal",pin:"Pin",tape:"Paper tape"})[a.kind]).join(", ") : "None";
       const accentThumb = h("span.st-sw.plain", p.layout.accents[0] ? h("i", { class: p.layout.accents[0].kind === "tape" ? "strip" : "", style: p.layout.accents[0].kind === "tape" ? {} : { backgroundImage: `url("${p.layout.accents[0].kind === "seal" ? A.waxSeal : p.layout.accents[0].kind === "pin" ? A.pinRed : A.marketClip}")` } }) : null);
       const body = [heading("Dress your pack", "A few details. Make it yours."),
-        h("div.st-scroll", row("wrap", "Wrapping", bagSw, bag.name, "Change…", bagPicker(p, PACK_BAG_IDS)),
+        h("div.st-scroll", sec("Wrapping",!PACK_BAG_IDS.includes(p.bag) ? h("p.st-fine",`Saved wrapping: ${bag.name}`) : null,bagPicker(p,PACK_BAG_IDS)),colors ? sec("Color",h("div.st-color-row",colorPicker,colorName)) : null,
           sec("Name label", field(p.title, STUDIO.limits.name, "Pack name", (v) => { p.title = v; stSave(); paintBench(); next.set(!!v.trim(), need); }, "", true)),
           row("cover", "Cover sticker", swatch(coverUrl, coverE ? MAT[coverE.material]?.rarity : null), coverE ? titleOf(coverE) : "None", "Choose…", coverBody),
           row("accent", "Accent", accentThumb, accentName, "Change…", accentBody), h("p.st-fine", "Up to 2 accents. Drag them onto a fold or edge.")),
@@ -421,12 +435,20 @@ Pages.studio = {
       return h("div.st-done", h("i.st-check", { "aria-hidden": "true" }), h("h2", kind === "pack" ? `Sealed. ${ST.pack.title.trim()}` : `Sealed. For ${ST.gift.to.trim()}`), h("p.muted", kind === "pack" ? `${ST.pack.sel.length} stickers · ${line}` : line), r.path ? h("p.muted.st-path", { title: r.path }, r.path) : null,
         h("div.st-done-actions", ...more, h("button.btn.quiet", { on: { click: again } }, "Make another")));
     };
-    const packArgs = () => { const p = ST.pack, lay = stLayoutArgs(p); return { title: p.title.trim(), pouch: p.bag, items: p.sel.map((x) => ({ stickerId: x.id, name: titleOf(stEntry(x.id)), copies: x.copies })), prizes:p.prizes, dress: { cover: p.cover || null, deco: lay.accents[0]?.kind || null, blurb: p.blurb.trim() || null, layout: lay } }; };
+    const packArgs = () => { const p = ST.pack, lay = stLayoutArgs(p); return { title: p.title.trim(), pouch: p.bag, items: p.sel.map((x) => ({ stickerId: x.id, name: titleOf(stEntry(x.id)), copies: x.copies })), prizes:p.prizes, dress: { color:packColor(p.bag,p.color)?.id || null, cover: p.cover || null, deco: lay.accents[0]?.kind || null, blurb: p.blurb.trim() || null, layout: lay } }; };
     const giftArgs = () => { const g = ST.gift; return { stickerId: g.sticker, to: g.to.trim(), note: g.note.trim() || null, dress: { bag: g.bag, deco: g.deco === "none" ? null : g.deco } }; };
 
     /* ---------- sealing: it signs and writes first (a cancelled save dialog makes nothing), then the wrapping closes its own way ---------- */
     const seal = async () => {
-      if(ST.sealing) return; const mode=ST.mode,d=D();if(mode==='gift'){stGiftDestination(d);if(!stGiftReady(d)){Shell.toast('Choose who it is for to continue.');return;}if(d.dest==='friend'&&!S.name.trim()){ProfileName.request();return;}} const args=mode==='gift'?giftArgs():packArgs(); ST.sealing = true; ST.view = "pack"; paint();
+      if(ST.sealing || naming)return;
+      const mode=ST.mode,d=D();if(d.sealed)return;
+      if(mode==='gift'){stGiftDestination(d);if(!stGiftReady(d)){Shell.toast('Choose who it is for to continue.');return;}}
+      if(!S.name.trim()) {
+        naming=true;let ready;try {ready=await ProfileName.request();}finally {naming=false;}
+        if(!ready || !root.isConnected || ST.mode!==mode || D()!==d || d.sealed || ST.sealing)return;
+        if(mode==='gift' && !stGiftReady(d))return;
+      }
+      const args=mode==='gift'?giftArgs():packArgs();ST.sealing=true;ST.view="pack";paint();
       try {
       if(mode==='pack'&&stSlots(d)>S.packLimits.packSlots)throw new Error('Too many slots.');
       const result=await stCommitSeal(mode,d,args);if(!result)return;
@@ -435,7 +457,7 @@ Pages.studio = {
       try { if(p) await StudioSeal.run(p, open, bench, wait); } catch {}
       const st = h("div.st-stamp", "SEALED"); bench.append(st); st.animate([{ opacity: 0, transform: "scale(2.2)" }, { opacity: .9, transform: "scale(.94)", offset: .6 }, { opacity: .85, transform: "scale(1)" }], { duration: reduced() ? 1 : 360, easing: "ease-out", fill: "forwards" }); Snd.tap(); await wait(700); Snd.chime(2, 880);
       setTimeout(() => st.remove(), 400);
-      } catch(err) {Shell.toast(d.sealed ? 'Sealed and saved. The preview could not finish.' : (Distribution?.error ? Distribution.error(err) : String(err)));}
+      } catch(err) {if(!(err?.name==="AbortError" && err.handled))Shell.toast(d.sealed ? 'Sealed and saved. The preview could not finish.' : (Distribution?.error ? Distribution.error(err) : String(err)));}
       finally {ST.sealing=false;paint();}
     };
 
@@ -503,7 +525,7 @@ function stConfirmTransfer() {
       S.lib.some(e=>e.copyOf===ST.gift.sticker) ? h("p","Existing copies also disappear from this Mac.") : null,
       h("button.btn.secondary",{on:{click:()=>{resolve(false);dialog.close();}}},"Cancel"),
       h("button.btn",{on:{click:()=>{resolve(true);dialog.close();}}},"Transfer and save…"));
-    document.body.append(dialog);dialog.showModal();
+    document.body.append(dialog);Dialogs.open(dialog);
   });
 }
 

@@ -78,7 +78,7 @@ Pages.today = {
       die.innerHTML = '<svg viewBox="0 0 318 282"><path d="M60 40c40-34 126-30 170-6 44 24 70 74 58 128-12 54-62 88-130 88-70 0-128-26-140-82C8 114 20 72 60 40z"/></svg>';
       // The whole empty slot is the way in: it does what "Make today's Peta" does.
       slot.append(die, h("button.t-ghost", { type: "button", "aria-label": "Make today's Peta", on: { click: (e) => { Snd.tap(); Shell.go("create", { origin: e.currentTarget, via: "object" }); } } },
-        h("span.t-plus", { "aria-hidden": "true" }, "+"), h("b", "Today's Peta goes here"), h("small", "Make one from any image")));
+        h("span.t-plus", { "aria-hidden": "true" }), h("b", "Make today's Peta"), h("small", "Choose any image to begin")));
     }
     const n = entries.length;
     const info = h("div.t-info",
@@ -86,7 +86,7 @@ Pages.today = {
       h("div.t-mat", h("div.tm-card", MatCard(m, 120)),
         h("div.tm-text", h("div.tm-heading", h("p.eyebrow", "Today's material"), h("small.addnote", "Added to your Materials")), h("h3", m.name, " ", h("span.seal", { data: { rarity: m.rarity } }, m.rarity)))),
       Pages.today.streak(),
-      h("div.t-cta", h("button.btn.t-make", { on: { click: (e) => { Snd.tap(); Shell.go("create", { origin: e.currentTarget, via: "object" }); } } }, n ? "Make another" : "Make today's Peta")));
+      n ? h("div.t-cta", h("button.btn.t-make", { on: { click: (e) => { Snd.tap(); Shell.go("create", { origin: e.currentTarget, via: "object" }); } } }, "Make another")) : h("p.muted.t-ready-note", "Choose an image to turn into a sticker. Your material is ready."));
     return h("div.t-hero", slot, info);
   },
   /* The last seven days on a paper ticket: the weekday over a dot, filled where something was stuck, empty where not. No counting up, no shame for gaps. */
@@ -127,7 +127,7 @@ Pages.today = {
       anim(ripple, [{ opacity: .45, transform: "translate(-50%,-50%) scale(.4)" }, { opacity: 0, transform: "translate(-50%,-50%) scale(1.9)" }], { duration: 560, easing: EASE.out });
       const s = await anim(stamp, [{ opacity: 0, transform: "rotate(-6deg) scale(1.8)" }, { opacity: .92, transform: "rotate(-3deg) scale(.95)", offset: .6 }, { opacity: .92, transform: "rotate(-3deg) scale(1)" }], { duration: 340, easing: EASE.spring });
       s.cancel(); stamp.style.opacity = "";
-    }).catch((err) => Shell.toast(String(err)));
+    }).catch((err) => Shell.error(err));
   },
 
   /* One envelope releases the actual material card; Keep settles it into Today. */
@@ -136,7 +136,7 @@ Pages.today = {
     const btn = $(".btn.open", root); let m;
     btn.disabled = true; Bridge.busy = true;
     try { const daily = await Bridge.invoke("daily_open_material"); await Bridge.reload(); m = MAT[daily.material.id]; }
-    catch(e) { Bridge.busy = false; btn.disabled = false; root._opening = false; Shell.toast(String(e)); return; }
+    catch(e) { Bridge.busy = false; btn.disabled = false; root._opening = false; Shell.error(e); return; }
     S.dayState = "opened"; Shell.renderNav(); Desktop.hideArrival();
     const stageEl = $(".t-arrived", root);
     const res = await Cer.openMaterial(m);

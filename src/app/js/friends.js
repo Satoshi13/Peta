@@ -16,17 +16,24 @@ const Friends = {
     }
     return { friend: "Friend", pending: "Wants to be friends", blocked: "Blocked" }[f.status] || "";
   },
-  error(e) { return String(e?.message || e).replace(/^Error: /, ""); },
+  error(e) { if(e?.name==="AbortError" && e.handled)return "";return String(e?.message || e).replace(/^Error: /, ""); },
   async act(cmd, args, done) {
+    const key=JSON.stringify([cmd,args]);this.pendingActions ||= new Set();
+    if(this.pendingActions.has(key))return;this.pendingActions.add(key);
     try { await Bridge.invoke(cmd, args); await Bridge.reload(); Shell.renderNav(); Shell.refresh(); if (done) Shell.toast(done); }
-    catch (e) { Shell.toast(this.error(e)); }
+    catch (e) { const message=this.error(e);if(message)Shell.toast(message); }
+    finally {this.pendingActions.delete(key);}
   },
   async copy(what) {
-    if(!S.name.trim()) {ProfileName.request();return;}
-    const text = what === "link" ? S.inbox.myLink : S.inbox.myCode;
-    try { await navigator.clipboard.writeText(text); } catch { Shell.toast("Could not copy. Select the code and copy it instead."); return; }
-    Shell.toast(what === "link" ? "Link copied. Send it to a friend." : "Code copied. Send it to a friend.");
-    Bridge.invoke("friend_code_copied").then(() => Bridge.reload()).catch(() => {});   // makes my mailbox so their request can reach me
+    if(this.copyPending)return;
+    this.copyPending=true;
+    try {
+      if(!S.name.trim() && !await ProfileName.request())return;
+      const text = what === "link" ? S.inbox.myLink : S.inbox.myCode;
+      try { await navigator.clipboard.writeText(text); } catch { Shell.toast("Could not copy. Select the code and copy it instead."); return; }
+      Shell.toast(what === "link" ? "Link copied. Send it to a friend." : "Code copied. Send it to a friend.");
+      Bridge.invoke("friend_code_copied").then(() => Bridge.reload()).catch(() => {});
+    } finally {this.copyPending=false;}
   },
   /** A sheet of paper, the same as Boards' dialogs. */
   sheet(label, ...kids) {
@@ -34,7 +41,7 @@ const Friends = {
     const close = CloseButton("Close", { on: { click: () => dialog.close() } }, ".bd-x");
     const dialog = h("dialog.bd-dialog", { "aria-label": label, on: { keydown: (e) => { if (e.key === "Escape") e.stopPropagation(); }, close: () => { dialog.remove(); Bridge.dialogOpen = !!document.querySelector("dialog"); } } },
       h("div.setcard.bd-sheet", close, ...kids));
-    Bridge.dialogOpen = true; document.body.append(dialog); dialog.showModal(); return dialog;
+    Bridge.dialogOpen = true; document.body.append(dialog); Dialogs.open(dialog); return dialog;
   },
 
   /** A yes/no question on the same paper (the app never uses the browser's confirm). */
@@ -94,7 +101,7 @@ const Friends = {
         dialog.close(); await Bridge.reload(); Shell.refresh();
         Shell.toast(`Request sent to ${preview.name || "your friend"}.`);
         if (!S.inbox.backedUp) setTimeout(() => Shell.toast("Back up your Peta key in Settings, so a new Mac can keep your friends.", 4200), 2600);
-      } catch (err) { who.append(h("p.small.bd-error", this.error(err))); send.disabled = false; send.textContent = "Send request"; }
+      } catch (err) { const message=this.error(err);if(message)who.append(h("p.small.bd-error",message));send.disabled=false;send.textContent="Send request"; }
     } } }, input, who, note,
       h("p.small.muted", "They see your name and these words. Gifts can be sent once they approve."),
       h("div.bd-dacts", h("button.link", { type: "button", on: { click: () => dialog.close() } }, "Cancel"), send));
@@ -122,7 +129,7 @@ const Friends = {
       g.blocked.length ? h("div.fr-group", h("p.eyebrow", "Blocked"), g.blocked.map((f) => row(f, small("Unblock", () => this.act("friend_unblock", key(f)))))) : null,
       h("div.setrow", h("div", h("b", "Check for gifts"), h("small", S.inbox.lastCheck ? `Last checked ${new Date(S.inbox.lastCheck).toLocaleString()}` : "Not checked yet")),
         h("div.fr-acts", h("div.seg", [[true, "Automatically"], [false, "When I open Peta"]].map(([v, t]) => SegButton(t, { "aria-pressed": String(S.inbox.auto === v), on: { click: () => this.act("inbox_set_auto", { auto: v }) } }))),
-          small("Check now", async () => { try { const r = await Bridge.invoke("inbox_check", { manual: true }); await Bridge.reload(); Shell.refresh(); Shell.toast(r.gifts || r.requests ? `${r.gifts} gift${r.gifts === 1 ? "" : "s"} and ${r.requests} request${r.requests === 1 ? "" : "s"} arrived.` : "Nothing new."); } catch (e) { Shell.toast(this.error(e)); } }))),
+          small("Check now", async () => { try { const r = await Bridge.invoke("inbox_check", { manual: true }); await Bridge.reload(); Shell.refresh(); Shell.toast(r.gifts || r.requests ? `${r.gifts} gift${r.gifts === 1 ? "" : "s"} and ${r.requests} request${r.requests === 1 ? "" : "s"} arrived.` : "Nothing new."); } catch (e) { const message=this.error(e);if(message)Shell.toast(message); } }))),
       h("div.fr-leave", h("button.link", { type: "button", on: { click: confirmThen("Remove your mailbox, friend lists and waiting gifts from Peta's server? Your stickers stay on this Mac. Who owns each sticker is still recorded.", () => this.act("inbox_leave", {}, "Your data was removed from Peta's server."), "Remove") } }, "Remove my data from Peta's server…")));
   },
 

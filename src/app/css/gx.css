@@ -69,3 +69,7 @@ html[data-motion="reduce"] :is(.gx-pk-tab, .gx-pk-tab::after) { animation:none; 
 .gx-ring { position:absolute; pointer-events:none; opacity:0; }
 .gx-missing { font:600 12px var(--sys); color:#f6efe0; text-align:center; padding:8px; }
 html[data-motion="reduce"] .gx-world * { animation-duration:1ms !important; }
+
+/* Tint only the paper/foil; labels, cover stickers and accents sit above it. */
+.gx-pk-layer.pack-colored { background:none; }
+.gx-pk-layer.pack-colored::before { content:""; position:absolute; inset:0; background:var(--pk) center / 100% 100% no-repeat; filter:var(--pack-filter); pointer-events:none; }

@@ -1,3 +1,4 @@
+FocusMode.install();
 import * as PetaMath from "../../ui-math.js";
 window.PetaMath = PetaMath;
 import * as BoardState from "../../boards-state.js";
@@ -37,19 +38,23 @@ async function boot() {
     if(e.payload) { UpdateUI.check(false); Bridge.printFocusTransfer=false; if(await Bridge.window.isVisible() && !(await Bridge.window.isMinimized())) { S.windowOpen=true; Pages[S.page]?.resume?.(); Scraps.flushNote(); await boardNotes(); if(S.inbox?.enabled) Bridge.invoke('inbox_check',{manual:false}).catch(()=>{}); } return; }
     if(S.page!=="today" || !(await Bridge.window.isVisible()) || await Bridge.window.isMinimized()) Pages[S.page]?.suspend?.();
     if(Bridge.printFocusTransfer) { Bridge.printFocusTransfer=false; return; }
-    if(S.closeOutside && !Bridge.dialogOpen && !document.querySelector('.cer')) Shell.close();
+    if(S.closeOutside && !Shell.editing && !Bridge.dialogOpen && !document.querySelector('.cer')) Shell.close();
   });
   document.addEventListener("visibilitychange", () => { if(document.hidden) Pages[S.page]?.suspend?.(); else Pages[S.page]?.resume?.(); });
   const page=new URLSearchParams(location.search).get('page') || 'today';
-  const welcome=await Bridge.invoke('scrap_welcome').catch(()=>null);   // once per library, before the first numbers are read
-  await Shell.open(page==='redeem' ? 'today' : page==='boards-save' ? 'boards' : page);
-  if(page==='boards-save') Pages.boards.traySave();
-  await boardNotes();
-  await Bridge.invoke("move_bootstrap_done").catch(()=>{});
-  UpdateUI.init();
-  if(S.page==="settings") Shell.refresh();
-  if(welcome!=null) Scraps.note(`A welcome gift: ${welcome} Scraps.`); requestAnimationFrame(() => requestAnimationFrame(() => Vibrancy.sync()));if(page==='redeem') Distribution.redeem();if(S.packOffer)Distribution.offer(S.packOffer);
-  Friends.linksReady = true;
-  await Friends.openPendingLinks();
+  const finish = async () => {
+    const welcome=await Bridge.invoke('scrap_welcome').catch(()=>null);   // once per library, before the first numbers are read
+    await Shell.open(page==='redeem' ? 'today' : page==='boards-save' ? 'boards' : page);
+    if(page==='boards-save') Pages.boards.traySave();
+    await boardNotes();
+    await Bridge.invoke("move_bootstrap_done").catch(()=>{});
+    UpdateUI.init();
+    if(S.page==="settings") Shell.refresh();
+    if(welcome!=null) Scraps.note(`A welcome gift: ${welcome} Scraps.`); requestAnimationFrame(() => requestAnimationFrame(() => Vibrancy.sync()));if(page==='redeem') Distribution.redeem();if(S.packOffer)Distribution.offer(S.packOffer);
+    Friends.linksReady = true;
+    await Friends.openPendingLinks();
+  };
+  try { await finish(); } catch(error) { Shell.error(error, {retry:finish}); }
+
 }
-boot().finally(()=>{document.body.inert=false;}).catch(e => { console.error(e); document.getElementById('toast').textContent=String(e); document.getElementById('toast').classList.add('on'); });
+boot().finally(()=>{document.body.inert=false;}).catch(error => { Shell.error(error, {retry:async()=>{await Shell.open(S.page);}}); });

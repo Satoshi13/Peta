@@ -121,3 +121,7 @@ img.peta-tag { width: 120px; }
 /* the rig of a wrapping that is not a pouch: the box of the object itself; the picture hangs from it */
 .bagrig { position: relative; outline: none; cursor: pointer; touch-action: none; }
 .bagrig .pk-sleeve { z-index: 3; }
+
+/* Tint only the paper/foil; labels, cover stickers and accents sit above it. */
+.pk-layer.pack-colored { background:none; }
+.pk-layer.pack-colored::before { content:""; position:absolute; inset:0; background:var(--pk) center / 100% 100% no-repeat; filter:var(--pack-filter); pointer-events:none; }

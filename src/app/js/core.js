@@ -31,7 +31,10 @@ function h(sel, props, ...kids) {
     if (v == null || v === false) continue;
     if (k === "style" && typeof v === "object") { for (const n in v) n.startsWith("--") ? e.style.setProperty(n, v[n]) : (e.style[n] = v[n]); }
     else if (k === "vars") for (const n in v) e.style.setProperty(n, v[n]);
-    else if (k === "on") for (const n in v) e.addEventListener(n, v[n]);
+    else if (k === "on") for (const n in v) e.addEventListener(n, event => {
+      const report = error => { if (typeof Shell !== "undefined") Shell.error(error); else console.error(error); };
+      try { v[n](event)?.catch?.(report); } catch (error) { report(error); }
+    });
     else if (k === "html") e.innerHTML = v;
     else if (k === "data") for (const n in v) e.dataset[n] = v[n];
     else if (k in e && k !== "list" && typeof v !== "object") e[k] = v;
@@ -55,6 +58,12 @@ function anim(el, frames, o = {}) {
 async function animCommit(el, frames, o = {}) {
   const a = await anim(el, frames, o);
   try { a.commitStyles(); a.cancel(); } catch {}
+}
+
+/** A short settling motion for rebuilt panels; never retains a transform at rest. */
+function revealContent(el) {
+  if (!el || reduced()) return;
+  anim(el, [{opacity:0, transform:"translateY(8px)"}, {opacity:1, transform:"none"}], {duration:280}).then(a=>a.cancel());
 }
 
 function img(key, cls, alt = "") { const i = new Image(); i.src = A[key]; i.alt = alt; i.draggable = false; if (cls) i.className = cls; return i; }

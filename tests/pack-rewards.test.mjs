@@ -17,7 +17,7 @@ function fixture({remaining=0,credits=1,fail=false,daily=true,metadataFails=fals
     h:element,img(){},PackLabel:()=>({}),S:{packs:[pack],packAvailable:true},
     buildRig:(_cer,_stage,options)=>{tear=options.onTear;return rig;},
     Bridge:{busy:false,invoke:async(cmd,args)=>{calls.push({cmd,args:{...args}});if(fail)throw Error('retry');return pendingOpen || {stickerId:'bonus',remaining};},packEntry:async()=>{if(metadataFails)throw Error('metadata');return {id:'bonus',title:'Sticker'};},reload:async()=>{if(reloadFails)throw Error('refresh');},printAction:async(cmd,args)=>{calls.push({cmd,args:{...args}});if(printFails)throw Error('print');}},
-    Shell:{renderNav(){},refresh(){},toast:s=>toasts.push(s)},Desktop:{print:async()=>{}},anim:async()=>{},fix(){},EASE:{out:'ease-out'},pack,
+    Shell:{error:s=>toasts.push(String(s)),renderNav(){},refresh(){},toast:s=>toasts.push(s)},Desktop:{print:async()=>{}},anim:async()=>{},fix(){},EASE:{out:'ease-out'},pack,
     unwrapAndReveal:async options=>{if(previewFails)throw Error('decode');reveal=options;},
   });
   const source=readFileSync(new URL('../src/app/js/ceremony.js',import.meta.url),'utf8');

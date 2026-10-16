@@ -61,7 +61,7 @@ test('the bottom row of Create uses the app\'s standard sizes: the name field is
   assert.doesNotMatch(css, /\.cs-foot \.go-btns \.btn \{/, 'no private button size');
   assert.doesNotMatch(css, /\.nt-notes > \*/, 'no private text size for the notes');
   assert.match(js, /h\("div\.cs-foot-left", this\.nameField\(syncMake\), h\("div\.nt-notes", h\("small\.muted\.nt-hint"/);
-  assert.match(js, /CR\.editing \? "Cancel" : "Start over"/);
+  assert.match(js, /CR\.editing \? "Cancel" : "Choose another image"/);
 });
 
 test('blank names cannot start either creation or an edit save', async () => {

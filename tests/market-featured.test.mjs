@@ -19,7 +19,7 @@ function fixture({listings=[],mine=[],shop=null,rates={},sealed={},enabled=true,
   const packs=RATES.map(([id,exchange,stickers])=>({id,exchange,stickers,onSale:true,...rates[id]}));
   const S={page:'market',developer:false,owned:{},packs:Object.entries(sealed).map(([id,n])=>({id,left:Array(n).fill(0)})),scraps:{balance:100,packs,shop}};
   const market={enabled,offline,hasFriends:true,listings,mine};
-  const context=vm.createContext({h,Pages:{},S,PACK_SEALED_CAP:100,Shell:{toast(){},go(){}},Snd:{tap(){}},CloseButton:()=>h('button.close'),PackPeek:()=>h('figure'),ScrapAmt:n=>`${n} Scraps`,packVar:()=>'',PackLabel:p=>h('span.label',p.title),
+  const context=vm.createContext({h,Pages:{},S,BAGS:{},packColor:()=>null,PACK_SEALED_CAP:100,Shell:{toast(){},go(){}},Snd:{tap(){}},CloseButton:()=>h('button.close'),PackPeek:()=>h('figure'),ScrapAmt:n=>`${n} Scraps`,packVar:()=>'',PackLabel:p=>h('span.label',p.title),
     Scraps:{pack:id=>S.scraps.packs.find(p=>p.id===id),button:(kind,id,label,disabled)=>h('button.scrap',{disabled},label),badge:()=>h('span'),form:()=>null},
     Stk:{make:()=>new Promise(()=>{})},A:{},Cer:{},Bridge:{invoke:async cmd=>cmd==='market_friend_listings'?market:{}}});
   vm.runInContext(source('packs')+';this.PackListing=PackListing;this.PackZoom=PackZoom;PackListing.visible=()=>[];',context);

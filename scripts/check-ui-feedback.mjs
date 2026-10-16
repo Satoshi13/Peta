@@ -62,7 +62,7 @@ try {
       await page.waitForSelector('.st-panel');
       await page.evaluate(()=>{ST.gift.step=2;Shell.refresh();});
       const colors=await page.locator('.st-panel').evaluate(el=>({text:getComputedStyle(el).color,heading:getComputedStyle(el.querySelector('h2')).color,input:getComputedStyle(el.querySelector('input')).backgroundColor}));
-      assert.equal(colors.text,'rgb(43, 42, 40)',JSON.stringify({width,theme,colors}));assert.equal(colors.heading,'rgb(43, 42, 40)');assert.equal(colors.input,'rgb(248, 243, 231)');
+      assert.equal(colors.text,theme==='night'?'rgb(241, 234, 217)':'rgb(43, 42, 40)',JSON.stringify({width,theme,colors}));assert.equal(colors.heading,colors.text);assert.equal(colors.input,theme==='night'?'rgb(38, 34, 25)':'rgb(248, 243, 231)');
       await page.evaluate(()=>Shell.open('packs'));
       assert.equal(await page.locator('.pk-count').first().evaluate(el=>getComputedStyle(el).mixBlendMode),theme==='night'?'normal':'multiply');
       await page.evaluate(async()=>{await Shell.open('market');Scraps.button('material','matte','Exchange').click();});
@@ -76,7 +76,7 @@ try {
   const chrome=await page.evaluate(()=>({logo:getComputedStyle(document.querySelector('.nav'),'::before').width,dot:getComputedStyle(document.querySelector('.wc')).backgroundSize}));
   assert.equal(chrome.logo,'88px');assert.equal(chrome.dot,'18px 18px');
   await page.evaluate(async()=>{BK.sel=S.lib[0].id;await Shell.open('book');});
-  await page.locator('[data-action="edit"]').click();await page.evaluate(()=>crSync());
+  await page.locator('[data-action="edit"]').click();await page.waitForFunction(()=>window.reviewEditing);await page.evaluate(()=>crSync());
   await page.waitForSelector('.cs-sticker .stk');
   assert.equal(await page.locator('.g-go .go-btns > .btn').last().textContent(),'Save as new Peta');
   const name=page.locator('#cr-name'),save=page.locator('.g-go .go-btns > .btn').last();

@@ -1,5 +1,13 @@
 /* The prototype's controls call the real Rust cutting session. */
 const CR = {name:"",stage:"empty",src:null,photo:null,original:null,border:20,smooth:4,strength:.5,editing:null,editMaterial:null,editAsNew:false,tool:"erase",brush:12,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve(),zoom:{scale:1,x:0,y:0}};
+let creatorEpoch = 0, creatorSync = null, creatorSyncAgain = false, creatorWatch = 0;
+const MAX_CREATOR_BYTES = 80 * 1024 * 1024;
+function crInvalidate() { creatorEpoch++;if(creatorWatch){clearTimeout(creatorWatch);creatorWatch=0;} }
+async function crCancel() {
+  crInvalidate();
+  try { await Bridge.invoke('creator_cancel'); crReset(); }
+  catch(error) { await crSync(); throw error; }
+}
 const SAMPLE_KEYS = ["sCat","sBlueFlower","sCoffee","sCamera","sEgg","sGoodDay","sPlant","sPolaroid","sCassette","sComputer","sScribble","sBubble"];
 const PHOTO_W = 720;
 const usesText = () => !S.chosen ? "No material sheets left" : CR.editing && !CR.editAsNew ? "Editing original · no material used" : (MAT[S.chosen].unlimited ? "Uses one "+MAT[S.chosen].name+" (never runs out)" : `Uses 1 ${MAT[S.chosen].name} · ${S.stock[S.chosen]} left`);
@@ -8,31 +16,67 @@ const usesLabel = () => {
   const name=MAT[S.chosen].name, at=text.indexOf(name);
   return CR.editing && !CR.editAsNew ? text : [text.slice(0,at),h("b",name),text.slice(at+name.length)];
 };
-function crReset() { if(CR.preview?.startsWith('blob:')) URL.revokeObjectURL(CR.preview); CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{name:'',preview:null,reveal:false,stage:'empty',src:null,photo:null,original:null,res:null,note:'',editing:null,editMaterial:null,editAsNew:false,urls:[],history:{canUndo:false,canRedo:false},zoom:{scale:1,x:0,y:0}}); }
+function crReset() { crInvalidate(); if(CR.preview?.startsWith('blob:')) URL.revokeObjectURL(CR.preview); CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{name:'',preview:null,reveal:false,stage:'empty',src:null,photo:null,original:null,res:null,note:'',editing:null,editMaterial:null,editAsNew:false,urls:[],history:{canUndo:false,canRedo:false},retry:null,zoom:{scale:1,x:0,y:0}}); }
 async function crBegin(bytes) {
+  if(bytes.length > MAX_CREATOR_BYTES) { Shell.error(new Error("That picture is too large to cut out.")); return; }
   if(!usableMats().includes(S.chosen)) { Shell.toast("No material sheets left. Visit Market to exchange Scraps."); return; }
-  CR.stage='cutting'; Shell.refresh();
-  try { await Bridge.invoke('creator_begin_bytes',{bytes:Array.from(bytes),materialId:S.chosen}); } catch(e) { crReset(); Shell.refresh(); Shell.toast(String(e)); }
+  const epoch = ++creatorEpoch;
+  CR.stage='cutting'; CR.retry=()=>crBegin(bytes); Shell.refresh();
+  try { await Bridge.invoke('creator_begin_bytes',{bytes:Array.from(bytes),materialId:S.chosen});if(epoch===creatorEpoch)await crSync(); }
+  catch(error) { if(epoch!==creatorEpoch)return;CR.stage='failed';CR.note=userError(error);Shell.refresh(); }
 }
-async function crLoadFile(file) { if(!file?.type.startsWith('image/')) return; CR.samplePhoto=null; CR.preview=URL.createObjectURL(file); await crBegin(new Uint8Array(await file.arrayBuffer())); }
+async function crLoadFile(file) {
+  if(!file?.type.startsWith('image/')) return;
+  if(file.size > MAX_CREATOR_BYTES) { Shell.error(new Error("That picture is too large to cut out."));return; }
+  const epoch = ++creatorEpoch;
+  if(CR.preview?.startsWith('blob:'))URL.revokeObjectURL(CR.preview);
+  CR.samplePhoto=null; CR.preview=URL.createObjectURL(file);
+  try {const bytes=new Uint8Array(await file.arrayBuffer());if(epoch===creatorEpoch)await crBegin(bytes);}
+  catch(error){if(epoch!==creatorEpoch)return;CR.stage='failed';CR.note=userError(error);CR.retry=()=>crLoadFile(file);Shell.refresh();}
+}
 async function crLoadSample(key) {
-  const {photo,alpha}=await Stk.fakePhoto(A[key],PHOTO_W); CR.samplePhoto=photo; CR.preview=photo.toDataURL('image/jpeg',.85);
+  const epoch = ++creatorEpoch;
+  const {photo,alpha}=await Stk.fakePhoto(A[key],PHOTO_W);if(epoch!==creatorEpoch)return;
+  CR.samplePhoto=photo;CR.preview=photo.toDataURL('image/jpeg',.85);
   const blob=await new Promise(resolve=>alpha.toBlob(resolve,'image/png'));
-  await crBegin(new Uint8Array(await blob.arrayBuffer()));
+  const bytes=new Uint8Array(await blob.arrayBuffer());if(epoch===creatorEpoch)await crBegin(bytes);
 }
-async function crSync() {
-  const info=await Bridge.invoke('creator_info');
+async function crReadState(epoch) {
+  const current = () => epoch===creatorEpoch && !creatorSyncAgain;
+  const info=await Bridge.invoke('creator_info');if(!current())return;
   if(info.phase==='idle') { if(CR.stage!=='empty') { crReset(); Shell.refresh(); } return; }
-  if(info.phase==='failed') { const editing=CR.editing; crReset(); if(editing) await Shell.open('book'); else Shell.refresh(); Shell.toast(info.error); return; }
-  if(info.phase==='loading') { CR.stage='cutting'; if(S.page==='create') Shell.refresh(); return; }
+  if(info.phase==='failed') { CR.stage='failed';CR.note=userError(info.error);if(S.page==='create')Shell.refresh();return; }
+  if(info.phase==='loading') { if(CR.stage!=='cutting'){CR.stage='cutting';if(S.page==='create')Shell.refresh();}return; }
   if(info.phase!=='ready') return;
-  CR.editing=info.editingStickerId || null; CR.editAsNew=!!info.editAsNew; CR.editMaterial=CR.editing ? info.defaultMaterial : null; CR.strength=info.defaultStrength;
-  if(CR.editing) { S.chosen=CR.editMaterial; CR.border=info.defaultOutline; CR.smooth=Math.round(info.defaultSmooth*12); CR.strength=info.defaultStrength; }
-  const bytes=await Bridge.invoke('creator_original'), url=URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:'image/jpeg'}));
-  const i=await Stk.load(url), photo=Stk.cv(info.width,info.height); photo.getContext('2d').drawImage(i,0,0,info.width,info.height); URL.revokeObjectURL(url);
-  CR.original=photo; CR.photo=CR.samplePhoto || photo; CR.reveal=CR.stage==='cutting'; CR.stage='ready'; await Bridge.reload(); if(S.page==='create') Shell.refresh();
+  const bytes=await Bridge.invoke('creator_original');if(!current())return;
+  const url=URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:'image/jpeg'}));
+  let image;
+  try {image=await Stk.load(url);} finally {URL.revokeObjectURL(url);}
+  if(!current())return;
+  const photo=Stk.cv(info.width,info.height);photo.getContext('2d').drawImage(image,0,0,info.width,info.height);
+  await Bridge.reload();if(!current())return;
+  CR.editing=info.editingStickerId || null;CR.editAsNew=!!info.editAsNew;CR.editMaterial=CR.editing ? info.defaultMaterial : null;CR.strength=info.defaultStrength;
+  if(CR.editing) { S.chosen=CR.editMaterial;CR.border=info.defaultOutline;CR.smooth=Math.round(info.defaultSmooth*12); }
+  CR.original=photo;CR.photo=CR.samplePhoto || photo;CR.reveal=CR.stage==='cutting';CR.stage='ready';CR.retry=null;
+  if(S.page==='create')Shell.refresh();
 }
-Bridge.listen('creator-changed',()=>crSync().catch(e=>Shell.toast(String(e))));
+function crSync() {
+  creatorSyncAgain=true;
+  if(creatorSync)return creatorSync;
+  creatorSync=(async()=>{while(creatorSyncAgain){creatorSyncAgain=false;await crReadState(creatorEpoch);}})().finally(()=>{creatorSync=null;crWatchLoading();});
+  return creatorSync;
+}
+// Native notifications can arrive while the file chooser is closing. Keep loading live
+// until a terminal state is read, even when the webview misses a notification.
+function crWatchLoading() {
+  if(creatorWatch || CR.stage!=="cutting" || typeof setTimeout!=="function")return;
+  const epoch=creatorEpoch;
+  creatorWatch=setTimeout(()=>{
+    creatorWatch=0;if(epoch!==creatorEpoch || CR.stage!=="cutting")return;
+    crSync().catch(error=>{if(epoch!==creatorEpoch)return;CR.stage="failed";CR.note=userError(error);CR.retry=()=>crSync();if(S.page==="create")Shell.refresh();});
+  },500);
+}
+Bridge.listen('creator-changed',()=>crSync().catch(e=>Shell.error(e)));
 const canvasPoint = (cv, e) => {
   const r = cv.getBoundingClientRect(), k = Math.min(r.width / cv.width, r.height / cv.height), ox = (r.width - cv.width * k) / 2, oy = (r.height - cv.height * k) / 2;
   return { x: (e.clientX - r.left - ox) / k, y: (e.clientY - r.top - oy) / k, k, ox, oy, r };
@@ -44,8 +88,8 @@ document.addEventListener('keydown',e=>{
   if(e.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])') || Bridge.dialogOpen || Bridge.busy || document.querySelector('.cer, dialog[open]')) return;
   e.preventDefault();
   if(!usableMats().includes(S.chosen)) { Shell.toast('No material sheets left. Visit Market to exchange Scraps.'); return; }
-  CR.samplePhoto=null;
-  Bridge.invoke('creator_begin_clipboard',{materialId:S.chosen}).catch(err=>Shell.toast(String(err)));
+  crInvalidate();CR.samplePhoto=null;
+  Bridge.invoke('creator_begin_clipboard',{materialId:S.chosen}).catch(err=>Shell.error(err));
 });
 
 /* The three steps shown over the mat: the photo is in, the cutout is yours to fix, then the stock decides what it becomes. */
@@ -73,13 +117,19 @@ Pages.create = {
     }
     if (CR.stage === "empty") root.append(this.empty());
     else if (CR.stage === "cutting") root.append(this.cutting());
+    else if (CR.stage === "failed") root.append(this.failure());
     else root.append(this.mat());
     return root;
   },
   /* While Rust finds the edge, the photo sits on the mat under a slow band of light. */
   cutting() {
     const card = h("div.cs-photo", h("div.cs-photo-in", CR.preview ? h("img", { src: CR.preview, alt: "" }) : h("div.cut-anim"), h("i.cs-scan.loop", { "aria-hidden": "true" })), h("i.cs-tape", { "aria-hidden": "true" }));
-    return h("div.cr-wrap", h("div.cr-stage.cs-wait", h("div.cs-top", createSteps(0).el), h("div.cs-center", card, h("p.cs-wait-text", { role: "status" }, "Finding the edge…"))));
+    return h("div.cr-wrap", h("div.cr-stage.cs-wait", h("div.cs-top", createSteps(0).el), h("div.cs-center", card, h("p.cs-wait-text", { role: "status" }, "Finding the edge…"),h("button.btn.paper.small",{on:{click:async()=>{await crCancel();Shell.refresh();}}},"Cancel"))));
+  },
+  failure() {
+    return h("section.empty.editor-recovery",h("h2","This image could not be prepared"),h("p",CR.note),
+      h("div.row-btns",CR.retry ? h("button.btn",{on:{click:()=>CR.retry()}},"Try again") : null,
+        h("button.btn.paper",{on:{click:async()=>{await crCancel();Shell.refresh();}}},"Choose another image")));
   },
   empty() {
     const file = h("input", { type: "file", accept: "image/*", hidden: true, on: { change: (e) => crLoadFile(e.target.files[0]) } });
@@ -93,6 +143,7 @@ Pages.create = {
         h("button.sample", { style: { "--i": i }, title: SAMPLE_TITLES[k], on: { click: () => { Snd.tap(); crLoadSample(k); } } }, h("img", { src: A[k], alt: SAMPLE_TITLES[k] }))))));
   },
   mat() {
+    const epoch = creatorEpoch;
     const origCv = h("canvas"), origBg = h("canvas.original-background"), cutCv = h("canvas.cut"), ring = h("i.ring");
     const caption = (n,title) => h("figcaption", h("i.step-number",String(n)), title);
     const stkHost = h("div.stk-host"), pane = (cls, title, ...kids) => h("figure.pane." + cls, h("div.frame", ...kids), caption(1,title));
@@ -159,14 +210,14 @@ Pages.create = {
           const mine = seq;
           try {
             const buffer = await Bridge.invoke("creator_render", { materialId:S.chosen, strength:CR.strength, smooth:CR.smooth/12, outline:CR.border, preview:false });
-            if(mine !== seq || painting || !stkHost.isConnected) continue;
+            if(epoch !== creatorEpoch || mine !== seq || painting || !stkHost.isConnected) continue;
             const bytes = new Uint8Array(buffer), length = new DataView(bytes.buffer).getUint32(0);
             const head = JSON.parse(new TextDecoder().decode(bytes.slice(4,4+length)));
             const offset = 4+length;
             const sticker = URL.createObjectURL(new Blob([bytes.slice(offset,offset+head.stickerLen)], {type:"image/png"}));
             const cutout = URL.createObjectURL(new Blob([bytes.slice(offset+head.stickerLen)], {type:"image/png"}));
             const [stickerImg,cutImg] = await Promise.all([Stk.load(sticker),Stk.load(cutout)]);
-            if(mine !== seq || painting || !stkHost.isConnected) { URL.revokeObjectURL(sticker); URL.revokeObjectURL(cutout); continue; }
+            if(epoch !== creatorEpoch || mine !== seq || painting || !stkHost.isConnected) { URL.revokeObjectURL(sticker); URL.revokeObjectURL(cutout); continue; }
             CR.urls.forEach(url=>URL.revokeObjectURL(url)); CR.urls=[sticker,cutout];
             const cx = cutCv.getContext("2d"); cx.clearRect(0,0,cutCv.width,cutCv.height);
             // Rust returns the cutout at the original working-image size.
@@ -175,8 +226,8 @@ Pages.create = {
             stkHost.replaceChildren(Stk.el(res,res.aspect>=1?230:230*res.aspect)); fitSticker(); syncMake();
             if(reveal) { reveal=false; landReveal(); }
           } catch(e) {
-            if (mine !== seq || painting || !stkHost.isConnected) continue;
-            CR.res=null; stkHost.replaceChildren(h("p.muted", "Nothing left to cut out")); syncMake(); Shell.toast(String(e));
+            if (epoch !== creatorEpoch || mine !== seq || painting || !stkHost.isConnected) continue;
+            CR.res=null; stkHost.replaceChildren(h("p.muted", "Nothing left to cut out")); syncMake(); Shell.error(e);
           }
         }
       })().finally(() => { rendering=null; syncMake(); if(renderRequested && !painting && stkHost.isConnected) drainRender(); });
@@ -253,8 +304,8 @@ Pages.create = {
       if(cutFrame.hasPointerCapture(completed.pointerId)) cutFrame.releasePointerCapture(completed.pointerId);
       const args={points:completed.points,radius:completed.radius/CR.photo.width,restore:completed.restore,newStroke:true};
       CR.queue=CR.queue.then(()=>Bridge.invoke("creator_stroke",args)).then(value=>{
-        CR.history=value; syncUndo();
-      }).catch(e=>Shell.toast(String(e)));
+        if(epoch!==creatorEpoch)return;CR.history=value; syncUndo();
+      }).catch(e=>Shell.error(e));
       redraw();
     };
     cutFrame.addEventListener("pointerup",endPaint); cutFrame.addEventListener("pointercancel",endPaint);
@@ -263,7 +314,7 @@ Pages.create = {
 
     const history = async command => {
       endPaint(); ++seq;
-      CR.queue=CR.queue.then(()=>Bridge.invoke(command)).then(value=>{CR.history=value;syncUndo();}).catch(e=>Shell.toast(String(e)));
+      CR.queue=CR.queue.then(()=>Bridge.invoke(command)).then(value=>{if(epoch!==creatorEpoch)return;CR.history=value;syncUndo();}).catch(e=>Shell.error(e));
       await CR.queue; await redraw(); Snd.tap();
     };
     const undo=()=>history("creator_undo"), redo=()=>history("creator_redo");
@@ -303,7 +354,7 @@ Pages.create = {
       h("div.cs-center", photoCard, stickerBox, h("div.cs-editor", cutFrame, orig)),
       h("aside.cs-rail", h("label.lbl", CR.editing ? "Material" : "Stock"), tray),
       refine, dock);
-    const foot = h("div.cs-foot.g-go", h("div.cs-foot-left", this.nameField(syncMake), h("div.nt-notes", h("small.muted.nt-hint", CR.editAsNew ? "Saves a new Peta. Your original stays unchanged." : "Give your Peta a name to save it."), h("span.muted.small.uses", usesLabel()))), h("div.go-btns", h("button.btn.quiet", { on: { click: async () => { const editing=CR.editing; CR.flushStroke?.(); await CR.queue; await Bridge.invoke("creator_cancel"); crReset(); await Shell.open(editing ? "book" : "create"); } } }, CR.editing ? "Cancel" : "Start over"), make));
+    const foot = h("div.cs-foot.g-go", h("div.cs-foot-left", this.nameField(syncMake), h("div.nt-notes", h("small.muted.nt-hint", CR.editAsNew ? "Saves a new Peta. Your original stays unchanged." : "Give your Peta a name to save it."), h("span.muted.small.uses", usesLabel()))), h("div.go-btns", h("button.btn.quiet", { on: { click: async () => { const editing=CR.editing; crInvalidate();CR.flushStroke?.(); await CR.queue; await crCancel(); await Shell.open(editing ? "book" : "create"); } } }, CR.editing ? "Cancel" : "Choose another image"), make));
     Stk.tilt(stkHost, {max:8,scale:1.02,trigger:stickerBox});
     syncUndo(); syncMake(); redraw();
     return h("div.cr-wrap", mat, foot);
@@ -326,25 +377,29 @@ Pages.create = {
     CR.flushStroke?.(); CR.finishing = true; Bridge.busy = true;
     $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=true; });
     if(CR.editing) {
-      try { await CR.queue; const asNew=CR.editAsNew; const made=await (asNew ? Bridge.printAction : Bridge.invoke)("creator_save_original",{materialId:CR.editMaterial,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,saveAsNew:asNew,name:CR.name}); crReset(); BK.sel=made.stickerId; await Bridge.reload(); await Shell.open("book"); Shell.toast(asNew ? "Saved as a new Peta. Your original is unchanged." : "Changes saved."); }
-      catch(e) { Shell.toast(String(e)); CR.finishing=false; try { const info=await Bridge.invoke("creator_info"); CR.editAsNew=!!info.editAsNew; await Bridge.reload(); Shell.refresh(); } catch { $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=false; }); } } finally { CR.finishing=false; Bridge.busy=false; }
+      try { await CR.queue; const asNew=CR.editAsNew; const made=await (asNew ? Bridge.printAction : Bridge.invoke)("creator_save_original",{materialId:CR.editMaterial,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,saveAsNew:asNew,name:CR.name}); crReset(); BK.sel=made.stickerId; await Bridge.refreshCommitted({after:()=>Shell.go("book",{force:true}),message:"Your sticker was saved. Try again to load it in Collection."}); if(S.page!=="book")await Shell.go("book",{force:true}); Shell.toast(asNew ? "Saved as a new Peta. Your original is unchanged." : "Changes saved."); }
+      catch(e) { Shell.error(e); CR.finishing=false; try { const info=await Bridge.invoke("creator_info"); CR.editAsNew=!!info.editAsNew; await Bridge.reload(); Shell.refresh(); } catch { $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=false; }); } } finally { CR.finishing=false; Bridge.busy=false; }
       return;
     }
-    try { await CR.queue; const made=await Bridge.printAction("creator_finish",{materialId:S.chosen,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,name:CR.name}); crReset(); await Bridge.reload(); Shell.refresh(); Scraps.earned(made.reward); }
-    catch(e) { Shell.toast(String(e)); $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=false; }); } finally { CR.finishing=false; Bridge.busy=false; }
+    try { await CR.queue; const made=await Bridge.printAction("creator_finish",{materialId:S.chosen,strength:CR.strength,smooth:CR.smooth/12,outline:CR.border,name:CR.name}); crReset(); Shell.refresh(); await Bridge.refreshCommitted({message:"Your sticker was saved. Try again to refresh your Collection."}); Scraps.earned(made.reward); }
+    catch(e) { Shell.error(e); $$(".g-go button, .g-go input").forEach(b=>{ b.disabled=false; }); } finally { CR.finishing=false; Bridge.busy=false; }
   },
 };
 
 async function crChooseFile() {
-  Bridge.dialogOpen=true; CR.samplePhoto=null;
-  try { await Bridge.invoke('daily_create',{materialId:S.chosen}); } catch(e) { Shell.toast(String(e)); }
-  finally { Bridge.dialogOpen=false; }
+  if(CR.choosing)return;
+  crInvalidate();const epoch=creatorEpoch,previous=!!Bridge.dialogOpen;CR.choosing=true;Bridge.dialogOpen=true;CR.samplePhoto=null;
+  try {await Bridge.invoke('daily_create',{materialId:S.chosen});if(epoch===creatorEpoch)await crSync();}
+  catch(error){Shell.error(error);}
+  finally {CR.choosing=false;Bridge.dialogOpen=previous || !!document.querySelector('dialog[open]');}
 }
+
 window.__TAURI__.webview.getCurrentWebview().onDragDropEvent(async event=>{
   const p=event.payload, zone=document.querySelector('.drop');
   zone?.classList.toggle('over',p.type==='enter'||p.type==='over');
   if(p.type!=='drop'||S.page!=='create'||!p.paths.length) return;
-  CR.samplePhoto=null; CR.stage='cutting'; Shell.refresh();
-  try { await Bridge.invoke('creator_begin_path',{path:p.paths[0],materialId:S.chosen}); }
-  catch(e) { crReset(); Shell.refresh(); Shell.toast(String(e)); }
+  const path=p.paths[0];const start=async()=>{const epoch=++creatorEpoch;CR.samplePhoto=null;CR.stage='cutting';CR.retry=start;Shell.refresh();
+    try {await Bridge.invoke('creator_begin_path',{path,materialId:S.chosen});if(epoch===creatorEpoch)await crSync();}
+    catch(error){if(epoch!==creatorEpoch)return;CR.stage='failed';CR.note=userError(error);Shell.refresh();}};
+  await start();
 });

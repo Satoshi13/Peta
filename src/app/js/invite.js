@@ -30,7 +30,7 @@ const Invite = {
         mousedown:e=>{if(e.button===0 && !e.target.closest('input, textarea, select, button, a, [contenteditable]')){e.preventDefault();Bridge.window.startDragging();}},
         cancel:e=>{e.preventDefault();},keydown:e=>{if(e.key==="Escape")e.stopPropagation();},close:()=>{dialog.remove();Bridge.dialogOpen=false;this.open=false;resolve();}
       }},form);
-      Bridge.dialogOpen=true; document.body.append(dialog); dialog.showModal(); input.focus();
+      Bridge.dialogOpen=true; document.body.append(dialog); Dialogs.open(dialog); input.focus();
     });
   },
 };

@@ -1278,7 +1278,7 @@ mod tests {
         let relative = crate::market::relative_card_path(&id).unwrap();
         let path = source.root().join(&relative);
         fs::create_dir_all(path.parent().unwrap()).unwrap();
-        let card = crate::market::Card {
+        let card = crate::market::Card {color:None,
             version: 1,
             external_id: "pack".into(),
             pack_digest: "digest".into(),

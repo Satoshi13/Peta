@@ -14,7 +14,7 @@ function text(el){return el instanceof Element?(el.textContent||el.children.map(
 function fixture({fail=false,refreshFails=false,hold=false}={}){
   const pack={id:'own-id',title:'Autumn',by:'Maker',left:Array(8).fill(null),total:8,own:true,canList:true,listed:false},calls=[],toasts=[];
   let release,refreshes=0;
-  const context=vm.createContext({h,Pages:{},S:{packs:[pack]},Shell:{toast:t=>toasts.push(t),refresh:()=>refreshes++},Snd:{tap(){}},CloseButton:()=>h('button.close'),PackPeek:()=>null,
+  const context=vm.createContext({h,Pages:{},S:{packs:[pack]},Shell:{error:t=>toasts.push(String(t)),toast:t=>toasts.push(t),refresh:()=>refreshes++},Snd:{tap(){}},CloseButton:()=>h('button.close'),PackPeek:()=>null,
     Bridge:{busy:false,invoke:async(cmd,args)=>{calls.push({cmd,args});if(hold)await new Promise(r=>release=r);if(fail)throw Error('native failure');return args.listed;},reload:async()=>{assert.equal(pack.listed,calls.at(-1).args.listed);if(refreshFails)throw Error('refresh');}}});
   vm.runInContext(source('packs')+';this.PackListing=PackListing;this.PackZoom=PackZoom;PackArt.peek=async()=>[];',context);
   vm.runInContext(source('market')+';this.Market=Market;',context);

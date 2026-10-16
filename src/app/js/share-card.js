@@ -96,13 +96,13 @@ const ShareCard = (() => {
         h("small.share-note", "A picture to post, not the sticker itself. It stays yours.")));
     copy.addEventListener("click", async () => {
       try { await Bridge.invoke("share_copy", { png: await bytes(blob) }); Snd.tap(); status.textContent = "Copied. Paste it into Discord with ⌘V."; }
-      catch (err) { status.textContent = String(err); }
+      catch (err) { status.textContent = userError(err); }
     });
     save.addEventListener("click", async () => {
       try { const path = await Bridge.invoke("poster_save", { name: `Peta ${titleOf(e)}`, png: await bytes(blob) }); if (path) status.textContent = "Saved."; }
-      catch (err) { status.textContent = String(err); }
+      catch (err) { status.textContent = userError(err); }
     });
-    Bridge.dialogOpen = true; document.body.append(dialog); dialog.showModal();
+    Bridge.dialogOpen = true; document.body.append(dialog); Dialogs.open(dialog);
     await draw(); copy.focus();
   }
   return { render, open };

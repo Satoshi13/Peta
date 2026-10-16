@@ -30,3 +30,6 @@
 .bp-deco[data-k="seal"] { z-index: 7; }
 .bp-deco[data-k="clip"] img, .bp-deco[data-k="seal"] img { filter: drop-shadow(0 1px 1px rgba(50,35,10,.3)); }
 :is(.pk-layer,.gx-pk-layer) .pk-dress { position: absolute; inset: 0; width: 100%; height: 100%; filter: none; pointer-events: none; }
+
+/* The paper label uses the original artwork, independently of the body tint. */
+.pack-paper-label { position:absolute; inset:0; z-index:2; display:block; background:var(--label-art) center / 100% 100% no-repeat; pointer-events:none; }

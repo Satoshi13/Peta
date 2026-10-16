@@ -39,8 +39,8 @@ Pages.boards = {
   build() {
     if (S.boards) BD.load(S.boards);
     const root = h("div.page-in.boardspage");
-    const paint = () => { const top = root.scrollTop; root.replaceChildren(...this.parts(paint).filter(Boolean)); root.scrollTop = top; };
-    this.paint = paint; paint(); return root;
+    const paint = () => { const top = root.scrollTop; root.replaceChildren(...this.parts(paint).filter(Boolean)); root.scrollTop = top; this.syncPending(root); if(root.isConnected) Shell.syncResources(); };
+    this.root=root;this.paint = paint; paint(); return root;
   },
   leave() { this.closeMenu(); },
   traySave() {
@@ -52,12 +52,12 @@ Pages.boards = {
   },
   parts(paint) {
     const t = BD.screen();
-    const save = h("button.btn", { type: "button", disabled: !BD.stock || !t?.items.length, on: { click: () => this.saveDialog(paint) } }, "Save this screen…");
-    const stock = h("span.bd-stock", h("i", { "aria-hidden": "true" }), h("span", h("b", String(BD.stock)), BD.stock === 1 ? " blank board" : " blank boards"),
-      BD.stock ? null : h("button.link", { type: "button", on: { click: () => { if(typeof MK !== "undefined") MK.tab = "tools"; Shell.go("market"); } } }, "Get one in Market"));
+    const saveReason=!t?.connected ? "Connect a screen to save a layout." : !t.items.length ? "Stick a Peta on this screen first." : !BD.stock ? "Get a blank board in Market → Tools." : "";
+    const save = ActionHint(h("button.btn", { type: "button", disabled: !!saveReason, on: { click: () => this.saveDialog(paint) } }, "Save layout…"),saveReason);
     return [
-      PageHead("Boards", "Looks for each screen", stock, save),
-      h("p.lede", "Each screen remembers its own look, free. Keep a favourite on a blank board, then put it on any screen."),
+      PageHead("Boards", "Saved screen layouts", save),
+      h("p.lede", "Save a screen’s sticker layout on a board. Apply it to any connected screen whenever you like."),
+      h("p.bd-operation", {role:"status",hidden:true}),
       BD.undo && this.dismissedUndo!==BD.undo.at ? this.slip(paint) : null,
       this.screensPart(paint),
       this.boardsPart(paint, t),
@@ -70,19 +70,19 @@ Pages.boards = {
       CloseButton("Dismiss", { on: { click: () => { this.dismissedUndo=BD.undo.at; paint(); } } }, ".bd-slip-x"));
   },
   screensPart(paint) {
-    return h("section.bd-section", h("div.bd-head", h("h2.pk-section-title", "Screens"), h("small.muted", "Choose where a board goes")),
+    return h("section.bd-section", h("div.bd-head", h("h2.pk-section-title", "Screens"), h("small.muted", "Choose a screen to save or apply a layout")),
       h("div.bd-desk", BD.screens.map((s) => {
         const b = BD.showing(s), stored = !s.connected;
         const screen=h("button.bd-screen", { type: "button", data: { kind: s.kind, screen: s.id }, "aria-pressed": String(s.id === BD.target), disabled: stored,
-          "aria-label": `${s.name}, ${stored ? "stored" : b ? `showing ${b.name}` : "unsaved look"}`, on: { click: () => { BD.target = s.id; Snd.tap(); paint(); } } },
+          "aria-label": `${s.name}, ${stored ? "stored" : b ? `showing ${b.name}` : "unsaved layout"}`, on: { click: () => { BD.target = s.id; Snd.tap(); paint(); } } },
           h("span.bd-display", {style:{aspectRatio:s.aspect}}, h("span.bd-glass", BoardLook(s.items))), h("i.bd-stand", { "aria-hidden": "true" }),
-          h("b.bd-sname", s.name), stored ? h("small.bd-slook.muted", "Stored · back when connected") : h(b ? "span.bd-slook.hand" : "span.bd-slook.muted", b ? b.name : s.items.length ? "Unsaved look" : "No stickers yet"));
+          h("b.bd-sname", s.name), stored ? h("small.bd-slook.muted", "Stored · back when connected") : h(b ? "span.bd-slook.hand" : "span.bd-slook.muted", b ? b.name : s.items.length ? "Unsaved layout" : "No stickers yet"));
         return h("div.bd-screen-wrap", screen, h("div.bd-screen-foot", stored ? h("button.link",{type:"button",disabled:!BD.target,on:{click:()=>this.run("boards_bring_here",{fromDisplay:s.id,toDisplay:BD.target},paint,()=>Shell.toast("The stickers are here."))}},"Bring them here") : null));
       })));
   },
   /* A board is the button: click it to put its look on the chosen screen. Under it, one line for the name (and its menu) and one quiet line of facts. */
   boardsPart(paint, t) {
-    if(!t) return h("p.muted", "Connect a screen to use your boards.");
+    if(!t) return h("p.muted", "Connect a screen to save or apply a layout.");
     const cards = BD.boards.map((b, i) => {
       const on = BD.showing(t)?.id === b.id, skip = b.items.filter((it) => BD.blocked(it, t)==="On another screen").length, gone=b.items.filter(it=>it.state!=="held").length, rules = BD.rules.filter((r) => r.board === b.id && r.on);
       const facts = [on ? h("span.bd-fact.on", bdGlyph(BD_ICON.check), `On ${t.name}`) : null,
@@ -90,19 +90,19 @@ Pages.boards = {
         gone ? h("span.bd-fact.warn", `${gone} no longer yours`) : null,
         skip ? h("span.bd-fact.warn", `${skip} on another screen`) : null].filter(Boolean);
       return h("article.bd-card", { data: { board: b.id }, style: { "--tilt": [-1.2, 1, -.5, 1.4][i % 4] + "deg" } },
-        h("button.bd-paper", { type: "button", disabled: on, "aria-label": on ? `${b.name}, on ${t.name}` : `Put ${b.name} on ${t.name}`, on: { click: () => this.put(b.id, t.id, paint) } },
-          BoardLook(b.items, t), on ? h("span.bd-on", { "aria-hidden": "true" }, bdGlyph(BD_ICON.check)) : h("span.bd-put", { "aria-hidden": "true" }, `Put on ${t.name}`)),
+        h("button.bd-paper", { type: "button", disabled: on, "aria-label": on ? `${b.name}, on ${t.name}` : `Apply ${b.name} to ${t.name}`, on: { click: () => this.put(b.id, t.id, paint) } },
+          BoardLook(b.items, t), on ? h("span.bd-on", { "aria-hidden": "true" }, bdGlyph(BD_ICON.check)) : h("span.bd-put", { "aria-hidden": "true" }, `Apply to ${t.name}`)),
         h("div.bd-cap",
           h("span.bd-name.hand", b.name),
           h("button.bd-more", { type: "button", "aria-label": `More for ${b.name}`, "aria-haspopup": "menu", on: { click: (e) => this.menu(e.currentTarget, b, paint) } }, h("span", "•••")),
           facts.length ? h("span.bd-facts", facts) : null));
     });
     const blank = BD.stock && t.items.length
-      ? h("article.bd-card", h("button.bd-paper.bd-blank", { type: "button", on: { click: () => this.saveDialog(paint) } }, h("span.bd-plus", "+"), h("span.hand", "Keep this look")),
+      ? h("article.bd-card", h("button.bd-paper.bd-blank", { type: "button", on: { click: () => this.saveDialog(paint) } }, h("span.bd-plus", "+"), h("span.hand", "Save this layout")),
           h("div.bd-cap", h("span.bd-facts", h("span.bd-fact", `Uses 1 of ${BD.stock} blank`))))
       : null;
-    return h("section.bd-section", h("div.bd-head", h("h2.pk-section-title", "Boards"), h("small.muted", `${BD.boards.length} kept`)),
-      BD.boards.length ? null : h("p.muted.bd-empty", "Your screens already remember their looks. Keep a favourite on a board and bring it back whenever you like."),
+    return h("section.bd-section", h("div.bd-head", h("h2.pk-section-title", "Boards"), h("small.muted", `${BD.boards.length} saved`)),
+      BD.boards.length ? null : h("p.muted.bd-empty", "Save your first layout on a blank board. Your screen’s current stickers stay where they are."),
       h("div.bd-grid", ...cards, blank));
   },
   autoPart(paint) {
@@ -117,25 +117,64 @@ Pages.boards = {
         CloseButton("Remove rule", { on: { click: () => { this.run("board_rule_delete",{ruleId:r.id},paint); } } }, ".bd-rm"));
     });
     return h("section.bd-section.bd-auto", h("div.bd-head", h("h2.pk-section-title", "Auto"), h("small.muted", "A board for the right time, or the right place")),
-      h("div.setcard.bd-rules", rows.length ? rows : h("p.muted.small.bd-norules", "No rules yet."),
+      h("div.setcard.bd-rules", rows.length ? rows : h("p.muted.small.bd-norules", BD.boards.length ? "No rules yet." : "Save a layout first, then choose when it appears automatically."),
         h("div.bd-rules-foot", h("small.muted", "Runs once when a time or place begins. If two begin together, the higher rule wins."),
-          h("button.btn.paper.small", { type: "button", disabled: !BD.boards.length, on: { click: () => this.ruleDialog(paint) } }, "Add a rule…"))));
+          ActionHint(h("button.btn.paper.small", { type: "button", disabled: !BD.boards.length, on: { click: () => this.ruleDialog(paint) } }, "Add a rule…"),BD.boards.length ? "" : "Save a layout before adding an Auto rule."))));
   },
 
-  /* Commands refresh the native snapshot only after success. A failed dialog stays open. */
-  async run(command,args,paint,success,error=null) {
+  syncPending(root=this.root) {
+    const op=this.pending;if(!op)return;
+    for(const scope of [root,this.dialog].filter(Boolean)) {
+      for(const control of scope.querySelectorAll("button,input,select,textarea")) {
+        if(!op.controls.has(control))op.controls.set(control,control.disabled);
+        control.disabled=true;
+      }
+      for(const status of scope.querySelectorAll(".bd-operation")) {status.hidden=false;status.textContent=op.label;}
+    }
+  },
+  /* A committed change retries only its display refresh; a failed write keeps the form open. */
+  async run(command,args,paint,success,error=null,button=null) {
     if(this.busy) return false;
-    this.busy=true;const was=!!Bridge.busy;Bridge.busy=true;
+    const labels={boards_save:"Saving…",boards_rename:"Renaming…",boards_delete:"Deleting…",boards_put:"Applying…",boards_update:"Updating…",boards_undo:"Restoring…",boards_bring_here:"Moving…",boards_location_request:"Requesting access…",board_rule_delete:"Removing…"};
+    const op={label:labels[command] || "Saving…",controls:new Map(),dialog:this.dialog,
+      views:[this.root,this.dialog].filter(scope=>scope?.isConnected).map(scope=>({scope,saved:ViewState.capture(scope)}))};
+    let committed=false,failed=false;
+    error ||= this.dialog?.querySelector(".bd-operation-error");
+    if(error)error.textContent="";
+    button ||= this.dialog?.querySelector('button[type="submit"]');
+    const labelNodes=button?.matches(".btn,.link") ? [...button.childNodes] : null;
+    const width=button?.style.minWidth;
+    if(labelNodes) {button.style.minWidth=button.getBoundingClientRect().width+"px";button.replaceChildren(op.label);button.setAttribute("aria-busy","true");}
+    this.busy=true;this.pending=op;const was=!!Bridge.busy;Bridge.busy=true;this.syncPending();
     try {
-      const result=await Bridge.invoke(command,args);await Bridge.reload();BD.load(S.boards);Snd.tap();success?.(result);paint?.();return true;
-    } catch(e) { const code=String(e), messages={nothing_to_save:"There are no stickers on this screen.",no_blank_board:"Get a blank board in Market.",invalid_board_name:"Use a name of 1 to 24 letters.",screen_not_connected:"This screen is not connected.",board_not_found:"This board was removed.",rule_not_found:"This rule was removed.",screen_not_found:"Choose a screen that Peta remembers.",invalid_time_rule:"Choose at least one day and two different times.",invalid_wifi_name:"Use a Wi‑Fi name of 1 to 64 letters.",invalid_rule:"Choose Time or Place.",invalid_direction:"Choose up or down.",invalid_board_placement:"This board has an invalid sticker position.",invalid_screen:"Choose a different connected screen."}; const message=Object.entries(messages).find(([key])=>code.includes(key))?.[1]||"Could not change this board. Try again.";if(error)error.textContent=message;else Shell.toast(message);return false; }
-    finally {this.busy=false;Bridge.busy=was;}
+      const result=await Bridge.invoke(command,args);
+      committed=true;
+      op.label="Refreshing…";this.syncPending();
+      const loaded=await Bridge.refreshCommitted({after:()=>{BD.load(S.boards);if(S.page==="boards")(this.paint || paint)?.();},message:"Your layout change was saved. Try again to refresh the screen."});
+      if(loaded)BD.load(S.boards);Snd.tap();success?.(result);return true;
+    } catch(e) {
+      if(committed) {
+        op.dialog?.close();
+        Shell.error(e,{message:"Your layout change was saved. Try again to refresh the screen.",retry:async()=>{await Bridge.reload();BD.load(S.boards);if(S.page==="boards")(this.paint || paint)?.();}});
+        return true;
+      }
+      failed=true;
+      const code=String(e), messages={nothing_to_save:"There are no stickers on this screen.",no_blank_board:"Get a blank board in Market.",invalid_board_name:"Use a name of 1 to 24 letters.",screen_not_connected:"This screen is not connected.",board_not_found:"This board was removed.",rule_not_found:"This rule was removed.",screen_not_found:"Choose a screen that Peta remembers.",invalid_time_rule:"Choose at least one day and two different times.",invalid_wifi_name:"Use a Wi‑Fi name of 1 to 64 letters.",invalid_rule:"Choose Time or Place.",invalid_direction:"Choose up or down.",invalid_board_placement:"This board has an invalid sticker position.",invalid_screen:"Choose a different connected screen."}; const message=Object.entries(messages).find(([key])=>code.includes(key))?.[1]||"Could not change this board. Try again.";if(error?.isConnected)error.textContent=message;else Shell.error(e,{message,retry:()=>this.run(command,args,paint,success,error,button)});return false;
+    }
+    finally {
+      this.pending=null;this.busy=false;
+      for(const [control,disabled] of op.controls)control.disabled=disabled;
+      if(labelNodes) {button.replaceChildren(...labelNodes);button.style.minWidth=width;button.removeAttribute("aria-busy");}
+      for(const scope of [this.root,this.dialog].filter(Boolean))for(const status of scope.querySelectorAll(".bd-operation")) {status.hidden=true;status.textContent="";}
+      if(failed && (document.activeElement===document.body || op.views.some(({scope})=>scope.contains(document.activeElement))))for(const {scope,saved} of op.views)if(scope.isConnected)ViewState.restore(scope,saved);
+      Bridge.busy=was;
+    }
   },
   async put(boardId,screenId,paint) {
     const b=BD.board(boardId),s=BD.screen(screenId);if(!b||!s?.connected)return;
-    await this.run("boards_put",{boardId,displayId:screenId},paint,r=>{this.dismissedUndo=null;Shell.toast(`Put “${b.name}” on ${s.name}${r.skipped.length?` · ${r.skipped.length} skipped`:""}`);});
+    await this.run("boards_put",{boardId,displayId:screenId},paint,r=>{this.dismissedUndo=null;Shell.toast(`Applied “${b.name}” to ${s.name}${r.skipped.length?` · ${r.skipped.length} skipped`:""}`);});
   },
-  undo(paint) {this.run("boards_undo",{},paint,r=>Shell.toast(r?.skipped.length?`${r.skipped.length} stickers could not be restored.`:"The previous look is back."));},
+  undo(paint) {this.run("boards_undo",{},paint,r=>Shell.toast(r?.skipped.length?`${r.skipped.length} stickers could not be restored.`:"The previous layout is restored."));},
   closeMenu() { this.menuEl?.remove(); this.menuEl = null; document.removeEventListener("pointerdown", this.menuAway, true); document.removeEventListener("keydown", this.menuKey, true); },
   menu(anchor, b, paint) {
     if (this.menuEl?.dataset.board === b.id) return this.closeMenu();
@@ -155,9 +194,9 @@ Pages.boards = {
   sheet(label, ...kids) {
     if (document.querySelector("dialog")) return null;
     const close = CloseButton("Close", { on: { click: () => dialog.close() } }, ".bd-x");
-    const dialog = h("dialog.bd-dialog", { "aria-label": label, on: { keydown: (e) => { if (e.key === "Escape") e.stopPropagation(); }, close: () => { dialog.remove(); Bridge.dialogOpen = !!document.querySelector("dialog"); } } },
-      h("div.setcard.bd-sheet", close, ...kids));
-    Bridge.dialogOpen = true; document.body.append(dialog); dialog.showModal(); return dialog;
+    const dialog = h("dialog.bd-dialog", { "aria-label": label, on: { cancel:e=>{if(this.busy)e.preventDefault();},keydown: (e) => { if (e.key === "Escape") e.stopPropagation(); }, close: () => { dialog.remove();if(this.dialog===dialog)this.dialog=null; Bridge.dialogOpen = !!document.querySelector("dialog[open]"); } } },
+      h("div.setcard.bd-sheet", close, ...kids,h("p.bd-operation",{role:"status",hidden:true}),h("p.bd-error.bd-operation-error",{role:"alert"})));
+    this.dialog=dialog;Bridge.dialogOpen = true; document.body.append(dialog); Dialogs.open(dialog); return dialog;
   },
   nameField(value) {
     const input = h("input.bd-input", { type: "text", maxLength: 24, required: true, value, autocomplete: "off", spellcheck: false, "aria-label": "Board name" });
@@ -169,11 +208,11 @@ Pages.boards = {
     const t = BD.screen(); let n = 1; while (BD.boards.some((b) => b.name === `Board ${n}`)) n++;
     const { input, field } = this.nameField(`Board ${n}`), error=h("p.bd-error",{role:"alert"});
     const form = h("form.bd-form", { on: { submit: (e) => { e.preventDefault(); const name = input.value.trim(); if (!name) return input.focus();
-      this.run("boards_save",{displayId:t.id,name},paint,()=>{dialog.close();Shell.toast(`Kept “${name}”. ${BD.stock} blank left.`);},error); } } },
+      this.run("boards_save",{displayId:t.id,name},paint,()=>{dialog.close();Shell.toast(`Saved “${name}” on a board.`);},error); } } },
       h("div.bd-paper.bd-preview-paper", BoardLook(t.items)), field, error,
       h("p.small.bd-cost", `Uses 1 blank board · ${BD.stock - 1} left after this`),
-      h("div.bd-dacts", h("button.link", { type: "button", on: { click: () => dialog.close() } }, "Cancel"), h("button.btn", { type: "submit" }, "Keep on a board")));
-    const dialog = this.sheet("Save this screen", h("h2", "Save this screen"), h("p.muted.small", t.name), form);
+      h("div.bd-dacts", h("button.link", { type: "button", on: { click: () => dialog.close() } }, "Cancel"), h("button.btn", { type: "submit" }, "Save layout")));
+    const dialog = this.sheet("Save layout", h("h2", "Save layout"), h("p.muted.small", t.name), form);
     input.focus(); input.select();
   },
   nameDialog(paint, b) {
@@ -187,7 +226,7 @@ Pages.boards = {
     const dialog = this.sheet(`Delete ${b.name}`, h("h2", `Delete “${b.name}”?`),
       h("p.small", "The stickers stay in your Collection, and the board comes back to you blank."), n ? h("p.small.muted", `${n} Auto rule${n === 1 ? "" : "s"} for this board will go too.`) : null,
       h("div.bd-dacts", h("button.link", { type: "button", on: { click: () => dialog.close() } }, "Cancel"),
-        h("button.btn.stamp", { type: "button", on: { click: () => { this.run("boards_delete",{boardId:b.id},paint,()=>{dialog.close();Shell.toast(`Deleted “${b.name}”. The board is back: ${BD.stock} blank.`);}); } } }, "Delete look")));
+        h("button.btn.stamp", { type: "button", on: { click: e => { this.run("boards_delete",{boardId:b.id},paint,()=>{dialog.close();Shell.toast(`Deleted “${b.name}”. The blank board has been returned.`);},null,e.currentTarget); } } }, "Delete saved layout")));
   },
   ruleDialog(paint, rule = null) {
     if (!BD.boards.length) return;
@@ -202,7 +241,7 @@ Pages.boards = {
       seg.replaceChildren(...[["time", "Time"], ["place", "Place"]].map(([v, text]) => SegButton(text, { type: "button", "aria-pressed": String(d.type === v), on: { click: () => { d.type = v; Snd.tap(); draw(); } } })));
       if (d.type === "place" && !BD.location?.prompted) {
         body.replaceChildren(h("div.bd-permit", h("b", "Use your Wi‑Fi name"), h("p.small", "Peta uses the name of your Wi‑Fi to know where you are. It never leaves this Mac."),
-          h("button.btn.paper.small", { type: "button", on: { click: async () => { try {await Bridge.invoke("boards_location_request");await Bridge.reload();BD.location=S.boards.location;draw();} catch(e){error.textContent="Could not request location access.";} } } }, "Continue")));
+          h("button.btn.paper.small", { type: "button", on: { click:e=>this.run("boards_location_request",{},paint,()=>{BD.location=S.boards.location;draw();},error,e.currentTarget) } }, "Continue")));
       } else if (d.type === "place") {
         const wifi = h("input.bd-input", { type: "text", maxLength: 64, value: d.wifi, "aria-label": "Wi‑Fi name", on: { input: (e) => { d.wifi = e.target.value; } } });
         body.replaceChildren(h("label.bd-field", h("span", "Wi‑Fi"), wifi), locationNote);
@@ -223,7 +262,7 @@ Pages.boards = {
       seg, body, h("div.bd-pair", h("label.bd-field", h("span", "Screen"), screen), h("label.bd-field", h("span", "Board"), board)), error,
       h("div.bd-dacts", h("button.link", { type: "button", on: { click: () => dialog.close() } }, "Cancel"), h("button.btn", { type: "submit" }, rule ? "Save rule" : "Add rule")));
     window.addEventListener("boards-location-updated",updateLocationNote);
-    const dialog = this.sheet(rule ? "Edit rule" : "Add a rule", h("h2", rule ? "Edit rule" : "Add a rule"), h("p.muted.small", "When it begins, put a board on a screen."), form);
+    const dialog = this.sheet(rule ? "Edit rule" : "Add a rule", h("h2", rule ? "Edit rule" : "Add a rule"), h("p.muted.small", "Apply a saved layout when this rule starts."), form);
     dialog.addEventListener("close",()=>window.removeEventListener("boards-location-updated",updateLocationNote),{once:true});
   },
 };

@@ -18,9 +18,9 @@ const SAMPLE_TITLES = {
 const NAV = [
   { id: "today", key: 1, label: "Today", tab: "tab1", icon: "envBack" },
   { id: "create", key: 2, group:"Make", label: "Create", tab: "tab3", icon: "chCreate" },
-  { id: "book", key: 3, label: "Collection", tab: "tab2", icon: "chCollection" },
-  { id: "studio", label: "Studio", tab: "tab5", icon: "bagGlassine" },
-  { id: "packs", key: 4, group:"Collect", label: "Packs", tab: "tab5", icon: "chPack" },
+  { id: "studio", label: "Share", tab: "tab5", icon: "bagGlassine" },
+  { id: "book", key: 3, group:"Library", label: "Collection", tab: "tab2", icon: "chCollection" },
+  { id: "packs", key: 4, label: "Packs", tab: "tab5", icon: "chPack" },
   { id: "gifts", key: 5, label: "Gifts", tab: "tab4", icon: "chGift" },
   { id: "materials", key: 6, label: "Materials", tab: "tab6", icon: "cardHolo" },
   { id: "boards", label: "Boards", tab: "tab4", icon: "peekPaper" },
@@ -63,7 +63,23 @@ const BAGS = {
     cover: [50, 48, 28, 0], clip: [68, 14, 8, 16], pin: [50, 21, 6], tape: [34, 11, 32, 4.5, -2], peek: { box: [34, 2, 32, 16], sz: 50 } },
 };
 for (const b of Object.values(BAGS)) if (!b.classic) { b.gen = true; b.body = [b.body[0] / b.W * 100, b.body[1] / b.H * 100, b.body[2] / b.W * 100, b.body[3] / b.H * 100]; }
-const PACK_BAG_IDS = ["kraft", "matte", "holo", "glassine", "kraft-parcel", "pocket", "drawer", "cotton"], GIFT_BAG_IDS = ["airmail", "photo", "kraft-parcel", "wrap", "cotton", "glassine"];
+const PACK_BAG_COMPAT_IDS = ["kraft", "matte", "holo", "glassine", "kraft-parcel", "pocket", "drawer", "cotton"], GIFT_BAG_IDS = ["airmail", "photo", "kraft-parcel", "wrap", "cotton", "glassine"];
+// New packs keep to paper wrappings. Older packs and drafts retain their original bags.
+const PACK_BAG_IDS = ["kraft", "matte", "holo", "glassine"];
+const PACK_COLORS = {
+  matte: [{id:null,name:"Ivory",swatch:"#eee6d6",filter:"none"},
+    {id:"rose",name:"Rose",swatch:"#dab9b4",filter:"grayscale(1) sepia(.45) saturate(.7) hue-rotate(305deg) brightness(.9)"},
+    {id:"mint",name:"Sage",swatch:"#bdc7ad",filter:"grayscale(1) sepia(.45) saturate(.7) hue-rotate(45deg) brightness(.86)"},
+    {id:"blue",name:"Blue grey",swatch:"#b8c8d0",filter:"grayscale(1) sepia(.45) saturate(.7) hue-rotate(155deg) brightness(.88)"},
+    {id:"lavender",name:"Lavender",swatch:"#c9bed7",filter:"grayscale(1) sepia(.45) saturate(.7) hue-rotate(215deg) brightness(.9)"}],
+  holo: [{id:null,name:"Silver",swatch:"#d9dce2",filter:"none"},
+    {id:"rose",name:"Rose",swatch:"#ecc5db",filter:"sepia(.55) saturate(1.9) hue-rotate(270deg) brightness(1.03)"},
+    {id:"mint",name:"Mint",swatch:"#b6e4c9",filter:"sepia(.55) saturate(1.9) hue-rotate(80deg) brightness(1.03)"},
+    {id:"blue",name:"Sky",swatch:"#b7deee",filter:"sepia(.55) saturate(1.9) hue-rotate(160deg) brightness(1.03)"},
+    {id:"lavender",name:"Lavender",swatch:"#cfc7ee",filter:"sepia(.55) saturate(1.9) hue-rotate(205deg) brightness(1.03)"}],
+};
+const packColor = (bag,color) => PACK_COLORS[bag]?.find(c=>c.id===color) || PACK_COLORS[bag]?.[0] || null;
+const packColorFilter = (bag,color) => packColor(bag,color)?.filter || "none";
 /* the classic pouches the opening ceremony can tear; every other wrapping opens by being lifted open instead */
 const isPouch = (id) => id === "kraft" || id === "matte" || id === "holo";
 const packVar = (kind) => `var(--a-${(PACK_KINDS[kind] || PACK_KINDS.holo).key})`;

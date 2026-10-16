@@ -51,7 +51,7 @@ fn build(lib:&Library,title:&str,pouch:&str,selection:&[Selection],prizes:&[Priz
     let author=lib.db().require_display_name()?;
     let key=crate::device_key::load_or_create(lib.root())?;let public=sign::public_key(&key);let id=pack_id(title.trim(),&key);
     if lib.db().conn.query_row("SELECT EXISTS(SELECT 1 FROM packs_made WHERE pack_id=?1)",[&id],|r|r.get::<_,bool>(0))? {return Err(invalid("already_pressed"));}
-    let mut h=Header{prizes:prizes.to_vec(),pack_id:id,version:1,title:title.trim().into(),author,pouch:pouch.into(),made_at:now(),items:vec![],signer:sign::Signer::Device{public_key:public.clone()},layout:dress.layout.clone(),cover:dress.cover.clone().filter(|s|!s.is_empty()),deco:dress.deco.clone().filter(|s|!s.is_empty()),blurb:dress.blurb.as_deref().map(str::trim).filter(|s|!s.is_empty()).map(str::to_owned)};
+    let mut h=Header{color:dress.color,prizes:prizes.to_vec(),pack_id:id,version:1,title:title.trim().into(),author,pouch:pouch.into(),made_at:now(),items:vec![],signer:sign::Signer::Device{public_key:public.clone()},layout:dress.layout.clone(),cover:dress.cover.clone().filter(|s|!s.is_empty()),deco:dress.deco.clone().filter(|s|!s.is_empty()),blurb:dress.blurb.as_deref().map(str::trim).filter(|s|!s.is_empty()).map(str::to_owned)};
     let mut body=Vec::new();let mut chosen=std::collections::HashSet::new();let mut slot=0;
     for selected in selection {
         if !chosen.insert(&selected.sticker_id){return Err(invalid("Choose each design once."));}
@@ -112,6 +112,7 @@ fn install_in(conn:&Connection,p:&Verified,paths:&Paths,own:&str)->Result<String
             conn.execute("INSERT INTO edition_pack_slots VALUES (?1,?2,NULL)",params![row,slot])?;slot+=1;
         }
     }
+    creator_pack::store_color(conn,&id,h.color)?;
     conn.execute("INSERT INTO pack_dress VALUES (?1,?2,?3,?4)",params![id,h.cover,h.deco,h.blurb])?;
     if let Some(layout)=&h.layout {conn.execute("INSERT INTO meta VALUES (?1,?2)",params![format!("pack.layout.{id}"),serde_json::to_string(layout).map_err(|e|invalid(&e.to_string()))?])?;}Ok(id)
 }
@@ -491,11 +492,13 @@ pub fn header_of(db:&Database,id:&str)->Result<Option<Header>> {
         let (mut mine,selection)=fixture(3,2);mine.db_mut().add_material("kraft",4).unwrap();mine.db_mut().link_tag_add_stock(2).unwrap();
         let prizes=[Prize::Material{material_id:"kraft".into(),count:2},Prize::Tag{count:1}];
         let layout=creator_pack::Layout{comp:"band".into(),label:None,cover:Some([50.0,20.0]),accents:vec![creator_pack::Accent{kind:"seal".into(),x:50.0,y:15.0}]};
-        let dress=Dress{cover:Some(selection[2].sticker_id.clone()),deco:Some("seal".into()),layout:Some(layout.clone()),blurb:Some("Autumn".into())};
-        let mut file=Vec::new();let id=press(&mut mine,"Autumn","kraft",&selection,&prizes,&dress,false,&o::NoReferee,|_,bytes|{file=bytes.to_vec();Ok(())}).unwrap();
+        let dress=Dress{color:Some(creator_pack::PackColor::Lavender),cover:Some(selection[2].sticker_id.clone()),deco:Some("seal".into()),layout:Some(layout.clone()),blurb:Some("Autumn".into())};
+        let mut file=Vec::new();let id=press(&mut mine,"Autumn","matte",&selection,&prizes,&dress,false,&o::NoReferee,|_,bytes|{file=bytes.to_vec();Ok(())}).unwrap();
         assert!(mine.db().packs().unwrap().is_empty());assert_eq!(archived_bytes(&mut mine,&id).unwrap(),file);
         assert_eq!(store_archived(&mut mine,&id).unwrap(),id);assert_eq!(store_archived(&mut mine,&id).unwrap(),id);
-        let p=creator_pack::decode(&archived_bytes(&mut mine,&id).unwrap()).unwrap();assert_eq!(p.header.layout,Some(layout));
+        let p=creator_pack::decode(&archived_bytes(&mut mine,&id).unwrap()).unwrap();assert_eq!(p.header.layout,Some(layout));assert_eq!(p.header.color,Some(creator_pack::PackColor::Lavender));
+        assert_eq!(mine.db().packs().unwrap()[0].color,p.header.color);
+        let mut receiver=lib();let received=install(&mut receiver,&p).unwrap();assert_eq!(receiver.db().packs().unwrap()[0].color,p.header.color);assert_eq!(frame(receiver.db(),&received).unwrap().unwrap().0,serde_json::to_string(p.header()).unwrap());
         assert_eq!(mine.db().packs().unwrap()[0].remaining,9);assert_eq!(mine.db().material_count("kraft").unwrap(),2);assert_eq!(mine.db().link_tag_stock().unwrap().owned,1);
         assert_eq!(mine.db().conn.query_row("SELECT COUNT(*) FROM packs_made",[],|r|r.get::<_,u32>(0)).unwrap(),1);
         // Store again cannot replenish even a partly opened local shelf row.

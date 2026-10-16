@@ -75,7 +75,7 @@ function renderBackFallback() {
   return card;
 }
 
-function BackCard(entry) { const card = entry.back ? renderBackCard(entry.back) : renderBackFallback(); card.dataset.mat=entry.material; if (!entry.back) Bridge.invoke("sticker_back", {stickerId:entry.id}).then(b=>{ if(b) { entry.back=b; const next=renderBackCard(b); next.dataset.mat=entry.material; card.replaceWith(next); }}).catch(e=>Shell.toast(String(e))); return card; }
+function BackCard(entry) { const card = entry.back ? renderBackCard(entry.back) : renderBackFallback(); card.dataset.mat=entry.material; if (!entry.back) Bridge.invoke("sticker_back", {stickerId:entry.id}).then(b=>{ if(b) { entry.back=b; const next=renderBackCard(b); next.dataset.mat=entry.material; card.replaceWith(next); }}).catch(e=>Shell.error(e)); return card; }
 async function BackingFront(entry) {
   const res = await resOf(entry, { max: 420 });
   const el = h("div.backing", { data: { mat: entry.material } }, h("i.tape.t3"), Stk.el(res, res.aspect >= 1 ? 170 : 170 * res.aspect));
@@ -139,7 +139,8 @@ Pages.book = {
         if (items.length) fill();
       }
       const poster = S.bookView === "calendar" ? this.posterButton(items) : null;
-      const actions = h("div.book-head-actions", poster, h("button.btn.paper.small", {disabled:S.lib.length<3,on:{click:()=>StudioOpen("pack")}}, "Make a Pack…"));
+      const packNeed=Math.max(0,3-S.lib.filter(e=>e.lineage!=="copy" && !e.pressed).length);
+      const actions = h("div.book-head-actions", poster, ActionHint(h("button.btn.paper.small", {disabled:!!packNeed,on:{click:()=>StudioOpen("pack")}}, "Make a Pack…"),packNeed ? `Needs 3 available stickers (${packNeed} more).` : ""));
       root.replaceChildren(PageHead("Collection", "Your stickers", actions, view),
         ...(S.pickMode ? [h("div.pick-banner", h("span", "Choose one to stick on the desktop"), h("button.link", { on: { click: () => { S.pickMode = false; paint(); } } }, "Cancel"))] : []),
         h("div.bk" + (sel ? ".has-detail" : ""), main, sel ? this.detail(sel, paint, listFor(sel, items)) : null));
@@ -165,7 +166,7 @@ Pages.book = {
         const weekStart = calendarWeekStart(), month = PetaMath.calendarMonth(items, key, S.today, weekStart);
         const path = await Poster.save(month, key, weekStart);
         if(path) { Snd.chime(2, 740); Shell.toast("Poster saved."); }
-      } catch(err) { Shell.toast(String(err)); }
+      } catch(err) { Shell.error(err); }
       finally { Bridge.dialogOpen = !!document.querySelector("dialog"); button.disabled = false; button.textContent = label; }
     } } }, "Save poster…");
     return button;
@@ -173,7 +174,7 @@ Pages.book = {
   lazySticker(holder, entry, size) {
     holder._load = () => {
       holder._load = null;
-      thumbOf(entry).then(res => { if(!holder.isConnected) return; const sticker = Stk.el(res, res.aspect >= 1 ? size : size * res.aspect); sticker.style.setProperty("--aspect", res.aspect); holder.append(sticker); }).catch(err => Shell.toast(String(err)));
+      thumbOf(entry).then(res => { if(!holder.isConnected) return; const sticker = Stk.el(res, res.aspect >= 1 ? size : size * res.aspect); sticker.style.setProperty("--aspect", res.aspect); holder.append(sticker); }).catch(err => Shell.error(err));
     };
     this.observer.observe(holder);
   },
@@ -255,7 +256,7 @@ Pages.book = {
     const stage = many ? h("div.det-pager", { role: "group", "aria-label": "Stickers in your Collection", on: { keydown: (ev) => { if(ev.key === "ArrowLeft") { ev.preventDefault(); go(-1); } else if(ev.key === "ArrowRight") { ev.preventDefault(); go(1); } } } },
       arrow(-1, "Previous sticker"), turn, arrow(1, "Next sticker")) : turn;
     const stay = BK.stay; BK.stay = false; // moving between stickers keeps the card where it is instead of sliding it in again
-    return h("aside.detail" + (stay ? ".stay" : ""), { role: "dialog", "aria-label": "Sticker details" },
+    return h("aside.detail" + (stay ? ".stay" : ""), { role: "region", "aria-label": "Sticker details" },
       CloseButton("Close", {on: { click: () => { BK.sel = null; BK.deleteId = null; paint(S.bookView !== "calendar"); } }}, ".x"),
       many ? h("small.det-count", { "aria-live": "polite" }, `${at + 1} / ${list.length}`) : null,
       stage,
@@ -283,17 +284,17 @@ Pages.book = {
       h("div.book-action-row", h("button.btn.book-action.secondary", { data: { action: "delete-cancel" }, on: { click: () => { BK.deleteId = null; paint(); } } }, "Cancel"),
         h("button.btn.book-action.danger", { data: { action: "delete-confirm" }, on: { click: async ev => {
           const button = ev.currentTarget; button.disabled = true; Bridge.busy = true;
-          try { await Bridge.invoke("sticker_delete_original", { stickerId: e.id }); BK.deleteId = null; BK.sel = null; await Bridge.reload(); Shell.refresh(); Shell.toast("Sticker deleted."); }
-          catch(err) { Shell.toast(String(err)); button.disabled = false; }
+          try { await Bridge.invoke("sticker_delete_original", { stickerId: e.id }); BK.deleteId = null; BK.sel = null; Shell.refresh(); await Bridge.refreshCommitted({message:"The sticker was deleted. Try again to refresh your Collection."}); Shell.toast("Sticker deleted."); }
+          catch(err) { Shell.error(err); button.disabled = false; }
           finally { Bridge.busy = false; }
         } } }, "Delete")));
   },
   async edit(e) {
-    try { await Bridge.invoke("creator_cancel"); crReset(); CR.editing = e.id; CR.name = e.name || ""; CR.stage = "cutting"; CR.samplePhoto = null; await Shell.open("create"); await Bridge.invoke("creator_edit_original", { stickerId: e.id }); }
-    catch(err) { crReset(); await Shell.open("book"); Shell.toast(String(err)); }
+    try { await crCancel(); CR.editing = e.id; CR.name = e.name || ""; CR.stage = "cutting"; CR.samplePhoto = null; await Shell.open("create"); await Bridge.invoke("creator_edit_original", { stickerId: e.id }); }
+    catch(err) { crReset(); await Shell.open("book"); Shell.error(err); }
   },
   async stick(e) {
     S.pickMode = false; BK.sel = null; Snd.tap();
-    try { await Bridge.printAction("daily_stick_from_collection", {stickerId:e.id}); await Desktop.print(e); } catch(err) { Shell.toast(String(err)); }
+    try { await Bridge.printAction("daily_stick_from_collection", {stickerId:e.id}); await Desktop.print(e); } catch(err) { Shell.error(err); }
   },
 };

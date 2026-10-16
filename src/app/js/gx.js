@@ -181,7 +181,7 @@ const Gx = (() => {
   function wrappedBag(run,host,pack,{pw,x,y,cover}) {
     const bag=BAGS[pack.bag],[x0,y0,x1,y1]=bag.body,bw=x1-x0,bh=y1-y0,ratio=bh*bag.H/(bw*bag.W);
     const PW=Math.min(pw,330/ratio),PH=PW*ratio,picW=PW/(bw/100),picH=picW*bag.H/bag.W;
-    const pic=BagPic({bag:pack.bag,title:pack.title,sub:'by '+pack.by,cover,deco:pack.deco||'none',layout:pack.layout,fit:PW,k:99,id:pack.id,shut:true});
+    const pic=BagPic({bag:pack.bag,color:pack.color,title:pack.title,sub:'by '+pack.by,cover,deco:pack.deco||'none',layout:pack.layout,fit:PW,k:99,id:pack.id,shut:true});
     Object.assign(pic.style,{position:'absolute',left:-x0/100*picW+'px',top:-y0/100*picH+'px'});
     const pouch=h('div.gx-bag',{style:{position:'relative',width:PW+'px',height:PH+'px'}},pic);
     const wrap=h('div.gx-pk-wrap',{style:{left:x-PW/2+'px',top:y-PH/2+'px'}},pouch);host.append(wrap);
@@ -194,12 +194,13 @@ const Gx = (() => {
     const jagRange = (a, b) => { const pts = [[a, jagY(a)]]; jag.forEach((p) => { if (p[0] > a && p[0] < b) pts.push(p); }); pts.push([b, jagY(b)]); return pts; };
     const polyBody = () => `polygon(${jag.map((p) => `${p[0]}% ${p[1]}%`).join(",")},100% 100%,0 100%)`;
     const polyTop = (a, b) => { const j = jagRange(a, b); return `polygon(${a}% 0,${b}% 0,${[...j].reverse().map((p) => `${p[0]}% ${p[1]}%`).join(",")})`; };
-    const tint = PACK_KINDS[kind].foil && pack.hue ? ".tinted" : "";
-    const mk = (cls, clip) => h("div.gx-pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--hue": (pack.hue || 0) + "deg" } }, PACK_KINDS[kind].foil ? h("i.gx-sheen") : null);
+    const colorFilter=packColorFilter(kind,pack.color);
+    const tint = colorFilter!=="none" ? ".pack-colored" : PACK_KINDS[kind].foil && pack.hue ? ".tinted" : "";
+    const mk = (cls, clip) => h("div.gx-pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--pack-filter":colorFilter, "--hue": (pack.hue || 0) + "deg" } }, PackPaper(kind,pack.color), PACK_KINDS[kind].foil ? h("i.gx-sheen") : null);
     const body = mk("gx-pk-body", polyBody()), topL = mk("gx-pk-top", polyTop(0, 0.01)), topR = mk("gx-pk-top", polyTop(0.01, 100)), inside = h("div.gx-pk-inside", { style: { background: C.inside } });
     let label=PackLabel({ ...pack, kind, by: pack.by || "Peta" });
     if(PackArt.decorated(pack)) {
-      const dress=BagPic({bag:pack.bag,title:pack.title,sub:'by '+pack.by,cover,deco:pack.deco||'none',layout:pack.layout,id:pack.id,shut:true});dress.querySelector('.bp-art')?.remove();dress.classList.add('pk-dress');
+      const dress=BagPic({bag:pack.bag,color:pack.color,title:pack.title,sub:'by '+pack.by,cover,deco:pack.deco||'none',layout:pack.layout,id:pack.id,shut:true});dress.querySelector('.bp-art')?.remove();dress.classList.add('pk-dress');
       body.append(dress);topR.append(dress.cloneNode(true));topL.append(dress.cloneNode(true));label=null;
     }
     const line = h("i.gx-pk-line"), tab = h("i.gx-pk-tab", h("b", "tear")), slit = h("i.gx-slit");

@@ -1,13 +1,15 @@
 /* Rust is the source of truth. S contains only the last command snapshot and UI selections. */
 const prefs = readPreferences();
-const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, appearance: ['day','night','auto'].includes(prefs.appearance) ? prefs.appearance : 'day', bookView: prefs.bookView === 'calendar' ? 'calendar' : 'list', motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? true,
+const S = { shell: prefs.shell || 'studio', sound: prefs.sound ?? true, haptics: prefs.haptics ?? true, appearance: ['day','night','auto'].includes(prefs.appearance) ? prefs.appearance : 'day', bookView: prefs.bookView === 'calendar' ? 'calendar' : 'list', motion: prefs.motion || 'full', closeOutside: prefs.closeOutside ?? false,
   developer:false, envelopeDeadline: null, name: '', iconStickerId: null, today: new Date(), todayMat: 'matte', dayState: 'arrived', chosen: 'matte', stock: {}, lib: [], desk: [], gifts: [], events: [], packOffer:null, packs: [],
   bonusEnvelopes: 0, extraEnvelope: false, pending: null, stuckToday: [], packAvailable: false, scraps: {balance:0, materials:[], packs:[]}, page: 'settings', bookMonth: null, pickMode: false, windowOpen: true, owned: {}, followed: {} };
 const Bridge = (() => {
   const api = window.__TAURI__;
   const sharing = new Set(['gift_send', 'gift_send_friend', 'creator_pack_save', 'creator_pack_shelve', 'friend_code_copied', 'friend_add', 'friend_approve']);
   const invoke = async (cmd, args) => {
-    if(sharing.has(cmd) && !S.name.trim()) { ProfileName.request(); throw new Error("Choose your name in Settings before sharing."); }
+    if(sharing.has(cmd) && !S.name.trim() && !await ProfileName.request()) {
+      const error=new Error("Sharing cancelled.");error.name="AbortError";error.handled=true;throw error;
+    }
     return api.core.invoke(cmd, args);
   };
   const windowApi = api.window.getCurrentWindow();
@@ -26,27 +28,56 @@ const Bridge = (() => {
     if(S.motion==='reduce') document.getAnimations().forEach(a=>{if(a.effect?.getTiming().iterations===Infinity)a.cancel();});
     api.event.emit('preferences-changed', p);
   };
-  async function reload() {
+  let reloadFlight = null, reloadAgain = false, changeFlight = null, lastChanges = new Set(), revision = 0;
+  function reload() {
+    if (reloadFlight) { reloadAgain = true; return reloadFlight; }
+    reloadFlight = (async () => {
+      const changed = new Set();
+      do {
+        reloadAgain = false;
+        try { const commit = await loadSnapshot(); if (reloadAgain) continue; commit(); } catch (cause) {
+          if (reloadAgain) continue;
+          const error = new Error("Peta could not load the latest changes.", {cause});
+          error.name = "PetaLoadError"; throw error;
+        }
+        for (const key of lastChanges) changed.add(key);
+      } while (reloadAgain);
+      lastChanges = changed;
+    })().finally(()=>{ reloadFlight = null; });
+    return reloadFlight;
+  }
+  async function loadSnapshot() {
     const [profile, daily, materials, months, inbox, packs, pending, scraps, events, packOffer, linkTags, boards] = await Promise.all([
       invoke('profile_get'), invoke('daily_status'), invoke('material_book'), invoke('book_index'), invoke('gift_inbox'), invoke('pack_status'), invoke('print_pending'), invoke('scrap_status'), invoke('event_inbox'), invoke('creator_pack_pending')
     , invoke('link_tag_status'), invoke('boards_status')]);
-    S.boards=boards;
-    S.inbox = await invoke('inbox_status').catch(() => ({ enabled:false, friends:[] }));   // friends and the Gift inbox (S2); local state only
-    S.developer = !!profile.developer; S.name = profile.displayName; S.iconStickerId = profile.iconStickerId; S.today = new Date(daily.date + 'T12:00:00'); S.bonusEnvelopes = daily.bonusEnvelopes || 0; S.extraEnvelope = daily.materialOpened && S.bonusEnvelopes > 0; S.dayState = daily.materialOpened && !S.extraEnvelope ? 'opened' : 'arrived';
-    S.linkTags = new Map(linkTags.tags.map(t => [t.stickerId, t])); S.tagStock = linkTags.stock; S.todayMat = daily.material?.id || 'matte'; S.packAvailable = packs.canOpen; S.packLimits=packs.limits; S.prizeStock={}; S.pending = pending; S.scraps = scraps; S.events = events; S.packOffer = packOffer;
+    const pages = await Promise.all(months.map(m => invoke('book_page', {year:m.year, month:m.month})));
+    const next = {stock:{}, prizeStock:{}}, materialUpdates = [];
+    next.boards=boards;
+    next.inbox = await invoke('inbox_status').catch(() => S.inbox || ({ enabled:false, friends:[] }));   // friends and the Gift inbox (S2); local state only
+    next.developer = !!profile.developer; next.name = profile.displayName; next.iconStickerId = profile.iconStickerId; next.today = new Date(daily.date + 'T12:00:00'); next.bonusEnvelopes = daily.bonusEnvelopes || 0; next.extraEnvelope = daily.materialOpened && next.bonusEnvelopes > 0; next.dayState = daily.materialOpened && !next.extraEnvelope ? 'opened' : 'arrived';
+    next.linkTags = new Map(linkTags.tags.map(t => [t.stickerId, t])); next.tagStock = linkTags.stock; next.todayMat = daily.material?.id || 'matte'; next.packAvailable = packs.canOpen; next.packLimits=packs.limits; next.prizeStock={}; next.pending = pending; next.scraps = scraps; next.events = events; next.packOffer = packOffer;
     for (const { material:m, unlocked } of materials) {
       if (!MAT[m.id]) continue;
-      Object.assign(MAT[m.id], { name:m.name, rarity:m.rarity, locked:!unlocked, unlimited:m.unlimited, found:m.unlockedAt ? fmtDate(new Date(m.unlockedAt)) : '', });
-      S.stock[m.id] = m.unlimited ? Infinity : m.count; S.prizeStock[m.id]=m.count;
+      materialUpdates.push([MAT[m.id], { name:m.name, rarity:m.rarity, locked:!unlocked, unlimited:m.unlimited, found:m.unlockedAt ? fmtDate(new Date(m.unlockedAt)) : '', }]);
+      next.stock[m.id] = m.unlimited ? Infinity : m.count; next.prizeStock[m.id]=m.count;
     }
-    if (!(typeof CR !== 'undefined' && CR.editing) && !usableMats().includes(S.chosen)) S.chosen = usableMats()[0] || null;
-    const pages = await Promise.all(months.map(m => invoke('book_page', {year:m.year, month:m.month})));
-    S.lib = pages.flat().map(e => ({ id:e.stickerId, date:new Date(e.date+'T12:00:00'), createdAt:e.createdAt, no:e.originalNumber, material:e.materialId || 'matte', kind:(['gift','pack'].includes(e.sourceType) || (e.sourceType==='collection' && e.originalNumber==null)) ? 'received' : 'original', aspect:e.aspect, onDesktop:e.onDesktop, canManage:e.canManage, lineage:e.lineage, copyOf:e.copyOf, copyNo:e.copyNo, verified:e.verified, pressed:e.pressed,canPress:e.canPress,editionTotal:e.editionTotal, checked:e.checked, name:e.title || null, title:e.title || e.packName || 'Sticker' }));
-    S.desk = S.lib.filter(e=>e.onDesktop).map(e=>({id:e.id}));
-    S.stuckToday = S.lib.filter(e=>e.onDesktop && fmtDate(e.date)===fmtDate(S.today)).map(e=>e.id);
-    S.gifts = inbox.map(g=>({id:g.giftId, from:g.from, note:g.note || '', opened:!!g.openedAt, material:g.materialId || 'matte', edition:g.edition, signatureStatus:g.signatureStatus, fingerprint:g.fingerprint, bag:BAGS[g.bag] ? g.bag : null, deco:g.deco || null, to:g.to || ''}));
-    S.owned = Object.fromEntries(packs.packs.map(p=>[p.id,true]));
-    S.packs = packs.packs.map(p=>({id:p.id, title:p.title, by:p.by, total:p.total, left:Array(p.remaining).fill(null), freeOpenings:p.freeOpenings || 0, daily:p.id==='welcome', signatureStatus:p.signatureStatus,own:p.signatureStatus==="mine", listed:!!p.listed, canList:!!p.editionPack && p.signatureStatus==="mine", fingerprint:p.fingerprint, kind:isPouch(p.pouch) ? p.pouch : (p.pouch && BAGS[p.pouch]) ? 'kraft' : p.pouch || ({coffee:'kraft',plants:'kraft',cats:'matte'})[p.id] || 'holo', bag:BAGS[p.pouch] ? p.pouch : null, cover:p.cover || null, deco:p.deco || null, layout:(() => { try { return p.layout ? JSON.parse(p.layout) : null; } catch { return null; } })(), blurb:p.blurb || '', signed:!!p.fingerprint, hue:({tokyo:200,pixel:120,night:245})[p.id] || 0})).sort((a,b)=>(({'welcome':0,'tokyo':1,'coffee':2})[a.id]??3)-(({'welcome':0,'tokyo':1,'coffee':2})[b.id]??3));
+    const available = materials.filter(({material:m, unlocked}) => MAT[m.id] && unlocked && (m.unlimited || m.count > 0)).map(({material:m}) => m.id);
+    next.materialState = materials.map(({material:m, unlocked})=>[m.id,m.name,m.rarity,unlocked,m.unlimited,m.unlockedAt]);
+    next.lib = pages.flat().map(e => ({ id:e.stickerId, date:new Date(e.date+'T12:00:00'), createdAt:e.createdAt, no:e.originalNumber, material:e.materialId || 'matte', kind:(['gift','pack'].includes(e.sourceType) || (e.sourceType==='collection' && e.originalNumber==null)) ? 'received' : 'original', aspect:e.aspect, onDesktop:e.onDesktop, canManage:e.canManage, lineage:e.lineage, copyOf:e.copyOf, copyNo:e.copyNo, verified:e.verified, pressed:e.pressed,canPress:e.canPress,editionTotal:e.editionTotal, checked:e.checked, name:e.title || null, title:e.title || e.packName || 'Sticker' }));
+    next.desk = next.lib.filter(e=>e.onDesktop).map(e=>({id:e.id}));
+    next.stuckToday = next.lib.filter(e=>e.onDesktop && fmtDate(e.date)===fmtDate(next.today)).map(e=>e.id);
+    next.gifts = inbox.map(g=>({id:g.giftId, from:g.from, note:g.note || '', opened:!!g.openedAt, material:g.materialId || 'matte', edition:g.edition, signatureStatus:g.signatureStatus, fingerprint:g.fingerprint, bag:BAGS[g.bag] ? g.bag : null, deco:g.deco || null, to:g.to || ''}));
+    next.owned = Object.fromEntries(packs.packs.map(p=>[p.id,true]));
+    next.packs = packs.packs.map(p=>({id:p.id, title:p.title, by:p.by, total:p.total, left:Array(p.remaining).fill(null), freeOpenings:p.freeOpenings || 0, daily:p.id==='welcome', signatureStatus:p.signatureStatus,own:p.signatureStatus==="mine", listed:!!p.listed, canList:!!p.editionPack && p.signatureStatus==="mine", fingerprint:p.fingerprint, kind:isPouch(p.pouch) ? p.pouch : (p.pouch && BAGS[p.pouch]) ? 'kraft' : p.pouch || ({coffee:'kraft',plants:'kraft',cats:'matte'})[p.id] || 'holo', bag:BAGS[p.pouch] ? p.pouch : null, color:packColor(p.pouch,p.color)?.id || null, cover:p.cover || null, deco:p.deco || null, layout:(() => { try { return p.layout ? JSON.parse(p.layout) : null; } catch { return null; } })(), blurb:p.blurb || '', signed:!!p.fingerprint, hue:({tokyo:200,pixel:120,night:245})[p.id] || 0})).sort((a,b)=>(({'welcome':0,'tokyo':1,'coffee':2})[a.id]??3)-(({'welcome':0,'tokyo':1,'coffee':2})[b.id]??3));
+    return () => {
+      const groups = {profile:["name","iconStickerId"], daily:["today","todayMat","dayState","bonusEnvelopes"], materials:["stock","prizeStock","materialState"], collection:["lib"], gifts:["gifts"], packs:["packs","packAvailable","packLimits"], scraps:["scraps"], links:["linkTags","tagStock"], boards:["boards"], inbox:["inbox"], offers:["events","packOffer"]};
+      const fingerprint = (obj, keys) => JSON.stringify(keys.map(k=>obj[k]), (_k,v)=>v instanceof Map ? [...v] : v);
+      lastChanges = new Set(Object.entries(groups).filter(([_name,keys])=>fingerprint(S,keys)!==fingerprint(next,keys)).map(([name])=>name));
+      // Commit only after every read and normalization succeeds.
+      for (const [material, update] of materialUpdates) Object.assign(material, update);
+      Object.assign(S, next); revision++;
+      if (!(typeof CR !== 'undefined' && CR.editing) && !available.includes(S.chosen)) S.chosen = available[0] || null;
+    };
   }
   async function asset(id) {
     if (!assets.has(id)) {
@@ -85,13 +116,33 @@ const Bridge = (() => {
     if(opened.kind && opened.kind !== "sticker") return {id:null,prize:true,prizeKind:opened.kind,material:opened.materialId || "matte",title:opened.name,rarity:opened.rarity || "common",aspect:1};
     const e=await entry(opened.stickerId);return {...e,rarity:opened.rarity,title:opened.name || e.title};
   }
-  async function changed() { try { await reload(); Shell.renderNav(); if (!Bridge.busy && !(typeof ST !== 'undefined' && ST.sealing) && !document.querySelector('.cer') && S.page !== 'create') { if (typeof PackZoom !== 'undefined' && PackZoom.current) PackZoom.stale(); else Shell.refresh(); } if(S.packOffer) Distribution.offer(S.packOffer); } catch(e) { Shell.toast(String(e)); } }
+  function changed() {
+    const loaded = reload();
+    if (changeFlight) return changeFlight;
+    changeFlight = (async () => {
+      try {
+        await loaded;
+        Shell.renderNav(); Shell.syncResources();
+        if (typeof PackZoom !== 'undefined' && PackZoom.current) PackZoom.stale();
+        else Shell.refresh({changes:lastChanges});
+        if (S.packOffer) Distribution.offer(S.packOffer);
+        Shell.clearProblem?.();
+      } catch (error) { Shell.error(error, {retry:changed}); }
+    })().finally(()=>{changeFlight = null;});
+    return changeFlight;
+  }
+  async function refreshCommitted({after = () => Shell.refresh(), message = "Your change was saved, but the latest view could not be loaded."} = {}) {
+    const retry = async () => { await reload(); Shell.renderNav(); await after(); };
+    try { await retry(); return true; }
+    catch (error) { Shell.error(error, {message, retry}); return false; }
+  }
   function enterCeremony() {
     document.body.dataset.scene='ceremony';
     if(S.page==='today') Pages.today.suspend();
   }
   function leaveCeremony() {
     delete document.body.dataset.scene;
+    Shell.flushRefresh?.();
     if(Distribution.pendingOffer) Distribution.offer(Distribution.pendingOffer);
     if(S.page==='today') Pages.today.resume();
   }
@@ -101,7 +152,8 @@ const Bridge = (() => {
     try { return await invoke(cmd, args); }
     catch(e) { Bridge.printFocusTransfer=false; throw e; }
   }
-  return { invoke, fileDialog, printAction, enterCeremony, leaveCeremony, window:windowApi, reload, asset, thumb, invalidateAsset, entry, packEntry, savePreferences, changed, listen:api.event.listen };
+  let busy = false;
+  return { get busy(){return busy;}, set busy(value){busy=!!value;if(!busy && typeof Shell!=="undefined")queueMicrotask(()=>Shell.flushRefresh?.());}, invoke, fileDialog, printAction, enterCeremony, leaveCeremony, window:windowApi, reload, refreshCommitted, asset, thumb, invalidateAsset, entry, packEntry, savePreferences, changed, get changes(){return lastChanges;}, get revision(){return revision;}, listen:api.event.listen };
 })();
 const stickerResources = new Map();
 async function resOf(entry) {

@@ -163,7 +163,7 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 /* The shared sticky details keep their prototype width, padding and scrolling behaviour.
    CSS sizing trims only the supplied transparent gutters; the PNG itself is unchanged. */
 .detail { padding:44px 20px 16px; border-radius:20px; background:linear-gradient(rgba(235,232,220,.88),rgba(235,232,220,.88)), var(--a-paperCream) 0 0 / 420px, #ebe8dc; box-shadow:0 0 0 1px rgba(90,80,55,.14), 0 14px 30px rgba(60,45,20,.18); filter:none;
-  color:#2b2a28; --ink:#2b2a28; --ink2:#4a463f; --muted:#655e51; --line:#d6d0bf; } /* a flat card of paper; it keeps its own light colours in the night theme too */
+  color:var(--ink); }
 .book-flip { width: 100%; border: 0; background: none; cursor: pointer; margin-bottom: 12px; }
 .book-flip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 14px; }
 .book-actions { display: grid; gap: 8px; margin-bottom: 12px; }
@@ -200,10 +200,10 @@ html[data-motion="reduce"] .seg-ring path { animation:none!important; }
 .detail .book-actions .btn.det-main { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; height:54px; padding:0 18px; border:0; border-radius:16px; background:#2b2a28; color:#fff; box-shadow:0 2px 0 rgba(0,0,0,.35), 0 8px 16px rgba(40,30,15,.22); font:600 17px/1 var(--sys); cursor:pointer; }
 .detail .book-actions .btn.det-main:hover { background:#3a3834; } .detail .book-actions .btn.det-main:active { transform:translateY(1px); box-shadow:0 1px 0 rgba(0,0,0,.35); }
 .detail .book-actions .btn.det-main .ico { width:24px; height:24px; stroke-width:1.5; }
-.detail .book-actions .book-action-row { gap:6px; justify-content:flex-start; margin:0 -2px; flex-wrap:wrap; }
-.detail .book-actions .btn.det-link { display:inline-flex; align-items:center; gap:9px; width:auto; height:auto; padding:9px 8px; border:0; border-radius:10px; background:none; box-shadow:none; color:#2b2a28; font:500 16px/1.2 var(--sys); cursor:pointer; }
+.detail .book-actions .book-action-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin:4px 0 0; }
+.detail .book-actions .btn.det-link { display:inline-flex; align-items:center; gap:8px; width:100%; min-height:40px; padding:9px 10px; border:0; border-radius:10px; background:none; box-shadow:none; color:var(--ink2); font:500 14px/1.2 var(--sys); cursor:pointer; }
 .detail .book-actions .btn.det-link:hover { background:rgba(60,45,20,.07); }
-.detail .book-actions .btn.det-link.quiet2 { color:#655e51; font-size:14px; } .detail .book-actions .btn.det-link.quiet2.danger { color:#92704f; }
+.detail .book-actions .btn.det-link.quiet2 { color:var(--ink2); font-size:14px; } .detail .book-actions .btn.det-link.quiet2.danger { color:var(--red); }
 .detail .book-actions .btn.det-link .ico { width:22px; height:22px; stroke-width:1.5; } .detail .book-actions .btn.det-link.quiet2 .ico { width:18px; height:18px; }
 .detail .book-action:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
 .detail > button.close-control { top:11px; right:14px; width:30px; height:30px; min-width:30px; background:none; color:#3a362a; }
@@ -499,8 +499,8 @@ small, .small, .fine, .quota, .quota small, .pack small, .mmeta small, .tm-text 
 @container page (max-width:640px) { .create .panes { flex-direction:row; height:176px; } .create .panes .pane { min-height:0; } .create .arrow { display:block; } .create .cr-mat { padding:14px 12px; } }
 
 /* Night changes the room, while physical papers keep their own ink and texture. */
-[data-theme="night"] :is(.btn.paper, .detail, .back-card, .backing, .envelope-ticket, .st-panel, .st-card, .st-note,
-  .mcard .lab, .pack-tag, .mk-hero-text, .seal, .calendar-complete, .ev-note, .env-label, .note, .setcard, .cer, .cs-steps, .cs-dock, .cs-refine, .cs-rail, .rd-paper),
+[data-theme="night"] :is(.back-card, .backing, .envelope-ticket,
+  .mcard .lab, .pack-tag, .mk-hero-text, .seal, .calendar-complete, .ev-note, .env-label, .note, .cs-steps, .cs-dock, .cs-refine, .cs-rail, .rd-paper),
 [data-theme="night"] [data-shell="desk"] .page,
 [data-theme="night"] [data-shell="desk"] .nav-item[aria-current="page"] {
   --ink:#2b2a28; --ink2:#4a463f; --muted:#655e51; --paper:#faf6ec; --cream:#f5f0e6; --soft:#fbf9f4; --line:#ddd4c2; --red:#d8453a;
@@ -742,7 +742,7 @@ html[data-motion="reduce"] .cs-scan.loop { animation:none; opacity:.5; top:40%; 
 .cs-rail .edit-material { grid-template-columns:minmax(0,1fr); }
 .cs-foot { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:12px 28px; }
 .cs-foot .go-btns { align-items:center; }
-.cs-foot .btn.quiet { color:#2b2a28; }
+.cs-foot .btn.quiet { color:var(--ink2); background:var(--w-surface); box-shadow:inset 0 0 0 1px var(--w-line); }
 [data-shell="desk"] .page[data-page="create"] .cs-foot .uses { color:#f4f0e4; }
 [data-shell="desk"] .page[data-page="create"] .cs-foot .uses b { color:#fff; }
 @container page (max-width:700px) { .create .cr-stage { height:clamp(380px,calc(100vh - 230px),620px); } }
@@ -843,10 +843,6 @@ button.close-control:focus-visible { outline:2px solid #527d93; outline-offset:3
 button.close-control svg { display:block; width:16px; height:16px; pointer-events:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; }
 .material-preview > button.close-control { top:12px; right:12px; background:var(--w-sunken); color:var(--ink2); }
 .material-preview > button.close-control:hover { background:var(--w-line); color:var(--ink); }
-[data-theme="night"] [data-shell="studio"] .nav-item:hover { background:var(--w-surface); color:var(--ink); }
-[data-theme="night"] [data-shell="studio"] .nav-item[aria-current="page"] { color:var(--ink); }
-[data-theme="night"] [data-shell="studio"] .nav-pill { background:var(--w-surface2); box-shadow:inset 0 0 0 1px var(--w-line); }
-[data-theme="night"] [data-shell="studio"] .nav-account[aria-current="page"] { background:var(--w-surface2); box-shadow:inset 0 0 0 1px var(--w-line); }
 
 /* Sticker reveals take a palette once the committed sticker is visible. (Today's material no longer gets a frame: its light is in the .cer-exp / .cer-aura layers below.) */
 .cer { --cer-center:#71604c; --cer-edge:#211a13; }
@@ -1117,3 +1113,61 @@ dialog.share-dialog button.close-control.share-x:hover { background:rgba(60,45,2
 .mk-local { margin-top:28px; min-width:0; }
 .mk-local .lede { max-width:52ch; }
 .pk-listing { display:grid; gap:9px; }
+
+/* Resource furniture belongs to the viewport, above the scrolling page. */
+.resource-rail { position:absolute; z-index:10; top:50px; right:36px; display:flex; align-items:center; justify-content:flex-end; gap:10px; }
+.resource-count, .resource-count.bd-stock { display:inline-flex; align-items:center; gap:9px; min-height:44px; border:0; padding:7px 12px; border-radius:14px; background:var(--w-surface); color:var(--ink2); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh1); font:500 13px/1 var(--sys); white-space:nowrap; transition:background-color .2s, box-shadow .2s, transform .2s var(--ease-out); }
+.resource-count b { color:var(--ink); font:700 16px/1 var(--sys); font-variant-numeric:tabular-nums; }
+.resource-count:hover { background:var(--w-surface2); transform:translateY(-1px); }
+.resource-count:active { transform:translateY(1px); }
+.resource-count .sc-ico { width:27px; height:26px; }
+.has-resources > .page-in > .ph { padding-right:170px; }
+.has-resource-pair > .page-in > .ph { padding-right:300px; }
+.has-resources > .page-in > .ph > .ph-text { flex:1; min-width:min(100%,160px); }
+.has-resources > .page-in > .ph .eyebrow { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.resource-dialog { position:relative; width:min(440px,calc(100vw - 32px)); padding:32px 26px 24px; border:1px solid var(--w-line); border-radius:20px; background:var(--w-surface); color:var(--ink); box-shadow:var(--sh3); animation:resource-in .28s var(--ease-out); }
+.resource-dialog::backdrop { background:rgba(12,10,8,.48); animation:resource-veil .24s ease; }
+.resource-dialog h2 { margin:0 32px 16px 0; font:700 24px/1.2 var(--sys); color:var(--ink); }
+.resource-dialog p { margin:12px 0; }
+.resource-dialog .resource-close { top:10px; right:10px; color:var(--ink2); background:none; }
+.resource-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; margin-top:24px; }
+@keyframes resource-in { from {opacity:0; transform:translateY(10px) scale(.98);} }
+@keyframes resource-veil { from {opacity:0;} }
+@media(max-width:1000px) { .resource-rail { right:24px; } }
+@media(max-width:600px) { .resource-rail { right:16px; gap:8px; } }
+@media(max-width:600px) {
+  .resource-count > span { display:none; }
+  .has-resources > .page-in > .ph { padding-right:90px; }
+  .has-resource-pair > .page-in > .ph { padding-right:174px; }
+}
+
+/* Only the paper objects retain light ink; the detail controls follow the room. */
+[data-theme="night"] .detail { background:var(--w-surface); box-shadow:inset 0 0 0 1px var(--w-line),var(--sh3); }
+[data-theme="night"] .detail :is(.det-count, .det-arrow, .det-info b, button.close-control) { color:var(--ink2); }
+[data-theme="night"] .detail .det-info small { color:var(--muted); }
+[data-theme="night"] .detail .btn.det-main { background:var(--w-btn); color:var(--w-btnfg); }
+[data-theme="night"] .detail .btn.det-main:hover { background:var(--ink2); }
+[data-theme="night"] .detail :is(.btn.det-link, .det-arrow, button.close-control):hover { background:var(--w-surface2); }
+[data-theme="night"] .detail .book-delete button.btn.book-action { background:var(--w-surface2); color:var(--ink); border-color:var(--w-line); }
+[data-theme="night"] .detail .book-delete button.btn.book-action.danger { color:var(--red); }
+[data-theme="night"] .t-die path { fill:rgba(241,234,217,.035); stroke:var(--muted); }
+/* CSS geometry avoids the font's off-centre plus glyph. */
+.t-plus, .slot-plus { position:relative; font-size:0; }
+.t-plus::before, .t-plus::after, .slot-plus::before, .slot-plus::after { content:""; position:absolute; left:50%; top:50%; width:14px; height:1.5px; border-radius:1px; background:currentColor; transform:translate(-50%,-50%); }
+.t-plus::after, .slot-plus::after { transform:translate(-50%,-50%) rotate(90deg); }
+[data-theme="night"] .cer[data-kind="material"] .cer-bg { background:var(--w-win); }
+[data-theme="night"] .cer[data-kind="material"] :is(.cer-hint,.rv-info) { color:var(--ink); }
+[data-theme="night"] .cer[data-kind="material"] .cer-exp { background:radial-gradient(ellipse at var(--cx,50%) var(--cy,44%),transparent 20%,rgba(0,0,0,.65)); mix-blend-mode:normal; }
+[data-theme="night"] .cer[data-kind="material"] .cer-pool { mix-blend-mode:screen; }
+.cer[data-kind="material"] .cer-skip { background:var(--w-surface2); color:var(--ink2); }
+.cer[data-kind="material"] .cer-skip:hover { background:var(--w-surface); }
+/* Paging settles at the same position rather than replaying the card's slide. */
+.detail.stay { animation:detail-settle .24s var(--ease-out); }
+@keyframes detail-settle { from {opacity:.35; transform:translateY(4px);} }
+:is(.btn, .choice, .tile, .t-thumb, .seg button) { transition-property:background-color,color,box-shadow,opacity,transform; transition-duration:.2s; transition-timing-function:var(--ease-out); }
+@media(prefers-reduced-motion:reduce) {
+  .resource-dialog, .resource-dialog::backdrop, .detail.stay { animation:none; }
+  :is(.resource-count, .btn, .choice, .tile, .t-thumb, .seg button) { transition:none; }
+}
+
+.cs-rail .material-plate { color:var(--ink); }

@@ -20,6 +20,8 @@ function fixture({market={enabled:true,offline:false,hasFriends:true,listings:[l
     Cer:{openPack:async(pack,o)=>{opened.push({pack,o});return o.pull();}},
     Bridge:{busy:false,reload:async()=>{},invoke:async(cmd,args)=>{calls.push({cmd,args});if(answer)return answer(cmd,args);
       if(cmd==='market_friend_listings')return market;if(cmd==='market_card')return {listing:{...listing(),slotsLeft:3},taken:[1,1,0]};return {};}}});
+  context.A=new Proxy({},{get:()=>""});
+  vm.runInContext(source("catalog"),context);
   vm.runInContext(source('packs')+';this.PackListing=PackListing;this.PackZoom=PackZoom;PackArt.peek=async()=>[];',context);
   vm.runInContext(source('market')+';this.Market=Market;this.FriendShop=FriendShop;',context);
   context.Pages.market.rail=cells=>h('div.mk-rail',cells);

@@ -62,10 +62,10 @@ dialog.lt-dialog button.close-control.lt-x { top: 14px; right: 14px; background:
    torn edge keeps its shape whatever the card's height; the pictures are the existing tools-* art, the link tag and the linen board. */
 .mk-toolspage { display: block; }
 .mk-toolgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); align-items: stretch; gap: 28px; max-width: 820px; margin-top: 26px; }
-.mk-tool { position: relative; display: flex; flex-direction: column; min-width: 0; padding: 18px 16px 6px; border-style: solid; border-width: 26px; border-image: var(--a-toolsPaper) 90 fill / 26px / 0 stretch; color: #2b2a28; filter: drop-shadow(0 6px 10px rgba(60, 45, 20, .18)); }
+.mk-tool { position: relative; display: flex; flex-direction: column; min-width: 0; padding: 18px 16px 6px; border-style: solid; border-width: 26px; border-image: var(--a-toolsPaper) 90 fill / 26px / 0 stretch; color: var(--ui-ink); filter: drop-shadow(0 6px 10px rgba(60, 45, 20, .18)); }
 .mk-tool-tape { position: absolute; top: -40px; left: 50%; width: 132px; height: 30px; translate: -50% 0; rotate: -1deg; background: var(--a-toolsTape) center / 100% 100% no-repeat; }
 .mk-tool h3 { margin: 0; font: 700 34px/1.1 var(--sys); letter-spacing: -.025em; }
-.mk-tool-sub { max-width: 24ch; margin: 8px 0 0; font: 400 16px/1.4 var(--sys); color: #3a372f; }
+.mk-tool-sub { max-width: 24ch; margin: 8px 0 0; font: 400 16px/1.4 var(--sys); color: var(--ui-secondary); }
 .mk-tool-art { position: relative; width: 268px; height: 196px; margin: 18px auto 4px; }
 .mk-tool-art i { position: absolute; display: block; background-repeat: no-repeat; background-size: 100% 100%; }
 .mk-art-card { left: 24px; top: 12px; width: 160px; height: 158px; background-image: var(--a-toolsCard); }
@@ -79,16 +79,15 @@ dialog.lt-dialog button.close-control.lt-x { top: 14px; right: 14px; background:
 .mk-art-board i:nth-child(1) { left: 54px; top: 34px; rotate: 4deg; }
 .mk-art-board i:nth-child(2) { left: 16px; top: 62px; rotate: -3deg; }
 .mk-art-board .mk-art-clip { left: 186px; top: 8px; width: 22px; height: 88px; background-image: var(--a-marketClip); background-size: contain; background-position: center; rotate: 18deg; filter: drop-shadow(1px 2px 1.5px rgba(40, 30, 10, .3)); }
-.mk-tool-cap { margin: 6px 0 14px; text-align: center; font: 400 13.5px/18px var(--sys); color: #6f6859; }
+.mk-tool-cap { margin: 6px 0 14px; text-align: center; font: 400 13.5px/18px var(--sys); color: var(--ui-muted); }
 .mk-tool .btn.mk-tool-get { align-self: center; width: min(100%, 300px); height: 46px; padding: 0 20px; border-radius: 99px; background: #26272a; color: #fff; font: 600 16px/1 var(--sys); }
 .mk-tool .btn.mk-tool-get:disabled { opacity: .45; }
-[data-theme="night"] .mk-tool .btn.mk-tool-get { background: #26272a !important; color: #fff !important; } /* the sheet stays paper in the dark, so its button stays ink */
-.mk-tool-price { align-self: center; margin: 10px 0 0; font: 600 14px/18px var(--sys); color: #4a463f; }
-.mk-tool-note { margin: 4px 0 20px; text-align: center; font: 400 13px/18px var(--sys); color: #6f6859; }
+.mk-tool-price { align-self: center; margin: 10px 0 0; font: 600 14px/18px var(--sys); color: var(--ui-secondary); }
+.mk-tool-note { margin: 4px 0 20px; text-align: center; font: 400 13px/18px var(--sys); color: var(--ui-muted); }
 .mk-tool-foot { display: grid; gap: 4px; margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(60, 45, 20, .18); }
-.mk-tool-foot p { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; font: 400 16px/22px var(--sys); color: #3a372f; }
-.mk-tool-foot b { margin-left: 10px; font: 650 20px/22px var(--sys); color: #2b2a28; }
-.mk-tool-foot .link { justify-self: start; padding: 2px 0; color: #2b2a28; text-decoration: none; font: 500 15px/20px var(--sys); }
+.mk-tool-foot p { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; font: 400 16px/22px var(--sys); color: var(--ui-secondary); }
+.mk-tool-foot b { margin-left: 10px; font: 650 20px/22px var(--sys); color: var(--ui-ink); }
+.mk-tool-foot .link { justify-self: start; padding: 2px 0; color: var(--ui-ink); text-decoration: none; font: 500 15px/20px var(--sys); }
 .mk-tool-foot .link i { font-style: normal; margin-left: 4px; }
 .mk-tool-foot .link:hover { text-decoration: underline; text-underline-offset: 3px; }
 

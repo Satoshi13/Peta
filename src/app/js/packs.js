@@ -5,7 +5,7 @@
 const PackArt = {
   cache: new Map(),
   covers: new Map(),
-  decorated(p) { return !!BAGS[p.bag] && (BAGS[p.bag].gen || p.signed); },
+  decorated(p) { return !!BAGS[p.bag] && (BAGS[p.bag].gen || p.signed || !!packColor(p.bag,p.color)?.id); },
   cover(p) {
     if(!p.cover || !p.signed) return Promise.resolve(null);
     if(!this.covers.has(p.id)) this.covers.set(p.id, Bridge.invoke("pack_cover_picture",{packId:p.id}).then(bytes=>URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:"image/png"}))).catch(()=>null));
@@ -28,7 +28,7 @@ const PackArt = {
   FLOOR: 8.15,
   shelf(p, cover) {
     const b = BAGS[p.bag], [x0, , x1, y1] = b.body, bw = x1 - x0, obj = Math.min(b.cm * 15, 166), foot = this.FOOT[b.art] ?? y1;
-    const pic = BagPic({ bag: p.bag, title: p.title, sub: "by " + p.by, cover, deco: p.deco || "none", layout: p.layout, k: 15, fit: 166, shut: true, id: p.id });
+    const pic = BagPic({ bag: p.bag, color:p.color, title: p.title, sub: "by " + p.by, cover, deco: p.deco || "none", layout: p.layout, k: 15, fit: 166, shut: true, id: p.id });
     pic.style.width = (obj / (bw / 100) / 168 * 100) + "%"; pic.style.left = "50%"; pic.style.bottom = this.FLOOR + "%"; pic.style.translate = `-50% ${100 - foot}%`; pic.style.position = "absolute";
     return pic;
   },
@@ -36,7 +36,7 @@ const PackArt = {
 
 /* The title and the author are printed on the pouch's own white label, wherever the pouch is shown. */
 function PackLabel(p) {
-  return h("span.pk-label", { "aria-hidden": "true", data: { kind: p.kind || "holo" } }, h("b", p.title), h("small", "by " + p.by));
+  return h("span.pk-label", { "aria-hidden": "true", data: { kind: p.kind || "holo",color:p.color || "" } }, h("b", p.title), h("small", "by " + p.by));
 }
 
 /* Click a pack (in the Market or on the Packs shelf) and the camera moves in on it: the whole shelf scales up around the pouch until it
@@ -114,7 +114,7 @@ const PackZoom = {
         const animation = anim(card, [{ opacity: 0, transform: "translateX(24px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: EASE.out });
         card.classList.add("on"); (buttons().find(b => b.matches(".mkz-act, .mkz-primary")) || buttons()[0] || root).focus({ preventScroll: true });
         (await animation).cancel?.();
-      }).catch(error => { if (this.current === cur) this.dispose(true); Shell.toast(String(error)); });
+      }).catch(error => { if (this.current === cur) this.dispose(true); Shell.error(error); });
       // the picture and its label are tilted as ONE layer; tilting each on its own gives each its own perspective, and the label slides off the pouch
       const tiltLayer = h("div.mkz-tilt"); tiltLayer.append(...clone.childNodes); clone.append(tiltLayer);
       const zoomImg = $(".pk-img", clone), zoomLight = zoomImg ? SurfaceLight.attach(zoomImg, pack.kind || "holo") : { aim() {}, rest() {} };
@@ -205,9 +205,9 @@ const PackSales = {
     this.get(p).then((r) => {
       if (r.status !== "live") { box.replaceChildren(h("p.small.muted", r.status === "offline" ? "Connect to the internet to see sales." : "Sales appear once Peta checks this pack.")); return; }
       const earned = typeof FriendShop !== "undefined" ? FriendShop.mine(p.id)?.earned || 0 : 0;
-      box.replaceChildren(h("p.pk-sales-head", h("b", r.taken === r.total ? "Sold out" : `${r.taken} of ${r.total} taken`), h("small.muted", "by friends")),
+      box.replaceChildren(...[h("p.pk-sales-head", h("b", `${Math.max(0,r.total-r.taken)} left`), h("small.muted", `${r.taken} of ${r.total} taken by friends`)),
         earned ? h("p.small.pk-earned", `Earned ${earned.toLocaleString("en-US")} Scraps`) : null,
-        h("ul.pk-sale-list", r.designs.map((l) => this.line(l))), r.prizes.length ? h("ul.pk-sale-list.prizes", r.prizes.map((l) => this.line(l))) : null);
+        h("ul.pk-sale-list", r.designs.map((l) => this.line(l))), r.prizes.length ? h("ul.pk-sale-list.prizes", r.prizes.map((l) => this.line(l))) : null].filter(Boolean));
     });
     return box;
   },
@@ -234,7 +234,7 @@ const PackListing = {
         PackZoom.stale();
         try { await Bridge.reload(); } catch { Shell.toast("Saved the listing. The shelf will refresh when you reopen it."); }
         Snd.tap();
-      } catch(err) { Shell.toast(String(err)); }
+      } catch(err) { Shell.error(err); }
       finally {
         busy=false; Bridge.busy=false; paint();
         if(!PackZoom.current) Shell.refresh();
@@ -261,7 +261,7 @@ const PackListing = {
         PackZoom.stale();
         try { await Bridge.reload(); } catch {}
         Snd.tap(); Shell.toast(said);
-      } catch(err) { Shell.toast(String(err)); }
+      } catch(err) { Shell.error(err); }
       finally {
         busy=false; Bridge.busy=false; paint();
         if(!PackZoom.current) Shell.refresh();
@@ -287,13 +287,41 @@ const PackListing = {
 };
 
 Pages.packs = {
+  timer: null,
+  deadline: null,
+  enter() { this.resume(); },
+  leave() { this.suspend(); },
+  suspend() { clearInterval(this.timer); this.timer = null; },
+  resume() {
+    this.suspend();
+    const ticket = $(".envelope-ticket[role=timer]", Shell.current);
+    if (!ticket || S.page !== "packs" || !S.windowOpen || document.hidden || S.packAvailable) return;
+    this.deadline ??= PetaMath.nextLocalMidnight(Date.now());
+    let labelledMinute = null;
+    const tick = () => {
+      const clock = PetaMath.envelopeClock(Date.now(), this.deadline);
+      if (!clock.seconds) { this.suspend(); this.deadline = null; Bridge.changed(); return false; }
+      $$(".envelope-clock > span", ticket).forEach((digit, i) => { digit.textContent = clock.text[i]; });
+      if (labelledMinute !== clock.minute) {
+        ticket.setAttribute("aria-label", clock.label.replace("envelope", "Welcome Pack"));
+        labelledMinute = clock.minute;
+      }
+      return true;
+    };
+    if (tick()) this.timer = setInterval(tick, 1000);
+  },
   build() {
     if (typeof FriendShop !== "undefined" && !FriendShop.fresh()) FriendShop.load();   // so a zoomed own pack offers the friends' Market
     const root = h("div.page-in.packspage");
-    root.append(PageHead("Packs", "Open one at random", h("span.quota", { "aria-live": "polite" }, h("b", "Welcome Pack"), ` ${S.packAvailable ? 0 : 1} of 1 today`, h("small", "resets at midnight · other packs open any time"))));
+    if (S.packAvailable) this.deadline = null;
+    else this.deadline ??= PetaMath.nextLocalMidnight(Date.now());
+    const ticket = S.packAvailable
+      ? h("p.envelope-ticket", "Welcome Pack ready to open")
+      : EnvelopeTicket("Next Welcome Pack", PetaMath.envelopeClock(Date.now(), this.deadline).text);
+    root.append(PageHead("Packs", "Open one at random", ticket));
     const items = S.packs.map((p) => ({ ...p, empty: !p.left.length })), stored=items.filter(p=>p.own), received=items.filter(p=>!p.own);
     if(stored.length) root.append(h("h2.pk-section-title","My shelf"),h("p.muted.lede","Keep finished packs for another season. List or take them down in this Mac’s Market, or save the same signed file to share."),this.shelf(stored));
-    if(received.length) root.append(stored.length ? h("h2.pk-section-title","Packs to open") : null,h("p.muted.lede","Choose a pack to look closer and open a random sticker. The Welcome Pack opens once a day; packs from friends open any time."),this.shelf(received));
+    if(received.length) root.append(...(stored.length ? [h("h2.pk-section-title","Packs to open")] : []),h("p.muted.lede","Choose a pack to look closer and open a random sticker. The Welcome Pack opens once a day; packs from friends open any time."),this.shelf(received));
     const total=received.reduce((n,p)=>n+p.left.length,0);
     root.append(h("p.shelf-note.muted", received.length ? `${total} slots still sealed in packs to open.` : "Your finished packs are stored on My shelf."));
     return root;
@@ -327,8 +355,8 @@ Pages.packs = {
       const mark = h("span.pk-sale-mark", "On sale"); stack.append(mark);
       PackSales.get(p).then((r) => {
         if (r.status !== "live" || !card.isConnected) return;
-        const sold = r.taken >= r.total, ink = WallInk.write(sold ? "sold out" : `${r.taken} of ${r.total} taken`, p.id), count = $(".pk-count", card);
-        count?.replaceChildren(...ink.nodes); if (sold) { mark.textContent = "Sold out"; mark.classList.add("sold"); }
+        const sold = r.taken >= r.total, ink = WallInk.write(`${Math.max(0,r.total-r.taken)} left`, p.id), count = $(".pk-count", card);
+        count?.replaceChildren(...ink.nodes);card.setAttribute("aria-label",`${p.title} by ${p.by}, listed in Market on this Mac, ${Math.max(0,r.total-r.taken)} left — look closer`); if (sold) { mark.textContent = "Sold out"; mark.classList.add("sold"); }
       });
     }
     onPointerFollow(card, (x, y, e, amount) => {
@@ -352,14 +380,14 @@ Pages.packs = {
     else PackArt.peek(p).then((items) => { const fig = PackPeek(items, ""); if(fig) peekHost.replaceChildren(fig); });
     const peek = peekHost;
     const go = (fn) => () => { PackZoom.dispose(); fn(); };
-    const exportPack=p.own ? h("button.btn.mkz-primary",{type:"button",on:{click:async ev=>{const b=ev.currentTarget;b.disabled=true;try {const path=await Bridge.fileDialog("creator_pack_export",{packId:p.id});if(path)Shell.toast("Saved the finished pack.");}catch(err){Shell.toast(String(err));}finally{b.disabled=false;}}}},"Save file…") : null;
+    const exportPack=p.own ? h("button.btn.mkz-primary",{type:"button",on:{click:async ev=>{const b=ev.currentTarget;b.disabled=true;try {const path=await Bridge.fileDialog("creator_pack_export",{packId:p.id});if(path)Shell.toast("Saved the finished pack.");}catch(err){Shell.error(err);}finally{b.disabled=false;}}}},"Save file…") : null;
     const one = p.own ? null : h("button.btn.mkz-act", { type: "button", disabled: !packOpenable(p), on: { click: go(() => { Snd.tap(); Cer.openPack(p); }) } }, "Open one");
     const free = available && !p.own ? h("button.btn.mkz-act", {type:"button",on:{click:go(()=>{Snd.tap();Cer.openPack(p,{free:true});})}}, "Open free") : null;
     const ten = more && !p.own ? h("button.btn.paper.mkz-act", { type: "button", on: { click: go(() => { Snd.tap(); Cer.openPackMany(p, many); }) } }, many === 10 ? "Open 10" : `Open all ${many}`) : null;
     return h("aside.mkz-card", CloseButton("Back to the shelf", {}, ".mkz-x"),
       h("p.eyebrow", `by ${p.by}${p.signatureStatus ? " ✓" : ""}`), h("h2", p.title), blurb ? h("p.mkz-blurb", blurb) : null,
       p.fingerprint ? h("p.mkz-fp.muted", `${p.fingerprint}${p.signatureStatus === "mine" ? " · Made by you" : p.signatureStatus === "new" ? " · New friend" : p.signatureStatus === "warning" ? " · Same name, different key" : ""}`) : null,
-      h("p.mkz-own", h("b", p.own ? `${left} sealed slots` : `${left} ${left === 1 ? "opening" : "openings"} left`)),
+      p.own && p.listed ? null : h("p.mkz-own", h("b", `${left} left`)),
       p.own ? null : h("div.mkz-reward", h("p.small.muted", available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} / 10 toward a free opening`),
         h("div.mkz-pips", {role:"progressbar","aria-label":"Free opening progress","aria-valuemin":0,"aria-valuemax":10,"aria-valuenow":progress,"aria-valuetext":available ? `${available} free ${available === 1 ? "opening" : "openings"} ready` : `${progress} of 10 openings`}, Array.from({length:10}, (_, i) => h("i" + (i < progress ? "" : ".o"))))),
       p.own && p.listed ? PackSales.panel(p) : null,

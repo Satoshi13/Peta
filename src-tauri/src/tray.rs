@@ -56,7 +56,7 @@ fn board_choices(status: &peta_core::boards::Status) -> Vec<BoardChoice> {
 pub fn build(app: &AppHandle) -> tauri::Result<()> {
     let today_item = MenuItem::with_id(app, "today", "Open Peta", true, None::<&str>)?;
     let edit = CheckMenuItem::with_id(app, "edit", "Edit stickers", true, false, None::<&str>)?;
-    let redeem = MenuItem::with_id(app, "redeem", "Redeem Code…", true, None::<&str>)?;
+    let redeem = MenuItem::with_id(app, "redeem", "Coupon code…", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit Peta", true, Some("CmdOrCtrl+Q"))?;
     let sep = PredefinedMenuItem::separator(app)?;

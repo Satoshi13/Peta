@@ -85,10 +85,11 @@ const Cer = (() => {
 
   /* One tearable wrapper, used by Packs (the sticker comes out) and by Today's material (the card comes out).
      `content` sits inside, behind the front of the wrapper; `onTear(rig)` runs once, the moment the top is torn off. */
-  function buildRig(cer, stage, { kind, hue, content, onTear, label, decoration }) {
+  function buildRig(cer, stage, { kind, hue, color, content, onTear, label, decoration }) {
     const K = PACK_KINDS[kind] || PACK_KINDS.holo, PW = Math.min(310, stage.clientHeight * .48, stage.clientWidth * .55), PH = PW * 4 / 3, CUT = K.cut;
-    const jag = jagged(26, CUT), tint = K.foil && hue ? ".tinted" : "";
-    const mk = (cls, clip) => h("div.pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--hue": (hue || 0) + "deg" } }, K.foil ? h("i.sheen") : null);
+    const colorFilter=packColorFilter(kind,color);
+    const jag = jagged(26, CUT), tint = colorFilter!=="none" ? ".pack-colored" : K.foil && hue ? ".tinted" : "";
+    const mk = (cls, clip) => h("div.pk-layer." + cls + tint, { style: { clipPath: clip, webkitClipPath: clip, "--pack-filter":colorFilter, "--hue": (hue || 0) + "deg" } }, PackPaper(kind,color), K.foil ? h("i.sheen") : null);
     const body = mk("pk-body", polyBody(jag)), topStrip = mk("pk-top", polyTop(jag)), inside = h("div.pk-inside");
     if(decoration) { body.append(decoration); topStrip.append(decoration.cloneNode(true)); }
     const tab = h("i.pk-tab", h("b", "tear")), line = h("i.pk-line");
@@ -109,21 +110,21 @@ const Cer = (() => {
     setProg(0);
     // the foil / paper catches the light wherever the pointer is on the stage
     onPointerFollow(stage, (x,y,e,amount) => { pouch.style.setProperty("--sx",lerp(30,(1-x)*100,amount)+"%"); pouch.style.setProperty("--sy",lerp(30,(1-y)*100,amount)+"%"); }, () => { pouch.style.setProperty("--sx","30%"); pouch.style.setProperty("--sy","30%"); });
-    let lastSnd = 0;
+    let rustle = Snd.paperMotion(), autoTearing = false;
     drag(pouch, {
-      down: (e) => { if (rig.done) return false; const r = pouch.getBoundingClientRect(); if ((e.clientY - r.top) / r.height > .42) return false; pouch.classList.add("pulling"); },
+      down: (e) => { if (rig.done || autoTearing) return false; const r = pouch.getBoundingClientRect(); if ((e.clientY - r.top) / r.height > .42) return false; rustle=Snd.paperMotion(); pouch.classList.add("pulling"); },
       move: (dx) => {
         if (rig.done) return;
         setProg(dx / (span * .9));
         const j = Math.sin(performance.now() / 28) * rig.prog * 1.6; wrapper.style.transform = `translate(${j}px, ${Math.cos(performance.now() / 33) * rig.prog * 1.1}px) rotate(${j * .08}deg)`;
-        const now = performance.now(); if (now - lastSnd > 70 && rig.prog < 1) { lastSnd = now; Snd.crinkle(2, .06); }
+        if(rig.prog < 1)rustle(rig.prog);
         if (rig.prog >= 1) finish();
       },
       up: () => { pouch.classList.remove("pulling"); wrapper.style.transform = ""; if (!rig.done && rig.prog < 1) springBack(); },
     });
     const springBack = async () => { if(reduced()) { setProg(0); return; } const from = rig.prog, t0 = performance.now(); Snd.tap(); await new Promise((res) => { (function f(now) { const t = clamp((now - t0) / 380, 0, 1), e = 1 - Math.pow(1 - t, 3); setProg(from * (1 - e) * (1 + Math.sin(t * 9) * .08 * (1 - t))); t < 1 ? requestAnimationFrame(f) : res(); })(t0); }); setProg(0); };
-    const autoTear = async () => { if (rig.done) return; if(reduced()) { setProg(1); finish(); return; } const t0 = performance.now(); await new Promise((res) => { (function f(now) { const t = clamp((now - t0) / 620, 0, 1); setProg(t); Snd.crinkle(1, .05); t < 1 ? requestAnimationFrame(f) : res(); })(t0); }); finish(); };
-    pouch.tabIndex = 0; pouch.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && autoTear()); pouch.addEventListener("dblclick", autoTear);
+    const autoTear = async () => { if (rig.done || autoTearing) return; autoTearing=true; rustle=Snd.paperMotion(); try { if(reduced()) { setProg(1); finish(); return; } const t0 = performance.now(); await new Promise((res) => { (function f(now) { if(!pouch.isConnected || rig.done) {res();return;} const t = clamp((now - t0) / 620, 0, 1); setProg(t); rustle(t); t < 1 ? requestAnimationFrame(f) : res(); })(t0); }); if(pouch.isConnected)finish(); } finally {autoTearing=false;} };
+    pouch.tabIndex = 0; pouch.addEventListener("keydown", (e) => {if(e.key !== "Enter" && e.key !== " ")return;e.preventDefault();if(!e.repeat)autoTear();}); pouch.addEventListener("dblclick", autoTear);
     const finish = async () => {
       if (rig.done) return; rig.done = true; pouch.classList.remove("pulling"); pouch.classList.add("torn"); wrapper.style.transform = ""; Snd.tear(); cer.hint("");
       anim(topStrip, [{ transform: topStrip.style.transform, opacity: 1 }, { transform: `translate(${PW * .6}px, ${-PH * .55}px) rotate(-85deg)`, opacity: 0 }], { duration: 760, easing: "cubic-bezier(.3,.1,.6,1)", composite: "replace" });
@@ -135,10 +136,10 @@ const Cer = (() => {
     rig.linger = () => anim(pouch, [{ transform: "none" }, { transform: `translate(${-PW * .9}px, ${PH * .34}px) rotate(-13deg) scale(.72)` }], { duration: 850, easing: EASE.inOut, delay: 100 });
     /** Pull gesture for whatever comes out of the mouth. */
     rig.pullable = (el, { rise = .3, need = .34, onPull }) => {
-      let pulled = false; const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
+      let pulled = false, rustle=Snd.paperMotion(); const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
       drag(el, {
-        down: () => { if (pulled) return false; },
-        move: (dx, dy) => { const up = clamp(-dy, 0, PH * .8), rb = up > PH * .5 ? PH * .5 + (up - PH * .5) * .3 : up; el.style.transform = `translateY(${-PH * rise - rb}px) rotate(${-1.5 + dx * .03}deg)`; Snd.crinkle(1, .03); if (up > PH * need && !pulled) go(); },
+        down: () => { if (pulled) return false; rustle=Snd.paperMotion(); },
+        move: (dx, dy) => { const up = clamp(-dy, 0, PH * .8), rb = up > PH * .5 ? PH * .5 + (up - PH * .5) * .3 : up; el.style.transform = `translateY(${-PH * rise - rb}px) rotate(${-1.5 + dx * .03}deg)`; rustle(up / PH); if (up > PH * need && !pulled) go(); },
         up: () => { if (!pulled) anim(el, [{ transform: el.style.transform }, { transform: base }], { duration: 300, easing: EASE.spring }).then(() => fix(el, base)); },
       });
       const go = () => { if (pulled) return; pulled = true; el.style.cursor = "default"; onPull(); };
@@ -155,7 +156,7 @@ const Cer = (() => {
     const bag = BAGS[pack.bag], [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, ratio = (bh * bag.H) / (bw * bag.W);
     let PW = Math.min(300, stage.clientWidth * .5); if (PW * ratio > stage.clientHeight * .5) PW = stage.clientHeight * .5 / ratio;
     const PH = PW * ratio, picW = PW / (bw / 100), picH = picW * bag.H / bag.W;
-    const pic = BagPic({ bag: pack.bag, title: pack.title, sub: "by " + pack.by, cover, deco: pack.deco || "none", layout: pack.layout, fit: PW, k: 99, id: pack.id });
+    const pic = BagPic({ bag: pack.bag, color:pack.color, title: pack.title, sub: "by " + pack.by, cover, deco: pack.deco || "none", layout: pack.layout, fit: PW, k: 99, id: pack.id });
     Object.assign(pic.style, { position: "absolute", left: -(x0 / 100) * picW + "px", top: -(y0 / 100) * picH + "px", zIndex: 4 });
     const pouch = h("div.bagrig", { style: { width: PW + "px", height: PH + "px" }, tabIndex: 0, role: "button", "aria-label": "Open the pack" }, content, pic);
     const wrapper = h("div.pk-wrap", pouch); stage.append(wrapper);
@@ -172,10 +173,10 @@ const Cer = (() => {
     rig.focus = () => pouch.focus({ preventScroll: true });
     rig.linger = () => anim(pouch, [{ transform: "none" }, { transform: `translate(${-PW * .9}px, ${PH * .34}px) rotate(-13deg) scale(.72)` }], { duration: 850, easing: EASE.inOut, delay: 100 });
     rig.pullable = (el, { rise = .5, need = .5, onPull }) => {
-      let pulled = false; const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
+      let pulled = false, rustle=Snd.paperMotion(); const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
       drag(el, {
-        down: () => { if (pulled) return false; },
-        move: (dx, dy) => { const up = clamp(-dy, 0, PH * .8), rb = up > PH * .5 ? PH * .5 + (up - PH * .5) * .3 : up; el.style.transform = `translateY(${-PH * rise - rb}px) rotate(${-1.5 + dx * .03}deg)`; Snd.crinkle(1, .03); if (up > PH * need && !pulled) go(); },
+        down: () => { if (pulled) return false; rustle=Snd.paperMotion(); },
+        move: (dx, dy) => { const up = clamp(-dy, 0, PH * .8), rb = up > PH * .5 ? PH * .5 + (up - PH * .5) * .3 : up; el.style.transform = `translateY(${-PH * rise - rb}px) rotate(${-1.5 + dx * .03}deg)`; rustle(up / PH); if (up > PH * need && !pulled) go(); },
         up: () => { if (!pulled) anim(el, [{ transform: el.style.transform }, { transform: base }], { duration: 300, easing: EASE.spring }).then(() => fix(el, base)); },
       });
       const go = () => { if (pulled) return; pulled = true; el.style.cursor = "default"; onPull(); };
@@ -393,14 +394,14 @@ const Cer = (() => {
       fix(sleeve, `translateY(-${EH * .34}px) rotate(1.5deg)`);
       let id;
       try { Bridge.busy = true; id=await Bridge.invoke("gift_open", {giftId:gift.id}); }
-      catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
+      catch(e) { Bridge.busy=false; await cer.close(); Shell.error(e); return; }
       gift.opened=true;const savedGift=S.gifts.find(g=>g.id===gift.id);if(savedGift)savedGift.opened=true;
       try {entry=await Bridge.entry(id);await Bridge.reload();}
       catch {await closeCommittedPreview(cer,'Gift opened and saved. The preview could not load; find it in your Collection.');return;}
-      let pulled = false; const base = sleeve.style.transform;
+      let pulled = false, rustle=Snd.paperMotion(); const base = sleeve.style.transform;
       drag(sleeve, {
-        down: () => !pulled,
-        move: (dx, dy) => { const up = clamp(-dy, 0, 300); sleeve.style.transform = `translateY(${-EH * .34 - up}px) rotate(${1.5 + dx * .03}deg)`; Snd.crinkle(1, .03); if (up > 110 && !pulled) pull(); },
+        down: () => {if(pulled)return false;rustle=Snd.paperMotion();},
+        move: (dx, dy) => { const up = clamp(-dy, 0, 300); sleeve.style.transform = `translateY(${-EH * .34 - up}px) rotate(${1.5 + dx * .03}deg)`; rustle(up / 300); if (up > 110 && !pulled) pull(); },
         up: () => { if (!pulled) { anim(sleeve, [{ transform: sleeve.style.transform }, { transform: base }], { duration: 300, easing: EASE.spring }).then(() => fix(sleeve, base)); } },
       });
       sleeve.addEventListener("dblclick", () => !pulled && pull()); sleeve.tabIndex = 0; sleeve.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && !pulled && pull());
@@ -428,7 +429,7 @@ const Cer = (() => {
     const onTear = async (rig) => {
       let opened;
       try { Bridge.busy = true; opened=await (pull ? pull() : Bridge.invoke(free ? "pack_open_free" : "pack_open", {packId:pack.id, queue:false})); }
-      catch(e) { Bridge.busy=false; await cer.close(); Shell.toast(String(e)); return; }
+      catch(e) { Bridge.busy=false; await cer.close(); Shell.error(e); return; }
       pack.left=Array(opened.remaining).fill(null);if(free)pack.freeOpenings=Math.max(0,(pack.freeOpenings||0)-1);else if(pack.daily)S.packAvailable=false;
       const savedPack=S.packs.find(p=>p.id===pack.id);if(savedPack){savedPack.left=pack.left;if(free)savedPack.freeOpenings=pack.freeOpenings;}
       try {entry=await Bridge.packEntry(opened);await Bridge.reload();Shell.renderNav();}
@@ -445,11 +446,11 @@ const Cer = (() => {
     };
     // a pouch is torn along its top; every other wrapping (Studio) is simply opened
     const generic = !!(pack.bag && BAGS[pack.bag]?.gen), cover = pack.bag && PackArt.decorated(pack) ? await PackArt.cover(pack) : null;
-    const decoration = !generic && pack.bag && PackArt.decorated(pack) ? BagPic({bag:pack.bag,title:pack.title,sub:"by "+pack.by,cover,deco:pack.deco||"none",layout:pack.layout,id:pack.id,shut:true}) : null;
+    const decoration = !generic && pack.bag && PackArt.decorated(pack) ? BagPic({bag:pack.bag,color:pack.color,title:pack.title,sub:"by "+pack.by,cover,deco:pack.deco||"none",layout:pack.layout,id:pack.id,shut:true}) : null;
     if(decoration) { decoration.querySelector(".bp-art")?.remove(); decoration.classList.add("pk-dress"); }
     if (generic) cer.hint("Open it.");
     const rig = generic ? buildBagRig(cer, stage, { pack, content: sleeve, cover, onTear })
-      : buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, content: sleeve, label: decoration ? null : PackLabel({ ...pack, kind: pack.kind || "holo" }), decoration, onTear });
+      : buildRig(cer, stage, { kind: pack.kind, hue: pack.hue, color:pack.color, content: sleeve, label: decoration ? null : PackLabel({ ...pack, kind: pack.kind || "holo" }), decoration, onTear });
     sleeve.style.cssText = rig.sleeveCss || `width:${rig.PW * .72}px;left:${rig.PW * .14}px;top:${rig.cutY - rig.PW * .72 * .12}px`;
     // A pull is already in the Collection. "Stick it" sends it to the desktop the same way the Collection's "Stick on desktop" does;
     // "Keep in Collection" (or Esc) just closes, and nothing is left waiting at the print slot.

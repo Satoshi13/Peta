@@ -107,6 +107,7 @@ CREATE INDEX idx_pack_items_pack ON pack_items(pack_id, opened_at);
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PackSummary {
+    pub color: Option<crate::creator_pack::PackColor>,
     pub id: String,
     pub title: String,
     pub by: String,
@@ -965,10 +966,13 @@ impl Database {
              GROUP BY p.id ORDER BY p.created_at, p.id",
         )?;
         let rows = stmt.query_map([], |r| {
-            Ok(PackSummary { id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, free_openings:0, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)?,cover:r.get(8)?,deco:r.get(9)?,blurb:r.get(10)?,layout:None,listed:r.get(11)?,edition_pack:r.get(12)? })
+            Ok(PackSummary { color:None,id: r.get(0)?, title: r.get(1)?, by: r.get(2)?, total: r.get(3)?, remaining: r.get(4)?, free_openings:0, pouch:r.get(5)?,signature_status:r.get(6)?,fingerprint:r.get(7)?,cover:r.get(8)?,deco:r.get(9)?,blurb:r.get(10)?,layout:None,listed:r.get(11)?,edition_pack:r.get(12)? })
         })?;
         let mut packs = rows.collect::<std::result::Result<Vec<_>, _>>()?;
-        for pack in &mut packs { pack.free_openings = self.pack_free_openings(&pack.id)?; pack.layout = self.conn.query_row("SELECT value FROM meta WHERE key=?1", [format!("pack.layout.{}", pack.id)], |r| r.get(0)).optional()?; }
+        for pack in &mut packs {
+            let color:Option<String>=self.conn.query_row("SELECT value FROM meta WHERE key=?1",[format!("pack.color.{}",pack.id)],|r|r.get(0)).optional()?;
+            pack.color=color.and_then(|value|serde_json::from_str(&value).ok());
+            pack.free_openings = self.pack_free_openings(&pack.id)?; pack.layout = self.conn.query_row("SELECT value FROM meta WHERE key=?1", [format!("pack.layout.{}", pack.id)], |r| r.get(0)).optional()?; }
         Ok(packs)
     }
 

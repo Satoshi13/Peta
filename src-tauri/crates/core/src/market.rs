@@ -76,6 +76,7 @@ pub struct Peek { pub name: String, pub png: String }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Card {
+    #[serde(default,skip_serializing_if="Option::is_none")] pub color:Option<crate::creator_pack::PackColor>,
     pub version: u32, pub external_id: String, pub pack_digest: String, pub title: String, pub blurb: Option<String>, pub pouch: String,
     pub cover: Option<String>, pub deco: Option<String>, pub layout: Option<Layout>, pub designs: Vec<CardLine>, pub prizes: Vec<CardLine>, pub peek: Vec<Peek>,
 }
@@ -92,7 +93,7 @@ pub(crate) fn build_card(h: &Header, items: &[(Vec<u8>, Vec<u8>)], pack_digest: 
         Prize::Material { material_id, count } => CardLine { name: crate::materials::get(material_id).map(|m| m.name).unwrap_or_else(|| material_id.clone()), kind: "material".into(), rarity: None, material_id: Some(material_id.clone()), total: *count },
         Prize::Tag { count } => CardLine { name: "Link tag".into(), kind: "tag".into(), rarity: None, material_id: None, total: *count },
     }).collect();
-    let mut card = Card { version: 1, external_id: h.pack_id.clone(), pack_digest: pack_digest.into(), title: h.title.clone(), blurb: h.blurb.clone(), pouch: h.pouch.clone(),
+    let mut card = Card {color:h.color, version: 1, external_id: h.pack_id.clone(), pack_digest: pack_digest.into(), title: h.title.clone(), blurb: h.blurb.clone(), pouch: h.pouch.clone(),
         cover: h.cover.clone(), deco: h.deco.clone(), layout: h.layout.clone(), designs, prizes, peek: vec![] };
     let mut bytes = serde_json::to_vec(&card).map_err(|e| Error::Invalid(e.to_string()))?;
     if bytes.len() > MARKET_CARD_MAX { return Err(refused("This pack's description is too large for Market.")); }
@@ -106,7 +107,7 @@ pub(crate) fn build_card(h: &Header, items: &[(Vec<u8>, Vec<u8>)], pack_digest: 
 }
 fn parse_card(bytes: &[u8]) -> Result<Card> {
     let card: Card = serde_json::from_slice(bytes).map_err(|_| invalid())?;
-    if card.version != 1 || card.peek.len() > 3 || card.designs.len() + card.prizes.len() > edition_pack::MAX_PACK_SLOTS as usize { return Err(invalid()); }
+    if !crate::creator_pack::color_ok(&card.pouch,card.color) || card.version != 1 || card.peek.len() > 3 || card.designs.len() + card.prizes.len() > edition_pack::MAX_PACK_SLOTS as usize { return Err(invalid()); }
     for p in &card.peek { if STANDARD.decode(&p.png).map_err(|_| invalid())?.len() > MARKET_CARD_MAX { return Err(invalid()); } }
     Ok(card)
 }

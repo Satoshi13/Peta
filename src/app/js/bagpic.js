@@ -6,6 +6,14 @@ const bagRnd = (seed, i) => { const v = Math.sin(seed * 12.9898 + i * 78.233) * 
 const bagEm = (text) => [...text].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 1 : .55), 0);   // full-width characters count 1, the rest about half
 
 
+// Restore the original paper label from the source artwork, above the colored body.
+// The outlines follow each photographed label; text, folds and the paper edge stay intact.
+function PackPaper(bag,color) {
+  if(!packColor(bag,color)?.id)return null;
+  const clips={matte:"polygon(19.6% 45.8%,80.7% 45.5%,82.3% 46.2%,82.4% 72.5%,81.1% 74.2%,19.4% 74.2%,18.4% 73.2%,18.5% 47.2%)",holo:"polygon(20.6% 36.7%,78.6% 35.6%,79.2% 36.1%,79.2% 63.4%,78.5% 64.2%,21.2% 65%,20.2% 64.4%,20.2% 37.4%)"};
+  return h("i.pack-paper-label",{"aria-hidden":"true",style:{"--label-art":`var(--a-${BAGS[bag].art})`,clipPath:clips[bag]}});
+}
+
 /**
  * @param bag    a BAGS id
  * @param title  written on the label (one line; a long name shrinks)
@@ -18,16 +26,16 @@ const bagEm = (text) => [...text].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 
  * @param shut   closed: opaque wrappings hide what is inside (glassine and the folded wrap stay see-through)
  * @param layout where the Maker put the cover and up to two accents ({comp, cover, accents:[{kind,x,y}]}); every place is clamped to the wrapping (ui-math.js bagResolveLayout)
  */
-function BagPic({ bag: id, title = "", sub = "", cover = null, deco = "none", k = 15, fit = 0, items = [], shut = false, id: key = "", layout = null } = {}) {
+function BagPic({ bag: id, title = "", sub = "", cover = null, deco = "none", k = 15, fit = 0, items = [], shut = false, id: key = "", layout = null, color = null } = {}) {
   const bag = BAGS[id] || BAGS.kraft, [x0, y0, x1, y1] = bag.body, bw = x1 - x0, bh = y1 - y0, seed = bagHash(title + bag.id), jit = (i, amp) => (bagRnd(seed, i) - .5) * amp;
   const lay = layout ? PetaMath.bagResolveLayout(bag, layout) : null; if (layout && Array.isArray(layout.accents)) deco = "none";   // a layout carries its own accents
   let boxW = bag.cm * k / (bw / 100); if (fit) boxW = Math.min(boxW, fit / (bw / 100));
-  const el = h("div.bagpic", { data: { kind: bag.gen ? "gen" : bag.id, bag: bag.id, gloss: bag.gen && bag.gloss && !(shut && bag.seal === "slide") ? "1" : "0", nolabel: bag.gen && !bag.hasLabel ? "1" : "0" },
+  const el = h("div.bagpic", { data: { kind: bag.gen ? "gen" : bag.id, bag: bag.id, color:packColor(bag.id,color)?.id || "", gloss: bag.gen && bag.gloss && !(shut && bag.seal === "slide") ? "1" : "0", nolabel: bag.gen && !bag.hasLabel ? "1" : "0" },
     style: { "--w": boxW + "px", "--art": `var(--a-${bag.art})`, "--gloss": bag.gloss ?? 0, aspectRatio: `${bag.W} / ${bag.H}` } });
   if (bag.lean) el.style.rotate = bag.lean + "deg";
   const [l, t, r, b] = bag.lbl;
   el.style.setProperty("--ll", l + "%"); el.style.setProperty("--lt", t + "%"); el.style.setProperty("--lr", 100 - r + "%"); el.style.setProperty("--lb", 100 - b + "%"); el.style.setProperty("--lrot", (bag.rot || 0) + jit(1, 3) + "deg");
-  const art = h("div.bp-art"); if (shut && bag.seal === "slide") art.style.opacity = 0;
+  const art = h("div.bp-art",{style:{filter:packColorFilter(bag.id,color)}}); if (shut && bag.seal === "slide") art.style.opacity = 0;
   const showItems = items.length && (!shut || bag.see);
   if (showItems) {
     const f = h("div.bp-fan"), pk = bag.peek; let sz = 36, spread = 150, cut = false;
@@ -39,7 +47,7 @@ function BagPic({ bag: id, title = "", sub = "", cover = null, deco = "none", k 
     items.slice(0, 6).forEach((src, i, all) => { const n = all.length, sp = n === 1 ? 0 : (i / (n - 1) - .5); f.append(h("img", { src, alt: "", style: { transform: `translateX(-50%) translateX(${sp * spread}%) rotate(${sp * 40}deg) translateY(${-6 - (1 - Math.abs(sp) * 2) * 12}%)`, zIndex: i, width: (n === 1 ? sz * 1.4 : sz) + "%", bottom: cut ? (pk.sink ?? -40) + "%" : "" } })); });
     el.append(f);
   }
-  el.append(art);
+  el.append(art);const paper=PackPaper(bag.id,color);if(paper)el.append(paper);
   if (shut && bag.seal === "slide") el.append(h("div.bp-drbox"), h("div.bp-drsleeve"));
   if (deco === "tape") { const tp = h("i.bp-tape"); const [tx, ty, tw, th, tr] = bag.tape; Object.assign(tp.style, { left: tx + "%", top: ty + "%", width: tw + "%", height: th + "%", rotate: tr + jit(3, 3) + "deg" }); el.append(tp); }
   else if (shut && bag.seal === "tape") { const tp = h("i.bp-tape.cream"); const [tx, ty, tw, th, tr] = bag.tape; Object.assign(tp.style, { left: tx + "%", top: ty + "%", width: tw + "%", height: th + "%", rotate: tr + "deg" }); el.append(tp); }

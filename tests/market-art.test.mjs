@@ -30,7 +30,7 @@ test("the rail's packs are pendulums driven by the page's real motion, start wit
   assert.match(js, /follow\(root\) \{ return \(\) => \{ const r = root\.querySelector\("\.mk-rail-row"\)\?\.getBoundingClientRect\(\); return r \? \[r\.left, r\.top\] : null;/);
   assert.match(js, /sway\(root, dir = 1, follow = null\) \{\s*if \(reduced\(\) \|\| root\._swinging\) return;/);
   assert.match(js, /Math\.sin\(b\.th\)[^;]*Math\.cos\(b\.th\)/);
-  assert.ok(shell.indexOf("Pages[id].arrive?.(next") < shell.indexOf("await TRANS["), "the swing starts before the transition, not after it");
+  assert.ok(shell.indexOf("Pages[id].arrive?.(next") < shell.indexOf("await (TRANS["), "the swing starts before the transition, not after it");
   assert.doesNotMatch(js, /enter\(root, o\)/);
   // a fast scroll swings them too (the rail moves up and down); a slow one barely does
   assert.match(js, /root\.addEventListener\("scroll", \(\) => \{ if \(MK\.tab === "packs"\) Pages\.market\.sway\(root, 0, Pages\.market\.follow\(root\)\)/);

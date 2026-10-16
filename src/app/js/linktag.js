@@ -61,14 +61,14 @@ const LinkTags = {
     if(!S.developer && S.scraps.balance < price) { Shell.toast(`You need ${price - S.scraps.balance} more Scraps.`); return; }
     const requestId = Array.from(crypto.getRandomValues(new Uint8Array(16)), (n) => n.toString(16).padStart(2, "0")).join("");
     try { await Bridge.invoke("scrap_trade", { trade: request, requestId }); await Bridge.reload(); Snd.chime(2, 740); Shell.toast("A link tag is in your stock."); done?.(); }
-    catch(e) { Shell.toast(String(e)); }
+    catch(e) { Shell.error(e); }
   },
   async remove(e, done) {
     try { await Bridge.invoke("link_tag_remove", { stickerId: e.id }); await Bridge.reload(); Snd.tap(); Shell.toast("The tag is back in your stock."); done?.(); }
-    catch(err) { Shell.toast(String(err)); }
+    catch(err) { Shell.error(err); }
   },
   async setShow(e, on, done) {
-    try { await Bridge.invoke("link_tag_set_show", { stickerId: e.id, show: on }); await Bridge.reload(); done?.(); } catch(err) { Shell.toast(String(err)); }
+    try { await Bridge.invoke("link_tag_set_show", { stickerId: e.id, show: on }); await Bridge.reload(); done?.(); } catch(err) { Shell.error(err); }
   },
   /** The attach / change dialog. `existing` is the sticker's tag when it is being changed. */
   attach(e, done) {
@@ -110,13 +110,13 @@ const LinkTags = {
       h("div.lt-right", h("p.eyebrow", titleOf(e)), h("h2", existing ? "Change the link" : "Attach a link tag"), h("p.lt-sub", "Choose what this sticker opens when you click it on the desktop."), body, status,
         h("small.lt-note", "It returns to you when you take it off, or seal this sticker into a gift or a pack."), h("div.lt-actions", cancel, go)));
     const dialog = h("dialog.lt-dialog", { "aria-label": "Link tag", on: { cancel: (ev) => { ev.stopPropagation(); if(pending) ev.preventDefault(); }, keydown: (ev) => { if(ev.key === "Escape") ev.stopPropagation(); }, close: () => { dialog.remove(); Bridge.dialogOpen = !!document.querySelector("dialog"); } } }, form);
-    paint(); Bridge.dialogOpen = true; document.body.append(dialog); dialog.showModal();
+    paint(); Bridge.dialogOpen = true; document.body.append(dialog); Dialogs.open(dialog);
   },
   noneLeft() {
     const dialog = h("dialog.lt-dialog.lt-small", { "aria-label": "No link tag", on: { close: () => { dialog.remove(); Bridge.dialogOpen = !!document.querySelector("dialog"); } } },
       h("div.lt-card.lt-narrow", h("div.lt-left", LinkTagPic({ size: 74 })), h("div.lt-right", h("h2", "You have no link tag"), h("p.lt-sub", "Get one in the Market. You can use it again and again."),
         h("div.lt-actions", h("button.btn.quiet", { type: "button", on: { click: () => dialog.close() } }, "Not now"), h("button.btn", { type: "button", on: { click: () => { dialog.close(); MK.tab = "tools"; Shell.go("market"); } } }, "Go to the Market")))));
-    Bridge.dialogOpen = true; document.body.append(dialog); dialog.showModal();
+    Bridge.dialogOpen = true; document.body.append(dialog); Dialogs.open(dialog);
   },
   /** The row in the Collection's details. */
   row(e, repaint) {
@@ -126,7 +126,7 @@ const LinkTags = {
     }
     return h("div.det-tag.on", h("div.det-tag-head", h("span.det-tag-ico", ltFace(e.id, tag)),
       h("div", h("b", tag.label), h("small", tag.kind === "website" ? tag.target.replace(/^https?:\/\//, "") : "Click to open")),
-      h("button.det-tag-go", { type: "button", "aria-label": `Open ${tag.label}`, title: "Open now", on: { click: () => Bridge.invoke("link_tag_open", { stickerId: e.id }).catch((err) => Shell.toast(String(err))) } }, ltGlyph("open"))),
+      h("button.det-tag-go", { type: "button", "aria-label": `Open ${tag.label}`, title: "Open now", on: { click: () => Bridge.invoke("link_tag_open", { stickerId: e.id }).catch((err) => Shell.error(err)) } }, ltGlyph("open"))),
       h("div.det-tag-actions", h("button.btn.quiet", { type: "button", on: { click: () => this.attach(e, repaint) } }, "Change…"), h("button.btn.quiet", { type: "button", on: { click: () => this.remove(e, repaint) } }, "Remove tag")),
       h("label.det-tag-show", h("span", "Show in Collection"), h("input", { type: "checkbox", role: "switch", checked: tag.showInCollection, on: { change: (ev) => this.setShow(e, ev.target.checked, repaint) } }), h("i.lt-sw")));
   },
