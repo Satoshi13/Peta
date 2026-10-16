@@ -49,4 +49,4 @@ devのD1へ`0008_daily_tables.sql`、devのAPIと管理ページを反映済み�
 
 devではc1を信用するDeveloper版で、確認後「次の日にする」を使います。実際に端末を操作できない場合は、署名契約・抽選・保存済みの日の不変性のテストで代替できます。DeveloperのSettingsには最終確認日時と表の検証失敗理由も表示します。
 
-本番は配布日にオーナーがD1の0008と0009を適用し、管理ページとダウンロードページを更新し、**peta-api prodを他の招待必須化とまとめて**更新します。詳しくは[daily-table-report.md](daily-table-report.md)。新しい素材を追加する場合は[new-material-howto.md](new-material-howto.md)。
+本番は配布日にオーナーがD1の0008〜0010を適用し([release-day-runbook.md](release-day-runbook.md))、管理ページとダウンロードページを更新し、**peta-api prodを他の招待必須化とまとめて**更新します。詳しくは[daily-table-report.md](daily-table-report.md)。新しい素材を追加する場合は[new-material-howto.md](new-material-howto.md)。

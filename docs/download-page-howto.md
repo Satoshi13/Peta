@@ -2,7 +2,7 @@
 
 2026-10-14。Peta のベータを、招待した友達だけに配るための仕組みと手順です。
 
-友達・招待・クーポン・配布状況を1ページで扱うオーナー用管理画面は [admin-page-howto.md](admin-page-howto.md)。以下の既存手順も使えます。
+友達・招待・クーポン・配布状況を1ページで扱うオーナー用管理画面は [admin-page-howto.md](admin-page-howto.md)。以下の既存手順も使えます。配る日の順番は [release-day-runbook.md](release-day-runbook.md)。
 
 ## しくみ
 
@@ -89,9 +89,12 @@
 
 
 ```bash
+export TAURI_SIGNING_PRIVATE_KEY_PATH=/Volumes/Peta-private/updater.key   # beta は更新用の鍵がないとビルドを始めない
 bash scripts/release-mac.sh beta        # 署名・公証済みの .app → 背景つき DMG → DMG も署名・公証・staple
-bash scripts/publish-release.sh src-tauri/target/release/distribution/Peta-<版>.dmg prod
+bash scripts/publish-release.sh src-tauri/target/release/distribution/Peta-<版>.dmg prod --notes "What changed"
 ```
+
+beta の DMG の隣にできる `Peta-<版>.app.tar.gz` と `.sig`(アプリ内アップデート用)も `publish-release.sh` が一緒に置きます。3つを同じ場所に置いたままにしてください。鍵とパスワードの扱いは [updater-howto.md](updater-howto.md)。
 
 - `release-mac.sh` は Developer ID の準備が要ります(docs/distribution-howto.md の B2)。DMG の見た目は `scripts/make-dmg.sh` と `assets-src/dmg/`(背景は `source/installer.html?export` を 768×512 と 2倍で書き出したもの)。
 - `publish-release.sh` は、本番では署名・公証・staple を確かめてから、DMG の中のアプリから **版・最低 macOS・対応 CPU** を読み、サイズと SHA-256 を計算して表示し、`y` で R2 に DMG → `releases/latest.json` の順に置きます。ページはこの JSON を読むので、手で何かを書き換える必要はありません。
@@ -100,8 +103,10 @@ bash scripts/publish-release.sh src-tauri/target/release/distribution/Peta-<版>
 
 ## 友達を足す・止める
 
-- **足す**: Access の Policy の Emails にアドレスを足し、Discord の `#ダウンロード` のリンクを案内します。招待コードはその人が最初にページを開いたときに作られます。
-- **止める**: Access の Policy から外し(ページに入れなくなる)、次で招待も止めます(その Mac がつながらなくなり、ページにも DMG が出なくなる)。
+ふだんは管理ページの **Friends**(Add / Pause / Resume / Remove)を使います([admin-page-howto.md](admin-page-howto.md))。Remove は招待を止めてから Access のメールを外します。以下は管理ページが使えないときの手作業です。
+
+- **足す**: Zero Trust の再利用可能ポリシー `Peta friends` の Emails にアドレスを足し、Discord の `#ダウンロード` のリンクを案内します。招待コードはその人が最初にページを開いたときに作られます。
+- **止める**: `Peta friends` から外し(ページに入れなくなる)、次で招待も止めます(その Mac がつながらなくなり、ページにも DMG が出なくなる)。
 
   ```bash
   bash scripts/beta-invites.sh pause friend@example.com
