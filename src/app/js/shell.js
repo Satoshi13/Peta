@@ -323,7 +323,9 @@ const Shell = (() => {
     return Promise.resolve();
   }
   function flushRefresh() {
-    if (!refreshPending || navigating || blockedRefresh() || editing() || document.querySelector("dialog[open]")) return;
+    // The same rule as refresh(): background changes wait for an edit, a dialog or a ceremony, but a page's own full refresh
+    // (Create's "now cutting" / "ready") must not be dropped just because it arrived during a navigation.
+    if (!refreshPending || navigating || !fullRefresh && (blockedRefresh() || editing() || document.querySelector("dialog[open]"))) return;
     const changes = fullRefresh ? null : new Set(refreshChanges);
     refreshPending = fullRefresh = false; refreshChanges.clear();
     const pending = refreshWaiters.splice(0);
