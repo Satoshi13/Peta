@@ -62,9 +62,11 @@ signature_file=$archive.sig
 [[ " $archs " == *" arm64 "* && " $archs " == *" x86_64 "* ]] || { echo 'Beta updater archives must contain both Mac architectures.' >&2; exit 2; }
 [[ -s $archive && -s $archive.sig ]] || { echo 'The beta updater archive and signature must be beside the disk image.' >&2; exit 2; }
 python3 - "$archive" "$version" <<'PYARCH'
-import sys,tarfile,plistlib
+import sys,tarfile,plistlib,pathlib
 with tarfile.open(sys.argv[1],'r:gz') as t:
+ if not all((n=='Peta.app' or n.startswith('Peta.app/')) and not any(part.startswith('._') for part in pathlib.PurePosixPath(n).parts) for n in t.getnames()):raise SystemExit('Updater archive must contain one Peta.app root and no AppleDouble metadata.')
  p=plistlib.loads(t.extractfile('Peta.app/Contents/Info.plist').read())
+ if p.get('CFBundleIdentifier')!='app.peta.desktop':raise SystemExit('Only the distribution updater archive can be published.')
  if p['CFBundleShortVersionString']!=sys.argv[2]:raise SystemExit('Updater and disk image versions differ.')
 PYARCH
 fi

@@ -88,6 +88,32 @@ mod beta {
             Err(()) => Err("Peta couldn't check for updates. Please try again later.".into()),
         }
     }
+    fn failed(stage: &str, error: tauri_plugin_updater::Error) {
+        #[cfg(feature = "updater-test")]
+        {
+            use std::error::Error;
+            match error {
+                tauri_plugin_updater::Error::Reqwest(error) => {
+                    let error = error.without_url();
+                    eprintln!("[updater-test] {stage}: {error}");
+                    let mut cause = error.source();
+                    while let Some(next) = cause {
+                        eprintln!("[updater-test] cause: {next}");
+                        cause = next.source();
+                    }
+                }
+                tauri_plugin_updater::Error::Io(error) => {
+                    eprintln!("[updater-test] {stage}: IO {:?}: {error}", error.kind())
+                }
+                error => eprintln!(
+                    "[updater-test] {stage}: {:?}",
+                    std::mem::discriminant(&error)
+                ),
+            }
+        }
+        #[cfg(not(feature = "updater-test"))]
+        let _ = (stage, error);
+    }
     async fn download(app: &tauri::AppHandle) -> Result<Option<(Update, Vec<u8>)>, ()> {
         let (_, referee) = crate::invite::referee(app).map_err(|_| ())?;
         let origin = crate::referee::endpoint();
@@ -108,18 +134,37 @@ mod beta {
         {
             builder = builder.header(name, value).map_err(|_| ())?;
         }
+        #[cfg(feature = "updater-test")]
+        {
+            let preflight = referee.exchange(
+                "GET",
+                &format!("/v1/update?current={}", app.package_info().version),
+                &[],
+                "application/json",
+                64 * 1024,
+            );
+            eprintln!(
+                "[updater-test] signed preflight status: {:?}",
+                preflight
+                    .as_ref()
+                    .map(|(status, _)| *status)
+                    .map_err(|_| "network")
+            );
+        }
         let Some(mut update) = builder
             .build()
-            .map_err(|_| ())?
+            .map_err(|e| failed("build", e))?
             .check()
             .await
-            .map_err(|_| ())?
+            .map_err(|e| failed("check", e))?
         else {
             return Ok(None);
         };
         if !allowed_url(&update.download_url, &origin) {
             return Err(());
         }
+        // Upstream check timeout is not carried into the returned Update. Bound downloads too.
+        update.timeout = Some(std::time::Duration::from_secs(300));
         update.headers.clear();
         for (name, value) in referee
             .signed_headers("GET", update.download_url.path(), &[])
@@ -133,7 +178,10 @@ mod beta {
         }
         // The plugin verifies both the minisign signature and its signed version before returning bytes.
         // Failure drops the allocation: no unverified file is left on disk or offered to the UI.
-        let bytes = update.download(|_, _| {}, || {}).await.map_err(|_| ())?;
+        let bytes = update
+            .download(|_, _| {}, || {})
+            .await
+            .map_err(|e| failed("download", e))?;
         Ok(Some((update, bytes)))
     }
     pub fn install(app: &tauri::AppHandle) -> Result<(), String> {
@@ -148,10 +196,10 @@ mod beta {
             .ready
             .take()
             .ok_or("Check for updates again.")?;
-        pending
-            .0
-            .install(&pending.1)
-            .map_err(|_| "Peta couldn't install this update. Please try again later.")?;
+        pending.0.install(&pending.1).map_err(|error| {
+            failed("install", error);
+            "Peta couldn't install this update. Please try again later."
+        })?;
         let _ = app.emit("update-installing", ());
         app.restart();
     }

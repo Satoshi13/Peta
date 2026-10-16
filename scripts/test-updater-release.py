@@ -14,6 +14,7 @@ assert result['remove']==['releases/Peta-0.2.0.dmg','releases/updates/0.2.0/Peta
 assert prune.plan([{'key':f'releases/Peta-{v}.dmg','size':1} for v in ['0.9.0','0.10.0-rc.1','0.10.0']],{'version':'0.10.0','file':'Peta-0.10.0.dmg'},1)['remove']==['releases/Peta-0.10.0-rc.1.dmg','releases/Peta-0.9.0.dmg']
 with tempfile.TemporaryDirectory(prefix='peta-disposable-updater-') as tmp:
  t=Path(tmp);key=t/'test.key';app=t/'Peta.app';(app/'Contents').mkdir(parents=True);(app/'Contents/test-ticket').write_text('stapled test')
+ if __import__('sys').platform=='darwin':subprocess.run(['xattr','-w','com.peta.updater-test','disposable metadata',str(app)],check=True)
  __import__('plistlib').dump({'CFBundleIdentifier':'app.peta.updater-test','CFBundleShortVersionString':'0.0.2-test'},(app/'Contents/Info.plist').open('wb'))
  env=dict(os.environ,TAURI_SIGNING_PRIVATE_KEY_PASSWORD='')
  r=subprocess.run([str(ROOT/'node_modules/.bin/tauri'),'signer','generate','--ci','--write-keys',str(key)],env=env,capture_output=True)
@@ -24,6 +25,9 @@ with tempfile.TemporaryDirectory(prefix='peta-disposable-updater-') as tmp:
  r=subprocess.run(['bash',str(ROOT/'scripts/updater-artifact.sh'),str(app),'0.0.2-test',str(archive)],env=env,capture_output=True)
  assert r.returncode==0,'Disposable artifact signing failed.'
  assert archive.is_file() and Path(str(archive)+'.sig').is_file()
+ with __import__('tarfile').open(archive) as tar:
+  assert all((n=='Peta.app' or n.startswith('Peta.app/')) and not any(part.startswith('._') for part in Path(n).parts) for n in tar.getnames()),'Updater archives must have a single app root and no AppleDouble entries.'
+  assert tar.extractfile('Peta.app/Contents/test-ticket').read()==b'stapled test'
  text=base64.b64decode(Path(str(archive)+'.sig').read_text()).decode()
  assert '0.0.2-test' in text,'The signature must bind the app version.'
  r=subprocess.run(['bash',str(ROOT/'scripts/updater-artifact.sh'),str(app),'0.0.2-test',str(archive)],env=env,capture_output=True)

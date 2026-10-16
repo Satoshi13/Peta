@@ -53,6 +53,14 @@ impl Store {
 
     pub fn open(&self, app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         let dir = app.path().app_data_dir()?;
+        #[cfg(feature="updater-test")]
+        let dir = {
+            let _=dir;
+            let path=std::path::PathBuf::from(std::env::var_os("PETA_UPDATER_TEST_ROOT").ok_or("Test library path required")?);
+            let temp=std::env::temp_dir().canonicalize()?;
+            if !path.is_dir() || path.canonicalize()?!=path || !path.starts_with(temp) || app.config().identifier!="app.peta.updater-test" {return Err("Updater test requires a canonical isolated temporary library without symlinks.".into());}
+            path
+        };
         if let Some(parent)=dir.parent(){fs::create_dir_all(parent)?;}
         peta_core::migration::recover(&dir)?;
         let fresh=match fs::symlink_metadata(&dir){

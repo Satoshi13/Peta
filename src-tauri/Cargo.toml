@@ -9,6 +9,7 @@ rust-version = "1.90"
 members = ["crates/core", "crates/peta-pass"]
 
 [features]
+updater-test = ["beta"]
 beta = ["server", "dep:tauri-plugin-updater", "dep:tauri-plugin-process", "dep:reqwest"]
 developer = ["peta-core/developer", "server"]
 server = ["peta-core/daily-tables", "dep:ureq", "dep:ed25519-dalek", "dep:base64", "dep:getrandom"]

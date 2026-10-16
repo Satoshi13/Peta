@@ -12,9 +12,9 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-#[cfg(feature = "developer")]
+#[cfg(any(feature = "developer",feature="updater-test"))]
 pub const API_URL: &str = "https://peta-api-dev.peta-api.workers.dev";
-#[cfg(not(feature = "developer"))]
+#[cfg(not(any(feature = "developer",feature="updater-test")))]
 pub const API_URL: &str = "https://peta-api-prod.peta-api.workers.dev";
 static LAST_CONTACT: AtomicI64 = AtomicI64::new(0);
 pub fn endpoint() -> String {
@@ -245,8 +245,8 @@ mod tests {
     use super::*;
     #[test]
     fn the_shipped_endpoint_is_fixed_and_developer_uses_dev() {
-        #[cfg(feature="developer")] assert_eq!(API_URL,"https://peta-api-dev.peta-api.workers.dev");
-        #[cfg(not(feature="developer"))] { assert_eq!(API_URL,"https://peta-api-prod.peta-api.workers.dev"); assert_eq!(endpoint(),API_URL); }
+        #[cfg(any(feature="developer",feature="updater-test"))] assert_eq!(API_URL,"https://peta-api-dev.peta-api.workers.dev");
+        #[cfg(not(any(feature="developer",feature="updater-test")))] { assert_eq!(API_URL,"https://peta-api-prod.peta-api.workers.dev"); assert_eq!(endpoint(),API_URL); }
     }
     #[test]
     fn transport_signs_exact_bytes_and_maps_server_errors() {

@@ -168,6 +168,7 @@ fn developer_sync_displays(app: AppHandle) -> Result<(), String> {
 
 mod updater;
 mod daily_supply;
+#[cfg(feature="updater-test")]mod updater_live_test;
 
 pub fn run() {
     let context = tauri::generate_context!();
@@ -177,6 +178,13 @@ pub fn run() {
         context.config_mut().identifier = "app.peta.developer".into();
         context.config_mut().product_name = Some("Peta Developer".into());
         context.config_mut().plugins.0.insert("deep-link".into(), serde_json::json!({"desktop":{"schemes":["peta-developer"]}}));
+        context
+    };
+    #[cfg(feature="updater-test")]
+    let context = {
+        let mut context=context;
+        context.config_mut().identifier="app.peta.updater-test".into();
+        context.config_mut().plugins.0.insert("deep-link".into(),serde_json::json!({"desktop":{"schemes":["peta-updater-test"]}}));
         context
     };
     let app = tauri::Builder::default()
@@ -357,6 +365,13 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             app.state::<Store>().open(app.handle())?;
+            #[cfg(feature="updater-test")] {
+                app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                tauri::WebviewWindowBuilder::new(app,"updater-test",tauri::WebviewUrl::App("updater-live-test.html".into())).title("Peta · isolated update test").inner_size(420.0,180.0).build()?;
+                board_auto::start(app.handle());
+                updater_live_test::start(app.handle());
+                return Ok(());
+            }
             tray::build(app.handle())?;
             layers::sync(app.handle())?;
             board_auto::start(app.handle());
