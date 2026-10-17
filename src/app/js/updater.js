@@ -44,8 +44,27 @@ const UpdateUI = {
     return card;
   },
   card() {
-    const card=h('div.update-controls',h('p.small.muted.update-version'),h('button.btn.paper.small.update-check',{type:'button',hidden:true,on:{click:()=>this.check(true)}},'Check for updates'));
+    const card=h('div.update-controls',h('p.small.muted.update-version'),SupplyCheck.controls(),h('button.btn.paper.small.update-check',{type:'button',hidden:true,on:{click:()=>this.check(true)}},'Check for updates'));
     queueMicrotask(()=>{this.paint();if(!this.state)Bridge.invoke('update_status').then(s=>{this.state=s;this.paint();}).catch(()=>{});});
     return card;
+  },
+};
+
+const SupplyCheck = {
+  controls() {
+    const status=h('p.small.muted',{role:'status'}), button=h('button.btn.paper.small',{type:'button'},'Check for new packs and news');
+    const root=h('div.supply-check',{hidden:true},button,status); let until=0, busy=false, timer;
+    const paint=()=>{const left=Math.max(0,Math.ceil((until-Date.now())/1000));button.disabled=busy||left>0;button.textContent=busy?'Checking…':left?`Check again in ${left}s`:'Check for new packs and news';if(!root.isConnected)clearInterval(timer);};
+    button.onclick=async()=>{
+      if(busy||until>Date.now())return;busy=true;paint();
+      try {
+        const result=await Bridge.invoke('supply_check');
+        if(!S.developer)until=Date.now()+(result.retryAfter||60)*1000;
+        status.textContent=result.retryAfter?`Please wait ${result.retryAfter}s.`:result.problem?"Couldn't connect.":result.newPacks?`${result.newPacks} new pack${result.newPacks===1?'':'s'} arrived.`:'Up to date.';
+      } catch { if(!S.developer)until=Date.now()+60000;status.textContent="Couldn't connect."; }
+      finally {busy=false;paint();}
+    };
+    queueMicrotask(()=>Bridge.invoke('daily_table_status').then(s=>{if(!root.isConnected)return;root.hidden=!s.enabled;if(!S.developer&&s.manualAttempt)until=Number(s.manualAttempt)*1000+60000;paint();if(s.enabled)timer=setInterval(paint,1000);}).catch(()=>{}));
+    return root;
   },
 };

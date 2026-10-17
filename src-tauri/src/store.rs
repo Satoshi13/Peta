@@ -47,6 +47,11 @@ impl std::ops::DerefMut for Locked<'_> {
 }
 
 impl Store {
+    #[cfg(test)]
+    pub(crate) fn for_test(lib: Library) -> Self {
+        Self { lib: Mutex::new(Some(lib)), ..Self::default() }
+    }
+
     pub fn lock(&self) -> Locked<'_> {
         Locked(self.lib.lock().unwrap())
     }

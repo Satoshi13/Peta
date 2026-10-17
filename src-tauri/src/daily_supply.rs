@@ -24,25 +24,52 @@ mod online {
                 }
             }
             let _reset = Reset;
-            let _ = check(&app);
+            let _ = check(&app, false);
         });
     }
-    fn check(app: &tauri::AppHandle) -> Result<()> {
+    #[derive(Default, serde::Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CheckResult { pub new_packs: usize, pub changed: bool, pub retry_after: i64, pub problem: bool }
+    pub fn cooldown(last: Option<i64>, now: i64, developer: bool) -> i64 {
+        if developer { return 0; }
+        last.filter(|t| *t <= now).map_or(0, |t| (60 - (now - t)).max(0))
+    }
+    fn reserve(db: &mut peta_core::Database, now: i64, manual: bool, developer: bool) -> Result<Option<i64>> {
+        let key = if manual { "daily.manual_attempt" } else { "daily.table_attempt" };
+        let last = db.setting(key)?.and_then(|s| s.parse().ok());
+        if manual {
+            let wait = cooldown(last, now, developer);
+            if wait > 0 { return Ok(Some(wait)); }
+            db.set_setting(key, &now.to_string())?;
+        } else if !due(last, now) { return Ok(Some(0)); }
+        db.set_setting("daily.table_attempt", &now.to_string())?;
+        Ok(None)
+    }
+    pub fn manual(app: &tauri::AppHandle) -> Result<CheckResult> {
+        if CHECKING.swap(true, Ordering::SeqCst) { return Err(Error::Invalid("A check is already in progress.".into())); }
+        struct Reset;
+        impl Drop for Reset { fn drop(&mut self) { CHECKING.store(false, Ordering::SeqCst); } }
+        let _reset = Reset;
+        check(app, true)
+    }
+    fn check(app: &tauri::AppHandle, manual: bool) -> Result<CheckResult> {
         let store = app.state::<crate::store::Store>();
         let now = chrono::Utc::now();
         let referee = {
             let mut lib = store.lock();
-            let last = lib
-                .db()
-                .setting("daily.table_attempt")?
-                .and_then(|s| s.parse().ok());
-            if !due(last, now.timestamp()) {
-                return Ok(());
+            if let Some(wait) = reserve(lib.db_mut(), now.timestamp(), manual, cfg!(feature="developer"))? {
+                return Ok(CheckResult { retry_after: wait, ..Default::default() });
             }
-            lib.db_mut()
-                .set_setting("daily.table_attempt", &now.timestamp().to_string())?;
             crate::referee::HttpReferee::new(lib.root())?
         };
+        let result = fetch(&store, &referee, now)?;
+        if result.changed { crate::today::announce(app); }
+        Ok(result)
+    }
+    fn snapshot(db: &peta_core::Database) -> Result<Vec<Option<String>>> {
+        ["daily.tables", "config.announcements", "config.shop", "shop.listed"].iter().map(|k| db.setting(k)).collect()
+    }
+    fn fetch(store: &crate::store::Store, referee: &crate::referee::HttpReferee, now: chrono::DateTime<chrono::Utc>) -> Result<CheckResult> {
         #[derive(serde::Deserialize)]
         struct Response {
             tables: Vec<String>,
@@ -63,27 +90,21 @@ mod online {
             other => other?,
         };
         let mut lib = store.lock();
-        let tables = store_response(lib.db_mut(), &response.tables, now);
-        if let Some(announcements) = &response.announcements {
-            let _ = store_announcements(lib.db_mut(), announcements);
-        }
-        if let Some(shop) = &response.shop {
-            let _ = store_shop(lib.db_mut(), shop);
-        }
-        // The list replaces the last one whole (a list that can't be read keeps it); new versions are fetched below.
-        let (changed, fetch) = match &response.shop_packs {
+        let before = snapshot(lib.db())?;
+        let mut problem = store_response(lib.db_mut(), &response.tables, now).is_err();
+        if let Some(items) = &response.announcements { problem |= store_announcements(lib.db_mut(), items).is_err(); }
+        if let Some(items) = &response.shop { problem |= store_shop(lib.db_mut(), items).is_err(); }
+        let fetch = match &response.shop_packs {
             Some(list) => match shop_pack::replace_listing(lib.db_mut(), list) {
-                Ok(changed) => (changed, shop_pack::missing(lib.db(), list).unwrap_or_default()),
-                Err(_) => (false, Vec::new()),
+                Ok(_) => shop_pack::missing(lib.db(), list)?,
+                Err(_) => { problem = true; Vec::new() }
             },
-            None => (false, Vec::new()),
+            None => Vec::new(),
         };
+        let changed = before != snapshot(lib.db())?;
         drop(lib);
-        // The Market, the Packs shelf and the prices read the list on the page's next refresh: ask for one only when it changed.
-        if fetch_shop_packs(&store, &referee, &fetch) || changed {
-            crate::today::announce(app);
-        }
-        tables
+        let (new_packs, failed) = fetch_shop_packs(store, referee, &fetch);
+        Ok(CheckResult { new_packs, changed: changed || new_packs > 0, problem: problem || failed, retry_after: 0 })
     }
     /// The file path inside a listed URL, only in the one shape the service gives (`/v1/shop-pack/<token>/<packId>/<version>`).
     /// The host is never used: every request goes to this Mac's own service address, signed.
@@ -98,18 +119,20 @@ mod online {
     /// Fetch each new version and keep it only if it is the listed file and verifies with an official key. A failure skips
     /// that pack until the next check; nothing partial is kept.
     /// Returns whether any new version was kept.
-    fn fetch_shop_packs(store: &crate::store::Store, referee: &crate::referee::HttpReferee, fetch: &[shop_pack::Listed]) -> bool {
-        let mut kept = false;
+    fn fetch_shop_packs(store: &crate::store::Store, referee: &crate::referee::HttpReferee, fetch: &[shop_pack::Listed]) -> (usize, bool) {
+        let mut kept = 0;
+        let mut failed = false;
         for listed in fetch {
-            let Some(path) = listed.url.as_deref().and_then(|url| shop_pack_path(url, listed)) else { continue };
-            let Ok((200, bytes)) = referee.exchange_bulk("GET", &path, &[], "application/octet-stream", shop_pack::MAX_TOTAL + 1024 * 1024) else { continue };
+            let Some(path) = listed.url.as_deref().and_then(|url| shop_pack_path(url, listed)) else { failed = true; continue };
+            let Ok((200, bytes)) = referee.exchange_bulk("GET", &path, &[], "application/octet-stream", shop_pack::MAX_TOTAL + 1024 * 1024) else { failed = true; continue };
             let mut lib = store.lock();
             match shop_pack::store_listed(&mut lib, listed, &bytes) {
-                Ok(_) => kept = true,
-                Err(error) => eprintln!("[peta] shop pack {} v{} was not kept: {error}", listed.pack_id, listed.version),
+                Ok(shop_pack::Stored::New) => kept += 1,
+                Ok(shop_pack::Stored::Already) => {},
+                Err(error) => { failed = true; eprintln!("[peta] shop pack {} v{} was not kept: {error}", listed.pack_id, listed.version); },
             }
         }
-        kept
+        (kept, failed)
     }
     fn decode_all(items: &[String], max: usize) -> Result<Vec<events::Verified>> {
         if items.len() > max {
@@ -172,6 +195,45 @@ mod online {
     #[cfg(test)]
     mod tests {
         use super::*;
+        fn fake_response(status: u16, body: &str) -> (crate::referee::HttpReferee, std::thread::JoinHandle<()>) {
+            use std::io::{Read, Write};
+            let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+            let url = format!("http://{}", listener.local_addr().unwrap()); let body = body.to_owned();
+            let join = std::thread::spawn(move || {
+                let (mut stream, _) = listener.accept().unwrap(); let mut request = [0; 8192];
+                let n = stream.read(&mut request).unwrap();
+                assert!(String::from_utf8_lossy(&request[..n]).starts_with("GET /v1/config HTTP/1.1"));
+                write!(stream, "HTTP/1.1 {status} Test\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).unwrap();
+            });
+            (crate::referee::HttpReferee::with_url(ed25519_dalek::SigningKey::from_bytes(&[7;32]), url).unwrap(), join)
+        }
+        #[test]
+        fn manual_refresh_hits_the_server_preserves_the_cache_and_refreshes_only_changes() {
+            let dir = std::env::temp_dir().join(format!("peta-supply-{}", peta_core::ids::new_gift_id()));
+            let store = crate::store::Store::for_test(peta_core::Library::open(&dir).unwrap());
+            for changed in [true, false] {
+                let (http, join) = fake_response(200, r#"{"tables":[],"announcements":[],"shop":[],"shopPacks":[]}"#);
+                let r = fetch(&store, &http, chrono::Utc::now()).unwrap(); join.join().unwrap();
+                assert_eq!(r.changed, changed); assert!(!r.problem); assert_eq!(r.new_packs, 0);
+            }
+            let (http, join) = fake_response(500, r#"{"error":"offline"}"#);
+            let before = snapshot(store.lock().db()).unwrap();
+            assert!(fetch(&store, &http, chrono::Utc::now()).is_err()); join.join().unwrap();
+            assert_eq!(snapshot(store.lock().db()).unwrap(), before);
+            let _ = std::fs::remove_dir_all(dir);
+        }
+        #[test]
+        fn manual_beta_waits_a_minute_across_restarts_but_developer_never_waits() {
+            let mut db = peta_core::Database::open_in_memory().unwrap();
+            assert_eq!(reserve(&mut db, 100, true, false).unwrap(), None);
+            assert_eq!(reserve(&mut db, 101, true, false).unwrap(), Some(59));
+            assert_eq!(reserve(&mut db, 159, true, false).unwrap(), Some(1));
+            assert_eq!(reserve(&mut db, 160, true, false).unwrap(), None);
+            assert_eq!(reserve(&mut db, 161, true, true).unwrap(), None);
+            assert_eq!(reserve(&mut db, 161, true, true).unwrap(), None);
+            assert_eq!(reserve(&mut db, 162, false, false).unwrap(), Some(0));
+            assert_eq!(cooldown(Some(200), 100, false), 0);
+        }
         #[test]
         fn only_the_services_shop_pack_path_is_ever_fetched() {
             let token = "a".repeat(64);
@@ -290,6 +352,15 @@ pub fn daily_table_status(app: tauri::AppHandle) -> Result<serde_json::Value, St
     let store = app.state::<crate::store::Store>();
     let lib = store.lock();
     Ok(
-        serde_json::json!({"enabled":cfg!(feature="server"),"lastAttempt":lib.db().setting("daily.table_attempt").map_err(|e|e.to_string())?,"problem":lib.db().setting("daily.table_error").map_err(|e|e.to_string())?}),
+        serde_json::json!({"enabled":cfg!(feature="server"),"lastAttempt":lib.db().setting("daily.table_attempt").map_err(|e|e.to_string())?,"manualAttempt":lib.db().setting("daily.manual_attempt").map_err(|e|e.to_string())?,"problem":lib.db().setting("daily.table_error").map_err(|e|e.to_string())?}),
     )
+}
+
+/// Explicit settings refresh. Background and manual checks share one network gate.
+#[tauri::command]
+pub async fn supply_check(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
+    #[cfg(feature="server")]
+    { tauri::async_runtime::spawn_blocking(move || online::manual(&app).and_then(|r| serde_json::to_value(r).map_err(|e| peta_core::Error::Invalid(e.to_string()))).map_err(|e| e.to_string())).await.map_err(|e| e.to_string())? }
+    #[cfg(not(feature="server"))]
+    { let _ = app; Err("This edition works offline.".into()) }
 }
