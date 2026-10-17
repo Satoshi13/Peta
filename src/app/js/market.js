@@ -84,15 +84,42 @@ const Featured = {
   },
 };
 
+/* Official packs that arrived after the app shipped (docs/official-packs-howto.md): checked with an official key and kept on this Mac,
+   listed in S.scraps.shopPacks while they are on sale. Their pictures are the stored art, fetched once; the page adds the border, as it
+   does for the built-in packs. The most common come first, so the rarest stay a surprise. */
+const ShopPacks = {
+  pics: new Map(),
+  RANK: { common: 0, uncommon: 1, rare: 2 },
+  picture(id, key) {
+    const at = id + "/" + key;
+    if (!this.pics.has(at)) {
+      const request = Bridge.invoke("shop_pack_picture", { packId: id, key }).then((bytes) => URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "image/png" })));
+      this.pics.set(at, request); request.catch(() => { if (this.pics.get(at) === request) this.pics.delete(at); });
+    }
+    return this.pics.get(at);
+  },
+  pack(s) {
+    const items = [...s.items].sort((a, b) => (this.RANK[a.rarity] ?? 3) - (this.RANK[b.rarity] ?? 3));
+    return { id: s.id, title: s.title, by: s.by, count: s.items.length, price: "Scraps", hue: 0, kind: isPouch(s.pouch) ? s.pouch : "kraft", bag: s.pouch, color: s.color || null, blurb: s.blurb || "", shop: true,
+      keys: items.map((it) => ({ raw: true, name: it.name, load: () => this.picture(s.id, it.key) })) };
+  },
+  list() { return (S.scraps.shopPacks || []).map((s) => this.pack(s)); },
+};
+
 const Market = {
-  /* The official packs as the shop setting describes them: its order first, its lines in place of the built-in ones. */
+  /* The official packs as the shop setting describes them: its order first, its lines in place of the built-in ones. Shop packs follow the built-in ones. */
   official() {
-    const shop = S.scraps.shop, order = shop?.order || [];
-    const rank = (p) => { const i = order.indexOf(p.id); return i < 0 ? order.length + MARKET_PACKS.indexOf(p) : i; };
-    return [...MARKET_PACKS].sort((a, b) => rank(a) - rank(b)).map((p) => shop?.blurbs?.[p.id] ? { ...p, blurb: shop.blurbs[p.id] } : p);
+    const shop = S.scraps.shop, order = shop?.order || [], all = [...MARKET_PACKS, ...ShopPacks.list()];
+    const rank = (p) => { const i = order.indexOf(p.id); return i < 0 ? order.length + all.indexOf(p) : i; };
+    return all.sort((a, b) => rank(a) - rank(b)).map((p) => shop?.blurbs?.[p.id] ? { ...p, blurb: shop.blurbs[p.id] } : p);
   },
   onSale(pack) { return Scraps.pack(pack.id)?.onSale !== false; },
-  pouch(p) { const foil = (p.kind || "holo") === "holo"; return h("div.pk-stack.mk-pouch", h("i.pk-img" + (foil && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, foil ? h("i.sheen") : null), PackLabel(p)); },
+  /* A classic pouch, or (for a shop pack in another wrapping or a colour) the wrapping drawn as it stands on the Packs shelf. */
+  pouch(p) {
+    if (p.bag && BAGS[p.bag] && (!isPouch(p.bag) || packColor(p.bag, p.color)?.id)) return h("div.pk-stack.mk-pouch", { data: { gen: "1", kind: p.kind } }, PackArt.shelf(p, null));
+    const foil = (p.kind || "holo") === "holo";
+    return h("div.pk-stack.mk-pouch", h("i.pk-img" + (foil && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, foil ? h("i.sheen") : null), PackLabel(p));
+  },
   own(id) { return !!S.owned[id]; },
   /* Sealed stickers still in the bag, and whether another set would overflow it. */
   sealed(id) { return S.packs.find((p) => p.id === id)?.left.length || 0; },
@@ -301,7 +328,7 @@ Pages.market = {
           h("div.mk-hero-actions", h("button.btn", { "aria-haspopup": "dialog", on: { click: (e) => open(p, art(e)) } }, "Look closer…"))));
     }
     const p = feat.pack, own = Market.own(p.id), free = p.price === "Free" && !own;
-    return h("section.mk-hero", h("div.mk-hero-art", Market.pouch(p), h("div.fan", p.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); Stk.make(A[k], { border: 12, material: "matte", max: 300 }).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
+    return h("section.mk-hero", h("div.mk-hero-art", Market.pouch(p), h("div.fan", p.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); peekSrc(k).then((src) => Stk.make(src, { border: 12, material: "matte", max: 300 })).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
       h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", p.title), h("p.muted", `by ${p.by} · ${p.count} stickers`), h("p", p.blurb),
         h("div.mk-hero-actions", h("button.btn", { on: { click: (e) => free ? Market.get(p) : open(p, art(e)) } }, own ? "Add another set…" : free ? "Get — Free" : ["Exchange — ", Market.price(p)]))));
   },

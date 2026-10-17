@@ -161,6 +161,18 @@ pub async fn pack_peek_picture(store: tauri::State<'_, Store>, item_id: i64) -> 
     Ok(tauri::ipc::Response::new(small))
 }
 
+/// A picture of an official shop pack on sale, for the Market (raw art; the page adds the border). Only pictures the kept pack lists.
+#[tauri::command]
+pub async fn shop_pack_picture(store: tauri::State<'_, Store>, pack_id: String, key: String) -> Result<tauri::ipc::Response, String> {
+    let bytes = {
+        let lib = store.lock();
+        let path = peta_core::shop_pack::live_picture(lib.db(), &pack_id, &key).ok_or("This pack is not in the shop.")?;
+        lib.read_asset(&path).map_err(|e| e.to_string())?
+    };
+    let small = tauri::async_runtime::spawn_blocking(move || peta_core::thumb::thumbnail_png(&bytes, 512)).await.map_err(|e| e.to_string())?.map_err(|e| e.to_string())?;
+    Ok(tauri::ipc::Response::new(small))
+}
+
 #[tauri::command]
 pub async fn pack_cover_picture(store:tauri::State<'_,Store>,pack_id:String)->Result<tauri::ipc::Response,String> {
     let bytes={let lib=store.lock();peta_core::edition_pack::cover_picture(&lib,&pack_id).map_err(|e|e.to_string())?.ok_or("No cover sticker")?};

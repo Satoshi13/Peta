@@ -101,14 +101,16 @@ const PEEK_SPOTS = {   // centre x, centre y, box width, box height (all % of th
   2: [[30, 50, 40, 54, -4], [70, 52, 40, 54, 3]],
   3: [[27, 32, 38, 40, -3], [72, 30, 36, 44, 4], [50, 69, 34, 38, -2]],
 };
+/* Where a peek picture comes from: a shipped key, a finished sticker ({src}), or raw art still to be fetched ({load, raw}). */
+const peekSrc = (k) => typeof k !== "object" ? Promise.resolve(A[k]) : k.src ? Promise.resolve(k.src) : k.load();
 function PackPeek(keys, caption = "A few from this pack") {
-  const list = keys.filter((k) => (typeof k === "object" ? k.src : A[k])).slice(0, 3), sheet = h("div.peek-sheet", h("i.peek-tape"));
+  const list = keys.filter((k) => (typeof k === "object" ? k.src || k.load : A[k])).slice(0, 3), sheet = h("div.peek-sheet", h("i.peek-tape"));
   list.forEach((k, i) => {
     const [x, y, bw, bh, r] = PEEK_SPOTS[list.length][i], cell = h("div.peek-item", { style: { left: x + "%", top: y + "%", width: bw + "%", height: bh + "%", "--r": r + "deg" } });
     sheet.append(cell);
-    if (typeof k === "object") { cell.append(h("img", { src: k.src, alt: k.name || "" })); return; }   // a finished sticker: its white border is already in the picture
+    if (typeof k === "object" && !k.raw) { cell.append(h("img", { src: k.src, alt: k.name || "" })); return; }   // a finished sticker: its white border is already in the picture
     if (PEEK_BAKED.has(k)) { cell.append(h("img", { src: A[k], alt: "" })); return; }
-    Stk.make(A[k], { border: 10, material: "matte", max: 300 }).then((res) => {
+    peekSrc(k).then((src) => Stk.make(src, { border: 10, material: "matte", max: 300 })).then((res) => {
       if (!cell.isConnected) return;
       const w = cell.offsetWidth, hh = cell.offsetHeight, fit = res.aspect >= w / hh ? w : hh * res.aspect;
       cell.append(Stk.el(res, fit));
@@ -234,7 +236,7 @@ const Scraps = {
     if(!sel || (sel.kind === "dismantle" ? S.page !== "materials" : S.page !== "market")) return null;
     const dismantle = sel.kind === "dismantle", pack = sel.kind === "pack", owned = pack && !!S.owned[sel.itemId], rate = pack ? this.pack(sel.itemId) : this.material(sel.itemId);
     if(!rate || (!dismantle && !pack && rate.exchange == null)) return null;
-    const name = pack ? MARKET_PACKS.find(p=>p.id===sel.itemId).title : MAT[sel.itemId].name;
+    const name = pack ? (MARKET_PACKS.find(p=>p.id===sel.itemId) || S.scraps.shopPacks?.find(p=>p.id===sel.itemId))?.title || "Pack" : MAT[sel.itemId].name;
     const price = S.developer && !dismantle ? 0 : dismantle ? rate.dismantle : rate.exchange;
     const roomForPack = pack && S.packs.reduce((n,p)=>p.id===sel.itemId ? p.left.length : n, 0) + rate.stickers <= PACK_SEALED_CAP;
     const max = S.developer ? (pack ? +roomForPack : 1000) : pack ? (roomForPack && S.scraps.balance >= price ? 1 : 0) : Math.min(1000, dismantle ? S.stock[sel.itemId] : Math.floor(S.scraps.balance/price));

@@ -311,6 +311,7 @@ pub fn run() {
             packs::pack_open_free,
             packs::pack_peek,
             packs::pack_peek_picture,
+            packs::shop_pack_picture,
             packs::pack_cover_picture,
             print::print_resume,
             print::print_pending,

@@ -239,6 +239,152 @@ pub fn sha256(bytes: &[u8]) -> String {
     Sha256::digest(bytes).iter().map(|b| format!("{b:02x}")).collect()
 }
 
+/* ---------- On this Mac: what the server lists, what is on sale, and buying a set (Step 2) ---------- */
+
+/// At most this many shop packs are on sale at once (peta-api `MAX_LIVE`).
+pub const MAX_LIVE: usize = 24;
+const LISTED: &str = "shop.listed";
+
+/// One pack on sale, as `/v1/config` lists it. The URL is used once to fetch the file and is never kept.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Listed {
+    pub pack_id: String,
+    pub version: u32,
+    pub size: u64,
+    pub sha256: String,
+    #[serde(default)]
+    pub ends_at: Option<i64>,
+    #[serde(default, skip_serializing)]
+    pub url: Option<String>,
+}
+
+/// Keep the server's list of packs on sale, replacing the last one whole. A list outside the limits is refused and the last
+/// one stays (a server that cannot be read never empties the shop, nor fills it with something odd).
+pub fn replace_listing(db: &mut crate::Database, listed: &[Listed]) -> Result<()> {
+    let mut ids = HashSet::new();
+    if listed.len() > MAX_LIVE
+        || !listed.iter().all(|l| valid_id(&l.pack_id) && ids.insert(l.pack_id.as_str()) && l.version >= 1 && l.size > 0 && l.size <= (MAX_TOTAL + 1024 * 1024) as u64
+            && l.sha256.len() == 64 && l.sha256.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)))
+    {
+        return Err(invalid("The shop's list of packs could not be read."));
+    }
+    let kept: Vec<Listed> = listed.iter().map(|l| Listed { url: None, ..l.clone() }).collect();
+    db.set_setting(LISTED, &serde_json::to_string(&kept).map_err(|e| invalid(&e.to_string()))?)
+}
+
+fn listing(conn: &rusqlite::Connection) -> Vec<Listed> {
+    use rusqlite::OptionalExtension;
+    let raw: Option<String> = conn.query_row("SELECT value FROM meta WHERE key=?1", [LISTED], |r| r.get(0)).optional().ok().flatten();
+    raw.and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default()
+}
+
+/// Listed versions this Mac has not kept yet: the ones to fetch.
+pub fn missing(db: &crate::Database, listed: &[Listed]) -> Result<Vec<Listed>> {
+    let mut out = Vec::new();
+    for l in listed {
+        let have: bool = db.conn.query_row("SELECT EXISTS(SELECT 1 FROM shop_packs WHERE pack_id=?1 AND version=?2)", rusqlite::params![l.pack_id, l.version], |r| r.get(0))?;
+        if !have { out.push(l.clone()); }
+    }
+    Ok(out)
+}
+
+/// Keep a fetched file only if it is the one listed (size, SHA-256, pack and version) and it verifies with an official key.
+pub fn store_listed(lib: &mut crate::Library, listed: &Listed, bytes: &[u8]) -> Result<Stored> {
+    if bytes.len() as u64 != listed.size || sha256(bytes) != listed.sha256 { return Err(invalid("This shop pack is not the one listed.")); }
+    let v = verify(bytes)?;
+    if v.pack.pack_id != listed.pack_id || v.pack.version != listed.version { return Err(invalid("This shop pack is not the one listed.")); }
+    store_verified(lib, v, &listed.sha256)
+}
+
+#[derive(Clone, Debug, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LiveItem { pub key: String, pub name: String, pub rarity: String }
+/// A shop pack the Market shows now: listed, not ended, and kept here (so it verified).
+#[derive(Clone, Debug, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Live {
+    pub id: String,
+    pub pack_id: String,
+    pub version: u32,
+    pub title: String,
+    pub by: String,
+    pub blurb: String,
+    pub pouch: String,
+    pub color: Option<String>,
+    /// The signed price; the shop setting may move it within 50–200% (`offer`).
+    pub price: i64,
+    pub items: Vec<LiveItem>,
+}
+#[derive(Deserialize)]
+struct KeptItem { key: String, name: String, rarity: String, weight: u32, png: String }
+struct Kept { title: String, by: String, blurb: String, pouch: String, color: Option<String>, price: i64, items: Vec<KeptItem> }
+fn kept(conn: &rusqlite::Connection, pack_id: &str, version: u32) -> Option<Kept> {
+    use rusqlite::OptionalExtension;
+    let row: Option<(String, String, String, String, Option<String>, i64, String)> = conn.query_row(
+        "SELECT title,by_name,blurb,pouch,color,price,items FROM shop_packs WHERE pack_id=?1 AND version=?2", rusqlite::params![pack_id, version],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?, r.get(6)?))).optional().ok().flatten();
+    let (title, by, blurb, pouch, color, price, items) = row?;
+    Some(Kept { title, by, blurb, pouch, color, price, items: serde_json::from_str(&items).ok()? })
+}
+
+/// The shop packs on sale at `now` (seconds). Builds without the server never have a list, so they keep the six built-in packs.
+pub fn live(conn: &rusqlite::Connection, now: i64) -> Vec<Live> {
+    listing(conn).into_iter()
+        .filter(|l| l.ends_at.is_none_or(|end| now < end))
+        .filter_map(|l| {
+            let k = kept(conn, &l.pack_id, l.version)?;
+            Some(Live { id: local_id(&l.pack_id), pack_id: l.pack_id, version: l.version, title: k.title, by: k.by, blurb: k.blurb, pouch: k.pouch, color: k.color, price: k.price,
+                items: k.items.into_iter().map(|i| LiveItem { key: i.key, name: i.name, rarity: i.rarity }).collect() })
+        })
+        .collect()
+}
+
+/// Where a kept picture of a pack on sale is, for the Market to show (only names the pack itself lists).
+pub fn live_picture(db: &crate::Database, local: &str, key: &str) -> Option<String> {
+    let pack_id = pack_id(local)?;
+    let l = listing(&db.conn).into_iter().find(|l| l.pack_id == pack_id)?;
+    kept(&db.conn, &l.pack_id, l.version)?.items.into_iter().find(|i| i.key == key).map(|i| i.png)
+}
+
+/// A shop pack's price and whether it is on sale, from the same function the Market shows and the exchange takes.
+/// A shop setting's price applies only within 50–200% of the signed price; outside that, the signed price stays.
+pub(crate) fn offer(conn: &rusqlite::Connection, local: &str) -> Option<(i64, bool)> {
+    let now = chrono::Utc::now();
+    let pack = live(conn, now.timestamp()).into_iter().find(|p| p.id == local)?;
+    let shop = crate::signed_config::active_shop(conn, now);
+    let entry = shop.as_ref().and_then(|c| c.packs.iter().find(|p| p.id == local));
+    let (low, high) = ((pack.price * crate::signed_config::SHOP_PRICE_MIN_PERCENT + 99) / 100, pack.price * crate::signed_config::SHOP_PRICE_MAX_PERCENT / 100);
+    let price = entry.and_then(|p| p.price).filter(|p| (low..=high).contains(p)).unwrap_or(pack.price);
+    Some((price, entry.is_none_or(|p| p.on_sale)))
+}
+
+/// Put `quantity` sealed sets of the pack's listed version on the shelf, inside the exchange's transaction. The shelf shows the
+/// newest wrapping, title and line; stickers already in the bag keep their own pictures.
+pub(crate) fn add_sets(tx: &rusqlite::Transaction<'_>, local: &str, quantity: i64) -> Result<()> {
+    use rusqlite::params;
+    let pack_id = pack_id(local).ok_or_else(|| invalid("This pack is not available to exchange."))?;
+    let l = listing(tx).into_iter().find(|l| l.pack_id == pack_id).ok_or_else(|| invalid("This pack is not on sale right now."))?;
+    let k = kept(tx, &l.pack_id, l.version).ok_or_else(|| invalid("This pack is not on sale right now."))?;
+    let left: i64 = tx.query_row("SELECT COUNT(*) FROM pack_items WHERE pack_id=?1 AND opened_at IS NULL", [local], |r| r.get(0))?;
+    if left + k.items.len() as i64 * quantity > crate::scraps::MAX_SEALED_PER_PACK { return Err(invalid("This pack already holds as many sealed stickers as it can.")); }
+    let now = crate::db::now();
+    tx.execute("INSERT INTO packs(id,title,by_name,created_at) VALUES(?1,?2,?3,?4) ON CONFLICT(id) DO UPDATE SET title=excluded.title,by_name=excluded.by_name", params![local, k.title, k.by, now])?;
+    tx.execute("INSERT INTO pack_distributions VALUES (?1,?2,?3,NULL,NULL,'official',?4) ON CONFLICT(pack_id) DO UPDATE SET version=excluded.version,pouch=excluded.pouch", params![local, l.pack_id, l.version, k.pouch])?;
+    tx.execute("INSERT INTO pack_dress(pack_id,cover,deco,blurb) VALUES (?1,NULL,NULL,?2) ON CONFLICT(pack_id) DO UPDATE SET blurb=excluded.blurb", params![local, (!k.blurb.is_empty()).then_some(&k.blurb)])?;
+    crate::creator_pack::store_color(tx, local, k.color.as_deref().and_then(|c| serde_json::from_value(serde_json::json!(c)).ok()))?;
+    for _ in 0..quantity {
+        for item in &k.items {
+            tx.execute("INSERT INTO pack_items(pack_id,item_key) VALUES (?1,?2)", params![local, item.key])?;
+            let id = tx.last_insert_rowid();
+            tx.execute("INSERT INTO signed_pack_items(item_id,png_path,mask_path,material_id,aspect,name,rarity,finished) VALUES (?1,?2,NULL,?3,1,?4,?5,0)",
+                params![id, item.png, crate::materials::DEFAULT_MATERIAL, item.name, item.rarity])?;
+            tx.execute("INSERT INTO pack_item_weights(item_id,weight) VALUES (?1,?2)", params![id, item.weight])?;
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
@@ -363,6 +509,121 @@ pub(crate) mod tests {
         assert!(!dir.join("assets/shop/winter").exists());
         assert_eq!(lib.db().conn.query_row("SELECT COUNT(*) FROM shop_packs", [], |r| r.get::<_, i64>(0)).unwrap(), 1);
         let _ = std::fs::remove_dir_all(dir);
+    }
+
+    fn library() -> (crate::Library, std::path::PathBuf) {
+        let dir = std::env::temp_dir().join(format!("peta-shop-live-{}", crate::ids::new_gift_id()));
+        let lib = crate::Library::open(&dir).unwrap();
+        lib.db().conn.execute("INSERT INTO meta(key,value) VALUES('scraps.balance','200') ON CONFLICT(key) DO UPDATE SET value='200'", []).unwrap();
+        (lib, dir)
+    }
+    fn listed(bytes: &[u8], id: &str, version: u32, ends_at: Option<i64>) -> Listed {
+        Listed { pack_id: id.into(), version, size: bytes.len() as u64, sha256: sha256(bytes), ends_at, url: Some("https://peta.test/v1/shop-pack/x".into()) }
+    }
+    fn buy(lib: &mut crate::Library, id: &str, n: i64, request: &str) -> Result<crate::scraps::Receipt> {
+        lib.db_mut().scrap_trade(&crate::scraps::Trade { kind: crate::scraps::Kind::Pack, item_id: id.into(), quantity: n }, request)
+    }
+
+    #[test]
+    fn a_listed_pack_is_fetched_once_kept_only_if_it_matches_and_shown_until_it_ends() {
+        let (mut lib, dir) = library();
+        let bytes = signed("autumn", 1);
+        let now = chrono::Utc::now().timestamp();
+        let entry = listed(&bytes, "autumn", 1, None);
+        replace_listing(lib.db_mut(), std::slice::from_ref(&entry)).unwrap();
+        assert!(live(&lib.db().conn, now).is_empty(), "listed but not fetched yet: not shown");
+        assert_eq!(missing(lib.db(), std::slice::from_ref(&entry)).unwrap(), [entry.clone()]);
+        // A file that is not the listed one (size, hash, or another pack) is refused.
+        assert!(store_listed(&mut lib, &entry, &signed("autumn", 2)).is_err());
+        let mut wrong = entry.clone(); wrong.pack_id = "winter".into();
+        assert!(store_listed(&mut lib, &wrong, &bytes).is_err());
+        assert_eq!(store_listed(&mut lib, &entry, &bytes).unwrap(), Stored::New);
+        assert!(missing(lib.db(), std::slice::from_ref(&entry)).unwrap().is_empty());
+        let shown = live(&lib.db().conn, now);
+        assert_eq!(shown.len(), 1);
+        assert_eq!((shown[0].id.as_str(), shown[0].title.as_str(), shown[0].price, shown[0].color.as_deref()), ("shop:autumn", "Autumn Walk", 12, Some("rose")));
+        assert_eq!(shown[0].items.iter().map(|i| i.key.as_str()).collect::<Vec<_>>(), ["maple", "acorn", "chestnut"]);
+        assert_eq!(live_picture(lib.db(), "shop:autumn", "acorn").as_deref(), Some("shop/autumn/1/acorn.png"));
+        assert_eq!(live_picture(lib.db(), "shop:autumn", "../secret"), None);
+        // The stored list never keeps the URL.
+        assert!(!lib.db().setting(LISTED).unwrap().unwrap().contains("peta.test"));
+        // It leaves the shop when its period ends, even offline.
+        replace_listing(lib.db_mut(), &[listed(&bytes, "autumn", 1, Some(now - 1))]).unwrap();
+        assert!(live(&lib.db().conn, now).is_empty());
+        // A list outside the limits keeps the last one.
+        for bad in [vec![Listed { sha256: "XYZ".into(), ..entry.clone() }], vec![entry.clone(), entry.clone()], vec![Listed { pack_id: "a.b".into(), ..entry.clone() }], vec![entry.clone(); MAX_LIVE + 1]] {
+            assert!(replace_listing(lib.db_mut(), &bad).is_err());
+        }
+        assert_eq!(listing(&lib.db().conn)[0].ends_at, Some(now - 1));
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn buying_puts_sealed_sets_on_the_shelf_at_the_shown_price_and_they_open_after_the_pack_leaves() {
+        let (mut lib, dir) = library();
+        let bytes = signed("autumn", 1);
+        let entry = listed(&bytes, "autumn", 1, None);
+        replace_listing(lib.db_mut(), std::slice::from_ref(&entry)).unwrap();
+        store_listed(&mut lib, &entry, &bytes).unwrap();
+        let status = lib.db().scrap_status().unwrap();
+        let rate = status.packs.iter().find(|p| p.id == "shop:autumn").unwrap();
+        assert_eq!((rate.exchange, rate.stickers, rate.on_sale), (12, 3, true));
+        assert_eq!(status.shop_packs.len(), 1);
+        let receipt = buy(&mut lib, "shop:autumn", 2, "two-sets").unwrap();
+        assert_eq!((receipt.delta, receipt.balance), (-24, 176), "what the Market shows is what the exchange takes");
+        let pack = lib.db().packs().unwrap().into_iter().find(|p| p.id == "shop:autumn").unwrap();
+        assert_eq!((pack.title.as_str(), pack.by.as_str(), pack.total, pack.remaining, pack.pouch.as_deref()), ("Autumn Walk", "Peta", 6, 6, Some("matte")));
+        assert_eq!(pack.color, Some(PackColor::Rose));
+        assert_eq!(pack.blurb.as_deref(), Some("Leaves on the way home."));
+        let weights: Vec<u32> = lib.db().conn.prepare("SELECT w.weight FROM pack_items i JOIN pack_item_weights w ON w.item_id=i.id WHERE i.pack_id='shop:autumn' ORDER BY i.id").unwrap()
+            .query_map([], |r| r.get(0)).unwrap().map(|w| w.unwrap()).collect();
+        assert_eq!(weights, [4, 2, 1, 4, 2, 1]);
+        // The bag holds at most 100 sealed stickers; nothing is charged when a purchase would overflow it.
+        assert!(buy(&mut lib, "shop:autumn", 32, "too-many").is_err());
+        assert_eq!(lib.db().scrap_status().unwrap().balance, 176);
+        // When it leaves the shop it can't be bought, but what is on the shelf still opens from the kept pictures.
+        replace_listing(lib.db_mut(), &[]).unwrap();
+        assert!(lib.db().scrap_status().unwrap().packs.iter().all(|p| p.id != "shop:autumn"));
+        assert!(buy(&mut lib, "shop:autumn", 1, "after-it-left").is_err());
+        let (item, _) = crate::creator_pack::pick(lib.db(), "shop:autumn", 0.0, 0.0).unwrap().unwrap();
+        let stored = crate::pack::stored_item(lib.db(), item).unwrap().unwrap();
+        assert_eq!((stored.name.as_str(), stored.rarity.as_str(), stored.finished), ("Leaf 0", "common", false));
+        assert_eq!(lib.read_asset(&stored.png_path).unwrap(), verify(&bytes).unwrap().pictures[0].1);
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn a_shop_setting_moves_the_price_only_within_half_to_double_of_the_signed_price() {
+        let (mut lib, dir) = library();
+        let bytes = signed("autumn", 1);
+        let entry = listed(&bytes, "autumn", 1, None);
+        replace_listing(lib.db_mut(), std::slice::from_ref(&entry)).unwrap();
+        store_listed(&mut lib, &entry, &bytes).unwrap();
+        let at = |d: i64| (chrono::Utc::now() + chrono::Duration::days(d)).to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+        for (price, shown, on_sale) in [(serde_json::json!(20), 20, true), (serde_json::json!(5), 12, true), (serde_json::json!(25), 12, true), (serde_json::Value::Null, 12, false)] {
+            let config = crate::signed_config::tests::signed("shop-x", crate::signed_config::SHOP_CONFIG, serde_json::json!({"configId":"shop-x","configKind":"default","featured":["shop:autumn"],"officialFirst":true,"order":["shop:autumn"],"packs":[{"id":"shop:autumn","onSale":!price.is_null(),"price":price,"blurb":null}]}), &at(-1), &at(30));
+            crate::signed_config::replace_shop(lib.db_mut(), &[config]).unwrap();
+            let rate = lib.db().scrap_status().unwrap().packs.into_iter().find(|p| p.id == "shop:autumn").unwrap();
+            assert_eq!((rate.exchange, rate.on_sale), (shown, on_sale));
+        }
+        assert!(buy(&mut lib, "shop:autumn", 1, "not-on-sale").is_err());
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn items_with_their_own_weights_are_drawn_by_weight() {
+        let mut db = crate::Database::open_in_memory().unwrap();
+        db.conn.execute("INSERT INTO packs VALUES ('shop:w','W','Peta','x')", []).unwrap();
+        for (key, weight) in [("heavy", 7), ("mid", 2), ("light", 1)] {
+            db.conn.execute("INSERT INTO pack_items(pack_id,item_key) VALUES ('shop:w',?1)", [key]).unwrap();
+            let id = db.conn.last_insert_rowid();
+            db.conn.execute("INSERT INTO signed_pack_items(item_id,png_path,mask_path,material_id,aspect,name,rarity,finished) VALUES (?1,'p.png',NULL,'matte',1,?2,'common',0)", rusqlite::params![id, key]).unwrap();
+            db.conn.execute("INSERT INTO pack_item_weights VALUES (?1,?2)", rusqlite::params![id, weight]).unwrap();
+        }
+        db.conn.execute("INSERT INTO pack_distributions VALUES ('shop:w','w',1,NULL,NULL,'official','kraft')", []).unwrap();
+        let drawn = |roll: f64| crate::creator_pack::pick(&db, "shop:w", roll, 0.0).unwrap().unwrap().1;
+        assert_eq!((drawn(0.0), drawn(0.69), drawn(0.71), drawn(0.89), drawn(0.95)), ("heavy".into(), "heavy".into(), "mid".into(), "mid".into(), "light".into()));
+        let _ = &mut db;
     }
 
     #[test]

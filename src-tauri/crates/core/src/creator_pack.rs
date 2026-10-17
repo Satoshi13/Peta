@@ -175,7 +175,9 @@ fn rows(db:&crate::Database,sql:&str,pack_id:&str)->Result<Vec<Row>> {
 pub fn pick(db:&crate::Database,pack_id:&str,roll:f64,_item_roll:f64)->Result<Option<(i64,String)>> {
     if crate::edition_pack::is_v2(db,pack_id)? {return crate::edition_pack::pick(db,pack_id,roll);}
     let device=db.conn.query_row("SELECT public_key FROM pack_distributions WHERE pack_id=?1",[pack_id],|r|r.get::<_,Option<String>>(0)).optional()?.flatten();
-    if device.is_none(){return db.pack_pick(pack_id,roll);}
+    // Weights count for a pack signed on a device, and for any pack whose items carry their own weights (official shop packs).
+    let weighted=device.is_some() || db.conn.query_row("SELECT EXISTS(SELECT 1 FROM pack_items i JOIN pack_item_weights w ON w.item_id=i.id WHERE i.pack_id=?1 AND i.opened_at IS NULL)",[pack_id],|r|r.get::<_,bool>(0))?;
+    if !weighted{return db.pack_pick(pack_id,roll);}
     let items=rows(db,"SELECT i.id,i.item_key,s.rarity,w.weight FROM pack_items i JOIN signed_pack_items s ON s.item_id=i.id LEFT JOIN pack_item_weights w ON w.item_id=i.id WHERE i.pack_id=?1 AND i.opened_at IS NULL ORDER BY i.id",pack_id)?;
     if items.is_empty(){return db.pack_pick(pack_id,roll);}
     let weights:Vec<f64>=items.iter().map(|i|weight_of(i.3,&i.2)).collect();Ok(weighted_pick(&weights,roll).map(|i|(items[i].0,items[i].1.clone())))

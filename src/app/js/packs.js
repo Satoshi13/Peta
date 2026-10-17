@@ -5,18 +5,18 @@
 const PackArt = {
   cache: new Map(),
   covers: new Map(),
-  decorated(p) { return !!BAGS[p.bag] && (BAGS[p.bag].gen || p.signed || !!packColor(p.bag,p.color)?.id); },
+  decorated(p) { return !!BAGS[p.bag] && (BAGS[p.bag].gen || p.signed || (p.shop && !isPouch(p.bag)) || !!packColor(p.bag,p.color)?.id); },
   cover(p) {
     if(!p.cover || !p.signed) return Promise.resolve(null);
     if(!this.covers.has(p.id)) this.covers.set(p.id, Bridge.invoke("pack_cover_picture",{packId:p.id}).then(bytes=>URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:"image/png"}))).catch(()=>null));
     return this.covers.get(p.id);
   },
-  /** [{ src, baked: true }] for a signed pack; [] for the packs that ship with the app. */
+  /** [{ src, baked: true }] for a signed pack; [{ src, raw: true }] for an official shop pack (its art, the border added here); [] for the packs that ship with the app. */
   peek(p) {
-    if(!p.signed) return Promise.resolve([]);
+    if(!p.signed && !p.shop) return Promise.resolve([]);
     if(!this.cache.has(p.id)) this.cache.set(p.id, (async () => {
       const items = await Bridge.invoke("pack_peek", { packId: p.id });
-      return Promise.all(items.map(async (it) => { const bytes = await Bridge.invoke("pack_peek_picture", { itemId: it.itemId }); return { src: URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "image/png" })), baked: true, name: it.name }; }));
+      return Promise.all(items.map(async (it) => { const bytes = await Bridge.invoke("pack_peek_picture", { itemId: it.itemId }); return { src: URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "image/png" })), baked: !p.shop, raw: !!p.shop, name: it.name }; }));
     })().catch(() => []));
     return this.cache.get(p.id);
   },

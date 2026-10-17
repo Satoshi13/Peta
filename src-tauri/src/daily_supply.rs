@@ -3,7 +3,7 @@
 #[cfg(feature = "server")]
 mod online {
     use base64::{engine::general_purpose::STANDARD, Engine};
-    use peta_core::{daily_tables, events, ownership::RefereeError, signed_config, Error, Result};
+    use peta_core::{daily_tables, events, ownership::RefereeError, shop_pack, signed_config, Error, Result};
     use std::sync::atomic::{AtomicBool, Ordering};
     use tauri::Manager;
     static CHECKING: AtomicBool = AtomicBool::new(false);
@@ -50,6 +50,9 @@ mod online {
             announcements: Option<Vec<String>>,
             #[serde(default)]
             shop: Option<Vec<String>>,
+            /// Official shop packs on sale (docs/official-packs-howto.md). Absent from servers that predate them.
+            #[serde(default, rename = "shopPacks")]
+            shop_packs: Option<Vec<shop_pack::Listed>>,
         }
         // The prior signed cache is retained on network, JSON, signature or policy failure.
         // A server that predates /v1/config (404) still answers the daily table alone.
@@ -67,7 +70,40 @@ mod online {
         if let Some(shop) = &response.shop {
             let _ = store_shop(lib.db_mut(), shop);
         }
+        // The list replaces the last one whole (a list that can't be read keeps it); new versions are fetched below.
+        let fetch = match &response.shop_packs {
+            Some(list) if shop_pack::replace_listing(lib.db_mut(), list).is_ok() => shop_pack::missing(lib.db(), list).unwrap_or_default(),
+            _ => Vec::new(),
+        };
+        drop(lib);
+        if response.shop_packs.is_some() {
+            fetch_shop_packs(&store, &referee, &fetch);
+            // The Market, the Packs shelf and the prices read the new list on the page's next refresh.
+            crate::today::announce(app);
+        }
         tables
+    }
+    /// The file path inside a listed URL, only in the one shape the service gives (`/v1/shop-pack/<token>/<packId>/<version>`).
+    /// The host is never used: every request goes to this Mac's own service address, signed.
+    pub fn shop_pack_path(url: &str, listed: &shop_pack::Listed) -> Option<String> {
+        let path = &url[url.find("/v1/shop-pack/")?..];
+        let parts: Vec<&str> = path["/v1/shop-pack/".len()..].split('/').collect();
+        let ok = parts.len() == 3
+            && parts[0].len() == 64 && parts[0].bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+            && parts[1] == listed.pack_id && parts[2] == listed.version.to_string();
+        ok.then(|| path.to_owned())
+    }
+    /// Fetch each new version and keep it only if it is the listed file and verifies with an official key. A failure skips
+    /// that pack until the next check; nothing partial is kept.
+    fn fetch_shop_packs(store: &crate::store::Store, referee: &crate::referee::HttpReferee, fetch: &[shop_pack::Listed]) {
+        for listed in fetch {
+            let Some(path) = listed.url.as_deref().and_then(|url| shop_pack_path(url, listed)) else { continue };
+            let Ok((200, bytes)) = referee.exchange_bulk("GET", &path, &[], "application/octet-stream", shop_pack::MAX_TOTAL + 1024 * 1024) else { continue };
+            let mut lib = store.lock();
+            if let Err(error) = shop_pack::store_listed(&mut lib, listed, &bytes) {
+                eprintln!("[peta] shop pack {} v{} was not kept: {error}", listed.pack_id, listed.version);
+            }
+        }
     }
     fn decode_all(items: &[String], max: usize) -> Result<Vec<events::Verified>> {
         if items.len() > max {
@@ -130,6 +166,16 @@ mod online {
     #[cfg(test)]
     mod tests {
         use super::*;
+        #[test]
+        fn only_the_services_shop_pack_path_is_ever_fetched() {
+            let token = "a".repeat(64);
+            let listed = shop_pack::Listed { pack_id: "autumn".into(), version: 2, size: 1, sha256: "b".repeat(64), ends_at: None, url: None };
+            assert_eq!(shop_pack_path(&format!("https://peta-api.example/v1/shop-pack/{token}/autumn/2"), &listed), Some(format!("/v1/shop-pack/{token}/autumn/2")));
+            for bad in [format!("https://x/v1/shop-pack/{token}/winter/2"), format!("https://x/v1/shop-pack/{token}/autumn/3"), format!("https://x/v1/shop-pack/{}/autumn/2", "A".repeat(64)),
+                format!("https://x/v1/shop-pack/{token}/autumn/2/../../stickers"), "https://x/v1/update/file/abc".into(), String::new()] {
+                assert_eq!(shop_pack_path(&bad, &listed), None, "{bad}");
+            }
+        }
         #[test]
         fn check_interval_covers_restarts_and_clock_changes() {
             assert!(due(None, 0));

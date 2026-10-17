@@ -13,7 +13,7 @@ pub const MAX_SEALED_PER_PACK: i64 = 100;
 pub struct MaterialRate { pub id: &'static str, pub dismantle: i64, pub exchange: Option<i64> }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PackRate { pub id: &'static str, pub exchange: i64, pub stickers: usize, pub on_sale: bool }
+pub struct PackRate { pub id: String, pub exchange: i64, pub stickers: usize, pub on_sale: bool }
 /// What the Market shows about the official shop, from the signed shop setting in effect (none: the built-in shop).
 #[derive(Clone, Debug, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -36,6 +36,7 @@ const PACKS: [(&str, i64); 6] = [("tokyo",16),("coffee",12),("plants",10),("pixe
 pub fn default_pack_price(id: &str) -> Option<i64> { PACKS.iter().find(|(p,_)| *p==id).map(|(_,price)| *price) }
 /// One price for both what the Market shows and what a trade takes: the signed shop setting's, else the built-in one.
 pub(crate) fn pack_offer(conn: &Connection, id: &str) -> Option<(i64, bool)> {
+    if crate::shop_pack::pack_id(id).is_some() { return crate::shop_pack::offer(conn, id); }
     let base = default_pack_price(id)?;
     let shop = crate::signed_config::active_shop(conn, chrono::Utc::now());
     let entry = shop.as_ref().and_then(|c| c.packs.iter().find(|p| p.id==id));
@@ -48,7 +49,9 @@ fn shop_view(conn: &Connection) -> Option<ShopView> {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Status { pub balance: i64, pub materials: Vec<MaterialRate>, pub packs: Vec<PackRate>, pub tools: Vec<ToolRate>, pub shop: Option<ShopView> }
+pub struct Status { pub balance: i64, pub materials: Vec<MaterialRate>, pub packs: Vec<PackRate>, pub tools: Vec<ToolRate>, pub shop: Option<ShopView>,
+    /// Official shop packs on sale now (received without an app update); their rates are in `packs` under `shop:<packId>`.
+    pub shop_packs: Vec<crate::shop_pack::Live> }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ToolRate { pub id: &'static str, pub exchange: i64 }
@@ -72,7 +75,10 @@ fn balance(conn: &Connection) -> Result<i64> {
     Ok(n)
 }
 pub(crate) fn status(conn: &Connection) -> Result<Status> {
-    Ok(Status { balance:balance(conn)?, materials:MATERIALS.to_vec(), packs:PACKS.iter().map(|(id,_)| { let (exchange,on_sale)=pack_offer(conn,id).expect("built-in pack"); PackRate { id, exchange, stickers:pack::market_pack(id).unwrap().keys.len(), on_sale } }).collect(), tools:TOOLS.to_vec(), shop:shop_view(conn) })
+    let shop_packs = crate::shop_pack::live(conn, chrono::Utc::now().timestamp());
+    let mut packs: Vec<PackRate> = PACKS.iter().map(|(id,_)| { let (exchange,on_sale)=pack_offer(conn,id).expect("built-in pack"); PackRate { id:(*id).into(), exchange, stickers:pack::market_pack(id).unwrap().keys.len(), on_sale } }).collect();
+    packs.extend(shop_packs.iter().filter_map(|p| { let (exchange,on_sale)=pack_offer(conn,&p.id)?; Some(PackRate { id:p.id.clone(), exchange, stickers:p.items.len(), on_sale }) }));
+    Ok(Status { balance:balance(conn)?, materials:MATERIALS.to_vec(), packs, tools:TOOLS.to_vec(), shop:shop_view(conn), shop_packs })
 }
 
 pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, unrestricted: bool) -> Result<Receipt> {
@@ -128,6 +134,7 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
             tx.execute("INSERT INTO meta(key,value) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![owned_key,next_owned.to_string()])?;
         }
         Kind::Pull | Kind::Payout => unreachable!(),
+        Kind::Pack if crate::shop_pack::pack_id(&request.item_id).is_some() => crate::shop_pack::add_sets(&tx, &request.item_id, request.quantity)?,
         Kind::Pack => {
             let own: bool = tx.query_row("SELECT EXISTS(SELECT 1 FROM packs WHERE id=?1)", [&request.item_id], |r| r.get(0))?;
             let p = pack::market_pack(&request.item_id).unwrap();
@@ -195,7 +202,7 @@ mod shop_tests {
             serde_json::json!([{"id":"unknown","onSale":true,"price":null,"blurb":null}]),serde_json::json!([{"id":"pixel","onSale":false,"price":null,"blurb":null,"url":"x"}])] {
             signed_config::replace_shop(&mut db,&[config("shop-bad","default",packs,-1,30)]).unwrap();
             let status=db.scrap_status().unwrap();
-            assert!(status.shop.is_none());assert!(status.packs.iter().all(|p| p.on_sale && Some(p.exchange)==default_pack_price(p.id)));
+            assert!(status.shop.is_none());assert!(status.packs.iter().all(|p| p.on_sale && Some(p.exchange)==default_pack_price(&p.id)));
         }
         signed_config::replace_shop(&mut db,&[config("shop-edge","default",serde_json::json!([{"id":"pixel","onSale":true,"price":24,"blurb":null},{"id":"plants","onSale":false,"price":null,"blurb":null}]),-1,30)]).unwrap();
         assert_eq!(db.scrap_status().unwrap().packs.iter().find(|p| p.id=="pixel").unwrap().exchange,24);assert!(!db.shop_on_sale("plants"));

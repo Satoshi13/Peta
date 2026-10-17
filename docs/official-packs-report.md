@@ -7,14 +7,14 @@
 | Step | 状態 | コミット |
 |---|---|---|
 | 1. `shop_pack` の検証と保存・契約ファイル・`peta-pass shop-pack` | 完了 | `6bb1c80` |
-| 2. アプリ（取得・保存・ショップ・買う・棚・期間切れ） | **未着手。Mac で行う**（§9） | — |
+| 2. アプリ（取得・保存・ショップ・買う・棚・期間切れ・重み） | 完了（2026-10-17、下の「Step 2 の実装」）。**macOS でのビルドは CI 待ち** | この追記のコミット |
 | 3. `peta-api`（`0011`・一覧・トークンつきファイル） | 完了。**dev へのデプロイは未実施** | `a02c4ee` |
 | 4. 管理ページ Packs タブ（下書き・掲載）と `shop_config` の拡張 | 完了。**dev へのデプロイは未実施** | `42df1a0` |
 | 5. `scripts/sign-pack.sh` | 完了 | `fcf75ad` |
-| 6. dev の通し確認 | **未実施** | — |
+| 6. dev の通し確認 | **未実施**（D1 マイグレーションとデプロイは Claude が行う） | — |
 | 7. 手順書・報告 | 完了 | この文書のコミット |
 
-**Mac で未テスト**: アプリ本体（`src-tauri`）には手を入れていません。`peta-core`（ルールと保存）は Linux でもビルド・テストできるので、Step 1 の保存（DB v18）までここで実装・テストしました。macOS の型検査は GitHub Actions の macOS ジョブで行われます。
+**Mac で未テスト**: 2026-10-16 の時点では、アプリ本体（`src-tauri`）には手を入れていませんでした（10-17 の Step 2 で手を入れた。下の追記）。`peta-core`（ルールと保存）は Linux でもビルド・テストできるので、Step 1 の保存（DB v18）までここで実装・テストしました。macOS の型検査は GitHub Actions の macOS ジョブで行われます。
 
 **デプロイしていない理由**: この環境には wrangler のログインがありません（`wrangler whoami` が未認証）。dev への D1 マイグレーションとデプロイ、Step 6 の通し確認は、オーナーの Mac で行ってください（手順は howto の §2）。
 
@@ -99,6 +99,8 @@ CI（`.github/workflows/ci.yml`）に `test-sign-pack.py` と `check-admin-packs
 
 ## Mac に残る作業（Step 2・6）
 
+> 2026-10-17: 1〜4 は実装しました（下の「Step 2 の実装」）。残りは 5（k2）と 6（dev の通し確認）です。
+
 1. **取得**（`server` feature）
    - 設定を取得するときに `shopPacks` を受け取り、手元にない `{packId, version}` だけ `url` から落とす。
    - `peta_core::shop_pack::store` で検証・保存する（実装済み）。失敗したら捨てる。
@@ -118,3 +120,54 @@ CI（`.github/workflows/ci.yml`）に `test-sign-pack.py` と `check-admin-packs
 - **透過の確認**: 管理ページの Worker は PNG のヘッダーまでしか見ない（透過できる形式か）。画素まで見るのはブラウザ（下書き時）と `peta-pass`（署名時）とアプリ（受け取り時）。
 - **プレビューの袋**: 管理ページはアプリの袋の絵を持たないので、色つきの紙の簡易版。正確な見え方は署名の前に Mac のプレビューと、dev のアプリで確かめる。
 - **同じ版の下書きが2つ**: Duplicate した下書きは同じ版のまま。先に署名したほうが通り、もう一方は `--previous-version` で止まる。
+
+## Step 2 の実装（2026-10-17 追記）
+
+§5 と §7 の Step 2、上の「Mac に残る作業」の 1〜4 です。これもクラウドの Linux 環境で行いました。
+
+### 作ったもの
+
+- **一覧と取得**（`src-tauri/src/daily_supply.rs`、`server` feature）
+  - `/v1/config` の `shopPacks` を受け取り、`shop_pack::replace_listing` で一覧を丸ごと置き換える（`shop.listed` に `url` を除いて保存。24件まで、ID・版・大きさ・SHA-256 の形を確かめ、読めない一覧なら前の一覧のまま）。
+  - 手元にない `{packId, version}` だけ取りに行く。`url` からはパスだけを使い、`/v1/shop-pack/<64桁の小文字16進>/<packId>/<version>` の形でなければ取らない。ホストは使わず、いつもの署名つきの要求で自分のサービスへ。
+  - 取ったファイルは `shop_pack::store_listed` で、大きさ・SHA-256・パック・版が一覧どおりで、公式の鍵で確かめられたときだけ保存。失敗したら何も残さず、次のチェックでやり直す。
+  - 終わったら `daily-changed` を出し、画面が読み直す。
+- **ショップに出すもの**（`peta-core` の `shop_pack::live`）: 一覧にあり、`endsAt` を過ぎておらず、その版を保存してあるもの。`scrap_status` の `shopPacks` と、`packs` の値段（`shop:<packId>`）に入る。
+- **値段**（`shop_pack::offer`）
+  - 基準は署名した値段。
+  - `shop_config` の値段は、その 50〜200% のときだけ使う。外れたらそのパックは署名した値段のまま。
+  - 売る・売らないは `shop_config` に従う。
+- **買う**（`scraps::trade` → `shop_pack::add_sets`）
+  - 1セットごとに `pack_items`・`signed_pack_items`（保存した PNG、matte、`finished` 0）・`pack_item_weights` を入れる。
+  - 題名・作者・袋（`pack_distributions`、`official`）・Market の一行（`pack_dress`）・色（`pack.color.<id>`）も入れる。
+  - 棚の上限 100 枚はほかのパックと同じ。
+  - 期間が終わる・一覧から消えると買えなくなるが、棚の分は開けられる（テストあり）。
+- **重みで引く**（`creator_pack::pick`）: これまでは端末の鍵で署名したパックだけが重みを使った。未開封の品に `pack_item_weights` があれば、公式のパックでも重みで引くようにした。重みのないパック（内蔵の6パック・`grant_pack`）は今までどおり均等。
+- **絵**（`src-tauri/src/packs.rs` の `shop_pack_picture`）
+  - 販売中で保存してあるパックの、署名に入っている絵だけを返す。長辺 512px に縮めて返す。
+  - 権限は `allow-signed-distribution` に足した。
+- **画面**
+  - `market.js` の `ShopPacks`: 内蔵の6パックのあとに並べる。`shop_config` の並び・Featured・一行がそのまま効く。
+  - 絵は `shop_pack_picture` から一度だけ取り、フチは画面で付ける（内蔵のパックと同じ）。出す3枚は common → uncommon → rare の順で、レアは見せない。
+  - glassine の袋と、色つきの matte・holo は、棚と同じ `BagPic` で描く。ふつうの袋は今までどおり。
+  - 棚（`packs.js`）: 保存した絵をのぞき窓に出す。glassine は棚でも glassine で描く。
+
+### テスト
+
+| 確認 | 結果 |
+|---|---|
+| `cargo test -p peta-core -p peta-pass` | 290 件 通過（増えたテスト: 一覧と取得・期間切れ／買って棚に入り、期間後も開けられる／値段は 50〜200% だけ／重みで引く） |
+| `cargo test -p peta-core --features developer,daily-tables` | 292 件 通過 |
+| `cargo clippy … -D warnings` | 警告なし |
+| `npm test` | 254 件 通過（`tests/shop-packs.test.mjs` を追加: 並び・Featured・絵の順と一度だけの取得・袋・カード） |
+| `python3 scripts/test-harness.py`（`packs.rs` を偽の Tauri で） | 通過 |
+| ブラウザの確認（`check-csp`・`check-responsive`・`check-boards`・`check-ui-feedback`・`check-updater-ui`・`check-admin-packs`）、`test-sign-pack.py` | 通過 |
+| Market に glassine・rose の matte のパックを置いた画面（偽の IPC、手元のスクリーンショット） | 目で確認 |
+
+**macOS で未確認**: `daily_supply.rs` は macOS でしかビルドできないので、ここでは型検査できていません。GitHub Actions の macOS ジョブ（`cargo check`、`cargo test -p peta`）で確かめます。`only_the_services_shop_pack_path_is_ever_fetched` もそこで動きます。
+
+### 気をつけること
+
+- **一覧が届くたびに `daily-changed`**: 6時間ごとのチェックで `shopPacks` が来たら、変化がなくても画面を一度読み直す。軽いので、比べる処理は入れていない。
+- **glassine の Market の見え方**: 棚と同じ絵を吊るしているので、クリップと袋の上端に少し隙間がある。気になれば Market 用の位置を足す。
+- **残り**: k2 を `KEYS` に入れた版の配布（howto §1）と、Step 6（dev の通し確認）。Step 2 が入った版が友達に届くまでは、新しいパックを Featured にしない（howto §5 の注意のまま）。
