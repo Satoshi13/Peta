@@ -222,3 +222,9 @@
 - `peta-admin-prod`(Version `50dc3369-b25b-4478-92cd-a077291ae4d5`)と `peta-download-prod`(Version `aad5e72f-26c0-44b4-970c-73de597db6de`)を再デプロイ。Daily・Reports・News・Shop・Market のタブが本番でも使える。秘密(`CF_API_TOKEN`・`COUPON_SIGNING_KEY`・`OWNER_EMAILS`)はそのまま。
 - **`peta-api-prod` は未更新**(招待の必須化を含むため、配る日にオーナーの Mac で招待コードを入れた後)。それまで管理ページで作ったクーポン・確率表・お知らせ・ショップ設定は、友達のアプリには届かない(まだ配っていないので影響なし)。
 
+## 2026-10-17 の本番更新(実施済み)
+
+- prod D1 `peta-prod` に 0011(公式パックの下書きと掲載)を適用。表の追加だけ。
+- `peta-admin-prod`(Version `c7d5c58f-2423-411e-ba6d-925958a2f888`)を再デプロイ。Packs タブが本番でも使える(下書き → `sign-pack.sh <draftId> prod` → 期間を決めて掲載)。秘密 3 つはそのまま。
+- **`peta-api-prod` は未更新**。掲載したパックが友達のショップに並ぶのは、配る日に `peta-api` を更新し、k2 入りの版のアプリが届いてから。
+
