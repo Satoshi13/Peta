@@ -13,6 +13,7 @@ import { inbox, MAX_GIFT, keyHash, sweepReports } from "./inbox";
 import { market, contentLimit, MARKET_CARD_MAX, MARKET_PACK_MAX } from "./market";
 import { invites, invited, invitesRequired, sweepRecords } from "./invites";
 import { coupons } from "./coupons";
+import { TERMS_HTML, PRIVACY_HTML } from "./legal";
 import { dailyTables } from "./daily-tables";
 import { updates } from "./updates";
 import { shopPacks } from "./shop-packs";
@@ -583,6 +584,12 @@ async function claimSlot(env: Env, key: string, id: string, n: number, body: {cl
 async function route(request: Request, env: Env): Promise<Response> {
   const path = new URL(request.url).pathname;
   if (path === "/v1/health" && request.method === "GET") return ok();
+  // The terms and privacy policy are public: anyone may read them before signing in, from About or the download page.
+  if ((path === "/terms" || path === "/privacy") && (request.method === "GET" || request.method === "HEAD"))
+    return new Response(request.method === "HEAD" ? null : path === "/terms" ? TERMS_HTML : PRIVACY_HTML, { headers: {
+      "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300",
+      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" } });
   if (!["GET", "POST", "PUT", "DELETE"].includes(request.method))
     fail(405, "method_not_allowed");
   // Only sealed Market uploads and consented reports use larger bodies; ordinary JSON stays under 1 MB.

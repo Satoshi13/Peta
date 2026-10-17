@@ -25,10 +25,10 @@ pub async fn about_notices(app: AppHandle) -> Result<(), String> {
     .map_err(|e| e.to_string())?
 }
 
-// Publish owner-reviewed documents by setting these URLs here, then rebuilding.
+// The owner-reviewed documents, served by peta-api from docs/legal (scripts/build-legal.py). Developer builds read dev's copy.
 const SERVICE_LINKS: [(&str, &str, Option<&str>); 2] = [
-    ("terms", "Terms of use", None),
-    ("privacy", "Privacy policy", None),
+    ("terms", "Terms of use", Some(if cfg!(feature = "developer") { "https://peta-api-dev.peta-api.workers.dev/terms" } else { "https://peta-api-prod.peta-api.workers.dev/terms" })),
+    ("privacy", "Privacy policy", Some(if cfg!(feature = "developer") { "https://peta-api-dev.peta-api.workers.dev/privacy" } else { "https://peta-api-prod.peta-api.workers.dev/privacy" })),
 ];
 #[derive(serde::Serialize)]
 pub struct ServiceLink {

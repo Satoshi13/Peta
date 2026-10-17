@@ -17,7 +17,7 @@
 - [ ] **ディスクの空き**が 10GB 以上(ユニバーサル版は2つ分ビルドする。足りなければ `npm run clean:target`)。初回は `rustup target add x86_64-apple-darwin`。
 - [ ] **Mac でテストを回す**(Claude が回す): `cargo test --manifest-path src-tauri/Cargo.toml --workspace --features server`、`cargo test --manifest-path src-tauri/Cargo.toml --workspace`、`python3 scripts/test-release-mac.py`、`npm test`、3つの Worker の `npm test && npx tsc --noEmit`。
 - [ ] **依存の監査**をもう一度(結果は日々変わる): `cargo audit --file src-tauri/Cargo.lock`、ルートと3つの Worker で `npm audit`。rustls の扱いは点検報告の「依存の指摘」を参照。
-- [ ] **規約・ポリシーの公開場所を決める**(6 で施行日を入れる)。アプリの About にリンクを出すなら、URL を `src-tauri/src/about.rs` の `SERVICE_LINKS` に入れて**ビルドの前に**コミットする(入れなければ About には出ない。リンクは Discord とダウンロードページで案内できる)。
+- [x] **規約・ポリシーの公開場所**(2026-10-17 済み): `peta-api` が `/terms` と `/privacy` を誰でも読めるページとして出す。中身は `docs/legal/terms.md`・`privacy.md`(公開用。下書き `docs/*-draft.md` の内容をそのまま整えたもの)。About のリンクは `about.rs` に入れてある(本番は `https://peta-api-prod.peta-api.workers.dev/terms` と `/privacy`)。
 - [ ] Cloudflare の秘密がそろっているかだけ確かめる(値は表示されない):
 
   ```bash
@@ -113,8 +113,9 @@
 
 ## 6. 規約とプライバシーポリシー
 
-- [ ] `docs/terms-draft.md` と `docs/privacy-policy-draft.md` の「案」を確定し、**施行日に今日の日付**を入れる(Claude が記入)。
-- [ ] 1 で決めた場所に公開し、リンクを Discord の `#ようこそ` とダウンロードページの案内に載せる。
+- [ ] **施行日を入れる(Claude)**: `docs/legal/effective-date.json` に `{"ja": "2026年10月20日", "en": "20 October 2026"}` のように今日の日付を書き、`python3 scripts/build-legal.py` → コミット。**4 の `peta-api` の本番デプロイより前に**行う(そのデプロイでページに載る)。
+- [ ] デプロイ後に `https://peta-api-prod.peta-api.workers.dev/terms` と `/privacy` を開き、施行日が出ていることを確かめる。リンクを Discord の `#ようこそ` に載せる。
+- 文面を直すときは `docs/legal/*.md` を直して `python3 scripts/build-legal.py` → `peta-api` をデプロイ(重要な変更は 14 日前に告知)。
 
 ## 7. 友達を招く
 
