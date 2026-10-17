@@ -371,7 +371,9 @@ mod shop_contract_tests {
         assert_eq!((v["shopCatalog"]["shopPackPrice"]["min"].as_i64(), v["shopCatalog"]["shopPackPrice"]["max"].as_i64()), (Some(crate::shop_pack::MIN_PRICE), Some(crate::shop_pack::MAX_PRICE)), "{fix}");
         assert_eq!(any, (2, 80));
         let packs = v["shopCatalog"]["packs"].as_array().unwrap();
-        assert_eq!(packs.len(), crate::scraps::status(&Database::open_in_memory().unwrap().conn).unwrap().packs.len(), "{fix}");
+        assert_eq!(packs.len(), 6, "the legacy offline catalog remains part of the signed configuration contract");
+        let shown = crate::scraps::status(&Database::open_in_memory().unwrap().conn).unwrap();
+        assert_eq!(shown.packs.len(), if cfg!(feature="daily-tables") { 0 } else { packs.len() }, "online builds only show delivered packs");
         for p in packs {
             let id = p["id"].as_str().unwrap();
             let pack = crate::pack::market_pack(id).expect(fix);

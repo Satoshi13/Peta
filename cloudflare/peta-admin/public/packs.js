@@ -106,7 +106,11 @@ function editor(d) {
   pouch.onchange = () => { syncColor(); view.replaceChildren(preview(read(), d.draftId)); }; color.onchange = pouch.onchange;
   const files = el("input"); files.type = "file"; files.accept = "image/png"; files.multiple = true; files.className = "pk-file";
   const drop = el("label", undefined, "pk-drop"); drop.append(el("span", "アプリで Collection → ステッカー → Share → Cut-out for a pack から書き出した PNG をドラッグ（または選択）"), files);
+  let uploading = false;
   const add = async list => {
+    if (uploading) { error.textContent = "画像を取り込んでいます。完了してから追加してください。"; return; }
+    uploading = true; files.disabled = save.disabled = ready.disabled = true; card.setAttribute("aria-busy", "true");
+    try {
     error.textContent = "";
     for (const file of list) {
       if (m.items.length >= c.items.max) { error.textContent = "1パックに入れられるのは12枚までです。"; break; }
@@ -119,6 +123,7 @@ function editor(d) {
       } catch (e) { error.textContent = e.message; }
     }
     draw(); await api("/api/packs/drafts/save", { draftId: d.draftId, manifest: read() }).catch(e => { error.textContent = e.message; });
+    } finally { uploading = false; files.disabled = save.disabled = ready.disabled = false; card.removeAttribute("aria-busy"); }
   };
   files.onchange = () => add([...files.files]);
   drop.ondragover = e => { e.preventDefault(); drop.dataset.over = "true"; }; drop.ondragleave = () => { delete drop.dataset.over; };
@@ -126,6 +131,7 @@ function editor(d) {
   const save = button("下書きを保存", ""), ready = button("署名の準備をする", ""), close = button("閉じる");
   save.onclick = () => action(save, async () => { await api("/api/packs/drafts/save", { draftId: d.draftId, manifest: read() }); notice("下書きを保存しました。"); await loadPacks(); });
   ready.onclick = async () => {
+    if (uploading) return;
     if (!await confirmAction("署名の準備に進みますか？", "この後は下書きを変更できません。Mac でコマンドを実行し、プレビューを確認してから署名します。")) return;
     await action(ready, async () => { await api("/api/packs/drafts/save", { draftId: d.draftId, manifest: read() }); await api("/api/packs/drafts/ready", { draftId: d.draftId }); editing = null; notice("準備できました。コマンドをコピーし、Mac のターミナルで実行してください。"); await loadPacks(); });
   };

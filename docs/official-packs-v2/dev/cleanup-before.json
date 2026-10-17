@@ -1,0 +1,66 @@
+{
+  "scope": [
+    [
+      "v2-free-oct17",
+      "d-e7bac5852f3fdb93"
+    ],
+    [
+      "v2-paid-oct17",
+      "d-b2f83c5daed035a2"
+    ]
+  ],
+  "rows": [
+    {
+      "pack_id": "v2-free-oct17",
+      "version": 1,
+      "stopped_at": 1792228032
+    },
+    {
+      "pack_id": "v2-paid-oct17",
+      "version": 1,
+      "stopped_at": 1792228019
+    }
+  ],
+  "objects": [
+    {
+      "key": "shop/v2-free-oct17/1.peta",
+      "size": 3059097
+    },
+    {
+      "key": "shop/drafts/d-e7bac5852f3fdb93/blue-flower.png",
+      "size": 1032482
+    },
+    {
+      "key": "shop/drafts/d-e7bac5852f3fdb93/fried-egg.png",
+      "size": 969939
+    },
+    {
+      "key": "shop/drafts/d-e7bac5852f3fdb93/pack.json",
+      "size": 497
+    },
+    {
+      "key": "shop/drafts/d-e7bac5852f3fdb93/peta-sticker-cut-out.png",
+      "size": 1055817
+    },
+    {
+      "key": "shop/v2-paid-oct17/1.peta",
+      "size": 3059074
+    },
+    {
+      "key": "shop/drafts/d-b2f83c5daed035a2/blue-flower.png",
+      "size": 1032482
+    },
+    {
+      "key": "shop/drafts/d-b2f83c5daed035a2/fried-egg.png",
+      "size": 969939
+    },
+    {
+      "key": "shop/drafts/d-b2f83c5daed035a2/pack.json",
+      "size": 486
+    },
+    {
+      "key": "shop/drafts/d-b2f83c5daed035a2/skating-cat.png",
+      "size": 1055817
+    }
+  ]
+}

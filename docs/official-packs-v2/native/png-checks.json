@@ -1,0 +1,32 @@
+[
+  {
+    "file": "card/Peta Sticker.png",
+    "size": [
+      1500,
+      1000
+    ],
+    "alphaMin": 255,
+    "alphaMax": 255,
+    "transparentPixels": 0
+  },
+  {
+    "file": "sticker/Peta Sticker.png",
+    "size": [
+      991,
+      832
+    ],
+    "alphaMin": 0,
+    "alphaMax": 255,
+    "transparentPixels": 218310
+  },
+  {
+    "file": "sticker/Peta Sticker cut-out.png",
+    "size": [
+      930,
+      779
+    ],
+    "alphaMin": 0,
+    "alphaMax": 255,
+    "transparentPixels": 238396
+  }
+]

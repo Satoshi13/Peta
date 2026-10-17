@@ -1,0 +1,34 @@
+[
+  {
+    "packId": "v2-free-oct17",
+    "version": 1,
+    "title": "V2 Welcome Test",
+    "price": 0,
+    "free": true,
+    "size": 3059097,
+    "sha256": "5939c62983366b17fa97c7baa957b4b5cf3a32cd06cc6122e4d3cf9a1b381462",
+    "keyId": "k1",
+    "startsAt": 1792227480,
+    "endsAt": 1793437080,
+    "stoppedAt": null,
+    "removedAt": null,
+    "createdAt": 1792227423,
+    "state": "on sale"
+  },
+  {
+    "packId": "v2-paid-oct17",
+    "version": 1,
+    "title": "V2 Paid Test",
+    "price": 12,
+    "free": false,
+    "size": 3059074,
+    "sha256": "e0efd184f5a2cacb37329781d843e7c0f74849e677c62551f6e0dc8cf495f8aa",
+    "keyId": "k1",
+    "startsAt": 1792227600,
+    "endsAt": 1793437200,
+    "stoppedAt": null,
+    "removedAt": null,
+    "createdAt": 1792227593,
+    "state": "on sale"
+  }
+]

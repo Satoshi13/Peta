@@ -1,0 +1,22 @@
+{
+  "removedPacks": [
+    "shop:v2-free-oct17",
+    "shop:v2-paid-oct17"
+  ],
+  "removedStickers": [
+    "PETA-KHX6-F1CP",
+    "PETA-Y5EJ-SHKH"
+  ],
+  "ownerRowsPreserved": {
+    "stickers": 260,
+    "packs": 12,
+    "pack_items": 438
+  },
+  "foreignKeyCheck": "ok",
+  "countsAfter": {
+    "stickers": 260,
+    "packs": 12,
+    "pack_items": 438
+  },
+  "ownerRowsIdenticalToBackup": true
+}

@@ -1,0 +1,12 @@
+{
+  "freeRepeat": {
+    "rejected": "You already received this free pack."
+  },
+  "claims": [
+    [
+      "v2-free-oct17",
+      "2026-10-17T09:02:37.633960+00:00"
+    ]
+  ],
+  "sealedAfterRepeat": 3
+}

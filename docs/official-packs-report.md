@@ -246,3 +246,122 @@ Developer に即時取得ボタンがないため、検証中は `daily.table_at
 ディスクは開始時30GiB、最終計測24GiB空き（228GiBのボリューム）。`npm run clean:target` で対象を確認後、`npm run clean:target -- --apply` で古いビルドのオブジェクト4302件・2.82GBを削除した。今回必要なdebugビルドは残している。
 
 オーナーの保護対象5ファイル（`creator.rs`・`ceremony.js`・`create.js`・`market.js`・`tests/create-picker.test.mjs`）は、開始時と最終のSHA256がすべて一致。自分が変更したファイルだけをコミットした。本番のk2準備・配布は今回の範囲外のまま。
+
+## 第2弾（2026-10-17）
+
+`codex/ui-fixes-oct07` で Step 1〜6 を実施した。Step ごとにコミットし、本番のデプロイ・D1・R2・秘密鍵には触れていない。開始時のオーナーの未追跡ファイルはそのまま残し、今回のファイルだけを明示して追加した。
+
+### Step 1: オンライン版の内蔵ショップを終了
+
+- server（beta・Developer）の Market、Featured、並び順、価格表から内蔵6パックを外した。設定が内蔵IDを指定しても無視し、`scraps::trade` とインストール経路も拒否する。取引の再送でも取得できない。
+- offline は6パックを維持。最初の Welcome Pack と見本画像も維持した。
+- 公式パックがない場合は `New packs are on their way.`。既存のCreator出品はそのまま表示される。[空のMarket](official-packs-v2/native/market-empty.png)。
+- オーナーがすでに持つ内蔵パックを棚から削除していない。今回の試験前後で、既存のステッカー・パック・封の各行は完全一致した。開けられなくなった既存パックはない。
+
+### Step 2: 一度だけ受け取る無料パック
+
+署名対象の payload に `free: true` を追加し、無料なら price は0または省略。有料は4〜40 Scrapsを維持した。Rust・peta-pass・管理ページ・署名プレビュー・共有契約ファイルをそろえ、署名なし・不正価格・上限外は拒否する。非対応の旧版は無料パックを無視する。
+
+無料の受け取りは、安定した署名済みパックIDを主キーにライブラリへ記録する。受け取り記録と1セットの追加は同一トランザクションで、失敗時には両方を戻す。同じIDの次の版でも二度目を受け取れず、別ライブラリでは一度受け取れる。無料パックには有料の交換経路・Shopの価格上書きを使えない。
+
+実機では `Get — Free` → 棚に3枚 → `Received` を確認。二度目のコマンドも拒否され、封は3枚のまま。[画面](official-packs-v2/native/free-received.png) / [二度目の結果](official-packs-v2/native/free-once.json)。2ライブラリ・版更新・ロールバックはRustテストで確認し、2台の物理Macでは試していない。「1台」は従来の無料パックと同じ、ライブラリ単位の記録であり、ハードウェアの恒久識別ではない。
+
+### Step 3: 手動取得
+
+Settings の Peta カードに `Check for new packs and news` を追加した。確率表・お知らせ・ショップ設定・公式パック一覧とファイルをまとめて取得する。beta は60秒の待機と秒数表示、Developer は待機なし。自動取得と手動取得の多重実行を共有フラグで防ぎ、内容の比較で変化があった場合だけ再描画する。従来の自動取得6時間制限は維持した。
+
+偽のTCPサーバーで、新規取得・同じ内容・失敗・60秒待機・Developer連続実行を確認。実機のボタンで [2 new packs arrived.](official-packs-v2/native/manual-two-arrived.png)、直後の再取得で `Up to date.` を確認した。6時間を実時間で待つ試験は行っていない。
+
+### Step 4: 透過書き出しと共有画像のフチ
+
+Share シートに Share card / Sticker (transparent) / Cut-out for a pack を追加し、各モードの Copy と Save… を実機で実行した。透過ステッカーには影を付けず、切り抜きはフチなし・長辺1024px以下。Rust側で保持する原画とマスクを使い、元の写真のマスク外は透明にする。透明部のRGBも0にし、縮小はアルファを乗じてから行う。日本語名と `cut-out` の保存名もテストした。
+
+完成画像しかないGiftや完成済みパックから、フチを推測して切り抜くことはしない。切り抜き用の安全な原画関係が証明できるステッカーだけを対象にし、それ以外はシートに理由を表示する。完成画像の透過書き出しは可能。
+
+| 実機で保存した画像 | 寸法 | アルファ0の画素数 | 記録 |
+|---|---|---|---|
+| Share card | 1500×1000（3:2） | 0 | [シート](official-packs-v2/native/share-card.png) |
+| Sticker (transparent) | 991×832 | 218,310 | [シート](official-packs-v2/native/sticker-transparent.png) |
+| Cut-out for a pack | 930×779 | 238,396 | [シート](official-packs-v2/native/cut-out.png) / [実際のPNG](official-packs-v2/native/exported-cut-out.png) |
+
+[PNG測定値](official-packs-v2/native/png-checks.json)。マスク外の元写真が出ないこと、アルファ・フチなし・寸法上限はRustの画素テストでも確認した。
+
+共有画像の黒い短線と白い尖りは、同じ猫の原画・マスクで再現した。原因は2つだった。
+
+1. フチを広げる半径は `b × (1.9 + 0.8 × smooth)` なのに、中間画像の余白が `ceil(1.9b)+4` だった。既定smooth=0.7では広がりが2.46bになるため、途中で切れて角に白い突起ができた。余白と拡張半径を同じ計算にそろえた。
+2. 透過原画を解析用に不透明化していたため、平滑化で広がったマスクが透明部の隠れた黒RGBを拾った。原画のアルファを保持し、絵のアルファを原画とマスクの小さい方に制限した。輪郭用マスクと絵のアルファを分けた。
+
+保存済みマスクは二度平滑化せず、共有時に安全な原画から描き直す。既存のステッカー・署名ファイル・保存画像を上書きしない。
+
+| 修正前（同じ猫） | 修正後 |
+|---|---|
+| ![前](official-packs-v2/share/before.png) | ![後](official-packs-v2/share/after.png) |
+
+[修正後の猫単体](official-packs-v2/share/cat-fixed.png) / [3種類のCopy・Saveのブラウザ検証](official-packs-v2/share/controls.json)。
+
+### Step 5: 管理ページの日本語とプレビュー
+
+全9タブの見出し・操作・状態・エラー・確認文を日本語にし、日付も日本の表記にした。署名形式の kind や製品名は維持。紙・ワードマーク・袋画像は同梱し、外部読込やCSP緩和は追加していない。袋の色とラベル位置はアプリの描画に合わせ、ステッカーの素材フチもプレビューする。
+
+パックの手順は「1. 作る → 2. Mac で署名する → 3. 並べる」。切り抜きPNGの入れ方、暗号化ディスク→ターミナル→プレビュー→y、署名後の期間入力、捨てる・ショップから外すの確認をその場に置いた。
+
+375pxの全タブとデスクトップの編集画面を確認した。
+
+| 画面 | 記録 |
+|---|---|
+| 友達 / クーポン / デイリー | [友達](official-packs-v2/admin/friends-375.png) / [クーポン](official-packs-v2/admin/coupons-375.png) / [デイリー](official-packs-v2/admin/daily-375.png) |
+| ショップ / パック / お知らせ | [ショップ](official-packs-v2/admin/shop-375.png) / [パック](official-packs-v2/admin/packs-375.png) / [お知らせ](official-packs-v2/admin/news-375.png) |
+| 報告 / Market / リリース | [報告](official-packs-v2/admin/reports-375.png) / [Market](official-packs-v2/admin/market-375.png) / [リリース](official-packs-v2/admin/release-375.png) |
+| 編集と袋・フチのプレビュー | [375px](official-packs-v2/admin/packs-editor-375.png) / [デスクトップ](official-packs-v2/admin/packs-editor-desktop.png) |
+
+下書きの新しい有料版があっても、掲載中の無料版を有料として扱わないよう、Shopのメタデータは現在の掲載版を優先するテストも追加した。
+
+### Step 6: dev Worker と Peta Developer の通し確認
+
+既存の `node scripts/official-packs-dev.cjs --dev` を使用。実際の管理Worker `handle()` と dev D1/R2 を使い、ローカルのテストJWT・注入鍵だけで確認した。認証回避を配布コードへ追加していない。dev D1 に `0012_shop_pack_free.sql` のみ追加し、本番には反映していない。今回のテストに追加のWorkerデプロイは不要だった。
+
+| 試験パック | 設定・署名 |
+|---|---|
+| `v2-free-oct17` / `d-e7bac5852f3fdb93` | V2 Welcome Test、グラシン、無料、k1。SHA256 `5939c62983366b17fa97c7baa957b4b5cf3a32cd06cc6122e4d3cf9a1b381462` |
+| `v2-paid-oct17` / `d-b2f83c5daed035a2` | V2 Paid Test、マット/ローズ、12 Scraps、k1。SHA256 `e0efd184f5a2cacb37329781d843e7c0f74849e677c62551f6e0dc8cf495f8aa` |
+
+両方とも、実機で保存した切り抜きPNGの猫と、青い花・目玉焼きの3枚。重み4:2:1。`sign-pack.sh <draftId> dev` のプレビューを目で確認して `y` を入力した。鍵を読むのは peta-pass のみで、使った鍵は公開済みテスト用k1。アプリはアセット内蔵のDeveloper debugバンドルをMacでビルドした。
+
+| 段階 | 結果・記録 |
+|---|---|
+| 無料の作成と署名準備 | [下書き](official-packs-v2/dev/free-draft.png) → [準備済み](official-packs-v2/dev/free-ready.png) → [署名プレビュー](official-packs-v2/dev/free-sign-preview.png) |
+| 有料の作成と署名準備 | 実機PNGを実際のdropハンドラへ渡し、Worker/R2に保存。[ドラッグ後](official-packs-v2/dev/paid-drop-draft.png) → [準備済み](official-packs-v2/dev/paid-ready.png) → [署名プレビュー](official-packs-v2/dev/paid-sign-preview.png) |
+| 掲載 | [管理画面](official-packs-v2/dev/published.png) / [署名済みの状態](official-packs-v2/dev/signed-packs.json) |
+| ボタンで受信 | [2件到着](official-packs-v2/native/manual-two-arrived.png) → [Marketの2パック](official-packs-v2/native/market-two-packs.png)。内蔵6パックはショップに出ない。 |
+| 無料 | 1セット受け取り後の再取得を拒否。前述の画面・JSONで確認。 |
+| 有料を購入・開封 | 2セットで6枚追加 → 1枚開封、Blue Flower / Uncommon / Matte。[購入後](official-packs-v2/native/paid-purchased.png) / [開封結果](official-packs-v2/native/paid-opened.png)。Developerの残高53は不変。有料版の課金はRustテストで確認。 |
+| ショップから外す | 両方で確認ダイアログから停止。[管理画面](official-packs-v2/dev/delisted.png)。手動再取得後、[Marketから消えた](official-packs-v2/native/market-delisted.png)。 |
+| 停止後の棚と開封 | [棚に5枚残る](official-packs-v2/native/shelf-delisted.png) → 通常の袋を破り、取り出し・はがし・Keepまで成功、残り4枚。[結果](official-packs-v2/native/opened-after-delisting.png)。 |
+
+通し確認で、画像が画面に出た直後に署名準備を押すと、自動保存中の排他処理と競合して下書きのままになることを再現した。取り込み・保存が完了するまで追加・保存・署名準備を無効にし、`aria-busy` を付けて解消した。修正後のブラウザ回帰確認と、実際のdevでの署名準備が成功した。
+
+### 片付け・既存データの保護
+
+dev D1の試験パック2件と下書き2件、R2の該当ID配下10ファイルだけを削除した。一括整理は使わず、pack ID / draft ID を完全一致で限定した。[削除前](official-packs-v2/dev/cleanup-before.json) / [削除後](official-packs-v2/dev/cleanup-after.json) / [空の管理画面](official-packs-v2/dev/cleaned-admin.png)。
+
+Developerを停止後、今回の2パック・9枠・受取記録・今回開封した2ステッカーと関連画像だけを片付けた。開始時のSQLiteバックアップと比較し、**既存260ステッカー・12パック・438枠は、IDだけでなく行の全内容が一致**した。外部キー検査も成功。[片付け結果](official-packs-v2/native/cleanup.json)。データベース全体の巻き戻しはしていない。自分が起動したアプリ・ローカルWorker・署名プレビューを終了した。
+
+### 最終テストとディスク
+
+Rustは `CARGO_INCREMENTAL=0`。全体テストで見つかった、既存の利用規約リンクを「未設定」とする古いテスト、オンライン版にも内蔵6件が出るとする契約テストの期待値を現仕様に合わせた。実行時の利用規約リンクは変えていない。
+
+| 必須テスト | 結果 |
+|---|---|
+| `cloudflare/peta-api`: `npm test` / `npx tsc --noEmit` | 78件・型検査成功 |
+| `cloudflare/peta-admin`: 同上 | 55件・型検査成功 |
+| `cloudflare/peta-download`: 同上 | 11件・型検査成功 |
+| `cargo test --manifest-path src-tauri/Cargo.toml --workspace --features server` | app31件・core293件・統合10件・CLI3件成功。既存の実サービス用3件はignored。 |
+| `cargo test --manifest-path src-tauri/Cargo.toml --workspace` | app16件・core301件・統合10件・CLI3件成功。 |
+| ルート `npm test` | 268件成功 |
+| `python3 scripts/test-release-mac.py` | 4項目成功（署名・配布はmock） |
+| 管理ページのブラウザ検査 | 全9タブ375px、Packs編集375px/desktop、Daily、画像取込後の署名準備が成功 |
+| Developer実機 | 3種類のCopy・Save、切り抜きPNGの管理ページへのドラッグ、受信・無料受取・有料購入・開封・停止後の開封が成功 |
+
+テストログは Mac の `/tmp/peta-v2-final-*.log`。WorkerテストのMiniflareはlocalhostでlistenするため、サンドボックス外で実行した。Rustのserver/defaultとも警告なし。`npm run clean:target` で対象を確認後、`npm run clean:target -- --apply` で古いオブジェクト7,146件・3.67GBを削除した。228GiBのボリュームで、開始時24GiB、最終21GiB空き。今回のDeveloperバンドルは残した。
+
+手順書は [official-packs-howto.md](official-packs-howto.md) を更新した。本番k2の準備と対応版の配布は、引き続きオーナーの作業として残る。

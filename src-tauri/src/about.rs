@@ -75,10 +75,10 @@ pub async fn about_open_link(id: String) -> Result<(), String> {
 mod tests {
     use super::*;
     #[test]
-    fn unset_documents_are_hidden_and_cannot_be_opened() {
-        assert!(about_links().is_empty());
-        for id in ["terms", "privacy", "https://example.invalid", "--help"] {
-            assert!(service_url(id).is_err());
-        }
+    fn configured_documents_are_listed_and_arbitrary_links_are_refused() {
+        assert_eq!(about_links().iter().map(|l|l.id).collect::<Vec<_>>(), ["terms", "privacy"]);
+        let host = if cfg!(feature="developer") { "https://peta-api-dev.peta-api.workers.dev" } else { "https://peta-api-prod.peta-api.workers.dev" };
+        for id in ["terms", "privacy"] { assert_eq!(service_url(id).unwrap(), format!("{host}/{id}")); }
+        for id in ["https://example.invalid", "--help", "unknown"] { assert!(service_url(id).is_err()); }
     }
 }
