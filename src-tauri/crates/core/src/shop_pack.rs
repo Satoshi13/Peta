@@ -261,7 +261,8 @@ pub struct Listed {
 
 /// Keep the server's list of packs on sale, replacing the last one whole. A list outside the limits is refused and the last
 /// one stays (a server that cannot be read never empties the shop, nor fills it with something odd).
-pub fn replace_listing(db: &mut crate::Database, listed: &[Listed]) -> Result<()> {
+/// Store the shop's list in place of the last one. Returns whether it differs from what was stored (so the page refreshes only then).
+pub fn replace_listing(db: &mut crate::Database, listed: &[Listed]) -> Result<bool> {
     let mut ids = HashSet::new();
     if listed.len() > MAX_LIVE
         || !listed.iter().all(|l| valid_id(&l.pack_id) && ids.insert(l.pack_id.as_str()) && l.version >= 1 && l.size > 0 && l.size <= (MAX_TOTAL + 1024 * 1024) as u64
@@ -270,7 +271,12 @@ pub fn replace_listing(db: &mut crate::Database, listed: &[Listed]) -> Result<()
         return Err(invalid("The shop's list of packs could not be read."));
     }
     let kept: Vec<Listed> = listed.iter().map(|l| Listed { url: None, ..l.clone() }).collect();
-    db.set_setting(LISTED, &serde_json::to_string(&kept).map_err(|e| invalid(&e.to_string()))?)
+    let json = serde_json::to_string(&kept).map_err(|e| invalid(&e.to_string()))?;
+    use rusqlite::OptionalExtension;
+    let before: Option<String> = db.conn.query_row("SELECT value FROM meta WHERE key=?1", [LISTED], |r| r.get(0)).optional()?;
+    if before.as_deref() == Some(json.as_str()) { return Ok(false); }
+    db.set_setting(LISTED, &json)?;
+    Ok(true)
 }
 
 fn listing(conn: &rusqlite::Connection) -> Vec<Listed> {
@@ -582,6 +588,7 @@ pub(crate) mod tests {
         assert!(buy(&mut lib, "shop:autumn", 32, "too-many").is_err());
         assert_eq!(lib.db().scrap_status().unwrap().balance, 176);
         // When it leaves the shop it can't be bought, but what is on the shelf still opens from the kept pictures.
+        assert!(!replace_listing(lib.db_mut(), std::slice::from_ref(&entry)).unwrap(), "the same list again is not a change");
         replace_listing(lib.db_mut(), &[]).unwrap();
         assert!(lib.db().scrap_status().unwrap().packs.iter().all(|p| p.id != "shop:autumn"));
         assert!(buy(&mut lib, "shop:autumn", 1, "after-it-left").is_err());

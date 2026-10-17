@@ -71,14 +71,16 @@ mod online {
             let _ = store_shop(lib.db_mut(), shop);
         }
         // The list replaces the last one whole (a list that can't be read keeps it); new versions are fetched below.
-        let fetch = match &response.shop_packs {
-            Some(list) if shop_pack::replace_listing(lib.db_mut(), list).is_ok() => shop_pack::missing(lib.db(), list).unwrap_or_default(),
-            _ => Vec::new(),
+        let (changed, fetch) = match &response.shop_packs {
+            Some(list) => match shop_pack::replace_listing(lib.db_mut(), list) {
+                Ok(changed) => (changed, shop_pack::missing(lib.db(), list).unwrap_or_default()),
+                Err(_) => (false, Vec::new()),
+            },
+            None => (false, Vec::new()),
         };
         drop(lib);
-        if response.shop_packs.is_some() {
-            fetch_shop_packs(&store, &referee, &fetch);
-            // The Market, the Packs shelf and the prices read the new list on the page's next refresh.
+        // The Market, the Packs shelf and the prices read the list on the page's next refresh: ask for one only when it changed.
+        if fetch_shop_packs(&store, &referee, &fetch) || changed {
             crate::today::announce(app);
         }
         tables
@@ -95,15 +97,19 @@ mod online {
     }
     /// Fetch each new version and keep it only if it is the listed file and verifies with an official key. A failure skips
     /// that pack until the next check; nothing partial is kept.
-    fn fetch_shop_packs(store: &crate::store::Store, referee: &crate::referee::HttpReferee, fetch: &[shop_pack::Listed]) {
+    /// Returns whether any new version was kept.
+    fn fetch_shop_packs(store: &crate::store::Store, referee: &crate::referee::HttpReferee, fetch: &[shop_pack::Listed]) -> bool {
+        let mut kept = false;
         for listed in fetch {
             let Some(path) = listed.url.as_deref().and_then(|url| shop_pack_path(url, listed)) else { continue };
             let Ok((200, bytes)) = referee.exchange_bulk("GET", &path, &[], "application/octet-stream", shop_pack::MAX_TOTAL + 1024 * 1024) else { continue };
             let mut lib = store.lock();
-            if let Err(error) = shop_pack::store_listed(&mut lib, listed, &bytes) {
-                eprintln!("[peta] shop pack {} v{} was not kept: {error}", listed.pack_id, listed.version);
+            match shop_pack::store_listed(&mut lib, listed, &bytes) {
+                Ok(_) => kept = true,
+                Err(error) => eprintln!("[peta] shop pack {} v{} was not kept: {error}", listed.pack_id, listed.version),
             }
         }
+        kept
     }
     fn decode_all(items: &[String], max: usize) -> Result<Vec<events::Verified>> {
         if items.len() > max {
