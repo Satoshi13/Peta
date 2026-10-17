@@ -9,7 +9,7 @@ class ProviderError extends Error {
   constructor(public phase: string, public status: number, public codes: number[] = []) { super("Cloudflare didn't accept the change. Refresh to check its status."); }
 }
 function policyURL(env: Env) {
-  if (!/^[a-f0-9]{32}$/.test(env.CF_ACCOUNT_ID ?? "") || !/^[a-f0-9-]{36}$/.test(env.ACCESS_FRIENDS_POLICY_ID ?? "") || !env.CF_API_TOKEN) fail(503, "friends_unavailable", "Friend management isn't configured.");
+  if (!/^[a-f0-9]{32}$/.test(env.CF_ACCOUNT_ID ?? "") || !/^[a-f0-9-]{36}$/.test(env.ACCESS_FRIENDS_POLICY_ID ?? "") || !env.CF_API_TOKEN) fail(503, "friends_unavailable", "友達管理が設定されていません。");
   return `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/access/policies/${env.ACCESS_FRIENDS_POLICY_ID}`;
 }
 async function provider(env: Env, transport: Fetch, method: "GET" | "PUT", body?: unknown): Promise<Policy> {
@@ -33,10 +33,10 @@ async function revision(policy: Policy): Promise<string> {
 }
 function parseEmails(value: unknown): string[] {
   const parts = typeof value === "string" ? value.split(/[\n,]+/).filter(v => v.trim()) : Array.isArray(value) ? value : [];
-  if (!parts.length || parts.length > 200) fail(400, "invalid", "Add between 1 and 200 email addresses.");
+  if (!parts.length || parts.length > 200) fail(400, "invalid", "メールアドレスは1〜200件入力してください。");
   const normalized = parts.map(normalizeEmail);
-  if (normalized.some(v => !v)) fail(400, "invalid", "Check each email address.");
-  if (new Set(normalized).size !== normalized.length) fail(409, "duplicate", "Each email address should appear once.");
+  if (normalized.some(v => !v)) fail(400, "invalid", "メールアドレスの書き方を確認してください。");
+  if (new Set(normalized).size !== normalized.length) fail(409, "duplicate", "同じメールアドレスを重複して入力しないでください。");
   return normalized as string[];
 }
 async function revoke(env: Env, hash: string, actor: string): Promise<void> {
@@ -72,33 +72,33 @@ export async function friends(request: Request, env: Env, path: string, actor: s
       }));
       return api({ friends: list, revision: await revision(p), downloadPage: env.DOWNLOAD_PAGE_URL ?? "" });
     }
-    if (request.method !== "POST") fail(405, "method_not_allowed", "This action is not available.");
+    if (request.method !== "POST") fail(405, "method_not_allowed", "この操作は利用できません。");
     if (!["/api/friends/add", "/api/friends/remove", "/api/friends/pause", "/api/friends/resume"].includes(path)) return api({ error: "not_found" }, 404);
     const values = path === "/api/friends/add" ? parseEmails(data?.emails) : parseEmails([data?.email]);
-    if (path === "/api/friends/remove" && values.some(email => owners(env)!.includes(email))) fail(400, "owner", "You can't remove an owner's email address.");
+    if (path === "/api/friends/remove" && values.some(email => owners(env)!.includes(email))) fail(400, "owner", "オーナーのメールアドレスは削除できません。");
     for (const email of values) subjects.push(await emailHash(email));
     const p = await provider(env, transport, "GET"), existing = emails(p);
-    if (typeof data?.revision !== "string" || data.revision !== await revision(p)) fail(409, "stale", "The friends list has changed. Refresh and try again.");
+    if (typeof data?.revision !== "string" || data.revision !== await revision(p)) fail(409, "stale", "友達一覧が更新されています。ページを更新してください。");
     if (path === "/api/friends/pause" || path === "/api/friends/resume") {
-      if (!existing.includes(values[0])) fail(404, "not_found", "That friend isn't in the list. Refresh and try again.");
+      if (!existing.includes(values[0])) fail(404, "not_found", "友達が一覧に見つかりません。ページを更新してください。");
       if (path.endsWith("pause")) await revoke(env, subjects[0], actor);
       else {
-        if (!await env.DB.prepare("SELECT 1 FROM invites WHERE email_hash=?").bind(subjects[0]).first()) fail(404, "not_found", "That friend hasn't opened the download page yet.");
+        if (!await env.DB.prepare("SELECT 1 FROM invites WHERE email_hash=?").bind(subjects[0]).first()) fail(404, "not_found", "この友達はまだダウンロードページを開いていません。");
         await env.DB.batch([env.DB.prepare("UPDATE invites SET revoked_at=NULL WHERE email_hash=?").bind(subjects[0]), audit(env.DB, actor, "friend.invite_resumed", { emailHash: subjects[0] })]);
       }
       return api({ changed: true });
     }
     if (path.endsWith("add")) {
-      if (values.some(email => existing.includes(email))) fail(409, "duplicate", "That email address is already a friend.");
-      if (existing.length + values.length > 200) fail(400, "limit", "The list can hold up to 200 email addresses.");
+      if (values.some(email => existing.includes(email))) fail(409, "duplicate", "このメールアドレスは追加済みです。");
+      if (existing.length + values.length > 200) fail(400, "limit", "メールアドレスは200件までです。");
       p.include.push(...values.map(email => ({ email: { email } })));
       await audit(env.DB, actor, "friend.add_requested", { emailHashes: subjects }).run();
     } else {
-      if (!existing.includes(values[0])) fail(404, "not_found", "That friend is already absent from the list. Refresh to check its status.");
-      if (data?.confirm !== true) fail(400, "confirm", "Confirm removing this friend and stopping their invite.");
+      if (!existing.includes(values[0])) fail(404, "not_found", "この友達はすでに一覧から外れています。ページを更新してください。");
+      if (data?.confirm !== true) fail(400, "confirm", "友達の削除と招待の停止を確認してください。");
       p.include = p.include.filter(rule => address(rule) !== values[0]);
       // Cloudflare requires at least one Include rule. Keep the owner email in this reusable policy.
-      if (!p.include.length) fail(400, "empty_policy", "Keep an owner email in the friends policy before removing its last friend.");
+      if (!p.include.length) fail(400, "empty_policy", "最後の友達を削除する前に、オーナーのメールアドレスをアクセス設定に残してください。");
       await revoke(env, subjects[0], actor); inviteRevoked = true;
     }
     const expected = projection(p);
@@ -111,6 +111,6 @@ export async function friends(request: Request, env: Env, path: string, actor: s
     if (!(error instanceof ProviderError)) throw error;
     // Reading a list must be side-effect free. Only mutations enter the audit trail.
     if (request.method === "POST") await audit(env.DB, actor, "friend.provider_failed", { emailHashes: subjects, phase: error.phase, status: error.status, codes: error.codes, inviteRevoked, changed }).run();
-    return api({ error: "cloudflare", inviteRevoked, changed, message: inviteRevoked ? "The invite is stopped. Cloudflare couldn't confirm page access was removed. Refresh and retry removal." : "Cloudflare couldn't confirm the change. Refresh the list before trying again." }, 502);
+    return api({ error: "cloudflare", inviteRevoked, changed, message: inviteRevoked ? "招待は停止しました。Cloudflare でページへのアクセス削除を確認できませんでした。更新して削除をやり直してください。" : "Cloudflare で変更を確認できませんでした。一覧を更新してから試してください。" }, 502);
   }
 }

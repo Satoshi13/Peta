@@ -13,9 +13,9 @@ export async function news(request: Request, env: Env, path: string, actor: stri
         state: r.stopped_at !== null ? "stopped" : t >= r.ends_at ? "ended" : t < r.starts_at ? "scheduled" : "live" };
     }) });
   }
-  if (request.method !== "POST") fail(405, "method_not_allowed", "This action is not available.");
+  if (request.method !== "POST") fail(405, "method_not_allowed", "この操作は利用できません。");
   if (path === "/api/news/stop") {
-    if (typeof data?.id !== "string" || !await env.DB.prepare("SELECT 1 FROM signed_configs WHERE id=? AND kind='announcement'").bind(data.id).first()) fail(404, "not_found", "That announcement wasn't found.");
+    if (typeof data?.id !== "string" || !await env.DB.prepare("SELECT 1 FROM signed_configs WHERE id=? AND kind='announcement'").bind(data.id).first()) fail(404, "not_found", "お知らせが見つかりません。");
     await env.DB.batch([env.DB.prepare("UPDATE signed_configs SET stopped_at=COALESCE(stopped_at,?) WHERE id=?").bind(t, data.id), audit(env.DB, actor, "news.stopped", { id: data.id })]);
     return api({ stopped: true });
   }
@@ -23,7 +23,7 @@ export async function news(request: Request, env: Env, path: string, actor: stri
   const notice = checkAnnouncement(data), [start, end] = checkPeriod(data?.startsAt ?? t, data?.endsAt, t);
   // The app reads at most ten; keep the owner within what will actually arrive.
   if (Number((await env.DB.prepare("SELECT COUNT(*) n FROM signed_configs WHERE kind='announcement' AND stopped_at IS NULL AND ends_at>?").bind(t).first<any>())?.n) >= LIVE)
-    fail(409, "limit", "Stop an announcement before adding another. Up to 10 can be live or scheduled.");
+    fail(409, "limit", "公開中・予定のお知らせは10件までです。別のお知らせを停止してください。");
   const id = `news-${crypto.randomUUID()}`;
   const event = await signAnnouncement({ id, issuedAt: iso(t), startsAt: iso(start), endsAt: iso(end), ...notice }, env.COUPON_KEY_ID ?? "", env.COUPON_SIGNING_KEY ?? "", env.COUPON_PUBLIC_KEY ?? "");
   await env.DB.batch([

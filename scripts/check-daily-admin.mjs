@@ -25,18 +25,18 @@ try {
   let saved;
   await page.route('**/api/**',async route=>{
     const path=new URL(route.request().url()).pathname;
-    const data=path==='/api/me'?{email:'owner@example.test'}:path==='/api/friends'?{friends:[],revision:'1',downloadPage:''}:path==='/api/daily' && route.request().method()==='POST'?(saved=route.request().postDataJSON(),{id:'test'}):{contract,tables:[{id:'current',kind:'default',title:'Daily supply',state:'active',items:contract.fixed,startsAt:1,endsAt:2000000000,stoppedAt:null}]};
+    const data=path==='/api/me'?{email:'owner@example.test'}:path==='/api/friends'?{friends:[],revision:'1',downloadPage:''}:path==='/api/daily' && route.request().method()==='POST'?(saved=route.request().postDataJSON(),{id:'test'}):{contract,tables:[{id:'current',kind:'default',title:"デイリー配布",state:'active',items:contract.fixed,startsAt:1,endsAt:2000000000,stoppedAt:null}]};
     await route.fulfill({json:data});
   });
   await page.goto(`http://127.0.0.1:${server.address().port}/cloudflare/peta-admin/public/index.html`);
-  await page.getByRole('tab',{name:'Daily',exact:true}).click();await page.getByRole('button',{name:'Save normal table'}).waitFor();
-  const normal=page.locator('#daily-content form').first(),save=normal.getByRole('button',{name:'Save normal table'});
-  await normal.getByRole('spinbutton',{name:'Matte weight',exact:true}).fill('1');await save.isDisabled().then(v=>assert.equal(v,true));
-  await normal.getByRole('spinbutton',{name:'Matte weight',exact:true}).fill('60');assert.equal(await save.isDisabled(),false);
-  await normal.getByRole('checkbox',{name:'Include Gold Foil',exact:true}).check();await normal.getByRole('spinbutton',{name:'Gold Foil weight',exact:true}).fill('10');assert.equal(await save.isDisabled(),true);
-  await normal.getByRole('spinbutton',{name:'Gold Foil weight',exact:true}).fill('5');assert.equal(await save.isDisabled(),false);
+  await page.getByRole('tab',{name:"デイリー",exact:true}).click();await page.getByRole('button',{name:"通常テーブルを保存"}).waitFor();
+  const normal=page.locator('#daily-content form').first(),save=normal.getByRole('button',{name:"通常テーブルを保存"});
+  await normal.getByRole('spinbutton',{name:'マットの重み',exact:true}).fill('1');await save.isDisabled().then(v=>assert.equal(v,true));
+  await normal.getByRole('spinbutton',{name:'マットの重み',exact:true}).fill('60');assert.equal(await save.isDisabled(),false);
+  await normal.getByRole('checkbox',{name:'金箔を含める',exact:true}).check();await normal.getByRole('spinbutton',{name:'金箔の重み',exact:true}).fill('10');assert.equal(await save.isDisabled(),true);
+  await normal.getByRole('spinbutton',{name:'金箔の重み',exact:true}).fill('5');assert.equal(await save.isDisabled(),false);
   assert.match(await normal.locator('.daily-forecast').textContent(),/Scraps/);
-  await save.click();await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('saved'));assert.equal(saved.kind,'default');assert.equal(saved.items.find(i=>i.id==='gold').weight,5);
+  await save.click();await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('保存しました'));assert.equal(saved.kind,'default');assert.equal(saved.items.find(i=>i.id==='gold').weight,5);
   await mkdir('/tmp/peta-daily-admin',{recursive:true});await page.screenshot({path:'/tmp/peta-daily-admin/desktop.png',fullPage:true});
   await page.setViewportSize({width:375,height:812});await page.screenshot({path:'/tmp/peta-daily-admin/mobile.png',fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

@@ -62,7 +62,7 @@ export function audit(db: D1Database, actor: string, action: string, detail: Rec
 export async function handle(request: Request, env: Env, keys: KeySource = fetchKeys, transport: Fetch = fetch): Promise<Response> {
   const allowed = owners(env);
   const email = allowed ? await accessEmail(request, env, keys) : null;
-  if (!email || !allowed?.includes(email)) return secure(api({ error: "forbidden", message: "This page is for the Peta owner." }, 403));
+  if (!email || !allowed?.includes(email)) return secure(api({ error: "forbidden", message: "このページは Peta のオーナー専用です。" }, 403));
   const url = new URL(request.url);
   try {
     if (url.pathname === "/api/release" && request.method === "GET") return secure(await release(env));
@@ -74,12 +74,12 @@ export async function handle(request: Request, env: Env, keys: KeySource = fetch
       let data: unknown = null;
       if (request.method === "POST") {
         if (request.headers.get("Origin") !== url.origin || request.headers.get("Content-Type")?.split(";")[0].trim().toLowerCase() !== "application/json")
-          fail(403, "forbidden", "Refresh this page and try again.");
-        if (Number(request.headers.get("Content-Length")) > 16384) fail(413, "too_large", "This request is too large.");
+          fail(403, "forbidden", "ページを更新して、もう一度試してください。");
+        if (Number(request.headers.get("Content-Length")) > 16384) fail(413, "too_large", "送信するデータが大きすぎます。");
         const raw = await request.text();
-        if (new TextEncoder().encode(raw).length > 16384) fail(413, "too_large", "This request is too large.");
-        try { data = JSON.parse(raw); } catch { fail(400, "invalid", "Check the form and try again."); }
-      } else if (request.method !== "GET") fail(405, "method_not_allowed", "This action is not available.");
+        if (new TextEncoder().encode(raw).length > 16384) fail(413, "too_large", "送信するデータが大きすぎます。");
+        try { data = JSON.parse(raw); } catch { fail(400, "invalid", "入力内容を確認して、もう一度試してください。"); }
+      } else if (request.method !== "GET") fail(405, "method_not_allowed", "この操作は利用できません。");
       const actor = await emailHash(email);
       const route = async () => await reports(request, env, url.pathname, actor, data) ?? await news(request, env, url.pathname, actor, data) ?? await shop(request, env, url.pathname, actor, data) ?? await packs(request, env, url.pathname, actor, data) ?? await daily(request,env,url.pathname,actor,data) ?? await coupons(request, env, url.pathname, actor, data) ?? await friends(request, env, url.pathname, actor, data, transport) ?? api({ error: "not_found" }, 404);
       return secure(request.method === "POST" ? await mutate(env, route) : await route());
@@ -87,7 +87,7 @@ export async function handle(request: Request, env: Env, keys: KeySource = fetch
     if (request.method !== "GET" && request.method !== "HEAD") return secure(new Response(null, { status: 405 }));
     return secure(await env.ASSETS.fetch(request));
   } catch (error) {
-    const problem = error instanceof Problem ? error : new Problem(500, "unavailable", "Peta couldn't finish this action. Refresh to check its status.");
+    const problem = error instanceof Problem ? error : new Problem(500, "unavailable", "Petaはこの操作を完了できませんでした。更新して状態を確認してください。");
     if (request.method === "POST") {
       try { await audit(env.DB, await emailHash(email), "request.failed", { code: problem.code, status: problem.status }).run(); } catch { /* Fail closed without exposing database or provider errors. */ }
     }

@@ -4,15 +4,15 @@ import {signHeader} from './bundle';
 export {contract};
 export type DailyItem={id:string;weight:number};
 export function checkTable(input:unknown):DailyItem[] {
-  if(!Array.isArray(input) || !input.length || input.length>contract.limits.maxItems)fail(400,'invalid','Choose 1 to 20 materials.');
+  if(!Array.isArray(input) || !input.length || input.length>contract.limits.maxItems)fail(400,'invalid',"素材を1～20種類選んでください。");
   const seen=new Set<string>();
   const items=input.map(item=>{
-    if(!item || typeof item.id!=='string' || !contract.materials.some(m=>m.id===item.id) || seen.has(item.id) || !Number.isSafeInteger(item.weight) || item.weight<1 || item.weight>contract.limits.maxWeight)fail(400,'invalid','Use each supported material once, with a weight from 1 to 1000.');
+    if(!item || typeof item.id!=='string' || !contract.materials.some(m=>m.id===item.id) || seen.has(item.id) || !Number.isSafeInteger(item.weight) || item.weight<1 || item.weight>contract.limits.maxWeight)fail(400,'invalid',"各素材を重複せず選び、重みを1〜1000の整数で指定してください。");
     seen.add(item.id);return {id:item.id,weight:item.weight} as DailyItem;
   });
   const total=items.reduce((n,i)=>n+i.weight,0),matte=items.find(i=>i.id==='matte')?.weight??0;
-  if(matte*100<total*contract.limits.matteMinPercent)fail(400,'invalid','Matte must be at least 20%.');
-  if(items.some(i=>['special','archive'].includes(contract.materials.find(m=>m.id===i.id)!.rarity) && i.weight*100>total*contract.limits.limitedMaxPercent))fail(400,'invalid','Each Special or Archive material must be at most 5%.');
+  if(matte*100<total*contract.limits.matteMinPercent)fail(400,'invalid',"マットは20%以上にしてください。");
+  if(items.some(i=>['special','archive'].includes(contract.materials.find(m=>m.id===i.id)!.rarity) && i.weight*100>total*contract.limits.limitedMaxPercent))fail(400,'invalid',"SpecialまたはArchive素材は、それぞれ5%以下にしてください。");
   return items;
 }
 export type DailyPolicy={id:string;kind:'default'|'event';issuedAt:string;startsAt:string;endsAt:string;title:string;items:DailyItem[]};

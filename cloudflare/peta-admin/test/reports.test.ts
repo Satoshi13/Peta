@@ -42,8 +42,8 @@ it("shows a gift's picture and note as data, never markup", async () => {
   expect(response.headers.get("Content-Type")).toContain("application/json");
   expect(d).toMatchObject({ available: true, kind: "gift", sender: "aaaaaaaa" });
   expect(d.contents.readable).toBe(true);
-  expect(d.contents.pictures).toEqual([{ label: "Sticker", png: b64(PNG(1)) }]);
-  expect(d.contents.lines).toContainEqual({ label: "Note", value: "<b>hello</b>" });
+  expect(d.contents.pictures).toEqual([{ label: "ステッカー", png: b64(PNG(1)) }]);
+  expect(d.contents.lines).toContainEqual({ label: "メモ", value: "<b>hello</b>" });
   expect(JSON.stringify(d)).not.toContain(SENDER);
 });
 it("reads a listing's card peeks and the pack's stickers", async () => {
@@ -51,8 +51,8 @@ it("reads a listing's card peeks and the pack's stickers", async () => {
   const pack = framed("PETAPACK", 2, { title: "Cats", author: "Yuki", items: [{ name: "Nap", pngLen: 11, maskLen: 0 }, { name: "Roll", pngLen: 11, maskLen: 0 }] }, Uint8Array.from([...PNG(3), ...PNG(4)]));
   await report(1, { kind: "listing", body: { card: b64(card), pack: b64(pack) } });
   const d = await (await req(`/api/reports/${id(1)}`)).json<any>();
-  expect(d.contents.pictures.map((p: any) => p.label)).toEqual(["Card · Nap", "Nap", "Roll"]);
-  expect(d.contents.lines).toContainEqual({ label: "Pack author", value: "Yuki" });
+  expect(d.contents.pictures.map((p: any) => p.label)).toEqual(["カード · Nap", "Nap", "Roll"]);
+  expect(d.contents.lines).toContainEqual({ label: "パックの作り手", value: "Yuki" });
 });
 it("explains expired or never-uploaded contents, and unknown IDs are 404", async () => {
   await report(1); await report(2, { stored: 0 });

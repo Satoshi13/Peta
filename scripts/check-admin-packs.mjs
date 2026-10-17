@@ -10,7 +10,7 @@ import {deflateSync} from 'node:zlib';
 import {tmpdir} from 'node:os';
 const {chromium}=await import(process.env.PETA_PLAYWRIGHT_MODULE || 'playwright');
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'), shots=process.env.PETA_SHOTS || join(tmpdir(),'peta-admin-packs');
-const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json'};
+const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp'};
 const server=createServer(async(req,res)=>{
   const path=resolve(root,'.'+new URL(req.url,'http://localhost').pathname);
   if(!path.startsWith(root+'/')) return res.writeHead(403).end();
@@ -61,21 +61,24 @@ try {
   });
   await page.goto(`http://127.0.0.1:${server.address().port}/cloudflare/peta-admin/public/index.html`);
   await mkdir(shots,{recursive:true});
+  await page.locator(".wordmark").evaluate(img=>img.decode());
+  assert.ok(await page.locator(".wordmark").evaluate(img=>img.naturalWidth>0));
 
-  await page.getByRole('tab',{name:'Packs'}).click();
-  await page.getByText('waiting for signature').waitFor();
+  await page.getByRole('tab',{name:"パック"}).click();
+  await page.getByText("Mac での署名待ち").waitFor();
   assert.equal(await page.locator('.pk-command').textContent(),ready.command);
-  assert.equal(await page.locator('#packs-signed .tag').first().textContent(),'on sale');
-  assert.match(await page.locator('#packs-storage').textContent(),/51 KB in 9 files/);
+  assert.equal(await page.locator('#packs-signed .tag').first().textContent(),'掲載中');
+  assert.match(await page.locator('#packs-storage').textContent(),/9 ファイル · 51 KB/);
 
   // Edit: the preview tells the chances; an opaque picture is refused here, a transparent one goes up and the draft is saved.
-  await page.getByRole('button',{name:'Edit'}).click();await page.locator('.pk-editor').waitFor();
-  assert.match(await page.locator('.pk-preview .hint').textContent(),/common 57% · uncommon 29% · rare 14%/);
+  await page.getByRole('button',{name:"編集"}).click();await page.locator('.pk-editor').waitFor();
+  await page.locator('.pk-free input').check();assert.equal(await page.locator('.pk-editor input[type=number]').first().isDisabled(),true);await page.locator('.pk-free input').uncheck();
+  assert.match(await page.locator('.pk-preview .hint').textContent(),/通常 57% · ときどき 29% · レア 14%/);
   assert.equal(await page.locator('.pk-stickers figcaption b').count(),0,'names are plain text');
   const dir=join(tmpdir(),`peta-packs-${process.pid}`);await mkdir(dir,{recursive:true});
   await writeFile(join(dir,'opaque.png'),png(30,30,false));await writeFile(join(dir,'pine-cone.png'),png(1600,800));
   await page.locator('.pk-file').setInputFiles(join(dir,'opaque.png'));
-  await page.waitForFunction(()=>document.querySelector('.pk-editor .daily-error').textContent.includes("isn't transparent"));
+  await page.waitForFunction(()=>document.querySelector('.pk-editor .daily-error').textContent.includes("背景が透明ではありません"));
   assert.equal(puts.length,0);
   await page.locator('.pk-file').setInputFiles(join(dir,'pine-cone.png'));
   await page.waitForFunction(()=>document.querySelectorAll('.pk-items li').length===4);
@@ -83,27 +86,27 @@ try {
   const saved=posts.filter(p=>p[0]==='/api/packs/drafts/save').at(-1)[1];
   assert.equal(saved.manifest.items.at(-1).key,'pine-cone');assert.equal(saved.manifest.items.at(-1).name,'pine cone');
   await page.locator('.pk-items li').nth(3).locator('select').selectOption('rare');
-  assert.match(await page.locator('.pk-preview .hint').textContent(),/rare 25%/);
+  assert.match(await page.locator('.pk-preview .hint').textContent(),/レア 25%/);
   await page.screenshot({path:join(shots,'packs-editor-desktop.png'),fullPage:true});
-  await page.getByRole('button',{name:'Ready to sign'}).click();await page.locator('#accept-confirm').click();
-  await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('Copy the command'));
+  await page.getByRole('button',{name:"署名の準備をする"}).click();await page.locator('#accept-confirm').click();
+  await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('コマンドをコピー'));
   assert.deepEqual(posts.slice(-2).map(p=>p[0]),['/api/packs/drafts/save','/api/packs/drafts/ready']);
 
   // A signed pack's contents: plain text and blob: pictures. Then put another on sale for a period.
-  await page.getByRole('button',{name:'Show contents'}).first().click();await page.locator('.pk-contents img').first().waitFor();
+  await page.getByRole('button',{name:"内容を見る"}).first().click();await page.locator('.pk-contents img').first().waitFor();
   assert.match(await page.locator('.pk-contents img').first().getAttribute('src'),/^blob:/);
-  assert.equal(await page.locator('.pk-contents i').count(),0);assert.match(await page.locator('.pk-contents').textContent(),/<i>Autumn<\/i> Walk by Peta · 12 Scraps · matte \(rose\) · signed with k2/);
-  await page.getByRole('button',{name:'Put on sale'}).click();
-  await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('Saved'));
+  assert.equal(await page.locator('.pk-contents i').count(),0);assert.match(await page.locator('.pk-contents').textContent(),/<i>Autumn<\/i> Walk · 作り手 Peta · 12 Scraps · マット（ローズ） · 署名鍵 k2/);
+  await page.getByRole('button',{name:"ショップに並べる"}).click();
+  await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('保存しました'));
   const publish=posts.find(p=>p[0]==='/api/packs/publish')[1];
   assert.equal(publish.packId,'spring');assert.ok(Number.isInteger(publish.startsAt) && Number.isInteger(publish.endsAt));
 
   // The shop setting can feature the new pack.
-  await page.getByRole('tab',{name:'Shop'}).click();await page.locator('#shop-featured').getByText('Autumn Walk').waitFor();
+  await page.getByRole('tab',{name:"ショップ"}).click();await page.locator('#shop-featured').getByText('Autumn Walk').waitFor();
 
   // Phone width: nothing wider than the screen.
   await page.setViewportSize({width:375,height:800});
-  await page.getByRole('tab',{name:'Packs'}).click();await page.getByRole('button',{name:'Edit'}).click();await page.locator('.pk-editor').waitFor();
+  await page.getByRole('tab',{name:"パック"}).click();await page.getByRole('button',{name:"編集"}).click();await page.locator('.pk-editor').waitFor();
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no sideways scrolling at 375px');
   await page.screenshot({path:join(shots,'packs-editor-375.png'),fullPage:true});
   assert.deepEqual(errors,[]);

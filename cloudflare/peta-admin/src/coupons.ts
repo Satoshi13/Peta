@@ -16,19 +16,19 @@ export async function coupons(request: Request, env: Env, path: string, actor: s
       return { name: c.name, items, title: typeof event?.title === "string" ? event.title : "From Peta", message: typeof event?.message === "string" ? event.message : "", startsAt: c.starts_at, endsAt: c.ends_at, claims: c.claims, maxClaims: c.max_claims, state: state(c), readable };
     }) });
   }
-  if (request.method !== "POST") fail(405, "method_not_allowed", "This action is not available.");
+  if (request.method !== "POST") fail(405, "method_not_allowed", "この操作は利用できません。");
   if (path === "/api/coupons") {
     const name = couponName(data?.name);
-    if (!name) fail(400, "invalid", "Use a coupon name of 3–24 letters, digits or hyphens.");
+    if (!name) fail(400, "invalid", "クーポン名は英数字とハイフンで3〜24文字にしてください。");
     const items = checkGrants(data.items), t = now();
     const start = data.startsAt ?? t, end = data.endsAt, limit = data.maxClaims ?? null;
     if (!Number.isSafeInteger(start) || start < 0 || !Number.isSafeInteger(end) || end <= start || end <= t || end > 7258118400)
-      fail(400, "invalid", "Choose an end after the start and after now.");
-    if (limit !== null && (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000000)) fail(400, "invalid", "Choose between 1 and 1,000,000 Macs, or leave it blank.");
+      fail(400, "invalid", "終了日時は開始日時および現在時刻より後にしてください。");
+    if (limit !== null && (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000000)) fail(400, "invalid", "台数は1〜1,000,000台で入力するか、空欄にしてください。");
     const title = typeof data.title === "string" ? data.title.trim() : "From Peta", message = data.message ?? "";
     if (!title || [...title].length > 120 || /[\u0000-\u001f\u007f-\u009f]/.test(title) || typeof message !== "string" || [...message].length > 1000)
-      fail(400, "invalid", "Use a title up to 120 characters and a message up to 1000.");
-    if (await env.DB.prepare("SELECT 1 FROM coupons WHERE name=?").bind(name).first()) fail(409, "duplicate", "That coupon name has already been used.");
+      fail(400, "invalid", "見出しは120文字、メッセージは1000文字以内にしてください。");
+    if (await env.DB.prepare("SELECT 1 FROM coupons WHERE name=?").bind(name).first()) fail(409, "duplicate", "このクーポン名は使用済みです。");
     const iso = (seconds: number) => new Date(seconds * 1000).toISOString().replace(".000Z", "Z");
     const eventId = `cpn-${name.toLowerCase()}-${iso(t).replace(/[-:T]/g, "").slice(0, 12)}`;
     const event = await signBundle({ eventId, issuedAt: iso(t), notBefore: iso(start), notAfter: iso(end), title, message, items }, env.COUPON_KEY_ID ?? "", env.COUPON_SIGNING_KEY ?? "", env.COUPON_PUBLIC_KEY ?? "");
@@ -39,13 +39,13 @@ export async function coupons(request: Request, env: Env, path: string, actor: s
     return api({ name, items, title, message, startsAt: start, endsAt: end, maxClaims: limit }, 201);
   }
   if (path === "/api/coupons/stop-all") {
-    if (data?.confirm !== true) fail(400, "confirm", "Confirm stopping all coupons.");
+    if (data?.confirm !== true) fail(400, "confirm", "すべてのクーポンを停止することを確認してください。");
     await env.DB.batch([env.DB.prepare("UPDATE coupons SET stopped_at=? WHERE stopped_at IS NULL").bind(now()), audit(env.DB, actor, "coupon.stopped_all")]);
     return api({ stopped: true });
   }
   if (path === "/api/coupons/stop") {
     const name = couponName(data?.name);
-    if (!name || !await env.DB.prepare("SELECT 1 FROM coupons WHERE name=?").bind(name).first()) fail(404, "not_found", "That coupon wasn't found.");
+    if (!name || !await env.DB.prepare("SELECT 1 FROM coupons WHERE name=?").bind(name).first()) fail(404, "not_found", "クーポンが見つかりません。");
     await env.DB.batch([env.DB.prepare("UPDATE coupons SET stopped_at=COALESCE(stopped_at,?) WHERE name=?").bind(now(), name), audit(env.DB, actor, "coupon.stopped", { name })]);
     return api({ stopped: true });
   }

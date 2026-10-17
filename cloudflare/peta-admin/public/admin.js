@@ -26,5 +26,5 @@ for (const tab of tabs) {
   tab.onkeydown = e => { const index = tabs.indexOf(tab); const next = e.key === "ArrowRight" ? tabs[(index + 1) % tabs.length] : e.key === "ArrowLeft" ? tabs[(index + tabs.length - 1) % tabs.length] : e.key === "Home" ? tabs[0] : e.key === "End" ? tabs.at(-1) : null; if (next) { e.preventDefault(); next.focus(); activate(next); } };
 }
 setupDaily(); setupMarket(); setupShop(); setupPacks(); setupNews(); setupReports(); setupCoupons(); setupFriends(); setupRelease();
-try { const me = await api("/api/me"); $("account").textContent = `Signed in as ${me.email}`; await loadFriends(); } catch (error) { notice(error.message, true); }
+try { const me = await api("/api/me"); $("account").textContent = `${me.email} でログイン中`; await loadFriends(); } catch (error) { notice(error.message, true); }
 try { showCount((await api("/api/reports")).open); } catch { /* The count appears when the Reports tab opens. */ }

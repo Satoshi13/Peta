@@ -52,17 +52,21 @@ details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;f
 .pk-items img{width:48px;height:48px;object-fit:contain}
 .pk-items button{min-height:36px;padding:4px 10px}
 .pk-preview{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:start;margin:8px 0 12px}
-.pk-pouch{position:relative;aspect-ratio:3/4;border-radius:6px 6px 10px 10px;box-shadow:1px 2px 3px rgba(60,45,20,.22),3px 6px 14px rgba(60,45,20,.12)}
-.pk-pouch.pk-holo{background-image:linear-gradient(105deg,rgba(246,198,227,.55),rgba(201,195,245,.55),rgba(191,227,247,.55),rgba(200,242,220,.55))!important;background-blend-mode:multiply}
-.pk-label{position:absolute;left:14%;right:14%;top:30%;padding:10px 6px;background:#fbf8f1;text-align:center;box-shadow:.5px 1px 1.5px rgba(60,45,20,.2)}
-.pk-label strong{display:block;font-size:13px;line-height:1.25;overflow-wrap:anywhere}
-.pk-label small{display:block;font:9px/1.4 ui-monospace,"SFMono-Regular",monospace;letter-spacing:.14em;color:var(--muted)}
+
+
+
+
+
 .pk-meta p{margin:0 0 4px}
 .pk-stickers{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
 .pk-stickers figure{margin:0}
-.pk-stickers img{display:block;width:100%;height:96px;object-fit:contain;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(1px 2px 2px rgba(60,45,20,.25))}
+.pk-stickers img{display:block;width:100%;height:96px;object-fit:contain;filter:drop-shadow(1px 2px 2px rgba(60,45,20,.18))}
 .pk-stickers figcaption{font-size:11px;color:var(--muted);overflow-wrap:anywhere;margin-top:4px}
 .pk-command{display:block;overflow-x:auto;white-space:nowrap;padding:10px 12px;border:1px solid var(--line);border-radius:5px;background:#fbf8f1;font:12px ui-monospace,"SFMono-Regular",monospace;margin:0 0 10px}
 .pk-period{align-items:end;margin:8px 0}
 .pk-period .check{margin-bottom:12px}
-@media(max-width:600px){.pk-preview{grid-template-columns:1fr}.pk-pouch{width:150px}.pk-items li{grid-template-columns:48px repeat(3,minmax(0,1fr));grid-template-areas:"pic name name name" "pic rarity rarity weight" "up down remove remove";row-gap:6px}.pk-items li img{grid-area:pic}.pk-items li input:not([type=number]){grid-area:name}.pk-items li select{grid-area:rarity}.pk-items li input[type=number]{grid-area:weight}.pk-items li button:nth-of-type(1){grid-area:up}.pk-items li button:nth-of-type(2){grid-area:down}.pk-items li button:nth-of-type(3){grid-area:remove}}
+@media(max-width:600px){.pk-preview{grid-template-columns:1fr}.pk-items li{grid-template-columns:48px repeat(3,minmax(0,1fr));grid-template-areas:"pic name name name" "pic rarity rarity weight" "up down remove remove";row-gap:6px}.pk-items li img{grid-area:pic}.pk-items li input:not([type=number]){grid-area:name}.pk-items li select{grid-area:rarity}.pk-items li input[type=number]{grid-area:weight}.pk-items li button:nth-of-type(1){grid-area:up}.pk-items li button:nth-of-type(2){grid-area:down}.pk-items li button:nth-of-type(3){grid-area:remove}}
+
+body{background:var(--paper) url("assets/paper.jpg") 0 0/600px;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Helvetica Neue",sans-serif}
+.wordmark{width:110px;height:auto;display:block;margin-bottom:22px}header h1{font-size:clamp(30px,5vw,46px);line-height:1.35;letter-spacing:-.035em}.eyebrow{font-size:11px;letter-spacing:.1em}.card{background:#fbf8f1e8}.pk-steps{display:flex;gap:8px;list-style:none;padding:0;margin:24px 0}.pk-steps li{flex:1;border-bottom:2px solid var(--line);padding:10px 4px;color:var(--muted);font:12px/1.7 ui-monospace,monospace}.pk-steps li[aria-current=step]{border-color:var(--green);color:var(--green);font-weight:700}.pk-pouch{position:relative;aspect-ratio:3/4;width:150px;filter:drop-shadow(2px 5px 5px #3c2d141f)}.pk-pouch.pk-glassine{aspect-ratio:1}.pk-bag{display:block;width:100%;height:100%;object-fit:contain}.pk-label{position:absolute;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:3px;overflow:hidden;color:#34312b}.pk-label strong{font:600 12px/1.2 -apple-system,BlinkMacSystemFont,sans-serif;overflow-wrap:anywhere}.pk-label small{font:8px/1.4 ui-monospace,monospace;margin-top:4px}.pk-free{align-self:center;grid-column:1/-1}.pk-free input{width:18px;min-height:18px;margin:0}.pk-period h4{grid-column:1/-1;margin:8px 0 0}.pk-command{white-space:pre-wrap;overflow-wrap:anywhere}.pk-items li{min-width:0}.pk-items li select{font-size:13px;padding-inline:6px}.pk-stickers img{background:none}.pk-drop{line-height:1.8}.pk-editor .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:600px){main{width:calc(100% - 32px)}.pk-editor .fields{grid-template-columns:1fr}.pk-steps{gap:5px}.pk-steps li{font-size:11px}nav button{font-size:13px;min-width:68px;padding:8px}.pk-items li select{font-size:14px}.pk-period{grid-template-columns:minmax(0,1fr)}}

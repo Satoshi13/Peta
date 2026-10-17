@@ -13,6 +13,6 @@ it("produces the immutable Rust contract vector byte for byte", async () => {
   expect(new TextDecoder().decode(bytes.slice(13, -64))).toBe(JSON.stringify(header(input, "c1")));
 });
 it("refuses malformed secrets, broad official keys and invalid grants", async () => {
-  for (const [id, seed] of [["k2", TEST_SEED], ["c0", TEST_SEED], ["c1", "bad"], ["c1", btoa("x".repeat(31))]]) await expect(signBundle(input, id, seed)).rejects.toThrow("isn't configured");
+  for (const [id, seed] of [["k2", TEST_SEED], ["c0", TEST_SEED], ["c1", "bad"], ["c1", btoa("x".repeat(31))]]) await expect(signBundle(input, id, seed)).rejects.toThrow("署名が設定されていません");
   for (const items of [[], Array(11).fill(input.items[0]), [input.items[0], input.items[0]], [{ kind: "scraps", count: 1001 }], [{ kind: "material", id: "matte", count: 1 }], [{ kind: "pack", id: "cats", count: 0 }], [{ kind: "scraps", id: 1, count: 1 }]]) expect(() => checkGrants(items)).toThrow();
 });

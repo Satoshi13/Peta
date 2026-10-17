@@ -8,13 +8,13 @@ export const CATALOG = [
   ...["tokyo", "coffee", "plants", "pixel", "cats", "night"].map(id => ({ kind: "pack", id, cap: 5 })),
 ];
 export function checkGrants(input: unknown): Grant[] {
-  if (!Array.isArray(input) || input.length < 1 || input.length > 10) fail(400, "invalid", "Give 1 to 10 things.");
+  if (!Array.isArray(input) || input.length < 1 || input.length > 10) fail(400, "invalid", "内容は1〜10種類にしてください。");
   const seen = new Set<string>();
   return input.map(g => {
-    if (!g || typeof g !== "object" || typeof g.kind !== "string" || (g.id !== undefined && typeof g.id !== "string")) fail(400, "invalid", "Choose a supported item.");
+    if (!g || typeof g !== "object" || typeof g.kind !== "string" || (g.id !== undefined && typeof g.id !== "string")) fail(400, "invalid", "利用できる内容を選んでください。");
     const id = g.id ?? "", option = CATALOG.find(o => o.kind === g.kind && o.id === id), identity = `${g.kind}:${id}`;
-    if (!option || !Number.isSafeInteger(g.count) || g.count < 1 || g.count > option.cap) fail(400, "invalid", "Choose a count within the item's limit.");
-    if (seen.has(identity)) fail(400, "invalid", "Give each item only once.");
+    if (!option || !Number.isSafeInteger(g.count) || g.count < 1 || g.count > option.cap) fail(400, "invalid", "内容ごとの上限以内で数量を指定してください。");
+    if (seen.has(identity)) fail(400, "invalid", "同じ内容を重複して指定しないでください。");
     seen.add(identity);
     // Event.payload is a serde_json::Value: Rust writes its object keys in lexical order.
     return { count: g.count, id, kind: g.kind };
@@ -35,8 +35,8 @@ export async function signBundle(bundle: Bundle, keyId: string, secret: string, 
   return signHeader(header(bundle,keyId),keyId,secret,publicKey);
 }
 export async function signHeader(event:Record<string,unknown>,keyId:string,secret:string,publicKey?:string):Promise<string> {
-  if (!['bundle','daily_table','announcement','shop_config'].includes(String(event.kind))) fail(400,'invalid','Unsupported coupon-key event.');
-  if (!/^c[1-9][0-9]*$/.test(keyId)) fail(503, "signing_unavailable", "Coupon signing isn't configured.");
+  if (!['bundle','daily_table','announcement','shop_config'].includes(String(event.kind))) fail(400,'invalid',"この種類の配布はクーポン鍵では署名できません。");
+  if (!/^c[1-9][0-9]*$/.test(keyId)) fail(503, "signing_unavailable", "配布用の署名が設定されていません。");
   let key: CryptoKey;
   try {
     if (!/^[A-Za-z0-9+/]{43}=$/.test(secret)) throw new Error();
@@ -47,15 +47,15 @@ export async function signHeader(event:Record<string,unknown>,keyId:string,secre
     const pkcs8 = new Uint8Array(48); pkcs8.set(prefix); pkcs8.set(seed, 16);
     key = await crypto.subtle.importKey("pkcs8", pkcs8, "Ed25519", false, ["sign"]);
     seed.fill(0); pkcs8.fill(0);
-  } catch { fail(503, "signing_unavailable", "Coupon signing isn't configured."); }
+  } catch { fail(503, "signing_unavailable", "配布用の署名が設定されていません。"); }
   const json = new TextEncoder().encode(JSON.stringify(event));
-  if (json.length > 65536) fail(400, "invalid", "This coupon is too large.");
+  if (json.length > 65536) fail(400, "invalid", "クーポンのデータが大きすぎます。");
   const unsigned = new Uint8Array(13 + json.length);
   unsigned.set(new TextEncoder().encode("PETAEVNT")); unsigned[8] = 1;
   new DataView(unsigned.buffer).setUint32(9, json.length, false); unsigned.set(json, 13);
   const signed = new Uint8Array(unsigned.length + 64); signed.set(unsigned);
   try { signed.set(new Uint8Array(await crypto.subtle.sign("Ed25519", key, unsigned)), unsigned.length); }
-  catch { fail(503, "signing_unavailable", "Peta couldn't sign this coupon."); }
+  catch { fail(503, "signing_unavailable", "クーポンに署名できませんでした。"); }
   if (publicKey !== undefined) {
     try {
       if (!/^[A-Za-z0-9+/]{43}=$/.test(publicKey)) throw new Error();
@@ -63,7 +63,7 @@ export async function signHeader(event:Record<string,unknown>,keyId:string,secre
       if (publicBytes.length !== 32 || base64(publicBytes) !== publicKey) throw new Error();
       const verifier = await crypto.subtle.importKey("raw", publicBytes, "Ed25519", false, ["verify"]);
       if (!await crypto.subtle.verify("Ed25519", verifier, signed.slice(-64), unsigned)) throw new Error();
-    } catch { fail(503, "signing_unavailable", "Coupon signing key doesn't match its configured public key."); }
+    } catch { fail(503, "signing_unavailable", "配布用の署名鍵と公開鍵が一致しません。"); }
   }
   return base64(signed);
 }

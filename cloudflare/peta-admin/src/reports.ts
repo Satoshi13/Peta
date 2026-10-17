@@ -39,15 +39,15 @@ export function giftContents(bytes: Uint8Array): Contents {
   const official = frame(bytes, "PETAEVNT", true);
   if (official) {
     const h = official.header;
-    line(out.lines, "Title", h?.title); line(out.lines, "Message", h?.message);
-    out.readable = Array.isArray(h?.attachments) && pictures(official.body, h.attachments.map((a: any) => ({ label: "Sticker", png: a?.pngLen, mask: a?.maskLen ?? 0 })), out.pictures);
+    line(out.lines, "タイトル", h?.title); line(out.lines, "メッセージ", h?.message);
+    out.readable = Array.isArray(h?.attachments) && pictures(official.body, h.attachments.map((a: any) => ({ label: "ステッカー", png: a?.pngLen, mask: a?.maskLen ?? 0 })), out.pictures);
     return out;
   }
   const gift = bytes[8] === 1 ? frame(bytes, "PETAGIFT", false) : frame(bytes, "PETAGIFT", true);
   if (!gift) return out;
   const h = gift.header;
-  line(out.lines, "Signed as", h?.from); line(out.lines, "Written to", h?.to); line(out.lines, "Note", h?.note); line(out.lines, "Sent", h?.sentAt);
-  out.readable = pictures(gift.body, [{ label: "Sticker", png: h?.pngLen, mask: h?.maskLen ?? 0 }], out.pictures);
+  line(out.lines, "署名した送信者", h?.from); line(out.lines, "宛先", h?.to); line(out.lines, "メモ", h?.note); line(out.lines, "送信日時", h?.sentAt);
+  out.readable = pictures(gift.body, [{ label: "ステッカー", png: h?.pngLen, mask: h?.maskLen ?? 0 }], out.pictures);
   return out;
 }
 export function listingContents(card: Uint8Array | null, pack: Uint8Array | null): Contents {
@@ -55,20 +55,20 @@ export function listingContents(card: Uint8Array | null, pack: Uint8Array | null
   try {
     const c = card ? JSON.parse(new TextDecoder().decode(card)) : null;
     if (c && typeof c === "object") {
-      line(out.lines, "Card title", c.title); line(out.lines, "Card line", c.blurb);
+      line(out.lines, "カードのタイトル", c.title); line(out.lines, "カードの説明", c.blurb);
       const names = [...(Array.isArray(c.designs) ? c.designs : []), ...(Array.isArray(c.prizes) ? c.prizes : [])].map((d: any) => clip(d?.name)).filter(Boolean);
-      line(out.lines, "Inside", names.join(" · "));
+      line(out.lines, "内容", names.join(" · "));
       for (const p of Array.isArray(c.peek) ? c.peek.slice(0, 3) : []) {
-        try { const image = unbase64(String(p?.png)); if (png(image)) out.pictures.push({ label: `Card · ${clip(p?.name).slice(0, 80)}`, png: base64(image) }); } catch { /* A damaged peek is skipped. */ }
+        try { const image = unbase64(String(p?.png)); if (png(image)) out.pictures.push({ label: `カード · ${clip(p?.name).slice(0, 80)}`, png: base64(image) }); } catch { /* A damaged peek is skipped. */ }
       }
       out.readable = true;
     }
   } catch { /* The card is shown as unreadable. */ }
   const p = pack ? frame(pack, "PETAPACK", true) : null;
   if (p && Array.isArray(p.header?.items)) {
-    line(out.lines, "Pack title", p.header.title); line(out.lines, "Pack author", p.header.author); line(out.lines, "Pack line", p.header.blurb);
+    line(out.lines, "パック名", p.header.title); line(out.lines, "パックの作り手", p.header.author); line(out.lines, "パックの説明", p.header.blurb);
     out.readable = pictures(p.body, p.header.items.map((i: any) => ({ label: i?.name, png: i?.pngLen, mask: i?.maskLen ?? 0 })), out.pictures) || out.readable;
-  } else if (pack) line(out.lines, "Pack", "The pack file couldn't be read.");
+  } else if (pack) line(out.lines, "パック", "パックファイルを読み取れませんでした。");
   return out;
 }
 async function contents(env: Env, id: string, kind: string): Promise<Contents | null> {
@@ -83,7 +83,7 @@ async function contents(env: Env, id: string, kind: string): Promise<Contents | 
 }
 function reasonText(value: unknown): string {
   const reason = typeof value === "string" ? value.trim() : "";
-  if (!reason || [...reason].length > 200 || /[\u0000-\u001f\u007f-\u009f]/.test(reason)) fail(400, "invalid", "Write a short reason, up to 200 characters.");
+  if (!reason || [...reason].length > 200 || /[\u0000-\u001f\u007f-\u009f]/.test(reason)) fail(400, "invalid", "理由は200文字以内で入力してください。");
   return reason;
 }
 const COLUMNS = "r.id,r.reason,r.kind,r.listing_id AS listingId,r.created_at AS createdAt,r.resolved_at AS resolvedAt,r.stored,substr(r.sender_hash,1,8) AS sender,substr(r.reporter_hash,1,8) AS reporter,(SELECT COUNT(*) FROM reports x WHERE x.sender_hash=r.sender_hash) AS senderReports,(SELECT COUNT(*) FROM reports x WHERE x.sender_hash=r.sender_hash AND x.resolved_at IS NULL) AS senderOpen,EXISTS(SELECT 1 FROM blocked_keys b WHERE b.key_hash=r.sender_hash) AS senderBlocked";
@@ -101,18 +101,18 @@ export async function reports(request: Request, env: Env, path: string, actor: s
     }
     if (!detail) return api({ error: "not_found" }, 404);
     const row = await env.DB.prepare(`SELECT ${COLUMNS} FROM reports r WHERE r.id=?`).bind(detail[1]).first<any>();
-    if (!row) fail(404, "not_found", "That report wasn't found. It may have been deleted 30 days after it was resolved.");
+    if (!row) fail(404, "not_found", "報告が見つかりません。解決から30日後に削除された可能性があります。");
     // R2 holds the contents until 30 days after resolution; an unfinished upload never had any.
     const found = row.stored ? await contents(env, row.id, row.kind) : null;
     return api({ ...row, stored: !!row.stored, senderBlocked: !!row.senderBlocked, available: !!found, contents: found });
   }
-  if (request.method !== "POST") fail(405, "method_not_allowed", "This action is not available.");
+  if (request.method !== "POST") fail(405, "method_not_allowed", "この操作は利用できません。");
   const t = now();
   if (path === "/api/reports/resolve" || path === "/api/reports/block") {
-    if (typeof data?.id !== "string" || !ID.test(data.id)) fail(404, "not_found", "That report wasn't found.");
+    if (typeof data?.id !== "string" || !ID.test(data.id)) fail(404, "not_found", "報告が見つかりません。");
     const row = await env.DB.prepare("SELECT id,sender_hash,resolved_at FROM reports WHERE id=?").bind(data.id).first<{ id: string; sender_hash: string; resolved_at: number | null }>();
-    if (!row) fail(404, "not_found", "That report wasn't found.");
-    if (data?.confirm !== true) fail(400, "confirm", "Confirm this action first.");
+    if (!row) fail(404, "not_found", "報告が見つかりません。");
+    if (data?.confirm !== true) fail(400, "confirm", "内容を確認してから実行してください。");
     if (path.endsWith("resolve")) {
       if (row.resolved_at !== null) return api({ resolved: true, resolvedAt: row.resolved_at });
       await env.DB.batch([env.DB.prepare("UPDATE reports SET resolved_at=? WHERE id=? AND resolved_at IS NULL").bind(t, row.id), audit(env.DB, actor, "report.resolved", { reportId: row.id })]);
@@ -128,12 +128,12 @@ export async function reports(request: Request, env: Env, path: string, actor: s
     return api({ blocked: true, resolved: open });
   }
   if (path === "/api/reports/unblock") {
-    if (typeof data?.key !== "string" || !SHORT.test(data.key)) fail(404, "not_found", "That blocked sender wasn't found.");
+    if (typeof data?.key !== "string" || !SHORT.test(data.key)) fail(404, "not_found", "ブロック中の送信者が見つかりません。");
     const rows = await env.DB.prepare("SELECT key_hash FROM blocked_keys WHERE substr(key_hash,1,8)=? LIMIT 2").bind(data.key).all<{ key_hash: string }>();
-    if (!rows.results.length) fail(404, "not_found", "That blocked sender wasn't found. Refresh and try again.");
+    if (!rows.results.length) fail(404, "not_found", "ブロック中の送信者が見つかりません。ページを更新してください。");
     // 8 hex characters are 32 bits; refuse rather than guess if two blocked keys ever share them.
-    if (rows.results.length > 1) fail(409, "ambiguous", "Two blocked senders share this short code. Unblock with Wrangler instead.");
-    if (data?.confirm !== true) fail(400, "confirm", "Confirm this action first.");
+    if (rows.results.length > 1) fail(409, "ambiguous", "同じ短縮 ID の送信者が2人います。Wrangler から解除してください。");
+    if (data?.confirm !== true) fail(400, "confirm", "内容を確認してから実行してください。");
     const key = rows.results[0].key_hash;
     await env.DB.batch([env.DB.prepare("DELETE FROM blocked_keys WHERE key_hash=?").bind(key), audit(env.DB, actor, "report.sender_unblocked", { keyHash: key })]);
     return api({ unblocked: true });

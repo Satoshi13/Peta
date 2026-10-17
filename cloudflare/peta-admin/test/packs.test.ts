@@ -179,3 +179,11 @@ it("free drafts use zero or omitted price and shop settings cannot price signed 
   const { signedForShop } = await import("../src/packs");
   expect(await signedForShop(use)).toContainEqual(expect.objectContaining({ id: "shop:free-autumn", free: true, price: 0 }));
 });
+
+it("a new unsigned-sale paid version cannot price a currently live free version", async () => {
+  await signed("versioned-free", 1, null, { starts: now()-60 });
+  await base.DB.prepare("UPDATE shop_packs SET free=1,price=0 WHERE pack_id='versioned-free'").run();
+  await signed("versioned-free", 2, null);
+  const { signedForShop } = await import("../src/packs");
+  expect(await signedForShop(use)).toContainEqual(expect.objectContaining({ id: "shop:versioned-free", free: true, price: 0 }));
+});
