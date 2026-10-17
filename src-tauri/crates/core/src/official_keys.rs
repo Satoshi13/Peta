@@ -4,7 +4,8 @@ use crate::{error::{Error,Result},sign};
 // Slots are part of PETA1 codes: never reorder or remove them. Append production keys.
 pub const KEYS: &[(&str,Option<&str>)] = &[("k1", if cfg!(any(test, feature="developer")) {
     Some("11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=")
-} else { None })];
+} else { None }), ("k2", Some("L4Lmk3kJn9Ne1SHxaqY5YhE6xJz9OQjMWtdY2N4waRQ="))];
+// k2: the production official key (2026-10-17, Fingerprint: 8F50-F3A4). Its private key lives only on the owner's encrypted disk.
 // Coupon keys never occupy a PETA1 slot. c1 is the public RFC 8032 test vector.
 pub const COUPON_KEYS: &[(&str,Option<&str>)] = &[("c1", if cfg!(any(test, feature="developer")) {
     Some("11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=")
