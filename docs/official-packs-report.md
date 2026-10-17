@@ -171,3 +171,18 @@ CI（`.github/workflows/ci.yml`）に `test-sign-pack.py` と `check-admin-packs
 - **一覧が届くたびに `daily-changed`**: 6時間ごとのチェックで `shopPacks` が来たら、変化がなくても画面を一度読み直す。軽いので、比べる処理は入れていない。
 - **glassine の Market の見え方**: 棚と同じ絵を吊るしているので、クリップと袋の上端に少し隙間がある。気になれば Market 用の位置を足す。
 - **残り**: k2 を `KEYS` に入れた版の配布（howto §1）と、Step 6（dev の通し確認）。Step 2 が入った版が友達に届くまでは、新しいパックを Featured にしない（howto §5 の注意のまま）。
+
+## Mac での仕上げ（2026-10-17）
+
+### Step 1: グラシンの吊り下げ
+
+原因は `PackArt.shelf` が袋の底を棚にそろえる配置を Market でも使うこと。グラシンの絵は正方形で、描かれた上端は画像高の約11.7%の位置にあるため、クリップの下端から約11px離れていた。`native.css` に Market の rail 内の `data-bag="glassine"` だけを `16cqw`（この表示では約18px）持ち上げる規則を追加した。棚・Featured・ズームや、kraft・Rose の位置は変えない。
+
+`node scripts/check-market-hanging.mjs --before` と通常実行で、隔離IPCに公式パックを並べ、1060px／720px、昼／夜を確認。クリップと上端が約6px重なり、kraft・Rose の座標は前後で一致した。測定値は [before](official-packs-finish/step1/before-geometry.json) / [after](official-packs-finish/step1/after-geometry.json)。
+
+| 条件 | 修正前 | 修正後 |
+|---|---|---|
+| 1060px・昼 | ![前](official-packs-finish/step1/before-1060-day.png) | ![後](official-packs-finish/step1/after-1060-day.png) |
+| 1060px・夜 | ![前](official-packs-finish/step1/before-1060-night.png) | ![後](official-packs-finish/step1/after-1060-night.png) |
+| 720px・昼 | ![前](official-packs-finish/step1/before-720-day.png) | ![後](official-packs-finish/step1/after-720-day.png) |
+| 720px・夜 | ![前](official-packs-finish/step1/before-720-night.png) | ![後](official-packs-finish/step1/after-720-night.png) |

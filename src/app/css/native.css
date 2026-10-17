@@ -907,6 +907,8 @@ button.close-control svg { display:block; width:16px; height:16px; pointer-event
 .mk-tile:focus-visible { outline:2px solid #527d93; outline-offset:2px; }
 .mk-rail .mk-hang { transform-origin:50% -3.15px; } /* the pivot is the clip's ring on the rod */
 .mk-rail .mk-tile { animation:none; padding-bottom:6px; }
+/* Glassine's square art is bottom-aligned for the shelf; lift only its rail picture into the clip's jaws. */
+.mk-rail .mk-pouch > .bagpic[data-bag="glassine"] { margin-bottom:16cqw; }
 .mk-rail .mk-tile:hover .pk-stack { transform:none; }
 .mk-item > .pk-badge, .mk-tile .pk-badge { position:static; translate:none; margin-top:4px; padding:0; border-radius:0; background:none; box-shadow:none; color:var(--ink); font:500 15px/1.2 var(--sys); }
 .mk-item > .pk-badge.own::before, .mk-tile .pk-badge.own::before { content:"✓"; margin-right:6px; color:#2f7a45; font-weight:700; }

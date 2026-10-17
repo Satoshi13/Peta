@@ -1,0 +1,98 @@
+[
+  {
+    "width": 1060,
+    "appearance": "day",
+    "geometry": {
+      "shop:hang-glassine": {
+        "stackTop": 541,
+        "clipBottom": 560.359375,
+        "picTop": 539.45263671875,
+        "picWidth": 123.203125,
+        "picHeight": 123.203125
+      },
+      "coffee": {
+        "stackTop": 541,
+        "clipBottom": 560.359375
+      },
+      "shop:hang-rose": {
+        "stackTop": 541,
+        "clipBottom": 560.359375,
+        "picTop": 545.0175170898438,
+        "picWidth": 108.6875,
+        "picHeight": 144.90625
+      }
+    }
+  },
+  {
+    "width": 1060,
+    "appearance": "night",
+    "geometry": {
+      "shop:hang-glassine": {
+        "stackTop": 541,
+        "clipBottom": 560.359375,
+        "picTop": 539.45263671875,
+        "picWidth": 123.203125,
+        "picHeight": 123.203125
+      },
+      "coffee": {
+        "stackTop": 541,
+        "clipBottom": 560.359375
+      },
+      "shop:hang-rose": {
+        "stackTop": 541,
+        "clipBottom": 560.359375,
+        "picTop": 545.0175170898438,
+        "picWidth": 108.6875,
+        "picHeight": 144.90625
+      }
+    }
+  },
+  {
+    "width": 720,
+    "appearance": "day",
+    "geometry": {
+      "shop:hang-glassine": {
+        "stackTop": 603,
+        "clipBottom": 622.359375,
+        "picTop": 601.45263671875,
+        "picWidth": 123.203125,
+        "picHeight": 123.203125
+      },
+      "coffee": {
+        "stackTop": 603,
+        "clipBottom": 622.359375
+      },
+      "shop:hang-rose": {
+        "stackTop": 603,
+        "clipBottom": 622.359375,
+        "picTop": 607.0175170898438,
+        "picWidth": 108.6875,
+        "picHeight": 144.90625
+      }
+    }
+  },
+  {
+    "width": 720,
+    "appearance": "night",
+    "geometry": {
+      "shop:hang-glassine": {
+        "stackTop": 603,
+        "clipBottom": 622.359375,
+        "picTop": 601.45263671875,
+        "picWidth": 123.203125,
+        "picHeight": 123.203125
+      },
+      "coffee": {
+        "stackTop": 603,
+        "clipBottom": 622.359375
+      },
+      "shop:hang-rose": {
+        "stackTop": 603,
+        "clipBottom": 622.359375,
+        "picTop": 607.0175170898438,
+        "picWidth": 108.6875,
+        "picHeight": 144.90625
+      }
+    }
+  }
+]
