@@ -1,0 +1,62 @@
+{
+  "packId": "mac-finish-oct17",
+  "drafts": [
+    "d-e2d984f6e4ade371",
+    "d-cbd971cc13c17ed4"
+  ],
+  "versions": [
+    {
+      "pack_id": "mac-finish-oct17",
+      "version": 1
+    },
+    {
+      "pack_id": "mac-finish-oct17",
+      "version": 2
+    }
+  ],
+  "objects": [
+    {
+      "key": "shop/mac-finish-oct17/1.peta",
+      "size": 2630566
+    },
+    {
+      "key": "shop/mac-finish-oct17/2.peta",
+      "size": 2630580
+    },
+    {
+      "key": "shop/drafts/d-e2d984f6e4ade371/blue-flower.png",
+      "size": 852243
+    },
+    {
+      "key": "shop/drafts/d-e2d984f6e4ade371/cat-skateboard.png",
+      "size": 886567
+    },
+    {
+      "key": "shop/drafts/d-e2d984f6e4ade371/coffee-cup.png",
+      "size": 890846
+    },
+    {
+      "key": "shop/drafts/d-e2d984f6e4ade371/pack.json",
+      "size": 552
+    },
+    {
+      "key": "shop/drafts/d-cbd971cc13c17ed4/blue-flower.png",
+      "size": 852243
+    },
+    {
+      "key": "shop/drafts/d-cbd971cc13c17ed4/cat-skateboard.png",
+      "size": 886567
+    },
+    {
+      "key": "shop/drafts/d-cbd971cc13c17ed4/coffee-cup.png",
+      "size": 890846
+    },
+    {
+      "key": "shop/drafts/d-cbd971cc13c17ed4/pack.json",
+      "size": 570
+    }
+  ],
+  "remainingVersions": 0,
+  "remainingDrafts": 0,
+  "remainingObjects": 0
+}

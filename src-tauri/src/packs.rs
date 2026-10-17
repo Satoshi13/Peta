@@ -123,7 +123,13 @@ async fn open(app: AppHandle, pack_id: String, free: bool, queue: bool) -> Resul
     };
     today::announce(&app);
     // The ceremony hands it to the print layer after the main window closes.
-    Ok(Opened { sticker_id: Some(remaining.0),kind:"sticker".into(),material_id:None, pack_title: title, remaining: remaining.1, rarity: stored.as_ref().map(|i|peta_core::materials::rarity_name(&i.material_id)), name:stored.map(|i|i.name) }) // the rarity of a pull is the rarity of its material
+    Ok(Opened { sticker_id: Some(remaining.0),kind:"sticker".into(),material_id:None, pack_title: title, remaining: remaining.1, rarity: stored.as_ref().map(|i|opened_rarity(&pack_id, i)), name:stored.map(|i|i.name) })
+}
+
+// Official shop art is rendered on matte paper; its signed rarity is independent of that material.
+fn opened_rarity(pack_id: &str, item: &pack::StoredItem) -> String {
+    if pack_id.starts_with("shop:") { item.rarity.clone() }
+    else { peta_core::materials::rarity_name(&item.material_id) }
 }
 
 // Free acquisition is separate from the atomic Scraps exchange.
@@ -231,6 +237,14 @@ pub async fn pack_sales(app: AppHandle, pack_id: String) -> Result<PackSales, St
 #[cfg(test)]
 mod sales_tests {
     use super::*;
+    #[test]
+    fn official_shop_pulls_keep_the_signed_rarity_on_matte_paper() {
+        let mut item = pack::StoredItem { png_path:"test.png".into(), mask_path:None, material_id:"matte".into(), aspect:1.0, name:"Coffee".into(), rarity:"uncommon".into(), finished:false };
+        assert_eq!(opened_rarity("shop:autumn", &item), "uncommon");
+        item.rarity = "rare".into();
+        assert_eq!(opened_rarity("shop:autumn", &item), "rare");
+        assert_eq!(opened_rarity("creator-pack", &item), "common");
+    }
     #[test]
     fn only_accepted_friends_are_named() {
         let key=peta_core::sign::public_key(&peta_core::sign::generate().unwrap());

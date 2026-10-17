@@ -1,0 +1,11 @@
+{
+  "shopPacks": [
+    {
+      "packId": "mac-finish-oct17",
+      "version": 1,
+      "size": 2630566,
+      "sha256": "74bddfc919a1135196e78dea24d58d0f2a70f2ed0bfdabd8e9e21acf197ae320",
+      "endsAt": 1792285743
+    }
+  ]
+}

@@ -185,8 +185,8 @@ export async function packs(request: Request, env: Env, path: string, actor: str
     const row = await signedRow(env, data);
     if (row.removed_at !== null || row.stopped_at !== null) fail(409, "stopped", "A stopped pack can't be put back on sale. Make a new version.");
     const start = data.startsAt, end = data.endsAt ?? null;
-    if (!Number.isSafeInteger(start) || start < 0 || (end !== null && (!Number.isSafeInteger(end) || end <= start || end <= t)))
-      fail(400, "invalid", "Choose a start, and an end after the start and after now (or no end).");
+    if (!Number.isSafeInteger(start) || start < 0 || (end !== null && (!Number.isSafeInteger(end) || end <= start)))
+      fail(400, "invalid", "Choose a start, and an end after the start (or no end).");
     const others = await env.DB.prepare("SELECT COUNT(DISTINCT pack_id) n FROM shop_packs WHERE pack_id!=? AND starts_at IS NOT NULL AND stopped_at IS NULL AND removed_at IS NULL AND (ends_at IS NULL OR ends_at>?)").bind(row.pack_id, t).first<{ n: number }>();
     if ((others?.n ?? 0) >= MAX_LIVE) fail(409, "limit", `At most ${MAX_LIVE} packs can be on sale or scheduled. Stop or end one first.`);
     await env.DB.batch([

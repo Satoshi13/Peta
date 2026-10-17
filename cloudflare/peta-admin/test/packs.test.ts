@@ -105,8 +105,11 @@ it("puts a signed pack on sale for a period, stops it, and starts the next versi
   const id = await readyDraft();
   await signed("autumn", 1, id);
   expect((await list()).packs[0]).toMatchObject({ packId: "autumn", version: 1, state: "signed", price: 12 });
-  expect((await post("/api/packs/publish", { packId: "autumn", version: 1, startsAt: now() - 60, endsAt: now() - 1 }, use)).status).toBe(400);
+  expect((await post("/api/packs/publish", { packId: "autumn", version: 1, startsAt: now(), endsAt: now() - 1 }, use)).status).toBe(400);
   expect((await post("/api/packs/publish", { packId: "autumn", version: 9, startsAt: now() }, use)).status).toBe(404);
+  // The owner can end a sale immediately by moving its end into the past.
+  expect((await post("/api/packs/publish", { packId: "autumn", version: 1, startsAt: now() - 60, endsAt: now() - 1 }, use)).status).toBe(200);
+  expect((await list()).packs[0].state).toBe("ended");
   expect((await post("/api/packs/publish", { packId: "autumn", version: 1, startsAt: now() - 60, endsAt: null }, use)).status).toBe(200);
   expect((await list()).packs[0].state).toBe("on sale");
   expect((await post("/api/packs/publish", { packId: "autumn", version: 1, startsAt: now() + 3600, endsAt: now() + 7200 }, use)).status).toBe(200);

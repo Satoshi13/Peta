@@ -186,3 +186,63 @@ CI（`.github/workflows/ci.yml`）に `test-sign-pack.py` と `check-admin-packs
 | 1060px・夜 | ![前](official-packs-finish/step1/before-1060-night.png) | ![後](official-packs-finish/step1/after-1060-night.png) |
 | 720px・昼 | ![前](official-packs-finish/step1/before-720-day.png) | ![後](official-packs-finish/step1/after-720-day.png) |
 | 720px・夜 | ![前](official-packs-finish/step1/before-720-night.png) | ![後](official-packs-finish/step1/after-720-night.png) |
+
+### Step 2: dev での通し確認
+
+オーナーの Mac で dev の D1 `peta-dev` / R2 `peta-downloads-dev` を使用。本番、Access の設定、本物の公式鍵には触れていない。`peta-api-dev` と `peta-admin-dev` のみデプロイした。
+
+管理 API は [official-packs-dev.cjs](../scripts/official-packs-dev.cjs) で実行した。`handle()` そのものを読み込み、`test/helpers.ts` と同じ RSA JWT・注入できる cert key source を使い、Wrangler `getPlatformProxy` の **remote: true の dev D1/R2** に接続した。認証の差し替えはこのローカル検証スクリプトだけで、Worker の配布コードに認証回避は追加していない。起動は `node scripts/official-packs-dev.cjs --dev`、127.0.0.1:8789 限定。Access 未設定の公開管理ページは引き続き403。
+
+試験 ID は `mac-finish-oct17`。既存の透過PNG `cat-skateboard.png` / `coffee-cup.png` / `blue-flower.png` を使用した。v1 は glassine・12 Scraps・重み4:2:1、v2 は matte/Rose・12 Scraps・100:1:1。`sign-pack.sh` を両版で実行し、ダウンロードしたプレビューを確認してから `y` を入力。署名したのは公開済み RFC8032 テスト鍵 k1 のみ。
+
+| 段階 | 結果・記録 |
+|---|---|
+| 下書き → Ready | 実際の Worker の作成・保存・PNG upload・Ready API が成功。[管理画面](official-packs-finish/step2/ready.png) |
+| Mac の署名 | v1/v2 とも検査・プレビュー・k1署名・アップロード成功。[v1](official-packs-finish/step2/sign-v1-preview.png) / [v2](official-packs-finish/step2/sign-v2-preview.png) |
+| 掲載 | 実際の publish API で「今から1日」を設定。[管理画面](official-packs-finish/step2/published.png) |
+| 取得 | dev の `/v1/config` と Mac 専用短命トークンのファイル取得成功、SHA256一致。[v1一覧](official-packs-finish/step2/config-v1.json) / [v2一覧](official-packs-finish/step2/config-v2.json)。通常版の `peta-pass verify` がk1を拒否することも確認（署名スクリプトは明示した公開鍵で再検証して成功）。 |
+| Market | 実際の Developer にv1のグラシン、v2のRoseが順に届いた。題名・紹介文・袋・色が一致。[v1](official-packs-finish/step2/market-v1.png) / [v2](official-packs-finish/step2/market-v2-rose.png)。今回のパックをFeaturedには指定せず、既存設定を維持。 |
+| 購入 → 棚 | 1セットで3枚、10セットで30枚を追加。[購入画面](official-packs-finish/step2/buy-v1.png) / [v1の棚](official-packs-finish/step2/shelf-v1.png) / [v2の棚](official-packs-finish/step2/shelf-v2.png)。Developer の仕様どおり「Free (developer)」、残高53は不変。通常版の12 Scraps課金はRustの価格・残高テストで確認。 |
+| 開封 → Keep | [グラシンを開ける](official-packs-finish/step2/open-glassine.png) → [保護紙](official-packs-finish/step2/peel-cover.png) → [判子・Keep](official-packs-finish/step2/reveal-keep.png)。Collectionへの保存を確認。Roseは[上端を破る操作](official-packs-finish/step2/tear-rose.png)も確認。取り出し・はがしは実装済みのダブルクリック／Enterでも進めた。 |
+| 重み | v2を10セット買い、実機の「Open 10」で抽選。**猫9枚、青い花1枚**。[結果画面](official-packs-finish/step2/weighted-ten.png) / [開封した実データ](official-packs-finish/step2/weighted-ten.json)。未開封から重みつき・非復元で引くので、残りを引くほど比率は変わる。 |
+| 期間終了 | 修正後のWorkerで両版の終了を過去に変更でき、[管理画面](official-packs-finish/step2/ended-admin.png)と[実際のdev一覧が空](official-packs-finish/step2/config-ended.json)で確認。旧版が販売中だと最新版終了後に旧版が戻るため、両版を終了した。 |
+
+Developer に即時取得ボタンがないため、検証中は `daily.table_attempt` の値だけを退避して0にし、アプリを開き直した。既存のDeveloperライブラリで確認し、オーナーの既存パックは購入・開封していない。Tauri の developer コンテキストが識別子を固定するため、CLIでの識別子上書きはライブラリ分離に使えない。
+
+`npm run dev:developer` はビルド・起動成功。ただしCLIの一時HTTP配信に依存する実行ファイルを単独で使った画面確認では[白画面](official-packs-finish/step2/developer-blank.png)になった。実機確認は `tauri build --debug --features developer --bundles app --no-sign --config src-tauri/tauri.developer.conf.json` のアセット内蔵バンドルと、既存の debug 専用 `PETA_PORT_CAPTURE_DIR` を使用した。配布はしていない。
+
+### 通し確認で直したもの
+
+- 管理APIが過去の終了日時を拒否していた（実際のWorkerで400を再現）。開始より後という検査を維持し、過去の終了日時を受け付けるようにした。「ended」になることと、不正な逆転期間の拒否を既存テストに追加した。
+- 開封応答が素材のレア度を使い、公式パックのCoffee（署名ではuncommon）やBlue Flower（rare）も、matte素材のcommonと表示していた。公式ショップパックだけ署名済み `StoredItem.rarity` を返すようにした。Creatorパックの素材基準の扱いは維持し、uncommon／rareのmatteとCreatorの回帰テストを追加した。上の初回スクリーンショットのcommon表示は修正前の記録。
+- 6時間ごとの取得に関する `183786d` の抑制処理は維持。`replace_listing` はURLを保存・比較から除き、一覧が同じならfalse、新規取得もなければ `today::announce` を呼ばない。既存の「same list again is not a change」「取得は一度だけ」テストを含むRustテストが通過。**実時間で6時間待つ確認は行っていない**。
+
+### 終了後の実機確認と片付け
+
+- [Market から消えた画面](official-packs-finish/step2/market-ended.png)でも、[棚の22枚](official-packs-finish/step2/shelf-ended.png)は残った。無料開封のCoffeeが修正後の **Uncommon** と表示されることを実機で確認した（[画像](official-packs-finish/step2/ended-open-uncommon.png)）。さらに通常の封も開け、**22 → 21枚**になった（[画像](official-packs-finish/step2/ended-normal-open.png)）。
+- Stick it から[ネイティブ印刷レイヤー](official-packs-finish/step2/stick-it-print.png)へ渡ることを確認した。最終的なデスクトップへのドラッグは、画面操作ツールが透過レイヤーをつかめず `windowNotFoundAtPosition` となり未確認。印刷待ちは Later で閉じ、ステッカーはCollectionに残した。実際の最終貼り付けは今回の未確認項目。
+- dev D1 の試験パック2版・下書き2件、R2の試験パックと下書きの計10オブジェクトを削除した。対象は自分の ID / draft ID の prefix に限定し、管理ページの一括 cleanup は使っていない。[削除前](official-packs-finish/step2/cleanup-before.json) / [削除後（行・オブジェクトすべて0）](official-packs-finish/step2/cleanup-after.json) / [管理画面](official-packs-finish/step2/cleaned-admin.png)。公開dev管理APIが403のままであることも再確認した。
+- ローカルDeveloperには試験で買った残り21枚と開封済みステッカーを残した。既存のパック・ステッカーを消していない。検証用に退避した `daily.table_attempt` は元の値へ戻した。試験用ローカルWorkerと自分が起動したアプリは停止した。
+
+### 最終テストとディスク
+
+`CARGO_INCREMENTAL=0` を使用。修正後の再実行も通過した。ログはMacの `/tmp/peta-finish-tests-*.log`。
+
+| テスト | 結果 |
+|---|---|
+| `cloudflare/peta-api`: `npm test` / `npx tsc --noEmit` | 77件・型検査成功 |
+| `cloudflare/peta-download`: 同上（元指示書§8） | 11件・型検査成功 |
+| `cloudflare/peta-admin`: 同上 | 修正後53件・型検査成功 |
+| `cargo test --manifest-path src-tauri/Cargo.toml --workspace --features server` | app 29件成功・既存3件ignored、core 293件、統合・CLIテスト成功 |
+| `cargo test --manifest-path src-tauri/Cargo.toml --workspace` | app 16件・core 293件、統合・CLIテスト成功 |
+| `cargo test --manifest-path src-tauri/crates/core/Cargo.toml --features developer --test official_trust` | 2件成功 |
+| `npm test` | 修正後262件成功 |
+| `python3 scripts/test-release-mac.py` | 4項目成功（署名等はmock） |
+| `python3 scripts/test-sign-pack.py` | 成功（fake Wrangler） |
+| `node scripts/check-admin-packs.mjs` | 成功（stub API・375pxを含む） |
+| `node scripts/check-market-hanging.mjs` | 成功（昼夜・1060/720px・他の袋の座標不変） |
+| Developer debug バンドル | macOSでビルド成功、実機で購入・開封・期限終了後の開封成功 |
+
+ディスクは開始時30GiB、最終計測24GiB空き（228GiBのボリューム）。`npm run clean:target` で対象を確認後、`npm run clean:target -- --apply` で古いビルドのオブジェクト4302件・2.82GBを削除した。今回必要なdebugビルドは残している。
+
+オーナーの保護対象5ファイル（`creator.rs`・`ceremony.js`・`create.js`・`market.js`・`tests/create-picker.test.mjs`）は、開始時と最終のSHA256がすべて一致。自分が変更したファイルだけをコミットした。本番のk2準備・配布は今回の範囲外のまま。
