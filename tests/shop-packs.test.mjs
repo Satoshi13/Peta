@@ -14,10 +14,10 @@ const nodes=el=>el instanceof Element?[el,...el.children.flatMap(nodes)]:[];
 // What scrap_status lists for an official pack that arrived after the app shipped (peta-core shop_pack::Live).
 const autumn=(over={})=>({id:'shop:autumn',packId:'autumn',version:2,title:'Autumn Walk',by:'Peta',blurb:'Leaves on the way home.',pouch:'glassine',color:null,price:12,
   items:[{key:'chestnut',name:'Chestnut',rarity:'rare'},{key:'maple',name:'Maple Leaf',rarity:'common'},{key:'acorn',name:'Acorn',rarity:'uncommon'},{key:'pine',name:'Pine',rarity:'common'}],...over});
-function fixture({shopPacks=[autumn()],shop=null,owned={}}={}){
+function fixture({shopPacks=[autumn()],shop=null,owned={},builtinPacks=true}={}){
   const calls=[];
   const packs=[['tokyo',16,8],['coffee',12,6],['plants',10,5],['pixel',12,6],['cats',10,5],['night',12,6],...shopPacks.map(p=>[p.id,p.price,p.items.length])].map(([id,exchange,stickers])=>({id,exchange,stickers,onSale:true}));
-  const S={page:'market',developer:false,owned,packs:[],scraps:{balance:100,packs,shop,shopPacks}};
+  const S={page:'market',developer:false,owned,packs:[],scraps:{balance:100,packs,shop,shopPacks,builtinPacks}};
   const bag={body:[0,0,100,100],cm:9};const BAGS={kraft:bag,matte:bag,holo:bag,glassine:bag};
   const context=vm.createContext({h,Pages:{},S,BAGS,isPouch:id=>['kraft','matte','holo'].includes(id),packColor:(bag,color)=>color&&bag!=='kraft'?{id:color}:null,PACK_SEALED_CAP:100,
     Shell:{toast(){},go(){}},Snd:{tap(){}},CloseButton:()=>h('button.close'),PackPeek:keys=>h('figure.peek',{keys}),ScrapAmt:n=>`${n} Scraps`,packVar:k=>k,PackLabel:p=>h('span.label',p.title),BagPic:o=>h('div.bagpic',{bag:o.bag,color:o.color}),
@@ -71,3 +71,13 @@ test('the card shows its pictures and the exchange, never the free button', ()=>
   assert.equal(nodes(card).find(n=>n.tag==='figure.peek').keys.length,4);
   assert.ok(!nodes(card).some(n=>n.tag==='button.btn.mkz-act'),'no "Get — Free"');
 });
+
+ test('online Market hides every built-in even when named by settings, while offline keeps all six',()=>{
+ const {c}=fixture({builtinPacks:false,shop:{featured:['tokyo','cats'],order:['coffee','shop:autumn']}});
+ assert.deepEqual([...c.Market.official().map(p=>p.id)],['shop:autumn']);
+ assert.equal(c.Featured.pick(c.Market.official()),null);
+ const empty=fixture({builtinPacks:false,shopPacks:[]}).c;
+ assert.equal(empty.Market.official().length,0);assert.equal(empty.Featured.pick([]),null);
+ assert.ok(nodes(empty.Pages.market.packs(()=>{})).some(n=>n.children.includes('New packs are on their way.')));
+ assert.equal(fixture({shopPacks:[]}).c.Market.official().length,6);
+ });

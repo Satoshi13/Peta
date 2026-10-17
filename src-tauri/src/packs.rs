@@ -136,6 +136,7 @@ fn opened_rarity(pack_id: &str, item: &pack::StoredItem) -> String {
 #[cfg_attr(feature="server",tauri::command(async))]
 #[cfg_attr(not(feature="server"),tauri::command)]
 pub fn pack_install_demo(app: AppHandle, pack_id: String) -> Result<(), String> {
+    if cfg!(feature="server") { return Err("Built-in shop packs are only available offline.".into()); }
     let p = pack::market_pack(&pack_id).ok_or("This pack is not available yet")?;
     if !p.free { return Err("Exchange Scraps for this pack.".into()); }
     let store=app.state::<Store>();let mut lib=store.lock();

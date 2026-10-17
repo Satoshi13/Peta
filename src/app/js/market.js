@@ -1,4 +1,5 @@
 /* Local catalog packs and Scraps exchanges; creator accounts remain previews. */
+/* Offline shop catalog; kept packs can still use these titles and sample pictures online. */
 const MARKET_PACKS = [
   { id: "tokyo", title: "Tokyo Pack", by: "Peta", count: 8, price: "Free", hue: 200, kind: "holo", blurb: "A walk through the city in eight small things.", keys: ["sCamera", "sCoffee", "sPolaroid", "sCassette", "sComputer", "sBubble", "sGoodDay", "sEgg"] },
   { id: "coffee", title: "Coffee Club", by: "Nao", count: 6, price: "Free", hue: 0, kind: "kraft", blurb: "Slow mornings, one cup at a time.", keys: ["sCoffee", "sEgg", "sGoodDay", "sCamera", "sPlant", "sCat"] },
@@ -69,7 +70,7 @@ const Featured = {
       .map((l) => ({ kind: "friend", key: "friend:" + l.listingId, listing: l, pack: FriendShop.pack(l) }));
   },
   officials(packs) {
-    const chosen = S.scraps.shop?.featured?.length ? S.scraps.shop.featured : [MARKET_PACKS[0].id];
+    const chosen = S.scraps.shop?.featured?.length ? S.scraps.shop.featured : Market.builtins().slice(0,1).map(p=>p.id);
     return chosen.map((id) => packs.find((p) => p.id === id)).filter((p) => p && Market.onSale(p) && !Market.full(p))
       .map((p) => ({ kind: "official", key: "official:" + p.id, pack: p }));
   },
@@ -108,8 +109,9 @@ const ShopPacks = {
 
 const Market = {
   /* The official packs as the shop setting describes them: its order first, its lines in place of the built-in ones. Shop packs follow the built-in ones. */
+  builtins() { return S.scraps.builtinPacks === false ? [] : MARKET_PACKS; },
   official() {
-    const shop = S.scraps.shop, order = shop?.order || [], all = [...MARKET_PACKS, ...ShopPacks.list()];
+    const shop = S.scraps.shop, order = shop?.order || [], all = [...this.builtins(), ...ShopPacks.list()];
     const rank = (p) => { const i = order.indexOf(p.id); return i < 0 ? order.length + all.indexOf(p) : i; };
     return all.sort((a, b) => rank(a) - rank(b)).map((p) => shop?.blurbs?.[p.id] ? { ...p, blurb: shop.blurbs[p.id] } : p);
   },
@@ -315,7 +317,7 @@ Pages.market = {
     const main = h("div.mk-main",
       feat ? this.hero(feat, open) : null,
       this.localPacks(),
-      h("p.eyebrow.mk-h", "New and popular"), this.rail(rail.map(cell)),
+      h("p.eyebrow.mk-h", "New and popular"), rail.length ? this.rail(rail.map(cell)) : h("p.muted.mk-empty", "New packs are on their way."),
       this.friendPacks(paint));
     return h("div.mk", main);
   },

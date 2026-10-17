@@ -37,6 +37,7 @@ pub fn default_pack_price(id: &str) -> Option<i64> { PACKS.iter().find(|(p,_)| *
 /// One price for both what the Market shows and what a trade takes: the signed shop setting's, else the built-in one.
 pub(crate) fn pack_offer(conn: &Connection, id: &str) -> Option<(i64, bool)> {
     if crate::shop_pack::pack_id(id).is_some() { return crate::shop_pack::offer(conn, id); }
+    if cfg!(feature="daily-tables") { return None; }
     let base = default_pack_price(id)?;
     let shop = crate::signed_config::active_shop(conn, chrono::Utc::now());
     let entry = shop.as_ref().and_then(|c| c.packs.iter().find(|p| p.id==id));
@@ -44,14 +45,16 @@ pub(crate) fn pack_offer(conn: &Connection, id: &str) -> Option<(i64, bool)> {
 }
 fn shop_view(conn: &Connection) -> Option<ShopView> {
     let c = crate::signed_config::active_shop(conn, chrono::Utc::now())?;
-    Some(ShopView { featured:c.featured, official_first:c.official_first, order:c.order, blurbs:c.packs.into_iter().filter_map(|p| Some((p.id, p.blurb?))).collect() })
+    let visible = |id: &str| !cfg!(feature="daily-tables") || crate::shop_pack::pack_id(id).is_some();
+    Some(ShopView { featured:c.featured.into_iter().filter(|id| visible(id)).collect(), official_first:c.official_first, order:c.order.into_iter().filter(|id| visible(id)).collect(), blurbs:c.packs.into_iter().filter(|p| visible(&p.id)).filter_map(|p| Some((p.id, p.blurb?))).collect() })
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Status { pub balance: i64, pub materials: Vec<MaterialRate>, pub packs: Vec<PackRate>, pub tools: Vec<ToolRate>, pub shop: Option<ShopView>,
     /// Official shop packs on sale now (received without an app update); their rates are in `packs` under `shop:<packId>`.
-    pub shop_packs: Vec<crate::shop_pack::Live> }
+    pub shop_packs: Vec<crate::shop_pack::Live>,
+    pub builtin_packs: bool }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ToolRate { pub id: &'static str, pub exchange: i64 }
@@ -76,12 +79,15 @@ fn balance(conn: &Connection) -> Result<i64> {
 }
 pub(crate) fn status(conn: &Connection) -> Result<Status> {
     let shop_packs = crate::shop_pack::live(conn, chrono::Utc::now().timestamp());
-    let mut packs: Vec<PackRate> = PACKS.iter().map(|(id,_)| { let (exchange,on_sale)=pack_offer(conn,id).expect("built-in pack"); PackRate { id:(*id).into(), exchange, stickers:pack::market_pack(id).unwrap().keys.len(), on_sale } }).collect();
+    let mut packs: Vec<PackRate> = PACKS.iter().filter_map(|(id,_)| { let (exchange,on_sale)=pack_offer(conn,id)?; Some(PackRate { id:(*id).into(), exchange, stickers:pack::market_pack(id).unwrap().keys.len(), on_sale }) }).collect();
     packs.extend(shop_packs.iter().filter_map(|p| { let (exchange,on_sale)=pack_offer(conn,&p.id)?; Some(PackRate { id:p.id.clone(), exchange, stickers:p.items.len(), on_sale }) }));
-    Ok(Status { balance:balance(conn)?, materials:MATERIALS.to_vec(), packs, tools:TOOLS.to_vec(), shop:shop_view(conn), shop_packs })
+    Ok(Status { balance:balance(conn)?, materials:MATERIALS.to_vec(), packs, tools:TOOLS.to_vec(), shop:shop_view(conn), shop_packs, builtin_packs:!cfg!(feature="daily-tables") })
 }
 
 pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, unrestricted: bool) -> Result<Receipt> {
+    if cfg!(feature="daily-tables") && request.kind==Kind::Pack && pack::market_pack(&request.item_id).is_some() {
+        return Err(invalid("Built-in shop packs are only available offline."));
+    }
     if request_id.is_empty() || request_id.len()>128 || !request_id.bytes().all(|c| c.is_ascii_alphanumeric() || c==b'-') {
         return Err(invalid("Invalid exchange request."));
     }
@@ -159,7 +165,7 @@ pub(crate) fn trade(conn: &mut Connection, request: &Trade, request_id: &str, un
     Ok(receipt)
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature="daily-tables")))]
 mod shop_tests {
     use super::*;
     use crate::{db::Database, signed_config::{self, tests::signed}};
@@ -312,11 +318,13 @@ mod tests {
         assert!(db.scrap_trade(&request(Kind::Material,"kraft",1),"no-funds").is_err());
         assert_eq!(db.material_count("kraft").unwrap(),0);assert_eq!(db.scrap_status().unwrap().balance,0);
     }
+    #[cfg(not(feature="daily-tables"))]
     fn funded_by(extra: i64) -> Database {
         let mut db=funded();
         db.add_material("holographic",extra).unwrap();
         db.scrap_trade(&request(Kind::Dismantle,"holographic",extra),"fund-more").unwrap();db
     }
+    #[cfg(not(feature="daily-tables"))]
     #[test]
     fn owned_packs_take_another_set_whether_or_not_stickers_are_left_and_keep_history_and_welcome_allowance() {
         let mut db=funded_by(60);pack::ensure_welcome_pack(&mut db).unwrap();
@@ -338,6 +346,7 @@ mod tests {
         }
         assert!(db.welcome_available("2026-10-04").unwrap());assert_eq!(db.packs().unwrap().iter().find(|p|p.id=="welcome").unwrap().total,welcome);
     }
+    #[cfg(not(feature="daily-tables"))]
     #[test]
     fn a_pack_stops_taking_sets_at_the_sealed_cap_without_spending() {
         let mut db=funded_by(60);
@@ -354,6 +363,7 @@ mod tests {
         assert_eq!(db.scrap_status().unwrap().balance,before);
         assert_eq!(db.packs().unwrap().into_iter().find(|p|p.id=="plants").unwrap().remaining,MAX_SEALED_PER_PACK);
     }
+    #[cfg(not(feature="daily-tables"))]
     #[test]
     fn several_sets_are_bought_in_one_transaction_and_never_past_the_cap_or_the_balance() {
         let mut db=funded_by(60);
@@ -381,6 +391,7 @@ mod tests {
         assert_eq!(poor.scrap_status().unwrap().balance,before);
         assert_eq!(poor.packs().unwrap().into_iter().find(|p|p.id=="plants").unwrap().remaining,n);
     }
+    #[cfg(not(feature="daily-tables"))]
     #[test]
     fn paid_packs_are_installed_atomically_and_retries_do_not_add_items() {
         let mut db=funded();
@@ -424,6 +435,7 @@ mod tests {
         assert_eq!(conn.query_row("PRAGMA user_version",[],|r|r.get::<_,i64>(0)).unwrap(),crate::db::SCHEMA_VERSION);
         drop(conn);std::fs::remove_dir_all(dir).unwrap();
     }
+    #[cfg(not(feature="daily-tables"))]
     #[test]
     fn receipt_failure_rolls_back_dismantling_and_partial_pack_refills() {
         let dir=std::env::temp_dir().join(format!("peta-scraps-{}",ids::new_sticker_id()));std::fs::create_dir_all(&dir).unwrap();let path=dir.join("test.db");
@@ -689,5 +701,27 @@ mod reward_tests {
         for bad in ["", "yesterday", "2026-13-01", "2026-10-13T00:00:00Z"] { assert!(db.scrap_reward_creation("a", true, bad).is_err()); }
         assert_eq!(db.scrap_status().unwrap().balance, 0);
         assert_eq!(db.scrap_reward_creation("a", true, "2026-10-13").unwrap().made, MADE_BONUS, "a refused ask leaves no receipt behind");
+    }
+}
+
+#[cfg(all(test, feature="daily-tables"))]
+mod online_shop_tests {
+    use super::*;
+    #[test]
+    fn online_shop_ignores_builtin_sales_and_settings_but_keeps_existing_shelves_and_welcome() {
+        let mut db=crate::Database::open_in_memory().unwrap();
+        db.conn.execute("UPDATE meta SET value='500' WHERE key='scraps.balance'",[]).unwrap();
+        let old=pack::market_pack("coffee").unwrap();
+        db.pack_install(old.id,old.title,old.by,old.keys).unwrap();
+        pack::ensure_welcome_pack(&mut db).unwrap();
+        let signed=crate::signed_config::tests::signed("online-shop",crate::signed_config::SHOP_CONFIG,serde_json::json!({"configId":"online-shop","configKind":"default","featured":["pixel","shop:autumn"],"officialFirst":true,"order":["night","shop:autumn"],"packs":[{"id":"pixel","onSale":true,"price":20,"blurb":"Old"}]}),"2026-01-01T00:00:00Z","2027-01-01T00:00:00Z");
+        crate::signed_config::replace_shop(&mut db,&[signed]).unwrap();
+        let status=db.scrap_status().unwrap();assert!(!status.builtin_packs);assert!(status.packs.is_empty());
+        let view=status.shop.unwrap();assert_eq!(view.featured,vec!["shop:autumn"]);assert_eq!(view.order,vec!["shop:autumn"]);assert!(view.blurbs.is_empty());
+        for (id,_) in PACKS {
+            assert!(db.scrap_trade(&Trade{kind:Kind::Pack,item_id:id.into(),quantity:1},&format!("online-{id}")).is_err());
+            assert!(pack_offer(&db.conn,id).is_none());
+        }
+        let kept=db.packs().unwrap();assert!(kept.iter().any(|p|p.id=="coffee"&&p.remaining==old.keys.len() as i64));assert!(kept.iter().any(|p|p.id==pack::WELCOME_PACK_ID&&p.remaining>0));
     }
 }
