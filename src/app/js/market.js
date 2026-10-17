@@ -33,7 +33,7 @@ const FriendShop = {
   /* A pack-shaped view of a listing, for the rail, the zoom and the ceremony. */
   pack(l) {
     const c = l.card || {};
-    return { id: "friend-" + l.listingId, listingId: l.listingId, title: c.title || "A friend's pack", by: l.sellerName, kind: ["holo", "kraft", "matte"].includes(c.pouch) ? c.pouch : "kraft", hue: 0,
+    return { id: "friend-" + l.listingId, listingId: l.listingId, title: c.title || "A friend's pack", by: l.sellerName, kind: ["holo", "kraft", "matte"].includes(c.pouch) ? c.pouch : "kraft", hue: 0, bag:BAGS[c.pouch] ? c.pouch : null,color:packColor(c.pouch,c.color)?.id || null,layout:c.layout || null,deco:c.deco || null,
       blurb: c.blurb || "", friend: l, left: Array(Math.max(0, l.slotsLeft)).fill(null), total: l.slotCount };
   },
   /* Why a pull cannot happen right now, or "" when it can. */
@@ -114,9 +114,10 @@ const Market = {
     return all.sort((a, b) => rank(a) - rank(b)).map((p) => shop?.blurbs?.[p.id] ? { ...p, blurb: shop.blurbs[p.id] } : p);
   },
   onSale(pack) { return Scraps.pack(pack.id)?.onSale !== false; },
-  /* A classic pouch, or (for a shop pack in another wrapping or a colour) the wrapping drawn as it stands on the Packs shelf. */
+  /* A classic pouch, or the wrapping drawn as it stands on the Packs shelf (generated wrappings, coloured packs, shop packs in another wrapping). */
   pouch(p) {
-    if (p.bag && BAGS[p.bag] && (!isPouch(p.bag) || packColor(p.bag, p.color)?.id)) return h("div.pk-stack.mk-pouch", { data: { gen: "1", kind: p.kind } }, PackArt.shelf(p, null));
+    // the owner's generated wrappings and any coloured pack, as well as shop packs in another wrapping or a colour
+    if (BAGS[p.bag]?.gen || p.color || (p.bag && BAGS[p.bag] && (!isPouch(p.bag) || packColor(p.bag, p.color)?.id))) return h("div.pk-stack.mk-pouch", { data: { gen: "1", kind: p.kind } }, PackArt.shelf(p, null));
     const foil = (p.kind || "holo") === "holo";
     return h("div.pk-stack.mk-pouch", h("i.pk-img" + (foil && p.hue ? ".tinted" : ""), { style: { "--k": 0, "--hue": p.hue + "deg", "--pk": packVar(p.kind) } }, foil ? h("i.sheen") : null), PackLabel(p));
   },
@@ -135,7 +136,7 @@ const Market = {
     if (!this.onSale(pack)) { Shell.toast("This pack is not on sale right now."); return; }
     if (this.own(pack.id) || pack.price !== "Free") { this.exchange(pack).click(); return; }
     try { await Bridge.invoke("pack_install_demo", {packId:pack.id}); await Bridge.reload(); Snd.chime(3,784); Shell.toast(`${pack.title} is on your Packs shelf.`); Shell.refresh(); }
-    catch(e) { Shell.toast(String(e)); }
+    catch(e) { Shell.error(e); }
   },
   /* What one set costs: nothing in the developer edition. */
   unit(pack) { const rate = Scraps.pack(pack.id); return !rate || S.developer ? 0 : rate.exchange; },
@@ -258,8 +259,9 @@ Pages.market = {
     const paint = () => {
       root.replaceChildren(
         PageHead("Market", "Packs, materials and creators"),
-        h("div.seg.mk-seg", ["packs", "materials", "tools", "creators"].map((t) => SegButton(t[0].toUpperCase() + t.slice(1), { "aria-pressed": String(MK.tab === t), on: { click: () => { MK.tab = t; Snd.tap(); paint(); if (t === "packs") Pages.market.sway(root); } } }))),
+        h("div.seg.mk-seg", ["packs", "materials", "tools", "creators"].map((t) => SegButton(t[0].toUpperCase() + t.slice(1), { "aria-pressed": String(MK.tab === t), on: { click: () => { if(MK.tab === t) return; MK.tab = t; Snd.tap(); paint(); Shell.syncResources(); if (t === "packs") Pages.market.sway(root); } } }))),
         MK.tab === "packs" ? this.packs(paint) : MK.tab === "materials" ? this.materials(paint) : MK.tab === "tools" ? this.tools(paint) : this.creators(paint));
+      revealContent(root.lastElementChild);
       const form = Scraps.form(); if(form) root.insertBefore(form, root.children[2]);
     };
     paint(); return root;
@@ -281,11 +283,11 @@ Pages.market = {
     const sheets = [tag];
     if(Pages.boards && S.boards) {
       const boardStock=S.boards.stock, info=BoardState.tool(boardStock,S.scraps,S.developer);
-      sheets.push(sheet(h("h3", "Board ×1"), h("p.mk-tool-sub", "A blank board to keep one more look."),
+      sheets.push(sheet(h("h3", "Board ×1"), h("p.mk-tool-sub", "A reusable board for one saved screen layout."),
         h("div.mk-tool-art.mk-art-board", { "aria-hidden": "true" }, h("i"), h("i"), h("i.mk-art-clip")),
-        h("p.mk-tool-cap", "Save a screen, keep a favourite."),
+        h("p.mk-tool-cap", "Save a layout and apply it to any screen."),
         h("button.btn.mk-tool-get", { type: "button", disabled:this.boardBusy || (!this.boardRequest && info.disabled), on: { click: () => this.buyBoard(paint) } }, this.boardRequest ? "Retry board purchase" : info.label),
-        h("p.mk-tool-price", S.developer ? "Free · Developer" : info.price==null ? "Unavailable" : ScrapAmt(info.price)), h("p.mk-tool-note", "Uses one per look. Returns when deleted."),
+        h("p.mk-tool-price", S.developer ? "Free · Developer" : info.price==null ? "Unavailable" : ScrapAmt(info.price)), h("p.mk-tool-note", "One board per saved layout. Returned when you delete the layout."),
         h("div.mk-tool-foot", h("p", h("span", "Blank boards", h("b", String(boardStock.available)))),
           h("button.link", { type: "button", on: { click: () => Shell.go("boards") } }, "Open Boards ", h("i", "→")))));
     }
@@ -297,7 +299,7 @@ Pages.market = {
     this.boardRequest ||= {trade:{kind:"tool",itemId:"board",quantity:1},requestId:Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,"0")).join("")};
     this.boardBusy=true;Scraps.inFlight=true;const was=!!Bridge.busy;Bridge.busy=true;paint();
     try {await Bridge.invoke("scrap_trade",this.boardRequest);this.boardRequest=null;await Bridge.reload();Snd.chime(2,740);Shell.toast("A blank board is in your stock.");}
-    catch(e) {Shell.toast(String(e));}
+    catch(e) {Shell.error(e);}
     finally {this.boardBusy=false;Scraps.inFlight=false;Bridge.busy=was;paint();}
   },
   packs(paint) {
@@ -423,7 +425,6 @@ Pages.market = {
     // TODO(owner): cash purchases remain unavailable. Sakura awaits its seasonal distribution.
     const items = Object.values(MAT);
     return h("div.mk-mats", h("p.muted.lede", "Exchange Scraps for sheets. Save unused sheets as Scraps in your Materials."),
-      h("button.btn.paper.small.scrap-action", {on:{click:()=>Shell.go("materials")}}, "Dismantle materials…"),
       h("div.mgrid", items.map((m, i) => h("div.mbook.mk-mat", { style: { "--i": i } },
         h("div.mc", MatCard({ ...m, id: m.id }, 176)), h("div.mmeta", h("b", m.name), h("span.seal", { data: { rarity: m.rarity } }, m.rarity), h("small.recipe", m.recipe),
           h("small", m.locked ? "Not in your book yet" : `${S.stock[m.id] || 0} sheets in stock`),

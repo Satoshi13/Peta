@@ -350,7 +350,9 @@ const Cer = (() => {
     /** What is inside peeks out of the mouth, and comes out when it is pulled up far enough (or on Enter / double-click). */
     rig.pullable = async (el, { onPull: pulled }) => {
       const sh = el.getBoundingClientRect().height || PW * .87; peekH = sh * .26; needH = sh * .82; onPull = pulled;
-      await cer.wait(240); Snd.crinkle(3, .2); UP.to(peekH, 150, 18); await cer.wait(460);
+      await cer.wait(240); if (!el.isConnected) return;
+      Snd.crinkle(3, .2); UP.to(peekH, 150, 18); await cer.wait(460);
+      if (!el.isConnected) return;
       state = "pull"; pouch.setAttribute("aria-label", "Pull the sheet out");
     };
     return rig;
@@ -383,6 +385,7 @@ const Cer = (() => {
     rig.pullable = async (el, { rise = .5, need = .5, onPull }) => {
       let pulled = false, rustle = Snd.paperMotion(); const base = `translateY(${-PH * rise}px) rotate(-1.5deg)`;
       await anim(el, [{ transform: "none" }, { transform: base }], { duration: 760, easing: EASE.out }); fix(el, base);
+      if (!el.isConnected) return;
       drag(el, {
         down: () => { if (pulled) return false; rustle = Snd.paperMotion(); },
         move: (dx, dy) => { const up = clamp(-dy, 0, PH * .8), rb = up > PH * .5 ? PH * .5 + (up - PH * .5) * .3 : up; el.style.transform = `translateY(${-PH * rise - rb}px) rotate(${-1.5 + dx * .03}deg)`; rustle(up / PH); if (up > PH * need && !pulled) go(); },
@@ -845,30 +848,39 @@ const Cer = (() => {
     const cer = overlay("pack"), stage = cer.stage; cer.hint(`Tear along the top · ${n} stickers inside`);
     const sheets = Array.from({ length: n }, () => packSheet(cer, pack)), stack = h("div.pk-sheet-slot.pk-stack");
     stack.append(...sheets.map((s) => s.el).reverse());
-    const got = []; let committed = false, settled = false, current = null, next = null;
+    const got = []; let committed = false, settled = false, current = null, next = null, shelfReady = Promise.resolve();
     const keepIt = async () => {
-      if (settled) return; settled = true; Bridge.busy = false; await cer.close(); Shell.refresh({ ifStale: true }); Shell.renderNav();
-      const prizes = got.filter((g) => g.entry?.prize).length, stickers = got.length - prizes;
+      if (settled) return; settled = true; current?.complete(); next?.(); await shelfReady; Bridge.busy = false; await cer.close(); Shell.refresh({ ifStale: true }); Shell.renderNav();
+      const prizes = got.filter((g) => g.prize).length, stickers = got.length - prizes;
       Shell.toast(prizes ? `${stickers} stickers in Collection · ${prizes} ${prizes === 1 ? "prize" : "prizes"} added to stock.` : `${stickers} stickers in your Collection.`);
     };
     const onTear = async (rig) => {
-      Bridge.busy = true; let failure = null;
+      Bridge.busy = true; let failure = null, pulling = null, finishBatch;
+      const batchReady = new Promise(resolve => { finishBatch = resolve; });
       for (let i = 0; i < n; i++) {
         let opened; try { opened = await Bridge.invoke("pack_open", { packId: pack.id, queue: false }); } catch (e) { failure = e; break; }
         // the committed pull is recorded first: a preview that cannot load never loses it
-        const one = { sheet: sheets[i], rarity: DESK[opened.rarity] ? opened.rarity : "common", entry: null }; got.push(one); pack.left = Array(opened.remaining).fill(null);
-        one.ready = (async () => { try { one.entry = await Bridge.packEntry(opened); one.rarity = rarityOf(one.entry); await one.sheet.fill(one.entry); } catch { one.sheet.missing(); } })();
+        const one = { sheet: sheets[i], rarity: DESK[opened.rarity] ? opened.rarity : "common", prize: !!opened.kind && opened.kind !== "sticker", entry: null }; got.push(one); pack.left = Array(opened.remaining).fill(null);
+        one.ready = (async () => { try { one.entry = await Bridge.packEntry(opened); one.rarity = rarityOf(one.entry); if (!settled && cer.root.isConnected) await one.sheet.fill(one.entry); } catch { if (!settled && cer.root.isConnected) one.sheet.missing(); } })();
+        // Covered sheets can peek out while the remaining pulls commit and their
+        // pictures load. Only peeling needs the completed batch and its preview.
+        if (got.length === 1) {
+          rig.light?.({ rarity: one.rarity }); cer.hint("Pull the sheets out.");
+          pulling = rig.pullable(stack, { onPull: async () => {
+            await batchReady;
+            if (!settled && cer.root.isConnected) await peelAll(rig);
+          } });
+        }
       }
       committed = true;
       const savedPack = S.packs.find((p) => p.id === pack.id); if (savedPack) savedPack.left = pack.left;
-      try { await Bridge.reload(); Shell.refresh({ quiet: true }); } catch {} Shell.renderNav();   // the shelf behind is up to date before the desk lifts
-      if (!got.length) { Bridge.busy = false; await cer.close(); Shell.error(failure); return; }
+      // Refresh behind the opening animation; closing still waits for this work.
+      shelfReady = Bridge.reload().then(() => Shell.refresh({ quiet: true })).catch(() => {}).then(() => Shell.renderNav());
+      if (!got.length) { finishBatch(); await shelfReady; Bridge.busy = false; await cer.close(); Shell.error(failure); return; }
       if (failure) Shell.toast(`Stopped after ${got.length}. ${failure?.message || failure}`);
       for (const s of sheets.slice(got.length)) s.el.remove();
-      await Promise.all(got.map((g) => g.ready));
       rig.light?.({ rarity: got.reduce((best, g) => RARITY_RANK.indexOf(g.rarity) > RARITY_RANK.indexOf(best) ? g.rarity : best, "common") });
-      cer.hint("Pull the sheets out.");
-      await rig.pullable(stack, { onPull: () => peelAll(rig) });
+      finishBatch(); await pulling;
     };
     const peelAll = async (rig) => {
       rig.linger(); const desk = deskFor(cer), cards = got.map((g) => carry(cer, stage, g.sheet)); stack.remove();
@@ -876,18 +888,26 @@ const Cer = (() => {
       const stackFrom = (from) => cards.slice(from).forEach((c, j) => { c.to(tx + j * 1.5, ty + j * 2.5, 1, j ? (j % 2 ? -1 : 1) * (1 + j * .4) : 1.2); c.sh.el.style.zIndex = 40 - j; c.sh.el.classList.toggle("under", j > 0); });
       stackFrom(0); desk.lamp(.5, ...cards[0].at(), "common", 16, 74);
       await cer.wait(700);
+      if (settled || !cer.root.isConnected) return;
       cer.allowSkip(() => { current?.complete(); next?.(); });
       for (let i = 0; i < cards.length; i++) {
-        const c = cards[i], g = got[i], r = g.rarity, D = DESK[r]; stackFrom(i); c.tilt = desk.tilt;
+        const c = cards[i], g = got[i];
+        await g.ready;
+        if (settled || !cer.root.isConnected) return;
+        const r = g.rarity, D = DESK[r]; stackFrom(i); c.tilt = desk.tilt;
         desk.lamp(D.dim * .78, ...c.at(), "common", 14, 72);
         cer.hint(`Peel the cover · ${i + 1} of ${cards.length}`);
         current = peel(cer, c.sh, D.hold); current.focus(); if (cer.skipped) current.complete();
-        await current.done; cer.hint("");
+        await current.done;
+        if (settled || !cer.root.isConnected) return;
+        cer.hint("");
         const cap = h("div.pk-cap", { style: { left: tx + "px", top: ty + H / 2 + 34 + "px" } }, h("b", g.entry ? titleOf(g.entry) : "Sticker"), h("span.seal", { data: { rarity: r } }, r));
         stage.append(cap); cer.motion(cap, [{ opacity: 0, transform: "translate(-50%, 6px)" }, { opacity: 1, transform: "translate(-50%, 0)" }], { duration: 300, easing: EASE.out });
         await lightUp(cer, c, r, { quiet: cer.skipped });
+        if (settled || !cer.root.isConnected) return;
         // it rests a moment under the lamp (longer for the rarer ones), or until it is clicked or Enter is pressed
         if (i < cards.length - 1 || !cer.skipped) await Promise.race([cer.wait(REST[r]), new Promise((res) => { next = res; c.sh.el.addEventListener("click", res, { once: true }); })]);
+        if (settled || !cer.root.isConnected) return;
         next = null; c.tilt = null; c.TX.to(0); c.TY.to(0);
         cer.motion(cap, [{ opacity: 1 }, { opacity: 0 }], { duration: 240 }).then(() => cap.remove());
         desk.fade(500); c.sh.el.classList.add("aside"); c.sh.el.style.zIndex = 60;

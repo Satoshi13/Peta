@@ -1,5 +1,5 @@
 /* The prototype's controls call the real Rust cutting session. */
-const CR = {name:"",stage:"empty",src:null,photo:null,original:null,border:20,smooth:4,strength:.5,editing:null,editMaterial:null,editAsNew:false,tool:"erase",brush:12,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve(),zoom:{scale:1,x:0,y:0}};
+const CR = {name:"",stage:"empty",generation:null,src:null,photo:null,original:null,border:20,smooth:4,strength:.5,editing:null,editMaterial:null,editAsNew:false,tool:"erase",brush:12,res:null,note:"",urls:[],history:{canUndo:false,canRedo:false},queue:Promise.resolve(),zoom:{scale:1,x:0,y:0}};
 let creatorEpoch = 0, creatorSync = null, creatorSyncAgain = false, creatorWatch = 0;
 const MAX_CREATOR_BYTES = 80 * 1024 * 1024;
 function crInvalidate() { creatorEpoch++;if(creatorWatch){clearTimeout(creatorWatch);creatorWatch=0;} }
@@ -16,7 +16,7 @@ const usesLabel = () => {
   const name=MAT[S.chosen].name, at=text.indexOf(name);
   return CR.editing && !CR.editAsNew ? text : [text.slice(0,at),h("b",name),text.slice(at+name.length)];
 };
-function crReset() { crInvalidate(); if(CR.preview?.startsWith('blob:')) URL.revokeObjectURL(CR.preview); CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{name:'',preview:null,reveal:false,stage:'empty',src:null,photo:null,original:null,res:null,note:'',editing:null,editMaterial:null,editAsNew:false,urls:[],history:{canUndo:false,canRedo:false},retry:null,zoom:{scale:1,x:0,y:0}}); }
+function crReset() { crInvalidate(); if(CR.preview?.startsWith('blob:')) URL.revokeObjectURL(CR.preview); CR.flushStroke?.(); CR.flushStroke=null; CR.previewObserver?.disconnect(); if(CR.keys) document.removeEventListener('keydown',CR.keys); CR.urls.forEach(u=>URL.revokeObjectURL(u)); Object.assign(CR,{name:'',preview:null,reveal:false,stage:'empty',generation:null,src:null,photo:null,original:null,res:null,note:'',editing:null,editMaterial:null,editAsNew:false,urls:[],history:{canUndo:false,canRedo:false},retry:null,zoom:{scale:1,x:0,y:0}}); }
 async function crBegin(bytes) {
   if(bytes.length > MAX_CREATOR_BYTES) { Shell.error(new Error("That picture is too large to cut out.")); return; }
   if(!usableMats().includes(S.chosen)) { Shell.toast("No material sheets left. Visit Market to exchange Scraps."); return; }
@@ -48,6 +48,10 @@ async function crReadState(epoch) {
   if(info.phase==='failed') { CR.stage='failed';CR.note=userError(info.error);if(S.page==='create')Shell.refresh();return; }
   if(info.phase==='loading') { if(CR.stage!=='cutting'){CR.stage='cutting';if(S.page==='create')Shell.refresh();}return; }
   if(info.phase!=='ready') return;
+  // The chooser's return and creator-changed can both report the same result.
+  // Keep the mounted mat (and its reveal) alive, but accept a new native session
+  // even when its loading notification arrived before the webview could read it.
+  if(CR.stage==='ready' && CR.generation===info.generation) return;
   const bytes=await Bridge.invoke('creator_original');if(!current())return;
   const url=URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:'image/jpeg'}));
   let image;
@@ -57,7 +61,7 @@ async function crReadState(epoch) {
   await Bridge.reload();if(!current())return;
   CR.editing=info.editingStickerId || null;CR.editAsNew=!!info.editAsNew;CR.editMaterial=CR.editing ? info.defaultMaterial : null;CR.strength=info.defaultStrength;
   if(CR.editing) { S.chosen=CR.editMaterial;CR.border=info.defaultOutline;CR.smooth=Math.round(info.defaultSmooth*12); }
-  CR.original=photo;CR.photo=CR.samplePhoto || photo;CR.reveal=CR.stage==='cutting';CR.stage='ready';CR.retry=null;
+  CR.original=photo;CR.photo=CR.samplePhoto || photo;CR.generation=info.generation;CR.reveal=CR.stage==='cutting' || !CR.editing;CR.stage='ready';CR.retry=null;
   if(S.page==='create')Shell.refresh();
 }
 function crSync() {
@@ -143,7 +147,7 @@ Pages.create = {
         h("button.sample", { style: { "--i": i }, title: SAMPLE_TITLES[k], on: { click: () => { Snd.tap(); crLoadSample(k); } } }, h("img", { src: A[k], alt: SAMPLE_TITLES[k] }))))));
   },
   mat() {
-    const epoch = creatorEpoch;
+    const epoch = creatorEpoch, generation = CR.generation;
     const origCv = h("canvas"), origBg = h("canvas.original-background"), cutCv = h("canvas.cut"), ring = h("i.ring");
     const caption = (n,title) => h("figcaption", h("i.step-number",String(n)), title);
     const stkHost = h("div.stk-host"), pane = (cls, title, ...kids) => h("figure.pane." + cls, h("div.frame", ...kids), caption(1,title));
@@ -161,7 +165,10 @@ Pages.create = {
     origBg.getContext("2d").drawImage(CR.photo,0,0);origCv.getContext("2d").drawImage(CR.photo,0,0);
     // The first time the cutout is ready: a band of light, a glow around the subject, the photograph falls away and the
     // subject is lifted into the finished sticker. Never on later redraws, and not with Reduce motion.
-    let reveal = CR.reveal && !reduced(); CR.reveal = false;
+    // A pending navigation refresh may replace this mat before its first render.
+    // Consume the reveal only after a connected mat finishes playing it.
+    let reveal = CR.reveal && !reduced();
+    if(!reveal) CR.reveal=false;
     const photoCv = h("canvas"), ghost = h("canvas.cs-ghost"), scan = h("i.cs-scan", { "aria-hidden": "true" });
     photoCv.width = ghost.width = CR.photo.width; photoCv.height = ghost.height = CR.photo.height;
     photoCv.getContext("2d").drawImage(CR.photo, 0, 0);
@@ -189,7 +196,8 @@ Pages.create = {
         ghost.style.transformOrigin = `${cx - gr.left}px ${cy - gr.top}px`;
         await anim(ghost, [{ transform: "none" }, { transform: `translate(${sr.left + sr.width / 2 - cx}px, ${sr.top + sr.height / 2 - cy}px) scale(${scale})` }], { duration: 620, easing: EASE.inOut });
       }
-      sticker.style.opacity = ""; photoCard.hidden = true;
+      if(epoch!==creatorEpoch || generation!==CR.generation || !inner.isConnected) return;
+      CR.reveal=false; sticker.style.opacity = ""; photoCard.hidden = true;
       anim(sticker, [{ transform: "scale(1.06)" }, { transform: "scale(.975)", offset: .6 }, { transform: "none" }], { duration: 380, easing: EASE.out }).then(a => a.cancel());
     };
     let seq = 0, rendering = null, renderRequested = false;
@@ -210,14 +218,14 @@ Pages.create = {
           const mine = seq;
           try {
             const buffer = await Bridge.invoke("creator_render", { materialId:S.chosen, strength:CR.strength, smooth:CR.smooth/12, outline:CR.border, preview:false });
-            if(epoch !== creatorEpoch || mine !== seq || painting || !stkHost.isConnected) continue;
+            if(epoch !== creatorEpoch || generation !== CR.generation || mine !== seq || painting || !stkHost.isConnected) continue;
             const bytes = new Uint8Array(buffer), length = new DataView(bytes.buffer).getUint32(0);
             const head = JSON.parse(new TextDecoder().decode(bytes.slice(4,4+length)));
             const offset = 4+length;
             const sticker = URL.createObjectURL(new Blob([bytes.slice(offset,offset+head.stickerLen)], {type:"image/png"}));
             const cutout = URL.createObjectURL(new Blob([bytes.slice(offset+head.stickerLen)], {type:"image/png"}));
             const [stickerImg,cutImg] = await Promise.all([Stk.load(sticker),Stk.load(cutout)]);
-            if(epoch !== creatorEpoch || mine !== seq || painting || !stkHost.isConnected) { URL.revokeObjectURL(sticker); URL.revokeObjectURL(cutout); continue; }
+            if(epoch !== creatorEpoch || generation !== CR.generation || mine !== seq || painting || !stkHost.isConnected) { URL.revokeObjectURL(sticker); URL.revokeObjectURL(cutout); continue; }
             CR.urls.forEach(url=>URL.revokeObjectURL(url)); CR.urls=[sticker,cutout];
             const cx = cutCv.getContext("2d"); cx.clearRect(0,0,cutCv.width,cutCv.height);
             // Rust returns the cutout at the original working-image size.
@@ -226,7 +234,7 @@ Pages.create = {
             stkHost.replaceChildren(Stk.el(res,res.aspect>=1?230:230*res.aspect)); fitSticker(); syncMake();
             if(reveal) { reveal=false; landReveal(); }
           } catch(e) {
-            if (epoch !== creatorEpoch || mine !== seq || painting || !stkHost.isConnected) continue;
+            if (epoch !== creatorEpoch || generation !== CR.generation || mine !== seq || painting || !stkHost.isConnected) continue;
             CR.res=null; stkHost.replaceChildren(h("p.muted", "Nothing left to cut out")); syncMake(); Shell.error(e);
           }
         }

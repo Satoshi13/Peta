@@ -165,6 +165,7 @@ pub fn clear(app: &AppHandle) {
 pub struct CreatorInfo {
     #[serde(flatten)]
     phase: Phase,
+    generation: u64,
     width: usize,
     height: usize,
     had_alpha: bool,
@@ -211,6 +212,7 @@ pub fn creator_info(app: AppHandle, creator: State<Creator>, store: State<Store>
         .unwrap_or((0, 0, false));
     CreatorInfo {
         phase,
+        generation: creator.generation.load(Ordering::SeqCst),
         width,
         height,
         had_alpha,
