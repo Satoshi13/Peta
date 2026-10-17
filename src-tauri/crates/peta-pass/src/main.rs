@@ -130,7 +130,7 @@ fn run(cli:Cli)->Result<(),String> {
             }
             let weights:Vec<u32>=pack.items.iter().map(shop_pack::ShopPack::weight).collect();let sum:u32=weights.iter().sum();
             let items:Vec<_>=pack.items.iter().zip(&weights).map(|(i,w)|serde_json::json!({"key":i.key,"name":i.name,"rarity":i.rarity,"weight":w,"chance":f64::from(*w)/f64::from(sum)})).collect();
-            let mut summary=serde_json::json!({"packId":pack.pack_id,"version":pack.version,"title":pack.title,"by":pack.by,"blurb":pack.blurb,"pouch":pack.pouch,"color":pack.color,"price":pack.price,"items":items,"picturesBytes":total});
+            let mut summary=serde_json::json!({"packId":pack.pack_id,"version":pack.version,"title":pack.title,"by":pack.by,"blurb":pack.blurb,"pouch":pack.pouch,"color":pack.color,"price":pack.price,"free":pack.free,"items":items,"picturesBytes":total});
             if check {
                 if json {println!("{summary}");} else {println!("{} v{} is ready to sign: {} stickers, {} Scraps.",pack.pack_id,pack.version,pack.items.len(),pack.price);}
                 return Ok(());

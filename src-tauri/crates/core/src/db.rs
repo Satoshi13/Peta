@@ -11,7 +11,7 @@ use crate::{
     models::{NewSticker, Placement, ProvenanceEntry, ProvenanceKind, SourceType, Sticker},
 };
 
-pub const SCHEMA_VERSION: i64 = 18;
+pub const SCHEMA_VERSION: i64 = 19;
 
 const MIGRATION_V1: &str = "
 CREATE TABLE stickers (
@@ -532,6 +532,12 @@ impl Database {
             let tx=self.conn.transaction()?;
             tx.execute_batch(MIGRATION_V18)?;
             tx.pragma_update(None,"user_version",18)?;
+            tx.commit()?;
+        }
+        if version < 19 {
+            let tx = self.conn.transaction()?;
+            tx.execute_batch("ALTER TABLE shop_packs ADD COLUMN free INTEGER NOT NULL DEFAULT 0 CHECK(free IN (0,1)); CREATE TABLE shop_free_claims(pack_id TEXT PRIMARY KEY, claimed_at TEXT NOT NULL);")?;
+            tx.pragma_update(None, "user_version", 19)?;
             tx.commit()?;
         }
         crate::server::schema(&mut self.conn)?;

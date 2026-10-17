@@ -85,14 +85,15 @@ print(f'''<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Securit
 img{{display:block;width:100%;height:150px;object-fit:contain}}figcaption{{font-size:12px;margin-top:6px}}</style>
 <small>CHECK BEFORE SIGNING · {e(target.upper())} · KEY {e(key_id)}</small>
 <h1>{e(summary["title"])} <span style="font-weight:400">v{summary["version"]}</span></h1>
-<p>{e(summary["packId"])} · by {e(summary["by"])} · {summary["price"]} Scraps · {e(summary["pouch"])}{(" (" + e(summary["color"]) + ")") if summary.get("color") else ""} · {len(summary["items"])} stickers</p>
+<p>{e(summary["packId"])} · by {e(summary["by"])} · {("Free (one set per Mac)" if summary.get("free") else str(summary["price"]) + " Scraps")} · {e(summary["pouch"])}{(" (" + e(summary["color"]) + ")") if summary.get("color") else ""} · {len(summary["items"])} stickers</p>
 <p>{e(summary["blurb"])}</p><div class="grid">{cards}</div>
 <p><small>THESE ARE THE FILES ON THIS MAC THAT WILL BE SIGNED. IF ANY PICTURE OR WORD LOOKS WRONG, ANSWER N.</small></p>''')
 PY
 python3 - "$summary" <<'PY' >&2
 import json,sys
 s=json.loads(sys.argv[1])
-print(f'\n{s["title"]} v{s["version"]} ({s["packId"]}) by {s["by"]} · {s["price"]} Scraps · {s["pouch"]}' + (f' ({s["color"]})' if s.get("color") else ""))
+cost = "Free (one set per Mac)" if s.get("free") else str(s["price"]) + " Scraps"
+print(f'\n{s["title"]} v{s["version"]} ({s["packId"]}) by {s["by"]} · {cost} · {s["pouch"]}' + (f' ({s["color"]})' if s.get("color") else ""))
 if s["blurb"]: print(f'  "{s["blurb"]}"')
 for i in s["items"]: print(f'  {i["name"]:<40} {i["rarity"]:<9} {i["chance"]*100:5.1f}%')
 PY
@@ -105,19 +106,19 @@ read -r answer || answer=''
 [[ -f $key ]] || { echo "No key file at $key. Connect the encrypted disk, or set PETA_SIGNING_KEY." >&2; exit 1; }
 out=$work/$pack-$version.peta
 signed=$("$peta_pass" shop-pack --key "$key" --key-id "$key_id" --dir "$work/pack" --previous-version "$previous" --out "$out" --json)
-read -r size sha public price title < <(python3 - "$signed" <<'PY'
+read -r size sha public price free title < <(python3 - "$signed" <<'PY'
 import json,sys
 s=json.loads(sys.argv[1])
 # The title goes into SQL below: quotes are doubled; peta-pass already refused control characters and lengths over 40.
-print(s["size"],s["sha256"],s["publicKey"],s["price"],json.dumps(s["title"].replace("'","''")))
+print(s["size"],s["sha256"],s["publicKey"],s["price"],int(s["free"]),json.dumps(s["title"].replace("'","''")))
 PY
 )
-[[ $size =~ ^[0-9]+$ && $sha =~ ^[0-9a-f]{64}$ && $price =~ ^[0-9]+$ ]] || { echo 'peta-pass gave an unexpected summary.' >&2; exit 1; }
+[[ $size =~ ^[0-9]+$ && $sha =~ ^[0-9a-f]{64}$ && $price =~ ^[0-9]+$ && $free =~ ^[01]$ ]] || { echo 'peta-pass gave an unexpected summary.' >&2; exit 1; }
 
 # 5. Check the written file again, then put it in place and record it as signed (not on sale until the admin page says so).
 "$peta_pass" verify "$out" --public-key "$public" >/dev/null
 title=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1]))' "$title")
 wr r2 object put "$bucket/shop/$pack/$version.peta" --file "$out" --content-type application/octet-stream --remote >/dev/null
 now=$(date +%s)
-sql "INSERT INTO shop_packs(pack_id,version,title,file,size,sha256,price,created_at,draft_id,key_id) VALUES('$pack',$version,'$title','shop/$pack/$version.peta',$size,'$sha',$price,$now,'$draft','$key_id'); UPDATE shop_pack_drafts SET state='signed',updated_at=$now WHERE draft_id='$draft' AND state='ready';" >/dev/null
+sql "INSERT INTO shop_packs(pack_id,version,title,file,size,sha256,price,created_at,draft_id,key_id,free) VALUES('$pack',$version,'$title','shop/$pack/$version.peta',$size,'$sha',$price,$now,'$draft','$key_id',$free); UPDATE shop_pack_drafts SET state='signed',updated_at=$now WHERE draft_id='$draft' AND state='ready';" >/dev/null
 echo "Signed $pack v$version ($size bytes, sha256 $sha) and put it in $target. Choose its period on the admin page's Packs tab." >&2

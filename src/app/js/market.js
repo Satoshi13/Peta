@@ -101,7 +101,7 @@ const ShopPacks = {
   },
   pack(s) {
     const items = [...s.items].sort((a, b) => (this.RANK[a.rarity] ?? 3) - (this.RANK[b.rarity] ?? 3));
-    return { id: s.id, title: s.title, by: s.by, count: s.items.length, price: "Scraps", hue: 0, kind: isPouch(s.pouch) ? s.pouch : "kraft", bag: s.pouch, color: s.color || null, blurb: s.blurb || "", shop: true,
+    return { id: s.id, title: s.title, by: s.by, count: s.items.length, price: s.free ? "Free" : "Scraps", freeClaimed: !!s.freeClaimed, onSale: s.onSale, hue: 0, kind: isPouch(s.pouch) ? s.pouch : "kraft", bag: s.pouch, color: s.color || null, blurb: s.blurb || "", shop: true,
       keys: items.map((it) => ({ raw: true, name: it.name, load: () => this.picture(s.id, it.key) })) };
   },
   list() { return (S.scraps.shopPacks || []).map((s) => this.pack(s)); },
@@ -115,7 +115,8 @@ const Market = {
     const rank = (p) => { const i = order.indexOf(p.id); return i < 0 ? order.length + all.indexOf(p) : i; };
     return all.sort((a, b) => rank(a) - rank(b)).map((p) => shop?.blurbs?.[p.id] ? { ...p, blurb: shop.blurbs[p.id] } : p);
   },
-  onSale(pack) { return Scraps.pack(pack.id)?.onSale !== false; },
+  onSale(pack) { return pack.onSale !== false && Scraps.pack(pack.id)?.onSale !== false; },
+  claimed(pack) { return pack.shop ? pack.freeClaimed : this.own(pack.id); },
   /* A classic pouch, or the wrapping drawn as it stands on the Packs shelf (generated wrappings, coloured packs, shop packs in another wrapping). */
   pouch(p) {
     // the owner's generated wrappings and any coloured pack, as well as shop packs in another wrapping or a colour
@@ -127,7 +128,7 @@ const Market = {
   /* Sealed stickers still in the bag, and whether another set would overflow it. */
   sealed(id) { return S.packs.find((p) => p.id === id)?.left.length || 0; },
   full(pack) { const rate = Scraps.pack(pack.id); return !!rate && this.sealed(pack.id) + rate.stickers > PACK_SEALED_CAP; },
-  price(pack) { const rate = Scraps.pack(pack.id); return !this.onSale(pack) ? "Not on sale" : pack.price === "Free" && !this.own(pack.id) ? "Free" : rate ? `${rate.exchange} Scraps` : "Coming later"; },
+  price(pack) { const rate = Scraps.pack(pack.id); return !this.onSale(pack) ? "Not on sale" : pack.price === "Free" ? (this.claimed(pack) ? "Received" : "Free") : rate ? `${rate.exchange} Scraps` : "Coming later"; },
   exchange(pack) {
     const rate = Scraps.pack(pack.id), own = this.own(pack.id), sale = this.onSale(pack);
     return Scraps.button("pack", pack.id, !rate ? "Coming later" : !sale ? "Not on sale" : this.full(pack) ? "The bag is full" : [`${own ? "Add another set" : "Exchange"} — `, ScrapAmt(rate.exchange)], !rate || !sale || this.full(pack) || !S.developer && S.scraps.balance < rate.exchange);
@@ -136,7 +137,8 @@ const Market = {
   async get(pack) {
     if(pack.local || pack.canList) return;
     if (!this.onSale(pack)) { Shell.toast("This pack is not on sale right now."); return; }
-    if (this.own(pack.id) || pack.price !== "Free") { this.exchange(pack).click(); return; }
+    if (pack.price !== "Free" || !pack.shop && this.own(pack.id)) { this.exchange(pack).click(); return; }
+    if (this.claimed(pack)) { Shell.toast("You already received this free pack."); return; }
     try { await Bridge.invoke("pack_install_demo", {packId:pack.id}); await Bridge.reload(); Snd.chime(3,784); Shell.toast(`${pack.title} is on your Packs shelf.`); Shell.refresh(); }
     catch(e) { Shell.error(e); }
   },
@@ -198,17 +200,18 @@ const Market = {
   card(pack) {
     if(pack.friend) return this.friendCard(pack);
     if(pack.local || pack.canList) return Pages.packs.card(pack);
-    const paid = pack.price !== "Free" || this.own(pack.id);
+    const paid = pack.price !== "Free" || !pack.shop && this.own(pack.id);
     const peek = PackPeek(pack.keys, ""); peek?.classList.add("compact"); // the Market card also holds the price box, so the sheet is smaller here
     const own = h("p.mkz-own"), paintOwn = () => { const have = this.own(pack.id); own.hidden = !have; own.replaceChildren(h("b", "On your shelf"), ` · ${this.sealed(pack.id)} sealed`); };
     paintOwn();
     const buy = paid ? this.buyBox(pack, paintOwn) : null;
     const free = paid ? null : h("button.btn.mkz-act", { on: { click: () => Market.get(pack) } }, "Get — Free");
+    if (free) { free.disabled = this.claimed(pack) || !this.onSale(pack); free.textContent = this.claimed(pack) ? "Received" : "Get — Free"; }
     return h("aside.mkz-card", CloseButton("Back to the shelf", {}, ".mkz-x"),
       h("p.eyebrow", `by ${pack.by} · ${pack.count} stickers`), h("h2", pack.title), h("p.mkz-blurb", pack.blurb),
       own, peek,
       h("div.mkz-buy", buy ? buy.el : [h("div.mkz-price", h("span", "Price"), h("b", "Free")), free,
-        h("small.muted", "Open it any time, as often as you like. What's inside stays a surprise until you tear it.")],
+        h("small.muted", pack.shop ? "One free set per Mac. Open it any time from your Packs shelf." : "Open it any time. What's inside stays a surprise until you tear it.")],
         h("button.mkz-back.link", { type: "button" }, "Back to the shelf")));
   },
   /* A friend's pack: what is inside and how much is left, then one pull at a time. The lines fill in from the service once it answers. */
@@ -331,10 +334,10 @@ Pages.market = {
         h("div.mk-hero-text", h("p.eyebrow", "From a friend"), h("h2", p.title), h("p.muted", `by ${l.sellerName} · ${FriendShop.left(l)}`), p.blurb ? h("p", p.blurb) : null,
           h("div.mk-hero-actions", h("button.btn", { "aria-haspopup": "dialog", on: { click: (e) => open(p, art(e)) } }, "Look closer…"))));
     }
-    const p = feat.pack, own = Market.own(p.id), free = p.price === "Free" && !own;
+    const p = feat.pack, own = Market.own(p.id), free = p.price === "Free" && !Market.claimed(p);
     return h("section.mk-hero", h("div.mk-hero-art", Market.pouch(p), h("div.fan", p.keys.slice(0, 3).map((k, i) => { const e = h("div.fan-s", { style: { "--i": i } }); peekSrc(k).then((src) => Stk.make(src, { border: 12, material: "matte", max: 300 })).then((r) => { const width = r.aspect >= 1 ? 84 : 84 * r.aspect; e.style.setProperty("--fan-width", width+"px"); e.append(Stk.el(r, width)); }); return e; }))),
       h("div.mk-hero-text", h("p.eyebrow", "Featured"), h("h2", p.title), h("p.muted", `by ${p.by} · ${p.count} stickers`), h("p", p.blurb),
-        h("div.mk-hero-actions", h("button.btn", { on: { click: (e) => free ? Market.get(p) : open(p, art(e)) } }, own ? "Add another set…" : free ? "Get — Free" : ["Exchange — ", Market.price(p)]))));
+        h("div.mk-hero-actions", h("button.btn", { on: { click: (e) => free ? Market.get(p) : open(p, art(e)) } }, p.shop && p.price === "Free" && p.freeClaimed ? "Received" : free ? "Get — Free" : ["Exchange — ", Market.price(p)]))));
   },
   /* Friends' rails, one per friend, below the packs that come with Peta. Nothing is shown in builds without the server. */
   friendPacks(paint) {

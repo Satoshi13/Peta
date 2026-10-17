@@ -11,6 +11,7 @@
   "rarities": ["common", "uncommon", "rare"],
   "rarityWeights": { "common": 4, "uncommon": 2, "rare": 1 },
   "price": { "min": 4, "max": 40 },
+  "free": { "price": 0, "setsPerLibrary": 1 },
   "items": { "min": 3, "max": 12 },
   "weight": { "min": 1, "max": 100 },
   "picture": { "maxBytes": 1572864, "maxEdge": 1024 },

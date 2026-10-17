@@ -81,3 +81,11 @@ test('the card shows its pictures and the exchange, never the free button', ()=>
  assert.ok(nodes(empty.Pages.market.packs(()=>{})).some(n=>n.children.includes('New packs are on their way.')));
  assert.equal(fixture({shopPacks:[]}).c.Market.official().length,6);
  });
+
+test('free signed packs stay free after ownership and become received only after the stable claim',()=>{
+ const {c}=fixture({owned:{'shop:autumn':true},shopPacks:[autumn({free:true,price:0,freeClaimed:false})]});
+ const p=c.Market.official().at(-1);assert.equal(c.Market.price(p),'Free');
+ let button=nodes(c.Market.card(p)).find(n=>n.tag==='button.btn.mkz-act');assert.equal(button.disabled,false);
+ p.freeClaimed=true;assert.equal(c.Market.price(p),'Received');
+ button=nodes(c.Market.card(p)).find(n=>n.tag==='button.btn.mkz-act');assert.equal(button.disabled,true);assert.equal(button.textContent,'Received');
+});

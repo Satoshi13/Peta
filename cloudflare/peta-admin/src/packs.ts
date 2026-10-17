@@ -13,7 +13,7 @@ const draftObject = (draftId: string, name: string) => `${DRAFTS}${draftId}/${na
 const DRAFT_ID = /^d-[a-f0-9]{16}$/;
 
 export type Item = { key: string; name: string; rarity: string; weight: number | null };
-export type Manifest = { packId: string; version: number; title: string; by: string; blurb: string; pouch: string; color: string | null; price: number; items: Item[] };
+export type Manifest = { packId: string; version: number; title: string; by: string; blurb: string; pouch: string; color: string | null; free: boolean; price: number; items: Item[] };
 
 const text = (v: unknown, max: number, empty = false) => typeof v === "string" && (empty || v.trim().length > 0) && [...v].length <= max && !controls.test(v);
 export const validId = (id: unknown): id is string => typeof id === "string" && ID.test(id);
@@ -29,7 +29,8 @@ export function checkManifest(input: any, complete: boolean): Manifest {
   if (!contract.pouches.includes(input.pouch)) bad("Choose kraft, matte, holo or glassine.");
   const color = input.color ?? null;
   if (color !== null && (!contract.colors.includes(color) || !contract.colorPouches.includes(input.pouch))) bad("Only matte and holo take a color.");
-  if (!Number.isSafeInteger(input.price) || input.price < contract.price.min || input.price > contract.price.max) bad("Shop packs cost 4 to 40 Scraps.");
+  const free = input.free ?? false;
+  if (typeof free !== "boolean" || (free ? (input.price ?? 0) !== contract.free.price : !Number.isSafeInteger(input.price) || input.price < contract.price.min || input.price > contract.price.max)) bad("Shop packs cost 4 to 40 Scraps.");
   if (!Array.isArray(input.items) || input.items.length > contract.items.max || (complete && input.items.length < contract.items.min)) bad(complete ? "A pack needs 3 to 12 stickers." : "A pack holds up to 12 stickers.");
   const keys = new Set<string>();
   const items = input.items.map((i: any): Item => {
@@ -41,12 +42,12 @@ export function checkManifest(input: any, complete: boolean): Manifest {
     if (weight !== null && (!Number.isSafeInteger(weight) || weight < contract.weight.min || weight > contract.weight.max)) bad("Weights are 1 to 100.");
     return { key: i.key, name: i.name.trim(), rarity: i.rarity, weight };
   });
-  return { packId: input.packId, version: input.version, title: input.title.trim(), by: input.by.trim(), blurb: (input.blurb ?? "").trim(), pouch: input.pouch, color, price: input.price, items };
+  return { packId: input.packId, version: input.version, title: input.title.trim(), by: input.by.trim(), blurb: (input.blurb ?? "").trim(), pouch: input.pouch, color, free, price: free ? 0 : input.price, items };
 }
 
 /** pack.json as peta-pass reads it (optional fields left out when unset). */
 export function packJson(m: Manifest) {
-  return { packId: m.packId, version: m.version, title: m.title, by: m.by, blurb: m.blurb, pouch: m.pouch, ...(m.color ? { color: m.color } : {}), price: m.price,
+  return { packId: m.packId, version: m.version, title: m.title, by: m.by, blurb: m.blurb, pouch: m.pouch, ...(m.color ? { color: m.color } : {}), price: m.price, ...(m.free ? { free: true } : {}),
     items: m.items.map(i => ({ key: i.key, name: i.name, rarity: i.rarity, ...(i.weight !== null ? { weight: i.weight } : {}) })) };
 }
 
@@ -101,7 +102,7 @@ export async function packs(request: Request, env: Env, path: string, actor: str
     return api({
       contract, maxLive: MAX_LIVE,
       drafts: await Promise.all(drafts.map(async d => ({ draftId: d.draft_id, packId: d.pack_id, version: d.version, state: d.state, manifest: JSON.parse(d.manifest), pictures: await pictures(env, d.draft_id), updatedAt: d.updated_at, command: d.state === "ready" ? command(env, d.draft_id) : null }))),
-      packs: signed.map(r => ({ packId: r.pack_id, version: r.version, title: r.title, price: r.price, size: r.size, sha256: r.sha256, keyId: r.key_id, startsAt: r.starts_at, endsAt: r.ends_at, stoppedAt: r.stopped_at, removedAt: r.removed_at, createdAt: r.created_at, state: sale(r, t) })),
+      packs: signed.map(r => ({ packId: r.pack_id, version: r.version, title: r.title, price: r.price, free: !!r.free, size: r.size, sha256: r.sha256, keyId: r.key_id, startsAt: r.starts_at, endsAt: r.ends_at, stoppedAt: r.stopped_at, removedAt: r.removed_at, createdAt: r.created_at, state: sale(r, t) })),
       storage: { objects: stored.objects.length, bytes: stored.objects.reduce((n, o) => n + o.size, 0), truncated: stored.truncated },
     });
   }
@@ -114,11 +115,11 @@ export async function packs(request: Request, env: Env, path: string, actor: str
       // A new version of a signed pack: the same ID, the next version, starting from the newest signed contents.
       const latest = await env.DB.prepare("SELECT d.manifest FROM shop_packs s LEFT JOIN shop_pack_drafts d ON d.draft_id=s.draft_id WHERE s.pack_id=? ORDER BY s.version DESC LIMIT 1").bind(data.fromPackId).first<{ manifest: string | null }>();
       if (!latest) fail(404, "not_found", "That pack wasn't found.");
-      manifest = { ...(latest.manifest ? JSON.parse(latest.manifest) : { title: "", by: "Peta", blurb: "", pouch: "kraft", color: null, price: 12, items: [] }), packId: data.fromPackId, version: await nextVersion(env, data.fromPackId) };
+      manifest = { ...(latest.manifest ? JSON.parse(latest.manifest) : { title: "", by: "Peta", blurb: "", pouch: "kraft", color: null, free: false, price: 12, items: [] }), packId: data.fromPackId, version: await nextVersion(env, data.fromPackId) };
     } else {
       if (!validId(data?.packId) || contract.builtInIds.includes(data.packId)) fail(400, "invalid", "Pack IDs use letters, numbers, - and _ (up to 40), and never a built-in pack's ID.");
       if (await nextVersion(env, data.packId) !== 1) fail(409, "exists", "That ID is already used. Make a new version of that pack instead.");
-      manifest = { packId: data.packId, version: 1, title: "", by: "Peta", blurb: "", pouch: "kraft", color: null, price: 12, items: [] };
+      manifest = { packId: data.packId, version: 1, title: "", by: "Peta", blurb: "", pouch: "kraft", color: null, free: false, price: 12, items: [] };
     }
     const draftId = newDraftId(), checked = checkManifest(manifest, false);
     await env.DB.batch([
@@ -281,7 +282,7 @@ export async function packFiles(request: Request, env: Env, path: string, actor:
 }
 
 /** Signed shop packs the shop setting may name (`shop:<packId>`), with the newest signed price. */
-export async function signedForShop(env: Env): Promise<{ id: string; title: string; price: number; free: false; shop: true }[]> {
-  const rows = (await env.DB.prepare("SELECT pack_id,title,price FROM shop_packs s WHERE removed_at IS NULL AND version=(SELECT MAX(version) FROM shop_packs n WHERE n.pack_id=s.pack_id AND n.removed_at IS NULL) ORDER BY pack_id LIMIT ?").bind(MAX_LIVE * 2).all<any>()).results;
-  return rows.map(r => ({ id: `shop:${r.pack_id}`, title: r.title, price: r.price, free: false as const, shop: true as const }));
+export async function signedForShop(env: Env): Promise<{ id: string; title: string; price: number; free: boolean; shop: true }[]> {
+  const rows = (await env.DB.prepare("SELECT pack_id,title,price,free FROM shop_packs s WHERE removed_at IS NULL AND version=(SELECT MAX(version) FROM shop_packs n WHERE n.pack_id=s.pack_id AND n.removed_at IS NULL) ORDER BY pack_id LIMIT ?").bind(MAX_LIVE * 2).all<any>()).results;
+  return rows.map(r => ({ id: `shop:${r.pack_id}`, title: r.title, price: r.price, free: !!r.free, shop: true as const }));
 }

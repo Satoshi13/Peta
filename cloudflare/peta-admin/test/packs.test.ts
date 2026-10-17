@@ -165,3 +165,17 @@ it("cleans up old versions no longer sold and discarded drafts, after confirmati
   expect(packs.find((p: any) => p.packId === "autumn" && p.version === 1).state).toBe("removed");
   expect((await req("/api/packs/file/autumn/1", {}, use)).status).toBe(404);
 });
+
+it("free drafts use zero or omitted price and shop settings cannot price signed free packs", async () => {
+  const id = await newDraft("free-autumn");
+  for (const price of [0, undefined]) {
+    const m = manifest({ free: true, price });
+    expect((await post("/api/packs/drafts/save", { draftId: id, manifest: m }, use)).status).toBe(200);
+    expect((await list()).drafts[0].manifest).toMatchObject({ free: true, price: 0 });
+  }
+  expect((await post("/api/packs/drafts/save", { draftId: id, manifest: manifest({ free: true, price: 12 }) }, use)).status).toBe(400);
+  await signed("free-autumn", 1, id);
+  await base.DB.prepare("UPDATE shop_packs SET free=1,price=0 WHERE pack_id='free-autumn'").run();
+  const { signedForShop } = await import("../src/packs");
+  expect(await signedForShop(use)).toContainEqual(expect.objectContaining({ id: "shop:free-autumn", free: true, price: 0 }));
+});

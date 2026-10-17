@@ -49,22 +49,24 @@ function preview(m, draftId) {
   });
   const odds = el("p", data.contract.rarities.map(r => `${r} ${pct(byRarity[r])}`).join(" · "), "hint");
   box.append(pouch, el("div", undefined, "pk-meta"));
-  box.lastChild.append(el("p", `${m.price} Scraps · ${m.items.length} stickers`), el("p", m.blurb || "No line yet.", "muted"), odds);
+  box.lastChild.append(el("p", `${m.free ? "無料" : m.price + " Scraps"} · ${m.items.length} stickers`), el("p", m.blurb || "No line yet.", "muted"), odds);
   box.append(stickers);
   return box;
 }
 
 function editor(d) {
   const m = structuredClone(d.manifest), card = el("article", undefined, "card pk-editor"), c = data.contract;
-  const title = el("input"), by = el("input"), blurb = el("input"), pouch = el("select"), color = el("select"), price = el("input");
+  const title = el("input"), by = el("input"), blurb = el("input"), pouch = el("select"), color = el("select"), price = el("input"), free = el("input");
+  free.type = "checkbox"; free.checked = !!m.free;
   title.maxLength = by.maxLength = c.titleChars; blurb.maxLength = c.blurbChars; title.value = m.title; by.value = m.by; blurb.value = m.blurb;
   for (const p of c.pouches) pouch.append(new Option(p, p, false, p === m.pouch));
   color.append(new Option("None (ivory / silver)", "")); for (const t of c.colors) color.append(new Option(t, t, false, t === m.color));
   price.type = "number"; price.min = c.price.min; price.max = c.price.max; price.step = 1; price.value = m.price;
   const syncColor = () => { color.disabled = !c.colorPouches.includes(pouch.value); if (color.disabled) color.value = ""; };
   syncColor();
+  free.onchange = () => { price.disabled = free.checked; view.replaceChildren(preview(read(), d.draftId)); }; price.disabled = free.checked;
   const rows = el("ol", undefined, "pk-items"), view = el("div"), error = el("p", "", "daily-error"); error.setAttribute("role", "status");
-  const read = () => ({ ...m, title: title.value, by: by.value, blurb: blurb.value, pouch: pouch.value, color: color.value || null, price: Number(price.value), items: m.items });
+  const read = () => ({ ...m, title: title.value, by: by.value, blurb: blurb.value, pouch: pouch.value, color: color.value || null, free: free.checked, price: free.checked ? 0 : Number(price.value), items: m.items });
   const draw = () => {
     rows.replaceChildren(...m.items.map((item, i) => {
       const li = el("li"), img = el("img"), name = el("input"), rarity = el("select"), weight = el("input"), up = button("↑"), down = button("↓"), remove = button("Remove", "danger");
@@ -110,7 +112,7 @@ function editor(d) {
   };
   close.onclick = () => { editing = null; render(); };
   const fields = el("div", undefined, "fields"), more = el("div", undefined, "fields");
-  fields.append(field("Title", title), field("By", by)); more.append(field("Wrapping", pouch), field("Color", color), field("Price (Scraps)", price));
+  fields.append(field("Title", title), field("By", by)); more.append(field("Wrapping", pouch), field("Color", color), field("Price (Scraps)", price), field("無料（1台1セット、Welcome と同じ扱い）", free));
   card.append(el("h3", `${m.packId} · version ${m.version}`), fields, field("Line in Market (optional)", blurb), more, drop, error, rows, el("p", "HOW IT LOOKS", "eyebrow"), view);
   const actions = el("div", undefined, "actions"); actions.append(close, save, ready); card.append(actions);
   draw(); return card;

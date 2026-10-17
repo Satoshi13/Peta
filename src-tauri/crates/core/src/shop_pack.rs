@@ -60,6 +60,9 @@ pub struct ShopPack {
     pub pouch: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<PackColor>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub free: bool,
+    #[serde(default)]
     pub price: i64,
     pub items: Vec<Item>,
 }
@@ -96,7 +99,7 @@ pub fn validate(p: &ShopPack) -> Result<()> {
     }
     if !POUCHES.contains(&p.pouch.as_str()) { return Err(invalid("Choose one of the paper wrappings: kraft, matte, holo or glassine.")); }
     if !crate::creator_pack::color_ok(&p.pouch, p.color) { return Err(invalid("Only matte and holo wrappings take a color.")); }
-    if !(MIN_PRICE..=MAX_PRICE).contains(&p.price) { return Err(invalid("Shop packs cost 4 to 40 Scraps.")); }
+    if (p.free && p.price != 0) || (!p.free && !(MIN_PRICE..=MAX_PRICE).contains(&p.price)) { return Err(invalid("Free packs have no price; paid packs cost 4 to 40 Scraps.")); }
     if !(MIN_ITEMS..=MAX_ITEMS).contains(&p.items.len()) { return Err(invalid("A shop pack holds 3 to 12 stickers.")); }
     let mut keys = HashSet::new();
     for item in &p.items {
@@ -224,8 +227,8 @@ pub(crate) fn store_verified(lib: &mut crate::Library, v: Verified, digest: &str
     }
     let color = p.color.and_then(|c| serde_json::to_value(c).ok().and_then(|v| v.as_str().map(str::to_owned)));
     let tx = lib.db_mut().conn.transaction()?;
-    tx.execute("INSERT INTO shop_packs VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
-        params![p.pack_id, p.version, p.title, p.by, p.blurb, p.pouch, color, p.price, serde_json::Value::Array(items).to_string(), digest, crate::db::now()])?;
+    tx.execute("INSERT INTO shop_packs(pack_id,version,title,by_name,blurb,pouch,color,price,items,sha256,stored_at,free) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)",
+        params![p.pack_id, p.version, p.title, p.by, p.blurb, p.pouch, color, p.price, serde_json::Value::Array(items).to_string(), digest, crate::db::now(), p.free])?;
     writes.commit(tx)?;
     Ok(Stored::New)
 }
@@ -320,18 +323,21 @@ pub struct Live {
     pub color: Option<String>,
     /// The signed price; the shop setting may move it within 50–200% (`offer`).
     pub price: i64,
+    pub free: bool,
+    pub free_claimed: bool,
+    pub on_sale: bool,
     pub items: Vec<LiveItem>,
 }
 #[derive(Deserialize)]
 struct KeptItem { key: String, name: String, rarity: String, weight: u32, png: String }
-struct Kept { title: String, by: String, blurb: String, pouch: String, color: Option<String>, price: i64, items: Vec<KeptItem> }
+struct Kept { title: String, by: String, blurb: String, pouch: String, color: Option<String>, price: i64, free: bool, items: Vec<KeptItem> }
 fn kept(conn: &rusqlite::Connection, pack_id: &str, version: u32) -> Option<Kept> {
     use rusqlite::OptionalExtension;
-    let row: Option<(String, String, String, String, Option<String>, i64, String)> = conn.query_row(
-        "SELECT title,by_name,blurb,pouch,color,price,items FROM shop_packs WHERE pack_id=?1 AND version=?2", rusqlite::params![pack_id, version],
-        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?, r.get(6)?))).optional().ok().flatten();
-    let (title, by, blurb, pouch, color, price, items) = row?;
-    Some(Kept { title, by, blurb, pouch, color, price, items: serde_json::from_str(&items).ok()? })
+    let row: Option<(String, String, String, String, Option<String>, i64, String, bool)> = conn.query_row(
+        "SELECT title,by_name,blurb,pouch,color,price,items,free FROM shop_packs WHERE pack_id=?1 AND version=?2", rusqlite::params![pack_id, version],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?, r.get(6)?, r.get(7)?))).optional().ok().flatten();
+    let (title, by, blurb, pouch, color, price, items, free) = row?;
+    Some(Kept { title, by, blurb, pouch, color, price, free, items: serde_json::from_str(&items).ok()? })
 }
 
 /// The shop packs on sale at `now` (seconds). Builds without the server never have a list, so they keep the six built-in packs.
@@ -340,7 +346,9 @@ pub fn live(conn: &rusqlite::Connection, now: i64) -> Vec<Live> {
         .filter(|l| l.ends_at.is_none_or(|end| now < end))
         .filter_map(|l| {
             let k = kept(conn, &l.pack_id, l.version)?;
-            Some(Live { id: local_id(&l.pack_id), pack_id: l.pack_id, version: l.version, title: k.title, by: k.by, blurb: k.blurb, pouch: k.pouch, color: k.color, price: k.price,
+            Some(Live { id: local_id(&l.pack_id), pack_id: l.pack_id.clone(), version: l.version, title: k.title, by: k.by, blurb: k.blurb, pouch: k.pouch, color: k.color, price: k.price, free: k.free,
+                free_claimed: conn.query_row("SELECT EXISTS(SELECT 1 FROM shop_free_claims WHERE pack_id=?1)", [&l.pack_id], |r| r.get(0)).unwrap_or(true),
+                on_sale: crate::signed_config::active_shop(conn, chrono::Utc::now()).as_ref().and_then(|s| s.packs.iter().find(|p| p.id == local_id(&l.pack_id))).is_none_or(|p| p.on_sale),
                 items: k.items.into_iter().map(|i| LiveItem { key: i.key, name: i.name, rarity: i.rarity }).collect() })
         })
         .collect()
@@ -358,11 +366,24 @@ pub fn live_picture(db: &crate::Database, local: &str, key: &str) -> Option<Stri
 pub(crate) fn offer(conn: &rusqlite::Connection, local: &str) -> Option<(i64, bool)> {
     let now = chrono::Utc::now();
     let pack = live(conn, now.timestamp()).into_iter().find(|p| p.id == local)?;
+    if pack.free { return None; }
     let shop = crate::signed_config::active_shop(conn, now);
     let entry = shop.as_ref().and_then(|c| c.packs.iter().find(|p| p.id == local));
     let (low, high) = ((pack.price * crate::signed_config::SHOP_PRICE_MIN_PERCENT + 99) / 100, pack.price * crate::signed_config::SHOP_PRICE_MAX_PERCENT / 100);
     let price = entry.and_then(|p| p.price).filter(|p| (low..=high).contains(p)).unwrap_or(pack.price);
     Some((price, entry.is_none_or(|p| p.on_sale)))
+}
+
+/// A single free set per signed pack ID and library, including future versions. The claim and shelf write are atomic.
+pub fn claim_free(db: &mut crate::Database, local: &str) -> Result<()> {
+    let tx = db.conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let p = live(&tx, chrono::Utc::now().timestamp()).into_iter().find(|p| p.id == local && p.free && p.on_sale)
+        .ok_or_else(|| invalid("This free pack is not on sale right now."))?;
+    if p.free_claimed { return Err(invalid("You already received this free pack.")); }
+    tx.execute("INSERT INTO shop_free_claims(pack_id,claimed_at) VALUES(?1,?2)", rusqlite::params![p.pack_id, crate::db::now()])?;
+    add_sets(&tx, local, 1)?;
+    tx.commit()?;
+    Ok(())
 }
 
 /// Put `quantity` sealed sets of the pack's listed version on the shelf, inside the exchange's transaction. The shelf shows the
@@ -413,7 +434,7 @@ pub(crate) mod tests {
     pub fn sample(id: &str, version: u32) -> (ShopPack, Vec<Vec<u8>>) {
         let items: Vec<Item> = ["maple", "acorn", "chestnut"].iter().enumerate().map(|(i, k)| Item { key: (*k).into(), name: format!("Leaf {i}"), rarity: RARITIES[i].into(), weight: None }).collect();
         let pictures = (0..items.len()).map(|i| disc(64, 48, 100 + i as u8 * 40)).collect();
-        (ShopPack { pack_id: id.into(), version, title: "Autumn Walk".into(), by: "Peta".into(), blurb: "Leaves on the way home.".into(), pouch: "matte".into(), color: Some(PackColor::Rose), price: 12, items }, pictures)
+        (ShopPack { pack_id: id.into(), version, title: "Autumn Walk".into(), by: "Peta".into(), blurb: "Leaves on the way home.".into(), pouch: "matte".into(), color: Some(PackColor::Rose), free: false, price: 12, items }, pictures)
     }
     pub fn signed(id: &str, version: u32) -> Vec<u8> {
         let (pack, pictures) = sample(id, version);
@@ -528,6 +549,48 @@ pub(crate) mod tests {
     }
     fn buy(lib: &mut crate::Library, id: &str, n: i64, request: &str) -> Result<crate::scraps::Receipt> {
         lib.db_mut().scrap_trade(&crate::scraps::Trade { kind: crate::scraps::Kind::Pack, item_id: id.into(), quantity: n }, request)
+    }
+
+    #[test]
+    fn free_sets_are_once_per_library_across_versions_and_never_exchangeable() {
+        let (mut first, d1) = library();
+        let (mut second, d2) = library();
+        for version in [1, 2] {
+            let (mut p, pictures) = sample("welcome-autumn", version);
+            p.free = true; p.price = 0;
+            let bytes = build(&p, &pictures, "k1", &test_key()).unwrap();
+            assert!(verify(&bytes).unwrap().pack.free);
+            let entry = listed(&bytes, &p.pack_id, version, None);
+            for lib in [&mut first, &mut second] {
+                replace_listing(lib.db_mut(), std::slice::from_ref(&entry)).unwrap();
+                store_listed(lib, &entry, &bytes).unwrap();
+                assert!(!lib.db().scrap_status().unwrap().packs.iter().any(|p| p.id == "shop:welcome-autumn"));
+                assert!(buy(lib, "shop:welcome-autumn", 1, "free-trade").is_err());
+                if version == 1 { claim_free(lib.db_mut(), "shop:welcome-autumn").unwrap(); }
+                assert!(claim_free(lib.db_mut(), "shop:welcome-autumn").is_err());
+                assert_eq!(lib.db().conn.query_row("SELECT COUNT(*) FROM pack_items WHERE pack_id='shop:welcome-autumn'", [], |r| r.get::<_, i64>(0)).unwrap(), 3);
+                assert!(live(&lib.db().conn, chrono::Utc::now().timestamp())[0].free_claimed);
+            }
+        }
+        let _ = std::fs::remove_dir_all(d1); let _ = std::fs::remove_dir_all(d2);
+    }
+
+    #[test]
+    fn free_wire_requires_zero_or_omitted_price_and_a_failed_shelf_write_keeps_the_claim() {
+        let (mut p, pictures) = sample("free-autumn", 1); p.free = true;
+        assert!(validate(&p).is_err()); p.price = 0;
+        let mut json = serde_json::to_value(&p).unwrap(); json.as_object_mut().unwrap().remove("price");
+        validate(&serde_json::from_value::<ShopPack>(json).unwrap()).unwrap();
+        let bytes = build(&p, &pictures, "k1", &test_key()).unwrap();
+        let (mut lib, dir) = library(); let entry = listed(&bytes, &p.pack_id, 1, None);
+        replace_listing(lib.db_mut(), &[entry.clone()]).unwrap(); store_listed(&mut lib, &entry, &bytes).unwrap();
+        // A real SQLite failure after the claim insert rolls both changes back.
+        lib.db().conn.execute_batch("CREATE TRIGGER fail_free BEFORE INSERT ON packs BEGIN SELECT RAISE(ABORT,'full'); END;").unwrap();
+        assert!(claim_free(lib.db_mut(), "shop:free-autumn").is_err());
+        assert!(!live(&lib.db().conn, chrono::Utc::now().timestamp())[0].free_claimed);
+        lib.db().conn.execute_batch("DROP TRIGGER fail_free;").unwrap();
+        claim_free(lib.db_mut(), "shop:free-autumn").unwrap();
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]
