@@ -145,6 +145,17 @@ fn has_cutout_alpha(img: &RgbaImage) -> bool {
     clear / n > 0.01 && solid / n > 0.01
 }
 
+fn working_image(bytes: &[u8]) -> Result<(RgbaImage, &'static str)> {
+    let (full, ext) = decode_oriented(bytes)?;
+    let longest = full.width().max(full.height());
+    let work = if longest > WORK_EDGE {
+        let k = WORK_EDGE as f32 / longest as f32;
+        let (w,h)=((full.width() as f32*k).round().max(1.) as u32,(full.height() as f32*k).round().max(1.) as u32);
+        image::imageops::resize(&full,w,h,FilterType::Lanczos3)
+    } else { full };
+    Ok((work,ext))
+}
+
 impl Analysis {
     /// The same analysis at 1/`k` size, for live previews while a slider moves.
     pub fn downscaled(&self, k: usize) -> Analysis {
@@ -166,25 +177,15 @@ impl Analysis {
     }
 
     pub fn new(bytes: &[u8], segmenter: Option<&Segmenter>) -> Result<(Self, &'static str)> {
-        let (full, ext) = decode_oriented(bytes)?;
-        let longest = full.width().max(full.height());
-        let work_rgba = if longest > WORK_EDGE {
-            let k = WORK_EDGE as f32 / longest as f32;
-            let (w, h) = (((full.width() as f32 * k).round() as u32).max(1), ((full.height() as f32 * k).round() as u32).max(1));
-            image::imageops::resize(&full, w, h, FilterType::Lanczos3)
-        } else {
-            full
-        };
+        let (work_rgba, ext) = working_image(bytes)?;
         let (w, h) = (work_rgba.width() as usize, work_rgba.height() as usize);
         let had_alpha = has_cutout_alpha(&work_rgba);
 
         let (matte, work) = if had_alpha {
             let matte = work_rgba.pixels().map(|p| p.0[3] as f32 / 255.0).collect();
-            let mut opaque = work_rgba;
-            for p in opaque.pixels_mut() {
-                p.0[3] = 255;
-            }
-            (matte, opaque)
+            // Alpha is also source-color coverage. Geometry smoothing may expand the mask,
+            // but must never turn hidden RGB outside a transparent source into visible ink.
+            (matte, work_rgba)
         } else {
             let seg = segmenter.ok_or_else(|| Error::Model("Cutting out needs macOS 14 or later.".into()))?;
             let mut opaque = work_rgba;
@@ -333,9 +334,30 @@ impl Session {
 
 /// Mask -> border -> material -> finished sticker.
 pub fn render(analysis: &Analysis, edits: Option<&Edits>, params: &Params) -> Result<Rendered> {
-    let (w, h) = (analysis.w, analysis.h);
     let mask = analysis.mask(params.strength, params.smooth, edits);
 
+    render_mask(analysis, &mask, params)
+}
+
+/// Render a previously saved final mask without smoothing or applying brush edits a second time.
+pub fn render_saved_mask(original: &[u8], saved_mask: &[u8], params: &Params) -> Result<Rendered> {
+    let (mut work, _) = working_image(original)?;
+    if !has_cutout_alpha(&work) {
+        for p in work.pixels_mut() {
+            let a = p[3] as f32 / 255.;
+            for c in 0..3 { p[c] = (p[c] as f32*a+255.*(1.-a)).round() as u8; } p[3]=255;
+        }
+    }
+    let mask = crate::image_limits::decode(saved_mask, None, crate::image_limits::STORED)?.to_luma8();
+    if mask.dimensions() != work.dimensions() { return Err(Error::Invalid("saved cutout mask does not match the original image".into())); }
+    let (w,h)=(work.width() as usize,work.height() as usize);
+    let mask: Vec<f32> = mask.pixels().map(|p|p[0] as f32/255.).collect();
+    let analysis = Analysis { work, matte: mask.clone(), w, h, had_alpha: true };
+    render_mask(&analysis, &mask, params)
+}
+
+fn render_mask(analysis: &Analysis, mask: &[f32], params: &Params) -> Result<Rendered> {
+    let (w,h)=(analysis.w,analysis.h);
     // subject bounding box -> border width (a fraction of the subject's longer side)
     let (mut x0, mut y0, mut x1, mut y1) = (w, h, 0usize, 0usize);
     let mut area = 0usize;
@@ -357,7 +379,7 @@ pub fn render(analysis: &Analysis, edits: Option<&Edits>, params: &Params) -> Re
     let border_px = (sticker::border_fraction(&params.recipe) * long_side).max(2.0);
 
     // pad the canvas so the border has room to grow past the photo's edges
-    let pad = (border_px * 1.9).ceil() as usize + 4;
+    let pad = cutout::silhouette_growth_radius(border_px, params.smooth).ceil() as usize + 4;
     let (pw, ph) = (w + 2 * pad, h + 2 * pad);
     let mut padded_rgb = RgbaImage::new(pw as u32, ph as u32);
     for y in 0..ph {
@@ -373,7 +395,8 @@ pub fn render(analysis: &Analysis, edits: Option<&Edits>, params: &Params) -> Re
     }
 
     let sil = cutout::silhouette_smooth(&padded_mask, pw, ph, border_px, params.smooth);
-    let painted = sticker::render_sticker(&padded_rgb, &padded_mask, &sil, &params.recipe);
+    let ink_mask: Vec<f32> = padded_mask.iter().zip(padded_rgb.pixels()).map(|(m, p)| m.min(p[3] as f32 / 255.0)).collect();
+    let painted = sticker::render_sticker(&padded_rgb, &ink_mask, &sil, &params.recipe);
 
     // crop to the die-cut outline
     let (mut cx0, mut cy0, mut cx1, mut cy1) = (pw, ph, 0usize, 0usize);
@@ -394,7 +417,7 @@ pub fn render(analysis: &Analysis, edits: Option<&Edits>, params: &Params) -> Re
     let mut cutout_img = analysis.work.clone();
     let mut mask_img = image::GrayImage::new(w as u32, h as u32);
     for (i, p) in cutout_img.pixels_mut().enumerate() {
-        let a = (mask[i].clamp(0.0, 1.0) * 255.0).round() as u8;
+        let a = ((mask[i].clamp(0.0, 1.0) * 255.0).round() as u8).min(p[3]);
         p.0[3] = a;
         mask_img.put_pixel((i % w) as u32, (i / w) as u32, image::Luma([a]));
     }
@@ -649,6 +672,35 @@ mod tests {
         assert!(baked > 0, "the older strokes are still painted");
         while s.redo() {}
         assert_eq!(s.edits.data, before, "redoing everything gives the same result");
+    }
+
+    #[test]
+    fn transparent_source_colors_never_become_black_ink_when_geometry_is_smoothed() {
+        let mut img=RgbaImage::new(180,120);
+        for y in 0..120 { for x in 0..180 {
+            if ((x as f32-44.).powi(2)+(y as f32-60.).powi(2)<44_f32.powi(2)) || ((x as f32-132.).powi(2)+(y as f32-60.).powi(2)<44_f32.powi(2)) {
+                img.put_pixel(x,y,image::Rgba([210,100,80,255]));
+            }
+        } }
+        let bytes=png_fast(&img).unwrap();let session=Session::new(&bytes,None).unwrap();
+        for smooth in [0.7,1.0] {
+            let mut p=params("matte");p.smooth=smooth;
+            let r=session.render(&p).unwrap();let out=image::load_from_memory(&r.sticker_png).unwrap().to_rgba8();
+            assert!(out.pixels().filter(|p|p[3]>128).all(|p|p[0]>100),"hidden black RGB must never become subject ink");
+
+        }
+    }
+
+    #[test]
+    fn saved_masks_are_used_exactly_without_a_second_refinement() {
+        let mut img=RgbaImage::from_pixel(100,80,image::Rgba([210,100,80,255]));
+        img.put_pixel(0,0,image::Rgba([0,0,0,0]));
+        let original=png_fast(&img).unwrap();let mut mask=image::GrayImage::new(100,80);
+        for y in 20..60 { for x in 20..80 { mask.put_pixel(x,y,image::Luma([255])); } }
+        mask.put_pixel(80,40,image::Luma([125])); // a deliberate thin brush detail
+        let mut bytes=Vec::new();PngEncoder::new(&mut bytes).write_image(mask.as_raw(),100,80,ExtendedColorType::L8).unwrap();
+        let r=render_saved_mask(&original,&bytes,&params("matte")).unwrap();
+        assert_eq!(image::load_from_memory(&r.mask_png).unwrap().to_luma8(),mask);
     }
 
     #[test]

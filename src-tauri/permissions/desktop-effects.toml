@@ -47,7 +47,7 @@ commands.allow = ["arrival_status", "arrival_hover_status", "arrival_open"]
 [[permission]]
 identifier = "allow-poster-save"
 description = "Save a Collection month poster or a sticker share card as a PNG the person chooses a place for, or copy the card to the clipboard."
-commands.allow = ["poster_save", "share_copy"]
+commands.allow = ["poster_save", "share_copy", "sticker_export", "sticker_export_options"]
 
 [[permission]]
 identifier = "allow-window-vibrancy"

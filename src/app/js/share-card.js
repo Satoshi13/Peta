@@ -31,8 +31,10 @@ const ShareCard = (() => {
 
   /** `sheet` is "auto" or a #rrggbb colour. */
   async function render(e, sheet = "auto") {
-    const res = await resOf(e);
-    const [pic, paper, logo] = await Promise.all([Stk.load(res.url), Stk.load(A.pagePaper), Stk.load(A.logo).catch(() => null)]);
+    const png = await Bridge.invoke("sticker_export", { stickerId: e.id, cutout: false });
+    const url = URL.createObjectURL(new Blob([new Uint8Array(png)], { type: "image/png" }));
+    const [pic, paper, logo] = await Promise.all([Stk.load(url), Stk.load(A.pagePaper), Stk.load(A.logo).catch(() => null)]);
+    URL.revokeObjectURL(url);
     const c = Stk.cv(W, H), x = c.getContext("2d");
     const night = dark(sheet);
     x.fillStyle = sheet === "auto" ? tint(pic) : sheet; x.fillRect(0, 0, W, H);
@@ -49,12 +51,17 @@ const ShareCard = (() => {
       (e.material === "gold" ? ["#fff3c4", "#d9a93f", "#fff7d8", "#b8862b"] : ["#ff9ad5", "#9ad8ff", "#c4ffb0", "#ffe39a", "#d0a8ff"]).forEach((col, i, all) => g.addColorStop(i / (all.length - 1), col));
       sx.fillStyle = g; sx.fillRect(0, 0, f.w, f.h); face = s;
     }
-    x.save(); x.translate(W / 2, cy); x.rotate(tilt);
-    x.shadowColor = "rgba(40,28,10,.26)"; x.shadowBlur = 38; x.shadowOffsetY = 18;
-    x.drawImage(face, -f.w / 2, -f.h / 2, f.w, f.h);
-    x.shadowColor = "rgba(40,28,10,.18)"; x.shadowBlur = 6; x.shadowOffsetY = 3;
-    x.drawImage(face, -f.w / 2, -f.h / 2, f.w, f.h);
-    x.restore();
+    // Rasterize the transformed face once, then paint only its shadows in canvas coordinates.
+    // Antialiased edge pixels must not be composited twice along with the two shadows.
+    const layer = Stk.cv(W, H), lx = layer.getContext("2d");
+    lx.translate(W / 2, cy); lx.rotate(tilt); lx.drawImage(face, -f.w / 2, -f.h / 2, f.w, f.h);
+    const shadow = Stk.cv(W, H), sx = shadow.getContext("2d");
+    for (const [color, blur, y] of [["rgba(40,28,10,.26)", 38, 18], ["rgba(40,28,10,.18)", 6, 3]]) {
+      sx.shadowColor = color; sx.shadowBlur = blur; sx.shadowOffsetX = W * 2; sx.shadowOffsetY = y;
+      // The source is outside the canvas: only its shadow is painted, never a second face.
+      sx.drawImage(layer, -W * 2, 0);
+    }
+    x.drawImage(shadow, 0, 0); x.drawImage(layer, 0, 0);
 
     if (logo) {   // the ink wordmark, or a paper-white one on a dark sheet
       const lh = 34, lw = logo.naturalWidth * lh / logo.naturalHeight, m = Stk.cv(lw, lh), mx = m.getContext("2d");
@@ -73,12 +80,20 @@ const ShareCard = (() => {
     const preview = h("img.share-preview", { alt: `Share card for ${titleOf(e)}` });
     const copy = h("button.btn.share-copy", { type: "button", disabled: true }, "Copy image");
     const save = h("button.btn.paper.share-save", { type: "button", disabled: true }, "Save…");
-    let blob = null, drawing = 0;
+    let blob = null, drawing = 0, mode = "card";
+    const kind = h("select.share-kind", { "aria-label": "Picture type", on: { change: () => { mode = kind.value; draw(); } } },
+      h("option", { value: "card" }, "Share card"), h("option", { value: "sticker" }, "Sticker (transparent)"), h("option", { value: "cutout", disabled: true }, "Cut-out for a pack"));
+    const note = h("small.muted", "");
+    Bridge.invoke("sticker_export_options", { stickerId: e.id }).then(ok => {
+      kind.querySelector('[value="cutout"]').disabled = !ok;
+      if (!ok) note.textContent = "The original cut-out isn't available for this finished sticker.";
+    }).catch(() => { note.textContent = "The original cut-out isn't available for this sticker."; });
     const sheetOf = (id) => id.startsWith("#") ? id : (SHEETS.find(([k]) => k === id)?.[2] ?? "auto");
     const draw = async () => {
       const mine = ++drawing; copy.disabled = save.disabled = true; status.textContent = "";
       try {
-        const next = await render(e, sheetOf(chosen));
+        swatches.parentElement.hidden = mode !== "card"; preview.classList.toggle("transparent", mode !== "card");
+        const next = mode === "card" ? await render(e, sheetOf(chosen)) : new Blob([new Uint8Array(await Bridge.invoke("sticker_export", { stickerId: e.id, cutout: mode === "cutout" }))], { type: "image/png" });
         if (mine !== drawing) return;   // a newer colour was picked meanwhile
         blob = next; URL.revokeObjectURL(preview.src); preview.src = URL.createObjectURL(blob); copy.disabled = save.disabled = false;
       } catch (err) { console.error(err); if (mine === drawing) status.textContent = "Couldn't draw the picture. Close this and try again."; }
@@ -90,7 +105,7 @@ const ShareCard = (() => {
       h("label.share-swatch.custom", { title: "Any colour", "aria-pressed": String(chosen.startsWith("#")), data: { sheet: "custom" } }, custom));
     const dialog = h("dialog.share-dialog", { "aria-label": "Share sticker as a picture", on: { close: () => { drawing++; URL.revokeObjectURL(preview.src); dialog.remove(); Bridge.dialogOpen = false; } } },
       h("div.share-sheet", CloseButton("Close", { on: { click: () => dialog.close() } }, ".share-x"),
-        h("h2", "Share as a picture"), preview,
+        h("h2", "Share as a picture"), kind, preview, note,
         h("div.share-bg", h("small", "Background"), swatches),
         h("div.share-actions", copy, save), status,
         h("small.share-note", "A picture to post, not the sticker itself. It stays yours.")));
@@ -99,7 +114,7 @@ const ShareCard = (() => {
       catch (err) { status.textContent = userError(err); }
     });
     save.addEventListener("click", async () => {
-      try { const path = await Bridge.invoke("poster_save", { name: `Peta ${titleOf(e)}`, png: await bytes(blob) }); if (path) status.textContent = "Saved."; }
+      try { const path = await Bridge.invoke("poster_save", { name: `Peta ${titleOf(e)}${mode === "cutout" ? " cut-out" : ""}`, png: await bytes(blob) }); if (path) status.textContent = "Saved."; }
       catch (err) { status.textContent = userError(err); }
     });
     Bridge.dialogOpen = true; document.body.append(dialog); Dialogs.open(dialog);

@@ -1115,3 +1115,6 @@ dialog.share-dialog button.close-control.share-x:hover { background:rgba(60,45,2
 }
 
 .cs-rail .material-plate { color:var(--ink); }
+
+.share-kind { width:100%; min-height:36px; padding:6px 10px; border:1px solid #d4cbbb; border-radius:6px; color:#2b2a28; background:#fbf8f1; font:inherit; }
+.share-preview.transparent { object-fit:contain; background:repeating-conic-gradient(#eee9df 0% 25%,#fffaf3 0% 50%) 0 / 20px 20px; box-shadow:none; }

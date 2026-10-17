@@ -17,6 +17,7 @@ pub mod image_limits;
 pub mod library;
 pub mod materials;
 pub mod pack;
+pub mod picture_export;
 pub mod models;
 pub mod segment;
 pub mod scraps;

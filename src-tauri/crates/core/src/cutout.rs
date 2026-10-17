@@ -359,14 +359,20 @@ pub fn silhouette(subject: &[f32], w: usize, h: usize, border: f32) -> Silhouett
     silhouette_smooth(subject, w, h, border, 0.0)
 }
 
+/// Space needed by the intermediate dilation, before it is eroded back to the die-cut border.
+pub(crate) fn silhouette_growth_radius(border: f32, smooth: f32) -> f32 {
+    border * (1.9 + 0.8 * smooth.clamp(0.0, 1.0))
+}
+
 /// `smooth` 0..1 widens the gaps that are bridged and rounds the outline further.
 pub fn silhouette_smooth(subject: &[f32], w: usize, h: usize, border: f32, smooth: f32) -> Silhouette {
     let smooth = smooth.clamp(0.0, 1.0);
     let subject_set: Vec<bool> = subject.iter().map(|a| *a > 0.5).collect();
     let subject_dist = distance_to(&subject_set, w, h);
 
-    let bridge = border * (0.9 + 0.8 * smooth);
-    let grown: Vec<bool> = subject_dist.iter().map(|d| *d <= border + bridge).collect();
+    let growth = silhouette_growth_radius(border, smooth);
+    let bridge = growth - border;
+    let grown: Vec<bool> = subject_dist.iter().map(|d| *d <= growth).collect();
     let outside_dist = distance_to(&grown.iter().map(|g| !g).collect::<Vec<_>>(), w, h);
     let mut shape: Vec<bool> = outside_dist.iter().map(|d| *d > bridge).collect();
     for (s, sub) in shape.iter_mut().zip(&subject_set) {
@@ -573,6 +579,20 @@ mod tests {
         assert!(m[20 * w + 14] < 0.05, "erased");
         assert!(m[5 * w + 35] > 0.95, "restored");
         assert!(m[20 * w + 24] > 0.9, "rest untouched");
+    }
+
+    #[test]
+    fn intermediate_growth_has_background_on_every_side() {
+        for smooth in [0.7, 1.0] {
+            let border=28.;let growth=silhouette_growth_radius(border,smooth);
+            let pad=growth.ceil() as usize+4;let (w,h)=(120+pad*2,80+pad*2);
+            assert!(pad as f32>growth);
+            let mut subject=vec![0.;w*h];
+            for y in pad..h-pad { for x in pad..w-pad { subject[y*w+x]=1.; } }
+            let s=silhouette_smooth(&subject,w,h,border,smooth);
+            for x in 0..w { assert!(s.alpha[x]<0.01 && s.alpha[(h-1)*w+x]<0.01); }
+            for y in 0..h { assert!(s.alpha[y*w]<0.01 && s.alpha[y*w+w-1]<0.01); }
+        }
     }
 
     #[test]

@@ -344,7 +344,9 @@ pub fn run() {
             collection::profile_set_icon,
             collection::profile_set,
             collection::poster_save,
-            collection::share_copy
+            collection::share_copy,
+            collection::sticker_export,
+            collection::sticker_export_options
         ])
         .on_window_event(|window, event| {
             if window.label()==app_window::APP_LABEL && matches!(event,tauri::WindowEvent::Focused(true)){daily_supply::kickoff(window.app_handle());referee_access::kickoff(window.app_handle());friend_market::kickoff(window.app_handle());}

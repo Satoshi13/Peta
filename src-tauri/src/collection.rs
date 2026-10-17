@@ -147,9 +147,9 @@ pub fn profile_set(store: State<'_,Store>, display_name: String) -> Result<Profi
 const PNG_SIGNATURE: [u8; 8] = [0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A];
 const POSTER_MAX_BYTES: usize = 24 * 1024 * 1024;
 
-/// A file name for the save panel: letters, digits, spaces, `-` and `_` only, never empty.
+/// A safe file name for the save panel, retaining Japanese names and never allowing separators.
 fn poster_file_name(name: &str) -> String {
-    let stem: String = name.chars().filter(|c| c.is_ascii_alphanumeric() || matches!(c, ' ' | '-' | '_')).take(60).collect();
+    let stem: String = name.chars().filter(|c| c.is_alphanumeric() || matches!(c, ' ' | '-' | '_')).take(60).collect();
     let stem = stem.trim();
     format!("{}.png", if stem.is_empty() { "Peta poster" } else { stem })
 }
@@ -201,7 +201,7 @@ mod poster_tests {
         assert_eq!(poster_file_name("Peta October 2026"), "Peta October 2026.png");
         assert_eq!(poster_file_name("../../etc/passwd"), "etcpasswd.png");
         assert_eq!(poster_file_name("   "), "Peta poster.png");
-        assert_eq!(poster_file_name("日本語"), "Peta poster.png");
+        assert_eq!(poster_file_name("日本語"), "日本語.png");
         assert!(poster_file_name(&"a".repeat(200)).len() <= 64);
     }
 
@@ -210,4 +210,14 @@ mod poster_tests {
         assert!([0x89u8, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A, 0].starts_with(&PNG_SIGNATURE));
         assert!(!b"GIF89a".starts_with(&PNG_SIGNATURE));
     }
+}
+
+/// A picture only: the original photo never crosses the command boundary.
+#[tauri::command]
+pub async fn sticker_export(store: State<'_,Store>, sticker_id: String, cutout: bool) -> Result<tauri::ipc::Response, String> {
+    peta_core::picture_export::png(&store.lock(), &sticker_id, cutout).map(tauri::ipc::Response::new).map_err(|e| e.to_string())
+}
+#[tauri::command]
+pub async fn sticker_export_options(store: State<'_,Store>, sticker_id: String) -> Result<bool, String> {
+    Ok(peta_core::picture_export::can_cutout(&store.lock(), &sticker_id))
 }
